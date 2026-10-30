@@ -1,0 +1,70 @@
+services:
+  paperplane:
+    image: pdf_splitter-paperplane:latest
+    container_name: paperplane-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      PAPERPLANE_ENV: production
+      PAPERPLANE_DATA_DIR: /data
+      PAPERPLANE_HOST: 0.0.0.0
+      PAPERPLANE_PORT: "8501"
+      PAPERPLANE_REQUIRE_AUTH: "${PAPERPLANE_REQUIRE_AUTH:-false}"
+      PAPERPLANE_ALLOW_BILLING_SIMULATION: "false"
+      PAPERPLANE_SECURE_COOKIES: "${PAPERPLANE_SECURE_COOKIES:-true}"
+      PAPERPLANE_COOKIE_SAMESITE: "${PAPERPLANE_COOKIE_SAMESITE:-lax}"
+      PAPERPLANE_PUBLIC_URL: "https://${PAPERPLANE_DOMAIN:-localhost}"
+      PAPERPLANE_TRUSTED_HOSTS: "paperplane,localhost,127.0.0.1,${PAPERPLANE_DOMAIN:-localhost}"
+      PAPERPLANE_ALLOWED_ORIGINS: "http://localhost:8501,http://127.0.0.1:8501,https://${PAPERPLANE_DOMAIN:-localhost}"
+    volumes:
+      - paperplane_data:/data
+    expose:
+      - "8501"
+    ports:
+      # In production, bind only to localhost so traffic must traverse Nginx reverse proxy
+      - "127.0.0.1:8501:8501"
+    restart: always
+    tmpfs:
+      - /tmp:size=2g,mode=1777
+
+  paperplane-backup:
+    image: pdf_splitter-paperplane:latest
+    container_name: paperplane-backup
+    depends_on:
+      - paperplane
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      PAPERPLANE_ENV: production
+      PAPERPLANE_DATA_DIR: /data
+      PAPERPLANE_BACKUP_INTERVAL_SECONDS: "86400"
+      PAPERPLANE_BACKUP_RETENTION_DAYS: "14"
+    volumes:
+      - paperplane_data:/data
+    command: ["python", "scripts/backup_db.py", "--daemon"]
+    restart: always
+    tmpfs:
+      - /tmp:size=256m,mode=1777
+
+  nginx:
+    image: nginx:1.27-alpine
+    depends_on:
+      - paperplane
+    environment:
+      PAPERPLANE_DOMAIN: "${PAPERPLANE_DOMAIN:-localhost}"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./deploy/certs:/etc/nginx/certs:ro
+      - ./deploy/acme:/var/www/certbot:ro
+    restart: always
+
+volumes:
+  paperplane_data:

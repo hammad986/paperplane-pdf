@@ -1,0 +1,32 @@
+# Environments and Secrets
+.env
+.env.*
+deploy/certs/*.pem
+!deploy/certs/.gitkeep
+
+# Runtime Data and Databases
+runtime_data/
+runtime_jobs/
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
+*.db
+
+# Python Bytecode and Caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Git and Documentation / Local tests
+.git/
+.gitignore
+.dockerignore
+tests/
+redact_test*.pdf
+scratch/
+
+# Operating System Files
+.DS_Store
+Thumbs.db

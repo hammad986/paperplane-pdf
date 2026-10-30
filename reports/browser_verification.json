@@ -1,0 +1,252 @@
+{
+  "findings": [
+    {
+      "check": "topbar sign-in opens auth modal",
+      "pass": true
+    },
+    {
+      "check": "auth register tab is direct and visible",
+      "pass": true
+    },
+    {
+      "check": "settings is spacious and light-theme adaptive",
+      "pass": true,
+      "geometry": {
+        "width": 995.5147094726562,
+        "height": 746.041259765625,
+        "cssWidth": "1020px",
+        "viewport": 1440,
+        "flexBasis": "1020px"
+      },
+      "background": "rgb(255, 255, 255)"
+    },
+    {
+      "check": "settings tab icons are contained and do not overlap labels",
+      "pass": true,
+      "layout": [
+        {
+          "overlap": 0,
+          "iconWidth": 26,
+          "iconHeight": 26
+        },
+        {
+          "overlap": 0,
+          "iconWidth": 26,
+          "iconHeight": 26
+        },
+        {
+          "overlap": 0,
+          "iconWidth": 26,
+          "iconHeight": 26
+        },
+        {
+          "overlap": 0,
+          "iconWidth": 26,
+          "iconHeight": 26
+        },
+        {
+          "overlap": 0,
+          "iconWidth": 26,
+          "iconHeight": 26
+        }
+      ]
+    },
+    {
+      "check": "secondary buttons meet WCAG AA contrast in light mode",
+      "pass": true,
+      "contrast": {
+        "textVsButton": 15.891751618251874,
+        "text": "rgb(20, 32, 35)",
+        "buttonBackground": "rgb(248, 250, 249)",
+        "effectiveParentBackground": {
+          "rgb": [
+            255,
+            255,
+            255
+          ],
+          "alpha": 1
+        },
+        "textVsParent": 16.65848188514487
+      }
+    },
+    {
+      "check": "storage and privacy settings tab exists",
+      "pass": true
+    },
+    {
+      "check": "settings dark mode remains explicit",
+      "pass": true,
+      "background": "rgb(17, 24, 39)"
+    },
+    {
+      "check": "auth, pricing, and compression modals open in both themes",
+      "pass": true,
+      "modalStyles": {
+        "auth-light": {
+          "background": "rgb(255, 255, 255)",
+          "color": "rgb(20, 32, 35)"
+        },
+        "auth-dark": {
+          "background": "rgb(17, 24, 39)",
+          "color": "rgb(249, 250, 251)"
+        },
+        "pricing-light": {
+          "background": "rgb(255, 255, 255)",
+          "color": "rgb(20, 32, 35)"
+        },
+        "pricing-dark": {
+          "background": "rgb(17, 24, 39)",
+          "color": "rgb(249, 250, 251)"
+        },
+        "compress-light": {
+          "background": "rgb(255, 255, 255)",
+          "color": "rgb(20, 32, 35)"
+        },
+        "compress-dark": {
+          "background": "rgb(17, 24, 39)",
+          "color": "rgb(249, 250, 251)"
+        }
+      },
+      "screenshots": [
+        "auth-light.png",
+        "auth-dark.png",
+        "pricing-light.png",
+        "pricing-dark.png",
+        "compress-light.png",
+        "compress-dark.png"
+      ]
+    },
+    {
+      "check": "empty options panel is hidden",
+      "pass": true
+    },
+    {
+      "check": "AI chat has a contextual question field",
+      "pass": true
+    },
+    {
+      "check": "OCR exposes language options",
+      "pass": true
+    },
+    {
+      "check": "repair exposes recovery modes",
+      "pass": true
+    },
+    {
+      "check": "Office engine badge is visible",
+      "pass": true
+    },
+    {
+      "check": "PowerPoint exposes the LibreOffice engine badge",
+      "pass": true
+    },
+    {
+      "check": "PDF to JPG exposes DPI choices",
+      "pass": true
+    },
+    {
+      "check": "PDF/A exposes conformance choices",
+      "pass": true
+    },
+    {
+      "check": "AI Studio dark-mode chat bubble and input maintain contrast",
+      "pass": true,
+      "styles": {
+        "bubbleColor": "rgb(255, 255, 255)",
+        "bubbleBackground": "rgb(255, 75, 38)",
+        "bubbleContrast": 3.3405346043419835,
+        "inputColor": "rgb(240, 245, 244)",
+        "inputBackground": "rgb(26, 37, 40)",
+        "inputContrast": 14.241705499148837,
+        "placeholderColor": "rgb(112, 134, 132)",
+        "placeholderContrast": 4.056315543775535
+      }
+    },
+    {
+      "check": "AI Chat renders cited answer on-screen",
+      "pass": true
+    },
+    {
+      "check": "Summarize renders formatted briefing and actions",
+      "pass": true
+    },
+    {
+      "check": "forms-modal uses SVG header, circular close, and styled cancel controls",
+      "pass": true,
+      "controls": {
+        "iconText": "",
+        "svgCount": 1,
+        "close": {
+          "width": 31.2425537109375,
+          "height": 31.2425537109375,
+          "cssWidth": "32px",
+          "cssHeight": "32px",
+          "borderRadius": "50%",
+          "background": "rgba(0, 0, 0, 0)",
+          "display": "grid",
+          "svgCount": 1
+        },
+        "cancel": {
+          "background": "rgb(31, 41, 55)",
+          "color": "rgb(249, 250, 251)",
+          "border": "1px solid rgb(55, 65, 81)",
+          "borderRadius": "8px",
+          "display": "inline-flex"
+        }
+      }
+    },
+    {
+      "check": "compress-modal uses SVG header, circular close, and styled cancel controls",
+      "pass": true,
+      "controls": {
+        "iconText": "",
+        "svgCount": 1,
+        "close": {
+          "width": 30.72003173828125,
+          "height": 30.720001220703125,
+          "cssWidth": "32px",
+          "cssHeight": "32px",
+          "borderRadius": "50%",
+          "background": "rgba(0, 0, 0, 0)",
+          "display": "grid",
+          "svgCount": 1
+        },
+        "cancel": {
+          "background": "rgb(31, 41, 55)",
+          "color": "rgb(249, 250, 251)",
+          "border": "1px solid rgb(55, 65, 81)",
+          "borderRadius": "8px",
+          "display": "inline-flex"
+        }
+      }
+    },
+    {
+      "check": "repair-modal uses SVG header, circular close, and styled cancel controls",
+      "pass": true,
+      "controls": {
+        "iconText": "",
+        "svgCount": 1,
+        "close": {
+          "width": 31.2340087890625,
+          "height": 31.234039306640625,
+          "cssWidth": "32px",
+          "cssHeight": "32px",
+          "borderRadius": "50%",
+          "background": "rgba(0, 0, 0, 0)",
+          "display": "grid",
+          "svgCount": 1
+        },
+        "cancel": {
+          "background": "rgb(31, 41, 55)",
+          "color": "rgb(249, 250, 251)",
+          "border": "1px solid rgb(55, 65, 81)",
+          "borderRadius": "8px",
+          "display": "inline-flex"
+        }
+      }
+    }
+  ],
+  "console_messages": [],
+  "page_errors": [],
+  "failed_requests": []
+}

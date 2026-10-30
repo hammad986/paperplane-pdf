@@ -1,0 +1,19 @@
+{
+  "dry_run": true,
+  "checks": [
+    "PAPERPLANE_ENV=production",
+    "session and JWT secrets are configured without printing their values",
+    "production domain is deferred for dry-run",
+    "Docker Compose enforces production environment and 0.0.0.0 binding",
+    "port 80: available",
+    "port 443: available",
+    "DOCX -> PDF conversion integrity check scheduled inside the production container",
+    "GET /health -> status healthy",
+    "GET /sitemap.xml -> XML with at least 37 URLs",
+    "GET /robots.txt -> Allow: / and sitemap reference",
+    "GET /api/operations -> 37 operation definitions",
+    "DOCX -> PDF conversion inside the production container"
+  ],
+  "status": "passed",
+  "base_url": "http://127.0.0.1:8501"
+}

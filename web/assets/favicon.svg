@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="planeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff5c38"/>
+      <stop offset="100%" stop-color="#e0320f"/>
+    </linearGradient>
+    <linearGradient id="foldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff7a59"/>
+      <stop offset="100%" stop-color="#ff4b26"/>
+    </linearGradient>
+  </defs>
+  <!-- Background rounded squircle -->
+  <rect width="32" height="32" rx="7" fill="#0f172a"/>
+  <!-- Paperplane Origami Silhouette -->
+  <g transform="translate(1, 1)">
+    <!-- Main right wing -->
+    <path d="M5 15 L26 5 L18 25 L14 18 Z" fill="url(#planeGrad)"/>
+    <!-- Fold / Top body -->
+    <path d="M5 15 L26 5 L14 18 Z" fill="url(#foldGrad)"/>
+    <!-- Bottom keel -->
+    <path d="M14 18 L18 25 L16 19 Z" fill="#b91c1c"/>
+    <!-- Central crease line -->
+    <path d="M5 15 L26 5" stroke="rgba(255,255,255,0.4)" stroke-width="0.75" stroke-linecap="round"/>
+  </g>
+</svg>
