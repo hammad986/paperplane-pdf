@@ -3233,6 +3233,26 @@ async function convertFileInBrowser(file, operation = 'compress') {
     </div>
   </div>
 
+  <!-- Fixed Mobile Bottom Navigation Bar (Workspace Views) -->
+  <nav class="mobile-workspace-bar" aria-label="Mobile Navigation">
+    <button type="button" class="mobile-nav-btn active" id="mob-nav-home" onclick="switchWorkspaceView('home')">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>All Tools</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" id="mob-nav-desk" onclick="switchWorkspaceView('desk')">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      <span>Tool Desk</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" id="mob-nav-studio" onclick="switchWorkspaceView('studio')">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      <span>Studio</span>
+    </button>
+    <button type="button" class="mobile-nav-btn" id="mob-nav-ai" onclick="switchWorkspaceView('ai')">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a8 8 0 0 0-8 8c0 3.37 2.08 6.25 5 7.42V20a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-2.58c2.92-1.17 5-4.05 5-7.42a8 8 0 0 0-8-8z"/></svg>
+      <span>AI Docs</span>
+    </button>
+  </nav>
+
   <!-- Heavy PDF engines are deferred so the shell can paint before parsing them. -->
   <script src="/assets/pdf.min.js" defer></script>
   <script src="/assets/pdf-lib.min.js" defer></script>

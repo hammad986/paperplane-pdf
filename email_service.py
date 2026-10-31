@@ -17,7 +17,7 @@ RESEND_API_KEY = os.getenv("RESEND_API_KEY", "").strip()
 SMTP_HOST = os.getenv("SMTP_HOST", "")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER = os.getenv("SMTP_USER", "")
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "").replace(" ", "").strip()
 SMTP_FROM_EMAIL = os.getenv("SMTP_FROM_EMAIL", os.getenv("SMTP_USER", "noreply@paperplane-pdf.com"))
 SMTP_FROM_NAME = os.getenv("SMTP_FROM_NAME", "Paperplane PDF Security")
 SMTP_ENABLED = os.getenv("SMTP_ENABLED", "false").lower() in ("true", "1", "yes")
@@ -98,17 +98,18 @@ def _send_smtp(to_email: str, subject: str, html_body: str, text_body: str) -> b
 
 
 def _dispatch_email(to_email: str, subject: str, html_body: str, text_body: str) -> bool:
-    """Unified email dispatcher: supports Resend REST API, standard SMTP, and development preview logging."""
+    """Unified email dispatcher: supports standard SMTP with TLS, Resend REST API, and development preview logging."""
+    if SMTP_ENABLED and SMTP_HOST:
+        smtp_ok = _send_smtp(to_email, subject, html_body, text_body)
+        if smtp_ok:
+            return True
+        logger.warning("SMTP dispatch failed, checking Resend API fallback...")
+
     if RESEND_API_KEY:
         resend_ok = _send_resend_api(to_email, subject, html_body, text_body)
         if resend_ok:
             return True
         logger.warning("Resend API failed, checking SMTP fallback...")
-
-    if SMTP_ENABLED and SMTP_HOST:
-        smtp_ok = _send_smtp(to_email, subject, html_body, text_body)
-        if smtp_ok:
-            return True
 
     logger.info(
         "Email dispatch simulated for %s (Subject: %s)\n[DISPATCH PREVIEW]:\n%s",

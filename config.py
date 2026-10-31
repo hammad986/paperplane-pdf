@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).parent
@@ -88,6 +89,8 @@ TRUSTED_HOSTS = [
 ]
 if not TRUSTED_HOSTS:
     TRUSTED_HOSTS = ["127.0.0.1", "localhost", "testserver"]
+if "testserver" not in TRUSTED_HOSTS and ("pytest" in sys.modules or os.getenv("TESTING")):
+    TRUSTED_HOSTS.append("testserver")
 
 # Cryptographic Session & JWT Secrets with safe random fallback
 _configured_session_secret = (

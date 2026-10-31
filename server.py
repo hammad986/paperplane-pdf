@@ -1342,6 +1342,19 @@ def overlay(width: float, height: float, text: str, kind: str, options: dict) ->
 # Centralized Processing Dispatcher
 # ----------------------------------------------------------------------
 
+def _safe_int(val, default: int) -> int:
+    if val is None:
+        return default
+    try:
+        if isinstance(val, (int, float)):
+            return int(val)
+        val_str = str(val).strip()
+        first_token = val_str.split()[0]
+        return int(first_token)
+    except Exception:
+        return default
+
+
 def process(operation: str, inputs: list[Path], options: dict, output_dir: Path) -> Path:
     source = inputs[0] if inputs else None
     stem = source.stem.split("_", 1)[-1] if source else "document"
@@ -1377,9 +1390,9 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
     if operation == "compress":
         preset = options.get("preset", "balanced")
         target_size_kb = options.get("target_size_kb")
-        target_size_bytes = int(target_size_kb) * 1024 if target_size_kb else None
-        quality = int(options.get("quality", 65))
-        max_dpi = int(options.get("dpi", 150))
+        target_size_bytes = _safe_int(target_size_kb, 0) * 1024 if target_size_kb else None
+        quality = _safe_int(options.get("quality"), 65)
+        max_dpi = _safe_int(options.get("dpi"), 150)
         converters.compress_pdf(
             source, output,
             quality=quality, max_dpi=max_dpi,
@@ -4552,12 +4565,13 @@ def create_job_endpoint(
             paths.append(p)
 
         executor.submit(run_job, job_id, operation, paths, parsed_options, user_id)
+        download_suffix = f"?token={guest_token}" if guest_token else ""
         return {
             "job_id": job_id,
             "guest_token": guest_token,
             "status": "queued",
             "status_url": f"/api/jobs/{job_id}",
-            "download_url": f"/api/jobs/{job_id}/download"
+            "download_url": f"/api/jobs/{job_id}/download{download_suffix}"
         }
     except Exception as error:
         update_job(job_id, status="failed", error=str(error))
@@ -4573,17 +4587,18 @@ def download(
     token: str | None = None
 ):
     directory = JOBS / job_id
-    effective_token = token or request.cookies.get(f"guest_job_{job_id}") or request.headers.get("X-Guest-Token")
+    effective_token = token or request.query_params.get("token") or request.cookies.get(f"guest_job_{job_id}") or request.headers.get("X-Guest-Token")
     row = get_job(job_id, user_id=user_id, guest_token=effective_token)
     if not row:
         raise HTTPException(404, "Job not found.")
     if row["status"] != "completed":
         raise HTTPException(409, f"Job is {row['status']}.")
 
+    out_name = row["output_name"] or "document.pdf"
     if row["output_name"]:
         target = (directory / row["output_name"]).resolve()
         if target.is_relative_to(directory.resolve()) and target.exists():
-            return FileResponse(target, filename=row["output_name"])
+            return FileResponse(target, filename=out_name, media_type="application/octet-stream")
 
     # Fallback to any non-upload file
     if directory.exists():
@@ -4591,7 +4606,9 @@ def download(
         if candidates:
             cand = candidates[-1].resolve()
             if cand.is_relative_to(directory.resolve()) and cand.exists():
-                return FileResponse(cand, filename=cand.name)
+                return FileResponse(cand, filename=cand.name, media_type="application/octet-stream")
+
+    raise HTTPException(404, "Job output not found or expired.")
 
     raise HTTPException(404, "Job output not found or expired.")
 

@@ -387,8 +387,20 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true) {
     if (state.files.length && state.files[0].name.toLowerCase().endsWith('.pdf')) {
       loadDocumentIntoStudio(state.files[0]);
     } else {
-      loadDocumentIntoStudio('/assets/demo.pdf');
+      loadDocumentIntoStudio(null);
     }
+  }
+
+  // Update mobile bottom navigation bar active button
+  const mobMap = {
+    home: '#mob-nav-home',
+    desk: '#mob-nav-desk',
+    studio: '#mob-nav-studio',
+    ai: '#mob-nav-ai'
+  };
+  $$('.mobile-nav-btn').forEach(b => b.classList.remove('active'));
+  if (mobMap[view]) {
+    $(mobMap[view])?.classList.add('active');
   }
 }
 
@@ -1188,14 +1200,22 @@ async function loadDocumentIntoStudio(file) {
 
   try {
     let arrayBuffer;
-    if (typeof file === 'string') {
+    if (typeof file === 'string' && file !== '/assets/demo.pdf') {
       const resp = await fetch(file);
       arrayBuffer = await resp.arrayBuffer();
     } else if (file && (file instanceof Blob || file instanceof File)) {
       arrayBuffer = await file.arrayBuffer();
     } else {
-      const resp = await fetch('/assets/demo.pdf');
-      arrayBuffer = await resp.arrayBuffer();
+      // Create a clean, single blank A4 PDF page dynamically when no document is uploaded
+      if (typeof PDFLib !== 'undefined') {
+        const blankDoc = await PDFLib.PDFDocument.create();
+        blankDoc.addPage([595.28, 841.89]);
+        const pdfBytes = await blankDoc.save();
+        arrayBuffer = pdfBytes.buffer;
+      } else {
+        const resp = await fetch('/assets/demo.pdf');
+        arrayBuffer = await resp.arrayBuffer();
+      }
     }
     state.studio.pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     state.studio.totalCount = state.studio.pdfDoc.numPages;
@@ -1700,7 +1720,7 @@ if (moreToolsTrigger && moreToolsMenu) {
   };
 
   document.addEventListener('click', (e) => {
-    if (!moreToolsMenu.hidden && !moreToolsMenu.contains(e.target) && e.target !== moreToolsTrigger) {
+    if (!moreToolsMenu.hidden && !moreToolsMenu.contains(e.target) && !moreToolsTrigger.contains(e.target)) {
       moreToolsMenu.hidden = true;
       moreToolsTrigger.setAttribute('aria-expanded', 'false');
     }
@@ -1712,6 +1732,15 @@ if (moreToolsTrigger && moreToolsMenu) {
       moreToolsTrigger.setAttribute('aria-expanded', 'false');
     });
   });
+
+  // Action listeners for Studio "More Tools" items
+  $('#studio-compress-btn')?.addEventListener('click', () => { selectOperation('compress'); });
+  $('#studio-ocr-btn')?.addEventListener('click', () => { selectOperation('ocr_pdf'); });
+  $('#studio-repair-btn')?.addEventListener('click', () => { selectOperation('repair'); });
+  $('#studio-convert-btn')?.addEventListener('click', () => { selectOperation('pdf_to_word'); });
+  $('#studio-forms-btn')?.addEventListener('click', () => { selectOperation('flatten'); });
+  $('#studio-sign-btn')?.addEventListener('click', () => { selectOperation('sign'); });
+  $('#studio-security-btn')?.addEventListener('click', () => { selectOperation('protect'); });
 }
 
 function initStudioDrawingLayer() {
@@ -1734,12 +1763,36 @@ function renderOptions() {
   if (state.operation === 'merge') {
     fields += field('password', 'File Password (optional, if any file is encrypted)', 'password', 'Password for protected files');
   } else if (['split', 'remove'].includes(state.operation)) {
-    fields += field('pages', 'Pages or ranges to extract', 'text', '1-3, 5, 8-12');
+    if (state.operation === 'split') {
+      const pageCount = state.splitPageCount;
+      if (pageCount === 1) {
+        fields += '<div class="option-field option-field-wide" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; padding: 12px;"><strong style="color: #ef4444;">⚠️ Only 1 page found and can\'t be split</strong><p style="margin: 4px 0 0; font-size: 12px; color: var(--text-muted);">This document only contains 1 page. Splitting requires a multi-page document.</p></div>';
+      } else if (pageCount && pageCount > 1) {
+        fields += `<div class="option-field option-field-wide" style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; padding: 10px 14px; margin-bottom: 8px;"><strong style="color: #10b981;">📄 Document Analyzed: Total ${pageCount} pages found</strong></div>`;
+        fields += selectField('split_mode', 'Split Mode', [
+          { value: 'all_pages', label: `Extract all ${pageCount} pages into individual PDF files (ZIP)` },
+          { value: 'range', label: 'Extract custom page ranges' }
+        ]);
+        fields += `<div class="option-field option-field-wide" id="split-range-container"><label for="pages">Pages or ranges to extract</label><input id="pages" type="text" placeholder="e.g. 1-3, 5, 8-${pageCount}" value="1-${pageCount}"></div>`;
+      } else {
+        fields += field('pages', 'Pages or ranges to extract (e.g. 1-3, 5, 8-12)', 'text', '1-3, 5, 8-12');
+      }
+    } else {
+      fields += field('pages', 'Pages to remove (e.g. 2, 4-6)', 'text', '2, 4-6');
+    }
   } else if (state.operation === 'rotate') {
     fields += selectField('degrees', 'Rotation Angle', [90, 180, 270]);
   } else if (state.operation === 'compress') {
-    fields += selectField('quality', 'Compression Quality', ['65 (High Compression)', '75 (Balanced)', '85 (Low Loss)']);
-    fields += selectField('dpi', 'Max Image Resolution', ['150 DPI (Screen)', '72 DPI (Web)', '300 DPI (Print)']);
+    fields += selectField('quality', 'Compression Quality', [
+      { value: '65', label: '65 (High Compression)' },
+      { value: '75', label: '75 (Balanced)' },
+      { value: '85', label: '85 (Low Loss)' }
+    ]);
+    fields += selectField('dpi', 'Max Image Resolution', [
+      { value: '150', label: '150 DPI (Screen)' },
+      { value: '72', label: '72 DPI (Web)' },
+      { value: '300', label: '300 DPI (Print)' }
+    ]);
   } else if (state.operation === 'watermark') {
     fields += field('text', 'Watermark text (leave empty if image selected)', 'text', 'CONFIDENTIAL');
     fields += field('opacity', 'Opacity (0.05 to 0.8)', 'number', '0.2', '0.05', '0.8', '0.01');
@@ -1766,7 +1819,7 @@ function renderOptions() {
   } else if (state.operation === 'repair') {
     fields += selectField('mode', 'Repair Mode', ['automatic (Automatic Recovery)', 'validate_xref (Validate XRef Only)']);
   } else if (['word_to_pdf', 'excel_to_pdf', 'powerpoint_to_pdf'].includes(state.operation)) {
-    fields += '<div class="option-field option-field-wide option-engine-badge"><span class="engine-badge-dot"></span><div><strong>High-Fidelity LibreOffice Native</strong><small>Managed headless export with explicit Office PDF filters.</small></div></div>';
+    fields += '<div class="option-field option-field-wide option-engine-badge"><span class="engine-badge-dot"></span><div><strong>Paperplane High-Fidelity Engine</strong><small>Enterprise headless conversion with ISO-standard fidelity.</small></div></div>';
   } else if (state.operation === 'pdf_to_jpg') {
     fields += selectField('dpi', 'Export Resolution', ['150 (Balanced)', '300 (Print)', '72 (Web)']);
   } else if (state.operation === 'pdf_to_pdfa') {
@@ -1800,7 +1853,12 @@ function field(id, label, type, placeholder, min = '', max = '', step = '') {
 }
 
 function selectField(id, label, values) {
-  return `<div class="option-field"><label for="${id}">${label}</label><select id="${id}">${values.map(v => `<option value="${v}">${v}</option>`).join('')}</select></div>`;
+  return `<div class="option-field"><label for="${id}">${label}</label><select id="${id}">${values.map(v => {
+    if (typeof v === 'object' && v !== null) {
+      return `<option value="${v.value}">${v.label}</option>`;
+    }
+    return `<option value="${v}">${v}</option>`;
+  }).join('')}</select></div>`;
 }
 
 // ----------------------------------------------------------------------
@@ -1833,9 +1891,43 @@ window.removeFile = idx => {
 };
 
 function addFiles(newFiles) {
+  // Validate file types for specific tools
+  if (state.operation === 'png_to_pdf') {
+    const nonPng = newFiles.filter(f => !f.name.toLowerCase().endsWith('.png'));
+    if (nonPng.length > 0) {
+      showToast('Only PNG images (.png) are accepted for PNG to PDF. JPEG/JPG is not allowed.', 'warning', 4500);
+      newFiles = newFiles.filter(f => f.name.toLowerCase().endsWith('.png'));
+      if (!newFiles.length) return;
+    }
+  }
+
   state.files = [...state.files, ...newFiles];
   renderFiles();
   updateButton();
+
+  // If on Split tool, analyze page count dynamically
+  if (state.operation === 'split' && state.files.length && state.files[0].name.toLowerCase().endsWith('.pdf')) {
+    const targetFile = state.files[0];
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        if (typeof PDFLib !== 'undefined') {
+          const doc = await PDFLib.PDFDocument.load(e.target.result);
+          state.splitPageCount = doc.getPageCount();
+          renderOptions();
+          updateButton();
+        } else if (typeof pdfjsLib !== 'undefined') {
+          const doc = await pdfjsLib.getDocument({ data: e.target.result }).promise;
+          state.splitPageCount = doc.numPages;
+          renderOptions();
+          updateButton();
+        }
+      } catch (err) {
+        console.warn('Split page analysis error:', err);
+      }
+    };
+    reader.readAsArrayBuffer(targetFile);
+  }
 
   // If a PDF is uploaded, automatically prime the in-app studio
   if (state.files.length && state.files[0].name.toLowerCase().endsWith('.pdf')) {
@@ -1848,6 +1940,13 @@ function updateButton() {
   const isHtml = state.operation === 'html_to_pdf';
   const hasFiles = state.files.length > 0 || isHtml;
   const toolLabel = state.operations[state.operation]?.label || 'Run Tool';
+
+  if (state.operation === 'split' && state.splitPageCount === 1) {
+    btn.disabled = true;
+    btn.innerHTML = 'Only 1 page found (Cannot be split) <span>✕</span>';
+    return;
+  }
+
   btn.disabled = !hasFiles;
   btn.innerHTML = hasFiles
     ? `${toolLabel} Now <span>→</span>`
@@ -2072,9 +2171,41 @@ function showDownloadResult(job, downloadUrl) {
     content.innerHTML = '';
   }
   $('#result-title').textContent = 'Your document is ready!';
-  $('#result-meta').textContent = `${job.output_name} · ${formatBytes(job.output_size)}`;
-  $('#result-download-link').href = downloadUrl;
-  $('#result-download-link').hidden = false;
+  const outName = job.output_name || 'document.pdf';
+  $('#result-meta').textContent = `${outName} · ${formatBytes(job.output_size)}`;
+  const dlLink = $('#result-download-link');
+  dlLink.href = downloadUrl;
+  dlLink.setAttribute('download', outName);
+  dlLink.hidden = false;
+
+  // Direct fetch fallback onclick to guarantee zero download error across all browsers
+  dlLink.onclick = async (e) => {
+    e.preventDefault();
+    try {
+      showToast('Starting file download…', 'info', 2000);
+      const token = localStorage.getItem('paperplane_token');
+      const headers = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch(downloadUrl, { credentials: 'same-origin', headers });
+      if (!res.ok) throw new Error(`Download failed with status ${res.status}`);
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const tempA = document.createElement('a');
+      tempA.href = blobUrl;
+      tempA.download = outName;
+      document.body.appendChild(tempA);
+      tempA.click();
+      setTimeout(() => {
+        tempA.remove();
+        URL.revokeObjectURL(blobUrl);
+      }, 1000);
+      showToast('Download complete!', 'success', 2500);
+    } catch (err) {
+      console.warn('Blob download fallback triggered direct link navigation:', err);
+      window.location.href = downloadUrl;
+    }
+  };
+
   $('#result-view-studio-btn').hidden = false;
   result.hidden = false;
   showToast('Processing complete! Document ready for download.');

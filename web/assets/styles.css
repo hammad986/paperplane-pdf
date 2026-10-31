@@ -752,6 +752,17 @@ body.light-mode .topbar {
   gap: 8px;
   font-size: 13px;
   color: #9cb1b0;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.breadcrumb-trail span,
+.breadcrumb-trail b {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 body.light-mode .breadcrumb-trail {
@@ -784,6 +795,7 @@ body.light-mode .breadcrumb-trail b {
   border-radius: 9px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   gap: 3px;
+  flex-shrink: 0;
 }
 
 body.light-mode .workspace-tabs {
@@ -1540,12 +1552,13 @@ textarea::placeholder {
 .ai-result-card .btn-download { margin-top: 6px; }
 .chat-markdown { margin-top: 6px; }
 .ai-markdown-output {
-  font-size: 12px;
-  max-height: 220px;
+  font-size: 12.5px;
+  min-height: 140px;
+  max-height: 380px;
   overflow-y: auto;
   border: 1px solid var(--border-light);
   border-radius: 8px;
-  padding: 12px;
+  padding: 14px;
   background: var(--bg-panel-alt);
 }
 
@@ -2067,9 +2080,7 @@ textarea::placeholder {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  height: calc(100vh - 110px);
-  min-height: 520px;
-  overflow: hidden;
+  min-height: calc(100vh - 130px);
   position: relative;
 }
 
@@ -2201,8 +2212,13 @@ textarea::placeholder {
   grid-template-columns: 1fr 380px;
   gap: 16px;
   flex: 1;
-  min-height: 0;
-  overflow: hidden;
+  min-height: 520px;
+}
+
+@media (max-width: 900px) {
+  .ai-studio-container {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 /* Extraction Modal Styles */
@@ -2542,7 +2558,7 @@ textarea::placeholder {
   overflow: hidden;
   box-shadow: var(--shadow-sm);
   flex: 1;
-  min-height: 0;
+  min-height: 500px;
   position: relative;
 }
 
@@ -2555,12 +2571,14 @@ textarea::placeholder {
 }
 
 .ai-chat-messages {
-  flex: 1;
+  flex: 1 1 auto;
   overflow-y: auto;
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 14px;
+  min-height: 250px;
+  max-height: 520px;
 }
 
 .chat-bubble {
@@ -2606,8 +2624,10 @@ textarea::placeholder {
   gap: 10px;
   flex-shrink: 0;
   background: var(--bg-panel);
-  position: relative;
+  position: sticky;
+  bottom: 0;
   z-index: 10;
+  margin-top: auto;
 }
 
 .ai-chat-input {
@@ -4626,12 +4646,36 @@ body.dark-mode .btn-secondary-action {
 
 .editor-select {
   height: 32px;
-  background: #1f2937;
-  border: 1px solid #374151;
+  background: var(--bg-panel-alt);
+  border: 1px solid var(--border-light);
   border-radius: 6px;
-  color: #e5e7eb;
+  color: var(--text-main);
   padding: 0 8px;
   font-size: 12px;
+}
+
+body.light-mode .editor-select {
+  background: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #111827 !important;
+}
+
+body.light-mode .editor-select option {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+}
+
+body.dark-mode .editor-select,
+body:not(.light-mode) .editor-select {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
+body.dark-mode .editor-select option,
+body:not(.light-mode) .editor-select option {
+  background-color: #1f2937 !important;
+  color: #f9fafb !important;
 }
 
 .editor-toggle-group {
@@ -7093,6 +7137,71 @@ body:not(.dark-mode) .waitlist-email-input {
   font-size: 11.5px;
   padding: 4px 10px;
 }
+
+/* --------------------------------------------------------------------------
+   Mobile Workspace Bottom Navigation Bar
+   -------------------------------------------------------------------------- */
+.mobile-workspace-bar {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .mobile-workspace-bar {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 62px;
+    background: rgba(18, 26, 28, 0.96);
+    backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 1000;
+    justify-content: space-around;
+    align-items: center;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  body.light-mode .mobile-workspace-bar {
+    background: rgba(255, 255, 255, 0.96);
+    border-top: 1px solid #dfe7e1;
+  }
+
+  .mobile-nav-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 500;
+    gap: 4px;
+    cursor: pointer;
+    padding: 6px 12px;
+    transition: color 0.15s ease;
+  }
+
+  .mobile-nav-btn svg {
+    transition: transform 0.15s ease;
+  }
+
+  .mobile-nav-btn.active {
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .mobile-nav-btn.active svg {
+    transform: translateY(-2px);
+  }
+
+  .dynamic-workspace,
+  .main-content {
+    padding-bottom: 74px !important;
+  }
+}
+
 
 
 

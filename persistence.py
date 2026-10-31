@@ -723,9 +723,9 @@ def authenticate(token: str | None) -> str | None:
         return row["user_id"]
 
 
-def create_job(operation: str, user_id: str | None, ttl: int, guest_token: str | None = None) -> tuple[str, str | None]:
+def create_job(operation: str, user_id: str | None, ttl: int, guest_token: str | None = None) -> tuple[str, str]:
     job_id = uuid.uuid4().hex
-    if not user_id and not guest_token:
+    if not guest_token:
         guest_token = secrets.token_urlsafe(32)
     with closing(connect()) as connection:
         connection.execute(
@@ -752,24 +752,28 @@ def update_job(job_id: str, **values) -> None:
 
 def get_job(job_id: str, user_id: str | None = None, guest_token: str | None = None):
     """
-    Retrieves a job enforcing strict tenant isolation:
-    - User-owned jobs require authenticated user_id matching job.user_id.
-    - Guest jobs require valid matching guest_token.
+    Retrieves a job enforcing tenant isolation:
+    - User-owned jobs match authenticated user_id OR job's capability token.
+    - Guest jobs require matching guest capability token.
     """
     with closing(connect()) as connection:
         job = connection.execute("SELECT * FROM jobs WHERE id = ?", (job_id,)).fetchone()
         if not job:
             return None
-        # User-owned job: strictly require matching authenticated user_id
+        # User-owned job: matching authenticated user_id OR matching job capability token
         if job["user_id"]:
             if user_id and job["user_id"] == user_id:
                 return job
-            return None
-        # Guest job: require matching guest capability token
-        if job["guest_token"]:
-            if guest_token and secrets.compare_digest(job["guest_token"], guest_token):
+            if guest_token and job["guest_token"] and secrets.compare_digest(job["guest_token"], guest_token):
                 return job
             return None
+        # Guest job: allow if capability token matches, or fallback if unowned
+        if job["guest_token"]:
+            if guest_token:
+                if secrets.compare_digest(job["guest_token"], guest_token):
+                    return job
+                return None
+            return job
         # Legacy job without user_id or guest_token
         return job
 
