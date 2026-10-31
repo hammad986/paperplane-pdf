@@ -112,15 +112,17 @@ renew() {
 
 initial_issue() {
   install -d -m 755 "$WEBROOT" "$LETSENCRYPT_DIR" "$CERT_DIR"
+  install -d -m 755 "$WEBROOT/.well-known/acme-challenge"
   local challenge="paperplane-$(date +%s)"
+  printf '%s\n' "$challenge" > "$WEBROOT/.well-known/acme-challenge/$challenge"
   printf '%s\n' "$challenge" > "$WEBROOT/$challenge"
   TEMP_CONFIG="$(mktemp)"
   cat > "$TEMP_CONFIG" <<EOF
 events {}
 http {
   server {
-    listen 80;
-    server_name $DOMAIN;
+    listen 80 default_server;
+    server_name $DOMAIN 127.0.0.1 localhost;
     location /.well-known/acme-challenge/ { root /var/www/certbot; }
   }
 }

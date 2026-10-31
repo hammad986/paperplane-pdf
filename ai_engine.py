@@ -326,7 +326,31 @@ def test_agentrouter_connectivity() -> dict:
     try:
         req = urllib.request.Request(endpoint, data=body, headers=headers)
         with urllib.request.urlopen(req, timeout=15) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
+            raw_text = resp.read().decode("utf-8", errors="ignore")
+            try:
+                data = json.loads(raw_text)
+            except (json.JSONDecodeError, ValueError):
+                if "waf" in raw_text.lower() or "captcha" in raw_text.lower() or "alicdn" in raw_text.lower():
+                    return {
+                        "status": "provider_waf_challenge",
+                        "provider": "AgentRouter",
+                        "model": target_model,
+                        "endpoint": endpoint,
+                        "http_status": resp.status,
+                        "message": "AgentRouter upstream WAF/CAPTCHA challenge detected on server IP. Grounded local deterministic RAG is automatically handling requests.",
+                        "fallback_active": True,
+                        "fallback_provider": "Local Deterministic BM25 Engine"
+                    }
+                return {
+                    "status": "invalid_json_response",
+                    "provider": "AgentRouter",
+                    "model": target_model,
+                    "endpoint": endpoint,
+                    "http_status": resp.status,
+                    "error_details": raw_text[:200],
+                    "fallback_active": True,
+                    "fallback_provider": "Local Deterministic BM25 Engine"
+                }
             return {
                 "status": "inference_succeeded",
                 "provider": "AgentRouter",
@@ -376,6 +400,17 @@ def test_agentrouter_connectivity() -> dict:
             "endpoint": endpoint,
             "error_details": str(e),
             "advice": "Request timed out or host unreachable. Check network connectivity.",
+            "fallback_active": True,
+            "fallback_provider": "Local Deterministic BM25 Engine"
+        }
+    except Exception as e:
+        return {
+            "status": "connection_error",
+            "provider": "AgentRouter",
+            "model": target_model,
+            "endpoint": endpoint,
+            "error_details": str(e),
+            "advice": "Unexpected error while reaching AI provider. Local fallback engine active.",
             "fallback_active": True,
             "fallback_provider": "Local Deterministic BM25 Engine"
         }
