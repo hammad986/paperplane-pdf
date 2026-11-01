@@ -136,9 +136,9 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Cross-Origin-Opener-Policy"] = "same-origin-allow-popups"
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://accounts.google.com https://sdk.cashfree.com https://cdn.jsdelivr.net; "
+            "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://accounts.google.com https://sdk.cashfree.com https://cdn.jsdelivr.net; "
             "worker-src 'self' blob:; "
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; "
             "font-src 'self' https://fonts.gstatic.com data:; "
             "img-src 'self' data: blob: https:; "
             "connect-src 'self' https://accounts.google.com https://api.cashfree.com https://sandbox.cashfree.com; "
@@ -231,6 +231,8 @@ OPERATIONS = {
     "translate": {"label": "AI Translate", "category": "AI tools", "accept": "pdf", "implemented": True, "description": "Translate document content while preserving formatting."},
     "photo_resizer": {"label": "Exam Photo & Signature Resizer", "category": "Convert to PDF", "accept": "image", "implemented": True, "description": "Resize photos and signatures to exact dimensions and KB limits for SSC, UPSC, and state exams."},
     "mask_aadhaar": {"label": "Mask Aadhaar Card", "category": "Security", "accept": "pdf", "implemented": True, "description": "Automatically redact first 8 digits of Aadhaar numbers per UIDAI guidelines."},
+    "grayscale": {"label": "Convert to Grayscale", "category": "Organize PDF", "accept": "pdf", "implemented": True, "description": "Convert all PDF pages to grayscale to reduce file size and prepare for printing."},
+    "flatten": {"label": "Flatten PDF Forms", "category": "Edit & Sign", "accept": "pdf", "implemented": True, "description": "Bake all interactive form fields into the page content, creating a non-editable submission copy."},
 }
 
 
@@ -276,6 +278,8 @@ OPERATION_SLUGS = {
     "translate": "translate-pdf",
     "photo_resizer": "ssc-photo-resizer",
     "mask_aadhaar": "mask-aadhaar-card-online",
+    "grayscale": "convert-pdf-to-grayscale",
+    "flatten": "flatten-pdf",
 }
 SLUG_TO_OPERATION = {slug: operation for operation, slug in OPERATION_SLUGS.items()}
 
@@ -791,6 +795,32 @@ SEO_CATALOG = {
         ),
         "related": ("redact", "protect", "unlock", "compress"),
     },
+    "grayscale": {
+        "title": "Convert PDF to Grayscale Online Free | Paperplane",
+        "description": "Convert all PDF pages from color to grayscale online for free. Reduce file size and prepare for black-and-white printing.",
+        "heading": "Convert PDF to Grayscale",
+        "intro": "Remove all color from a PDF document and convert every page to pure grayscale — ideal for reducing file size and preparing documents for monochrome printing.",
+        "how_to": ("Upload your color PDF", "Click Convert to Grayscale", "Download your grayscale PDF"),
+        "faqs": (
+            ("Does grayscale conversion reduce file size?", "Yes. Removing color channel data typically reduces PDF size by 20-40% for image-heavy documents."),
+            ("Is the conversion reversible?", "No. Once converted to grayscale, the original color data is not recoverable from the output file."),
+            ("Does it work on scanned PDFs?", "Yes. Scanned image PDFs are fully supported and every embedded image is converted."),
+        ),
+        "related": ("compress", "remove", "rotate", "merge"),
+    },
+    "flatten": {
+        "title": "Flatten PDF Forms Online Free | Paperplane",
+        "description": "Flatten interactive PDF form fields into the page content online for free. Create a non-editable final submission copy.",
+        "heading": "Flatten PDF Form Fields",
+        "intro": "Permanently bake all AcroForm field appearances into the page — essential for final submission, archiving, and preventing further editing.",
+        "how_to": ("Upload your fillable PDF form", "Click Flatten Form Fields", "Download the permanently flattened PDF"),
+        "faqs": (
+            ("What does flattening a PDF do?", "Flattening converts interactive field widgets into static page content. The PDF looks the same but fields can no longer be typed in."),
+            ("Can I unflatten a flattened PDF?", "No. Flattening is permanent and irreversible. Keep the original fillable PDF before flattening."),
+            ("Does flattening reduce file size?", "Usually yes, as interactive form metadata and widget streams are removed."),
+        ),
+        "related": ("forms", "protect", "compress", "sign"),
+    },
 }
 
 # Category landing pages are useful entry points for search visitors, but are
@@ -843,6 +873,30 @@ SEO_LANDING_PAGES = {
         "category": "Native Client",
         "intro": "Experience zero-latency document viewing and editing for PDF, Word (.docx), and Excel (.xlsx) computed 100% locally on your machine.",
         "related": ("merge", "split", "compress", "edit"),
+    },
+    "privacy": {
+        "title": "Privacy Policy & Zero-Persistence Architecture | Paperplane",
+        "description": "Read the Paperplane PDF privacy policy. Learn about our in-memory processing sandbox, immediate auto-purge, and client-side privacy mode.",
+        "heading": "Paperplane Privacy Policy & Data Protection",
+        "category": "Compliance",
+        "intro": "Your files are your property. Paperplane operates with zero permanent document storage: uploaded files are processed in ephemeral memory sandboxes and purged immediately upon download.",
+        "related": ("protect", "unlock", "redact", "mask_aadhaar"),
+    },
+    "terms": {
+        "title": "Terms of Service & Usage Policy | Paperplane",
+        "description": "Paperplane PDF Terms of Service, acceptable use policy, API service terms, and billing conditions.",
+        "heading": "Terms of Service",
+        "category": "Compliance",
+        "intro": "Review the conditions governing use of Paperplane PDF platform, API access, and enterprise billing.",
+        "related": ("protect", "sign", "forms", "unlock"),
+    },
+    "reset-password": {
+        "title": "Reset Account Password | Paperplane",
+        "description": "Reset your Paperplane PDF account password securely with your verification token.",
+        "heading": "Reset Account Password",
+        "category": "Account Security",
+        "intro": "Enter your new password to regain access to your Paperplane account and cloud document storage.",
+        "related": ("protect", "unlock", "sign", "merge"),
     },
 }
 
@@ -1076,6 +1130,28 @@ def render_web_page(request: Request, operation: str | None = None, landing_slug
             f'<span class="tool-desk-breadcrumb" id="desk-breadcrumb-label">{html_escape(info["category"])} / {html_escape(info["label"])}</span>',
             1,
         )
+    elif landing_slug in ("privacy", "terms"):
+        html = html.replace(
+            '<div id="view-home" class="home-container">',
+            '<div id="view-home" class="home-container" hidden>',
+            1,
+        )
+        html = html.replace(
+            '<div id="view-legal" class="full-page-view legal-full-view" hidden>',
+            '<div id="view-legal" class="full-page-view legal-full-view">',
+            1,
+        )
+        if landing_slug == "terms":
+            html = html.replace('id="full-privacy-pane"', 'id="full-privacy-pane" hidden', 1)
+            html = html.replace('id="full-terms-pane" hidden', 'id="full-terms-pane"', 1)
+            html = html.replace('id="full-legal-tab-privacy" class="legal-nav-tab active"', 'id="full-legal-tab-privacy" class="legal-nav-tab"', 1)
+            html = html.replace('id="full-legal-tab-terms" class="legal-nav-tab"', 'id="full-legal-tab-terms" class="legal-nav-tab active"', 1)
+    elif landing_slug == "reset-password":
+        html = html.replace(
+            'id="reset-password-modal" class="modal-backdrop" hidden',
+            'id="reset-password-modal" class="modal-backdrop"',
+            1,
+        )
     return html
 
 
@@ -1084,6 +1160,7 @@ def render_web_page(request: Request, operation: str | None = None, landing_slug
 # ----------------------------------------------------------------------
 
 def current_user(
+    request: Request = None,
     authorization: str | None = Header(default=None),
     x_api_key: str | None = Header(default=None, alias="X-API-Key")
 ) -> str | None:
@@ -1092,6 +1169,8 @@ def current_user(
         token = x_api_key.strip()
     elif authorization and authorization.lower().startswith("bearer "):
         token = authorization[7:].strip()
+    elif request and request.cookies.get("paperplane_token"):
+        token = request.cookies.get("paperplane_token").strip()
 
     user_id = authenticate(token) if token else None
 
@@ -1352,13 +1431,21 @@ def parse_pages(spec: str, total: int) -> list[int]:
         item = item.strip()
         if not item:
             continue
-        if "-" in item:
-            start, end = (int(value.strip()) for value in item.split("-", 1))
-            if start > end:
-                raise ValueError(f"Invalid page range '{item}': start must not exceed end.")
-            values = range(start, end + 1)
-        else:
-            values = [int(item)]
+        try:
+            if "-" in item:
+                parts = item.split("-", 1)
+                if not parts[0].strip() or not parts[1].strip():
+                    raise ValueError(f"Invalid range '{item}'. Specify format like '1-3'.")
+                start, end = int(parts[0].strip()), int(parts[1].strip())
+                if start > end:
+                    raise ValueError(f"Invalid page range '{item}': start must not exceed end.")
+                values = range(start, end + 1)
+            else:
+                values = [int(item)]
+        except ValueError as e:
+            if "Invalid" in str(e):
+                raise
+            raise ValueError(f"Invalid page specification '{item}'. Use numbers or ranges like '1-3, 5'.") from None
         for page in values:
             if page < 1 or page > total:
                 raise ValueError(f"Page {page} is outside 1-{total}.")
@@ -1477,6 +1564,14 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
 
     if operation == "mask_aadhaar":
         return security_forms_engine.mask_aadhaar_pdf(source, output)
+
+    if operation == "grayscale":
+        converters.convert_pdf_to_grayscale(source, output)
+        return output
+
+    if operation == "flatten":
+        security_forms_engine.flatten_pdf_forms(source, output)
+        return output
 
     if operation == "ocr":
         language = options.get("language", "eng")
@@ -1677,7 +1772,7 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
                 raise ValueError("Please provide watermark text or select an image.")
             label = text
         else:
-            label = options.get("text", "CONFIDENTIAL") if operation == "watermark" else str(number)
+            label = options.get("text", "CONFIDENTIAL") if operation == "watermark" else ""
 
         for number, page in enumerate(reader.pages, 1):
             lbl = label if operation == "watermark" else str(number)
@@ -1853,7 +1948,7 @@ def health():
     }
 
 
-@app.post("/api/system/cleanup")
+@app.post("/api/system/cleanup", include_in_schema=False)
 def trigger_system_cleanup(request: Request, user_id: str | None = Depends(current_user)):
     """Queue an administrative cleanup without doing disk work in the request."""
     if not user_id:
@@ -2855,7 +2950,7 @@ async def cashfree_webhook(request: Request):
     return {"status": "OK"}
 
 
-@app.post("/api/billing/simulate-pro")
+@app.post("/api/billing/simulate-pro", include_in_schema=False)
 def simulate_pro(user_id: str = Depends(current_user)):
     """Developer test endpoint to toggle Pro Power User tier."""
     if ENVIRONMENT != "development" or not ALLOW_BILLING_SIMULATION:
@@ -2866,7 +2961,7 @@ def simulate_pro(user_id: str = Depends(current_user)):
     return {"status": "success", "tier": "pro", "message": "Upgraded to Pro Power User Tier ($3/mo)!"}
 
 
-@app.post("/api/billing/simulate-dev")
+@app.post("/api/billing/simulate-dev", include_in_schema=False)
 def simulate_dev(user_id: str = Depends(current_user)):
     """Developer test endpoint to toggle Developer API tier."""
     if ENVIRONMENT != "development" or not ALLOW_BILLING_SIMULATION:
@@ -2877,7 +2972,7 @@ def simulate_dev(user_id: str = Depends(current_user)):
     return {"status": "success", "tier": "developer", "message": "Upgraded to Developer API Tier ($9/mo)!"}
 
 
-@app.post("/api/billing/simulate-free")
+@app.post("/api/billing/simulate-free", include_in_schema=False)
 def simulate_free(user_id: str = Depends(current_user)):
     """Developer test endpoint to reset to Free tier."""
     if ENVIRONMENT != "development" or not ALLOW_BILLING_SIMULATION:
@@ -3666,6 +3761,8 @@ async def studio_documents_split(
             media_type="application/zip",
             headers={"Content-Disposition": 'attachment; filename="split_documents.zip"'}
         )
+    except ValueError as err:
+        raise HTTPException(400, str(err)) from err
     except HTTPException:
         raise
     except Exception as err:
@@ -4576,10 +4673,16 @@ def cloud_sync(
         filename = "cloud_document.pdf"
         if raw_bytes.startswith(b"%PDF-"):
             filename = "cloud_imported.pdf"
+            content_type = "application/pdf"
+        elif raw_bytes.startswith(b"\x89PNG\r\n\x1a\n") or (content_type and "png" in content_type):
+            filename = "cloud_imported.png"
+            content_type = "image/png"
+        elif raw_bytes.startswith(b"\xff\xd8\xff") or (content_type and "jpeg" in content_type):
+            filename = "cloud_imported.jpg"
+            content_type = "image/jpeg"
         elif raw_bytes.startswith(b"PK\x03\x04"):
             filename = "cloud_imported.docx"
-        elif raw_bytes.startswith(b"\xff\xd8\xff"):
-            filename = "cloud_imported.jpg"
+            content_type = content_type or "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
         b64_data = base64.b64encode(raw_bytes).decode("utf-8")
         return {
@@ -5174,17 +5277,17 @@ def download_page(request: Request):
 
 @app.get("/privacy", response_class=HTMLResponse)
 def privacy_route(request: Request):
-    return render_web_page(request)
+    return render_web_page(request, landing_slug="privacy")
 
 
 @app.get("/terms", response_class=HTMLResponse)
 def terms_route(request: Request):
-    return render_web_page(request)
+    return render_web_page(request, landing_slug="terms")
 
 
 @app.get("/reset-password", response_class=HTMLResponse)
 def reset_password_page(request: Request):
-    return render_web_page(request)
+    return render_web_page(request, landing_slug="reset-password")
 
 
 @app.get("/docs", include_in_schema=False)

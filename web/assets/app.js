@@ -38,14 +38,14 @@ function escapeHtml(value) {
 
 // Category Grouping for Crisp Navigation
 const CATEGORY_MAP = {
-  'Organize': ['merge', 'split', 'remove', 'rotate', 'organize', 'scan_pdf'],
+  'Organize': ['merge', 'split', 'remove', 'rotate', 'organize', 'scan_pdf', 'grayscale'],
   'Convert': [
     'word_to_pdf', 'excel_to_pdf', 'powerpoint_to_pdf', 'jpg_to_pdf', 'html_to_pdf',
     'pdf_to_word', 'pdf_to_excel', 'pdf_to_powerpoint', 'pdf_to_jpg', 'pdf_to_pdfa',
-    'pdf_to_text', 'pdf_to_markdown'
+    'pdf_to_text', 'pdf_to_markdown', 'photo_resizer'
   ],
-  'Edit': ['edit', 'annotate', 'sign', 'watermark', 'page_numbers', 'redact', 'crop'],
-  'AI': ['ai_chat', 'ai_extract', 'summarize', 'translate', 'protect', 'unlock', 'compress', 'repair', 'ocr', 'compare', 'forms', 'metadata'],
+  'Edit': ['edit', 'annotate', 'sign', 'watermark', 'page_numbers', 'redact', 'crop', 'flatten'],
+  'AI': ['ai_chat', 'ai_extract', 'summarize', 'translate', 'protect', 'unlock', 'compress', 'repair', 'ocr', 'compare', 'forms', 'metadata', 'mask_aadhaar'],
   'All': [] // Dynamically holds all 37
 };
 
@@ -88,7 +88,11 @@ const TOOL_SLUGS = {
   ai_chat: 'ai-pdf-chat',
   ai_extract: 'extract-pdf-data',
   summarize: 'summarize-pdf',
-  translate: 'translate-pdf'
+  translate: 'translate-pdf',
+  photo_resizer: 'ssc-photo-resizer',
+  mask_aadhaar: 'mask-aadhaar-card-online',
+  grayscale: 'convert-pdf-to-grayscale',
+  flatten: 'flatten-pdf'
 };
 const OPERATION_BY_SLUG = Object.fromEntries(
   Object.entries(TOOL_SLUGS).map(([operation, slug]) => [slug, operation])
@@ -487,9 +491,9 @@ const HOME_CATEGORIES = [
   {
     id: 'organize',
     title: 'Organize PDF',
-    badge: '6 Tools',
+    badge: '7 Tools',
     iconColor: '#ff4b26',
-    ops: ['merge', 'split', 'remove', 'rotate', 'organize', 'scan_pdf']
+    ops: ['merge', 'split', 'remove', 'rotate', 'organize', 'scan_pdf', 'grayscale']
   },
   {
     id: 'optimize',
@@ -501,27 +505,27 @@ const HOME_CATEGORIES = [
   {
     id: 'convert',
     title: 'Convert PDF',
-    badge: '12 Tools',
+    badge: '13 Tools',
     iconColor: '#3b82f6',
     ops: [
       'pdf_to_word', 'word_to_pdf', 'pdf_to_excel', 'excel_to_pdf',
       'pdf_to_powerpoint', 'powerpoint_to_pdf', 'pdf_to_jpg', 'jpg_to_pdf',
-      'html_to_pdf', 'pdf_to_pdfa', 'pdf_to_text', 'pdf_to_markdown'
+      'html_to_pdf', 'pdf_to_pdfa', 'pdf_to_text', 'pdf_to_markdown', 'photo_resizer'
     ]
   },
   {
     id: 'edit',
     title: 'Edit PDF',
-    badge: '7 Tools',
+    badge: '8 Tools',
     iconColor: '#f59e0b',
-    ops: ['rotate', 'page_numbers', 'watermark', 'crop', 'compare', 'edit', 'annotate']
+    ops: ['rotate', 'page_numbers', 'watermark', 'crop', 'compare', 'edit', 'annotate', 'flatten']
   },
   {
     id: 'security',
     title: 'Sign & Protect',
-    badge: '5 Tools',
+    badge: '6 Tools',
     iconColor: '#8b5cf6',
-    ops: ['protect', 'unlock', 'sign', 'forms', 'redact']
+    ops: ['protect', 'unlock', 'sign', 'forms', 'redact', 'mask_aadhaar']
   },
   {
     id: 'ai',
@@ -551,7 +555,11 @@ function getToolIconSvg(opId) {
     watermark: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m4.93 4.93 14.14 14.14"></path></svg>`,
     ai_chat: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>`,
     summarize: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>`,
-    translate: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"></path><path d="m4 14 6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="m22 22-5-10-5 10"></path><path d="M14 18h6"></path></svg>`
+    translate: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"></path><path d="m4 14 6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="m22 22-5-10-5 10"></path><path d="M14 18h6"></path></svg>`,
+    photo_resizer: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`,
+    mask_aadhaar: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>`,
+    grayscale: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a10 10 0 0 1 0 20z" fill="currentColor"></path></svg>`,
+    flatten: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="9" y1="9" x2="15" y2="15"></line><line x1="15" y1="9" x2="9" y2="15"></line></svg>`
   };
   return icons[opId] || `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>`;
 }
@@ -1849,6 +1857,10 @@ function renderOptions() {
     ]);
   } else if (state.operation === 'mask_aadhaar') {
     fields += '<div class="option-field option-field-wide" style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; padding: 12px;"><strong style="color: #10b981;">🛡️ UIDAI Compliant 1-Click Masking</strong><p style="margin: 4px 0 0; font-size: 12px; color: var(--text-muted);">Paperplane automatically searches for 12-digit Aadhaar numbers and permanently black-boxes or redacts the first 8 digits (XXXX-XXXX-1234) in memory.</p></div>';
+  } else if (state.operation === 'grayscale') {
+    fields += '<div class="option-field option-field-wide" style="background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; padding: 12px;"><strong style="color: #3b82f6;">🖤 High-Fidelity Monochrome Conversion</strong><p style="margin: 4px 0 0; font-size: 12px; color: var(--text-muted);">Removes all color channels and converts each page to pure 8-bit grayscale for reduced file size and crisp black-and-white printing.</p></div>';
+  } else if (state.operation === 'flatten') {
+    fields += '<div class="option-field option-field-wide" style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; padding: 12px;"><strong style="color: #f59e0b;">📑 Permanent Form Flattening</strong><p style="margin: 4px 0 0; font-size: 12px; color: var(--text-muted);">Permanently bakes interactive AcroForm field values directly into the page content, preventing further modification in final submissions.</p></div>';
   } else if (state.operation === 'watermark') {
     fields += field('text', 'Watermark text (leave empty if image selected)', 'text', 'CONFIDENTIAL');
     fields += field('opacity', 'Opacity (0.05 to 0.8)', 'number', '0.2', '0.05', '0.8', '0.01');
@@ -2043,7 +2055,7 @@ $('#browse').onclick = () => {
 const dropzoneEl = $('#dropzone');
 if (dropzoneEl) {
   dropzoneEl.onclick = (e) => {
-    if (e.target.closest('#browse')) return;
+    if (e.target.closest('#browse') || e.target.closest('#cloud-drop-btn') || e.target.closest('.cloud-import-btn')) return;
     if (HEAVY_TOOLS.has(state.operation) && !state.user && !state.token) {
       showToast('This advanced AI / conversion tool requires a free account. Please sign in or register.', 'info');
       openAuthModal('', 'login');
@@ -2095,12 +2107,14 @@ function dataUrlToFile(dataUrl, filename) {
   return new File([u8arr], filename, { type: mime });
 }
 
-$('#topbar-cloud-btn').onclick = () => {
+$('#topbar-cloud-btn').onclick = (e) => {
+  if (e) e.stopPropagation();
   $('#cloud-modal').hidden = false;
   $('#cloud-url').value = '';
 };
 
-$('#cloud-drop-btn').onclick = () => {
+$('#cloud-drop-btn').onclick = (e) => {
+  if (e) e.stopPropagation();
   $('#cloud-modal').hidden = false;
   $('#cloud-url').value = '';
 };
@@ -4258,6 +4272,9 @@ function handleInitialRouting() {
     switchWorkspaceView('legal', 'terms', false);
   } else if (path.includes('privacy') || urlParams.get('legal') === 'privacy' || urlParams.get('view') === 'legal') {
     switchWorkspaceView('legal', 'privacy', false);
+  } else if (path.includes('reset-password')) {
+    checkPasswordResetUrl();
+    switchWorkspaceView('home', null, false);
   } else if (path.includes('developers') || path.includes('api-docs') || path.includes('/docs/api') || urlParams.get('view') === 'api-docs') {
     switchWorkspaceView('api-docs', null, false);
   } else if (path.includes('download') || path.includes('apps') || urlParams.get('view') === 'download') {

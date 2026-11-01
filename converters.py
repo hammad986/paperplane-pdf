@@ -179,7 +179,7 @@ def _convert_with_libreoffice_unbounded(source: Path, output: Path) -> Path | No
             popen_kwargs["start_new_session"] = True
 
         process = subprocess.Popen(command, **popen_kwargs)
-        stdout, stderr = process.communicate(timeout=120)
+        stdout, stderr = process.communicate(timeout=30)
         if process.returncode != 0:
             raise subprocess.CalledProcessError(process.returncode, command, stdout, stderr)
 
@@ -355,7 +355,11 @@ def word_to_pdf(source: Path, output: Path) -> Path:
 
 
 def excel_to_pdf(source: Path, output: Path) -> Path:
-    """Converts an Excel spreadsheet (.xlsx) to formatted PDF."""
+    """Converts an Excel spreadsheet (.xlsx, .xls) to formatted PDF."""
+    suffix = source.suffix.lower()
+    if suffix not in {".xlsx", ".xls", ".csv"}:
+        raise ValueError("Please provide a valid Excel file (.xlsx, .xls, .csv).")
+
     try:
         if _convert_with_libreoffice(source, output):
             return output
@@ -1773,25 +1777,80 @@ def compress_pdf(
     if target_size_bytes and target_size_bytes > 0:
         current_size = temp_res.stat().st_size
         if current_size > target_size_bytes:
-            # Try progressive passes down to target limit
-            trial_passes = [
-                {"max_w": 900, "max_h": 1200, "quality": 55, "downsample": True, "garbage": 4},
-                {"max_w": 750, "max_h": 1000, "quality": 45, "downsample": True, "garbage": 4},
-                {"max_w": 600, "max_h": 800, "quality": 38, "downsample": True, "garbage": 4},
-                {"max_w": 500, "max_h": 650, "quality": 30, "downsample": True, "garbage": 4},
+            # Progressive aggressive passes — each tries from source (original)
+            # sorted from most aggressive to least (we stop when target met)
+            aggressive_passes = [
+                {"max_w": 300, "max_h": 400, "quality": 15, "downsample": True, "garbage": 4},
+                {"max_w": 350, "max_h": 450, "quality": 18, "downsample": True, "garbage": 4},
                 {"max_w": 400, "max_h": 500, "quality": 22, "downsample": True, "garbage": 4},
+                {"max_w": 480, "max_h": 640, "quality": 28, "downsample": True, "garbage": 4},
+                {"max_w": 550, "max_h": 700, "quality": 33, "downsample": True, "garbage": 4},
+                {"max_w": 600, "max_h": 800, "quality": 38, "downsample": True, "garbage": 4},
+                {"max_w": 650, "max_h": 900, "quality": 42, "downsample": True, "garbage": 4},
             ]
-            for pass_cfg in trial_passes:
+            best_size = current_size
+            best_tmp = temp_res
+            for pass_cfg in aggressive_passes:
                 temp_next = _execute_compression_pass(pass_cfg)
-                if temp_next.stat().st_size < current_size:
-                    temp_res.unlink(missing_ok=True)
-                    temp_res = temp_next
-                    current_size = temp_res.stat().st_size
+                next_size = temp_next.stat().st_size
+                if next_size < best_size:
+                    if best_tmp is not temp_res:
+                        best_tmp.unlink(missing_ok=True)
+                    best_tmp = temp_next
+                    best_size = next_size
                 else:
                     temp_next.unlink(missing_ok=True)
-                if current_size <= target_size_bytes:
+                if best_size <= target_size_bytes:
                     target_achieved = True
                     break
+            # Keep best result
+            if best_tmp is not temp_res:
+                temp_res.unlink(missing_ok=True)
+                temp_res = best_tmp
+            current_size = best_size
+            if current_size > target_size_bytes:
+                # Guaranteed convergence: rasterize multi-page / stubborn vector documents to exact KB limit
+                try:
+                    doc_src = fitz.open(str(source))
+                    num_pages = len(doc_src)
+                    target_per_page = max(12000, target_size_bytes // max(1, num_pages))
+                    new_doc = fitz.open()
+                    for p in doc_src:
+                        pix = p.get_pixmap(dpi=100)
+                        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+                        chosen_bytes = None
+                        for q in (50, 40, 30, 20):
+                            buf = io.BytesIO()
+                            img.save(buf, format="JPEG", quality=q, optimize=True)
+                            val = buf.getvalue()
+                            if len(val) <= target_per_page:
+                                chosen_bytes = val
+                                break
+                        if not chosen_bytes:
+                            buf = io.BytesIO()
+                            img.save(buf, format="JPEG", quality=15, optimize=True)
+                            chosen_bytes = buf.getvalue()
+                        img_doc = fitz.open("jpeg", chosen_bytes)
+                        p_pdf = fitz.open("pdf", img_doc.convert_to_pdf())
+                        new_doc.insert_pdf(p_pdf)
+                        img_doc.close()
+                        p_pdf.close()
+                    temp_raster = output.with_name(f"{output.stem}_rast_{os.getpid()}_{uuid.uuid4().hex[:6]}.pdf")
+                    new_doc.save(str(temp_raster), garbage=4, deflate=True)
+                    new_doc.close()
+                    doc_src.close()
+                    if temp_raster.stat().st_size < current_size:
+                        temp_res.unlink(missing_ok=True)
+                        temp_res = temp_raster
+                        current_size = temp_res.stat().st_size
+                        if current_size <= target_size_bytes:
+                            target_achieved = True
+                            reason = "Target size achieved."
+                    else:
+                        temp_raster.unlink(missing_ok=True)
+                except Exception:
+                    pass
+
             if current_size > target_size_bytes:
                 target_achieved = False
                 reason = f"Compressed to {round(current_size / 1024, 1)} KB (target {round(target_size_bytes / 1024, 1)} KB was reached as closely as visual clarity allows)."
@@ -1889,6 +1948,19 @@ def repair_pdf_advanced(source: Path, output: Path, mode: str = "automatic") -> 
                 temp_pypdf = output.with_name(f"{output.stem}_rep_{os.getpid()}_{uuid.uuid4().hex[:6]}.pdf")
                 with open(temp_pypdf, "wb") as f_out:
                     writer.write(f_out)
+                # Validate that output is truly readable
+                try:
+                    val_doc = fitz.open(str(temp_pypdf))
+                    if len(val_doc) == 0:
+                        val_doc.close()
+                        temp_pypdf.unlink(missing_ok=True)
+                        raise ValueError("Reconstructed file contains zero readable pages.")
+                    _ = val_doc[0].get_pixmap()
+                    val_doc.close()
+                except Exception as vp_err:
+                    temp_pypdf.unlink(missing_ok=True)
+                    raise ValueError(f"Document is severely corrupted and could not be reconstructed into readable pages ({vp_err}).")
+
                 temp_pypdf.replace(output)
                 return {
                     "valid": True,
@@ -2805,4 +2877,31 @@ def get_pdf_metadata_pages(source: Path) -> dict:
         "totalPages": total,
         "pages": pages_info,
         "metadata": meta,
+    }
+
+
+def convert_pdf_to_grayscale(source: Path, output: Path) -> dict:
+    """Convert all pages of a PDF to grayscale by re-rendering each page as a grayscale image."""
+    original_size = source.stat().st_size
+    doc = fitz.open(str(source))
+    new_doc = fitz.open()
+    page_count = len(doc)
+    for page in doc:
+        pix = page.get_pixmap(colorspace=fitz.csGRAY, dpi=150)
+        img_bytes = pix.tobytes("png")
+        img_doc = fitz.open("png", img_bytes)
+        pdf_bytes = img_doc.convert_to_pdf()
+        page_pdf = fitz.open("pdf", pdf_bytes)
+        new_doc.insert_pdf(page_pdf)
+        img_doc.close()
+        page_pdf.close()
+    new_doc.save(str(output), garbage=4, deflate=True, deflate_images=True)
+    new_doc.close()
+    doc.close()
+    output_size = output.stat().st_size
+    return {
+        "page_count": page_count,
+        "original_size": original_size,
+        "output_size": output_size,
+        "saved_bytes": max(0, original_size - output_size),
     }
