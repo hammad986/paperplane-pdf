@@ -709,65 +709,68 @@ def _extract_metadata_with_agentrouter(
     if AI_KILL_SWITCH or not _current_agentrouter_api_key() or not full_text.strip():
         return None
 
-    system_prompt = (
-        "You are a document entity extraction service. Return ONLY valid JSON. "
-        "Do not invent values; use null, empty arrays, and warnings when a field is not present. "
-        "Keep numeric amounts as numbers and preserve source page numbers."
-    )
-    schema = {
-        "document_type": doc_type,
-        "total_pages": total_pages,
-        "contact": {"emails": [], "phones": []},
-        "source_pages": [],
-        "warnings": [],
-        "invoice_data": {
-            "invoice_number": None, "invoice_date": None, "due_date": None,
-            "vendor": None, "customer": None, "currency": None,
-            "subtotal": None, "tax_amount": None, "total_amount": None,
-            "payment_terms": None, "line_items": [],
-        },
-        "resume_data": {
-            "candidate_name": None, "headline_or_title": None, "summary": None,
-            "skills": [], "experience": [], "education": [],
-        },
-        "general_data": {
-            "title": None, "document_date": None,
-            "detected_topics": [], "key_entities": [],
-        },
-    }
-    response = call_agentrouter(
-        system_prompt,
-        f"Return an object matching this schema for document type '{doc_type}':\n"
-        f"{json.dumps(schema, ensure_ascii=False)}\n\nDOCUMENT TEXT:\n{full_text[:24000]}",
-        timeout_seconds=AGENTROUTER_TIMEOUT_SECONDS,
-    )
-    extracted = _parse_json_object(response)
-    if not extracted:
-        return None
+    try:
+        system_prompt = (
+            "You are a document entity extraction service. Return ONLY valid JSON. "
+            "Do not invent values; use null, empty arrays, and warnings when a field is not present. "
+            "Keep numeric amounts as numbers and preserve source page numbers."
+        )
+        schema = {
+            "document_type": doc_type,
+            "total_pages": total_pages,
+            "contact": {"emails": [], "phones": []},
+            "source_pages": [],
+            "warnings": [],
+            "invoice_data": {
+                "invoice_number": None, "invoice_date": None, "due_date": None,
+                "vendor": None, "customer": None, "currency": None,
+                "subtotal": None, "tax_amount": None, "total_amount": None,
+                "payment_terms": None, "line_items": [],
+            },
+            "resume_data": {
+                "candidate_name": None, "headline_or_title": None, "summary": None,
+                "skills": [], "experience": [], "education": [],
+            },
+            "general_data": {
+                "title": None, "document_date": None,
+                "detected_topics": [], "key_entities": [],
+            },
+        }
+        response = call_agentrouter(
+            system_prompt,
+            f"Return an object matching this schema for document type '{doc_type}':\n"
+            f"{json.dumps(schema, ensure_ascii=False)}\n\nDOCUMENT TEXT:\n{full_text[:24000]}",
+            timeout_seconds=2.0,
+        )
+        extracted = _parse_json_object(response)
+        if not extracted:
+            return None
 
-    required_key = {
-        "invoice": "invoice_data",
-        "resume": "resume_data",
-        "general": "general_data",
-    }[doc_type]
-    if not isinstance(extracted.get(required_key), dict):
-        return None
+        required_key = {
+            "invoice": "invoice_data",
+            "resume": "resume_data",
+            "general": "general_data",
+        }[doc_type]
+        if not isinstance(extracted.get(required_key), dict):
+            return None
 
-    extracted["document_type"] = doc_type
-    extracted["total_pages"] = total_pages
-    contact = extracted.get("contact")
-    extracted["contact"] = contact if isinstance(contact, dict) else {"emails": [], "phones": []}
-    source_pages = extracted.get("source_pages")
-    extracted["source_pages"] = [
-        int(page) for page in source_pages
-        if isinstance(page, (int, float, str)) and str(page).isdigit()
-    ] if isinstance(source_pages, list) else []
-    warnings = extracted.get("warnings")
-    extracted["warnings"] = [str(item) for item in warnings] if isinstance(warnings, list) else []
-    extracted["provider"] = f"AgentRouter ({AGENTROUTER_MODEL or 'gpt-6.1-sol'})"
-    extracted["retrieval_method"] = "AgentRouter Structured Extraction"
-    extracted["csv_export"] = _generate_clean_csv(extracted)
-    return extracted
+        extracted["document_type"] = doc_type
+        extracted["total_pages"] = total_pages
+        contact = extracted.get("contact")
+        extracted["contact"] = contact if isinstance(contact, dict) else {"emails": [], "phones": []}
+        source_pages = extracted.get("source_pages")
+        extracted["source_pages"] = [
+            int(page) for page in source_pages
+            if isinstance(page, (int, float, str)) and str(page).isdigit()
+        ] if isinstance(source_pages, list) else []
+        warnings = extracted.get("warnings")
+        extracted["warnings"] = [str(item) for item in warnings] if isinstance(warnings, list) else []
+        extracted["provider"] = f"AgentRouter ({AGENTROUTER_MODEL or 'gpt-6.1-sol'})"
+        extracted["retrieval_method"] = "AgentRouter Structured Extraction"
+        extracted["csv_export"] = _generate_clean_csv(extracted)
+        return extracted
+    except Exception:
+        return None
 
 
 def extract_metadata_entities(pdf_path: Path, doc_type: str = "auto") -> dict:

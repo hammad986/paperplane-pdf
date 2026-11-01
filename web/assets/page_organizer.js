@@ -1117,12 +1117,12 @@
       form.append('file', file, this.sourceName);
       Object.entries(formFields).forEach(([k, v]) => form.append(k, v));
 
-      const token = localStorage.getItem('paperplane_token');
-      const headers = {};
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-
       try {
-        const resp = await fetch(endpoint, { method: 'POST', headers, body: form });
+        const resp = await fetch(endpoint, {
+          method: 'POST',
+          credentials: 'same-origin',
+          body: form
+        });
         if (!resp.ok) {
           let errDetail = `Operation failed (${resp.status})`;
           try {

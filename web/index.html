@@ -13,7 +13,7 @@
   <!-- Cashfree PG v3 checkout SDK; app.js initializes it with the server-issued session. -->
   <script src="https://sdk.cashfree.com/js/v3/cashfree.js" defer></script>
 
-  <link rel="stylesheet" href="/assets/styles.css?v=3.1.0" />
+  <link rel="stylesheet" href="/assets/styles.css?v=3.2.0" />
 
 </head>
 <body class="light-mode">
@@ -412,11 +412,15 @@
               
               <!-- Tier 1: Global Document Ribbon (Nav, Zoom, History, Mode, Secondary Tools, Export) -->
               <div class="studio-primary-ribbon">
-                <!-- Document Upload & Open -->
+                <!-- Document Upload & Open / New Document -->
                 <div class="studio-tool-group" title="Open Document">
                   <button type="button" class="studio-tool-btn" id="studio-upload-btn" title="Open PDF from device" aria-label="Open PDF from device">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                     <span class="tool-btn-text">Open PDF</span>
+                  </button>
+                  <button type="button" class="studio-tool-btn" id="studio-close-doc-btn" title="New Blank Page / Close Document" aria-label="New Blank Page">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    <span class="tool-btn-text">New Page</span>
                   </button>
                   <input type="file" id="studio-file-input" accept="application/pdf" hidden aria-label="Upload PDF to Studio">
                 </div>
@@ -3344,16 +3348,16 @@ async function convertFileInBrowser(file, operation = 'compress') {
   <script src="/assets/pdf-lib.min.js" defer></script>
 
   <!-- Phase 6 PDF Forms, Signing & Security Engine -->
-  <script src="/assets/security_forms.js?v=6.0.0" defer></script>
+  <script src="/assets/security_forms.js?v=6.2.0" defer></script>
   <!-- Phase 5 Professional PDF Conversion Engine -->
-  <script src="/assets/conversion_engine.js?v=5.0.0" defer></script>
+  <script src="/assets/conversion_engine.js?v=5.2.0" defer></script>
   <!-- Phase 4 Compression, Repair & OCR Engine -->
-  <script src="/assets/optimization_engine.js?v=4.0.0" defer></script>
+  <script src="/assets/optimization_engine.js?v=4.2.0" defer></script>
   <!-- Phase 3 Professional Page Management Engine -->
-  <script src="/assets/page_organizer.js?v=3.0.0" defer></script>
+  <script src="/assets/page_organizer.js?v=3.2.0" defer></script>
   <!-- Phase 2 Professional Editor Engine -->
-  <script src="/assets/editor.js?v=2.0.0" defer></script>
+  <script src="/assets/editor.js?v=3.2.0" defer></script>
   <!-- Application Controller -->
-  <script src="/assets/app.js?v=3.0.0" defer></script>
+  <script src="/assets/app.js?v=3.2.0" defer></script>
 </body>
 </html>

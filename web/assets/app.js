@@ -400,11 +400,7 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true) {
   }
 
   if (view === 'studio' && !state.studio.pdfDoc) {
-    if (state.files.length && state.files[0].name.toLowerCase().endsWith('.pdf')) {
-      loadDocumentIntoStudio(state.files[0]);
-    } else {
-      loadDocumentIntoStudio(null);
-    }
+    loadDocumentIntoStudio(null);
   }
 
   // Update mobile bottom navigation bar active button
@@ -468,6 +464,12 @@ function clearResultAndStudio() {
     state.studio.totalCount = 0;
     state.studio.currentPage = 1;
     state.studio.srcFile = null;
+  }
+  if (window.PaperplaneEditor && typeof window.PaperplaneEditor.loadDocument === 'function') {
+    try { window.PaperplaneEditor.loadDocument(null, 'document.pdf', 0); } catch (e) { /* ignore */ }
+  }
+  if (window.PaperplanePageOrganizer && typeof window.PaperplanePageOrganizer.loadDocument === 'function') {
+    try { window.PaperplanePageOrganizer.loadDocument(null, null, '', 0); } catch (e) { /* ignore */ }
   }
   const studioThumbs = $('#studio-thumbnails-container');
   if (studioThumbs) studioThumbs.innerHTML = '';
@@ -815,7 +817,7 @@ function selectOperation(op, switchToDesk = true) {
 
   const tierBadge = $('#tool-tier-badge');
   if (tierBadge) {
-    if (state.user || state.token) {
+    if (state.user) {
       if (state.user && state.user.is_pro) {
         tierBadge.textContent = '👑 Pro Power User · Unlimited (500 MB)';
         tierBadge.style.color = '#f59e0b';
@@ -1462,6 +1464,14 @@ if (studioUploadBtn && studioFileInput) {
   };
 }
 
+const studioCloseDocBtn = $('#studio-close-doc-btn');
+if (studioCloseDocBtn) {
+  studioCloseDocBtn.onclick = () => {
+    loadDocumentIntoStudio(null);
+    showToast('Started new blank document in Studio.', 'info');
+  };
+}
+
 // Studio Navigation & Zoom Controls
 $('#prev-page-btn').onclick = () => {
   if (state.studio.currentPage > 1) {
@@ -2004,6 +2014,13 @@ function renderOptions() {
       urlEl.addEventListener('input', () => updateButton());
     }
   }
+
+  if (['protect', 'unlock'].includes(state.operation) || (state.operation || '').includes('protect') || (state.operation || '').includes('unlock')) {
+    const pwdEl = $('#password');
+    if (pwdEl) {
+      pwdEl.addEventListener('input', () => updateButton());
+    }
+  }
 }
 
 function field(id, label, type, placeholder, min = '', max = '', step = '') {
@@ -2086,11 +2103,6 @@ function addFiles(newFiles) {
     };
     reader.readAsArrayBuffer(targetFile);
   }
-
-  // If a PDF is uploaded, automatically prime the in-app studio
-  if (state.files.length && state.files[0].name.toLowerCase().endsWith('.pdf')) {
-    loadDocumentIntoStudio(state.files[0]);
-  }
 }
 
 function updateButton() {
@@ -2112,6 +2124,27 @@ function updateButton() {
   const hasFiles = state.files.length > 0;
   const toolLabel = state.operations[state.operation]?.label || 'Run Tool';
 
+  const isSecurity = ['protect', 'unlock'].includes(state.operation) || (state.operation || '').includes('protect') || (state.operation || '').includes('unlock');
+  if (isSecurity) {
+    if (!hasFiles) {
+      btn.disabled = true;
+      btn.innerHTML = 'Select files to continue <span>→</span>';
+      return;
+    }
+    const pwdInput = $('#password');
+    const pwdVal = pwdInput ? pwdInput.value.trim() : '';
+    if (!pwdVal) {
+      btn.disabled = true;
+      btn.innerHTML = ((state.operation || '').includes('protect')
+        ? 'Enter encryption password to continue'
+        : 'Enter unlock password to continue') + ' <span>→</span>';
+      return;
+    }
+    btn.disabled = false;
+    btn.innerHTML = `${toolLabel} Now <span>→</span>`;
+    return;
+  }
+
   if (state.operation === 'split' && state.splitPageCount === 1) {
     btn.disabled = true;
     btn.innerHTML = 'Only 1 page found (Cannot be split) <span>✕</span>';
@@ -2129,7 +2162,7 @@ const HEAVY_TOOLS = new Set([
 ]);
 
 function checkAccessRequirement(operation, files = []) {
-  if (state.user || state.token) return true;
+  if (state.user) return true;
   if (HEAVY_TOOLS.has(operation)) {
     showToast('This advanced AI / conversion tool requires a free account. Please sign in or register.', 'info');
     openAuthModal('', 'login');
@@ -2145,7 +2178,7 @@ function checkAccessRequirement(operation, files = []) {
 }
 
 $('#browse').onclick = () => {
-  if (HEAVY_TOOLS.has(state.operation) && !state.user && !state.token) {
+  if (HEAVY_TOOLS.has(state.operation) && !state.user) {
     showToast('This advanced AI / conversion tool requires a free account. Please sign in or register.', 'info');
     openAuthModal('', 'login');
     return;
@@ -2157,7 +2190,7 @@ const dropzoneEl = $('#dropzone');
 if (dropzoneEl) {
   dropzoneEl.onclick = (e) => {
     if (e.target.closest('#browse') || e.target.closest('#cloud-drop-btn') || e.target.closest('.cloud-import-btn')) return;
-    if (HEAVY_TOOLS.has(state.operation) && !state.user && !state.token) {
+    if (HEAVY_TOOLS.has(state.operation) && !state.user) {
       showToast('This advanced AI / conversion tool requires a free account. Please sign in or register.', 'info');
       openAuthModal('', 'login');
       return;
@@ -2283,10 +2316,11 @@ $('#job-form').onsubmit = async e => {
     }
   }
 
-  if (['protect', 'unlock'].includes(state.operation)) {
+  const isSecurity = ['protect', 'unlock'].includes(state.operation) || (state.operation || '').includes('protect') || (state.operation || '').includes('unlock');
+  if (isSecurity) {
     const pwd = ($('#password')?.value || '').trim();
     if (!pwd) {
-      const msg = state.operation === 'protect'
+      const msg = (state.operation || '').includes('protect')
         ? 'Please enter a password to encrypt this PDF.'
         : 'Please enter the password to unlock this PDF.';
       showResult(msg, true);
@@ -2374,9 +2408,11 @@ $('#job-form').onsubmit = async e => {
     await checkAuthStatus();
   } catch (error) {
     $('#progress-card').hidden = true;
+    const isSecurityOp = ['protect', 'unlock'].includes(state.operation) || (state.operation || '').includes('protect') || (state.operation || '').includes('unlock');
+    const isRequiredErr = error.message.toLowerCase().includes('required') || error.message.toLowerCase().includes('please enter') || error.message.toLowerCase().includes('please provide');
     if (error.message.includes('TIER_LIMIT') || error.message.includes('limit reached')) {
       // Upgrade modal already opened by safeFetch
-    } else if (!['protect', 'unlock'].includes(state.operation) && error.message.toLowerCase().includes('password')) {
+    } else if (!isSecurityOp && !isRequiredErr && error.message.toLowerCase().includes('password')) {
       showUserErrorModal(
         'Protected PDF Detected',
         'This document is password protected or the provided password is invalid. Please unlock it using Paperplane Unlock.',
@@ -3708,7 +3744,7 @@ async function handleGoogleAuthCallback(response) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ credential: response.credential })
     });
-    if (data.status === 'success' || data.token || data.user_id) {
+    if (data.status === 'success' || data.user_id) {
       $('#auth-modal').hidden = true;
       await checkAuthStatus();
       showToast('Signed in with Google successfully!');
@@ -3787,7 +3823,7 @@ $('#auth-form').onsubmit = async e => {
     if (data.status === 'otp_required') {
       showOtpView(data.email, data.purpose);
       showToast(data.message || 'Verification code sent to your email.');
-    } else if (data.status === 'success' || data.token || data.user_id) {
+    } else if (data.status === 'success' || data.user_id) {
       $('#auth-modal').hidden = true;
       await checkAuthStatus();
       showToast('Signed in successfully!');
@@ -3825,7 +3861,7 @@ if (authOtpForm) {
         body: JSON.stringify({ email: pendingAuth.email, otp: code })
       });
 
-      if (res.status === 'success' || res.token || res.user_id) {
+      if (res.status === 'success' || res.user_id) {
         if (otpTimerInterval) clearInterval(otpTimerInterval);
         $('#auth-modal').hidden = true;
         await checkAuthStatus();

@@ -1741,13 +1741,9 @@ class PaperplaneEditorController {
     if (btn) { btn.disabled = true; btn.innerHTML = 'Exporting…'; }
 
     try {
-      const token = localStorage.getItem('paperplane_token');
-      const headers = {};
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-
       const resp = await fetch('/api/studio/apply-edits', {
         method: 'POST',
-        headers,
+        credentials: 'same-origin',
         body: form,
       });
 
@@ -1800,11 +1796,11 @@ class PaperplaneEditorController {
     form.append('file', file, this.editorState.sourceName || 'document.pdf');
     Object.entries(extraFields).forEach(([k, v]) => form.append(k, v));
 
-    const token = localStorage.getItem('paperplane_token');
-    const headers = {};
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-
-    const resp = await fetch(endpoint, { method: 'POST', headers, body: form });
+    const resp = await fetch(endpoint, {
+      method: 'POST',
+      credentials: 'same-origin',
+      body: form
+    });
     if (!resp.ok) {
       let msg = `Page operation failed (${resp.status})`;
       try { const j = await resp.json(); msg = j.detail || msg; } catch {}
