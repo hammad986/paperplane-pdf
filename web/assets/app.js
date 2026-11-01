@@ -1343,6 +1343,27 @@ async function renderStudioThumbnails() {
   }
 }
 
+// Studio Document Open Button
+const studioUploadBtn = $('#studio-upload-btn');
+const studioFileInput = $('#studio-file-input');
+if (studioUploadBtn && studioFileInput) {
+  studioUploadBtn.onclick = () => {
+    if (!state.user && !state.token) {
+      showToast('Please sign in or create an account to edit PDF documents.', 'warning');
+      openAuthModal('login');
+      return;
+    }
+    studioFileInput.click();
+  };
+  studioFileInput.onchange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      loadDocumentIntoStudio(file);
+      showToast(`Loaded ${file.name} into Studio!`);
+    }
+  };
+}
+
 // Studio Navigation & Zoom Controls
 $('#prev-page-btn').onclick = () => {
   if (state.studio.currentPage > 1) {
@@ -1953,7 +1974,28 @@ function updateButton() {
     : 'Select files to continue <span>→</span>';
 }
 
-$('#browse').onclick = () => $('#file-input').click();
+$('#browse').onclick = () => {
+  if (!state.user && !state.token) {
+    showToast('Please sign in or create an account to process documents.', 'warning');
+    openAuthModal('login');
+    return;
+  }
+  $('#file-input').click();
+};
+
+const dropzoneEl = $('#dropzone');
+if (dropzoneEl) {
+  dropzoneEl.onclick = (e) => {
+    if (e.target.closest('#browse')) return;
+    if (!state.user && !state.token) {
+      showToast('Please sign in or create an account to process documents.', 'warning');
+      openAuthModal('login');
+      return;
+    }
+    $('#file-input').click();
+  };
+}
+
 $('#file-input').onchange = e => addFiles([...e.target.files]);
 
 ['dragenter', 'dragover'].forEach(event => {
@@ -1971,6 +2013,11 @@ $('#file-input').onchange = e => addFiles([...e.target.files]);
 });
 
 $('#dropzone').ondrop = e => {
+  if (!state.user && !state.token) {
+    showToast('Please sign in or create an account to process documents.', 'warning');
+    openAuthModal('login');
+    return;
+  }
   addFiles([...e.dataTransfer.files]);
 };
 
@@ -3150,40 +3197,6 @@ if ($('#topbar-cloud-btn')) $('#topbar-cloud-btn').onclick = openCloudModal;
 if ($('#cloud-drop-btn')) $('#cloud-drop-btn').onclick = openCloudModal;
 if ($('#close-cloud-modal')) $('#close-cloud-modal').onclick = () => $('#cloud-modal').hidden = true;
 
-$('#cloud-form').onsubmit = async e => {
-  e.preventDefault();
-  const url = $('#cloud-url').value.trim();
-  const btn = $('#cloud-submit-btn');
-  btn.disabled = true;
-  btn.innerHTML = 'Fetching from Cloud…';
-  $('#cloud-error').hidden = true;
-
-  try {
-    // Fetch document stream
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`Cloud server returned HTTP ${res.status}`);
-    const blob = await res.blob();
-    const filename = url.split('/').pop().split('?')[0] || 'cloud_document.pdf';
-    const file = new File([blob], filename, { type: blob.type || 'application/pdf' });
-    
-    state.files.push(file);
-    renderFiles();
-    updateButton();
-    $('#cloud-modal').hidden = true;
-    showToast(`Imported ${filename} successfully!`);
-
-    if (filename.toLowerCase().endsWith('.pdf')) {
-      loadDocumentIntoStudio(file);
-    }
-  } catch (err) {
-    $('#cloud-error').textContent = `Import failed: ${err.message}. Ensure the URL is publicly accessible or use direct file upload.`;
-    $('#cloud-error').hidden = false;
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = 'Fetch & Import Document <span>→</span>';
-  }
-};
-
 // Close modals when clicking backdrop
 $$('.modal-backdrop').forEach(modal => {
   modal.onclick = e => {
@@ -3745,11 +3758,11 @@ if (resetPwForm) {
 function checkPasswordResetUrl() {
   const params = new URLSearchParams(window.location.search);
   const token = params.get('token') || params.get('reset_token');
-  if (token && (window.location.pathname.includes('/reset-password') || params.has('reset') || params.has('token') || params.has('reset_token'))) {
+  if (token || window.location.pathname.includes('/reset-password') || params.has('reset')) {
     const resetModal = $('#reset-password-modal');
     const tokenInput = $('#reset-token');
-    if (resetModal && tokenInput) {
-      tokenInput.value = token;
+    if (resetModal) {
+      if (token && tokenInput) tokenInput.value = token;
       resetModal.hidden = false;
     }
   }
@@ -3868,20 +3881,6 @@ function initBillingHandlers() {
     proBtn.onclick = () => initiateCheckout('pro', proBtn);
   }
 
-  // Pro Instant Demo
-  const proDemoBtn = $('#pro-demo-upgrade-btn');
-  if (proDemoBtn) {
-    proDemoBtn.onclick = async () => {
-      try {
-        await safeFetch('/api/billing/simulate-pro', { method: 'POST' });
-        showToast('Pro Power User Tier Activated (Localhost Mode)!', 'success', 5000);
-        closeUpgradeModal();
-        await checkAuthStatus();
-      } catch (err) {
-        showToast(`Failed to activate demo pro: ${err.message}`, 'error');
-      }
-    };
-  }
 
   // Developer API Checkout (₹750/mo)
   const devBtn = $('#dev-cashfree-checkout-btn');
@@ -3889,20 +3888,6 @@ function initBillingHandlers() {
     devBtn.onclick = () => initiateCheckout('developer', devBtn);
   }
 
-  // Developer Instant Demo
-  const devDemoBtn = $('#dev-demo-upgrade-btn');
-  if (devDemoBtn) {
-    devDemoBtn.onclick = async () => {
-      try {
-        await safeFetch('/api/billing/simulate-dev', { method: 'POST' });
-        showToast('Developer API Tier Activated (Localhost Mode)!', 'success', 5000);
-        closeUpgradeModal();
-        await checkAuthStatus();
-      } catch (err) {
-        showToast(`Failed to activate demo dev: ${err.message}`, 'error');
-      }
-    };
-  }
 
 }
 

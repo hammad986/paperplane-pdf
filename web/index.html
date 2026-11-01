@@ -94,7 +94,7 @@
             <span id="privacy-mode-label">Server Mode</span>
           </div>
           <label class="toggle-switch-sm">
-            <input type="checkbox" id="client-privacy-toggle" />
+            <input type="checkbox" id="client-privacy-toggle" aria-label="Toggle local client-side processing mode" />
             <span class="toggle-slider-sm"></span>
           </label>
         </div>
@@ -296,7 +296,7 @@
             
             <!-- File Dropzone -->
             <div class="dropzone" id="dropzone">
-              <input id="file-input" type="file" hidden />
+              <input id="file-input" type="file" hidden aria-label="Upload file for processing" />
               <div class="drop-icon-circle">
                 <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               </div>
@@ -409,6 +409,17 @@
               
               <!-- Tier 1: Global Document Ribbon (Nav, Zoom, History, Mode, Secondary Tools, Export) -->
               <div class="studio-primary-ribbon">
+                <!-- Document Upload & Open -->
+                <div class="studio-tool-group" title="Open Document">
+                  <button type="button" class="studio-tool-btn" id="studio-upload-btn" title="Open PDF from device" aria-label="Open PDF from device">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    <span class="tool-btn-text">Open PDF</span>
+                  </button>
+                  <input type="file" id="studio-file-input" accept="application/pdf" hidden aria-label="Upload PDF to Studio">
+                </div>
+
+                <div class="studio-divider"></div>
+
                 <!-- Page Navigation -->
                 <div class="studio-tool-group" title="Page Navigation">
                   <button type="button" class="studio-tool-btn" id="prev-page-btn" title="Previous page" aria-label="Previous page">
@@ -710,7 +721,7 @@
           <div class="ai-studio-topbar">
             <!-- Upload Dropzone (visible if no file selected) -->
             <div id="ai-upload-zone" class="ai-upload-strip">
-              <input type="file" id="ai-file-input" accept=".pdf" hidden />
+              <input type="file" id="ai-file-input" accept=".pdf" hidden aria-label="Upload PDF for AI intelligence" />
               <div class="ai-upload-content" id="ai-browse-trigger">
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                 <span><strong>Select or drop a PDF</strong> to activate Document AI Q&A, Structured Extraction, and Executive Summarization</span>
@@ -764,7 +775,7 @@
               </div>
 
               <form id="chat-form" class="ai-chat-form">
-                <input type="text" id="chat-input" class="ai-chat-input" placeholder="Ask a question about this document..." required />
+                <input type="text" id="chat-input" class="ai-chat-input" aria-label="Ask a question about the document" placeholder="Ask a question about this document..." required />
                 <button type="submit" class="btn-primary-action" id="chat-send-btn" style="padding: 10px 18px; font-size: 13px;">
                   Ask
                 </button>
@@ -787,7 +798,7 @@
                   Auto-extract invoices (totals, dates, line items) and resumes (skills, contact, history) into a dedicated interactive results viewer with CSV/JSON export.
                 </p>
                 <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-                  <select id="ai-extract-type-select" class="editor-select" style="flex: 1; padding: 6px 10px; font-size: 12px;">
+                  <select id="ai-extract-type-select" class="editor-select" aria-label="AI Extraction schema type" style="flex: 1; padding: 6px 10px; font-size: 12px;">
                     <option value="auto">Auto-Detect Type</option>
                     <option value="invoice">Invoice / Bill</option>
                     <option value="resume">Resume / CV</option>
@@ -1503,7 +1514,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
     <div class="command-modal">
       <div class="command-search-header">
         <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
-        <input type="text" id="command-input" placeholder="Type a tool name or action (e.g. merge, compress, word, ocr)..." autocomplete="off" />
+        <input type="text" id="command-input" aria-label="Search tools and commands" placeholder="Type a tool name or action (e.g. merge, compress, word, ocr)..." autocomplete="off" />
         <button type="button" class="close-modal-btn" id="close-command-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
       </div>
       <div class="command-results-list" id="command-results"></div>
@@ -1623,7 +1634,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
               <small style="color: var(--text-muted); font-size: 11.5px;">Sharpen UI borders and canvas boundaries</small>
             </div>
             <label class="toggle-switch-sm">
-              <input type="checkbox" id="contrast-toggle-input" />
+              <input type="checkbox" id="contrast-toggle-input" aria-label="Toggle high contrast mode" />
               <span class="toggle-slider-sm"></span>
             </label>
           </div>
@@ -1668,7 +1679,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <div id="settings-new-key-alert" class="result-card" hidden style="margin-bottom: 14px; padding: 12px;"></div>
 
           <form id="settings-create-key-form" style="display: flex; gap: 8px; margin-bottom: 16px;">
-            <input type="text" id="settings-key-name" placeholder="Key name (e.g. Production Pipeline)" style="flex: 1; border: 1px solid var(--border-light); border-radius: 8px; padding: 10px 14px; font-size: 13px; background: var(--bg-panel); color: var(--text-main);" required />
+            <input type="text" id="settings-key-name" aria-label="API key name" placeholder="Key name (e.g. Production Pipeline)" style="flex: 1; border: 1px solid var(--border-light); border-radius: 8px; padding: 10px 14px; font-size: 13px; background: var(--bg-panel); color: var(--text-main);" required />
             <button type="submit" class="btn-primary-action" style="padding: 10px 18px; font-size: 12.5px;">Generate Key</button>
           </form>
 
@@ -1692,7 +1703,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
                  <small>Keep supported PDF operations inside your browser using local processing.</small>
                </div>
                <label class="toggle-switch-sm">
-                 <input type="checkbox" id="settings-client-privacy-toggle" />
+                 <input type="checkbox" id="settings-client-privacy-toggle" aria-label="Toggle client-side processing setting" />
                  <span class="toggle-slider-sm"></span>
                </label>
              </div>
@@ -1938,9 +1949,6 @@ async function convertFileInBrowser(file, operation = 'compress') {
             <button type="button" class="btn-primary-action tier-subscribe-btn" id="pro-cashfree-checkout-btn">
                <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span> Pay ₹250/month with Cashfree →
             </button>
-            <button type="button" class="btn-demo-upgrade" id="pro-demo-upgrade-btn">
-              Instant Local Upgrade
-            </button>
           </div>
         </div>
 
@@ -1974,9 +1982,6 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <div class="tier-actions">
             <button type="button" class="btn-primary-action tier-subscribe-btn dev-theme" id="dev-cashfree-checkout-btn">
                <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span> Pay ₹750/month with Cashfree →
-            </button>
-            <button type="button" class="btn-demo-upgrade" id="dev-demo-upgrade-btn">
-              Instant Local Upgrade
             </button>
           </div>
         </div>
@@ -2138,7 +2143,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
       ℹ️ <strong>Text Overlay:</strong> Inserts vector text above the page. The underlying PDF layout and font streams are preserved safely.
     </div>
     <div class="editor-panel-body">
-      <textarea id="editor-text-input" class="editor-textarea" placeholder="Type text overlay here…" rows="3"></textarea>
+      <textarea id="editor-text-input" class="editor-textarea" aria-label="Document text annotation content" placeholder="Type text overlay here…" rows="3"></textarea>
       <div class="editor-panel-row">
         <div class="editor-control-col">
           <label for="editor-font-size">Font Size</label>
@@ -2198,7 +2203,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
 
         <!-- Type Pane -->
         <div id="sig-type-pane" class="sig-pane" hidden>
-          <input type="text" id="editor-sig-type-input" class="editor-sig-input" placeholder="Type your full name…" />
+          <input type="text" id="editor-sig-type-input" class="editor-sig-input" aria-label="Type name for digital signature" placeholder="Type your full name…" />
           <div id="sig-type-preview" class="sig-type-preview">Your Signature</div>
         </div>
       </div>
@@ -2314,9 +2319,9 @@ async function convertFileInBrowser(file, operation = 'compress') {
         <div class="form-group-row">
           <label>Apply To</label>
           <div class="radio-pill-group">
-            <label><input type="radio" name="resize-scope" value="current" checked /> Current Page</label>
-            <label><input type="radio" name="resize-scope" value="selected" /> Selected Pages</label>
-            <label><input type="radio" name="resize-scope" value="all" /> All Pages</label>
+            <label><input type="radio" name="resize-scope" value="current" checked aria-label="Resize current page" /> Current Page</label>
+            <label><input type="radio" name="resize-scope" value="selected" aria-label="Resize selected pages" /> Selected Pages</label>
+            <label><input type="radio" name="resize-scope" value="all" aria-label="Resize all pages" /> All Pages</label>
           </div>
         </div>
       </div>
@@ -2343,21 +2348,21 @@ async function convertFileInBrowser(file, operation = 'compress') {
       <div class="modal-body">
         <div class="split-mode-options">
           <label class="split-mode-card active" id="split-card-ranges">
-            <input type="radio" name="split-mode" value="ranges" checked />
+            <input type="radio" name="split-mode" value="ranges" checked aria-label="Split by page ranges" />
             <div class="split-mode-info">
               <strong>Split by Page Ranges</strong>
               <small style="display: block; color: var(--text-muted); margin-top: 2px;">Specify custom ranges (e.g. 1-2, 3-5). Each range becomes a new PDF.</small>
-              <input type="text" id="split-param-ranges" class="editor-input" placeholder="e.g. 1-2, 3-5" style="margin-top: 8px;" />
+              <input type="text" id="split-param-ranges" class="editor-input" aria-label="Page ranges to split (e.g. 1-3, 5)" placeholder="e.g. 1-2, 3-5" style="margin-top: 8px;" />
             </div>
           </label>
           <label class="split-mode-card" id="split-card-every">
-            <input type="radio" name="split-mode" value="every_n" />
+            <input type="radio" name="split-mode" value="every_n" aria-label="Split into batches of N pages" />
             <div class="split-mode-info">
               <strong>Split Every N Pages</strong>
               <small style="display: block; color: var(--text-muted); margin-top: 2px;">Divide document evenly into multiple files of N pages each.</small>
               <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
                 <span>Every</span>
-                <input type="number" id="split-param-every" class="editor-input" value="2" min="1" max="100" style="width: 80px;" />
+                <input type="number" id="split-param-every" class="editor-input" aria-label="Number of pages per split file" value="2" min="1" max="100" style="width: 80px;" />
                 <span>pages</span>
               </div>
             </div>
@@ -2437,7 +2442,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
       </div>
       <div class="modal-body">
         <div class="import-dropzone" id="import-secondary-dropzone">
-          <input type="file" id="import-secondary-file-input" accept="application/pdf" hidden />
+          <input type="file" id="import-secondary-file-input" accept="application/pdf" hidden aria-label="Select secondary PDF to import or merge" />
           <div style="font-size: 24px; margin-bottom: 6px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
            <strong>Click or drop a secondary PDF file here</strong>
           <small style="color: var(--text-muted); display: block; margin-top: 4px;">Choose the document to import pages from</small>
@@ -2503,35 +2508,35 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <label>Compression Preset</label>
           <div class="compress-presets-grid" id="compress-presets-grid" style="display: flex; flex-direction: column; gap: 8px;">
             <label class="split-mode-card" id="preset-card-extreme">
-              <input type="radio" name="compress-preset" value="extreme" />
+              <input type="radio" name="compress-preset" value="extreme" aria-label="Extreme compression preset" />
               <div class="split-mode-info">
                 <strong>Extreme Compression</strong>
                 <small style="color: var(--text-muted);">Max size reduction. Downsamples images to 96 DPI with 45% quality.</small>
               </div>
             </label>
             <label class="split-mode-card" id="preset-card-high">
-              <input type="radio" name="compress-preset" value="high" />
+              <input type="radio" name="compress-preset" value="high" aria-label="High compression preset" />
               <div class="split-mode-info">
                 <strong>High Compression</strong>
                 <small style="color: var(--text-muted);">Strong size reduction with acceptable quality (130 DPI, 60% quality).</small>
               </div>
             </label>
             <label class="split-mode-card active" id="preset-card-balanced">
-              <input type="radio" name="compress-preset" value="balanced" checked />
+              <input type="radio" name="compress-preset" value="balanced" checked aria-label="Balanced compression preset" />
               <div class="split-mode-info">
                 <strong>Balanced (Recommended)</strong>
                 <small style="color: var(--text-muted);">Optimal balance between file size and readability (180 DPI, 75% quality).</small>
               </div>
             </label>
             <label class="split-mode-card" id="preset-card-high-quality">
-              <input type="radio" name="compress-preset" value="high_quality" />
+              <input type="radio" name="compress-preset" value="high_quality" aria-label="High quality compression preset" />
               <div class="split-mode-info">
                 <strong>High Quality</strong>
                 <small style="color: var(--text-muted);">Prioritizes visual fidelity. Only downsamples extreme DPI (>250 DPI).</small>
               </div>
             </label>
             <label class="split-mode-card" id="preset-card-lossless">
-              <input type="radio" name="compress-preset" value="lossless" />
+              <input type="radio" name="compress-preset" value="lossless" aria-label="Lossless compression preset" />
               <div class="split-mode-info">
                 <strong>Lossless Optimization</strong>
                 <small style="color: var(--text-muted);">Zero image degradation. Deflates streams, purges orphan xrefs and redundant objects.</small>
@@ -2544,7 +2549,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <label for="compress-target-size">Target File Size (Optional)</label>
           <div style="display: flex; align-items: center; gap: 8px;">
             <input type="number" id="compress-target-size" class="editor-input" placeholder="e.g. 5" min="0.1" step="0.5" style="width: 100px;" />
-            <select id="compress-target-unit" class="editor-select" style="width: 80px;">
+            <select id="compress-target-unit" class="editor-select" aria-label="Target compression size unit" style="width: 80px;">
               <option value="MB" selected>MB</option>
               <option value="KB">KB</option>
             </select>
@@ -2638,21 +2643,21 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <label>Repair Mode</label>
           <div class="compress-presets-grid" style="display: flex; flex-direction: column; gap: 8px;">
             <label class="split-mode-card active" id="repair-card-auto">
-              <input type="radio" name="repair-mode" value="automatic" checked />
+              <input type="radio" name="repair-mode" value="automatic" checked aria-label="Automatic PDF repair mode" />
               <div class="split-mode-info">
                 <strong>Automatic Structural Repair (Recommended)</strong>
                 <small style="color: var(--text-muted);">Rebuilds cross-reference (XREF) tables, fixes stream lengths, and purges corrupt objects.</small>
               </div>
             </label>
             <label class="split-mode-card" id="repair-card-advanced">
-              <input type="radio" name="repair-mode" value="advanced" />
+              <input type="radio" name="repair-mode" value="advanced" aria-label="Advanced PDF repair mode" />
               <div class="split-mode-info">
                 <strong>Advanced Deep Salvage</strong>
                 <small style="color: var(--text-muted);">Uses multi-pass recovery parsers to extract all surviving pages from severely corrupted or truncated PDFs.</small>
               </div>
             </label>
             <label class="split-mode-card" id="repair-card-validate">
-              <input type="radio" name="repair-mode" value="validate_only" />
+              <input type="radio" name="repair-mode" value="validate_only" aria-label="Validate PDF integrity only" />
               <div class="split-mode-info">
                 <strong>Health Check (Validate Only)</strong>
                 <small style="color: var(--text-muted);">Performs non-destructive structural syntax inspection without modifying the document.</small>
@@ -2706,7 +2711,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <div>
             <label class="btn-cancel" style="padding: 4px 10px; font-size: 11px; cursor: pointer; display: inline-block;">
               Change File
-              <input type="file" id="convert-file-input" style="display: none;" />
+              <input type="file" id="convert-file-input" style="display: none;" aria-label="Upload file for format conversion" />
             </label>
           </div>
         </div>
@@ -2812,17 +2817,17 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <!-- Dynamic options: pages, DPI, quality, PPTX mode, etc. -->
           <div id="options-pages-row" style="display: flex; gap: 12px; align-items: center; margin-bottom: 8px;">
             <label style="font-size: 11.5px; color: #94a3b8; min-width: 90px;">Page Selection:</label>
-            <select id="convert-page-mode" class="editor-select" style="flex: 1;">
+            <select id="convert-page-mode" class="editor-select" aria-label="Conversion page selection mode" style="flex: 1;">
               <option value="all" selected>All Document Pages</option>
               <option value="current">Current Page Only</option>
               <option value="custom">Custom Range (e.g. 1-3, 5)</option>
             </select>
-            <input type="text" id="convert-custom-pages" class="editor-input" placeholder="e.g. 1-3, 5" style="display: none; width: 110px;" />
+            <input type="text" id="convert-custom-pages" class="editor-input" aria-label="Custom pages to convert" placeholder="e.g. 1-3, 5" style="display: none; width: 110px;" />
           </div>
 
           <div id="options-image-row" style="display: none; gap: 12px; align-items: center; margin-bottom: 8px;">
             <label style="font-size: 11.5px; color: #94a3b8; min-width: 90px;">Resolution (DPI):</label>
-            <select id="convert-dpi" class="editor-select" style="width: 130px;">
+            <select id="convert-dpi" class="editor-select" aria-label="Render DPI resolution" style="width: 130px;">
               <option value="72">72 DPI (Draft)</option>
               <option value="96">96 DPI (Web)</option>
               <option value="150" selected>150 DPI (Balanced)</option>
@@ -2831,7 +2836,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
             </select>
 
             <label style="font-size: 11.5px; color: #94a3b8; margin-left: 10px;">Quality:</label>
-            <select id="convert-quality" class="editor-select" style="width: 100px;">
+            <select id="convert-quality" class="editor-select" aria-label="Image output quality" style="width: 100px;">
               <option value="95" selected>95% (High)</option>
               <option value="85">85% (Medium)</option>
               <option value="70">70% (Compact)</option>
@@ -2840,7 +2845,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
 
           <div id="options-pptx-row" style="display: none; gap: 12px; align-items: center; margin-bottom: 8px;">
             <label style="font-size: 11.5px; color: #94a3b8; min-width: 90px;">Slide Mode:</label>
-            <select id="convert-pptx-mode" class="editor-select" style="flex: 1;">
+            <select id="convert-pptx-mode" class="editor-select" aria-label="PowerPoint layout conversion mode" style="flex: 1;">
               <option value="visual" selected>Visual Slides (Crisp Full-Page Rasters)</option>
               <option value="editable">Editable Text (Vector Text Boxes & Headings)</option>
             </select>
@@ -2850,14 +2855,14 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <div id="options-img2pdf-row" style="display: none; flex-direction: column; gap: 8px;">
             <div style="display: flex; gap: 12px; align-items: center;">
               <label style="font-size: 11.5px; color: #94a3b8; min-width: 90px;">Page Size:</label>
-              <select id="convert-img2pdf-size" class="editor-select" style="width: 130px;">
+              <select id="convert-img2pdf-size" class="editor-select" aria-label="Image to PDF page size" style="width: 130px;">
                 <option value="a4" selected>A4 (210 x 297 mm)</option>
                 <option value="letter">Letter (8.5 x 11 in)</option>
                 <option value="original">Original Image Dimensions</option>
               </select>
 
               <label style="font-size: 11.5px; color: #94a3b8; margin-left: 10px;">Orientation:</label>
-              <select id="convert-img2pdf-orient" class="editor-select" style="width: 110px;">
+              <select id="convert-img2pdf-orient" class="editor-select" aria-label="Image to PDF page orientation" style="width: 110px;">
                 <option value="auto" selected>Auto Detect</option>
                 <option value="portrait">Portrait</option>
                 <option value="landscape">Landscape</option>
@@ -2865,13 +2870,13 @@ async function convertFileInBrowser(file, operation = 'compress') {
             </div>
             <div style="display: flex; gap: 12px; align-items: center;">
               <label style="font-size: 11.5px; color: #94a3b8; min-width: 90px;">Fit Mode:</label>
-              <select id="convert-img2pdf-fit" class="editor-select" style="width: 130px;">
+              <select id="convert-img2pdf-fit" class="editor-select" aria-label="Image fit mode" style="width: 130px;">
                 <option value="fit" selected>Fit Page (Preserve Aspect)</option>
                 <option value="fill">Fill Entire Page</option>
               </select>
 
               <label style="font-size: 11.5px; color: #94a3b8; margin-left: 10px;">Margin:</label>
-              <select id="convert-img2pdf-margin" class="editor-select" style="width: 110px;">
+              <select id="convert-img2pdf-margin" class="editor-select" aria-label="Image page margins" style="width: 110px;">
                 <option value="0">None (0 pt)</option>
                 <option value="18" selected>Narrow (18 pt)</option>
                 <option value="36">Normal (36 pt)</option>
@@ -2989,25 +2994,25 @@ async function convertFileInBrowser(file, operation = 'compress') {
             <div class="field-dimension-grid">
               <div class="dimension-cell">
                 <small>X (pt)</small>
-                <input type="number" id="new-field-x" class="editor-input dimension-input" value="72" />
+                <input type="number" id="new-field-x" class="editor-input dimension-input" aria-label="Form field X coordinate" value="72" />
               </div>
               <div class="dimension-cell">
                 <small>Y (pt)</small>
-                <input type="number" id="new-field-y" class="editor-input dimension-input" value="150" />
+                <input type="number" id="new-field-y" class="editor-input dimension-input" aria-label="Form field Y coordinate" value="150" />
               </div>
               <div class="dimension-cell">
                 <small>Width</small>
-                <input type="number" id="new-field-w" class="editor-input dimension-input" value="220" />
+                <input type="number" id="new-field-w" class="editor-input dimension-input" aria-label="Form field width" value="220" />
               </div>
               <div class="dimension-cell">
                 <small>Height</small>
-                <input type="number" id="new-field-h" class="editor-input dimension-input" value="28" />
+                <input type="number" id="new-field-h" class="editor-input dimension-input" aria-label="Form field height" value="28" />
               </div>
             </div>
           </div>
           <div class="form-group-row" style="margin-top: 8px;">
             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-              <input type="checkbox" id="new-field-required" />
+              <input type="checkbox" id="new-field-required" aria-label="Mark form field as mandatory" />
               <span>Mark field as mandatory / required</span>
             </label>
           </div>
@@ -3023,7 +3028,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <div style="border-top: 1px solid var(--studio-border); padding-top: 12px;">
              <strong style="font-size: 13px;">Import Form Data</strong>
             <p style="font-size: 11.5px; color: var(--text-muted); margin: 4px 0 8px 0;">Paste JSON object containing field names and their target values to populate the document:</p>
-            <textarea id="forms-import-json-text" class="editor-input" rows="4" placeholder='{"full_name": "Jane Doe", "agree": true}' style="width: 100%; font-family: monospace; font-size: 11px;"></textarea>
+            <textarea id="forms-import-json-text" class="editor-input" aria-label="Form fields JSON definition" rows="4" placeholder='{"full_name": "Jane Doe", "agree": true}' style="width: 100%; font-family: monospace; font-size: 11px;"></textarea>
             <button type="button" class="btn-primary-action" id="btn-apply-import-json" style="margin-top: 8px; padding: 6px 14px; font-size: 12px;">Import JSON into Form →</button>
           </div>
         </div>
@@ -3074,7 +3079,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
           </div>
           <div class="form-group-row" style="margin-top: 8px;">
             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-              <input type="checkbox" id="digital-sign-visual-seal" checked />
+              <input type="checkbox" id="digital-sign-visual-seal" checked aria-label="Embed visual cryptographic seal" />
               <span>Embed visible cryptographic SHA-256 / RSA-2048 seal on document page</span>
             </label>
           </div>
@@ -3157,23 +3162,23 @@ async function convertFileInBrowser(file, operation = 'compress') {
             <label>Granular Permission Restrictions (Bitmask)</label>
             <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 6px; font-size: 12px; color: #cbd5e1;">
               <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                <input type="checkbox" id="perm-allow-print" checked />
+                <input type="checkbox" id="perm-allow-print" checked aria-label="Permission: Allow printing" />
                 <span>Allow High-Resolution Printing</span>
               </label>
               <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                <input type="checkbox" id="perm-allow-copy" checked />
+                <input type="checkbox" id="perm-allow-copy" checked aria-label="Permission: Allow copying text and graphics" />
                 <span>Allow Text & Graphic Copying</span>
               </label>
               <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                <input type="checkbox" id="perm-allow-modify" />
+                <input type="checkbox" id="perm-allow-modify" aria-label="Permission: Allow modifying document contents" />
                 <span>Allow Document Content Modification</span>
               </label>
               <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                <input type="checkbox" id="perm-allow-annotate" />
+                <input type="checkbox" id="perm-allow-annotate" aria-label="Permission: Allow adding comments and annotations" />
                 <span>Allow Adding Comments & Annotations</span>
               </label>
               <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                <input type="checkbox" id="perm-allow-forms" checked />
+                <input type="checkbox" id="perm-allow-forms" checked aria-label="Permission: Allow filling form fields" />
                 <span>Allow Filling Form Fields</span>
               </label>
             </div>
@@ -3201,10 +3206,10 @@ async function convertFileInBrowser(file, operation = 'compress') {
              <strong style="font-size: 12.5px;">Sanitize & Clean Document</strong>
             <p style="font-size: 11px; color: var(--text-muted); margin: 4px 0 8px 0;">Remove private tracking metadata, hidden attachments, active JavaScript, and user comments:</p>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11.5px; color: #cbd5e1; margin-bottom: 10px;">
-              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;"><input type="checkbox" id="sanitize-opt-meta" checked /> Strip Metadata</label>
-              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;"><input type="checkbox" id="sanitize-opt-att" checked /> Remove Attachments</label>
-              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;"><input type="checkbox" id="sanitize-opt-annots" checked /> Purge Annotations</label>
-              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;"><input type="checkbox" id="sanitize-opt-js" checked /> Neutralize JavaScript</label>
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;"><input type="checkbox" id="sanitize-opt-meta" checked aria-label="Sanitize document metadata and author info" /> Strip Metadata</label>
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;"><input type="checkbox" id="sanitize-opt-att" checked aria-label="Remove embedded file attachments" /> Remove Attachments</label>
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;"><input type="checkbox" id="sanitize-opt-annots" checked aria-label="Remove comments, notes, and annotations" /> Purge Annotations</label>
+              <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;"><input type="checkbox" id="sanitize-opt-js" checked aria-label="Strip embedded JavaScript actions and macros" /> Neutralize JavaScript</label>
             </div>
             <button type="button" class="btn-primary-action" id="btn-apply-sanitize" style="padding: 6px 14px; font-size: 12px;">Sanitize Document Now →</button>
           </div>

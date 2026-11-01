@@ -701,6 +701,9 @@ body.light-mode .topbar {
   display: flex;
   align-items: center;
   gap: 14px;
+  flex-shrink: 0;
+  min-width: 0;
+  white-space: nowrap;
 }
 
 .mobile-menu-btn {
@@ -1711,7 +1714,12 @@ textarea::placeholder {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   overflow-x: auto;
   overflow-y: hidden;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.studio-primary-ribbon::-webkit-scrollbar {
+  display: none;
 }
 
 .studio-sub-ribbon {
@@ -1723,7 +1731,12 @@ textarea::placeholder {
   background: #141c1e;
   overflow-x: auto;
   overflow-y: hidden;
-  scrollbar-width: thin;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.studio-sub-ribbon::-webkit-scrollbar {
+  display: none;
 }
 
 .studio-sub-ribbon[hidden] {
@@ -1918,16 +1931,24 @@ textarea::placeholder {
 .organizer-selection-panel {
   background: #1b2628;
   border-bottom: 1px solid var(--studio-border);
-  padding: 8px 16px;
+  padding: 6px 14px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 12px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   z-index: 20;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  min-height: 46px;
+  min-height: 44px;
+  max-height: 48px;
   flex-shrink: 0;
+}
+
+.organizer-selection-panel::-webkit-scrollbar {
+  display: none;
 }
 
 .selection-panel-summary {
@@ -2030,12 +2051,16 @@ textarea::placeholder {
   flex: 1;
   min-width: 0;
   min-height: 0;
-  overflow: auto;
-  padding: 32px;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  padding: 24px 16px;
   background: #141b1d;
   position: relative;
   scroll-behavior: smooth;
   overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .page-render-wrapper {
@@ -3673,6 +3698,20 @@ body.dark-mode .btn-google-social:hover {
   line-height: 1;
 }
 
+body.light-mode .tier-price-val {
+  color: #111827 !important;
+}
+
+body.light-mode .tier-price-period,
+body.light-mode .tier-price-alt,
+body.light-mode .tier-subtitle {
+  color: #4b5563 !important;
+}
+
+body.light-mode .tier-price-box {
+  border-bottom: 1px solid #e5e7eb !important;
+}
+
 .tier-price-period {
   font-size: 13.5px;
   font-weight: 600;
@@ -3865,8 +3904,42 @@ body.dark-mode .btn-secondary-action {
 
 /* Responsive Rules */
 @media (max-width: 900px) {
-  .app-shell {
-    grid-template-columns: 1fr;
+  .app-shell,
+  .app-shell.sidebar-collapsed {
+    grid-template-columns: 100% !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    min-width: 0 !important;
+  }
+  .main-area {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    min-width: 0 !important;
+  }
+  .dynamic-workspace {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+  .home-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 16px 12px 64px !important;
+  }
+  .full-page-view {
+    padding: 20px 14px !important;
+    margin-bottom: 16px !important;
+  }
+  .waitlist-form-row,
+  .waitlist-input-group {
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+  .waitlist-select {
+    flex: 1 1 auto !important;
+    width: 100% !important;
   }
   .mobile-menu-btn {
     display: flex;
@@ -6403,6 +6476,21 @@ body:not(.light-mode) .editor-select option {
 /* Touch-first layout overrides.  The drawer is the primary navigation on
    narrow screens; tool cards become a horizontally swipeable rail. */
 @media (max-width: 900px) {
+  .app-shell,
+  .app-shell.sidebar-collapsed {
+    grid-template-columns: 100% !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    min-width: 0 !important;
+  }
+
+  .main-area {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    min-width: 0 !important;
+  }
+
   .sidebar {
     touch-action: pan-y;
     overscroll-behavior: contain;

@@ -130,6 +130,18 @@ def init_db() -> None:
                 created_at REAL NOT NULL
             );
             CREATE INDEX IF NOT EXISTS idx_email_otps_lookup ON email_otps(email, purpose);
+            CREATE TABLE IF NOT EXISTS audit_logs (
+                id TEXT PRIMARY KEY,
+                event_type TEXT NOT NULL,
+                user_id TEXT,
+                email TEXT,
+                ip_address TEXT,
+                user_agent TEXT,
+                details TEXT,
+                created_at REAL NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at);
+            CREATE INDEX IF NOT EXISTS idx_audit_logs_email ON audit_logs(email);
             """
         )
         # Migrate existing users and jobs tables if columns don't exist yet
@@ -186,6 +198,53 @@ def create_user(email: str, password: str) -> str:
         )
         connection.commit()
     return user_id
+
+
+def create_user_with_hash(email: str, password_hash: str, salt: str) -> str:
+    cleaned_email = email.lower().strip()
+    if "@" not in cleaned_email or "." not in cleaned_email:
+        raise ValueError("Please provide a valid email address.")
+    user_id = uuid.uuid4().hex
+    with closing(connect()) as connection:
+        connection.execute(
+            """
+            INSERT INTO users (id, email, password_hash, salt, created_at, tier, subscription_status)
+            VALUES (?, ?, ?, ?, ?, 'free', 'inactive')
+            """,
+            (user_id, cleaned_email, password_hash, salt, time.time())
+        )
+        connection.commit()
+    return user_id
+
+
+def record_audit_event(
+    event_type: str,
+    email: str | None = None,
+    ip_address: str | None = None,
+    user_agent: str | None = None,
+    details: str | None = None,
+    user_id: str | None = None
+) -> str:
+    log_id = uuid.uuid4().hex
+    with closing(connect()) as connection:
+        connection.execute(
+            """
+            INSERT INTO audit_logs (id, event_type, user_id, email, ip_address, user_agent, details, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (log_id, event_type, user_id, (email or "").lower().strip(), ip_address or "", user_agent or "", details or "", time.time())
+        )
+        connection.commit()
+    return log_id
+
+
+def get_recent_audit_logs(limit: int = 50) -> list[dict]:
+    with closing(connect()) as connection:
+        rows = connection.execute(
+            "SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT ?",
+            (limit,)
+        ).fetchall()
+        return [dict(r) for r in rows]
 
 
 def verify_user_credentials(email: str, password: str) -> dict | None:
@@ -767,15 +826,21 @@ def get_job(job_id: str, user_id: str | None = None, guest_token: str | None = N
             if guest_token and job["guest_token"] and secrets.compare_digest(job["guest_token"], guest_token):
                 return job
             return None
-        # Guest job: allow if capability token matches, or fallback if unowned
+        # Guest job: strictly require matching capability token
         if job["guest_token"]:
-            if guest_token:
-                if secrets.compare_digest(job["guest_token"], guest_token):
-                    return job
-                return None
-            return job
+            if guest_token and secrets.compare_digest(job["guest_token"], guest_token):
+                return job
+            return None
         # Legacy job without user_id or guest_token
         return job
+
+
+def delete_job_record(job_id: str) -> bool:
+    """Permanently delete job record from the database."""
+    with closing(connect()) as connection:
+        c = connection.execute("DELETE FROM jobs WHERE id = ?", (job_id,)).rowcount
+        connection.commit()
+        return c > 0
 
 
 def get_job_internal(job_id: str):

@@ -51,6 +51,8 @@ GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
 
 # Cookie Security Settings
 SECURE_COOKIES = os.getenv("PAPERPLANE_SECURE_COOKIES", "true" if ENVIRONMENT == "production" else "false").lower() in ("true", "1", "yes")
+if "pytest" in sys.modules or os.getenv("TESTING"):
+    SECURE_COOKIES = False
 COOKIE_SAMESITE = os.getenv("PAPERPLANE_COOKIE_SAMESITE", "lax").lower()
 
 # Transactional Email & Security Notifications (Resend API & SMTP)
@@ -87,10 +89,9 @@ TRUSTED_HOSTS = [
     for item in raw_hosts.split(",")
     if item.strip() and item.strip() != "*"
 ]
-if not TRUSTED_HOSTS:
-    TRUSTED_HOSTS = ["127.0.0.1", "localhost", "testserver"]
-if "testserver" not in TRUSTED_HOSTS and ("pytest" in sys.modules or os.getenv("TESTING")):
-    TRUSTED_HOSTS.append("testserver")
+for h in ["127.0.0.1", "localhost", "testserver"]:
+    if h not in TRUSTED_HOSTS:
+        TRUSTED_HOSTS.append(h)
 
 # Cryptographic Session & JWT Secrets with safe random fallback
 _configured_session_secret = (
@@ -149,7 +150,7 @@ AGENTROUTER_MAX_OUTPUT_TOKENS = int(os.getenv("AGENTROUTER_MAX_OUTPUT_TOKENS", "
 AI_KILL_SWITCH = os.getenv("PAPERPLANE_AI_KILL_SWITCH", "false").lower() in ("true", "1", "yes")
 
 # Public Developer REST API Quotas (Free Tier Defaults)
-FREE_API_CALLS_PER_DAY = int(os.getenv("PAPERPLANE_FREE_API_CALLS_PER_DAY", "10"))
+FREE_API_CALLS_PER_DAY = int(os.getenv("PAPERPLANE_FREE_API_CALLS_PER_DAY", "100"))
 FREE_AI_CALLS_PER_DAY = int(os.getenv("PAPERPLANE_FREE_AI_CALLS_PER_DAY", "3"))
 FREE_MAX_FILE_SIZE_MB = int(os.getenv("PAPERPLANE_FREE_MAX_FILE_SIZE_MB", "10"))
 FREE_CONCURRENT_JOBS = int(os.getenv("PAPERPLANE_FREE_CONCURRENT_JOBS", "2"))

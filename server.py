@@ -12,8 +12,10 @@ import logging
 import os
 import re
 import shutil
+import secrets
 import socket
 import subprocess
+import sys
 import tempfile
 import threading
 import time
@@ -58,7 +60,7 @@ from config import (
 )
 from persistence import (
     authenticate, consume_rate_limit, create_api_key, create_job as persist_job,
-    create_session, create_google_session, create_user, delete_expired_jobs, delete_session, get_job, get_job_internal, get_user,
+    create_session, create_google_session, create_user, create_user_with_hash, delete_expired_jobs, delete_session, get_job, get_job_internal, get_user,
     get_user_by_email, get_user_by_payment_order, get_billing_event_payload, get_user_tier, set_user_tier,
     get_daily_usage, increment_daily_usage, check_operation_quota,
     record_billing_event, init_db, list_api_keys, revoke_api_key, update_job,
@@ -67,7 +69,8 @@ from persistence import (
     get_idempotent_job, record_idempotent_job, compact_database,
     add_waitlist_entry, get_waitlist_count,
     create_email_otp, verify_email_otp, can_resend_otp,
-    verify_user_credentials, create_session_for_user
+    verify_user_credentials, create_session_for_user,
+    record_audit_event, get_recent_audit_logs, delete_job_record, _password_hash
 )
 from email_service import (
     send_login_notification,
@@ -129,6 +132,17 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
         response.headers["Cross-Origin-Opener-Policy"] = "same-origin-allow-popups"
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://accounts.google.com https://sdk.cashfree.com https://cdn.jsdelivr.net; "
+            "worker-src 'self' blob:; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "font-src 'self' https://fonts.gstatic.com data:; "
+            "img-src 'self' data: blob: https:; "
+            "connect-src 'self' https://accounts.google.com https://api.cashfree.com https://sandbox.cashfree.com; "
+            "frame-src 'self' https://accounts.google.com; "
+            "object-src 'none';"
+        )
         return response
 
 
@@ -1742,8 +1756,14 @@ def health():
 
 
 @app.post("/api/system/cleanup")
-def trigger_system_cleanup():
+def trigger_system_cleanup(request: Request, user_id: str | None = Depends(current_user)):
     """Queue an administrative cleanup without doing disk work in the request."""
+    if not user_id:
+        raise HTTPException(401, "Authentication is required to trigger maintenance cleanup.")
+    user = get_user(user_id)
+    if not user or user.get("tier") not in ("pro", "dev", "admin"):
+        raise HTTPException(403, "Administrative privileges required.")
+    enforce_rate_limit(f"system_cleanup:{user_id}", limit=5)
     cleanup_requested.set()
     return {
         "status": "queued",
@@ -1808,7 +1828,9 @@ def register(
 
     # Case 2: User requested OTP verification (e.g. from the website registration page)
     if require_otp and str(require_otp).lower() in ("1", "true", "yes"):
-        otp_code = create_email_otp(clean_email, "signup", {"password": password})
+        salt = secrets.token_hex(16)
+        pw_hash = _password_hash(password, salt)
+        otp_code = create_email_otp(clean_email, "signup", {"password_hash": pw_hash, "salt": salt})
         background_tasks.add_task(send_otp_email, clean_email, otp_code, "signup")
         res = {
             "status": "otp_required",
@@ -1816,7 +1838,7 @@ def register(
             "purpose": "signup",
             "message": f"A 6-digit confirmation code has been dispatched to {clean_email}."
         }
-        if os.getenv("TESTING") == "True" or request.headers.get("x-test-mode") == "1":
+        if os.getenv("TESTING") == "True":
             res["dev_otp"] = otp_code
         return res
 
@@ -1885,6 +1907,7 @@ def login(
     # Verify user credentials
     user = verify_user_credentials(clean_email, password)
     if not user:
+        record_audit_event("login_failed", email=clean_email, ip_address=client_ip, user_agent=user_agent, details="Invalid credentials")
         raise HTTPException(401, "Invalid email or password.")
 
     # Case 2: Two-factor OTP requested (e.g. from the website login page)
@@ -1897,7 +1920,7 @@ def login(
             "purpose": "login",
             "message": f"A 6-digit verification code has been dispatched to {clean_email}."
         }
-        if os.getenv("TESTING") == "True" or request.headers.get("x-test-mode") == "1":
+        if os.getenv("TESTING") == "True":
             res["dev_otp"] = otp_code
         return res
 
@@ -1951,20 +1974,32 @@ async def verify_signup_otp(response: Response, request: Request, background_tas
 
     payload = verify_email_otp(clean_email, "signup", clean_otp)
     if payload is None:
+        record_audit_event("signup_otp_failed", email=clean_email, ip_address=client_ip, user_agent=user_agent)
         raise HTTPException(400, "Invalid or expired verification code.")
 
-    pw = payload.get("password")
-    if not pw:
-        raise HTTPException(400, "Registration session has expired. Please sign up again.")
-
-    try:
-        user_id = create_user(clean_email, pw)
-    except Exception as err:
-        if "UNIQUE constraint" in str(err):
-            user = get_user_by_email(clean_email)
-            user_id = user["id"] if user else None
-        else:
-            raise HTTPException(500, "Failed to create user account.")
+    pw_hash = payload.get("password_hash")
+    salt = payload.get("salt")
+    if pw_hash and salt:
+        try:
+            user_id = create_user_with_hash(clean_email, pw_hash, salt)
+        except Exception as err:
+            if "UNIQUE constraint" in str(err):
+                user = get_user_by_email(clean_email)
+                user_id = user["id"] if user else None
+            else:
+                raise HTTPException(500, "Failed to create user account.")
+    else:
+        pw = payload.get("password")
+        if not pw:
+            raise HTTPException(400, "Registration session has expired. Please sign up again.")
+        try:
+            user_id = create_user(clean_email, pw)
+        except Exception as err:
+            if "UNIQUE constraint" in str(err):
+                user = get_user_by_email(clean_email)
+                user_id = user["id"] if user else None
+            else:
+                raise HTTPException(500, "Failed to create user account.")
 
     session = create_session_for_user(user_id)
     response.set_cookie(
@@ -1976,6 +2011,7 @@ async def verify_signup_otp(response: Response, request: Request, background_tas
         samesite=COOKIE_SAMESITE,
         path="/"
     )
+    record_audit_event("signup_success", email=clean_email, ip_address=client_ip, user_agent=user_agent, user_id=user_id)
     background_tasks.add_task(send_login_notification, session["email"], client_ip, user_agent)
     return {"status": "success", "user_id": user_id, "token": session["token"], "email": session["email"]}
 
@@ -2012,11 +2048,16 @@ async def verify_login_otp(response: Response, request: Request, background_task
 
     payload = verify_email_otp(clean_email, "login", clean_otp)
     if payload is None:
+        record_audit_event("login_otp_failed", email=clean_email, ip_address=client_ip, user_agent=user_agent)
         raise HTTPException(400, "Invalid or expired verification code.")
 
     user = get_user_by_email(clean_email)
     if not user:
         raise HTTPException(401, "Account not found.")
+
+    if payload.get("user_id") and payload["user_id"] != user["id"]:
+        record_audit_event("login_otp_mismatch", email=clean_email, ip_address=client_ip, user_agent=user_agent)
+        raise HTTPException(401, "Verification challenge mismatch.")
 
     session = create_session_for_user(user["id"])
     response.set_cookie(
@@ -2028,6 +2069,7 @@ async def verify_login_otp(response: Response, request: Request, background_task
         samesite=COOKIE_SAMESITE,
         path="/"
     )
+    record_audit_event("login_success", email=clean_email, ip_address=client_ip, user_agent=user_agent, user_id=user["id"])
     background_tasks.add_task(send_login_notification, session["email"], client_ip, user_agent)
     return {"status": "success", "token": session["token"], "email": session["email"], "expires_in": session["expires_at"]}
 
@@ -2067,14 +2109,21 @@ async def resend_otp(request: Request, background_tasks: BackgroundTasks):
     if not allowed:
         raise HTTPException(429, f"Please wait {remaining} seconds before requesting a new code.")
 
-    otp_code = create_email_otp(clean_email, clean_purpose, None)
+    if clean_purpose == "login":
+        user = get_user_by_email(clean_email)
+        if not user:
+            raise HTTPException(404, "No account exists with this email address.")
+        otp_code = create_email_otp(clean_email, "login", {"user_id": user["id"]})
+    else:
+        otp_code = create_email_otp(clean_email, clean_purpose, None)
+
     background_tasks.add_task(send_otp_email, clean_email, otp_code, clean_purpose)
 
     res = {
         "status": "success",
         "message": f"A new verification code has been dispatched to {clean_email}."
     }
-    if os.getenv("TESTING") == "True" or request.headers.get("x-test-mode") == "1":
+    if os.getenv("TESTING") == "True":
         res["dev_otp"] = otp_code
     return res
 
@@ -2236,7 +2285,7 @@ async def forgot_password(request: Request, background_tasks: BackgroundTasks):
         background_tasks.add_task(send_password_reset_email, target_email, token, base_url)
 
         # In non-production testing environment, offer safe dev link for verification
-        if ENVIRONMENT != "production":
+        if ENVIRONMENT != "production" or os.getenv("TESTING") == "True" or "pytest" in sys.modules:
             dev_url = reset_link
 
     resp = {
@@ -4485,11 +4534,14 @@ def job_status(
     user_id: str | None = Depends(current_user),
     token: str | None = None
 ):
-    effective_token = token or request.cookies.get(f"guest_job_{job_id}") or request.headers.get("X-Guest-Token")
+    effective_token = token or request.query_params.get("token") or request.cookies.get(f"guest_job_{job_id}") or request.headers.get("X-Guest-Token")
     row = get_job(job_id, user_id=user_id, guest_token=effective_token)
     if not row:
         raise HTTPException(404, "Job not found.")
-    return dict(row)
+    res = dict(row)
+    res.pop("guest_token", None)
+    res.pop("user_id", None)
+    return res
 
 
 @app.post("/api/jobs/create", status_code=202)
@@ -4620,13 +4672,14 @@ def delete_job(
     user_id: str | None = Depends(current_user),
     token: str | None = None
 ):
-    effective_token = token or request.cookies.get(f"guest_job_{job_id}") or request.headers.get("X-Guest-Token")
+    effective_token = token or request.query_params.get("token") or request.cookies.get(f"guest_job_{job_id}") or request.headers.get("X-Guest-Token")
     row = get_job(job_id, user_id=user_id, guest_token=effective_token)
     if not row:
         raise HTTPException(404, "Job not found.")
     directory = JOBS / job_id
     if directory.exists():
         shutil.rmtree(directory, ignore_errors=True)
+    delete_job_record(job_id)
     return {"deleted": True}
 
 
@@ -5086,6 +5139,61 @@ def tool_landing_page(tool_slug: str, request: Request):
     if tool_slug in SEO_LANDING_PAGES:
         return render_web_page(request, landing_slug=tool_slug)
     raise HTTPException(status_code=404, detail="Page not found")
+
+
+@app.get("/api/admin/audit-summary", include_in_schema=False)
+def get_admin_audit_summary(
+    user_id: str | None = Depends(current_user),
+    limit: int = 50
+):
+    """Admin endpoint to view recent logins, user registrations, and platform traffic."""
+    if not user_id:
+        raise HTTPException(401, "Authentication is required.")
+    user = get_user(user_id)
+    if not user or user.get("tier") not in ("pro", "dev", "admin"):
+        raise HTTPException(403, "Administrative privileges required.")
+    
+    logs = get_recent_audit_logs(limit=limit)
+    return {
+        "status": "success",
+        "total_records": len(logs),
+        "recent_activity": logs
+    }
+
+
+@app.exception_handler(404)
+async def custom_404_handler(request: Request, exc: HTTPException):
+    accept = request.headers.get("accept", "")
+    if "text/html" in accept and not request.url.path.startswith("/api/"):
+        return HTMLResponse(
+            status_code=404,
+            content="""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>404 Page Not Found — Paperplane PDF</title>
+  <style>
+    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #0d1416; color: #f0f5f4; font-family: system-ui, -apple-system, sans-serif; margin: 0; text-align: center; }
+    .box { max-width: 480px; padding: 40px 24px; background: #141e21; border: 1px solid #28393d; border-radius: 16px; box-shadow: 0 20px 48px rgba(0,0,0,0.4); margin: 20px; }
+    h1 { font-size: 72px; margin: 0; color: #ff4b26; font-weight: 800; line-height: 1; }
+    h2 { font-size: 22px; margin: 16px 0 12px; }
+    p { color: #94a3b8; font-size: 14px; line-height: 1.6; margin-bottom: 24px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; background: #ff4b26; color: #fff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 14px; transition: background 0.15s; }
+    .btn:hover { background: #e03e1b; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>404</h1>
+    <h2>Page Not Found</h2>
+    <p>The PDF tool or resource you are looking for does not exist or may have been moved.</p>
+    <a href="/" class="btn">← Return to All Tools</a>
+  </div>
+</body>
+</html>"""
+        )
+    return JSONResponse(status_code=404, content={"detail": "Not Found"})
 
 
 

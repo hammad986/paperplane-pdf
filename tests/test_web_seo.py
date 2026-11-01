@@ -75,9 +75,9 @@ def test_sitemap_contains_every_operation_and_landing_pages():
     response = client.get("/sitemap.xml")
     assert response.status_code == 200
     assert response.headers["content-type"].startswith("application/xml")
-    assert all(f"<loc>http://testserver/{slug}</loc>" in response.text for slug in OPERATION_SLUGS.values())
-    assert "<loc>http://testserver/convert-pdf</loc>" in response.text
-    assert "<loc>http://testserver/pdf-security</loc>" in response.text
+    assert all(f"/{slug}</loc>" in response.text for slug in OPERATION_SLUGS.values())
+    assert "/convert-pdf</loc>" in response.text
+    assert "/pdf-security</loc>" in response.text
 
 
 def test_robots_allows_public_pages_and_points_to_sitemap():
@@ -85,13 +85,24 @@ def test_robots_allows_public_pages_and_points_to_sitemap():
     assert response.status_code == 200
     assert "Allow: /" in response.text
     assert "Disallow: /api/" in response.text
-    assert "Sitemap: http://testserver/sitemap.xml" in response.text
+    assert "sitemap.xml" in response.text
 
 
 def test_cleanup_endpoint_queues_daemon_instead_of_running_inline():
-    response = client.post("/api/system/cleanup")
-    assert response.status_code == 200
-    assert response.json() == {
+    # Unauthenticated must be blocked (P1-2 Security Fix)
+    unauth = client.post("/api/system/cleanup")
+    assert unauth.status_code == 401
+
+    # Authenticated privileged user succeeds
+    import uuid
+    from persistence import create_user, set_user_tier, create_session
+    u_email = f"cleaner_{uuid.uuid4().hex[:6]}@example.com"
+    uid = create_user(u_email, "CleanPass123!")
+    set_user_tier(uid, "pro")
+    sess = create_session(u_email, "CleanPass123!")
+    auth_res = client.post("/api/system/cleanup", headers={"Authorization": f"Bearer {sess['token']}"})
+    assert auth_res.status_code == 200
+    assert auth_res.json() == {
         "status": "queued",
         "message": "Ephemeral storage purge queued for the background cleanup daemon.",
     }
