@@ -673,9 +673,20 @@ def increment_daily_usage(subject: str, date_str: str | None = None) -> int:
         return int(row["count"]) if row else 1
 
 
+EDU_EMAIL_PATTERNS = (".edu", ".ac.in", ".edu.in", ".ac.uk", ".res.in", ".ernet.in", ".univ", ".college", ".school")
+
+
+def is_educational_email(email: str | None) -> bool:
+    """Detect if an email domain belongs to an educational institution."""
+    if not email or "@" not in email:
+        return False
+    domain = email.split("@")[-1].lower()
+    return any(domain.endswith(ext) or f"{ext}." in domain for ext in EDU_EMAIL_PATTERNS)
+
+
 def check_operation_quota(user_id: str | None, client_ip: str, daily_limit: int = 100) -> tuple[bool, int, str]:
     tier = get_user_tier(user_id)
-    if tier in ("pro", "developer"):
+    if tier in ("pro", "developer", "student_pro", "cyber_cafe", "exam_pass"):
         subject = f"user:{user_id}"
         usage = get_daily_usage(subject)
         return True, usage, tier

@@ -47,6 +47,7 @@ from config import (
     RATE_LIMIT_PER_MINUTE, REQUIRE_AUTH, S3_BUCKET, 
     FREE_TIER_DAILY_LIMIT, PRO_TIER_PRICE_USD, PRO_TIER_PRICE_INR,
     DEV_TIER_PRICE_USD, DEV_TIER_PRICE_INR,
+    EXAM_PASS_PRICE_INR, STUDENT_PRO_PRICE_INR, STUDENT_ANNUAL_PRICE_INR, CYBER_CAFE_PRICE_INR,
     TRUSTED_HOSTS,
     ALLOW_BILLING_SIMULATION, ENVIRONMENT, GOOGLE_CLIENT_ID, SECURE_COOKIES, COOKIE_SAMESITE,
     SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, SMTP_FROM, SMTP_USE_TLS,
@@ -94,12 +95,13 @@ JOBS = JOBS_DIR
 logger = logging.getLogger(__name__)
 executor = ThreadPoolExecutor(max_workers=max(4, int(os.getenv("PAPERPLANE_WORKERS", "4"))))
 
+DISABLE_DOCS = os.getenv("PAPERPLANE_DISABLE_DOCS", "false").lower() in ("true", "1")
 app = FastAPI(
-    title="Paperplane PDF API",
+    title="Paperplane PDF Enterprise API",
     version="2.0.0",
-    docs_url="/api-docs",
-    redoc_url="/redoc",
-    openapi_url="/openapi.json"
+    docs_url=None if DISABLE_DOCS else "/api-docs",
+    redoc_url=None if DISABLE_DOCS else "/redoc",
+    openapi_url=None if DISABLE_DOCS else "/openapi.json"
 )
 init_db()
 
@@ -134,7 +136,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Cross-Origin-Opener-Policy"] = "same-origin-allow-popups"
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' https://accounts.google.com https://sdk.cashfree.com https://cdn.jsdelivr.net; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://accounts.google.com https://sdk.cashfree.com https://cdn.jsdelivr.net; "
             "worker-src 'self' blob:; "
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
             "font-src 'self' https://fonts.gstatic.com data:; "
@@ -227,6 +229,8 @@ OPERATIONS = {
     "ai_extract": {"label": "Smart Metadata", "category": "AI tools", "accept": "pdf", "implemented": True, "description": "Extract invoices and resumes into structured JSON & CSV."},
     "summarize": {"label": "AI Summarize", "category": "AI tools", "accept": "pdf", "implemented": True, "description": "Generate executive overview and key bullet points."},
     "translate": {"label": "AI Translate", "category": "AI tools", "accept": "pdf", "implemented": True, "description": "Translate document content while preserving formatting."},
+    "photo_resizer": {"label": "Exam Photo & Signature Resizer", "category": "Convert to PDF", "accept": "image", "implemented": True, "description": "Resize photos and signatures to exact dimensions and KB limits for SSC, UPSC, and state exams."},
+    "mask_aadhaar": {"label": "Mask Aadhaar Card", "category": "Security", "accept": "pdf", "implemented": True, "description": "Automatically redact first 8 digits of Aadhaar numbers per UIDAI guidelines."},
 }
 
 
@@ -270,6 +274,8 @@ OPERATION_SLUGS = {
     "ai_extract": "extract-pdf-data",
     "summarize": "summarize-pdf",
     "translate": "translate-pdf",
+    "photo_resizer": "ssc-photo-resizer",
+    "mask_aadhaar": "mask-aadhaar-card-online",
 }
 SLUG_TO_OPERATION = {slug: operation for operation, slug in OPERATION_SLUGS.items()}
 
@@ -759,11 +765,53 @@ SEO_CATALOG = {
         ),
         "related": ("ocr", "pdf_to_text", "ai_chat", "summarize"),
     },
+    "photo_resizer": {
+        "title": "SSC Photo & Signature Resizer Online Free (20KB - 50KB) | Paperplane",
+        "description": "Resize and compress photos and signatures for SSC CGL, CHSL, MTS, GD Constable forms to exact 20-50KB and 10-20KB limits.",
+        "heading": "SSC & UPSC Photo and Signature Resizer",
+        "intro": "Quickly resize photos and signature images to the exact dimensions (3.5x4.5cm, 4x2cm) and file size requirements (20KB-50KB) of Indian recruitment portals.",
+        "how_to": ("Upload candidate photo or signature image", "Choose the exam preset (SSC, UPSC, IBPS)", "Download the verified resized image or PDF"),
+        "faqs": (
+            ("What is the exact SSC photo size?", "SSC requires a passport photo between 20 KB and 50 KB, with dimensions of approximately 3.5 cm width by 4.5 cm height (350x450 px)."),
+            ("What is the SSC signature size requirement?", "SSC signatures must be between 10 KB and 20 KB with dimensions of 4.0 cm width by 2.0 cm height."),
+            ("Can I export as JPG or PDF?", "Yes. You can download the output directly as an optimized JPG image or a single-page PDF document."),
+        ),
+        "related": ("jpg_to_pdf", "compress", "crop", "scan_pdf"),
+    },
+    "mask_aadhaar": {
+        "title": "Mask Aadhaar Card Online Free — UIDAI Compliant First 8 Digits Redaction | Paperplane",
+        "description": "Mask the first 8 digits of your Aadhaar card PDF or image online (XXXX-XXXX-1234). 100% private, ephemeral in-memory processing.",
+        "heading": "Mask Aadhaar Card PDF & Image Online",
+        "intro": "UIDAI mandates masking the first 8 digits of Aadhaar before sharing with private entities or employers. Paperplane permanently black-boxes or redacts the first 8 digits in memory.",
+        "how_to": ("Upload Aadhaar PDF or scan image", "Click Mask Aadhaar Now", "Download your UIDAI-compliant masked PDF"),
+        "faqs": (
+            ("Is it safe to mask Aadhaar online with Paperplane?", "Yes. Paperplane operates with zero data persistence. Files are processed in ephemeral memory sandboxes and permanently deleted within seconds."),
+            ("Does it work on password-protected e-Aadhaar PDFs?", "Use our Unlock PDF tool first to remove the master password, then mask the first 8 digits."),
+            ("Are the first 8 digits permanently unrecoverable?", "Yes. PyMuPDF true redaction destroys the underlying vector characters and pixels permanently."),
+        ),
+        "related": ("redact", "protect", "unlock", "compress"),
+    },
 }
 
 # Category landing pages are useful entry points for search visitors, but are
 # deliberately kept separate from the 37-operation sitemap inventory.
 SEO_LANDING_PAGES = {
+    "compress-pdf-to-100kb": {
+        "title": "Compress PDF to 100KB Online Free — SSC, UPSC & Govt Forms | Paperplane",
+        "description": "Compress PDF documents to strictly under 100KB online for free. Ideal for SSC CGL, UPSC, NTA, state PSC, and government job uploads.",
+        "heading": "Compress PDF to under 100 KB for Government Applications",
+        "category": "Optimize PDF",
+        "intro": "Ensure your PDF certificate, marksheet, or application complies with strict 100KB upload limits. Safe, private, and verified.",
+        "related": ("compress", "photo_resizer", "merge", "pdf_to_jpg"),
+    },
+    "compress-pdf-to-200kb": {
+        "title": "Compress PDF to 200KB Online Free — UPSC, NTA, NEET Forms | Paperplane",
+        "description": "Reduce PDF file size to under 200KB online. Perfect for UPSC, NTA NEET, GATE, and university admission portals.",
+        "heading": "Compress PDF to under 200 KB Online",
+        "category": "Optimize PDF",
+        "intro": "Quickly reduce PDF size to 200KB without quality loss for online applications and email attachments.",
+        "related": ("compress", "photo_resizer", "split", "jpg_to_pdf"),
+    },
     "convert-pdf": {
         "title": "Convert PDF Online — Free PDF Converter | Paperplane",
         "description": "Convert PDF files to Word, Excel, PowerPoint, JPG, text, Markdown, and PDF/A locally or online with Paperplane.",
@@ -1421,6 +1469,15 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
     if operation == "scan_pdf":
         return converters.scan_to_pdf(inputs, output, enhance=True)
 
+    if operation == "photo_resizer":
+        preset = options.get("preset", "ssc_photo")
+        target_kb = _safe_int(options.get("target_kb"), 50)
+        as_pdf = str(options.get("format", "jpg")).lower() == "pdf"
+        return converters.resize_exam_image(source, output, preset=preset, target_kb=target_kb, as_pdf=as_pdf)
+
+    if operation == "mask_aadhaar":
+        return security_forms_engine.mask_aadhaar_pdf(source, output)
+
     if operation == "ocr":
         language = options.get("language", "eng")
         pages = options.get("pages", "all")
@@ -1579,6 +1636,17 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
     writer = PdfWriter()
 
     if operation == "split" or operation == "remove":
+        if operation == "split" and (options.get("split_mode") == "all_pages" or options.get("split_all")):
+            zip_output = output.with_suffix(".zip")
+            with zipfile.ZipFile(zip_output, "w", zipfile.ZIP_DEFLATED) as zf:
+                for idx, page in enumerate(reader.pages, 1):
+                    pw = PdfWriter()
+                    pw.add_page(page)
+                    page_buf = io.BytesIO()
+                    pw.write(page_buf)
+                    zf.writestr(f"{stem}_page_{idx:03d}.pdf", page_buf.getvalue())
+            return zip_output
+
         selected = parse_pages(options.get("pages", ""), len(reader.pages))
         if operation == "remove":
             selected = [p for p in range(1, len(reader.pages) + 1) if p not in selected]
@@ -1603,17 +1671,25 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
             finally:
                 temp_img.unlink(missing_ok=True)
 
-        for number, page in enumerate(reader.pages, 1):
+        if operation == "watermark" and not wm_image_data:
+            text = (options.get("text") or "").strip()
+            if not text:
+                raise ValueError("Please provide watermark text or select an image.")
+            label = text
+        else:
             label = options.get("text", "CONFIDENTIAL") if operation == "watermark" else str(number)
-            ov = PdfReader(io.BytesIO(overlay(float(page.mediabox.width), float(page.mediabox.height), label, operation, options)))
+
+        for number, page in enumerate(reader.pages, 1):
+            lbl = label if operation == "watermark" else str(number)
+            ov = PdfReader(io.BytesIO(overlay(float(page.mediabox.width), float(page.mediabox.height), lbl, operation, options)))
             page.merge_page(ov.pages[0])
             writer.add_page(page)
 
     elif operation == "protect":
-        password = options.get("password") or options.get("user_password", "")
-        owner_pw = options.get("owner_password", "")
+        password = (options.get("password") or options.get("user_password") or "").strip()
+        owner_pw = (options.get("owner_password") or "").strip()
         if not password and not owner_pw:
-            raise ValueError("A password is required to encrypt this PDF.")
+            raise ValueError("A non-empty password is required to encrypt this PDF.")
         perms = {
             "allow_printing": options.get("allow_printing", True),
             "allow_copying": options.get("allow_copying", True),
@@ -1624,13 +1700,35 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
         return security_forms_engine.protect_pdf(source, output, user_password=password, owner_password=owner_pw, permissions=perms)
 
     elif operation == "unlock":
-        password = options.get("password", "")
+        password = (options.get("password") or "").strip()
+        if not password:
+            raise ValueError("Please provide the password to unlock this protected PDF.")
         return security_forms_engine.unlock_pdf(source, output, password=password)
 
     elif operation == "forms":
         fields = options.get("fields", {})
+        if isinstance(fields, str):
+            fields_str = fields.strip()
+            if fields_str.startswith("{") and fields_str.endswith("}"):
+                try:
+                    fields = json.loads(fields_str)
+                except Exception:
+                    parsed = {}
+                    for line in fields_str.strip("{}").splitlines():
+                        if ":" in line:
+                            k, v = line.split(":", 1)
+                            parsed[k.strip().strip('"\'')] = v.strip().strip('"\',')
+                    fields = parsed
+            else:
+                parsed = {}
+                for line in fields_str.splitlines():
+                    if ":" in line:
+                        k, v = line.split(":", 1)
+                        parsed[k.strip().strip('"\'')] = v.strip().strip('"\',')
+                fields = parsed
+
         if not isinstance(fields, dict) or not fields:
-            raise ValueError("Provide form fields as a valid JSON object.")
+            raise ValueError("Provide form fields as a valid JSON object (e.g. {\"Field_Name\": \"Value\"}).")
         security_forms_engine.fill_pdf_forms(source, output, fields)
         if options.get("flatten", False):
             security_forms_engine.flatten_pdf_forms(output, output)
@@ -2580,7 +2678,10 @@ def billing_status(request: Request, user_id: str | None = Depends(current_user)
         "usage_today": usage,
         "remaining_today": "Unlimited" if is_pro else max(0, FREE_TIER_DAILY_LIMIT - usage),
         "pricing": {
+            "exam_pass": {"inr": EXAM_PASS_PRICE_INR, "usd": 0.49},
+            "student_pro": {"inr": STUDENT_PRO_PRICE_INR, "usd": 0.99},
             "pro": {"usd": PRO_TIER_PRICE_USD, "inr": PRO_TIER_PRICE_INR},
+            "cyber_cafe": {"inr": CYBER_CAFE_PRICE_INR, "usd": 4.99},
             "developer": {"usd": DEV_TIER_PRICE_USD, "inr": DEV_TIER_PRICE_INR},
         },
         "cashfree_configured": bool(CASHFREE_APP_ID and CASHFREE_SECRET_KEY),
@@ -2603,17 +2704,36 @@ def create_checkout_session(
     if not user:
         raise HTTPException(404, "User not found.")
 
+    valid_tiers = {"exam_pass", "student_pro", "cyber_cafe", "pro", "developer"}
     target_tier = str(payload.get("tier", "pro")).lower()
-    if target_tier not in {"pro", "developer"}:
+    if target_tier not in valid_tiers:
         target_tier = "pro"
     currency = str(payload.get("currency", "INR")).upper()
     if currency not in {"INR", "USD"}:
         raise HTTPException(400, "Unsupported billing currency. Use INR or USD.")
-    amount = (
-        (DEV_TIER_PRICE_INR if target_tier == "developer" else PRO_TIER_PRICE_INR)
-        if currency == "INR"
-        else (DEV_TIER_PRICE_USD if target_tier == "developer" else PRO_TIER_PRICE_USD)
-    )
+
+    if currency == "INR":
+        if target_tier == "exam_pass":
+            amount = EXAM_PASS_PRICE_INR
+        elif target_tier == "student_pro":
+            amount = STUDENT_PRO_PRICE_INR
+        elif target_tier == "cyber_cafe":
+            amount = CYBER_CAFE_PRICE_INR
+        elif target_tier == "developer":
+            amount = DEV_TIER_PRICE_INR
+        else:
+            amount = PRO_TIER_PRICE_INR
+    else:
+        if target_tier == "exam_pass":
+            amount = 0.49
+        elif target_tier == "student_pro":
+            amount = 0.99
+        elif target_tier == "cyber_cafe":
+            amount = 4.99
+        elif target_tier == "developer":
+            amount = DEV_TIER_PRICE_USD
+        else:
+            amount = PRO_TIER_PRICE_USD
     # Cashfree order IDs are deliberately deterministic and traceable back to
     # the account that initiated the payment. The timestamp keeps retries from
     # colliding in normal operation while the database retains the active ID.

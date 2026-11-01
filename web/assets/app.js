@@ -214,10 +214,25 @@ function openUpgradeModal(contextMessage = '') {
       alertEl.hidden = true;
     }
   }
+  const examBtn = $('#exam-cashfree-checkout-btn');
+  if (examBtn) {
+    examBtn.disabled = false;
+    examBtn.innerHTML = 'Pay ₹19 (24-Hour Pass) →';
+  }
+  const studentBtn = $('#student-cashfree-checkout-btn');
+  if (studentBtn) {
+    studentBtn.disabled = false;
+    studentBtn.innerHTML = 'Pay ₹49/month with Cashfree →';
+  }
   const proBtn = $('#pro-cashfree-checkout-btn');
   if (proBtn) {
     proBtn.disabled = false;
-    proBtn.innerHTML = 'Pay ₹250/month with Cashfree →';
+    proBtn.innerHTML = 'Pay ₹149/month with Cashfree →';
+  }
+  const cyberBtn = $('#cybercafe-cashfree-checkout-btn');
+  if (cyberBtn) {
+    cyberBtn.disabled = false;
+    cyberBtn.innerHTML = 'Pay ₹299/month with Cashfree →';
   }
   const devBtn = $('#dev-cashfree-checkout-btn');
   if (devBtn) {
@@ -1348,11 +1363,6 @@ const studioUploadBtn = $('#studio-upload-btn');
 const studioFileInput = $('#studio-file-input');
 if (studioUploadBtn && studioFileInput) {
   studioUploadBtn.onclick = () => {
-    if (!state.user && !state.token) {
-      showToast('Please sign in or create an account to edit PDF documents.', 'warning');
-      openAuthModal('login');
-      return;
-    }
     studioFileInput.click();
   };
   studioFileInput.onchange = (e) => {
@@ -1804,16 +1814,41 @@ function renderOptions() {
   } else if (state.operation === 'rotate') {
     fields += selectField('degrees', 'Rotation Angle', [90, 180, 270]);
   } else if (state.operation === 'compress') {
-    fields += selectField('quality', 'Compression Quality', [
+    fields += selectField('preset', 'Target Compression Preset', [
+      { value: '100kb', label: '🎯 Under 100 KB (Govt / SSC Exam Form)' },
+      { value: '200kb', label: '🎯 Under 200 KB (UPSC / NTA / NEET)' },
+      { value: '500kb', label: '🎯 Under 500 KB (State PSC & College)' },
+      { value: 'balanced', label: 'Balanced (Standard 75% Quality)' },
+      { value: 'high', label: 'High Compression (60% Quality)' },
+      { value: 'extreme', label: 'Extreme Compression (Smallest Size)' },
+      { value: 'custom', label: 'Custom Quality & DPI' }
+    ]);
+    fields += field('target_size_kb', 'Or Specify Custom Target Size (KB)', 'number', '', '10', '50000', '5');
+    fields += selectField('quality', 'Image Quality (for Custom mode)', [
       { value: '65', label: '65 (High Compression)' },
       { value: '75', label: '75 (Balanced)' },
       { value: '85', label: '85 (Low Loss)' }
     ]);
-    fields += selectField('dpi', 'Max Image Resolution', [
+    fields += selectField('dpi', 'Max Image Resolution (for Custom mode)', [
       { value: '150', label: '150 DPI (Screen)' },
       { value: '72', label: '72 DPI (Web)' },
       { value: '300', label: '300 DPI (Print)' }
     ]);
+  } else if (state.operation === 'photo_resizer') {
+    fields += selectField('preset', 'Exam Preset', [
+      { value: 'ssc_photo', label: '📸 SSC Exam Photo (3.5 × 4.5 cm, 20 KB - 50 KB)' },
+      { value: 'ssc_sign', label: '✍️ SSC Signature (4.0 × 2.0 cm, 10 KB - 20 KB)' },
+      { value: 'upsc_photo', label: '📸 UPSC Photo (350 × 350 px, 20 KB - 300 KB)' },
+      { value: 'upsc_sign', label: '✍️ UPSC Signature (350 × 350 px, 20 KB - 300 KB)' },
+      { value: 'ibps_photo', label: '📸 IBPS / Bank Photo (200 × 230 px, 20 KB - 50 KB)' },
+      { value: 'ibps_sign', label: '✍️ IBPS / Bank Signature (140 × 60 px, 10 KB - 20 KB)' }
+    ]);
+    fields += selectField('format', 'Output Format', [
+      { value: 'jpg', label: 'JPG Image (Standard for portals)' },
+      { value: 'pdf', label: 'PDF Document (Single-page)' }
+    ]);
+  } else if (state.operation === 'mask_aadhaar') {
+    fields += '<div class="option-field option-field-wide" style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; padding: 12px;"><strong style="color: #10b981;">🛡️ UIDAI Compliant 1-Click Masking</strong><p style="margin: 4px 0 0; font-size: 12px; color: var(--text-muted);">Paperplane automatically searches for 12-digit Aadhaar numbers and permanently black-boxes or redacts the first 8 digits (XXXX-XXXX-1234) in memory.</p></div>';
   } else if (state.operation === 'watermark') {
     fields += field('text', 'Watermark text (leave empty if image selected)', 'text', 'CONFIDENTIAL');
     fields += field('opacity', 'Opacity (0.05 to 0.8)', 'number', '0.2', '0.05', '0.8', '0.01');
@@ -1974,10 +2009,32 @@ function updateButton() {
     : 'Select files to continue <span>→</span>';
 }
 
+const HEAVY_TOOLS = new Set([
+  'ocr', 'ocr_pdf', 'pdf_to_word', 'pdf_to_excel', 'word_to_pdf',
+  'excel_to_pdf', 'powerpoint_to_pdf', 'ai_chat', 'summarize',
+  'translate', 'ai_extract'
+]);
+
+function checkAccessRequirement(operation, files = []) {
+  if (state.user || state.token) return true;
+  if (HEAVY_TOOLS.has(operation)) {
+    showToast('This advanced AI / conversion tool requires a free account. Please sign in or register.', 'info');
+    openAuthModal('', 'login');
+    return false;
+  }
+  const largeFile = files.find(f => f.size > 50 * 1024 * 1024);
+  if (largeFile) {
+    showToast(`File "${largeFile.name}" exceeds guest limit (50MB). Please sign in for up to 500MB uploads.`, 'warning');
+    openAuthModal('', 'login');
+    return false;
+  }
+  return true;
+}
+
 $('#browse').onclick = () => {
-  if (!state.user && !state.token) {
-    showToast('Please sign in or create an account to process documents.', 'warning');
-    openAuthModal('login');
+  if (HEAVY_TOOLS.has(state.operation) && !state.user && !state.token) {
+    showToast('This advanced AI / conversion tool requires a free account. Please sign in or register.', 'info');
+    openAuthModal('', 'login');
     return;
   }
   $('#file-input').click();
@@ -1987,16 +2044,20 @@ const dropzoneEl = $('#dropzone');
 if (dropzoneEl) {
   dropzoneEl.onclick = (e) => {
     if (e.target.closest('#browse')) return;
-    if (!state.user && !state.token) {
-      showToast('Please sign in or create an account to process documents.', 'warning');
-      openAuthModal('login');
+    if (HEAVY_TOOLS.has(state.operation) && !state.user && !state.token) {
+      showToast('This advanced AI / conversion tool requires a free account. Please sign in or register.', 'info');
+      openAuthModal('', 'login');
       return;
     }
     $('#file-input').click();
   };
 }
 
-$('#file-input').onchange = e => addFiles([...e.target.files]);
+$('#file-input').onchange = e => {
+  const selected = [...e.target.files];
+  if (!checkAccessRequirement(state.operation, selected)) return;
+  addFiles(selected);
+};
 
 ['dragenter', 'dragover'].forEach(event => {
   $('#dropzone').addEventListener(event, e => {
@@ -2013,12 +2074,9 @@ $('#file-input').onchange = e => addFiles([...e.target.files]);
 });
 
 $('#dropzone').ondrop = e => {
-  if (!state.user && !state.token) {
-    showToast('Please sign in or create an account to process documents.', 'warning');
-    openAuthModal('login');
-    return;
-  }
-  addFiles([...e.dataTransfer.files]);
+  const dropped = [...e.dataTransfer.files];
+  if (!checkAccessRequirement(state.operation, dropped)) return;
+  addFiles(dropped);
 };
 
 // ----------------------------------------------------------------------
@@ -3214,9 +3272,22 @@ if ($('#command-modal')) {
 // ----------------------------------------------------------------------
 
 let authMode = 'login';
-function openAuthModal(msg = '', requestedMode = null) {
-  if (requestedMode === 'login' || requestedMode === 'register') authMode = requestedMode;
-  $('#auth-modal').hidden = false;
+function openAuthModal(msgOrMode = '', requestedMode = null) {
+  let msg = '';
+  if (msgOrMode === 'login' || msgOrMode === 'register') {
+    authMode = msgOrMode;
+  } else {
+    msg = msgOrMode || '';
+    if (requestedMode === 'login' || requestedMode === 'register') {
+      authMode = requestedMode;
+    }
+  }
+
+  const modal = $('#auth-modal');
+  if (modal) modal.hidden = false;
+
+  const otpPane = $('#auth-otp-pane');
+  if (otpPane) otpPane.hidden = true;
   const forgotPane = $('#auth-forgot-pane');
   if (forgotPane) forgotPane.hidden = true;
   const authForm = $('#auth-form');
@@ -3232,13 +3303,32 @@ function openAuthModal(msg = '', requestedMode = null) {
   }
   const gisContainer = $('#google-gis-container');
   if (gisContainer) gisContainer.hidden = false;
-  $('#auth-modal-title').textContent = authMode === 'login' ? 'Sign In to Paperplane' : 'Create an Account';
 
-  if (msg) {
-    $('#auth-error').textContent = msg;
-    $('#auth-error').hidden = false;
+  if (authMode === 'register') {
+    $('#tab-register')?.classList.add('active');
+    $('#tab-login')?.classList.remove('active');
+    $('#auth-modal-title').textContent = 'Create an Account';
+    $('#auth-submit-btn').innerHTML = 'Create Account <span>→</span>';
+    if ($('#auth-confirm-password-row')) $('#auth-confirm-password-row').hidden = false;
+    if ($('#auth-forgot-row')) $('#auth-forgot-row').hidden = true;
   } else {
-    $('#auth-error').hidden = true;
+    $('#tab-login')?.classList.add('active');
+    $('#tab-register')?.classList.remove('active');
+    $('#auth-modal-title').textContent = 'Sign In to Paperplane';
+    $('#auth-submit-btn').innerHTML = 'Sign In <span>→</span>';
+    if ($('#auth-confirm-password-row')) $('#auth-confirm-password-row').hidden = true;
+    if ($('#auth-forgot-row')) $('#auth-forgot-row').hidden = false;
+  }
+
+  const errEl = $('#auth-error');
+  if (errEl) {
+    if (msg) {
+      errEl.textContent = msg;
+      errEl.hidden = false;
+    } else {
+      errEl.textContent = '';
+      errEl.hidden = true;
+    }
   }
   initGoogleAuth();
 }
@@ -3248,7 +3338,18 @@ function setAuthMode(mode) {
   else $('#tab-login')?.click();
 }
 
-$('#close-auth-modal').onclick = () => $('#auth-modal').hidden = true;
+$('#close-auth-modal').onclick = () => {
+  $('#auth-modal').hidden = true;
+  const otpPane = $('#auth-otp-pane');
+  if (otpPane) otpPane.hidden = true;
+  const authForm = $('#auth-form');
+  if (authForm) authForm.hidden = false;
+  const errEl = $('#auth-error');
+  if (errEl) {
+    errEl.hidden = true;
+    errEl.textContent = '';
+  }
+};
 
 $('#tab-login').onclick = () => {
   authMode = 'login';
@@ -3258,7 +3359,15 @@ $('#tab-login').onclick = () => {
   $('#auth-submit-btn').innerHTML = 'Sign In <span>→</span>';
   if ($('#auth-confirm-password-row')) $('#auth-confirm-password-row').hidden = true;
   if ($('#auth-forgot-row')) $('#auth-forgot-row').hidden = false;
-  $('#auth-error').hidden = true;
+  const otpPane = $('#auth-otp-pane');
+  if (otpPane) otpPane.hidden = true;
+  const authForm = $('#auth-form');
+  if (authForm) authForm.hidden = false;
+  const errEl = $('#auth-error');
+  if (errEl) {
+    errEl.hidden = true;
+    errEl.textContent = '';
+  }
 };
 
 $('#tab-register').onclick = () => {
@@ -3269,7 +3378,15 @@ $('#tab-register').onclick = () => {
   $('#auth-submit-btn').innerHTML = 'Create Account <span>→</span>';
   if ($('#auth-confirm-password-row')) $('#auth-confirm-password-row').hidden = false;
   if ($('#auth-forgot-row')) $('#auth-forgot-row').hidden = true;
-  $('#auth-error').hidden = true;
+  const otpPane = $('#auth-otp-pane');
+  if (otpPane) otpPane.hidden = true;
+  const authForm = $('#auth-form');
+  if (authForm) authForm.hidden = false;
+  const errEl = $('#auth-error');
+  if (errEl) {
+    errEl.hidden = true;
+    errEl.textContent = '';
+  }
 };
 
 if ($('#topbar-signin-btn')) {
@@ -3875,20 +3992,20 @@ function initBillingHandlers() {
   if ($('#sidebar-upgrade-btn')) $('#sidebar-upgrade-btn').onclick = () => openUpgradeModal();
   if ($('#close-upgrade-modal')) $('#close-upgrade-modal').onclick = closeUpgradeModal;
 
-  // Pro Power User Checkout (₹250/mo)
+  const examBtn = $('#exam-cashfree-checkout-btn');
+  if (examBtn) examBtn.onclick = () => initiateCheckout('exam_pass', examBtn);
+
+  const studentBtn = $('#student-cashfree-checkout-btn');
+  if (studentBtn) studentBtn.onclick = () => initiateCheckout('student_pro', studentBtn);
+
   const proBtn = $('#pro-cashfree-checkout-btn');
-  if (proBtn) {
-    proBtn.onclick = () => initiateCheckout('pro', proBtn);
-  }
+  if (proBtn) proBtn.onclick = () => initiateCheckout('pro', proBtn);
 
+  const cyberBtn = $('#cybercafe-cashfree-checkout-btn');
+  if (cyberBtn) cyberBtn.onclick = () => initiateCheckout('cyber_cafe', cyberBtn);
 
-  // Developer API Checkout (₹750/mo)
   const devBtn = $('#dev-cashfree-checkout-btn');
-  if (devBtn) {
-    devBtn.onclick = () => initiateCheckout('developer', devBtn);
-  }
-
-
+  if (devBtn) devBtn.onclick = () => initiateCheckout('developer', devBtn);
 }
 
 async function initiateCheckout(tier, btnEl) {

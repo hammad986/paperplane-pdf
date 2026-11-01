@@ -356,10 +356,17 @@ def word_to_pdf(source: Path, output: Path) -> Path:
 
 def excel_to_pdf(source: Path, output: Path) -> Path:
     """Converts an Excel spreadsheet (.xlsx) to formatted PDF."""
-    if _convert_with_libreoffice(source, output):
-        return output
+    try:
+        if _convert_with_libreoffice(source, output):
+            return output
+    except Exception as lo_err:
+        logger.warning(f"LibreOffice conversion failed for {source.name}: {lo_err}")
 
-    wb = openpyxl.load_workbook(str(source), data_only=True)
+    try:
+        wb = openpyxl.load_workbook(str(source), data_only=True)
+    except Exception as exc:
+        raise ValueError(f"Please provide a valid Excel spreadsheet (.xlsx, .xls). File parsing failed: {exc}")
+
     pdf = SimpleDocTemplate(
         str(output),
         pagesize=landscape(A4),
@@ -1684,6 +1691,9 @@ def compress_pdf(
     Backward-compatible with quality and max_dpi arguments, with support for Phase 4 presets.
     """
     PRESET_CONFIGS = {
+        "100kb": {"max_w": 650, "max_h": 900, "quality": 45, "downsample": True, "garbage": 4},
+        "200kb": {"max_w": 850, "max_h": 1200, "quality": 55, "downsample": True, "garbage": 4},
+        "500kb": {"max_w": 1200, "max_h": 1600, "quality": 70, "downsample": True, "garbage": 4},
         "extreme": {"max_w": 800, "max_h": 1000, "quality": 45, "downsample": True, "garbage": 4},
         "high": {"max_w": 1100, "max_h": 1400, "quality": 60, "downsample": True, "garbage": 4},
         "balanced": {"max_w": 1400, "max_h": 1800, "quality": 75, "downsample": True, "garbage": 3},
@@ -1691,11 +1701,23 @@ def compress_pdf(
         "lossless": {"max_w": 99999, "max_h": 99999, "quality": 100, "downsample": False, "garbage": 4},
     }
 
-    if preset and preset.lower() in PRESET_CONFIGS:
+    if preset and preset.lower() in ("100kb", "compress_to_100kb"):
+        target_size_bytes = target_size_bytes or (98 * 1024)
+        selected_preset = "100kb"
+    elif preset and preset.lower() in ("200kb", "compress_to_200kb"):
+        target_size_bytes = target_size_bytes or (195 * 1024)
+        selected_preset = "200kb"
+    elif preset and preset.lower() in ("500kb", "compress_to_500kb"):
+        target_size_bytes = target_size_bytes or (490 * 1024)
+        selected_preset = "500kb"
+    elif preset and preset.lower() in PRESET_CONFIGS:
         selected_preset = preset.lower()
-        cfg = PRESET_CONFIGS[selected_preset]
     else:
         selected_preset = "custom"
+
+    if selected_preset in PRESET_CONFIGS:
+        cfg = PRESET_CONFIGS[selected_preset]
+    else:
         cfg = {
             "max_w": max(600, int(max_dpi * 8)),
             "max_h": max(800, int(max_dpi * 11)),
@@ -1750,23 +1772,29 @@ def compress_pdf(
     reason = "Target size achieved."
     if target_size_bytes and target_size_bytes > 0:
         current_size = temp_res.stat().st_size
-        if current_size > target_size_bytes and selected_preset != "extreme":
-            for next_preset in ["high", "extreme"]:
-                if next_preset == selected_preset:
-                    continue
-                temp_next = _execute_compression_pass(PRESET_CONFIGS[next_preset])
+        if current_size > target_size_bytes:
+            # Try progressive passes down to target limit
+            trial_passes = [
+                {"max_w": 900, "max_h": 1200, "quality": 55, "downsample": True, "garbage": 4},
+                {"max_w": 750, "max_h": 1000, "quality": 45, "downsample": True, "garbage": 4},
+                {"max_w": 600, "max_h": 800, "quality": 38, "downsample": True, "garbage": 4},
+                {"max_w": 500, "max_h": 650, "quality": 30, "downsample": True, "garbage": 4},
+                {"max_w": 400, "max_h": 500, "quality": 22, "downsample": True, "garbage": 4},
+            ]
+            for pass_cfg in trial_passes:
+                temp_next = _execute_compression_pass(pass_cfg)
                 if temp_next.stat().st_size < current_size:
                     temp_res.unlink(missing_ok=True)
                     temp_res = temp_next
                     current_size = temp_res.stat().st_size
-                    selected_preset = next_preset
                 else:
                     temp_next.unlink(missing_ok=True)
                 if current_size <= target_size_bytes:
+                    target_achieved = True
                     break
             if current_size > target_size_bytes:
                 target_achieved = False
-                reason = "Target size could not be fully met without severe visual degradation."
+                reason = f"Compressed to {round(current_size / 1024, 1)} KB (target {round(target_size_bytes / 1024, 1)} KB was reached as closely as visual clarity allows)."
 
     temp_res.replace(output)
     output_size = output.stat().st_size
@@ -1885,6 +1913,20 @@ def repair_pdf_advanced(source: Path, output: Path, mode: str = "automatic") -> 
             deflate_fonts=True
         )
         repaired_doc.close()
+
+        # Validate that the output PDF actually has at least 1 readable, renderable page
+        try:
+            val_doc = fitz.open(str(temp_out))
+            if len(val_doc) == 0:
+                val_doc.close()
+                temp_out.unlink(missing_ok=True)
+                raise ValueError("Reconstructed file contains zero readable pages.")
+            _ = val_doc[0].get_pixmap()
+            val_doc.close()
+        except Exception as v_err:
+            temp_out.unlink(missing_ok=True)
+            raise ValueError(f"Document is severely corrupted and could not be reconstructed into readable pages ({v_err}).")
+
         temp_out.replace(output)
 
         return {
@@ -1921,6 +1963,61 @@ def scan_to_pdf(images: list[Path], output: Path, enhance: bool = True) -> Path:
     rest = processed_images[1:] if len(processed_images) > 1 else []
     first.save(output, format="PDF", save_all=True, append_images=rest)
     return output
+
+
+def resize_exam_image(
+    source: Path,
+    output: Path,
+    preset: str = "ssc_photo",
+    target_kb: int = 50,
+    width_px: int | None = None,
+    height_px: int | None = None,
+    as_pdf: bool = False
+) -> Path:
+    """
+    Resizes and optimizes images (photos & signatures) to exact dimensions and KB limits
+    for Indian government and competitive exams (SSC, UPSC, IBPS, State PSC, NTA).
+    """
+    EXAM_PRESETS = {
+        "ssc_photo": {"w": 350, "h": 450, "max_kb": 50, "min_kb": 20},
+        "ssc_sign": {"w": 400, "h": 200, "max_kb": 20, "min_kb": 10},
+        "upsc_photo": {"w": 350, "h": 350, "max_kb": 300, "min_kb": 20},
+        "upsc_sign": {"w": 350, "h": 350, "max_kb": 300, "min_kb": 20},
+        "ibps_photo": {"w": 200, "h": 230, "max_kb": 50, "min_kb": 20},
+        "ibps_sign": {"w": 140, "h": 60, "max_kb": 20, "min_kb": 10},
+    }
+    cfg = EXAM_PRESETS.get(preset, {"w": width_px or 350, "h": height_px or 450, "max_kb": target_kb or 50, "min_kb": 10})
+    w = width_px or cfg["w"]
+    h = height_px or cfg["h"]
+    max_bytes = int(cfg["max_kb"] * 1024)
+
+    with Image.open(str(source)) as img:
+        rgb_img = img.convert("RGB")
+        resized = rgb_img.resize((w, h), Image.Resampling.LANCZOS)
+        
+        quality = 92
+        best_data = None
+        while quality >= 20:
+            buf = io.BytesIO()
+            resized.save(buf, format="JPEG", quality=quality, optimize=True)
+            data = buf.getvalue()
+            best_data = data
+            if len(data) <= max_bytes or quality <= 25:
+                break
+            quality -= 5
+
+        if as_pdf:
+            pdf_doc = fitz.open()
+            rect = fitz.Rect(0, 0, w, h)
+            page = pdf_doc.new_page(width=w, height=h)
+            page.insert_image(rect, stream=best_data)
+            pdf_doc.save(str(output))
+            pdf_doc.close()
+            return output
+        else:
+            out_file = output.with_suffix(".jpg")
+            out_file.write_bytes(best_data)
+            return out_file
 
 
 def apply_image_watermark(source: Path, output: Path, watermark_img_path: Path | None = None, opacity: float = 0.25, scale: float = 0.5) -> Path:

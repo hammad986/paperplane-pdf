@@ -152,8 +152,13 @@ def fill_pdf_forms(source: Path, output: Path, field_values: dict[str, Any]) -> 
     doc = fitz.open(str(source))
     try:
         updated_count = 0
+        total_widgets = 0
+        available_fields: list[str] = []
         for page in doc:
             for widget in page.widgets():
+                total_widgets += 1
+                if widget.field_name:
+                    available_fields.append(widget.field_name)
                 if widget.field_name in field_values:
                     val = field_values[widget.field_name]
                     if widget.field_type == fitz.PDF_WIDGET_TYPE_CHECKBOX:
@@ -168,6 +173,45 @@ def fill_pdf_forms(source: Path, output: Path, field_values: dict[str, Any]) -> 
 
                     widget.update()
                     updated_count += 1
+
+        if total_widgets == 0:
+            raise ValueError("This document contains no interactive AcroForm fields. Use Advanced Studio to add text or form fields.")
+        if updated_count == 0:
+            sample_fields = ", ".join(list(dict.fromkeys(available_fields))[:8])
+            raise ValueError(f"None of the provided field names matched this PDF's form fields. Available field names: {sample_fields}")
+
+        out_bytes = doc.tobytes(garbage=3, deflate=True)
+    finally:
+        doc.close()
+
+    output.write_bytes(out_bytes)
+    return output
+
+
+def mask_aadhaar_pdf(source: Path, output: Path) -> Path:
+    """
+    UIDAI Compliant Aadhaar Masking Engine.
+    Detects 12-digit Aadhaar patterns and permanently redacts the first 8 digits,
+    leaving only the last 4 digits visible.
+    """
+    if not source.exists():
+        raise ValueError(f"File '{source.name}' does not exist.")
+    
+    doc = fitz.open(str(source))
+    try:
+        pattern = re.compile(r'\b(\d{4})[\s-](\d{4})[\s-](\d{4})\b')
+        for page in doc:
+            text_page = page.get_text("text")
+            matches = list(pattern.finditer(text_page))
+            for m in matches:
+                full_aadhaar = m.group(0)
+                first_8 = full_aadhaar[:9]
+                rects = page.search_for(first_8)
+                for r in rects:
+                    page.add_redact_annot(r, text="XXXX XXXX", fill=(0.1, 0.1, 0.1), fontname="helv", fontsize=9, text_color=(1, 1, 1))
+
+            if matches:
+                page.apply_redactions()
 
         out_bytes = doc.tobytes(garbage=3, deflate=True)
     finally:
