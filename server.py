@@ -101,7 +101,8 @@ app = FastAPI(
     version="2.0.0",
     docs_url=None if DISABLE_DOCS else "/api-docs",
     redoc_url=None if DISABLE_DOCS else "/redoc",
-    openapi_url=None if DISABLE_DOCS else "/openapi.json"
+    openapi_url=None if DISABLE_DOCS else "/openapi.json",
+    servers=[{"url": PAPERPLANE_PUBLIC_URL or "/", "description": "Primary Server"}] if PAPERPLANE_PUBLIC_URL else None,
 )
 init_db()
 
@@ -149,6 +150,21 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 
 app.add_middleware(SecurityHeadersMiddleware)
+
+
+def get_client_ip(request: Request) -> str:
+    """Extracts the real client IP address considering reverse proxies."""
+    xff = request.headers.get("x-forwarded-for")
+    if xff:
+        candidate = xff.split(",")[0].strip()
+        if candidate:
+            return candidate
+    x_real_ip = request.headers.get("x-real-ip")
+    if x_real_ip and x_real_ip.strip():
+        return x_real_ip.strip()
+    if request.client and request.client.host:
+        return request.client.host
+    return "127.0.0.1"
 
 
 # Periodic background cleanup daemon
@@ -2063,7 +2079,7 @@ def register(
     otp: str | None = Form(None),
     require_otp: str | None = Form(None)
 ):
-    client_ip = request.client.host if request.client else "127.0.0.1"
+    client_ip = get_client_ip(request)
     user_agent = request.headers.get("user-agent", "")
     enforce_rate_limit(f"reg:{client_ip}", limit=15)
 
@@ -2151,7 +2167,7 @@ def login(
     otp: str | None = Form(None),
     require_otp: str | None = Form(None)
 ):
-    client_ip = request.client.host if request.client else "127.0.0.1"
+    client_ip = get_client_ip(request)
     user_agent = request.headers.get("user-agent", "")
     enforce_rate_limit(f"login:{client_ip}", limit=25)
 
@@ -2220,7 +2236,7 @@ def login(
 
 @app.post("/api/auth/verify-signup-otp", include_in_schema=False)
 async def verify_signup_otp(response: Response, request: Request, background_tasks: BackgroundTasks):
-    client_ip = request.client.host if request.client else "127.0.0.1"
+    client_ip = get_client_ip(request)
     user_agent = request.headers.get("user-agent", "")
     enforce_rate_limit(f"otp_verify:{client_ip}", limit=30)
 
@@ -2294,7 +2310,7 @@ async def verify_signup_otp(response: Response, request: Request, background_tas
 
 @app.post("/api/auth/verify-login-otp", include_in_schema=False)
 async def verify_login_otp(response: Response, request: Request, background_tasks: BackgroundTasks):
-    client_ip = request.client.host if request.client else "127.0.0.1"
+    client_ip = get_client_ip(request)
     user_agent = request.headers.get("user-agent", "")
     enforce_rate_limit(f"otp_verify:{client_ip}", limit=30)
 
@@ -2352,7 +2368,7 @@ async def verify_login_otp(response: Response, request: Request, background_task
 
 @app.post("/api/auth/resend-otp", include_in_schema=False)
 async def resend_otp(request: Request, background_tasks: BackgroundTasks):
-    client_ip = request.client.host if request.client else "127.0.0.1"
+    client_ip = get_client_ip(request)
     enforce_rate_limit(f"otp_resend:{client_ip}", limit=15)
 
     email = ""
@@ -2411,7 +2427,7 @@ def google_auth(response: Response, request: Request, background_tasks: Backgrou
     Verifies signature, audience, and issuer against Google's public keys.
     If Google OAuth is not configured on this host, returns 503 Service Unavailable.
     """
-    client_ip = request.client.host if request.client else "127.0.0.1"
+    client_ip = get_client_ip(request)
     enforce_rate_limit(f"google_auth:{client_ip}", limit=20)
 
     credential = payload.get("credential") or payload.get("id_token")
@@ -2528,7 +2544,7 @@ async def forgot_password(request: Request, background_tasks: BackgroundTasks):
     Dispatches email via SMTP if configured; in dev mode, surfaces reset URL.
     Returns generic response to prevent account enumeration.
     """
-    client_ip = request.client.host if request.client else "127.0.0.1"
+    client_ip = get_client_ip(request)
     enforce_rate_limit(f"forgot:{client_ip}", limit=10)
 
     target_email = ""
@@ -2578,7 +2594,7 @@ async def reset_password(request: Request, background_tasks: BackgroundTasks):
     """
     Consumes password reset token and sets new password. Invalidates all active sessions.
     """
-    client_ip = request.client.host if request.client else "127.0.0.1"
+    client_ip = get_client_ip(request)
     enforce_rate_limit(f"reset:{client_ip}", limit=15)
 
     tok = ""
@@ -2660,7 +2676,7 @@ async def change_password(
     if len(new_pw) < 8:
         raise HTTPException(400, "New password must be at least 8 characters.")
 
-    client_ip = request.client.host if request.client else "127.0.0.1"
+    client_ip = get_client_ip(request)
     try:
         update_user_password(user_id, old_pw, new_pw)
         user = get_user(user_id)
@@ -2676,7 +2692,7 @@ async def join_waitlist(request: Request):
     """
     Early-access waiting list registration for native desktop and mobile clients.
     """
-    client_ip = request.client.host if request.client else "127.0.0.1"
+    client_ip = get_client_ip(request)
     enforce_rate_limit(f"waitlist:{client_ip}", limit=15)
 
     email = ""
@@ -2712,7 +2728,14 @@ async def join_waitlist(request: Request):
 
 @app.get("/api/auth/me")
 def get_current_user_profile(request: Request, user_id: str | None = Depends(current_user)):
-    client_ip = request.client.host if request.client else "127.0.0.1"
+    client_ip = get_client_ip(request)
+    all_pricing = {
+        "exam_pass": {"inr": EXAM_PASS_PRICE_INR, "usd": 0.49},
+        "student_pro": {"inr": STUDENT_PRO_PRICE_INR, "usd": 0.99},
+        "pro": {"usd": PRO_TIER_PRICE_USD, "inr": PRO_TIER_PRICE_INR},
+        "cyber_cafe": {"inr": CYBER_CAFE_PRICE_INR, "usd": 4.99},
+        "developer": {"usd": DEV_TIER_PRICE_USD, "inr": DEV_TIER_PRICE_INR},
+    }
     if not user_id:
         usage = get_daily_usage(f"ip:{client_ip}")
         return {
@@ -2725,10 +2748,7 @@ def get_current_user_profile(request: Request, user_id: str | None = Depends(cur
             "daily_limit": FREE_TIER_DAILY_LIMIT,
             "usage_today": usage,
             "remaining_today": max(0, FREE_TIER_DAILY_LIMIT - usage),
-            "pricing": {
-                "pro": {"usd": PRO_TIER_PRICE_USD, "inr": PRO_TIER_PRICE_INR},
-                "developer": {"usd": DEV_TIER_PRICE_USD, "inr": DEV_TIER_PRICE_INR}
-            }
+            "pricing": all_pricing
         }
     user = get_user(user_id)
     if not user:
@@ -2743,16 +2763,22 @@ def get_current_user_profile(request: Request, user_id: str | None = Depends(cur
             "daily_limit": FREE_TIER_DAILY_LIMIT,
             "usage_today": usage,
             "remaining_today": max(0, FREE_TIER_DAILY_LIMIT - usage),
-            "pricing": {
-                "pro": {"usd": PRO_TIER_PRICE_USD, "inr": PRO_TIER_PRICE_INR},
-                "developer": {"usd": DEV_TIER_PRICE_USD, "inr": DEV_TIER_PRICE_INR}
-            }
+            "pricing": all_pricing
         }
     tier = (user.get("tier") or "free").lower()
-    is_pro = tier in ("pro", "developer")
+    paid_tiers = ("pro", "developer", "student_pro", "cyber_cafe", "exam_pass")
+    is_pro = tier in paid_tiers
     is_dev = tier == "developer"
     usage = get_daily_usage(f"user:{user_id}")
-    label = "Developer API Tier" if is_dev else "Pro Power User Tier" if tier == "pro" else "Free Sovereign Tier"
+    tier_labels = {
+        "developer": "Developer API Tier",
+        "pro": "Pro Power User Tier",
+        "student_pro": "Student & Educator Pro Tier",
+        "cyber_cafe": "Cyber Café Pack Tier",
+        "exam_pass": "24-Hour Exam Pass",
+        "free": "Free Sovereign Tier",
+    }
+    label = tier_labels.get(tier, "Free Sovereign Tier")
     return {
         "authenticated": True,
         "user_id": user["id"],
@@ -2766,10 +2792,7 @@ def get_current_user_profile(request: Request, user_id: str | None = Depends(cur
         "daily_limit": None if is_pro else FREE_TIER_DAILY_LIMIT,
         "usage_today": usage,
         "remaining_today": "Unlimited" if is_pro else max(0, FREE_TIER_DAILY_LIMIT - usage),
-        "pricing": {
-            "pro": {"usd": PRO_TIER_PRICE_USD, "inr": PRO_TIER_PRICE_INR},
-            "developer": {"usd": DEV_TIER_PRICE_USD, "inr": DEV_TIER_PRICE_INR}
-        }
+        "pricing": all_pricing
     }
 
 
@@ -2817,7 +2840,7 @@ def _cashfree_request(method: str, path: str, body: dict | None = None) -> dict:
 def _cashfree_tier_from_order(order_id: str) -> str:
     payload = get_billing_event_payload(order_id) or {}
     tier = str(payload.get("tier", "pro")).lower()
-    return tier if tier in {"pro", "developer"} else "pro"
+    return tier if tier in {"pro", "developer", "student_pro", "cyber_cafe", "exam_pass"} else "pro"
 
 
 def _cashfree_payment_method(payment_data: dict | None) -> str:
@@ -2839,14 +2862,23 @@ def _cashfree_payment_method(payment_data: dict | None) -> str:
 
 @app.get("/api/billing/status")
 def billing_status(request: Request, user_id: str | None = Depends(current_user)):
-    client_ip = request.client.host if request.client else "127.0.0.1"
+    client_ip = get_client_ip(request)
     user = get_user(user_id) if user_id else None
     tier = (user.get("tier") if user else "free").lower()
     subject = f"user:{user_id}" if user_id else f"ip:{client_ip}"
     usage = get_daily_usage(subject)
-    is_pro = tier in ("pro", "developer")
+    paid_tiers = ("pro", "developer", "student_pro", "cyber_cafe", "exam_pass")
+    is_pro = tier in paid_tiers
     is_dev = tier == "developer"
-    label = "Developer API Tier" if is_dev else "Pro Power User Tier" if tier == "pro" else "Free Sovereign Tier"
+    tier_labels = {
+        "developer": "Developer API Tier",
+        "pro": "Pro Power User Tier",
+        "student_pro": "Student & Educator Pro Tier",
+        "cyber_cafe": "Cyber Café Pack Tier",
+        "exam_pass": "24-Hour Exam Pass",
+        "free": "Free Sovereign Tier",
+    }
+    label = tier_labels.get(tier, "Free Sovereign Tier")
     return {
         "tier": tier,
         "tier_label": label,
@@ -3041,7 +3073,7 @@ def simulate_pro(user_id: str = Depends(current_user)):
     if not user_id:
         raise HTTPException(401, "Sign in first to simulate Pro tier.")
     set_user_tier(user_id, tier="pro", status="active")
-    return {"status": "success", "tier": "pro", "message": "Upgraded to Pro Power User Tier ($3/mo)!"}
+    return {"status": "success", "tier": "pro", "message": "Upgraded to Pro Power User Tier (₹250/mo)!"}
 
 
 @app.post("/api/billing/simulate-dev", include_in_schema=False)
@@ -3052,7 +3084,7 @@ def simulate_dev(user_id: str = Depends(current_user)):
     if not user_id:
         raise HTTPException(401, "Sign in first to simulate Developer tier.")
     set_user_tier(user_id, tier="developer", status="active")
-    return {"status": "success", "tier": "developer", "message": "Upgraded to Developer API Tier ($9/mo)!"}
+    return {"status": "success", "tier": "developer", "message": "Upgraded to Developer API Tier (₹750/mo)!"}
 
 
 @app.post("/api/billing/simulate-free", include_in_schema=False)
@@ -3091,7 +3123,7 @@ def generate_key(name: str = Form("Default API Key"), user_id: str = Depends(cur
             status_code=402,
             detail={
                 "code": "DEV_REQUIRED_API_KEYS",
-                "message": "Generating multiple API keys and continuous CI/CD SDK pipelines requires the Developer API Tier ($9/mo). Upgrade to unlock unlimited keys.",
+                "message": "Generating multiple API keys and continuous CI/CD SDK pipelines requires the Developer API Tier (₹750/mo). Upgrade to unlock unlimited keys.",
                 "tier": tier
             }
         )
@@ -4882,14 +4914,18 @@ def create_job_endpoint(
     enforce_rate_limit(user_id or "anonymous")
 
     # Freemium Tier & Daily Quota Check
-    client_ip = request.client.host if request.client else "127.0.0.1"
+    client_ip = get_client_ip(request)
     allowed, usage_count, user_tier = check_operation_quota(user_id, client_ip, FREE_TIER_DAILY_LIMIT)
     if not allowed:
+        if user_id:
+            quota_msg = f"Daily limit reached ({FREE_TIER_DAILY_LIMIT}/{FREE_TIER_DAILY_LIMIT} operations on Free Tier). Upgrade to Pro Power User (₹250/mo) or Developer Tier (₹750/mo) for unlimited operations and priority worker speed."
+        else:
+            quota_msg = f"Daily guest limit reached ({FREE_TIER_DAILY_LIMIT}/{FREE_TIER_DAILY_LIMIT} operations). Create a free account or upgrade to Pro Power User (₹250/mo) for unlimited operations."
         raise HTTPException(
             status_code=402,
             detail={
                 "code": "TIER_LIMIT_REACHED",
-                "message": f"Daily limit reached ({FREE_TIER_DAILY_LIMIT}/{FREE_TIER_DAILY_LIMIT} operations on Free Tier). Upgrade to Pro Power User ($3/mo) or Developer Tier ($9/mo) for unlimited operations and priority worker speed.",
+                "message": quota_msg,
                 "limit": FREE_TIER_DAILY_LIMIT,
                 "usage": usage_count,
                 "tier": user_tier

@@ -258,10 +258,6 @@ function closeUpgradeModal() {
 async function safeFetch(url, options = {}) {
   options.credentials = options.credentials || 'same-origin';
   options.headers = options.headers || {};
-  const token = localStorage.getItem('paperplane_token');
-  if (token && !options.headers['Authorization']) {
-    options.headers['Authorization'] = `Bearer ${token}`;
-  }
 
   let response;
   try {
@@ -437,6 +433,52 @@ $('#result-home-btn')?.addEventListener('click', () => switchWorkspaceView('home
 $('#result-restart-btn')?.addEventListener('click', resetJobWorkflow);
 $$('.brand').forEach(b => b.addEventListener('click', (e) => { e.preventDefault(); switchWorkspaceView('home'); }));
 
+function clearResultAndStudio() {
+  const resEl = $('#result');
+  if (resEl) {
+    resEl.hidden = true;
+    resEl.className = 'result-card';
+  }
+  const resContent = $('#result-content');
+  if (resContent) resContent.innerHTML = '';
+  const resMeta = $('#result-meta');
+  if (resMeta) resMeta.textContent = '';
+  const dlLink = $('#result-download-link');
+  if (dlLink) {
+    if (dlLink.href && dlLink.href.startsWith('blob:')) {
+      try { URL.revokeObjectURL(dlLink.href); } catch (e) { /* ignore */ }
+    }
+    dlLink.href = '#';
+    dlLink.removeAttribute('download');
+    dlLink.onclick = null;
+  }
+  const studioBtn = $('#result-view-studio-btn');
+  if (studioBtn) {
+    studioBtn.hidden = true;
+    studioBtn.onclick = null;
+  }
+  if ($('#dropzone')) $('#dropzone').hidden = false;
+
+  // Reset Studio Document State across operations
+  if (state.studio) {
+    if (state.studio.pdfDoc && typeof state.studio.pdfDoc.destroy === 'function') {
+      try { state.studio.pdfDoc.destroy(); } catch (e) { /* ignore */ }
+    }
+    state.studio.pdfDoc = null;
+    state.studio.totalCount = 0;
+    state.studio.currentPage = 1;
+    state.studio.srcFile = null;
+  }
+  const studioThumbs = $('#studio-thumbnails-container');
+  if (studioThumbs) studioThumbs.innerHTML = '';
+  const studioPage = $('#studio-page-container');
+  if (studioPage) studioPage.innerHTML = '';
+  const studioCount = $('#studio-page-count');
+  if (studioCount) studioCount.textContent = '0';
+  const pageIndicator = $('#page-indicator');
+  if (pageIndicator) pageIndicator.textContent = '0 / 0';
+}
+
 function resetJobWorkflow() {
   state.files = [];
   state.splitPageCount = null;
@@ -446,8 +488,7 @@ function resetJobWorkflow() {
   renderOptions();
   updateButton();
   if ($('#progress-card')) $('#progress-card').hidden = true;
-  if ($('#result')) $('#result').hidden = true;
-  if ($('#dropzone')) $('#dropzone').hidden = false;
+  clearResultAndStudio();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -761,8 +802,7 @@ function selectOperation(op, switchToDesk = true) {
     if (form) form.reset();
     renderFiles();
     if ($('#progress-card')) $('#progress-card').hidden = true;
-    if ($('#result')) $('#result').hidden = true;
-    if ($('#dropzone')) $('#dropzone').hidden = false;
+    clearResultAndStudio();
   }
   const item = state.operations[op] || { label: op, accept: 'pdf', category: 'Organize PDF' };
 
@@ -850,8 +890,8 @@ function selectOperation(op, switchToDesk = true) {
 // ----------------------------------------------------------------------
 
 function updateBillingUI(data) {
-  const isPro = Boolean(data && data.is_pro);
-  const isDev = Boolean(data && (data.is_dev || data.tier === 'developer'));
+  const tier = (data && data.tier ? data.tier : 'free').toLowerCase();
+  const isPaid = Boolean(data && (data.is_pro || data.is_dev || ['pro', 'developer', 'student_pro', 'cyber_cafe', 'exam_pass'].includes(tier)));
   const usage = data ? (data.usage_today || 0) : 0;
   const limit = data ? (data.limit || 100) : 100;
   state.dailyLimit = limit;
@@ -867,9 +907,35 @@ function updateBillingUI(data) {
   const settingsTierName = $('#settings-tier-name');
   const settingsTierBadge = $('#settings-tier-badge');
 
-  if (isDev) {
-    const label = 'Developer API';
-    if (quotaText) quotaText.textContent = 'Unlimited (Developer)';
+  if (isPaid) {
+    let tierName = 'Pro Power User Tier';
+    let badgeText = 'ACTIVE PRO PASS';
+    let badgeColor = '#10b981';
+    let shortLabel = 'Pro';
+
+    if (tier === 'developer') {
+      tierName = 'Developer API Tier';
+      badgeText = 'ACTIVE DEVELOPER PASS';
+      badgeColor = '#3b82f6';
+      shortLabel = 'Developer';
+    } else if (tier === 'student_pro') {
+      tierName = 'Student & Educator Pro Tier';
+      badgeText = 'ACTIVE STUDENT PRO';
+      badgeColor = '#10b981';
+      shortLabel = 'Student';
+    } else if (tier === 'cyber_cafe') {
+      tierName = 'Cyber Café Pack Tier';
+      badgeText = 'ACTIVE CSC PACK';
+      badgeColor = '#8b5cf6';
+      shortLabel = 'Cyber Café';
+    } else if (tier === 'exam_pass') {
+      tierName = '24-Hour Exam Pass';
+      badgeText = 'ACTIVE EXAM PASS';
+      badgeColor = '#3b82f6';
+      shortLabel = 'Exam Pass';
+    }
+
+    if (quotaText) quotaText.textContent = `Unlimited (${shortLabel})`;
     if (quotaFill) {
       quotaFill.style.width = '100%';
       quotaFill.className = 'quota-progress-fill pro';
@@ -877,40 +943,15 @@ function updateBillingUI(data) {
     if (sidebarUpgradeBtn) sidebarUpgradeBtn.style.display = 'none';
     if (topbarUpgradeBtn) topbarUpgradeBtn.style.display = 'none';
     if (roleBadge) {
-      roleBadge.textContent = label;
-      roleBadge.style.color = '#3b82f6';
+      roleBadge.textContent = shortLabel;
+      roleBadge.style.color = badgeColor;
       roleBadge.style.fontWeight = '700';
     }
-    if (settingsTierName) settingsTierName.textContent = 'Developer API Tier';
+    if (settingsTierName) settingsTierName.textContent = tierName;
     if (settingsTierBadge) {
-      settingsTierBadge.textContent = 'ACTIVE DEVELOPER PASS';
-      settingsTierBadge.style.background = 'rgba(59, 130, 246, 0.15)';
-      settingsTierBadge.style.color = '#3b82f6';
-    }
-    if (settingsQuotaText) settingsQuotaText.textContent = 'Unlimited Operations';
-    if (settingsQuotaFill) {
-      settingsQuotaFill.style.width = '100%';
-      settingsQuotaFill.className = 'quota-progress-fill pro';
-    }
-  } else if (isPro) {
-    const label = 'Pro Power User';
-    if (quotaText) quotaText.textContent = 'Unlimited (Pro)';
-    if (quotaFill) {
-      quotaFill.style.width = '100%';
-      quotaFill.className = 'quota-progress-fill pro';
-    }
-    if (sidebarUpgradeBtn) sidebarUpgradeBtn.style.display = 'none';
-    if (topbarUpgradeBtn) topbarUpgradeBtn.style.display = 'none';
-    if (roleBadge) {
-      roleBadge.textContent = label;
-      roleBadge.style.color = '#10b981';
-      roleBadge.style.fontWeight = '700';
-    }
-    if (settingsTierName) settingsTierName.textContent = 'Pro Power User Tier';
-    if (settingsTierBadge) {
-      settingsTierBadge.textContent = 'ACTIVE PRO PASS';
-      settingsTierBadge.style.background = 'rgba(16, 185, 129, 0.15)';
-      settingsTierBadge.style.color = '#10b981';
+      settingsTierBadge.textContent = badgeText;
+      settingsTierBadge.style.background = `${badgeColor}26`;
+      settingsTierBadge.style.color = badgeColor;
     }
     if (settingsQuotaText) settingsQuotaText.textContent = 'Unlimited Operations';
     if (settingsQuotaFill) {
@@ -1956,6 +1997,13 @@ function renderOptions() {
   o.innerHTML = fields;
   o.hidden = !fields;
   o.style.display = fields ? '' : 'none';
+
+  if (state.operation === 'html_to_pdf') {
+    const urlEl = $('#url');
+    if (urlEl) {
+      urlEl.addEventListener('input', () => updateButton());
+    }
+  }
 }
 
 function field(id, label, type, placeholder, min = '', max = '', step = '') {
@@ -2047,8 +2095,21 @@ function addFiles(newFiles) {
 
 function updateButton() {
   const btn = $('#run-button');
+  if (!btn) return;
   const isHtml = state.operation === 'html_to_pdf';
-  const hasFiles = state.files.length > 0 || isHtml;
+
+  if (isHtml) {
+    const urlInput = $('#url');
+    const urlVal = urlInput ? urlInput.value.trim() : '';
+    const isValidUrl = /^https?:\/\/.+/i.test(urlVal);
+    btn.disabled = !isValidUrl;
+    btn.innerHTML = isValidUrl
+      ? 'Convert URL to PDF <span>→</span>'
+      : 'Enter valid URL to continue <span>→</span>';
+    return;
+  }
+
+  const hasFiles = state.files.length > 0;
   const toolLabel = state.operations[state.operation]?.label || 'Run Tool';
 
   if (state.operation === 'split' && state.splitPageCount === 1) {
@@ -2211,6 +2272,30 @@ $('#job-form').onsubmit = async e => {
   if (!state.files.length && !isHtml) return;
 
   const btn = $('#run-button');
+
+  if (isHtml) {
+    const urlVal = ($('#url')?.value || '').trim();
+    if (!urlVal || !/^https?:\/\/.+/i.test(urlVal)) {
+      showResult('Please enter a valid public URL starting with http:// or https://', true);
+      showToast('Please enter a valid public URL starting with http:// or https://', 'warning', 4000);
+      $('#url')?.focus();
+      return;
+    }
+  }
+
+  if (['protect', 'unlock'].includes(state.operation)) {
+    const pwd = ($('#password')?.value || '').trim();
+    if (!pwd) {
+      const msg = state.operation === 'protect'
+        ? 'Please enter a password to encrypt this PDF.'
+        : 'Please enter the password to unlock this PDF.';
+      showResult(msg, true);
+      showToast(msg, 'warning', 4000);
+      $('#password')?.focus();
+      return;
+    }
+  }
+
   btn.disabled = true;
   $('#result').hidden = true;
 
@@ -2291,7 +2376,7 @@ $('#job-form').onsubmit = async e => {
     $('#progress-card').hidden = true;
     if (error.message.includes('TIER_LIMIT') || error.message.includes('limit reached')) {
       // Upgrade modal already opened by safeFetch
-    } else if (error.message.toLowerCase().includes('password')) {
+    } else if (!['protect', 'unlock'].includes(state.operation) && error.message.toLowerCase().includes('password')) {
       showUserErrorModal(
         'Protected PDF Detected',
         'This document is password protected or the provided password is invalid. Please unlock it using Paperplane Unlock.',
@@ -2342,14 +2427,7 @@ function showDownloadResult(job, downloadUrl) {
     e.preventDefault();
     try {
       showToast('Starting file download…', 'info', 2000);
-      const token = localStorage.getItem('paperplane_token');
-      const headers = {};
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-      let fetchUrl = downloadUrl;
-      if (token && !fetchUrl.includes('token=')) {
-        fetchUrl += (fetchUrl.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(token);
-      }
-      const res = await fetch(fetchUrl, { credentials: 'same-origin', headers });
+      const res = await fetch(downloadUrl, { credentials: 'same-origin' });
       if (!res.ok) throw new Error(`Server returned HTTP ${res.status}`);
       const blob = await res.blob();
       const blobUrl = URL.createObjectURL(blob);
@@ -2378,14 +2456,7 @@ function showDownloadResult(job, downloadUrl) {
         if (e) { e.preventDefault(); e.stopPropagation(); }
         showToast('Opening processed document in Studio…', 'info');
         try {
-          const token = localStorage.getItem('paperplane_token');
-          const headers = {};
-          if (token) headers['Authorization'] = `Bearer ${token}`;
-          let fetchUrl = downloadUrl;
-          if (token && !fetchUrl.includes('token=')) {
-            fetchUrl += (fetchUrl.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(token);
-          }
-          const res = await fetch(fetchUrl, { credentials: 'same-origin', headers });
+          const res = await fetch(downloadUrl, { credentials: 'same-origin' });
           if (res.ok) {
             const blob = await res.blob();
             const studioFile = new File([blob], outName, { type: blob.type || 'application/pdf' });
@@ -2541,9 +2612,7 @@ function showSummaryDeskResult(summary) {
 
 async function fetchBinary(url, options = {}) {
   const headers = options.headers || {};
-  const token = localStorage.getItem('paperplane_token');
-  if (token && !headers.Authorization) headers.Authorization = `Bearer ${token}`;
-  const response = await fetch(url, { ...options, headers });
+  const response = await fetch(url, { ...options, credentials: 'same-origin', headers });
   if (!response.ok) {
     let message = `Request failed with status ${response.status}`;
     try { const data = await response.json(); message = data.detail || message; } catch { /* non-JSON error */ }
@@ -3639,8 +3708,7 @@ async function handleGoogleAuthCallback(response) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ credential: response.credential })
     });
-    if (data.token) {
-      localStorage.setItem('paperplane_token', data.token);
+    if (data.status === 'success' || data.token || data.user_id) {
       $('#auth-modal').hidden = true;
       await checkAuthStatus();
       showToast('Signed in with Google successfully!');
@@ -3719,8 +3787,7 @@ $('#auth-form').onsubmit = async e => {
     if (data.status === 'otp_required') {
       showOtpView(data.email, data.purpose);
       showToast(data.message || 'Verification code sent to your email.');
-    } else if (data.token) {
-      localStorage.setItem('paperplane_token', data.token);
+    } else if (data.status === 'success' || data.token || data.user_id) {
       $('#auth-modal').hidden = true;
       await checkAuthStatus();
       showToast('Signed in successfully!');
@@ -3758,8 +3825,7 @@ if (authOtpForm) {
         body: JSON.stringify({ email: pendingAuth.email, otp: code })
       });
 
-      if (res.token) {
-        localStorage.setItem('paperplane_token', res.token);
+      if (res.status === 'success' || res.token || res.user_id) {
         if (otpTimerInterval) clearInterval(otpTimerInterval);
         $('#auth-modal').hidden = true;
         await checkAuthStatus();
@@ -4095,6 +4161,13 @@ function initBillingHandlers() {
 }
 
 async function initiateCheckout(tier, btnEl) {
+  if (!state.user) {
+    closeUpgradeModal();
+    openAuthModal('Please sign in or create an account to subscribe.', 'register');
+    showToast('Please sign in or create an account to subscribe.', 'info', 4000);
+    return;
+  }
+
   const originalText = btnEl.innerHTML;
   btnEl.disabled = true;
   btnEl.innerHTML = 'Connecting to Cashfree…';
@@ -4103,11 +4176,18 @@ async function initiateCheckout(tier, btnEl) {
     const res = await safeFetch('/api/billing/checkout-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tier: tier, mode: 'subscription' })
+      body: JSON.stringify({ tier: tier, currency: 'INR', mode: 'subscription' })
     });
 
     if (res.mode === 'demo_activated') {
-      showToast(`${tier === 'developer' ? 'Developer API' : 'Pro Power User'} Tier Activated!`, 'success', 5000);
+      const tierDisplayNames = {
+        exam_pass: '24-Hour Exam Pass (₹19)',
+        student_pro: 'Student & Educator Pro (₹49/mo)',
+        pro: 'Pro Power User (₹250/mo)',
+        cyber_cafe: 'Cyber Café Pack (₹299/mo)',
+        developer: 'Developer API (₹750/mo)'
+      };
+      showToast(`${tierDisplayNames[tier] || 'Pro'} Plan Activated!`, 'success', 5000);
       closeUpgradeModal();
       await checkAuthStatus();
     } else if (res.payment_session_id) {

@@ -1927,6 +1927,44 @@ textarea::placeholder {
   }
 }
 
+@media (max-width: 1366px) {
+  .topbar {
+    padding: 0 14px;
+    gap: 8px;
+  }
+  .topbar-left {
+    gap: 8px;
+    max-width: 240px;
+    overflow: hidden;
+  }
+  .breadcrumb-trail {
+    font-size: 12px;
+  }
+  .workspace-tabs {
+    padding: 3px;
+    gap: 2px;
+  }
+  .tab-pill {
+    padding: 5px 9px;
+    font-size: 11.5px;
+    gap: 4px;
+  }
+  .topbar-right {
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .topbar-upgrade-pill {
+    padding: 5px 9px;
+    font-size: 11px;
+  }
+  .btn-topbar-signin,
+  .btn-topbar-register,
+  .topbar-user-pill {
+    padding: 5px 8px;
+    font-size: 11px;
+  }
+}
+
 /* Dedicated Contextual Page Selection Panel */
 .organizer-selection-panel {
   background: #1b2628;

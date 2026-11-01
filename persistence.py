@@ -601,6 +601,9 @@ def can_resend_otp(email: str, purpose: str, cooldown: int = 60) -> tuple[bool, 
         return True, 0
 
 
+PAID_TIERS = ("pro", "developer", "student_pro", "cyber_cafe", "exam_pass")
+
+
 def get_user_tier(user_id: str | None) -> str:
     if not user_id:
         return "free"
@@ -610,7 +613,7 @@ def get_user_tier(user_id: str | None) -> str:
             return "free"
         tier = (row["tier"] or "free").lower()
         status = (row["subscription_status"] or "").lower()
-        if tier in ("pro", "developer") and status in ("active", "trialing", ""):
+        if tier in PAID_TIERS and status in ("active", "trialing", ""):
             return tier
         return "free"
 

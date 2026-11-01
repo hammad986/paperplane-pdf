@@ -786,12 +786,23 @@ def extract_metadata_entities(pdf_path: Path, doc_type: str = "auto") -> dict:
     # Detect document type if auto
     lower_text = full_text.lower()
     if doc_type == "auto":
-        if any(term in lower_text for term in ["invoice", "tax invoice", "bill to", "due date", "subtotal", "amount due", "remit to"]):
+        invoice_score = sum(1 for term in ["tax invoice", "bill to", "due date", "subtotal", "amount due", "remit to", "invoice number", "invoice #"] if term in lower_text)
+        if "invoice" in lower_text and invoice_score >= 1:
             doc_type = "invoice"
-        elif any(term in lower_text for term in ["curriculum vitae", "resume", "work experience", "education", "technical skills"]):
-            doc_type = "resume"
         else:
-            doc_type = "general"
+            has_cv_title = bool(re.search(r'\b(curriculum vitae|c\.v\.)\b', lower_text) or re.search(r'^\s*resume\s*$', lower_text, re.MULTILINE))
+            has_work_exp = bool(re.search(r'\b(work experience|professional experience|employment history|work history)\b', lower_text))
+            has_edu_section = bool(re.search(r'\b(education|academic background|qualifications)\b', lower_text))
+            has_skills_section = bool(re.search(r'\b(technical skills|key skills|core competencies)\b', lower_text))
+            has_summary_section = bool(re.search(r'\b(career objective|professional summary|about me)\b', lower_text))
+
+            resume_signals = sum([has_work_exp, has_edu_section, has_skills_section, has_summary_section])
+            if has_cv_title or resume_signals >= 2:
+                doc_type = "resume"
+            elif invoice_score >= 2:
+                doc_type = "invoice"
+            else:
+                doc_type = "general"
 
     upstream_result = _extract_metadata_with_agentrouter(full_text, doc_type, total_pages)
     if upstream_result:
