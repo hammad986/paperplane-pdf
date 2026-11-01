@@ -231,7 +231,7 @@ function openUpgradeModal(contextMessage = '') {
   const proBtn = $('#pro-cashfree-checkout-btn');
   if (proBtn) {
     proBtn.disabled = false;
-    proBtn.innerHTML = 'Pay ₹149/month with Cashfree →';
+    proBtn.innerHTML = 'Pay ₹250/month with Cashfree →';
   }
   const cyberBtn = $('#cybercafe-cashfree-checkout-btn');
   if (cyberBtn) {
@@ -256,6 +256,7 @@ function closeUpgradeModal() {
 // ----------------------------------------------------------------------
 
 async function safeFetch(url, options = {}) {
+  options.credentials = options.credentials || 'same-origin';
   options.headers = options.headers || {};
   const token = localStorage.getItem('paperplane_token');
   if (token && !options.headers['Authorization']) {
@@ -431,7 +432,6 @@ $('#tab-ai-view')?.addEventListener('click', () => switchWorkspaceView('ai'));
 $('#tab-download-view')?.addEventListener('click', () => switchWorkspaceView('download'));
 $('#download-back-btn')?.addEventListener('click', () => switchWorkspaceView('home'));
 $('#open-studio-btn')?.addEventListener('click', () => switchWorkspaceView('studio'));
-$('#result-view-studio-btn')?.addEventListener('click', () => switchWorkspaceView('studio'));
 $('#btn-back-to-home')?.addEventListener('click', () => switchWorkspaceView('home'));
 $('#result-home-btn')?.addEventListener('click', () => switchWorkspaceView('home'));
 $('#result-restart-btn')?.addEventListener('click', resetJobWorkflow);
@@ -439,6 +439,7 @@ $$('.brand').forEach(b => b.addEventListener('click', (e) => { e.preventDefault(
 
 function resetJobWorkflow() {
   state.files = [];
+  state.splitPageCount = null;
   const form = $('#job-form');
   if (form) form.reset();
   renderFiles();
@@ -518,7 +519,7 @@ const HOME_CATEGORIES = [
     title: 'Edit PDF',
     badge: '8 Tools',
     iconColor: '#f59e0b',
-    ops: ['rotate', 'page_numbers', 'watermark', 'crop', 'compare', 'edit', 'annotate', 'flatten']
+    ops: ['page_numbers', 'watermark', 'crop', 'compare', 'edit', 'annotate', 'flatten', 'metadata']
   },
   {
     id: 'security',
@@ -559,7 +560,8 @@ function getToolIconSvg(opId) {
     photo_resizer: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`,
     mask_aadhaar: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>`,
     grayscale: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a10 10 0 0 1 0 20z" fill="currentColor"></path></svg>`,
-    flatten: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="9" y1="9" x2="15" y2="15"></line><line x1="15" y1="9" x2="9" y2="15"></line></svg>`
+    flatten: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="9" y1="9" x2="15" y2="15"></line><line x1="15" y1="9" x2="9" y2="15"></line></svg>`,
+    metadata: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><circle cx="12" cy="13" r="2"></circle><path d="M12 9v1"></path><path d="M12 16v1"></path></svg>`
   };
   return icons[opId] || `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>`;
 }
@@ -750,7 +752,18 @@ async function syncSeoContent(operation) {
 
 // Select an operation and update view
 function selectOperation(op, switchToDesk = true) {
+  const opChanged = (state.operation !== op);
   state.operation = op;
+  if (opChanged) {
+    state.files = [];
+    state.splitPageCount = null;
+    const form = $('#job-form');
+    if (form) form.reset();
+    renderFiles();
+    if ($('#progress-card')) $('#progress-card').hidden = true;
+    if ($('#result')) $('#result').hidden = true;
+    if ($('#dropzone')) $('#dropzone').hidden = false;
+  }
   const item = state.operations[op] || { label: op, accept: 'pdf', category: 'Organize PDF' };
 
   if ($('#crumb-tool')) $('#crumb-tool').textContent = item.label;
@@ -759,6 +772,33 @@ function selectOperation(op, switchToDesk = true) {
   if ($('#tool-hero-cat')) $('#tool-hero-cat').textContent = item.category;
   if ($('#tool-description')) $('#tool-description').textContent = item.description || 'Enterprise document workflow.';
   if ($('#desk-breadcrumb-label')) $('#desk-breadcrumb-label').textContent = `${item.category} / ${item.label}`;
+
+  const tierBadge = $('#tool-tier-badge');
+  if (tierBadge) {
+    if (state.user || state.token) {
+      if (state.user && state.user.is_pro) {
+        tierBadge.textContent = '👑 Pro Power User · Unlimited (500 MB)';
+        tierBadge.style.color = '#f59e0b';
+        tierBadge.style.borderColor = 'rgba(245,158,11,0.3)';
+        tierBadge.style.background = 'rgba(245,158,11,0.1)';
+      } else {
+        tierBadge.textContent = '✨ Free Account · 100 ops/day (50 MB)';
+        tierBadge.style.color = '#38bdf8';
+        tierBadge.style.borderColor = 'rgba(56,189,248,0.3)';
+        tierBadge.style.background = 'rgba(56,189,248,0.1)';
+      }
+    } else if (typeof HEAVY_TOOLS !== 'undefined' && HEAVY_TOOLS.has(op)) {
+      tierBadge.textContent = '🔒 Free Account Required · Sign up in 10s';
+      tierBadge.style.color = '#f59e0b';
+      tierBadge.style.borderColor = 'rgba(245,158,11,0.3)';
+      tierBadge.style.background = 'rgba(245,158,11,0.1)';
+    } else {
+      tierBadge.textContent = '⚡ Free Guest Tool · No Account Required (10 ops/day · 50 MB)';
+      tierBadge.style.color = '#10b981';
+      tierBadge.style.borderColor = 'rgba(16,185,129,0.3)';
+      tierBadge.style.background = 'rgba(16,185,129,0.1)';
+    }
+  }
 
   // Update input constraints
   const fileInput = $('#file-input');
@@ -777,7 +817,7 @@ function selectOperation(op, switchToDesk = true) {
 
   const hint = $('#file-hint');
   if (hint) {
-    hint.textContent = `${item.accept === 'image' ? 'Images' : item.accept === 'office' ? 'Office documents' : 'PDF files'} up to 500 MB (batch up to 100 files)`;
+    hint.textContent = `${item.accept === 'image' ? 'Images' : item.accept === 'office' ? 'Office documents' : 'PDF files'} up to 50 MB free (up to 500 MB with Pro · batch up to 100 files)`;
   }
 
   renderOptions();
@@ -1217,6 +1257,13 @@ if (typeof pdfjsLib !== 'undefined') {
   pdfjsLib.GlobalWorkerOptions.workerSrc = '/assets/pdf.worker.min.js';
 }
 
+function generateBlankA4PdfBytes() {
+  const blankPdfStr = `%PDF-1.4\n1 0 obj <</Type /Catalog /Pages 2 0 R>> endobj\n2 0 obj <</Type /Pages /Kids [3 0 R] /Count 1>> endobj\n3 0 obj <</Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources <<>>>> endobj\nxref\n0 4\n0000000000 65535 f \n0000000010 00000 n \n0000000060 00000 n \n0000000117 00000 n \ntrailer <</Size 4 /Root 1 0 R>>\nstartxref\n214\n%%EOF`;
+  const buf = new Uint8Array(blankPdfStr.length);
+  for (let i = 0; i < blankPdfStr.length; i++) buf[i] = blankPdfStr.charCodeAt(i);
+  return buf.buffer;
+}
+
 async function loadDocumentIntoStudio(file) {
   const container = $('#studio-thumbnails-container');
   container.innerHTML = '<div style="color: #fff; font-size: 12px; text-align: center; padding: 20px;">Rendering studio previews…</div>';
@@ -1229,16 +1276,8 @@ async function loadDocumentIntoStudio(file) {
     } else if (file && (file instanceof Blob || file instanceof File)) {
       arrayBuffer = await file.arrayBuffer();
     } else {
-      // Create a clean, single blank A4 PDF page dynamically when no document is uploaded
-      if (typeof PDFLib !== 'undefined') {
-        const blankDoc = await PDFLib.PDFDocument.create();
-        blankDoc.addPage([595.28, 841.89]);
-        const pdfBytes = await blankDoc.save();
-        arrayBuffer = pdfBytes.buffer;
-      } else {
-        const resp = await fetch('/assets/demo.pdf');
-        arrayBuffer = await resp.arrayBuffer();
-      }
+      // Create a clean, single blank white A4 PDF page dynamically when no document is uploaded
+      arrayBuffer = generateBlankA4PdfBytes();
     }
     state.studio.pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     state.studio.totalCount = state.studio.pdfDoc.numPages;
@@ -1774,7 +1813,7 @@ if (moreToolsTrigger && moreToolsMenu) {
 
   // Action listeners for Studio "More Tools" items
   $('#studio-compress-btn')?.addEventListener('click', () => { selectOperation('compress'); });
-  $('#studio-ocr-btn')?.addEventListener('click', () => { selectOperation('ocr_pdf'); });
+  $('#studio-ocr-btn')?.addEventListener('click', () => { selectOperation('ocr'); });
   $('#studio-repair-btn')?.addEventListener('click', () => { selectOperation('repair'); });
   $('#studio-convert-btn')?.addEventListener('click', () => { selectOperation('pdf_to_word'); });
   $('#studio-forms-btn')?.addEventListener('click', () => { selectOperation('flatten'); });
@@ -1866,7 +1905,10 @@ function renderOptions() {
     fields += field('opacity', 'Opacity (0.05 to 0.8)', 'number', '0.2', '0.05', '0.8', '0.01');
     fields += '<div class="option-field"><label for="watermark_image_file">Or Select Watermark Image</label><input id="watermark_image_file" type="file" accept="image/*"></div>';
   } else if (state.operation === 'page_numbers') {
-    fields += selectField('position', 'Position', ['Footer center', 'Footer left', 'Footer right', 'Header left', 'Header right']);
+    fields += selectField('position', 'Position', ['Footer center', 'Footer left', 'Footer right', 'Header center', 'Header left', 'Header right']);
+    fields += selectField('format', 'Numbering Format', ['Page {n} of {total}', 'Page {n}', '{n}']);
+    fields += field('start_number', 'Starting Number', 'number', '1', '1', '9999', '1');
+    fields += field('start_page', 'First Page to Number', 'number', '1', '1', '9999', '1');
   } else if (['protect', 'unlock'].includes(state.operation)) {
     fields += field('password', 'PDF Password', 'password', 'Enter password');
   } else if (state.operation === 'redact') {
@@ -1908,7 +1950,7 @@ function renderOptions() {
   } else if (state.operation === 'forms') {
     fields += `<div class="option-field" style="grid-column: span 2;"><label for="fields">Form JSON Map</label><input id="fields" type="text" placeholder='{"FullName":"Alex", "Agreed": true}'></div>`;
   } else if (state.operation === 'ai_extract') {
-    fields += selectField('doc_type', 'Document Type', ['auto', 'invoice', 'resume']);
+    fields += selectField('doc_type', 'Document Type', ['auto', 'general', 'invoice', 'resume']);
   }
 
   o.innerHTML = fields;
@@ -2022,9 +2064,7 @@ function updateButton() {
 }
 
 const HEAVY_TOOLS = new Set([
-  'ocr', 'ocr_pdf', 'pdf_to_word', 'pdf_to_excel', 'word_to_pdf',
-  'excel_to_pdf', 'powerpoint_to_pdf', 'ai_chat', 'summarize',
-  'translate', 'ai_extract'
+  'ai_chat'
 ]);
 
 function checkAccessRequirement(operation, files = []) {
@@ -2305,8 +2345,12 @@ function showDownloadResult(job, downloadUrl) {
       const token = localStorage.getItem('paperplane_token');
       const headers = {};
       if (token) headers['Authorization'] = `Bearer ${token}`;
-      const res = await fetch(downloadUrl, { credentials: 'same-origin', headers });
-      if (!res.ok) throw new Error(`Download failed with status ${res.status}`);
+      let fetchUrl = downloadUrl;
+      if (token && !fetchUrl.includes('token=')) {
+        fetchUrl += (fetchUrl.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(token);
+      }
+      const res = await fetch(fetchUrl, { credentials: 'same-origin', headers });
+      if (!res.ok) throw new Error(`Server returned HTTP ${res.status}`);
       const blob = await res.blob();
       const blobUrl = URL.createObjectURL(blob);
       const tempA = document.createElement('a');
@@ -2320,12 +2364,43 @@ function showDownloadResult(job, downloadUrl) {
       }, 1000);
       showToast('Download complete!', 'success', 2500);
     } catch (err) {
-      console.warn('Blob download fallback triggered direct link navigation:', err);
-      window.location.href = downloadUrl;
+      console.warn('Blob download fallback:', err);
+      showToast(`Download failed: ${err.message}`, 'error', 4000);
     }
   };
 
-  $('#result-view-studio-btn').hidden = false;
+  const isPdf = outName.toLowerCase().endsWith('.pdf');
+  const studioBtn = $('#result-view-studio-btn');
+  if (studioBtn) {
+    studioBtn.hidden = !isPdf;
+    if (isPdf) {
+      studioBtn.onclick = async (e) => {
+        if (e) { e.preventDefault(); e.stopPropagation(); }
+        showToast('Opening processed document in Studio…', 'info');
+        try {
+          const token = localStorage.getItem('paperplane_token');
+          const headers = {};
+          if (token) headers['Authorization'] = `Bearer ${token}`;
+          let fetchUrl = downloadUrl;
+          if (token && !fetchUrl.includes('token=')) {
+            fetchUrl += (fetchUrl.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(token);
+          }
+          const res = await fetch(fetchUrl, { credentials: 'same-origin', headers });
+          if (res.ok) {
+            const blob = await res.blob();
+            const studioFile = new File([blob], outName, { type: blob.type || 'application/pdf' });
+            await loadDocumentIntoStudio(studioFile);
+            switchWorkspaceView('studio');
+            return;
+          }
+        } catch (err) {
+          console.warn('Could not load output into Studio directly:', err);
+        }
+        showToast('Could not load output into Studio preview.', 'error');
+      };
+    }
+  }
+
   result.hidden = false;
   showToast('Processing complete! Document ready for download.');
 }
@@ -3566,7 +3641,6 @@ async function handleGoogleAuthCallback(response) {
     });
     if (data.token) {
       localStorage.setItem('paperplane_token', data.token);
-      document.cookie = `paperplane_token=${data.token}; path=/; max-age=1209600; SameSite=Lax`;
       $('#auth-modal').hidden = true;
       await checkAuthStatus();
       showToast('Signed in with Google successfully!');
@@ -3647,7 +3721,6 @@ $('#auth-form').onsubmit = async e => {
       showToast(data.message || 'Verification code sent to your email.');
     } else if (data.token) {
       localStorage.setItem('paperplane_token', data.token);
-      document.cookie = `paperplane_token=${data.token}; path=/; max-age=1209600; SameSite=Lax`;
       $('#auth-modal').hidden = true;
       await checkAuthStatus();
       showToast('Signed in successfully!');
@@ -3687,7 +3760,6 @@ if (authOtpForm) {
 
       if (res.token) {
         localStorage.setItem('paperplane_token', res.token);
-        document.cookie = `paperplane_token=${res.token}; path=/; max-age=1209600; SameSite=Lax`;
         if (otpTimerInterval) clearInterval(otpTimerInterval);
         $('#auth-modal').hidden = true;
         await checkAuthStatus();

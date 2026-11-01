@@ -142,7 +142,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             "font-src 'self' https://fonts.gstatic.com data:; "
             "img-src 'self' data: blob: https:; "
             "connect-src 'self' https://accounts.google.com https://api.cashfree.com https://sandbox.cashfree.com; "
-            "frame-src 'self' https://accounts.google.com; "
+            "frame-src 'self' https://accounts.google.com https://sdk.cashfree.com; "
             "object-src 'none';"
         )
         return response
@@ -898,6 +898,14 @@ SEO_LANDING_PAGES = {
         "intro": "Enter your new password to regain access to your Paperplane account and cloud document storage.",
         "related": ("protect", "unlock", "sign", "merge"),
     },
+    "developers": {
+        "title": "Developer REST API & Code Workbench | Paperplane",
+        "description": "Integrate 41 PDF, Office, and OCR transformations into your application with Paperplane's fast, sovereign REST microservice.",
+        "heading": "Enterprise Document Microservice Architecture",
+        "category": "Developers",
+        "intro": "Integrate high-speed conversion, organization, and AI operations into your backend apps, CI/CD pipelines, or microservices with dedicated API keys.",
+        "related": ("merge", "split", "compress", "ocr"),
+    },
 }
 
 
@@ -1130,6 +1138,11 @@ def render_web_page(request: Request, operation: str | None = None, landing_slug
             f'<span class="tool-desk-breadcrumb" id="desk-breadcrumb-label">{html_escape(info["category"])} / {html_escape(info["label"])}</span>',
             1,
         )
+        # Synchronize topbar breadcrumb on initial SSR render
+        html = html.replace('<span id="crumb-category">All Tools</span>', f'<span id="crumb-category">{html_escape(info["category"])}</span>', 1)
+        html = html.replace('<span id="crumb-category">Organize PDF</span>', f'<span id="crumb-category">{html_escape(info["category"])}</span>', 1)
+        html = html.replace('<b id="crumb-tool">Directory</b>', f'<b id="crumb-tool">{html_escape(info["label"])}</b>', 1)
+        html = html.replace('<b id="crumb-tool">Merge PDF</b>', f'<b id="crumb-tool">{html_escape(info["label"])}</b>', 1)
     elif landing_slug in ("privacy", "terms"):
         html = html.replace(
             '<div id="view-home" class="home-container">',
@@ -1141,17 +1154,45 @@ def render_web_page(request: Request, operation: str | None = None, landing_slug
             '<div id="view-legal" class="full-page-view legal-full-view">',
             1,
         )
+        legal_title = "Privacy Policy" if landing_slug == "privacy" else "Terms of Service"
+        html = html.replace('<span id="crumb-category">All Tools</span>', '<span id="crumb-category">Legal Center</span>', 1)
+        html = html.replace('<span id="crumb-category">Organize PDF</span>', '<span id="crumb-category">Legal Center</span>', 1)
+        html = html.replace('<b id="crumb-tool">Directory</b>', f'<b id="crumb-tool">{legal_title}</b>', 1)
+        html = html.replace('<b id="crumb-tool">Merge PDF</b>', f'<b id="crumb-tool">{legal_title}</b>', 1)
         if landing_slug == "terms":
             html = html.replace('id="full-privacy-pane"', 'id="full-privacy-pane" hidden', 1)
             html = html.replace('id="full-terms-pane" hidden', 'id="full-terms-pane"', 1)
             html = html.replace('id="full-legal-tab-privacy" class="legal-nav-tab active"', 'id="full-legal-tab-privacy" class="legal-nav-tab"', 1)
             html = html.replace('id="full-legal-tab-terms" class="legal-nav-tab"', 'id="full-legal-tab-terms" class="legal-nav-tab active"', 1)
+    elif landing_slug == "developers":
+        html = html.replace(
+            '<div id="view-home" class="home-container">',
+            '<div id="view-home" class="home-container" hidden>',
+            1,
+        )
+        html = html.replace(
+            '<div id="view-api-docs" class="full-page-view api-docs-full-view" hidden>',
+            '<div id="view-api-docs" class="full-page-view api-docs-full-view">',
+            1,
+        )
+        html = html.replace('<span id="crumb-category">All Tools</span>', '<span id="crumb-category">Developers</span>', 1)
+        html = html.replace('<span id="crumb-category">Organize PDF</span>', '<span id="crumb-category">Developers</span>', 1)
+        html = html.replace('<b id="crumb-tool">Directory</b>', '<b id="crumb-tool">REST API Workspace</b>', 1)
+        html = html.replace('<b id="crumb-tool">Merge PDF</b>', '<b id="crumb-tool">REST API Workspace</b>', 1)
     elif landing_slug == "reset-password":
         html = html.replace(
             'id="reset-password-modal" class="modal-backdrop" hidden',
             'id="reset-password-modal" class="modal-backdrop"',
             1,
         )
+        html = html.replace('<span id="crumb-category">All Tools</span>', '<span id="crumb-category">Account</span>', 1)
+        html = html.replace('<span id="crumb-category">Organize PDF</span>', '<span id="crumb-category">Account</span>', 1)
+        html = html.replace('<b id="crumb-tool">Directory</b>', '<b id="crumb-tool">Reset Password</b>', 1)
+        html = html.replace('<b id="crumb-tool">Merge PDF</b>', '<b id="crumb-tool">Reset Password</b>', 1)
+    else:
+        # Home directory view: ensure topbar breadcrumb accurately shows Directory
+        html = html.replace('<span id="crumb-category">Organize PDF</span>', '<span id="crumb-category">All Tools</span>', 1)
+        html = html.replace('<b id="crumb-tool">Merge PDF</b>', '<b id="crumb-tool">Directory</b>', 1)
     return html
 
 
@@ -1273,7 +1314,7 @@ def save_upload(upload: UploadFile, directory: Path) -> Path:
     return destination
 
 
-def validate_upload(path: Path, expected: str) -> None:
+def validate_upload(path: Path, expected: str, operation: str = "") -> None:
     with path.open("rb") as stream:
         header = stream.read(16)
 
@@ -1290,8 +1331,24 @@ def validate_upload(path: Path, expected: str) -> None:
     if expected == "office":
         if path.stat().st_size == 0:
             raise ValueError("The uploaded Office file is empty.")
-        # Check ZIP signature for modern docx, xlsx, pptx
+        suffix = path.suffix.lower()
+        if operation == "excel_to_pdf" or (not operation and suffix in {".xlsx", ".xls", ".csv"}):
+            if suffix not in {".xlsx", ".xls", ".csv"}:
+                raise ValueError("Please provide a valid Excel file (.xlsx, .xls, .csv).")
+        elif operation == "word_to_pdf":
+            if suffix not in {".docx", ".doc", ".odt", ".rtf"}:
+                raise ValueError("Please provide a valid Word document (.docx, .doc, .odt).")
+        elif operation == "powerpoint_to_pdf":
+            if suffix not in {".pptx", ".ppt", ".odp"}:
+                raise ValueError("Please provide a valid PowerPoint presentation (.pptx, .ppt, .odp).")
+        # Check ZIP signature for modern docx, xlsx, pptx or OLE for legacy
         if not header.startswith(b"PK\x03\x04") and not header.startswith(b"\xd0\xcf\x11\xe0"):
+            if operation == "excel_to_pdf":
+                raise ValueError("Please provide a valid Excel file (.xlsx, .xls, .csv).")
+            elif operation == "word_to_pdf":
+                raise ValueError("Please provide a valid Word document (.docx, .doc, .odt).")
+            elif operation == "powerpoint_to_pdf":
+                raise ValueError("Please provide a valid PowerPoint presentation (.pptx, .ppt, .odp).")
             raise ValueError("Invalid Office document signature.")
 
     if CLAMAV_HOST:
@@ -1733,13 +1790,16 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
     if operation == "split" or operation == "remove":
         if operation == "split" and (options.get("split_mode") == "all_pages" or options.get("split_all")):
             zip_output = output.with_suffix(".zip")
-            with zipfile.ZipFile(zip_output, "w", zipfile.ZIP_DEFLATED) as zf:
-                for idx, page in enumerate(reader.pages, 1):
-                    pw = PdfWriter()
-                    pw.add_page(page)
-                    page_buf = io.BytesIO()
-                    pw.write(page_buf)
-                    zf.writestr(f"{stem}_page_{idx:03d}.pdf", page_buf.getvalue())
+            doc = fitz.open(str(source))
+            try:
+                with zipfile.ZipFile(zip_output, "w", zipfile.ZIP_DEFLATED) as zf:
+                    for idx in range(len(doc)):
+                        p_doc = fitz.open()
+                        p_doc.insert_pdf(doc, from_page=idx, to_page=idx)
+                        zf.writestr(f"{stem}_page_{idx+1:03d}.pdf", p_doc.tobytes(deflate=True, garbage=3))
+                        p_doc.close()
+            finally:
+                doc.close()
             return zip_output
 
         selected = parse_pages(options.get("pages", ""), len(reader.pages))
@@ -1749,7 +1809,7 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
             writer.add_page(reader.pages[number - 1])
 
     elif operation == "rotate":
-        degrees = int(options.get("degrees", 90))
+        degrees = _safe_int(options.get("degrees"), 90)
         for page in reader.pages:
             page.rotate(degrees)
             writer.add_page(page)
@@ -1774,8 +1834,26 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
         else:
             label = options.get("text", "CONFIDENTIAL") if operation == "watermark" else ""
 
+        format_pattern = str(options.get("format", "page_of_total")).lower()
+        start_number = _safe_int(options.get("start_number"), 1)
+        start_page = _safe_int(options.get("start_page"), 1)
+        total_pages = len(reader.pages)
+
         for number, page in enumerate(reader.pages, 1):
-            lbl = label if operation == "watermark" else str(number)
+            if operation == "watermark":
+                lbl = label
+            else:
+                if number < start_page:
+                    writer.add_page(page)
+                    continue
+                curr = start_number + (number - start_page)
+                if format_pattern == "page_n" or "page {n}" in format_pattern:
+                    lbl = f"Page {curr}"
+                elif format_pattern == "number_only" or "number only" in format_pattern:
+                    lbl = str(curr)
+                else:
+                    lbl = f"Page {curr} of {total_pages}"
+
             ov = PdfReader(io.BytesIO(overlay(float(page.mediabox.width), float(page.mediabox.height), lbl, operation, options)))
             page.merge_page(ov.pages[0])
             writer.add_page(page)
@@ -1867,8 +1945,8 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
 
     elif operation in {"pdf_to_jpg", "pdf_to_png", "pdf_to_webp", "pdf_to_images"}:
         fmt = "png" if "png" in operation else ("webp" if "webp" in operation else "jpg")
-        dpi = int(options.get("dpi", 150))
-        quality = int(options.get("quality", 85))
+        dpi = _safe_int(options.get("dpi"), 150)
+        quality = _safe_int(options.get("quality"), 85)
         pages = options.get("pages", "all")
         return converters.pdf_to_images(source, output, fmt=fmt, dpi=dpi, pages=pages, quality=quality)
 
@@ -2135,7 +2213,7 @@ def login(
         raise HTTPException(401, str(error)) from error
 
 
-@app.post("/api/auth/verify-signup-otp")
+@app.post("/api/auth/verify-signup-otp", include_in_schema=False)
 async def verify_signup_otp(response: Response, request: Request, background_tasks: BackgroundTasks):
     client_ip = request.client.host if request.client else "127.0.0.1"
     user_agent = request.headers.get("user-agent", "")
@@ -2209,7 +2287,7 @@ async def verify_signup_otp(response: Response, request: Request, background_tas
     return {"status": "success", "user_id": user_id, "token": session["token"], "email": session["email"]}
 
 
-@app.post("/api/auth/verify-login-otp")
+@app.post("/api/auth/verify-login-otp", include_in_schema=False)
 async def verify_login_otp(response: Response, request: Request, background_tasks: BackgroundTasks):
     client_ip = request.client.host if request.client else "127.0.0.1"
     user_agent = request.headers.get("user-agent", "")
@@ -2267,7 +2345,7 @@ async def verify_login_otp(response: Response, request: Request, background_task
     return {"status": "success", "token": session["token"], "email": session["email"], "expires_in": session["expires_at"]}
 
 
-@app.post("/api/auth/resend-otp")
+@app.post("/api/auth/resend-otp", include_in_schema=False)
 async def resend_otp(request: Request, background_tasks: BackgroundTasks):
     client_ip = request.client.host if request.client else "127.0.0.1"
     enforce_rate_limit(f"otp_resend:{client_ip}", limit=15)
@@ -2438,7 +2516,7 @@ def logout(response: Response, request: Request, user_id: str | None = Depends(c
     return {"status": "success", "authenticated": False, "message": "Logged out successfully."}
 
 
-@app.post("/api/auth/forgot-password")
+@app.post("/api/auth/forgot-password", include_in_schema=False)
 async def forgot_password(request: Request, background_tasks: BackgroundTasks):
     """
     Initiates secure password reset. Generates cryptographically secure single-use token.
@@ -2490,7 +2568,7 @@ async def forgot_password(request: Request, background_tasks: BackgroundTasks):
     return resp
 
 
-@app.post("/api/auth/reset-password")
+@app.post("/api/auth/reset-password", include_in_schema=False)
 async def reset_password(request: Request, background_tasks: BackgroundTasks):
     """
     Consumes password reset token and sets new password. Invalidates all active sessions.
@@ -2898,7 +2976,7 @@ def verify_cashfree_order(order_id: str, user_id: str | None = Depends(current_u
     return {"status": "paid", "tier": tier, "order_id": order_id}
 
 
-@app.post("/api/billing/cashfree-webhook")
+@app.post("/api/billing/cashfree-webhook", include_in_schema=False)
 async def cashfree_webhook(request: Request):
     raw_body = await request.body()
     timestamp = request.headers.get("x-webhook-timestamp", "")
@@ -3738,7 +3816,10 @@ async def studio_documents_split(
         save_pdf_upload(file, in_path)
 
         split_dir = temp_dir / "split_output"
-        created_files = converters.split_pdf_document(in_path, split_dir, mode, param)
+        try:
+            created_files = converters.split_pdf_document(in_path, split_dir, mode, param)
+        except ValueError as err:
+            raise HTTPException(400, str(err)) from err
 
         if not created_files:
             raise HTTPException(400, "No files generated from split operation.")
@@ -4658,7 +4739,7 @@ def cloud_sync(
     if "drive.google.com" in url:
         match = re.search(r"/d/([a-zA-Z0-9_-]+)", url) or re.search(r"id=([a-zA-Z0-9_-]+)", url)
         if match:
-            url = f"https://drive.google.com/uc?export=download&id={match.group(1)}"
+            url = f"https://drive.google.com/uc?export=download&confirm=t&id={match.group(1)}"
             provider = "Google Drive"
     elif "dropbox.com" in url:
         url = re.sub(r"[?&]dl=0", "", url)
@@ -4670,19 +4751,35 @@ def cloud_sync(
     try:
         raw_bytes, content_type = converters.safe_fetch_url(url, max_size=MAX_FILE_SIZE, timeout=30)
 
+        # Reject HTML preview, login, or error pages
+        if raw_bytes.startswith((b"<!DOCTYPE", b"<!doctype", b"<html", b"<HTML", b"<body", b"<head")):
+            raise ValueError("The provided link returned an HTML webpage or login screen instead of a direct file. Please ensure the link is publicly accessible without login.")
+
         filename = "cloud_document.pdf"
         if raw_bytes.startswith(b"%PDF-"):
             filename = "cloud_imported.pdf"
             content_type = "application/pdf"
-        elif raw_bytes.startswith(b"\x89PNG\r\n\x1a\n") or (content_type and "png" in content_type):
+        elif raw_bytes.startswith(b"\x89PNG\r\n\x1a\n"):
             filename = "cloud_imported.png"
             content_type = "image/png"
-        elif raw_bytes.startswith(b"\xff\xd8\xff") or (content_type and "jpeg" in content_type):
+        elif raw_bytes.startswith(b"\xff\xd8\xff"):
             filename = "cloud_imported.jpg"
             content_type = "image/jpeg"
         elif raw_bytes.startswith(b"PK\x03\x04"):
-            filename = "cloud_imported.docx"
-            content_type = content_type or "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            if b"word/" in raw_bytes[:2000]:
+                filename = "cloud_imported.docx"
+                content_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            elif b"xl/" in raw_bytes[:2000]:
+                filename = "cloud_imported.xlsx"
+                content_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            elif b"ppt/" in raw_bytes[:2000]:
+                filename = "cloud_imported.pptx"
+                content_type = "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+            else:
+                filename = "cloud_imported.zip"
+                content_type = "application/zip"
+        else:
+            raise ValueError("The downloaded file is not a supported document or image format (%PDF-, PNG, JPEG, Office).")
 
         b64_data = base64.b64encode(raw_bytes).decode("utf-8")
         return {
@@ -4836,7 +4933,7 @@ def create_job_endpoint(
         paths = []
         for file in files:
             p = save_upload(file, job_dir)
-            validate_upload(p, expected)
+            validate_upload(p, expected, operation)
             paths.append(p)
 
         executor.submit(run_job, job_id, operation, paths, parsed_options, user_id)
@@ -4845,7 +4942,7 @@ def create_job_endpoint(
             "job_id": job_id,
             "guest_token": guest_token,
             "status": "queued",
-            "status_url": f"/api/jobs/{job_id}",
+            "status_url": f"/api/jobs/{job_id}{download_suffix}",
             "download_url": f"/api/jobs/{job_id}/download{download_suffix}"
         }
     except Exception as error:
@@ -5257,7 +5354,7 @@ def test_ai_connection(user_id: str = Depends(require_developer_key)):
 
 @app.get("/developers", response_class=HTMLResponse, tags=["Web Pages"])
 def developers_page(request: Request):
-    return render_web_page(request)
+    return render_web_page(request, landing_slug="developers")
 
 
 # ----------------------------------------------------------------------
@@ -5354,8 +5451,28 @@ def sitemap_xml(request: Request):
     return Response(content=xml, media_type="application/xml")
 
 
+LEGACY_SLUG_REDIRECTS = {
+    "page-numbers": "add-page-numbers-to-pdf",
+    "smart-metadata": "extract-pdf-data",
+    "extract-metadata": "extract-pdf-data",
+    "compress": "compress-pdf",
+    "merge": "merge-pdf",
+    "split": "split-pdf",
+    "organize": "organize-pdf",
+    "rotate": "rotate-pdf",
+    "repair": "repair-pdf",
+    "ocr": "ocr-pdf",
+    "watermark": "watermark-pdf",
+    "protect": "protect-pdf",
+    "unlock": "unlock-pdf",
+    "sign": "sign-pdf",
+}
+
+
 @app.get("/{tool_slug}", response_class=HTMLResponse, include_in_schema=False)
 def tool_landing_page(tool_slug: str, request: Request):
+    if tool_slug in LEGACY_SLUG_REDIRECTS:
+        return RedirectResponse(url=f"/{LEGACY_SLUG_REDIRECTS[tool_slug]}", status_code=301)
     operation = SLUG_TO_OPERATION.get(tool_slug)
     if operation:
         return render_web_page(request, operation=operation)

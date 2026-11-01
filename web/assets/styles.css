@@ -3906,25 +3906,29 @@ body.dark-mode .btn-secondary-action {
 @media (max-width: 900px) {
   .app-shell,
   .app-shell.sidebar-collapsed {
-    grid-template-columns: 100% !important;
+    display: block !important;
     width: 100% !important;
     max-width: 100vw !important;
     min-width: 0 !important;
   }
   .main-area {
-    grid-column: 1 / -1 !important;
+    display: block !important;
     width: 100% !important;
     max-width: 100vw !important;
     min-width: 0 !important;
+    overflow-x: hidden !important;
   }
   .dynamic-workspace {
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
   }
   .home-container {
     width: 100% !important;
     max-width: 100% !important;
+    min-width: 0 !important;
     box-sizing: border-box !important;
     padding: 16px 12px 64px !important;
   }
@@ -6478,17 +6482,20 @@ body:not(.light-mode) .editor-select option {
 @media (max-width: 900px) {
   .app-shell,
   .app-shell.sidebar-collapsed {
-    grid-template-columns: 100% !important;
+    display: block !important;
+    grid-template-columns: none !important;
     width: 100% !important;
     max-width: 100vw !important;
     min-width: 0 !important;
   }
 
   .main-area {
-    grid-column: 1 / -1 !important;
+    display: block !important;
+    grid-column: auto !important;
     width: 100% !important;
     max-width: 100vw !important;
     min-width: 0 !important;
+    overflow-x: hidden !important;
   }
 
   .sidebar {
@@ -6619,23 +6626,53 @@ body:not(.light-mode) .editor-select option {
 }
 
 @media (max-width: 600px) {
-  .topbar-right { display: none !important; }
-  .tool-desk-nav-bar .tool-desk-breadcrumb { display: none; }
+  .topbar {
+    padding: 0 12px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+  .breadcrumb-trail { display: none !important; }
+  .workspace-tabs { display: none !important; }
+  .topbar-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-shrink: 0 !important;
+  }
+  .topbar-right {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-shrink: 0 !important;
+  }
+  .topbar-upgrade-pill,
+  #topbar-cloud-btn,
+  .btn-topbar-register {
+    display: none !important;
+  }
+  .topbar-auth-group {
+    display: inline-flex !important;
+    gap: 4px !important;
+  }
+  .btn-topbar-signin,
+  .topbar-user-pill {
+    min-height: 36px !important;
+    padding: 6px 10px !important;
+    font-size: 11px !important;
+    white-space: nowrap !important;
+  }
+  .topbar-user-pill #topbar-username { display: none !important; }
+  .topbar-right .icon-btn { min-height: 36px !important; min-width: 36px !important; }
+  .tool-desk-nav-bar .tool-desk-breadcrumb { display: none !important; }
   .tool-hero-card,
   .dropzone,
   .options-panel,
   .action-bar,
-  .result-card { min-width: 0; width: 100%; }
-  .tool-hero-title-group { width: 100%; }
-}
-
-/* Keep the primary workspace focused on document processing. Account,
-   quota, billing, and developer controls remain available from Settings. */
-.sidebar .quota-container,
-.sidebar .sidebar-upgrade-btn,
-.footer-link-developers,
-.footer-link-api-docs {
-  display: none;
+  .result-card { min-width: 0 !important; width: 100% !important; }
+  .tool-hero-title-group { width: 100% !important; }
+  .seo-comparison-table { min-width: 0 !important; width: 100% !important; }
 }
 
 @media (max-width: 760px) {
@@ -6658,18 +6695,6 @@ body:not(.light-mode) .editor-select option {
   .settings-modal-card .settings-content { padding: 20px 16px; overflow: visible; }
   .settings-modal-card > .modal-header { padding: 18px 20px; }
   .settings-privacy-toggle-row { align-items: flex-start; }
-}
-
-@media (max-width: 600px) {
-  .topbar-right { display: flex !important; gap: 6px; }
-  .topbar-upgrade-pill,
-  #topbar-cloud-btn { display: none !important; }
-  .topbar-auth-group { gap: 4px; }
-  .btn-topbar-signin,
-  .btn-topbar-register,
-  .topbar-user-pill { min-height: 40px; padding: 6px 8px; font-size: 10.5px; }
-  .topbar-user-pill #topbar-username { display: none; }
-  .topbar-right .icon-btn { min-height: 40px; min-width: 40px; }
 }
 
 /* --------------------------------------------------------------------------

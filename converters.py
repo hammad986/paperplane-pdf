@@ -1813,47 +1813,68 @@ def compress_pdf(
                 try:
                     doc_src = fitz.open(str(source))
                     num_pages = len(doc_src)
-                    target_per_page = max(12000, target_size_bytes // max(1, num_pages))
-                    new_doc = fitz.open()
-                    for p in doc_src:
-                        pix = p.get_pixmap(dpi=100)
-                        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-                        chosen_bytes = None
-                        for q in (50, 40, 30, 20):
-                            buf = io.BytesIO()
-                            img.save(buf, format="JPEG", quality=q, optimize=True)
-                            val = buf.getvalue()
-                            if len(val) <= target_per_page:
-                                chosen_bytes = val
-                                break
-                        if not chosen_bytes:
-                            buf = io.BytesIO()
-                            img.save(buf, format="JPEG", quality=15, optimize=True)
-                            chosen_bytes = buf.getvalue()
-                        img_doc = fitz.open("jpeg", chosen_bytes)
-                        p_pdf = fitz.open("pdf", img_doc.convert_to_pdf())
-                        new_doc.insert_pdf(p_pdf)
-                        img_doc.close()
-                        p_pdf.close()
-                    temp_raster = output.with_name(f"{output.stem}_rast_{os.getpid()}_{uuid.uuid4().hex[:6]}.pdf")
-                    new_doc.save(str(temp_raster), garbage=4, deflate=True)
-                    new_doc.close()
-                    doc_src.close()
-                    if temp_raster.stat().st_size < current_size:
-                        temp_res.unlink(missing_ok=True)
-                        temp_res = temp_raster
-                        current_size = temp_res.stat().st_size
-                        if current_size <= target_size_bytes:
-                            target_achieved = True
-                            reason = "Target size achieved."
+                    # reserve ~350 bytes per page for PDF xref and object overhead
+                    net_target = max(5000, target_size_bytes - (num_pages * 350))
+                    target_per_page = net_target // max(1, num_pages)
+
+                    if target_per_page < 1500:
+                        dpis_to_try = [30, 24, 20]
+                    elif target_per_page < 3000:
+                        dpis_to_try = [45, 36, 30, 24, 20]
+                    elif target_per_page < 7000:
+                        dpis_to_try = [60, 45, 36, 30]
+                    elif target_per_page < 15000:
+                        dpis_to_try = [72, 60, 45]
                     else:
-                        temp_raster.unlink(missing_ok=True)
+                        dpis_to_try = [100, 72, 60, 45]
+
+                    for dpi in dpis_to_try:
+                        use_gray = target_per_page < 4000
+                        new_doc = fitz.open()
+                        for p in doc_src:
+                            if use_gray:
+                                pix = p.get_pixmap(dpi=dpi, colorspace=fitz.csGRAY)
+                                img = Image.frombytes("L", [pix.width, pix.height], pix.samples)
+                            else:
+                                pix = p.get_pixmap(dpi=dpi)
+                                img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+
+                            chosen_bytes = None
+                            for q in (50, 35, 25, 18, 12, 8):
+                                buf = io.BytesIO()
+                                img.save(buf, format="JPEG", quality=q, optimize=True)
+                                val = buf.getvalue()
+                                if len(val) <= target_per_page or q == 8:
+                                    chosen_bytes = val
+                                    break
+
+                            img_doc = fitz.open("jpeg", chosen_bytes)
+                            p_pdf = fitz.open("pdf", img_doc.convert_to_pdf())
+                            new_doc.insert_pdf(p_pdf)
+                            img_doc.close()
+                            p_pdf.close()
+
+                        temp_raster = output.with_name(f"{output.stem}_rast_{os.getpid()}_{uuid.uuid4().hex[:6]}.pdf")
+                        new_doc.save(str(temp_raster), garbage=4, deflate=True)
+                        new_doc.close()
+
+                        if temp_raster.stat().st_size < current_size:
+                            temp_res.unlink(missing_ok=True)
+                            temp_res = temp_raster
+                            current_size = temp_res.stat().st_size
+                            if current_size <= target_size_bytes:
+                                target_achieved = True
+                                reason = "Target size achieved."
+                                break
+                        else:
+                            temp_raster.unlink(missing_ok=True)
+                    doc_src.close()
                 except Exception:
                     pass
 
             if current_size > target_size_bytes:
                 target_achieved = False
-                reason = f"Compressed to {round(current_size / 1024, 1)} KB (target {round(target_size_bytes / 1024, 1)} KB was reached as closely as visual clarity allows)."
+                reason = f"Compressed to {round(current_size / 1024, 1)} KB (target {round(target_size_bytes / 1024, 1)} KB for {num_pages} pages reached at maximum readable compression)."
 
     temp_res.replace(output)
     output_size = output.stat().st_size
@@ -1886,6 +1907,21 @@ def repair_pdf(source: Path, output: Path, mode: str = "automatic") -> Path:
     res = repair_pdf_advanced(source, output, mode=mode)
     if not res.get("valid") and not res.get("repaired"):
         raise ValueError(f"Unable to repair corrupted PDF: {res.get('message')}")
+    if not output.exists() or output.stat().st_size == 0:
+        raise ValueError("Repair failed: No salvageable pages could be recovered.")
+    try:
+        val = fitz.open(str(output))
+        if len(val) == 0:
+            val.close()
+            output.unlink(missing_ok=True)
+            raise ValueError("Document is severely corrupted: zero readable pages could be recovered.")
+        _ = val[0].get_pixmap()
+        val.close()
+    except Exception as e:
+        output.unlink(missing_ok=True)
+        if "severely corrupted" in str(e):
+            raise
+        raise ValueError(f"Document is severely corrupted and could not be reconstructed into readable pages ({e}).")
     return output
 
 
@@ -2049,45 +2085,82 @@ def resize_exam_image(
     """
     Resizes and optimizes images (photos & signatures) to exact dimensions and KB limits
     for Indian government and competitive exams (SSC, UPSC, IBPS, State PSC, NTA).
+    Guarantees strict size band adherence: min_kb <= output_size <= max_kb.
     """
     EXAM_PRESETS = {
         "ssc_photo": {"w": 350, "h": 450, "max_kb": 50, "min_kb": 20},
         "ssc_sign": {"w": 400, "h": 200, "max_kb": 20, "min_kb": 10},
+        "ssc_signature": {"w": 400, "h": 200, "max_kb": 20, "min_kb": 10},
         "upsc_photo": {"w": 350, "h": 350, "max_kb": 300, "min_kb": 20},
         "upsc_sign": {"w": 350, "h": 350, "max_kb": 300, "min_kb": 20},
+        "upsc_signature": {"w": 350, "h": 350, "max_kb": 300, "min_kb": 20},
         "ibps_photo": {"w": 200, "h": 230, "max_kb": 50, "min_kb": 20},
         "ibps_sign": {"w": 140, "h": 60, "max_kb": 20, "min_kb": 10},
+        "ibps_signature": {"w": 140, "h": 60, "max_kb": 20, "min_kb": 10},
     }
     cfg = EXAM_PRESETS.get(preset, {"w": width_px or 350, "h": height_px or 450, "max_kb": target_kb or 50, "min_kb": 10})
     w = width_px or cfg["w"]
     h = height_px or cfg["h"]
+    min_bytes = int(cfg["min_kb"] * 1024)
     max_bytes = int(cfg["max_kb"] * 1024)
+    target_bytes = (min_bytes + max_bytes) // 2
+
+    out_p = Path(output)
 
     with Image.open(str(source)) as img:
         rgb_img = img.convert("RGB")
         resized = rgb_img.resize((w, h), Image.Resampling.LANCZOS)
         
-        quality = 92
+        # Search quality between 20 and 95
         best_data = None
-        while quality >= 20:
+        low_q, high_q = 20, 95
+        while low_q <= high_q:
+            mid_q = (low_q + high_q) // 2
             buf = io.BytesIO()
-            resized.save(buf, format="JPEG", quality=quality, optimize=True)
+            resized.save(buf, format="JPEG", quality=mid_q, optimize=True)
             data = buf.getvalue()
-            best_data = data
-            if len(data) <= max_bytes or quality <= 25:
+            cur_len = len(data)
+            if cur_len > max_bytes:
+                high_q = mid_q - 1
+            elif cur_len < min_bytes:
+                best_data = data
+                low_q = mid_q + 1
+            else:
+                best_data = data
                 break
-            quality -= 5
+
+        if best_data is None:
+            buf = io.BytesIO()
+            resized.save(buf, format="JPEG", quality=20, optimize=True)
+            best_data = buf.getvalue()
+
+        # If data is smaller than min_bytes, pad with standard JPEG COM comment markers
+        if len(best_data) < min_bytes:
+            needed = target_bytes - len(best_data)
+            com_segments = bytearray()
+            while needed > 4:
+                payload_len = min(65531, needed - 4)
+                com_segments.extend(b"\xff\xfe" + (payload_len + 2).to_bytes(2, "big") + (b"P" * payload_len))
+                needed -= (payload_len + 4)
+            best_data = best_data[:2] + bytes(com_segments) + best_data[2:]
 
         if as_pdf:
             pdf_doc = fitz.open()
-            rect = fitz.Rect(0, 0, w, h)
             page = pdf_doc.new_page(width=w, height=h)
-            page.insert_image(rect, stream=best_data)
-            pdf_doc.save(str(output))
+            page.insert_image(page.rect, stream=best_data)
+            pdf_bytes = pdf_doc.tobytes(deflate=True, garbage=3)
             pdf_doc.close()
-            return output
+
+            if len(pdf_bytes) < min_bytes:
+                pad_needed = target_bytes - len(pdf_bytes)
+                if pad_needed > 0:
+                    pdf_bytes = pdf_bytes + b"\n% Pad " + (b"0" * pad_needed) + b"\n"
+
+            out_file = out_p.with_suffix(".pdf")
+            out_file.write_bytes(pdf_bytes)
+            return out_file
         else:
-            out_file = output.with_suffix(".jpg")
+            out_file = out_p.with_suffix(".jpg")
             out_file.write_bytes(best_data)
             return out_file
 

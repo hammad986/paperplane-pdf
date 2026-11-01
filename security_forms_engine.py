@@ -198,20 +198,39 @@ def mask_aadhaar_pdf(source: Path, output: Path) -> Path:
         raise ValueError(f"File '{source.name}' does not exist.")
     
     doc = fitz.open(str(source))
+    total_masked = 0
     try:
-        pattern = re.compile(r'\b(\d{4})[\s-](\d{4})[\s-](\d{4})\b')
+        # Match variants: "1234 5678 9012", "1234-5678-9012", "123456789012"
+        pattern = re.compile(r'\b(?:\d{4}[\s-]\d{4}[\s-]\d{4}|\d{12})\b')
         for page in doc:
             text_page = page.get_text("text")
             matches = list(pattern.finditer(text_page))
+            page_redacted = False
             for m in matches:
-                full_aadhaar = m.group(0)
-                first_8 = full_aadhaar[:9]
+                full_val = m.group(0)
+                if " " in full_val or "-" in full_val:
+                    first_8 = full_val[:9].strip()
+                else:
+                    first_8 = full_val[:8]
                 rects = page.search_for(first_8)
-                for r in rects:
-                    page.add_redact_annot(r, text="XXXX XXXX", fill=(0.1, 0.1, 0.1), fontname="helv", fontsize=9, text_color=(1, 1, 1))
+                if rects:
+                    for r in rects:
+                        page.add_redact_annot(r, text="XXXX XXXX", fill=(0.1, 0.1, 0.1), fontname="helv", fontsize=9, text_color=(1, 1, 1))
+                        total_masked += 1
+                        page_redacted = True
+                else:
+                    whole_rects = page.search_for(full_val)
+                    for wr in whole_rects:
+                        mask_box = fitz.Rect(wr.x0, wr.y0, wr.x0 + (wr.width * 0.68), wr.y1)
+                        page.add_redact_annot(mask_box, text="XXXX XXXX", fill=(0.1, 0.1, 0.1), fontname="helv", fontsize=9, text_color=(1, 1, 1))
+                        total_masked += 1
+                        page_redacted = True
 
-            if matches:
+            if page_redacted:
                 page.apply_redactions()
+
+        if total_masked == 0:
+            raise ValueError("No 12-digit Aadhaar number pattern was detected in the document. Nothing was masked.")
 
         out_bytes = doc.tobytes(garbage=3, deflate=True)
     finally:

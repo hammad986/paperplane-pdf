@@ -54,26 +54,26 @@
           <button class="nav-category-tab active" data-category="Organize">
             <span class="nav-cat-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
             <span>Organize PDF</span>
-            <span class="nav-cat-badge">6</span>
+            <span class="nav-cat-badge">7</span>
           </button>
           <button class="nav-category-tab" data-category="Convert">
             <span class="nav-cat-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4 4 4m6 4v12m0 0 4-4m-4 4-4-4"/></svg></span>
             <span>Convert to / from</span>
-            <span class="nav-cat-badge">12</span>
+            <span class="nav-cat-badge">13</span>
           </button>
           <button class="nav-category-tab" data-category="Edit">
             <span class="nav-cat-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
             <span>Edit & Sign</span>
-            <span class="nav-cat-badge">7</span>
+            <span class="nav-cat-badge">8</span>
           </button>
           <button class="nav-category-tab" data-category="AI">
             <span class="nav-cat-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
             <span>AI & Security</span>
-            <span class="nav-cat-badge">12</span>
+            <span class="nav-cat-badge">13</span>
           </button>
           <button class="nav-category-tab" data-category="All">
             <span class="nav-cat-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>
-            <span>All 37 Tools</span>
+            <span>All 41 Tools</span>
           </button>
         </div>
 
@@ -150,9 +150,9 @@
           <div class="breadcrumb-trail">
             <span>Paperplane</span>
             <span class="crumb-sep">/</span>
-            <span id="crumb-category">Organize PDF</span>
+            <span id="crumb-category">All Tools</span>
             <span class="crumb-sep">/</span>
-            <b id="crumb-tool">Merge PDF</b>
+            <b id="crumb-tool">Directory</b>
           </div>
         </div>
 
@@ -230,14 +230,14 @@
             <div class="home-search-bar">
               <div class="search-input-wrapper">
                 <span class="search-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
-                <input type="search" id="home-search-input" name="paperplane-tool-search" placeholder="Search 37 tools (e.g. merge, compress, word, sign, protect)..." aria-label="Search tools" autocomplete="off" spellcheck="false" />
+                <input type="search" id="home-search-input" name="paperplane-tool-search" placeholder="Search 41 tools (e.g. merge, compress, word, sign, protect)..." aria-label="Search tools" autocomplete="off" spellcheck="false" />
                 <button type="button" id="home-search-clear" class="search-clear-btn" aria-label="Clear search" hidden>×</button>
               </div>
             </div>
 
             <!-- Category Filter Pills -->
             <div class="home-filter-pills" id="home-filter-pills" role="tablist">
-              <button type="button" class="filter-pill active" data-category="all" role="tab" aria-selected="true">All Tools (37)</button>
+              <button type="button" class="filter-pill active" data-category="all" role="tab" aria-selected="true">All Tools (41)</button>
               <button type="button" class="filter-pill" data-category="organize" role="tab" aria-selected="false">Organize PDF</button>
               <button type="button" class="filter-pill" data-category="optimize" role="tab" aria-selected="false">Optimize PDF</button>
               <button type="button" class="filter-pill" data-category="convert" role="tab" aria-selected="false">Convert PDF</button>
@@ -279,7 +279,10 @@
           <!-- Tool Hero Card -->
           <div class="tool-hero-card">
             <div class="tool-hero-title-group">
-              <span class="tool-category-badge" id="tool-hero-cat">Organize PDF</span>
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span class="tool-category-badge" id="tool-hero-cat">Organize PDF</span>
+                <span class="desk-tier-badge" id="tool-tier-badge" style="font-size: 11.5px; padding: 3px 8px; border-radius: 6px; font-weight: 500; background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.25);">⚡ Free Guest Tool · No Account Required</span>
+              </div>
               <h1 id="tool-title">Merge PDF</h1>
               <p id="tool-description">Combine multiple PDFs into one unified document with custom ordering.</p>
             </div>
@@ -305,7 +308,7 @@
                 or <button type="button" class="browse-link" id="browse">browse files</button>
                 or <button type="button" class="browse-link" id="cloud-drop-btn">import from Google Drive / Dropbox</button>
               </p>
-              <small id="file-hint">PDF documents up to 500 MB (up to 100 files in batch mode)</small>
+              <small id="file-hint">Up to 50 MB free (up to 500 MB with Pro · batch up to 100 files)</small>
             </div>
 
             <!-- Uploaded File Queue -->
@@ -980,9 +983,9 @@
             <div class="api-docs-hero-box">
               <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
                 <div style="flex: 1; min-width: 280px;">
-                  <span class="pro-tag" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">DEVELOPER API TIER ($9/MO OR PAY-AS-YOU-GO)</span>
+                  <span class="pro-tag" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">DEVELOPER API TIER (₹750/MO OR PAY-AS-YOU-GO)</span>
                   <h3 style="margin: 8px 0 4px 0; font-size: 18px; color: var(--text-main);">Enterprise Document Microservice Architecture</h3>
-                  <p style="margin: 0; font-size: 13.5px; color: var(--text-muted); line-height: 1.5;">Integrate all 37 high-speed conversion, organization, and AI operations into your backend apps, CI/CD pipelines, or microservices with dedicated API keys (<code>sk_live_...</code>).</p>
+                  <p style="margin: 0; font-size: 13.5px; color: var(--text-muted); line-height: 1.5;">Integrate all 41 high-speed conversion, organization, and AI operations into your backend apps, CI/CD pipelines, or microservices with dedicated API keys (<code>sk_live_...</code>).</p>
                 </div>
                 <div style="display: flex; gap: 10px;">
                   <button type="button" class="btn-primary-action" id="full-api-generate-key-btn" style="padding: 10px 18px; font-size: 13px;">
@@ -996,7 +999,7 @@
             <div class="api-docs-meta-grid">
               <div class="api-meta-item">
                 <span class="meta-label">BASE URL</span>
-                <code class="meta-val">http://127.0.0.1:8501/api/v1</code>
+                <code class="meta-val">https://paperplane.qd.je/api/v1</code>
               </div>
               <div class="api-meta-item">
                 <span class="meta-label">AUTHENTICATION</span>
@@ -1028,11 +1031,11 @@
 
               <div class="api-code-wrapper">
                 <pre id="full-api-code-curl" class="api-code-block"><code># 1. Inspect remaining daily free quota and reset timestamp
-curl -X GET "http://127.0.0.1:8501/api/v1/account/usage" \
+curl -X GET "https://paperplane.qd.je/api/v1/account/usage" \
   -H "Authorization: Bearer YOUR_PAPERPLANE_API_KEY"
 
 # 2. Asynchronously submit a PDF compression job with idempotency
-curl -X POST "http://127.0.0.1:8501/api/v1/jobs" \
+curl -X POST "https://paperplane.qd.je/api/v1/jobs" \
   -H "Authorization: Bearer YOUR_PAPERPLANE_API_KEY" \
   -H "Idempotency-Key: invoice_batch_98124" \
   -F "operation=compress" \
@@ -1043,17 +1046,17 @@ curl -X POST "http://127.0.0.1:8501/api/v1/jobs" \
 # {"job_id":"4f9a8b1c...","operation":"compress","status":"queued","status_url":"/api/v1/jobs/4f9a8b1c...","download_url":"/api/v1/jobs/4f9a8b1c.../download"}
 
 # 3. Poll job status
-curl -X GET "http://127.0.0.1:8501/api/v1/jobs/4f9a8b1c..." \
+curl -X GET "https://paperplane.qd.je/api/v1/jobs/4f9a8b1c..." \
   -H "Authorization: Bearer YOUR_PAPERPLANE_API_KEY"
 
 # 4. Stream download verified output artifact
-curl -O -J "http://127.0.0.1:8501/api/v1/jobs/4f9a8b1c.../download" \
+curl -O -J "https://paperplane.qd.je/api/v1/jobs/4f9a8b1c.../download" \
   -H "Authorization: Bearer YOUR_PAPERPLANE_API_KEY"</code></pre>
 
                 <pre id="full-api-code-python" class="api-code-block" hidden><code>import time
 import requests
 
-API_BASE = "http://127.0.0.1:8501/api/v1"
+API_BASE = "https://paperplane.qd.je/api/v1"
 HEADERS = {"Authorization": "Bearer YOUR_PAPERPLANE_API_KEY"}
 
 # 1. Check account quota
@@ -1092,7 +1095,7 @@ print("Saved converted PDF to annual_report.pdf")</code></pre>
                 <pre id="full-api-code-node" class="api-code-block" hidden><code>import fs from 'node:fs';
 import { Blob } from 'node:buffer';
 
-const API_BASE = 'http://127.0.0.1:8501/api/v1';
+const API_BASE = 'https://paperplane.qd.je/api/v1';
 const API_KEY = process.env.PAPERPLANE_API_KEY || 'YOUR_PAPERPLANE_API_KEY';
 const HEADERS = { 'Authorization': `Bearer ${API_KEY}` };
 
@@ -1192,7 +1195,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
                       <td><span class="http-badge get">GET</span></td>
                       <td><code>/api/v1/operations</code></td>
                       <td>Public</td>
-                      <td>Directory of all 37 supported operations, categories, and accepted file types</td>
+                      <td>Directory of all 41 supported operations, categories, and accepted file types</td>
                     </tr>
                     <tr>
                       <td><span class="http-badge get">GET</span></td>
@@ -1302,7 +1305,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
               </div>
               <div class="download-hero-text">
                 <h3>Blazing Fast Sovereign Processing on Your Own Device</h3>
-                <p>Run 37+ PDF, Office, and OCR transformations with zero server latency, zero cloud uploads, and infinite file sizes. Built for Windows, macOS, Linux, and Mobile.</p>
+                <p>Run 41+ PDF, Office, and OCR transformations with zero server latency, zero cloud uploads, and infinite file sizes. Built for Windows, macOS, Linux, and Mobile.</p>
               </div>
             </div>
 
@@ -1965,7 +1968,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
             <span class="tier-price-alt">or ₹399/year · Eligible: .edu, .ac.in, .edu.in, .ac.uk, .res.in, .ernet.in, .univ, .college, .school</span>
           </div>
           <ul class="tier-features-list">
-            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Full Pro Access:</strong> All 37 conversion, AI, and editing tools.</li>
+            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Full Pro Access:</strong> All 41 conversion, AI, and editing tools.</li>
             <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>AI Assignment Summary & Chat:</strong> Extract textbook citations instantly.</li>
             <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>500MB Batch Uploads:</strong> Merge and organize entire semesters.</li>
           </ul>
@@ -1976,7 +1979,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
           </div>
         </div>
 
-        <!-- TIER 2: Pro Power User Tier (₹149/month) -->
+        <!-- TIER 2: Pro Power User Tier (₹250/month) -->
         <div class="pricing-tier-card popular">
           <div class="tier-popular-tag">MOST POPULAR</div>
           <div class="tier-card-header">
@@ -1994,7 +1997,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
             <span class="tier-price-alt">or ₹999/year · Unlimited access</span>
           </div>
           <ul class="tier-features-list">
-            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Unlimited Core PDF Tools:</strong> Zero daily caps on all 37 conversion & organize tools.</li>
+            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Unlimited Core PDF Tools:</strong> Zero daily caps on all 41 conversion & organize tools.</li>
             <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>500MB Batch Uploads:</strong> Process up to 100 files simultaneously.</li>
             <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>AI RAG Document Chat:</strong> Deep vector question-answering with page citations.</li>
             <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Priority Processing Queue:</strong> Dedicated worker pool with zero wait time.</li>
