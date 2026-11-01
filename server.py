@@ -1181,6 +1181,11 @@ def render_web_page(request: Request, operation: str | None = None, landing_slug
         html = html.replace('<b id="crumb-tool">Merge PDF</b>', '<b id="crumb-tool">REST API Workspace</b>', 1)
     elif landing_slug == "reset-password":
         html = html.replace(
+            'class="modal-backdrop" id="reset-password-modal" hidden',
+            'class="modal-backdrop" id="reset-password-modal"',
+            1,
+        )
+        html = html.replace(
             'id="reset-password-modal" class="modal-backdrop" hidden',
             'id="reset-password-modal" class="modal-backdrop"',
             1,
