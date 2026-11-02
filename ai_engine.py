@@ -5,6 +5,7 @@ import json
 import math
 import os
 import re
+import time
 import urllib.request
 import urllib.error
 from collections import Counter
@@ -241,7 +242,7 @@ def call_bluesminds(
     model: str | None = None,
     timeout_seconds: float | None = None,
 ) -> str:
-    """Calls Bluesminds OpenAI-compatible chat completions API using openai/gpt-oss-20b."""
+    """Calls Bluesminds OpenAI-compatible chat completions API with primary and active model failover."""
     if AI_KILL_SWITCH:
         raise RuntimeError("AI request failed, please try again")
 
@@ -249,23 +250,12 @@ def call_bluesminds(
     if not api_key:
         raise ValueError("AI provider is not configured")
 
-    target_model = model or BLUESMINDS_MODEL or "openai/gpt-oss-20b"
+    primary_model = model or BLUESMINDS_MODEL or "openai/gpt-oss-20b"
     base_url = (BLUESMINDS_BASE_URL or "https://api.bluesminds.com/v1").rstrip("/")
     if not base_url.endswith("/v1"):
         endpoint = f"{base_url}/v1/chat/completions"
     else:
         endpoint = f"{base_url}/chat/completions"
-
-    payload = {
-        "model": target_model,
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ],
-        "temperature": 0.2,
-        "max_tokens": BLUESMINDS_MAX_OUTPUT_TOKENS or 4096
-    }
-    body = json.dumps(payload).encode("utf-8")
 
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -275,27 +265,75 @@ def call_bluesminds(
 
     timeout = max(5, min(120, float(timeout_seconds or BLUESMINDS_TIMEOUT_SECONDS)))
 
-    try:
-        req = urllib.request.Request(endpoint, data=body, headers=headers)
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-            choices = data.get("choices", [])
-            if choices and "message" in choices[0]:
-                content = choices[0]["message"].get("content", "").strip()
-                if content:
-                    return content
-            raise RuntimeError("AI request failed, please try again")
-    except urllib.error.HTTPError as e:
-        logger.error("Bluesminds API returned HTTP %s", e.code)
-        raise RuntimeError("AI request failed, please try again") from e
-    except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as e:
-        logger.error("Bluesminds connection error: %s", e)
-        raise RuntimeError("AI request failed, please try again") from e
-    except Exception as e:
-        if isinstance(e, (ValueError, RuntimeError)):
-            raise
-        logger.error("Bluesminds unexpected error: %s", e)
-        raise RuntimeError("AI request failed, please try again") from e
+    # Candidate models on Bluesminds gateway: primary first, followed by active fallbacks if primary 504s/times out
+    models_to_try = [primary_model]
+    fallback_candidate = "nvidia/nemotron-3.5-lightning-30b-a3b"
+    if primary_model != fallback_candidate:
+        models_to_try.append(fallback_candidate)
+
+    last_error: Exception | None = None
+    for attempt_idx, candidate_model in enumerate(models_to_try):
+        payload = {
+            "model": candidate_model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            "temperature": 0.2,
+            "max_tokens": BLUESMINDS_MAX_OUTPUT_TOKENS or 4096
+        }
+        body = json.dumps(payload).encode("utf-8")
+
+        # Use shorter per-attempt timeout if we have a fallback to prevent long blocking
+        attempt_timeout = min(timeout, 20) if (attempt_idx == 0 and len(models_to_try) > 1) else timeout
+
+        try:
+            req = urllib.request.Request(endpoint, data=body, headers=headers)
+            with urllib.request.urlopen(req, timeout=attempt_timeout) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                choices = data.get("choices", [])
+                if choices and "message" in choices[0]:
+                    content = choices[0]["message"].get("content", "").strip()
+                    if content:
+                        return content
+                raise RuntimeError("AI request failed, please try again")
+        except urllib.error.HTTPError as e:
+            if e.code == 429:
+                logger.warning("Bluesminds rate-limited (HTTP 429) for model %s. Retrying after 1.5s backoff...", candidate_model)
+                time.sleep(1.5)
+                try:
+                    req_retry = urllib.request.Request(endpoint, data=body, headers=headers)
+                    with urllib.request.urlopen(req_retry, timeout=attempt_timeout) as resp_retry:
+                        data_retry = json.loads(resp_retry.read().decode("utf-8"))
+                        choices_retry = data_retry.get("choices", [])
+                        if choices_retry and "message" in choices_retry[0]:
+                            content = choices_retry[0]["message"].get("content", "").strip()
+                            if content:
+                                return content
+                except Exception as retry_err:
+                    logger.warning("Bluesminds retry after 429 failed: %s", retry_err)
+
+            logger.warning("Bluesminds API for model %s returned HTTP %s", candidate_model, e.code)
+            last_error = e
+            if attempt_idx < len(models_to_try) - 1 and e.code in (502, 503, 504):
+                continue
+            raise RuntimeError("AI request failed, please try again") from e
+        except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as e:
+            logger.warning("Bluesminds connection error for model %s: %s", candidate_model, e)
+            last_error = e
+            if attempt_idx < len(models_to_try) - 1:
+                continue
+            raise RuntimeError("AI request failed, please try again") from e
+        except Exception as e:
+            if isinstance(e, (ValueError, RuntimeError)):
+                raise
+            logger.error("Bluesminds unexpected error: %s", e)
+            last_error = e
+            if attempt_idx < len(models_to_try) - 1:
+                continue
+            raise RuntimeError("AI request failed, please try again") from e
+
+    raise RuntimeError("AI request failed, please try again") from last_error
 
 
 def call_agentrouter(
@@ -336,53 +374,82 @@ def test_bluesminds_connectivity() -> dict:
             "fallback_active": False
         }
 
-    payload = {
-        "model": target_model,
-        "messages": [{"role": "user", "content": "ping"}],
-        "max_tokens": 5
-    }
-    body = json.dumps(payload).encode("utf-8")
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-        "User-Agent": "Paperplane-PDF/1.0"
-    }
+    models_to_try = [target_model]
+    if target_model != "nvidia/nemotron-3.5-lightning-30b-a3b":
+        models_to_try.append("nvidia/nemotron-3.5-lightning-30b-a3b")
 
-    try:
-        req = urllib.request.Request(endpoint, data=body, headers=headers)
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            data = json.loads(resp.read().decode("utf-8", errors="ignore"))
-            return {
-                "status": "inference_succeeded",
-                "provider": "Bluesminds",
-                "model": target_model,
-                "endpoint": endpoint,
-                "http_status": resp.status,
-                "message": "AI provider connected successfully.",
-                "response": data.get("choices", [{}])[0].get("message", {}).get("content", "OK"),
-                "fallback_active": False
-            }
-    except urllib.error.HTTPError as e:
-        return {
-            "status": "connection_error",
-            "provider": "Bluesminds",
-            "model": target_model,
-            "endpoint": endpoint,
-            "http_status": e.code,
-            "message": "AI request failed, please try again",
-            "advice": f"Bluesminds provider returned HTTP {e.code}.",
-            "fallback_active": False
+    last_error_code: int | None = None
+    last_error_advice = ""
+
+    for candidate_model in models_to_try:
+        payload = {
+            "model": candidate_model,
+            "messages": [{"role": "user", "content": "ping"}],
+            "max_tokens": 5
         }
-    except Exception as e:
-        return {
-            "status": "connection_error",
-            "provider": "Bluesminds",
-            "model": target_model,
-            "endpoint": endpoint,
-            "message": "AI request failed, please try again",
-            "advice": str(e),
-            "fallback_active": False
+        body = json.dumps(payload).encode("utf-8")
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+            "User-Agent": "Paperplane-PDF/1.0"
         }
+
+        try:
+            req = urllib.request.Request(endpoint, data=body, headers=headers)
+            with urllib.request.urlopen(req, timeout=12) as resp:
+                data = json.loads(resp.read().decode("utf-8", errors="ignore"))
+                content = data.get("choices", [{}])[0].get("message", {}).get("content") or "OK"
+                return {
+                    "status": "inference_succeeded",
+                    "provider": "Bluesminds",
+                    "model": candidate_model,
+                    "endpoint": endpoint,
+                    "http_status": resp.status,
+                    "message": "AI provider connected successfully.",
+                    "response": content,
+                    "fallback_active": (candidate_model != target_model)
+                }
+        except urllib.error.HTTPError as e:
+            if e.code == 429:
+                logger.warning("Bluesminds rate limit (HTTP 429) during connectivity test for model %s. Retrying after 1.5s...", candidate_model)
+                time.sleep(1.5)
+                try:
+                    req_retry = urllib.request.Request(endpoint, data=body, headers=headers)
+                    with urllib.request.urlopen(req_retry, timeout=12) as resp_retry:
+                        data_retry = json.loads(resp_retry.read().decode("utf-8", errors="ignore"))
+                        content_retry = data_retry.get("choices", [{}])[0].get("message", {}).get("content") or "OK"
+                        return {
+                            "status": "inference_succeeded",
+                            "provider": "Bluesminds",
+                            "model": candidate_model,
+                            "endpoint": endpoint,
+                            "http_status": resp_retry.status,
+                            "message": "AI provider connected successfully.",
+                            "response": content_retry,
+                            "fallback_active": (candidate_model != target_model)
+                        }
+                except Exception as retry_err:
+                    last_error_advice = str(retry_err)
+
+            last_error_code = e.code
+            last_error_advice = f"Bluesminds provider returned HTTP {e.code} for model {candidate_model}."
+            if e.code in (502, 503, 504):
+                continue
+            break
+        except Exception as e:
+            last_error_advice = str(e)
+            continue
+
+    return {
+        "status": "connection_error",
+        "provider": "Bluesminds",
+        "model": target_model,
+        "endpoint": endpoint,
+        "http_status": last_error_code or 502,
+        "message": "AI request failed, please try again",
+        "advice": last_error_advice or "Bluesminds model inference timed out.",
+        "fallback_active": False
+    }
 
 
 def test_agentrouter_connectivity() -> dict:
