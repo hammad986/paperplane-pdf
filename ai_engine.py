@@ -266,10 +266,9 @@ def call_bluesminds(
     timeout = max(5, min(120, float(timeout_seconds or BLUESMINDS_TIMEOUT_SECONDS)))
 
     # Candidate models on Bluesminds gateway: primary first, followed by active fallbacks if primary 504s/times out
+    # Honor the configured model exactly. Silent fallback made diagnostics and
+    # production inference disagree with the owner's configured environment.
     models_to_try = [primary_model]
-    fallback_candidate = "nvidia/nemotron-3.5-lightning-30b-a3b"
-    if primary_model != fallback_candidate:
-        models_to_try.append(fallback_candidate)
 
     last_error: Exception | None = None
     for attempt_idx, candidate_model in enumerate(models_to_try):
@@ -375,8 +374,6 @@ def test_bluesminds_connectivity() -> dict:
         }
 
     models_to_try = [target_model]
-    if target_model != "nvidia/nemotron-3.5-lightning-30b-a3b":
-        models_to_try.append("nvidia/nemotron-3.5-lightning-30b-a3b")
 
     last_error_code: int | None = None
     last_error_advice = ""
@@ -534,6 +531,13 @@ def _offline_rag_fallback(system_prompt: str, user_prompt: str) -> str:
 def chat_with_pdf(pdf_path: Path, question: str) -> dict:
     """Queries the PDF via RAG with BM25 probabilistic keyword retrieval and verified page citations."""
     chunks = extract_chunks_from_pdf(pdf_path)
+    if not _is_document_question(question) and not AI_KILL_SWITCH:
+        answer = call_llm(
+            "You are a helpful general-purpose assistant. Answer conversational and general knowledge questions directly. Do not refer to or assume any uploaded document.",
+            question,
+            timeout_seconds=25,
+        )
+        return {"answer": answer, "citations": [], "retrieval_method": None, "fallback_used": False}
     if not chunks:
         return {
             "answer": "No readable text was found in this document to answer your question.",
@@ -607,6 +611,13 @@ def chat_with_pdf(pdf_path: Path, question: str) -> dict:
         "fallback_used": is_fallback,
         "relevant_passages": [{"page": c.page_number, "text": c.text[:200] + "..."} for c in citation_chunks]
     }
+
+
+def _is_document_question(question: str) -> bool:
+    """Route clear document references to retrieval; leave ordinary chat direct."""
+    q = question.lower().strip()
+    explicit = ("this document", "the document", "this pdf", "the pdf", "uploaded file", "in the file", "in this file", "according to", "what does the", "on which page", "which page", "summarize this", "summarize the", "in my document", "from the document", "certificate number", "applicant name", "invoice number", "due date", "total amount", "line item", "account number", "contract date", "the deadline", "what is the deadline", "mission budget", "lead director", "launch window", "primary payload")
+    return any(phrase in q for phrase in explicit)
 
 
 def summarize_pdf(pdf_path: Path, max_pages: int = 15) -> str:

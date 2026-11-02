@@ -5148,6 +5148,40 @@ body:not(.light-mode) .editor-select option {
   flex-wrap: wrap;
 }
 
+/* Viewport-contained AI chat and PDF Studio layouts. */
+.app-shell.ai-active { height: 100dvh; min-height: 0; overflow: hidden; }
+.ai-active .main-area { height: 100dvh; min-height: 0; overflow: hidden; }
+.ai-active #view-ai-studio { height: calc(100dvh - 64px); min-height: 0; overflow: hidden; gap: 10px; }
+.ai-active .ai-studio-topbar { flex: 0 0 auto; gap: 6px; }
+.ai-active .ai-upload-strip { padding: 8px 12px; }
+.ai-active .ai-engine-notice-bar { display: none; }
+.ai-active .footer, .ai-active .site-footer, .ai-active .privacy-footer { display: none !important; }
+.ai-active .ai-studio-container { min-height: 0; grid-template-columns: minmax(0, 1fr) minmax(260px, 32%); gap: 10px; }
+.ai-active .ai-chat-card { min-height: 0; height: 100%; }
+.ai-active .ai-chat-messages { min-height: 0; max-height: none; overscroll-behavior: contain; }
+.ai-active .ai-chat-form { position: static; }
+.pdf-studio { width: 100%; min-width: 0; height: calc(100dvh - 64px); min-height: 0; border-radius: 0; }
+.studio-toolbar { position: relative; z-index: 200; overflow: visible; }
+.studio-primary-ribbon, .studio-sub-ribbon { overflow-x: auto; overflow-y: visible; }
+.studio-dropdown-wrapper { z-index: 1001; }
+.studio-dropdown-menu { z-index: 10000; max-height: min(70vh, 480px); overflow-y: auto; }
+.studio-main-viewport { overflow: visible; }
+.studio-canvas-area { position: relative; overflow: auto; }
+.studio-empty-state { min-height: 100%; display: grid; align-content: center; justify-items: center; gap: 12px; color: #e2e8f0; text-align: center; }
+.studio-empty-state p { color: #a4b7b4; }
+.studio-empty-state button { margin: 4px; padding: 9px 14px; border: 1px solid #52666b; border-radius: 6px; background: #243437; color: white; cursor: pointer; }
+.organizer-batch-bar { flex-wrap: wrap; justify-content: flex-start; }
+.batch-bar-actions { flex-wrap: wrap; min-width: 0; }
+.organizer-selection-panel { flex-wrap: wrap; overflow: visible; }
+@media (max-width: 900px) {
+  .ai-active #view-ai-studio { height: calc(100dvh - 58px); }
+  .ai-active .ai-studio-container { grid-template-columns: minmax(0, 1fr) !important; }
+  .ai-active .ai-studio-container > div:last-child { display: none !important; }
+  .ai-active .ai-chat-card { border-radius: 8px; }
+  .pdf-studio { grid-template-columns: 58px minmax(0, 1fr); height: calc(100dvh - 56px); }
+  .studio-primary-ribbon, .studio-sub-ribbon { flex-wrap: wrap; }
+}
+
 .batch-btn {
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -7439,3 +7473,37 @@ body:not(.dark-mode) .waitlist-email-input {
 
 
 
+
+/* Final viewport constraints: keep AI controls reachable on phones and tablets. */
+@media (max-width: 900px) {
+  .app-shell.ai-active { height: 100dvh !important; min-height: 0 !important; overflow: hidden !important; }
+  .ai-active .main-area { display: flex !important; flex-direction: column !important; height: 100dvh !important; min-height: 0 !important; overflow: hidden !important; }
+  .ai-active .topbar { flex: 0 0 56px; }
+  .ai-active #view-ai-studio { position: fixed; inset: 56px 0 60px; height: auto !important; min-height: 0 !important; padding: 8px 10px; overflow: hidden; display: flex; flex-direction: column; }
+  .ai-active .ai-studio-container { flex: 1 1 auto; min-height: 0 !important; height: 0; display: flex; }
+  .ai-active .ai-chat-card { flex: 1 1 auto; min-height: 0 !important; }
+  .ai-active .ai-chat-messages { flex: 1 1 auto; min-height: 0 !important; max-height: none !important; }
+  .ai-active .ai-chat-form { flex: 0 0 auto; }
+}
+
+@media (max-width: 900px) {
+  .studio-primary-ribbon, .studio-sub-ribbon { flex-wrap: wrap; align-content: flex-start; max-height: 164px; overflow-y: auto; }
+  .studio-primary-ribbon > *, .studio-sub-ribbon > *, .studio-tool-group, .studio-mode-switcher, .studio-dropdown-wrapper { flex: 0 0 auto; }
+  .studio-divider { display: none; }
+  .studio-tool-btn { white-space: nowrap; }
+  .studio-empty-state { position: absolute; inset: 0; z-index: 20; min-height: 0; background: var(--studio-bg); }
+  .studio-main-viewport { min-width: 0; }
+}
+
+/* Keep Studio commands visible instead of relying on ribbon scrollbars. */
+.studio-primary-ribbon, .studio-sub-ribbon { flex-wrap: wrap; overflow-x: hidden; overflow-y: visible; align-content: center; }
+.studio-primary-ribbon > *, .studio-sub-ribbon > *, .studio-tool-group, .studio-mode-switcher, .studio-dropdown-wrapper { flex: 0 0 auto; }
+.studio-dropdown-menu { left: auto; right: 0; }
+#studio-canvas-area { position: relative; min-width: 0; }
+.studio-empty-state { position: absolute; inset: 0; z-index: 20; min-height: 0; background: var(--studio-bg); }
+#studio-canvas-area:has(.studio-empty-state) #page-render-wrapper { display: none !important; }
+#studio-canvas-area:has(.studio-empty-state) #pdf-canvas,
+#studio-canvas-area:has(.studio-empty-state) #pdf-draw-canvas { display: none !important; }
+.studio-primary-ribbon, .studio-sub-ribbon { overflow: visible; }
+.studio-toolbar { overflow: visible !important; }
+@media (max-width: 900px) { .pdf-studio { height: calc(100dvh - 116px) !important; } }

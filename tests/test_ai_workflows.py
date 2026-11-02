@@ -40,6 +40,7 @@ def test_bluesminds_network_failure_raises_clear_error(monkeypatch):
 def test_bluesminds_uses_fresh_environment_key(monkeypatch):
     monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", ai_engine._INITIAL_BLUESMINDS_API_KEY)
     monkeypatch.setenv("BLUESMINDS_API_KEY", "fresh-bluesminds-key-from-environment")
+    monkeypatch.setattr(ai_engine, "BLUESMINDS_MODEL", "owner/configured-model")
 
     class FakeResponse:
         status = 200
@@ -58,6 +59,24 @@ def test_bluesminds_uses_fresh_environment_key(monkeypatch):
 
     request = open_url.call_args.args[0]
     assert request.get_header("Authorization") == "Bearer fresh-bluesminds-key-from-environment"
+    assert json.loads(request.data)["model"] == "owner/configured-model"
+    assert open_url.call_count == 1
+
+
+def test_ai_chat_answers_general_question_without_pdf(monkeypatch):
+    from fastapi.testclient import TestClient
+    from server import app
+
+    monkeypatch.setattr(ai_engine, "call_llm", lambda system, user, timeout_seconds=None: "Hello! I’m doing well, thanks for asking.")
+    client = TestClient(app)
+    response = client.post("/api/ai/chat", data={"question": "Hello, how are you?"})
+    assert response.status_code == 200
+    assert "Hello!" in response.json()["answer"]
+    assert response.json()["citations"] == []
+
+    document_question = client.post("/api/ai/chat", data={"question": "What is the deadline in the PDF?"})
+    assert document_question.status_code == 200
+    assert "No PDF is open" in document_question.json()["answer"]
 
 
 def test_translation_batch_requires_structured_json(monkeypatch):

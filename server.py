@@ -3266,12 +3266,17 @@ def delete_key(key_id: str, user_id: str = Depends(current_user)):
 
 @app.post("/api/ai/chat")
 async def ai_chat(
-    file: UploadFile = File(...),
+    file: UploadFile | None = File(None),
     question: str = Form(...),
     user_id: str | None = Depends(current_user)
 ):
     temp_dir = Path(tempfile.mkdtemp())
     try:
+        if file is None:
+            if ai_engine._is_document_question(question):
+                return {"answer": "No PDF is open. Upload a document for a cited answer, or ask a general question directly.", "citations": [], "retrieval_method": None}
+            answer = await asyncio.to_thread(ai_engine.call_llm, "You are a helpful general-purpose assistant. Answer directly and naturally.", question, 25)
+            return {"answer": answer, "citations": [], "retrieval_method": None, "fallback_used": False}
         temp_pdf = temp_dir / "chat_doc.pdf"
         await save_upload_spooled_async(file, temp_pdf)
         return await asyncio.to_thread(ai_engine.chat_with_pdf, temp_pdf, question)
@@ -3388,7 +3393,13 @@ def general_ai_test_connection():
     Public connection test endpoint for UI and workspace callers.
     Safely probes upstream Bluesminds status without leaking secrets.
     """
-    return ai_engine.test_bluesminds_connectivity()
+    result = ai_engine.test_bluesminds_connectivity()
+    status = result.get("status")
+    if status in ("connected", "inference_succeeded"):
+        return {"status": "connected", "message": "AI Connected", "fallback_active": False}
+    if status == "configuration_missing":
+        return {"status": status, "message": "AI provider is not configured", "fallback_active": False}
+    return {"status": "connection_error", "message": "AI request failed, please try again", "fallback_active": False}
 
 
 @app.post("/api/pdf/annotate")

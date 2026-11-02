@@ -333,6 +333,7 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true) {
   if ($('#view-api-docs')) $('#view-api-docs').hidden = view !== 'api-docs';
   if ($('#view-download')) $('#view-download').hidden = view !== 'download';
   $('.main-area')?.classList.toggle('studio-active', view === 'studio');
+  $('#app-shell')?.classList.toggle('ai-active', view === 'ai');
 
   // Strict SEO Content containment: Only display crawlable SEO sections on Home and Tool Desk views
   const seoSection = $('.seo-content');
@@ -399,11 +400,7 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true) {
     if (typeof updateAiDocBar === 'function') updateAiDocBar();
   }
 
-  if (view === 'studio' && !state.studio.pdfDoc && !state.studio.isLoading) {
-    loadDocumentIntoStudio(null).then((loaded) => {
-      if (!loaded && !state.studio.isLoading) switchWorkspaceView('home', 'privacy', false);
-    });
-  }
+  if (view === 'studio' && !state.studio.pdfDoc && !state.studio.isLoading) showStudioEmptyState();
 
   // Update mobile bottom navigation bar active button
   const mobMap = {
@@ -415,6 +412,18 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true) {
   $$('.mobile-nav-btn').forEach(b => b.classList.remove('active'));
   if (mobMap[view]) {
     $(mobMap[view])?.classList.add('active');
+  }
+}
+
+function showStudioEmptyState() {
+  const area = $('#studio-canvas-area');
+  if (area && !state.studio.pdfDoc && !area.querySelector('.studio-empty-state')) {
+    const empty = document.createElement('div');
+    empty.className = 'studio-empty-state';
+    empty.innerHTML = '<h2>No document open</h2><p>Open PDF, Import, or start a New Page.</p><div><button type="button" class="studio-empty-open">Open PDF</button><button type="button" class="studio-empty-new">New Page</button></div>';
+    area.appendChild(empty);
+    empty.querySelector('.studio-empty-open')?.addEventListener('click', () => $('#studio-upload-btn')?.click());
+    empty.querySelector('.studio-empty-new')?.addEventListener('click', () => loadDocumentIntoStudio(new File([generateBlankA4PdfBytes()], 'blank-page.pdf', { type: 'application/pdf' })));
   }
 }
 
@@ -869,9 +878,6 @@ function selectOperation(op, switchToDesk = true) {
   updateButton();
   if (op === 'ai_chat' && switchToDesk && state.activeView === 'home') {
     switchWorkspaceView('ai');
-    showToast('Upload a PDF to start grounded AI Chat.', 'info');
-    const aiInput = $('#ai-file-input');
-    if (!state.files.length && aiInput) aiInput.click();
     return;
   }
   if (switchToDesk) {
@@ -1362,6 +1368,7 @@ async function loadDocumentIntoStudio(file) {
   if (container) container.innerHTML = '<div style="color: #94a3b8; font-size: 12px; text-align: center; padding: 20px;"><div class="studio-spinner" style="margin: 0 auto 10px; width: 20px; height: 20px; border-width: 2px;"></div>Rendering previews…</div>';
 
   try {
+    $('#studio-canvas-area')?.querySelector('.studio-empty-state')?.remove();
     let arrayBuffer;
     if (typeof file === 'string' && file !== '/assets/demo.pdf') {
       const resp = await fetch(file);
@@ -1404,6 +1411,14 @@ async function loadDocumentIntoStudio(file) {
     hideStudioLoading();
     showToast(`Failed to load PDF in Studio: ${reason}`, 'error', 6000);
     if (container) container.innerHTML = `<div style="color: #ff6b6b; font-size: 11px; padding: 12px;">Failed to load PDF in Studio: ${escapeHtml(reason)}</div>`;
+    if (!state.studio.pdfDoc) {
+      showStudioEmptyState();
+      const empty = $('#studio-canvas-area')?.querySelector('.studio-empty-state');
+      if (empty) {
+        empty.querySelector('h2').textContent = 'Could not open document';
+        empty.querySelector('p').textContent = reason;
+      }
+    }
     return false;
   }
 }
@@ -1914,7 +1929,16 @@ if (moreToolsTrigger && moreToolsMenu) {
     const isHidden = moreToolsMenu.hidden;
     moreToolsMenu.hidden = !isHidden;
     moreToolsTrigger.setAttribute('aria-expanded', String(isHidden));
+    if (isHidden) moreToolsMenu.querySelector('.studio-dropdown-item')?.focus();
   };
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !moreToolsMenu.hidden) {
+      moreToolsMenu.hidden = true;
+      moreToolsTrigger.setAttribute('aria-expanded', 'false');
+      moreToolsTrigger.focus();
+    }
+  });
 
   document.addEventListener('click', (e) => {
     if (!moreToolsMenu.hidden && !moreToolsMenu.contains(e.target) && !moreToolsTrigger.contains(e.target)) {
@@ -2701,10 +2725,9 @@ function showAiChatDeskResult(data) {
   const citations = data.citations?.length
     ? data.citations.map(page => `<span class="ai-citation-tag">Page ${escapeHtml(page)}</span>`).join('')
     : '<span class="ai-citation-tag muted">No page citation returned</span>';
-  const provider = escapeHtml(data.provider || data.retrieval_method || 'Paperplane grounded engine');
   showRichAiResult(
     'Grounded AI answer',
-    `${provider} · ${data.fallback_used ? 'local fallback active' : 'document-grounded'}`,
+    data.citations?.length ? 'Document-grounded answer' : 'Direct answer',
     `<div class="ai-result-answer">${renderMarkdown(data.answer)}</div><div class="ai-result-citations"><strong>Verified sources</strong>${citations}</div><button type="button" class="btn-primary-action ai-open-studio-result-btn">Open in Full AI Interactive Studio →</button>`,
     { showStudio: true },
   );
@@ -2898,7 +2921,7 @@ function updateAiDocBar() {
     if (activeBar) activeBar.hidden = true;
     if (chatInput) {
       chatInput.disabled = false;
-      chatInput.placeholder = 'Click here or upload a PDF to ask questions...';
+      chatInput.placeholder = 'Ask a general question or about your PDF...';
     }
     if (chatBtn) chatBtn.disabled = false;
     if (extractBtn) extractBtn.disabled = false;
@@ -2914,16 +2937,6 @@ const aiUploadZone = $('#ai-upload-zone');
 const aiChangeDocBtn = $('#ai-change-doc-btn');
 const aiClearDocBtn = $('#ai-clear-doc-btn');
 
-const chatInputEl = $('#chat-input');
-if (chatInputEl) {
-  chatInputEl.addEventListener('click', () => {
-    if (!state.files.length) {
-      showToast('Please select a PDF document to begin grounded AI Q&A.', 'info');
-      aiFileInput?.click();
-    }
-  });
-}
-
 if (aiUploadBtn) aiUploadBtn.onclick = (e) => { e.stopPropagation(); aiFileInput?.click(); };
 if (aiBrowseTrigger) aiBrowseTrigger.onclick = () => aiFileInput?.click();
 if (aiChangeDocBtn) aiChangeDocBtn.onclick = () => aiFileInput?.click();
@@ -2934,7 +2947,7 @@ if (aiClearDocBtn) {
     updateAiDocBar();
     $('#chat-messages').innerHTML = `
       <div class="chat-bubble ai">
-        <strong>Paperplane AI:</strong> Document cleared. Upload a new PDF above to begin grounded document analysis.
+        <strong>Paperplane AI:</strong> Document cleared. Ask a general question or upload a PDF for cited answers.
       </div>
     `;
     $('#summary-display').textContent = 'Summary will appear here after generation...';
@@ -2993,7 +3006,7 @@ if (testConnBtn) {
     try {
       const res = await safeFetch('/api/ai/test-connection');
       if (res.status === 'connected' || res.status === 'inference_succeeded') {
-        showToast(`AI Connected: ${res.provider} (${res.model})`, 'success');
+        showToast('AI Connected', 'success');
       } else if (res.status === 'configuration_missing') {
         showToast('AI provider is not configured', 'warning', 6000);
       } else {
@@ -3014,7 +3027,7 @@ if (chatClearBtn) {
   chatClearBtn.onclick = () => {
     $('#chat-messages').innerHTML = `
       <div class="chat-bubble ai">
-        <strong>Paperplane AI:</strong> Conversation history cleared. Ask any new question about the document!
+        <strong>Paperplane AI:</strong> Conversation cleared. Ask a general question or upload a PDF for cited answers.
       </div>
     `;
     showToast('Conversation cleared', 'info');
@@ -3024,12 +3037,6 @@ if (chatClearBtn) {
 // AI Document Grounded Chat Submit
 $('#chat-form').onsubmit = async e => {
   e.preventDefault();
-  if (!state.files.length) {
-    showToast('Please select or upload a PDF document first before asking questions.', 'warning');
-    aiFileInput?.click();
-    return;
-  }
-
   const input = $('#chat-input');
   const question = input.value.trim();
   if (!question) return;
@@ -3040,12 +3047,12 @@ $('#chat-form').onsubmit = async e => {
   msgs.scrollTop = msgs.scrollHeight;
 
   const form = new FormData();
-  form.append('file', state.files[0]);
+  if (state.files.length) form.append('file', state.files[0]);
   form.append('question', question);
 
   const btn = $('#chat-send-btn');
   btn.disabled = true;
-  btn.textContent = 'Searching…';
+  btn.textContent = state.files.length ? 'Searching…' : 'Thinking…';
 
   try {
     const res = await safeFetch('/api/ai/chat', { method: 'POST', body: form });
@@ -3158,7 +3165,7 @@ function renderExtractionResultsModal(data) {
   }
   const subEl = $('#extraction-modal-subtitle');
   if (subEl) {
-    subEl.textContent = `File: ${fileName} • ${data.total_pages} Page${data.total_pages === 1 ? '' : 's'} • Engine: ${data.provider || 'Deterministic Parser'}`;
+    subEl.textContent = `File: ${fileName} • ${data.total_pages} Page${data.total_pages === 1 ? '' : 's'} • Structured extraction`;
   }
 
   // Reset tab selection to Structured View

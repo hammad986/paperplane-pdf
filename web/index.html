@@ -13,7 +13,7 @@
   <!-- Cashfree PG v3 checkout SDK; app.js initializes it with the server-issued session. -->
   <script src="https://sdk.cashfree.com/js/v3/cashfree.js" defer></script>
 
-  <link rel="stylesheet" href="/assets/styles.css?v=3.5.0" />
+  <link rel="stylesheet" href="/assets/styles.css?v=3.5.5" />
 
 </head>
 <body class="light-mode">
@@ -735,7 +735,7 @@
               <input type="file" id="ai-file-input" accept=".pdf" hidden aria-label="Upload PDF for AI intelligence" />
               <div class="ai-upload-content" id="ai-browse-trigger">
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                <span><strong>Select or drop a PDF</strong> to activate Document AI Q&A, Structured Extraction, and Executive Summarization</span>
+                <span><strong>Upload a PDF</strong> for cited answers, extraction, and summaries. General chat works without a document.</span>
                 <button type="button" class="btn-primary-action" id="ai-upload-btn" style="padding: 6px 14px; font-size: 12.5px;">Choose PDF</button>
               </div>
             </div>
@@ -760,7 +760,6 @@
             <div class="ai-engine-notice-bar">
               <div class="ai-engine-info">
                 <span class="ai-engine-pill">Retrieval: BM25 Lexical Keyword Search</span>
-                <span class="ai-engine-pill" id="ai-provider-pill">LLM: Bluesminds (openai/gpt-oss-20b)</span>
               </div>
               <button type="button" class="ai-test-conn-btn" id="ai-test-connection-btn">Test AI Connection</button>
             </div>
@@ -773,20 +772,20 @@
               <div class="ai-chat-header">
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a8 8 0 0 0-8 8c0 3.37 2.08 6.25 5 7.42V20a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-2.58c2.92-1.17 5-4.05 5-7.42a8 8 0 0 0-8-8z"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
                 <div style="flex: 1;">
-                  <strong>Document Grounded Q&A</strong>
-                  <small style="display: block; color: var(--text-muted);">Answers cite verified document pages using BM25 passage retrieval.</small>
+                  <strong>AI Chat</strong>
+                  <small style="display: block; color: var(--text-muted);">Ask general questions or get cited answers from a PDF.</small>
                 </div>
                 <button type="button" class="btn-demo-upgrade" id="ai-chat-clear-btn" style="padding: 4px 10px; font-size: 11px;">Clear Chat</button>
               </div>
 
               <div class="ai-chat-messages" id="chat-messages">
                 <div class="chat-bubble ai">
-                  <strong>Paperplane AI:</strong> Upload any PDF and ask questions. Retrieval is grounded in the document text using BM25 keyword search with verified page citations!
+                  <strong>Paperplane AI:</strong> Ask a general question, or upload a PDF for answers grounded in its pages.
                 </div>
               </div>
 
               <form id="chat-form" class="ai-chat-form">
-                <input type="text" id="chat-input" class="ai-chat-input" aria-label="Ask a question about the document" placeholder="Ask a question about this document..." required />
+                <input type="text" id="chat-input" class="ai-chat-input" aria-label="Ask a question" placeholder="Ask a general question or about your PDF..." required />
                 <button type="submit" class="btn-primary-action" id="chat-send-btn" style="padding: 10px 18px; font-size: 13px;">
                   Ask
                 </button>
@@ -3362,6 +3361,6 @@ async function convertFileInBrowser(file, operation = 'compress') {
   <!-- Phase 2 Professional Editor Engine -->
   <script src="/assets/editor.js?v=3.2.0" defer></script>
   <!-- Application Controller -->
-  <script src="/assets/app.js?v=3.5.0" defer></script>
+  <script src="/assets/app.js?v=3.5.6" defer></script>
 </body>
 </html>
