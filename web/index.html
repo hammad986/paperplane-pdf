@@ -1205,7 +1205,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
                       <td><span class="http-badge get">GET</span></td>
                       <td><code>/api/v1/account/usage</code></td>
                       <td>Bearer Token</td>
-                      <td>Daily operation quota (10/day, 3 AI calls), consumed counts, active jobs, and UTC reset</td>
+                      <td>Developer API sandbox quota (10 calls/day, including up to 3 AI calls), consumed counts, active jobs, and UTC reset. The free app workflow quota is 100 operations/day.</td>
                     </tr>
                     <tr>
                       <td><span class="http-badge post">POST</span></td>
@@ -3358,6 +3358,6 @@ async function convertFileInBrowser(file, operation = 'compress') {
   <!-- Phase 2 Professional Editor Engine -->
   <script src="/assets/editor.js?v=3.2.0" defer></script>
   <!-- Application Controller -->
-  <script src="/assets/app.js?v=3.2.0" defer></script>
+  <script src="/assets/app.js?v=3.4.0" defer></script>
 </body>
 </html>

@@ -89,6 +89,8 @@ def test_cashfree_checkout_contract():
     assert 'paymentSessionId: res.payment_session_id' in APP
     assert 'redirectTarget: \'_self\'' in APP
     assert 'handleCashfreeReturn' in APP
+    assert "Checkout cancelled or payment not completed. No plan change was made." in APP
+    assert "!['return', 'success'].includes(billingReturn)" in APP
     assert '₹250' in INDEX
     assert '₹750' in INDEX
     assert 'Netbanking' in INDEX

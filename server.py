@@ -2744,11 +2744,11 @@ async def join_waitlist(request: Request):
 def get_current_user_profile(request: Request, user_id: str | None = Depends(current_user)):
     client_ip = get_client_ip(request)
     all_pricing = {
-        "exam_pass": {"inr": EXAM_PASS_PRICE_INR, "usd": 0.49},
-        "student_pro": {"inr": STUDENT_PRO_PRICE_INR, "usd": 0.99},
-        "pro": {"usd": PRO_TIER_PRICE_USD, "inr": PRO_TIER_PRICE_INR},
-        "cyber_cafe": {"inr": CYBER_CAFE_PRICE_INR, "usd": 4.99},
-        "developer": {"usd": DEV_TIER_PRICE_USD, "inr": DEV_TIER_PRICE_INR},
+        "exam_pass": {"inr": EXAM_PASS_PRICE_INR},
+        "student_pro": {"inr": STUDENT_PRO_PRICE_INR},
+        "pro": {"inr": PRO_TIER_PRICE_INR},
+        "cyber_cafe": {"inr": CYBER_CAFE_PRICE_INR},
+        "developer": {"inr": DEV_TIER_PRICE_INR},
     }
     if not user_id:
         usage = get_daily_usage(f"ip:{client_ip}")
@@ -2902,11 +2902,11 @@ def billing_status(request: Request, user_id: str | None = Depends(current_user)
         "usage_today": usage,
         "remaining_today": "Unlimited" if is_pro else max(0, FREE_TIER_DAILY_LIMIT - usage),
         "pricing": {
-            "exam_pass": {"inr": EXAM_PASS_PRICE_INR, "usd": 0.49},
-            "student_pro": {"inr": STUDENT_PRO_PRICE_INR, "usd": 0.99},
-            "pro": {"usd": PRO_TIER_PRICE_USD, "inr": PRO_TIER_PRICE_INR},
-            "cyber_cafe": {"inr": CYBER_CAFE_PRICE_INR, "usd": 4.99},
-            "developer": {"usd": DEV_TIER_PRICE_USD, "inr": DEV_TIER_PRICE_INR},
+            "exam_pass": {"inr": EXAM_PASS_PRICE_INR},
+            "student_pro": {"inr": STUDENT_PRO_PRICE_INR},
+            "pro": {"inr": PRO_TIER_PRICE_INR},
+            "cyber_cafe": {"inr": CYBER_CAFE_PRICE_INR},
+            "developer": {"inr": DEV_TIER_PRICE_INR},
         },
         "cashfree_configured": bool(CASHFREE_APP_ID and CASHFREE_SECRET_KEY),
         "cashfree_environment": CASHFREE_ENV,
@@ -2965,7 +2965,9 @@ def create_checkout_session(
     if user.get("cashfree_order_id") == order_id:
         order_id = f"{order_id}_{uuid.uuid4().hex[:6]}"
     public_url = (PAPERPLANE_PUBLIC_URL or str(request.base_url)).rstrip("/")
-    return_url = f"{public_url}/?billing=success&order_id={urllib.parse.quote(order_id, safe='')}"
+    # The redirect only means checkout returned to the merchant. Payment is
+    # activated exclusively after verify_cashfree_order sees Cashfree PAID.
+    return_url = f"{public_url}/?billing=return&order_id={urllib.parse.quote(order_id, safe='')}"
     order_meta = {"return_url": return_url}
     if PAPERPLANE_PUBLIC_URL.startswith("https://"):
         order_meta["notify_url"] = f"{public_url}/api/billing/cashfree-webhook"

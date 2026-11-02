@@ -54,7 +54,7 @@ def test_cashfree_checkout_creates_inr_order_and_persists_order_id(monkeypatch):
     assert captured["body"]["order_amount"] == 250
     assert captured["body"]["order_currency"] == "INR"
     assert captured["body"]["customer_details"]["customer_id"] == user_id
-    assert "billing=success" in captured["body"]["order_meta"]["return_url"]
+    assert "billing=return" in captured["body"]["order_meta"]["return_url"]
     assert persistence.get_user_by_payment_order(payload["order_id"])["id"] == user_id
 
 
@@ -94,6 +94,35 @@ def test_cashfree_paid_order_promotes_tier_from_audited_order(monkeypatch):
     assert response.json()["status"] == "paid"
     assert response.json()["tier"] == "developer"
     assert persistence.get_user(user_id)["tier"] == "developer"
+
+
+def test_cashfree_unpaid_return_does_not_change_tier(monkeypatch):
+    user_id = "test-user-cancelled-order"
+    order_id = "order_test_cancelled"
+    tier_updates: list[dict] = []
+    monkeypatch.setattr(
+        server,
+        "get_user",
+        lambda requested_user_id: {
+            "id": user_id,
+            "tier": "free",
+            "subscription_status": "inactive",
+            "cashfree_order_id": order_id,
+        },
+    )
+    monkeypatch.setattr(server, "set_user_tier", lambda *args, **kwargs: tier_updates.append(kwargs))
+    monkeypatch.setattr(server, "record_billing_event", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        server,
+        "_cashfree_request",
+        lambda method, path, body=None: {"order_id": order_id, "order_status": "CANCELLED"},
+    )
+
+    result = server.verify_cashfree_order(order_id, user_id=user_id)
+
+    assert result["status"] == "cancelled"
+    assert result["tier"] == "free"
+    assert tier_updates == []
 
 
 def test_cashfree_webhook_signature_audits_payload_and_activates_tier(monkeypatch):

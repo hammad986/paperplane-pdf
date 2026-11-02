@@ -400,7 +400,9 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true) {
   }
 
   if (view === 'studio' && !state.studio.pdfDoc) {
-    loadDocumentIntoStudio(null);
+    loadDocumentIntoStudio(null).then((loaded) => {
+      if (!loaded) switchWorkspaceView('home', 'privacy', false);
+    });
   }
 
   // Update mobile bottom navigation bar active button
@@ -835,7 +837,7 @@ function selectOperation(op, switchToDesk = true) {
       tierBadge.style.borderColor = 'rgba(245,158,11,0.3)';
       tierBadge.style.background = 'rgba(245,158,11,0.1)';
     } else {
-      tierBadge.textContent = '⚡ Free Guest Tool · No Account Required (10 ops/day · 50 MB)';
+      tierBadge.textContent = '⚡ Free Guest Tool · No Account Required (100 ops/day · 50 MB)';
       tierBadge.style.color = '#10b981';
       tierBadge.style.borderColor = 'rgba(16,185,129,0.3)';
       tierBadge.style.background = 'rgba(16,185,129,0.1)';
@@ -895,7 +897,7 @@ function updateBillingUI(data) {
   const tier = (data && data.tier ? data.tier : 'free').toLowerCase();
   const isPaid = Boolean(data && (data.is_pro || data.is_dev || ['pro', 'developer', 'student_pro', 'cyber_cafe', 'exam_pass'].includes(tier)));
   const usage = data ? (data.usage_today || 0) : 0;
-  const limit = data ? (data.limit || 100) : 100;
+  const limit = data ? (data.daily_limit ?? 100) : 100;
   state.dailyLimit = limit;
 
   const quotaText = $('#quota-text');
@@ -1309,7 +1311,7 @@ function generateBlankA4PdfBytes() {
 
 async function loadDocumentIntoStudio(file) {
   const container = $('#studio-thumbnails-container');
-  container.innerHTML = '<div style="color: #fff; font-size: 12px; text-align: center; padding: 20px;">Rendering studio previews…</div>';
+  if (container) container.innerHTML = '<div style="color: #fff; font-size: 12px; text-align: center; padding: 20px;">Rendering studio previews…</div>';
 
   try {
     let arrayBuffer;
@@ -1345,8 +1347,12 @@ async function loadDocumentIntoStudio(file) {
     } else {
       renderStudioThumbnails();
     }
+    return true;
   } catch (err) {
-    container.innerHTML = `<div style="color: #ff6b6b; font-size: 11px; padding: 12px;">Failed to load PDF in Studio: ${err.message}</div>`;
+    const reason = err instanceof Error ? err.message : String(err);
+    console.error('Failed to load PDF in Studio:', err);
+    if (container) container.innerHTML = `<div style="color: #ff6b6b; font-size: 11px; padding: 12px;">Failed to load PDF in Studio: ${escapeHtml(reason)}</div>`;
+    return false;
   }
 }
 
@@ -1458,8 +1464,10 @@ if (studioUploadBtn && studioFileInput) {
   studioFileInput.onchange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      loadDocumentIntoStudio(file);
-      showToast(`Loaded ${file.name} into Studio!`);
+      loadDocumentIntoStudio(file).then((loaded) => {
+        if (loaded) showToast(`Loaded ${file.name} into Studio!`);
+        else showToast('Could not load this PDF in Studio. Check that the file is a valid, readable PDF.', 'error', 5500);
+      });
     }
   };
 }
@@ -1467,8 +1475,10 @@ if (studioUploadBtn && studioFileInput) {
 const studioCloseDocBtn = $('#studio-close-doc-btn');
 if (studioCloseDocBtn) {
   studioCloseDocBtn.onclick = () => {
-    loadDocumentIntoStudio(null);
-    showToast('Started new blank document in Studio.', 'info');
+    loadDocumentIntoStudio(null).then((loaded) => {
+      if (loaded) showToast('Started new blank document in Studio.', 'info');
+      else showToast('Could not create a blank Studio document.', 'error', 5500);
+    });
   };
 }
 
@@ -2493,22 +2503,23 @@ function showDownloadResult(job, downloadUrl) {
         showToast('Opening processed document in Studio…', 'info');
         try {
           const res = await fetch(downloadUrl, { credentials: 'same-origin' });
-          if (res.ok) {
-            const blob = await res.blob();
-            const studioFile = new File([blob], outName, { type: blob.type || 'application/pdf' });
-            await loadDocumentIntoStudio(studioFile);
-            switchWorkspaceView('studio');
-            return;
-          }
+          if (!res.ok) throw new Error(`Could not fetch the processed PDF (HTTP ${res.status}).`);
+          const blob = await res.blob();
+          const studioFile = new File([blob], outName, { type: blob.type || 'application/pdf' });
+          const loaded = await loadDocumentIntoStudio(studioFile);
+          if (!loaded) throw new Error('The processed file could not be rendered as a PDF.');
+          switchWorkspaceView('studio');
+          return;
         } catch (err) {
           console.warn('Could not load output into Studio directly:', err);
+          showToast(`Could not open the processed PDF in Studio: ${err instanceof Error ? err.message : String(err)}`, 'error', 6500);
         }
-        showToast('Could not load output into Studio preview.', 'error');
       };
     }
   }
 
   result.hidden = false;
+  checkAuthStatus();
   showToast('Processing complete! Document ready for download.');
 }
 
@@ -4276,7 +4287,8 @@ async function init() {
 async function handleCashfreeReturn() {
   const params = new URLSearchParams(window.location.search);
   const orderId = params.get('order_id');
-  if (params.get('billing') !== 'success' || !orderId) return;
+  const billingReturn = params.get('billing');
+  if (!['return', 'success'].includes(billingReturn) || !orderId) return;
   try {
     const result = await safeFetch(`/api/billing/verify-order/${encodeURIComponent(orderId)}`);
     if (result.status === 'paid') {
@@ -4289,10 +4301,10 @@ async function handleCashfreeReturn() {
       );
       await checkAuthStatus();
     } else {
-      showToast('Cashfree payment is still being confirmed. We will refresh your tier when the webhook arrives.', 'info', 6000);
+      showToast('Checkout cancelled or payment not completed. No plan change was made.', 'info', 6000);
     }
   } catch (err) {
-    showToast(`Payment verification is pending: ${err.message}`, 'warning', 6000);
+    showToast(`Payment was not verified. No plan change was made: ${err.message}`, 'warning', 6000);
   } finally {
     window.history.replaceState({}, document.title, window.location.pathname);
   }

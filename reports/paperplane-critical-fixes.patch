@@ -1,0 +1,282 @@
+diff --git a/config.py b/config.py
+index cee3369..206b338 100755
+--- a/config.py
++++ b/config.py
+@@ -154,7 +154,7 @@ AGENTROUTER_MAX_OUTPUT_TOKENS = int(os.getenv("AGENTROUTER_MAX_OUTPUT_TOKENS", "
+ AI_KILL_SWITCH = os.getenv("PAPERPLANE_AI_KILL_SWITCH", "false").lower() in ("true", "1", "yes")
+ 
+ # Public Developer REST API Quotas (Free Tier Defaults)
+-FREE_API_CALLS_PER_DAY = int(os.getenv("PAPERPLANE_FREE_API_CALLS_PER_DAY", "100"))
++FREE_API_CALLS_PER_DAY = int(os.getenv("PAPERPLANE_FREE_API_CALLS_PER_DAY", "10"))
+ FREE_AI_CALLS_PER_DAY = int(os.getenv("PAPERPLANE_FREE_AI_CALLS_PER_DAY", "3"))
+ FREE_MAX_FILE_SIZE_MB = int(os.getenv("PAPERPLANE_FREE_MAX_FILE_SIZE_MB", "10"))
+ FREE_CONCURRENT_JOBS = int(os.getenv("PAPERPLANE_FREE_CONCURRENT_JOBS", "2"))
+diff --git a/server.py b/server.py
+index e13e625..939c1f3 100755
+--- a/server.py
++++ b/server.py
+@@ -2744,11 +2744,11 @@ async def join_waitlist(request: Request):
+ def get_current_user_profile(request: Request, user_id: str | None = Depends(current_user)):
+     client_ip = get_client_ip(request)
+     all_pricing = {
+-        "exam_pass": {"inr": EXAM_PASS_PRICE_INR, "usd": 0.49},
+-        "student_pro": {"inr": STUDENT_PRO_PRICE_INR, "usd": 0.99},
+-        "pro": {"usd": PRO_TIER_PRICE_USD, "inr": PRO_TIER_PRICE_INR},
+-        "cyber_cafe": {"inr": CYBER_CAFE_PRICE_INR, "usd": 4.99},
+-        "developer": {"usd": DEV_TIER_PRICE_USD, "inr": DEV_TIER_PRICE_INR},
++        "exam_pass": {"inr": EXAM_PASS_PRICE_INR},
++        "student_pro": {"inr": STUDENT_PRO_PRICE_INR},
++        "pro": {"inr": PRO_TIER_PRICE_INR},
++        "cyber_cafe": {"inr": CYBER_CAFE_PRICE_INR},
++        "developer": {"inr": DEV_TIER_PRICE_INR},
+     }
+     if not user_id:
+         usage = get_daily_usage(f"ip:{client_ip}")
+@@ -2902,11 +2902,11 @@ def billing_status(request: Request, user_id: str | None = Depends(current_user)
+         "usage_today": usage,
+         "remaining_today": "Unlimited" if is_pro else max(0, FREE_TIER_DAILY_LIMIT - usage),
+         "pricing": {
+-            "exam_pass": {"inr": EXAM_PASS_PRICE_INR, "usd": 0.49},
+-            "student_pro": {"inr": STUDENT_PRO_PRICE_INR, "usd": 0.99},
+-            "pro": {"usd": PRO_TIER_PRICE_USD, "inr": PRO_TIER_PRICE_INR},
+-            "cyber_cafe": {"inr": CYBER_CAFE_PRICE_INR, "usd": 4.99},
+-            "developer": {"usd": DEV_TIER_PRICE_USD, "inr": DEV_TIER_PRICE_INR},
++            "exam_pass": {"inr": EXAM_PASS_PRICE_INR},
++            "student_pro": {"inr": STUDENT_PRO_PRICE_INR},
++            "pro": {"inr": PRO_TIER_PRICE_INR},
++            "cyber_cafe": {"inr": CYBER_CAFE_PRICE_INR},
++            "developer": {"inr": DEV_TIER_PRICE_INR},
+         },
+         "cashfree_configured": bool(CASHFREE_APP_ID and CASHFREE_SECRET_KEY),
+         "cashfree_environment": CASHFREE_ENV,
+@@ -2965,7 +2965,9 @@ def create_checkout_session(
+     if user.get("cashfree_order_id") == order_id:
+         order_id = f"{order_id}_{uuid.uuid4().hex[:6]}"
+     public_url = (PAPERPLANE_PUBLIC_URL or str(request.base_url)).rstrip("/")
+-    return_url = f"{public_url}/?billing=success&order_id={urllib.parse.quote(order_id, safe='')}"
++    # The redirect only means checkout returned to the merchant. Payment is
++    # activated exclusively after verify_cashfree_order sees Cashfree PAID.
++    return_url = f"{public_url}/?billing=return&order_id={urllib.parse.quote(order_id, safe='')}"
+     order_meta = {"return_url": return_url}
+     if PAPERPLANE_PUBLIC_URL.startswith("https://"):
+         order_meta["notify_url"] = f"{public_url}/api/billing/cashfree-webhook"
+diff --git a/tests/test_cashfree_billing.py b/tests/test_cashfree_billing.py
+index f5a5ce1..ffd6999 100755
+--- a/tests/test_cashfree_billing.py
++++ b/tests/test_cashfree_billing.py
+@@ -54,7 +54,7 @@ def test_cashfree_checkout_creates_inr_order_and_persists_order_id(monkeypatch):
+     assert captured["body"]["order_amount"] == 250
+     assert captured["body"]["order_currency"] == "INR"
+     assert captured["body"]["customer_details"]["customer_id"] == user_id
+-    assert "billing=success" in captured["body"]["order_meta"]["return_url"]
++    assert "billing=return" in captured["body"]["order_meta"]["return_url"]
+     assert persistence.get_user_by_payment_order(payload["order_id"])["id"] == user_id
+ 
+ 
+@@ -96,6 +96,35 @@ def test_cashfree_paid_order_promotes_tier_from_audited_order(monkeypatch):
+     assert persistence.get_user(user_id)["tier"] == "developer"
+ 
+ 
++def test_cashfree_unpaid_return_does_not_change_tier(monkeypatch):
++    user_id = "test-user-cancelled-order"
++    order_id = "order_test_cancelled"
++    tier_updates: list[dict] = []
++    monkeypatch.setattr(
++        server,
++        "get_user",
++        lambda requested_user_id: {
++            "id": user_id,
++            "tier": "free",
++            "subscription_status": "inactive",
++            "cashfree_order_id": order_id,
++        },
++    )
++    monkeypatch.setattr(server, "set_user_tier", lambda *args, **kwargs: tier_updates.append(kwargs))
++    monkeypatch.setattr(server, "record_billing_event", lambda *args, **kwargs: None)
++    monkeypatch.setattr(
++        server,
++        "_cashfree_request",
++        lambda method, path, body=None: {"order_id": order_id, "order_status": "CANCELLED"},
++    )
++
++    result = server.verify_cashfree_order(order_id, user_id=user_id)
++
++    assert result["status"] == "cancelled"
++    assert result["tier"] == "free"
++    assert tier_updates == []
++
++
+ def test_cashfree_webhook_signature_audits_payload_and_activates_tier(monkeypatch):
+     _, user_id, token = _registered_client()
+     order_id = f"order_pp_{user_id[:8]}_{int(time.time())}_webhook"
+diff --git a/tests/test_frontend_contracts.py b/tests/test_frontend_contracts.py
+index 07b21d0..e66dc21 100755
+--- a/tests/test_frontend_contracts.py
++++ b/tests/test_frontend_contracts.py
+@@ -89,6 +89,8 @@ def test_cashfree_checkout_contract():
+     assert 'paymentSessionId: res.payment_session_id' in APP
+     assert 'redirectTarget: \'_self\'' in APP
+     assert 'handleCashfreeReturn' in APP
++    assert "Checkout cancelled or payment not completed. No plan change was made." in APP
++    assert "!['return', 'success'].includes(billingReturn)" in APP
+     assert '₹250' in INDEX
+     assert '₹750' in INDEX
+     assert 'Netbanking' in INDEX
+diff --git a/web/assets/app.js b/web/assets/app.js
+index ae79be4..0e81bf1 100755
+--- a/web/assets/app.js
++++ b/web/assets/app.js
+@@ -400,7 +400,9 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true) {
+   }
+ 
+   if (view === 'studio' && !state.studio.pdfDoc) {
+-    loadDocumentIntoStudio(null);
++    loadDocumentIntoStudio(null).then((loaded) => {
++      if (!loaded) switchWorkspaceView('home', 'privacy', false);
++    });
+   }
+ 
+   // Update mobile bottom navigation bar active button
+@@ -835,7 +837,7 @@ function selectOperation(op, switchToDesk = true) {
+       tierBadge.style.borderColor = 'rgba(245,158,11,0.3)';
+       tierBadge.style.background = 'rgba(245,158,11,0.1)';
+     } else {
+-      tierBadge.textContent = '⚡ Free Guest Tool · No Account Required (10 ops/day · 50 MB)';
++      tierBadge.textContent = '⚡ Free Guest Tool · No Account Required (100 ops/day · 50 MB)';
+       tierBadge.style.color = '#10b981';
+       tierBadge.style.borderColor = 'rgba(16,185,129,0.3)';
+       tierBadge.style.background = 'rgba(16,185,129,0.1)';
+@@ -895,7 +897,7 @@ function updateBillingUI(data) {
+   const tier = (data && data.tier ? data.tier : 'free').toLowerCase();
+   const isPaid = Boolean(data && (data.is_pro || data.is_dev || ['pro', 'developer', 'student_pro', 'cyber_cafe', 'exam_pass'].includes(tier)));
+   const usage = data ? (data.usage_today || 0) : 0;
+-  const limit = data ? (data.limit || 100) : 100;
++  const limit = data ? (data.daily_limit ?? 100) : 100;
+   state.dailyLimit = limit;
+ 
+   const quotaText = $('#quota-text');
+@@ -1309,7 +1311,7 @@ function generateBlankA4PdfBytes() {
+ 
+ async function loadDocumentIntoStudio(file) {
+   const container = $('#studio-thumbnails-container');
+-  container.innerHTML = '<div style="color: #fff; font-size: 12px; text-align: center; padding: 20px;">Rendering studio previews…</div>';
++  if (container) container.innerHTML = '<div style="color: #fff; font-size: 12px; text-align: center; padding: 20px;">Rendering studio previews…</div>';
+ 
+   try {
+     let arrayBuffer;
+@@ -1345,8 +1347,12 @@ async function loadDocumentIntoStudio(file) {
+     } else {
+       renderStudioThumbnails();
+     }
++    return true;
+   } catch (err) {
+-    container.innerHTML = `<div style="color: #ff6b6b; font-size: 11px; padding: 12px;">Failed to load PDF in Studio: ${err.message}</div>`;
++    const reason = err instanceof Error ? err.message : String(err);
++    console.error('Failed to load PDF in Studio:', err);
++    if (container) container.innerHTML = `<div style="color: #ff6b6b; font-size: 11px; padding: 12px;">Failed to load PDF in Studio: ${escapeHtml(reason)}</div>`;
++    return false;
+   }
+ }
+ 
+@@ -1458,8 +1464,10 @@ if (studioUploadBtn && studioFileInput) {
+   studioFileInput.onchange = (e) => {
+     const file = e.target.files[0];
+     if (file) {
+-      loadDocumentIntoStudio(file);
+-      showToast(`Loaded ${file.name} into Studio!`);
++      loadDocumentIntoStudio(file).then((loaded) => {
++        if (loaded) showToast(`Loaded ${file.name} into Studio!`);
++        else showToast('Could not load this PDF in Studio. Check that the file is a valid, readable PDF.', 'error', 5500);
++      });
+     }
+   };
+ }
+@@ -1467,8 +1475,10 @@ if (studioUploadBtn && studioFileInput) {
+ const studioCloseDocBtn = $('#studio-close-doc-btn');
+ if (studioCloseDocBtn) {
+   studioCloseDocBtn.onclick = () => {
+-    loadDocumentIntoStudio(null);
+-    showToast('Started new blank document in Studio.', 'info');
++    loadDocumentIntoStudio(null).then((loaded) => {
++      if (loaded) showToast('Started new blank document in Studio.', 'info');
++      else showToast('Could not create a blank Studio document.', 'error', 5500);
++    });
+   };
+ }
+ 
+@@ -2493,22 +2503,23 @@ function showDownloadResult(job, downloadUrl) {
+         showToast('Opening processed document in Studio…', 'info');
+         try {
+           const res = await fetch(downloadUrl, { credentials: 'same-origin' });
+-          if (res.ok) {
+-            const blob = await res.blob();
+-            const studioFile = new File([blob], outName, { type: blob.type || 'application/pdf' });
+-            await loadDocumentIntoStudio(studioFile);
+-            switchWorkspaceView('studio');
+-            return;
+-          }
++          if (!res.ok) throw new Error(`Could not fetch the processed PDF (HTTP ${res.status}).`);
++          const blob = await res.blob();
++          const studioFile = new File([blob], outName, { type: blob.type || 'application/pdf' });
++          const loaded = await loadDocumentIntoStudio(studioFile);
++          if (!loaded) throw new Error('The processed file could not be rendered as a PDF.');
++          switchWorkspaceView('studio');
++          return;
+         } catch (err) {
+           console.warn('Could not load output into Studio directly:', err);
++          showToast(`Could not open the processed PDF in Studio: ${err instanceof Error ? err.message : String(err)}`, 'error', 6500);
+         }
+-        showToast('Could not load output into Studio preview.', 'error');
+       };
+     }
+   }
+ 
+   result.hidden = false;
++  checkAuthStatus();
+   showToast('Processing complete! Document ready for download.');
+ }
+ 
+@@ -4276,7 +4287,8 @@ async function init() {
+ async function handleCashfreeReturn() {
+   const params = new URLSearchParams(window.location.search);
+   const orderId = params.get('order_id');
+-  if (params.get('billing') !== 'success' || !orderId) return;
++  const billingReturn = params.get('billing');
++  if (!['return', 'success'].includes(billingReturn) || !orderId) return;
+   try {
+     const result = await safeFetch(`/api/billing/verify-order/${encodeURIComponent(orderId)}`);
+     if (result.status === 'paid') {
+@@ -4289,10 +4301,10 @@ async function handleCashfreeReturn() {
+       );
+       await checkAuthStatus();
+     } else {
+-      showToast('Cashfree payment is still being confirmed. We will refresh your tier when the webhook arrives.', 'info', 6000);
++      showToast('Checkout cancelled or payment not completed. No plan change was made.', 'info', 6000);
+     }
+   } catch (err) {
+-    showToast(`Payment verification is pending: ${err.message}`, 'warning', 6000);
++    showToast(`Payment was not verified. No plan change was made: ${err.message}`, 'warning', 6000);
+   } finally {
+     window.history.replaceState({}, document.title, window.location.pathname);
+   }
+diff --git a/web/index.html b/web/index.html
+index f68bc71..8ed0268 100755
+--- a/web/index.html
++++ b/web/index.html
+@@ -1205,7 +1205,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
+                       <td><span class="http-badge get">GET</span></td>
+                       <td><code>/api/v1/account/usage</code></td>
+                       <td>Bearer Token</td>
+-                      <td>Daily operation quota (10/day, 3 AI calls), consumed counts, active jobs, and UTC reset</td>
++                      <td>Developer API sandbox quota (10 calls/day, including up to 3 AI calls), consumed counts, active jobs, and UTC reset. The free app workflow quota is 100 operations/day.</td>
+                     </tr>
+                     <tr>
+                       <td><span class="http-badge post">POST</span></td>
+@@ -3358,6 +3358,6 @@ async function convertFileInBrowser(file, operation = 'compress') {
+   <!-- Phase 2 Professional Editor Engine -->
+   <script src="/assets/editor.js?v=3.2.0" defer></script>
+   <!-- Application Controller -->
+-  <script src="/assets/app.js?v=3.2.0" defer></script>
++  <script src="/assets/app.js?v=3.4.0" defer></script>
+ </body>
+ </html>
