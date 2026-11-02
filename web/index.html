@@ -13,10 +13,10 @@
   <!-- Cashfree PG v3 checkout SDK; app.js initializes it with the server-issued session. -->
   <script src="https://sdk.cashfree.com/js/v3/cashfree.js" defer></script>
 
-  <link rel="stylesheet" href="/assets/styles.css?v=3.5.5" />
+  <link rel="stylesheet" href="/assets/styles.css?v=3.5.6" />
 
 </head>
-<body class="light-mode">
+<body class="light-mode auth-pending">
 
   <div class="app-shell" id="app-shell">
     
@@ -432,7 +432,7 @@
                   <button type="button" class="studio-tool-btn" id="prev-page-btn" title="Previous page" aria-label="Previous page">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
                   </button>
-                  <span class="studio-page-badge" id="page-indicator">1 / 1</span>
+                  <span class="studio-page-badge" id="page-indicator">0 / 0</span>
                   <button type="button" class="studio-tool-btn" id="next-page-btn" title="Next page" aria-label="Next page">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
                   </button>
@@ -3361,6 +3361,6 @@ async function convertFileInBrowser(file, operation = 'compress') {
   <!-- Phase 2 Professional Editor Engine -->
   <script src="/assets/editor.js?v=3.2.0" defer></script>
   <!-- Application Controller -->
-  <script src="/assets/app.js?v=3.5.6" defer></script>
+  <script src="/assets/app.js?v=3.5.7" defer></script>
 </body>
 </html>

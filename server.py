@@ -3273,9 +3273,14 @@ async def ai_chat(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         if file is None:
+            if ai_engine._is_code_request(question):
+                return {"answer": ai_engine._CODE_SCOPE_REPLY, "citations": [], "retrieval_method": None, "fallback_used": False}
+            if ai_engine._is_identity_question(question):
+                return {"answer": ai_engine._PAPERPLANE_IDENTITY, "citations": [], "retrieval_method": None, "fallback_used": False}
             if ai_engine._is_document_question(question):
                 return {"answer": "No PDF is open. Upload a document for a cited answer, or ask a general question directly.", "citations": [], "retrieval_method": None}
-            answer = await asyncio.to_thread(ai_engine.call_llm, "You are a helpful general-purpose assistant. Answer directly and naturally.", question, 25)
+            answer = await asyncio.to_thread(ai_engine.call_llm, ai_engine._PAPERPLANE_SYSTEM_PROMPT, question, 35)
+            answer = ai_engine._guard_ai_output(answer)
             return {"answer": answer, "citations": [], "retrieval_method": None, "fallback_used": False}
         temp_pdf = temp_dir / "chat_doc.pdf"
         await save_upload_spooled_async(file, temp_pdf)

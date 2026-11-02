@@ -5154,7 +5154,8 @@ body:not(.light-mode) .editor-select option {
 .ai-active #view-ai-studio { height: calc(100dvh - 64px); min-height: 0; overflow: hidden; gap: 10px; }
 .ai-active .ai-studio-topbar { flex: 0 0 auto; gap: 6px; }
 .ai-active .ai-upload-strip { padding: 8px 12px; }
-.ai-active .ai-engine-notice-bar { display: none; }
+.ai-active .ai-engine-notice-bar { display: flex; flex: 0 0 auto; padding: 5px 10px; }
+.ai-active .ai-engine-info { display: none; }
 .ai-active .footer, .ai-active .site-footer, .ai-active .privacy-footer { display: none !important; }
 .ai-active .ai-studio-container { min-height: 0; grid-template-columns: minmax(0, 1fr) minmax(260px, 32%); gap: 10px; }
 .ai-active .ai-chat-card { min-height: 0; height: 100%; }
@@ -5173,6 +5174,22 @@ body:not(.light-mode) .editor-select option {
 .organizer-batch-bar { flex-wrap: wrap; justify-content: flex-start; }
 .batch-bar-actions { flex-wrap: wrap; min-width: 0; }
 .organizer-selection-panel { flex-wrap: wrap; overflow: visible; }
+
+/* Keep workspace content within the column left by the sidebar. */
+.app-shell, .main-area, .main-area > *, .view-main, .tool-content, .tool-workspace,
+.home-content, .home-hero, .home-tools-grid, .ai-studio-container, .pdf-studio,
+.studio-thumbnails-bar, .studio-thumbnails-scroll, .organizer-grid { min-width: 0; max-width: 100%; box-sizing: border-box; }
+.app-shell { grid-template-columns: var(--sidebar-width) minmax(0, 1fr); }
+.app-shell.sidebar-collapsed { grid-template-columns: var(--sidebar-collapsed-width) minmax(0, 1fr); }
+.organizer-grid.grid-mode { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding-right: 8px; }
+.organizer-grid .thumb-card, .organizer-grid .page-card { min-width: 0; max-width: 100%; }
+.auth-pending #topbar-auth-guest, .auth-pending #topbar-auth-user,
+.auth-pending .profile-card, .auth-pending .quota-container { visibility: hidden; }
+[hidden] { display: none !important; }
+@media (max-width: 700px) {
+  .app-shell, .app-shell.sidebar-collapsed { grid-template-columns: minmax(0, 1fr); }
+  .organizer-grid.grid-mode { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 @media (max-width: 900px) {
   .ai-active #view-ai-studio { height: calc(100dvh - 58px); }
   .ai-active .ai-studio-container { grid-template-columns: minmax(0, 1fr) !important; }

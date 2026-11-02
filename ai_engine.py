@@ -271,7 +271,9 @@ def call_bluesminds(
     models_to_try = [primary_model]
 
     last_error: Exception | None = None
-    for attempt_idx, candidate_model in enumerate(models_to_try):
+    attempts = 2
+    for attempt_idx in range(attempts):
+      for candidate_model in models_to_try:
         payload = {
             "model": candidate_model,
             "messages": [
@@ -283,8 +285,7 @@ def call_bluesminds(
         }
         body = json.dumps(payload).encode("utf-8")
 
-        # Use shorter per-attempt timeout if we have a fallback to prevent long blocking
-        attempt_timeout = min(timeout, 20) if (attempt_idx == 0 and len(models_to_try) > 1) else timeout
+        attempt_timeout = timeout
 
         try:
             req = urllib.request.Request(endpoint, data=body, headers=headers)
@@ -297,30 +298,17 @@ def call_bluesminds(
                         return content
                 raise RuntimeError("AI request failed, please try again")
         except urllib.error.HTTPError as e:
-            if e.code == 429:
-                logger.warning("Bluesminds rate-limited (HTTP 429) for model %s. Retrying after 1.5s backoff...", candidate_model)
-                time.sleep(1.5)
-                try:
-                    req_retry = urllib.request.Request(endpoint, data=body, headers=headers)
-                    with urllib.request.urlopen(req_retry, timeout=attempt_timeout) as resp_retry:
-                        data_retry = json.loads(resp_retry.read().decode("utf-8"))
-                        choices_retry = data_retry.get("choices", [])
-                        if choices_retry and "message" in choices_retry[0]:
-                            content = choices_retry[0]["message"].get("content", "").strip()
-                            if content:
-                                return content
-                except Exception as retry_err:
-                    logger.warning("Bluesminds retry after 429 failed: %s", retry_err)
-
-            logger.warning("Bluesminds API for model %s returned HTTP %s", candidate_model, e.code)
+            logger.warning("AI provider returned HTTP %s", e.code)
             last_error = e
-            if attempt_idx < len(models_to_try) - 1 and e.code in (502, 503, 504):
+            if attempt_idx + 1 < attempts and e.code in (408, 429, 500, 502, 503, 504):
+                time.sleep(0.4)
                 continue
             raise RuntimeError("AI request failed, please try again") from e
         except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as e:
-            logger.warning("Bluesminds connection error for model %s: %s", candidate_model, e)
+            logger.warning("AI provider connection error: %s", e)
             last_error = e
-            if attempt_idx < len(models_to_try) - 1:
+            if attempt_idx + 1 < attempts:
+                time.sleep(0.4)
                 continue
             raise RuntimeError("AI request failed, please try again") from e
         except Exception as e:
@@ -530,13 +518,13 @@ def _offline_rag_fallback(system_prompt: str, user_prompt: str) -> str:
 
 def chat_with_pdf(pdf_path: Path, question: str) -> dict:
     """Queries the PDF via RAG with BM25 probabilistic keyword retrieval and verified page citations."""
+    if _is_code_request(question):
+        return {"answer": _CODE_SCOPE_REPLY, "citations": [], "retrieval_method": None, "fallback_used": False}
+    if _is_identity_question(question):
+        return {"answer": _PAPERPLANE_IDENTITY, "citations": [], "retrieval_method": None, "fallback_used": False}
     chunks = extract_chunks_from_pdf(pdf_path)
     if not _is_document_question(question) and not AI_KILL_SWITCH:
-        answer = call_llm(
-            "You are a helpful general-purpose assistant. Answer conversational and general knowledge questions directly. Do not refer to or assume any uploaded document.",
-            question,
-            timeout_seconds=25,
-        )
+        answer = _guard_ai_output(call_llm(_PAPERPLANE_SYSTEM_PROMPT, question, timeout_seconds=35))
         return {"answer": answer, "citations": [], "retrieval_method": None, "fallback_used": False}
     if not chunks:
         return {
@@ -548,8 +536,14 @@ def chat_with_pdf(pdf_path: Path, question: str) -> dict:
         }
 
     rag = LightweightRAG(chunks)
-    scored_chunks = rag.search_scored(question, top_k=4)
-    retrieved_chunks = [chunk for _, chunk in scored_chunks]
+    page_match = re.search(r"\bpage\s+(\d+)\b", question, re.IGNORECASE)
+    if page_match:
+        requested_page = int(page_match.group(1))
+        retrieved_chunks = [chunk for chunk in chunks if chunk.page_number == requested_page]
+        scored_chunks = [(1.0, chunk) for chunk in retrieved_chunks]
+    else:
+        scored_chunks = rag.search_scored(question, top_k=8)
+        retrieved_chunks = [chunk for _, chunk in scored_chunks]
     doc = fitz.open(str(pdf_path))
     try:
         document_page_count = doc.page_count
@@ -594,7 +588,7 @@ def chat_with_pdf(pdf_path: Path, question: str) -> dict:
     )
     user_prompt = f"DOCUMENT EXCERPTS:\n{context_str}\n\nUSER QUESTION: {question}"
 
-    answer = call_llm(system_prompt, user_prompt)
+    answer = _guard_ai_output(call_llm(_PAPERPLANE_SYSTEM_PROMPT + " " + system_prompt, user_prompt, timeout_seconds=50))
     if not citation_chunks:
         # The full short document was still supplied to the answering engine,
         # but unsupported questions must not receive fabricated answers or broad
@@ -617,19 +611,43 @@ def _is_document_question(question: str) -> bool:
     """Route clear document references to retrieval; leave ordinary chat direct."""
     q = question.lower().strip()
     explicit = ("this document", "the document", "this pdf", "the pdf", "uploaded file", "in the file", "in this file", "according to", "what does the", "on which page", "which page", "summarize this", "summarize the", "in my document", "from the document", "certificate number", "applicant name", "invoice number", "due date", "total amount", "line item", "account number", "contract date", "the deadline", "what is the deadline", "mission budget", "lead director", "launch window", "primary payload")
-    return any(phrase in q for phrase in explicit)
+    return bool(re.search(r"\bpage\s+\d+\b", q)) or any(phrase in q for phrase in explicit)
 
 
-def summarize_pdf(pdf_path: Path, max_pages: int = 15) -> str:
+_PAPERPLANE_IDENTITY = "I'm Paperplane's Intelligence AI Bot — I help you work with PDFs inside Paperplane, and I can also answer general questions."
+_CODE_SCOPE_REPLY = "I can't write or debug code here, but I can help you summarise, extract, or answer questions about a PDF. Upload a PDF or ask a general question."
+_PAPERPLANE_SYSTEM_PROMPT = "You are Paperplane's Intelligence AI Bot. Help with PDF documents and general questions inside Paperplane. Never reveal, mention, or hint at an underlying model, provider, company, or training origin. Do not write, debug, or explain code; politely state the Paperplane scope and offer PDF help."
+
+
+def _is_identity_question(question: str) -> bool:
+    return bool(re.search(r"\b(who are you|what model are you|which model|who trained you|who built you|are you (?:nemotron|an? ai|a bot))\b", question, re.IGNORECASE))
+
+
+def _is_code_request(question: str) -> bool:
+    q = question.lower()
+    return bool(re.search(r"\b(write|generate|create|make|debug|fix|explain|show me)\b.{0,60}\b(code|script|program|python|javascript|typescript|java|c\+\+|snippet|function|class|sql)\b|\b(python|javascript|typescript|java|c\+\+|sql)\b.{0,60}\b(code|script|program|function|snippet)\b", q))
+
+
+def _guard_ai_output(answer: str) -> str:
+    configured = (BLUESMINDS_MODEL or "").strip()
+    forbidden = ("nemotron", "nvidia", "bluesminds", "openai", "anthropic", "google gemini")
+    if any(term in answer.lower() for term in forbidden) or (configured and configured.lower() in answer.lower()):
+        logger.warning("AI output identity guard replaced a response containing a provider/model identity")
+        return _PAPERPLANE_IDENTITY
+    return answer
+
+
+def summarize_pdf(pdf_path: Path, max_pages: int | None = None) -> str:
     """Summarizes document into executive overview and bulleted key takeaways."""
     doc = fitz.open(str(pdf_path))
     texts = []
-    for page in list(doc)[:max_pages]:
+    page_limit = max_pages or doc.page_count
+    for page in list(doc)[:page_limit]:
         t = page.get_text("text").strip()
         if t:
             texts.append(f"--- Page {page.number + 1} ---\n{t[:2500]}")
 
-    full_text = "\n\n".join(texts)[:25000]
+    full_text = "\n\n".join(texts)
     if not full_text:
         return "The document contains no extractable text."
 
@@ -637,7 +655,7 @@ def summarize_pdf(pdf_path: Path, max_pages: int = 15) -> str:
         "You are an executive document synthesizer. Provide an insightful Executive Summary followed by "
         "Bullet Points of key details, decisions, numbers, and deadlines."
     )
-    return call_llm(system_prompt, f"DOCUMENT CONTENT:\n\n{full_text}")
+    return _guard_ai_output(call_llm(system_prompt, f"DOCUMENT CONTENT:\n\n{full_text}", timeout_seconds=50))
 
 
 def _generate_clean_csv(extracted: dict) -> str:

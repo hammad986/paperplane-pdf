@@ -63,6 +63,20 @@ def test_bluesminds_uses_fresh_environment_key(monkeypatch):
     assert open_url.call_count == 1
 
 
+def test_bluesminds_retries_transient_first_attempt(monkeypatch):
+    from urllib.error import HTTPError
+
+    monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "test-key")
+    class FakeResponse:
+        def __enter__(self): return self
+        def __exit__(self, exc_type, exc_value, traceback): return False
+        def read(self): return b'{"choices":[{"message":{"content":"first successful response"}}]}'
+
+    with patch("ai_engine.urllib.request.urlopen", side_effect=[HTTPError("https://provider.invalid", 503, "busy", {}, None), FakeResponse()]) as open_url, patch("ai_engine.time.sleep"):
+        assert ai_engine.call_bluesminds("system", "user", timeout_seconds=8) == "first successful response"
+    assert open_url.call_count == 2
+
+
 def test_ai_chat_answers_general_question_without_pdf(monkeypatch):
     from fastapi.testclient import TestClient
     from server import app
@@ -77,6 +91,53 @@ def test_ai_chat_answers_general_question_without_pdf(monkeypatch):
     document_question = client.post("/api/ai/chat", data={"question": "What is the deadline in the PDF?"})
     assert document_question.status_code == 200
     assert "No PDF is open" in document_question.json()["answer"]
+
+
+def test_ai_first_attempt_general_identity_and_code_scope(monkeypatch):
+    from fastapi.testclient import TestClient
+    from server import app
+
+    monkeypatch.setattr(ai_engine, "call_llm", lambda system, user, timeout_seconds=None: "A direct answer on the first request.")
+    client = TestClient(app)
+    response = client.post("/api/ai/chat", data={"question": "Hello, how are you?"})
+    assert response.status_code == 200
+    assert response.json()["answer"] == "A direct answer on the first request."
+
+    for question in ("Who are you?", "What model are you?", "Who trained you?", "Are you Nemotron?"):
+        answer = client.post("/api/ai/chat", data={"question": question}).json()["answer"]
+        assert answer == ai_engine._PAPERPLANE_IDENTITY
+        assert not any(name in answer.lower() for name in ("nemotron", "nvidia", "bluesminds"))
+
+    for question in ("Write Python code to check yes or no", "Generate JavaScript code", "Debug this Python function"):
+        answer = client.post("/api/ai/chat", data={"question": question}).json()["answer"]
+        assert answer == ai_engine._CODE_SCOPE_REPLY
+        assert "```" not in answer
+
+
+def test_broad_summary_covers_all_document_pages_and_page_one_retrieval(tmp_path, monkeypatch):
+    source = tmp_path / "many-pages.pdf"
+    doc = fitz.open()
+    for page_num in range(1, 21):
+        page = doc.new_page()
+        page.insert_text((72, 72), f"Page {page_num} unique topic marker-{page_num} broad summary text.")
+    doc.save(str(source))
+    doc.close()
+
+    captured = {}
+    monkeypatch.setattr(ai_engine, "AI_KILL_SWITCH", False)
+    monkeypatch.setattr(ai_engine, "call_llm", lambda system, user, timeout_seconds=None: captured.setdefault("prompt", user) or "ok")
+    summary = ai_engine.summarize_pdf(source)
+    assert "Page 20" in captured["prompt"]
+    assert summary
+
+    def answer_page(system, prompt, timeout_seconds=None):
+        captured["page_prompt"] = prompt
+        return "Page one unique topic marker-1. [Page 1]"
+    monkeypatch.setattr(ai_engine, "call_llm", answer_page)
+    result = ai_engine.chat_with_pdf(source, "What is on page 1?")
+    assert "Page one unique topic marker-1" in result["answer"]
+    assert result["citations"] == [1]
+    assert "Page 20:" not in captured["page_prompt"]
 
 
 def test_translation_batch_requires_structured_json(monkeypatch):

@@ -1043,6 +1043,8 @@ async function checkAuthStatus() {
     if ($('#topbar-avatar')) $('#topbar-avatar').textContent = 'G';
     if ($('#topbar-username')) $('#topbar-username').textContent = 'Guest Explorer';
     updateBillingUI(null);
+  } finally {
+    document.body.classList.remove('auth-pending');
   }
 }
 
@@ -1914,7 +1916,7 @@ if (btnModeAnnotate && btnModeOrganize) {
     if (window.PaperplanePageOrganizer) {
       window.PaperplanePageOrganizer._updateBatchToolbar();
     } else if (batchBar) {
-      batchBar.hidden = false;
+      batchBar.hidden = true;
     }
   };
 }
@@ -3067,8 +3069,16 @@ $('#chat-form').onsubmit = async e => {
       : '';
     msgs.innerHTML += `<div class="chat-bubble ai"><strong>Paperplane AI:</strong><div class="chat-markdown">${renderMarkdown(res.answer)}</div><div class="chat-citation-tags">${citationTags}</div>${retrievalInfo}</div>`;
   } catch (err) {
-    const errMsg = err.message || 'AI request failed, please try again';
-    msgs.innerHTML += `<div class="chat-bubble ai" style="border-color: var(--error); color: var(--error);"><strong>Paperplane AI:</strong> ${escapeHtml(errMsg)}</div>`;
+    const rawMessage = err.message || 'AI request failed, please try again';
+    const errMsg = /not configured/i.test(rawMessage) ? 'AI provider is not configured' : 'AI request failed, please try again';
+    const failure = document.createElement('div');
+    failure.className = 'chat-bubble ai ai-chat-error';
+    failure.innerHTML = `<strong>Paperplane AI:</strong> ${escapeHtml(errMsg)} <button type="button" class="ai-chat-retry">Retry</button>`;
+    failure.querySelector('.ai-chat-retry').onclick = () => {
+      input.value = question;
+      $('#chat-form').requestSubmit();
+    };
+    msgs.appendChild(failure);
     showToast(errMsg, 'error');
   } finally {
     btn.disabled = false;
