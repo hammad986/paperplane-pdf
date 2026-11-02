@@ -887,7 +887,9 @@
       if (!bar) return;
 
       const selCount = this.state.selectedPages.size;
-      if (selCount > 0) {
+      const isOrganizeMode = document.getElementById('btn-mode-organize')?.classList.contains('active');
+
+      if (selCount > 0 && isOrganizeMode) {
         bar.hidden = false;
         bar.classList.add('visible');
         if (countLabel) {

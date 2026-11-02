@@ -8,6 +8,7 @@ import sys
 import tempfile
 import time
 import unittest
+from unittest.mock import patch
 import uuid
 from pathlib import Path
 
@@ -341,7 +342,8 @@ class TestDeveloperAPI(unittest.TestCase):
         )
         self.assertEqual(res_b_del.status_code, 404)
 
-    def test_12_direct_ai_endpoints(self):
+    @patch("ai_engine.call_llm", return_value="Executive summary of developer test document.")
+    def test_12_direct_ai_endpoints(self, mock_llm):
         """Verifies direct developer AI endpoints: summarize, extract, and chat."""
         # 1. Summarize
         with open(self.sample_pdf, "rb") as f:
@@ -385,10 +387,11 @@ class TestDeveloperAPI(unittest.TestCase):
         )
         self.assertEqual(res.status_code, 200)
         data = res.json()
-        self.assertEqual(data["provider"], "AgentRouter")
+        self.assertEqual(data["provider"], "Bluesminds")
         self.assertIn("status", data)
         # Secret key must NEVER be in response
-        self.assertNotIn(config.AGENTROUTER_API_KEY, json.dumps(data))
+        if config.BLUESMINDS_API_KEY:
+            self.assertNotIn(config.BLUESMINDS_API_KEY, json.dumps(data))
 
     def test_14_developers_page_route(self):
         """Verifies GET /developers route returns 200 HTML."""

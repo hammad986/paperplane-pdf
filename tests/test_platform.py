@@ -7,6 +7,7 @@ import shutil
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 # Add project root to sys.path
@@ -214,7 +215,8 @@ class TestPaperplanePlatform(unittest.TestCase):
         finally:
             shutil.rmtree(temp_dir, ignore_errors=True)
 
-    def test_05_ai_rag_and_metadata_extraction(self):
+    @patch("ai_engine.call_llm", return_value="The course structure and syllabus overview for test document [Page 1].")
+    def test_05_ai_rag_and_metadata_extraction(self, mock_llm):
         """Tests RAG PDF Chat and Invoice/Resume metadata extraction."""
         # 1. AI Chat RAG
         chat_res = ai_engine.chat_with_pdf(self.sample_pdf, "What is the course structure or syllabus?")
@@ -239,7 +241,8 @@ class TestPaperplanePlatform(unittest.TestCase):
         self.assertTrue(len(data["pages"]) > 0)
         self.assertTrue(data["pages"][0]["thumbnail"].startswith("data:image/png;base64,"))
 
-    def test_07_advanced_ai_and_collaboration(self):
+    @patch("ai_engine.call_llm", return_value="### EXECUTIVE SUMMARY\n- Paperplane sample document content.\n- Key finding.")
+    def test_07_advanced_ai_and_collaboration(self, mock_llm):
         """Tests Layout-Preserving Translation, Annotations, Image Watermark, and Encrypted Batch Merge."""
         temp_dir = Path(tempfile.mkdtemp())
         try:

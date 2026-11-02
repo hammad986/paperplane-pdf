@@ -24,7 +24,9 @@ import urllib.error
 import urllib.parse
 import uuid
 import zipfile
+import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
+from typing import Any, Callable
 from pathlib import Path
 
 import config
@@ -94,6 +96,66 @@ ROOT = Path(__file__).parent
 JOBS = JOBS_DIR
 logger = logging.getLogger(__name__)
 executor = ThreadPoolExecutor(max_workers=max(4, int(os.getenv("PAPERPLANE_WORKERS", "4"))))
+
+# Workload-based execution timeouts (in seconds)
+COMPRESS_TIMEOUT_SECONDS = 60.0    # multi-pass downsampling & stream compression
+OCR_TIMEOUT_SECONDS = 90.0         # page-by-page C++ Tesseract OCR execution
+GRAYSCALE_TIMEOUT_SECONDS = 45.0   # 150-DPI monochrome rasterization per page
+
+_CONVERTER_POOL = ThreadPoolExecutor(
+    max_workers=min(32, max(4, (os.cpu_count() or 4) * 2)),
+    thread_name_prefix="converter_worker"
+)
+
+
+def run_converter_with_timeout(
+    func: Callable,
+    *args,
+    timeout_seconds: float,
+    tool_name: str,
+    source_path: Path | None = None,
+    output_path: Path | None = None,
+    retry_hint: str = "",
+    **kwargs
+) -> Any:
+    """Executes a converter operation bounded by a strict timeout.
+
+    Cleans up any partial or corrupt output file on timeout/failure,
+    logs server-side diagnostic metrics without leaking document payloads,
+    and returns a clean, user-actionable error.
+    """
+    start_time = time.time()
+    future = _CONVERTER_POOL.submit(func, *args, **kwargs)
+    try:
+        return future.result(timeout=timeout_seconds)
+    except concurrent.futures.TimeoutError:
+        elapsed = round(time.time() - start_time, 2)
+        if output_path and output_path.exists():
+            try:
+                output_path.unlink(missing_ok=True)
+            except Exception:
+                pass
+        in_size_kb = round(source_path.stat().st_size / 1024, 1) if (source_path and source_path.exists()) else "unknown"
+        logger.error(
+            "Operation '%s' timed out after %.2fs (limit: %.1fs, input size: %s KB). Retry hint: %s",
+            tool_name, elapsed, timeout_seconds, in_size_kb, retry_hint
+        )
+        raise TimeoutError(
+            f"{tool_name.capitalize()} processing timed out after {int(timeout_seconds)}s. {retry_hint}"
+        )
+    except Exception as exc:
+        elapsed = round(time.time() - start_time, 2)
+        if output_path and output_path.exists():
+            try:
+                output_path.unlink(missing_ok=True)
+            except Exception:
+                pass
+        in_size_kb = round(source_path.stat().st_size / 1024, 1) if (source_path and source_path.exists()) else "unknown"
+        logger.error(
+            "Operation '%s' failed after %.2fs (input size: %s KB): %s",
+            tool_name, elapsed, in_size_kb, exc
+        )
+        raise
 
 DISABLE_DOCS = os.getenv("PAPERPLANE_DISABLE_DOCS", "false").lower() in ("true", "1")
 app = FastAPI(
@@ -1290,10 +1352,31 @@ def enforce_rate_limit(request_key: str, limit: int | None = None) -> None:
 
 
 def parse_options(raw: str) -> dict:
+    if not raw or not raw.strip():
+        return {}
+    raw_str = raw.strip()
     try:
-        return json.loads(raw or "{}")
-    except json.JSONDecodeError as error:
-        raise HTTPException(400, f"Invalid options JSON: {error.msg}") from error
+        return json.loads(raw_str)
+    except json.JSONDecodeError:
+        # Relaxed parsing fallback for single quotes, trailing commas, or Python dict syntax
+        try:
+            import ast
+            parsed_ast = ast.literal_eval(raw_str)
+            if isinstance(parsed_ast, dict):
+                return parsed_ast
+        except Exception:
+            pass
+
+        parsed = {}
+        cleaned = re.sub(r"^[\{\[]|[\}\]]$", "", raw_str).strip()
+        for line in cleaned.splitlines():
+            line = line.strip().rstrip(",")
+            if ":" in line:
+                k, v = line.split(":", 1)
+                parsed[k.strip().strip('"\'')] = v.strip().strip('"\'')
+        if parsed:
+            return parsed
+        raise HTTPException(400, "Invalid options JSON. Please verify format.")
 
 
 UPLOAD_CHUNK_SIZE = 64 * 1024
@@ -1620,10 +1703,16 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
         target_size_bytes = _safe_int(target_size_kb, 0) * 1024 if target_size_kb else None
         quality = _safe_int(options.get("quality"), 65)
         max_dpi = _safe_int(options.get("dpi"), 150)
-        converters.compress_pdf(
+        run_converter_with_timeout(
+            converters.compress_pdf,
             source, output,
             quality=quality, max_dpi=max_dpi,
-            preset=preset, target_size_bytes=target_size_bytes
+            preset=preset, target_size_bytes=target_size_bytes,
+            timeout_seconds=COMPRESS_TIMEOUT_SECONDS,
+            tool_name="compress",
+            source_path=source,
+            output_path=output,
+            retry_hint="The file may contain high complexity or dense raster assets. Try choosing a lower resolution preset or compressing a smaller page range."
         )
         return output
 
@@ -1644,7 +1733,15 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
         return security_forms_engine.mask_aadhaar_pdf(source, output)
 
     if operation == "grayscale":
-        converters.convert_pdf_to_grayscale(source, output)
+        run_converter_with_timeout(
+            converters.convert_pdf_to_grayscale,
+            source, output,
+            timeout_seconds=GRAYSCALE_TIMEOUT_SECONDS,
+            tool_name="grayscale",
+            source_path=source,
+            output_path=output,
+            retry_hint="The document may contain complex high-resolution pages. Try splitting the PDF into smaller batches before converting."
+        )
         return output
 
     if operation == "flatten":
@@ -1656,12 +1753,18 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
         pages = options.get("pages", "all")
         mode = options.get("mode", "scanned_only")
         dpi = int(options.get("dpi", 150))
-        converters.ocr_pdf(
+        run_converter_with_timeout(
+            converters.ocr_pdf,
             source, output,
             language=language,
             pages=pages,
             mode=mode,
-            dpi=dpi
+            dpi=dpi,
+            timeout_seconds=OCR_TIMEOUT_SECONDS,
+            tool_name="ocr",
+            source_path=source,
+            output_path=output,
+            retry_hint="The document contains heavy scanned graphics. Try running OCR on a smaller page selection or reducing the DPI setting."
         )
         return output
 
@@ -3172,6 +3275,15 @@ async def ai_chat(
         temp_pdf = temp_dir / "chat_doc.pdf"
         await save_upload_spooled_async(file, temp_pdf)
         return await asyncio.to_thread(ai_engine.chat_with_pdf, temp_pdf, question)
+    except ValueError as ve:
+        raise HTTPException(status_code=503, detail=str(ve))
+    except RuntimeError as re:
+        raise HTTPException(status_code=502, detail=str(re))
+    except HTTPException:
+        raise
+    except Exception as err:
+        logging.getLogger("paperplane").error("AI chat failed: %s", err)
+        raise HTTPException(status_code=502, detail="AI request failed, please try again")
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
 
@@ -3187,6 +3299,15 @@ async def ai_summarize(
         await save_upload_spooled_async(file, temp_pdf)
         summary = await asyncio.to_thread(ai_engine.summarize_pdf, temp_pdf)
         return {"status": "success", "summary": summary}
+    except ValueError as ve:
+        raise HTTPException(status_code=503, detail=str(ve))
+    except RuntimeError as re:
+        raise HTTPException(status_code=502, detail=str(re))
+    except HTTPException:
+        raise
+    except Exception as err:
+        logging.getLogger("paperplane").error("AI summarize failed: %s", err)
+        raise HTTPException(status_code=502, detail="AI request failed, please try again")
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
 
@@ -3265,9 +3386,9 @@ async def ai_translate_endpoint(
 def general_ai_test_connection():
     """
     Public connection test endpoint for UI and workspace callers.
-    Safely probes upstream LLM status without leaking secrets.
+    Safely probes upstream Bluesminds status without leaking secrets.
     """
-    return ai_engine.test_agentrouter_connectivity()
+    return ai_engine.test_bluesminds_connectivity()
 
 
 @app.post("/api/pdf/annotate")
@@ -3991,16 +4112,20 @@ async def studio_ocr(
                     raise HTTPException(400, f"Invalid pages format: {e}")
 
         out_path = temp_dir / "ocr_result.pdf"
-        try:
-            report = converters.ocr_pdf(
-                in_path, out_path,
-                language=language,
-                pages=pages_parsed,
-                mode=mode,
-                dpi=dpi
-            )
-        except ValueError as ve:
-            raise HTTPException(400, str(ve)) from ve
+        report = await asyncio.to_thread(
+            run_converter_with_timeout,
+            converters.ocr_pdf,
+            in_path, out_path,
+            language=language,
+            pages=pages_parsed,
+            mode=mode,
+            dpi=dpi,
+            timeout_seconds=OCR_TIMEOUT_SECONDS,
+            tool_name="ocr",
+            source_path=in_path,
+            output_path=out_path,
+            retry_hint="Try running OCR on a smaller page selection or reducing the DPI setting."
+        )
 
         headers = {
             "Content-Disposition": 'attachment; filename="ocr_searchable.pdf"',
@@ -4022,8 +4147,37 @@ async def studio_ocr(
         )
     except HTTPException:
         raise
+    except TimeoutError as te:
+        return JSONResponse(
+            status_code=504,
+            content={
+                "ok": False,
+                "error": str(te),
+                "retry_hint": "Try running OCR on a smaller page selection or reducing the DPI setting.",
+                "detail": str(te)
+            }
+        )
+    except ValueError as ve:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "ok": False,
+                "error": str(ve),
+                "retry_hint": "Please verify OCR language models and PDF validity.",
+                "detail": str(ve)
+            }
+        )
     except Exception as err:
-        raise HTTPException(500, f"OCR processing failed: {err}") from err
+        logger.error("Studio OCR processing failed: %s", err)
+        return JSONResponse(
+            status_code=500,
+            content={
+                "ok": False,
+                "error": f"OCR processing failed: {err}",
+                "retry_hint": "Please try again with a smaller file or standard DPI.",
+                "detail": f"OCR processing failed: {err}"
+            }
+        )
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
 
@@ -4072,10 +4226,17 @@ async def studio_compress(
         target_bytes = int(target_size_kb) * 1024 if target_size_kb and target_size_kb > 0 else None
         out_path = temp_dir / "compressed.pdf"
 
-        report = converters.compress_pdf(
+        report = await asyncio.to_thread(
+            run_converter_with_timeout,
+            converters.compress_pdf,
             in_path, out_path,
             quality=quality, max_dpi=max_dpi,
-            preset=preset, target_size_bytes=target_bytes
+            preset=preset, target_size_bytes=target_bytes,
+            timeout_seconds=COMPRESS_TIMEOUT_SECONDS,
+            tool_name="compress",
+            source_path=in_path,
+            output_path=out_path,
+            retry_hint="Try selecting a lower resolution preset or splitting the document."
         )
 
         headers = {
@@ -4095,8 +4256,37 @@ async def studio_compress(
         )
     except HTTPException:
         raise
+    except TimeoutError as te:
+        return JSONResponse(
+            status_code=504,
+            content={
+                "ok": False,
+                "error": str(te),
+                "retry_hint": "Try selecting a lower resolution preset or splitting the document.",
+                "detail": str(te)
+            }
+        )
+    except ValueError as ve:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "ok": False,
+                "error": str(ve),
+                "retry_hint": "Please verify file format and security restrictions.",
+                "detail": str(ve)
+            }
+        )
     except Exception as err:
-        raise HTTPException(500, f"Compression failed: {err}") from err
+        logger.error("Studio compression failed: %s", err)
+        return JSONResponse(
+            status_code=500,
+            content={
+                "ok": False,
+                "error": f"Compression failed: {err}",
+                "retry_hint": "Please try again or select a different preset.",
+                "detail": f"Compression failed: {err}"
+            }
+        )
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
 
@@ -4674,8 +4864,27 @@ async def studio_security_protect(
         )
     except HTTPException:
         raise
+    except ValueError as ve:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "ok": False,
+                "error": str(ve),
+                "retry_hint": "Please provide a valid non-empty password.",
+                "detail": str(ve)
+            }
+        )
     except Exception as err:
-        raise HTTPException(500, f"PDF protection failed: {err}") from err
+        logger.error("Studio protection failed: %s", err)
+        return JSONResponse(
+            status_code=500,
+            content={
+                "ok": False,
+                "error": f"PDF protection failed: {err}",
+                "retry_hint": "Please verify PDF format and try again.",
+                "detail": f"PDF protection failed: {err}"
+            }
+        )
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
 
@@ -4701,8 +4910,27 @@ async def studio_security_unlock(
         )
     except HTTPException:
         raise
+    except ValueError as ve:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "ok": False,
+                "error": str(ve),
+                "retry_hint": "Please verify the password and document protection state.",
+                "detail": str(ve)
+            }
+        )
     except Exception as err:
-        raise HTTPException(500, f"PDF unlock failed: {err}") from err
+        logger.error("Studio unlock failed: %s", err)
+        return JSONResponse(
+            status_code=500,
+            content={
+                "ok": False,
+                "error": f"PDF unlock failed: {err}",
+                "retry_hint": "Please try again.",
+                "detail": f"PDF unlock failed: {err}"
+            }
+        )
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
 
@@ -5422,10 +5650,10 @@ async def api_v1_ai_chat(
 @app.post("/api/v1/ai/test-connection", tags=["Developer AI"])
 def test_ai_connection(user_id: str = Depends(require_developer_key)):
     """
-    Explicit authenticated connectivity test for AgentRouter deepseek-v4-flash.
+    Explicit authenticated connectivity test for Bluesminds openai/gpt-oss-20b.
     Returns status and diagnostic details without exposing API secrets.
     """
-    result = ai_engine.test_agentrouter_connectivity()
+    result = ai_engine.test_bluesminds_connectivity()
     return result
 
 

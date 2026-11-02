@@ -698,11 +698,17 @@ def protect_pdf(
     if not source.exists():
         raise ValueError(f"File '{source.name}' does not exist.")
 
-    if not user_password and not owner_password:
-        raise ValueError("At least one password (user open password or owner permissions password) is required.")
+    clean_user_pw = (user_password or "").strip()
+    clean_owner_pw = (owner_password or "").strip()
+
+    if not clean_user_pw and not clean_owner_pw:
+        raise ValueError("A non-empty password is required to encrypt this PDF.")
 
     doc = fitz.open(str(source))
     try:
+        if doc.is_encrypted or doc.needs_pass:
+            raise ValueError("This document is already password-protected. Please unlock it before applying new protection.")
+
         perms_cfg = permissions or {}
         # Start with base accessibility permitted
         perm_mask = fitz.PDF_PERM_ACCESSIBILITY
@@ -720,8 +726,8 @@ def protect_pdf(
 
         out_bytes = doc.tobytes(
             encryption=fitz.PDF_ENCRYPT_AES_256,
-            user_pw=user_password,
-            owner_pw=owner_password or user_password,
+            user_pw=clean_user_pw,
+            owner_pw=clean_owner_pw or clean_user_pw,
             permissions=perm_mask,
             deflate=True
         )
@@ -729,6 +735,15 @@ def protect_pdf(
         doc.close()
 
     output.write_bytes(out_bytes)
+
+    # Post-generation verification: ensure output is truly encrypted and valid
+    verify_doc = fitz.open(str(output))
+    try:
+        if not verify_doc.is_encrypted and not verify_doc.needs_pass:
+            raise ValueError("Document protection verification failed: output file is not encrypted.")
+    finally:
+        verify_doc.close()
+
     return output
 
 
@@ -737,18 +752,35 @@ def unlock_pdf(source: Path, output: Path, password: str) -> Path:
     if not source.exists():
         raise ValueError(f"File '{source.name}' does not exist.")
 
+    clean_pw = (password or "").strip()
+    if not clean_pw:
+        raise ValueError("Please provide the password to unlock this protected PDF.")
+
     doc = fitz.open(str(source))
     try:
-        if doc.is_encrypted:
-            auth_status = doc.authenticate(password)
-            if auth_status == 0:
-                raise ValueError("Incorrect password provided for document unlock.")
+        if not doc.is_encrypted and not doc.needs_pass:
+            raise ValueError("The provided document is not password-protected.")
+
+        auth_status = doc.authenticate(clean_pw)
+        if auth_status == 0:
+            raise ValueError("Incorrect password provided for document unlock.")
 
         out_bytes = doc.tobytes(encryption=fitz.PDF_ENCRYPT_NONE, garbage=4, clean=True, deflate=True)
     finally:
         doc.close()
 
     output.write_bytes(out_bytes)
+
+    # Post-generation verification: ensure output is truly decrypted, readable, and structurally sound
+    verify_doc = fitz.open(str(output))
+    try:
+        if verify_doc.is_encrypted or verify_doc.needs_pass:
+            raise ValueError("Document unlock verification failed: output file remains encrypted.")
+        if len(verify_doc) > 0:
+            _ = verify_doc[0].get_text()
+    finally:
+        verify_doc.close()
+
     return output
 
 

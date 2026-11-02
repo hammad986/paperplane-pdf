@@ -8,22 +8,31 @@ import re
 import urllib.request
 import urllib.error
 from collections import Counter
+import logging
 from pathlib import Path
 from typing import Any
+
+logger = logging.getLogger("paperplane")
 
 import fitz  # PyMuPDF
 from config import (
     GEMINI_API_KEY, OPENAI_API_KEY, GEMINI_MODEL, AI_PROVIDER,
-    AGENTROUTER_API_KEY, AGENTROUTER_BASE_URL, AGENTROUTER_MODEL,
-    AGENTROUTER_TIMEOUT_SECONDS, AGENTROUTER_MAX_RETRIES,
-    AGENTROUTER_MAX_OUTPUT_TOKENS, AI_KILL_SWITCH
+    BLUESMINDS_API_KEY, BLUESMINDS_BASE_URL, BLUESMINDS_MODEL,
+    BLUESMINDS_TIMEOUT_SECONDS, BLUESMINDS_MAX_OUTPUT_TOKENS, AI_KILL_SWITCH
 )
 
 # Keep the imported value for normal startup, but resolve the environment key
-# at call time so a rotated/fresh AgentRouter key is honored without requiring
+# at call time so a rotated/fresh Bluesminds key is honored without requiring
 # a process restart. Tests and embedding applications can still override the
 # module value explicitly.
-_INITIAL_AGENTROUTER_API_KEY = AGENTROUTER_API_KEY
+_INITIAL_BLUESMINDS_API_KEY = BLUESMINDS_API_KEY
+_INITIAL_AGENTROUTER_API_KEY = BLUESMINDS_API_KEY
+AGENTROUTER_API_KEY = BLUESMINDS_API_KEY
+AGENTROUTER_MODEL = BLUESMINDS_MODEL
+AGENTROUTER_BASE_URL = BLUESMINDS_BASE_URL
+AGENTROUTER_MAX_RETRIES = 0
+AGENTROUTER_TIMEOUT_SECONDS = BLUESMINDS_TIMEOUT_SECONDS
+AGENTROUTER_MAX_OUTPUT_TOKENS = BLUESMINDS_MAX_OUTPUT_TOKENS
 
 TOKEN_PATTERN = re.compile(r"\b[a-zA-Z0-9_\-]{2,}\b")
 TESSDATA_DIR = Path(__file__).parent / "tessdata"
@@ -35,11 +44,15 @@ CHAT_STOPWORDS = {
 }
 
 
-def _current_agentrouter_api_key() -> str:
-    module_key = (AGENTROUTER_API_KEY or "").strip()
-    if module_key != (_INITIAL_AGENTROUTER_API_KEY or "").strip():
+def _current_bluesminds_api_key() -> str:
+    module_key = (BLUESMINDS_API_KEY or "").strip()
+    if module_key != (_INITIAL_BLUESMINDS_API_KEY or "").strip():
         return module_key
-    return os.getenv("AGENTROUTER_API_KEY", "").strip() or module_key
+    return os.getenv("BLUESMINDS_API_KEY", "").strip() or module_key
+
+
+def _current_agentrouter_api_key() -> str:
+    return _current_bluesminds_api_key()
 
 
 def _tokenize(text: str) -> list[str]:
@@ -222,19 +235,22 @@ def call_gemini_flash(
     return ""
 
 
-def call_agentrouter(
+def call_bluesminds(
     system_prompt: str,
     user_prompt: str,
     model: str | None = None,
     timeout_seconds: float | None = None,
 ) -> str:
-    """Calls AgentRouter OpenAI-compatible chat completions API using gpt-6.1-sol or configured model."""
-    api_key = _current_agentrouter_api_key()
-    if AI_KILL_SWITCH or not api_key:
-        return ""
+    """Calls Bluesminds OpenAI-compatible chat completions API using openai/gpt-oss-20b."""
+    if AI_KILL_SWITCH:
+        raise RuntimeError("AI request failed, please try again")
 
-    target_model = model or AGENTROUTER_MODEL or "gpt-6.1-sol"
-    base_url = AGENTROUTER_BASE_URL.rstrip("/")
+    api_key = _current_bluesminds_api_key()
+    if not api_key:
+        raise ValueError("AI provider is not configured")
+
+    target_model = model or BLUESMINDS_MODEL or "openai/gpt-oss-20b"
+    base_url = (BLUESMINDS_BASE_URL or "https://api.bluesminds.com/v1").rstrip("/")
     if not base_url.endswith("/v1"):
         endpoint = f"{base_url}/v1/chat/completions"
     else:
@@ -247,7 +263,7 @@ def call_agentrouter(
             {"role": "user", "content": user_prompt}
         ],
         "temperature": 0.2,
-        "max_tokens": AGENTROUTER_MAX_OUTPUT_TOKENS or 4096
+        "max_tokens": BLUESMINDS_MAX_OUTPUT_TOKENS or 4096
     }
     body = json.dumps(payload).encode("utf-8")
 
@@ -257,59 +273,68 @@ def call_agentrouter(
         "User-Agent": "Paperplane-PDF/1.0"
     }
 
-    retries = max(0, min(1, AGENTROUTER_MAX_RETRIES))
-    timeout = max(1, min(8, float(timeout_seconds or AGENTROUTER_TIMEOUT_SECONDS)))
+    timeout = max(5, min(120, float(timeout_seconds or BLUESMINDS_TIMEOUT_SECONDS)))
 
-    for attempt in range(retries + 1):
-        try:
-            req = urllib.request.Request(endpoint, data=body, headers=headers)
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-                choices = data.get("choices", [])
-                if choices and "message" in choices[0]:
-                    content = choices[0]["message"].get("content", "").strip()
-                    if content:
-                        return content
-            break
-        except urllib.error.HTTPError as e:
-            if e.code < 500:
-                break
-        except (urllib.error.URLError, TimeoutError, ConnectionError):
-            # Provider/network failures must not consume a retry budget or hold
-            # the request open while the next configured fallback is available.
-            break
-        except Exception:
-            pass
-
-    return ""
+    try:
+        req = urllib.request.Request(endpoint, data=body, headers=headers)
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            choices = data.get("choices", [])
+            if choices and "message" in choices[0]:
+                content = choices[0]["message"].get("content", "").strip()
+                if content:
+                    return content
+            raise RuntimeError("AI request failed, please try again")
+    except urllib.error.HTTPError as e:
+        logger.error("Bluesminds API returned HTTP %s", e.code)
+        raise RuntimeError("AI request failed, please try again") from e
+    except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as e:
+        logger.error("Bluesminds connection error: %s", e)
+        raise RuntimeError("AI request failed, please try again") from e
+    except Exception as e:
+        if isinstance(e, (ValueError, RuntimeError)):
+            raise
+        logger.error("Bluesminds unexpected error: %s", e)
+        raise RuntimeError("AI request failed, please try again") from e
 
 
-def test_agentrouter_connectivity() -> dict:
-    """Explicit authenticated diagnostics endpoint to test AgentRouter provider status without leaking secrets."""
-    api_key = _current_agentrouter_api_key()
-    if AI_KILL_SWITCH:
-        return {
-            "status": "disabled",
-            "provider": "AgentRouter",
-            "message": "AI Kill Switch is active in configuration.",
-            "fallback_active": True,
-            "fallback_provider": "Local Deterministic BM25 Engine"
-        }
-    if not api_key:
-        return {
-            "status": "configuration_missing",
-            "provider": "AgentRouter",
-            "message": "AGENTROUTER_API_KEY is not configured in .env.",
-            "fallback_active": True,
-            "fallback_provider": "Local Deterministic BM25 Engine"
-        }
+def call_agentrouter(
+    system_prompt: str,
+    user_prompt: str,
+    model: str | None = None,
+    timeout_seconds: float | None = None,
+) -> str:
+    """Backward compatibility wrapper delegating to Bluesminds."""
+    return call_bluesminds(system_prompt, user_prompt, model=model, timeout_seconds=timeout_seconds)
 
-    target_model = AGENTROUTER_MODEL or "gpt-6.1-sol"
-    base_url = AGENTROUTER_BASE_URL.rstrip("/")
+
+def test_bluesminds_connectivity() -> dict:
+    """Explicit diagnostics endpoint to test Bluesminds provider status without leaking secrets."""
+    api_key = _current_bluesminds_api_key()
+    target_model = BLUESMINDS_MODEL or "openai/gpt-oss-20b"
+    base_url = (BLUESMINDS_BASE_URL or "https://api.bluesminds.com/v1").rstrip("/")
     if not base_url.endswith("/v1"):
         endpoint = f"{base_url}/v1/chat/completions"
     else:
         endpoint = f"{base_url}/chat/completions"
+
+    if AI_KILL_SWITCH:
+        return {
+            "status": "disabled",
+            "provider": "Bluesminds",
+            "model": target_model,
+            "message": "AI Kill Switch is active in configuration.",
+            "fallback_active": False
+        }
+    if not api_key:
+        return {
+            "status": "configuration_missing",
+            "provider": "Bluesminds",
+            "model": target_model,
+            "message": "AI provider is not configured",
+            "advice": "Please set BLUESMINDS_API_KEY in your server configuration.",
+            "fallback_active": False
+        }
 
     payload = {
         "model": target_model,
@@ -326,94 +351,43 @@ def test_agentrouter_connectivity() -> dict:
     try:
         req = urllib.request.Request(endpoint, data=body, headers=headers)
         with urllib.request.urlopen(req, timeout=15) as resp:
-            raw_text = resp.read().decode("utf-8", errors="ignore")
-            try:
-                data = json.loads(raw_text)
-            except (json.JSONDecodeError, ValueError):
-                if "waf" in raw_text.lower() or "captcha" in raw_text.lower() or "alicdn" in raw_text.lower():
-                    return {
-                        "status": "provider_waf_challenge",
-                        "provider": "AgentRouter",
-                        "model": target_model,
-                        "endpoint": endpoint,
-                        "http_status": resp.status,
-                        "message": "AgentRouter upstream WAF/CAPTCHA challenge detected on server IP. Grounded local deterministic RAG is automatically handling requests.",
-                        "fallback_active": True,
-                        "fallback_provider": "Local Deterministic BM25 Engine"
-                    }
-                return {
-                    "status": "invalid_json_response",
-                    "provider": "AgentRouter",
-                    "model": target_model,
-                    "endpoint": endpoint,
-                    "http_status": resp.status,
-                    "error_details": raw_text[:200],
-                    "fallback_active": True,
-                    "fallback_provider": "Local Deterministic BM25 Engine"
-                }
+            data = json.loads(resp.read().decode("utf-8", errors="ignore"))
             return {
                 "status": "inference_succeeded",
-                "provider": "AgentRouter",
+                "provider": "Bluesminds",
                 "model": target_model,
                 "endpoint": endpoint,
                 "http_status": resp.status,
+                "message": "AI provider connected successfully.",
                 "response": data.get("choices", [{}])[0].get("message", {}).get("content", "OK"),
                 "fallback_active": False
             }
     except urllib.error.HTTPError as e:
-        err_body = e.read().decode("utf-8", errors="ignore")
-        safe_err = re.sub(r'sk-[a-zA-Z0-9_\-]{10,}', '[REDACTED_API_KEY]', err_body)
-        
-        if e.code == 401:
-            status = "credentials_rejected"
-            advice = "AgentRouter returned HTTP 401. Key/client requires allowlisting on Discord at https://discord.gg/HgekCyHJqB."
-        elif e.code == 403:
-            status = "provider_access_denied"
-            advice = "Access forbidden by provider WAF or firewall policy."
-        elif e.code == 404 or "model" in safe_err.lower():
-            status = "model_unavailable"
-            advice = f"Configured model '{target_model}' was not found on provider endpoint."
-        elif e.code == 429:
-            status = "provider_rate_limited"
-            advice = "Provider rate limit or quota exceeded. Retry later or increase provider allowance."
-        else:
-            status = "upstream_error"
-            advice = "Provider returned an upstream HTTP error."
-
         return {
-            "status": status,
-            "provider": "AgentRouter",
+            "status": "connection_error",
+            "provider": "Bluesminds",
             "model": target_model,
             "endpoint": endpoint,
             "http_status": e.code,
-            "error_details": safe_err[:400],
-            "advice": advice,
-            "fallback_active": True,
-            "fallback_provider": "Local Deterministic BM25 Engine"
-        }
-    except (TimeoutError, urllib.error.URLError) as e:
-        is_timeout = "timeout" in str(e).lower() or isinstance(e, TimeoutError)
-        return {
-            "status": "request_timed_out" if is_timeout else "connection_failed",
-            "provider": "AgentRouter",
-            "model": target_model,
-            "endpoint": endpoint,
-            "error_details": str(e),
-            "advice": "Request timed out or host unreachable. Check network connectivity.",
-            "fallback_active": True,
-            "fallback_provider": "Local Deterministic BM25 Engine"
+            "message": "AI request failed, please try again",
+            "advice": f"Bluesminds provider returned HTTP {e.code}.",
+            "fallback_active": False
         }
     except Exception as e:
         return {
             "status": "connection_error",
-            "provider": "AgentRouter",
+            "provider": "Bluesminds",
             "model": target_model,
             "endpoint": endpoint,
-            "error_details": str(e),
-            "advice": "Unexpected error while reaching AI provider. Local fallback engine active.",
-            "fallback_active": True,
-            "fallback_provider": "Local Deterministic BM25 Engine"
+            "message": "AI request failed, please try again",
+            "advice": str(e),
+            "fallback_active": False
         }
+
+
+def test_agentrouter_connectivity() -> dict:
+    """Backward compatibility wrapper delegating to Bluesminds connectivity test."""
+    return test_bluesminds_connectivity()
 
 
 def call_llm(
@@ -421,20 +395,10 @@ def call_llm(
     user_prompt: str,
     timeout_seconds: float | None = None,
 ) -> str:
-    """Use AgentRouter first and fall back to the local deterministic BM25 engine."""
+    """Use Bluesminds as the document AI provider without silent fallback."""
     if AI_KILL_SWITCH:
         return _offline_rag_fallback(system_prompt, user_prompt)
-
-    # AgentRouter is the sole upstream for document AI. This prevents a
-    # provider switch from changing data-handling expectations mid-request.
-    if _current_agentrouter_api_key():
-        ar_res = call_agentrouter(system_prompt, user_prompt, timeout_seconds=timeout_seconds)
-        if ar_res:
-            return ar_res
-
-    # Network failures, provider errors, missing credentials, and the AI kill
-    # switch all converge on the same grounded local RAG behavior.
-    return _offline_rag_fallback(system_prompt, user_prompt)
+    return call_bluesminds(system_prompt, user_prompt, timeout_seconds=timeout_seconds)
 
 
 def _offline_rag_fallback(system_prompt: str, user_prompt: str) -> str:
@@ -565,17 +529,13 @@ def chat_with_pdf(pdf_path: Path, question: str) -> dict:
         # but unsupported questions must not receive fabricated answers or broad
         # citations merely because fallback context was used.
         answer = "No relevant information found in the document for your question. The active document does not contain matching keywords or passages."
-    provider_name = (
-        f"AgentRouter ({AGENTROUTER_MODEL or 'gpt-6.1-sol'})"
-        if (_current_agentrouter_api_key() and not AI_KILL_SWITCH)
-        else "Local Grounded Engine (Offline Fallback)"
-    )
-    is_fallback = "Offline" in answer or "Local Analysis" in answer or not bool(_current_agentrouter_api_key())
+    provider_name = f"Bluesminds ({BLUESMINDS_MODEL or 'openai/gpt-oss-20b'})"
+    is_fallback = False
 
     return {
         "answer": answer,
         "citations": sorted(citations),
-        "retrieval_method": "BM25 Keyword Retrieval",
+        "retrieval_method": "Document Grounding + LLM Synthesis",
         "provider": provider_name,
         "fallback_used": is_fallback,
         "relevant_passages": [{"page": c.page_number, "text": c.text[:200] + "..."} for c in citation_chunks]
@@ -765,8 +725,8 @@ def _extract_metadata_with_agentrouter(
         ] if isinstance(source_pages, list) else []
         warnings = extracted.get("warnings")
         extracted["warnings"] = [str(item) for item in warnings] if isinstance(warnings, list) else []
-        extracted["provider"] = f"AgentRouter ({AGENTROUTER_MODEL or 'gpt-6.1-sol'})"
-        extracted["retrieval_method"] = "AgentRouter Structured Extraction"
+        extracted["provider"] = f"Bluesminds ({BLUESMINDS_MODEL or 'openai/gpt-oss-20b'})"
+        extracted["retrieval_method"] = "Bluesminds Structured Extraction"
         extracted["csv_export"] = _generate_clean_csv(extracted)
         return extracted
     except Exception:
@@ -1080,7 +1040,7 @@ def _translate_text_batch(
     target_language: str,
 ) -> dict[int, str]:
     """Translate a bounded page batch, returning no entries on fallback/failure."""
-    if not blocks or AI_KILL_SWITCH or not _current_agentrouter_api_key():
+    if not blocks or AI_KILL_SWITCH or not _current_bluesminds_api_key():
         return {}
 
     payload = [{"id": block_id, "text": text[:1600]} for block_id, text in blocks]
@@ -1089,12 +1049,15 @@ def _translate_text_batch(
         f"{target_language}. Return ONLY valid JSON in the form "
         '{"translations":[{"id":1,"text":"..."}]}. Preserve item ids, meaning, numbers, and line breaks.'
     )
-    response = call_llm(
-        system_prompt,
-        json.dumps(payload, ensure_ascii=False),
-        timeout_seconds=TRANSLATION_CALL_TIMEOUT_SECONDS,
-    )
-    return _parse_translation_batch(response, [block_id for block_id, _ in blocks])
+    try:
+        response = call_llm(
+            system_prompt,
+            json.dumps(payload, ensure_ascii=False),
+            timeout_seconds=TRANSLATION_CALL_TIMEOUT_SECONDS,
+        )
+        return _parse_translation_batch(response, [block_id for block_id, _ in blocks])
+    except Exception:
+        return {}
 
 
 def translate_pdf_layout(

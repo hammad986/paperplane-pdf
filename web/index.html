@@ -13,7 +13,7 @@
   <!-- Cashfree PG v3 checkout SDK; app.js initializes it with the server-issued session. -->
   <script src="https://sdk.cashfree.com/js/v3/cashfree.js" defer></script>
 
-  <link rel="stylesheet" href="/assets/styles.css?v=3.2.0" />
+  <link rel="stylesheet" href="/assets/styles.css?v=3.5.0" />
 
 </head>
 <body class="light-mode">
@@ -445,13 +445,13 @@
                   <button type="button" class="studio-tool-btn" id="zoom-out-btn" title="Zoom out" aria-label="Zoom out">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
                   </button>
-                  <select class="zoom-select" id="zoom-select" aria-label="Page zoom scale">
+                  <select class="zoom-select" id="zoom-select" aria-label="Page zoom scale" title="Zoom Level">
                     <option value="0.5">50%</option>
                     <option value="0.75">75%</option>
-                    <option value="1.0" selected>100%</option>
+                    <option value="1" selected>100%</option>
                     <option value="1.25">125%</option>
                     <option value="1.5">150%</option>
-                    <option value="2.0">200%</option>
+                    <option value="2">200%</option>
                     <option value="fit-width">Fit Width</option>
                   </select>
                   <button type="button" class="studio-tool-btn" id="zoom-in-btn" title="Zoom in" aria-label="Zoom in">
@@ -707,6 +707,10 @@
 
             <!-- Canvas Workspace (Independent Vertical & Horizontal Scrolling) -->
             <div class="studio-canvas-area" id="studio-canvas-area">
+              <div class="studio-loading-overlay" id="studio-loading-overlay" hidden>
+                <div class="studio-spinner"></div>
+                <div class="studio-loading-text" id="studio-loading-text">Loading document…</div>
+              </div>
               <div class="page-render-wrapper" id="page-render-wrapper">
                 <canvas id="pdf-canvas" class="pdf-page-canvas"></canvas>
                 <canvas id="pdf-draw-canvas" class="pdf-draw-canvas"></canvas>
@@ -756,7 +760,7 @@
             <div class="ai-engine-notice-bar">
               <div class="ai-engine-info">
                 <span class="ai-engine-pill">Retrieval: BM25 Lexical Keyword Search</span>
-                <span class="ai-engine-pill" id="ai-provider-pill">LLM: AgentRouter (gpt-6.1-sol) / Local Fallback</span>
+                <span class="ai-engine-pill" id="ai-provider-pill">LLM: Bluesminds (openai/gpt-oss-20b)</span>
               </div>
               <button type="button" class="ai-test-conn-btn" id="ai-test-connection-btn">Test AI Connection</button>
             </div>
@@ -1253,7 +1257,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
                       <td><span class="http-badge get">GET</span></td>
                       <td><code>/api/v1/ai/test-connection</code></td>
                       <td>Bearer Token</td>
-                      <td>Diagnostic connectivity probe for AgentRouter AI inference status</td>
+                      <td>Diagnostic connectivity probe for Bluesminds AI inference status</td>
                     </tr>
                     <tr>
                       <td><span class="http-badge get">GET</span></td>
@@ -3358,6 +3362,6 @@ async function convertFileInBrowser(file, operation = 'compress') {
   <!-- Phase 2 Professional Editor Engine -->
   <script src="/assets/editor.js?v=3.2.0" defer></script>
   <!-- Application Controller -->
-  <script src="/assets/app.js?v=3.4.0" defer></script>
+  <script src="/assets/app.js?v=3.5.0" defer></script>
 </body>
 </html>

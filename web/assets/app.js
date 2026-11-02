@@ -300,7 +300,7 @@ async function safeFetch(url, options = {}) {
       throw new Error(msg);
     }
 
-    const errorMsg = (typeof data.detail === 'string' ? data.detail : data.detail?.message) || data.error?.message || `Request failed with status ${response.status}`;
+    const errorMsg = (typeof data.detail === 'string' ? data.detail : data.detail?.message) || (typeof data.error === 'string' ? data.error : data.error?.message) || `Request failed with status ${response.status}`;
     throw new Error(errorMsg);
   }
 
@@ -399,9 +399,9 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true) {
     if (typeof updateAiDocBar === 'function') updateAiDocBar();
   }
 
-  if (view === 'studio' && !state.studio.pdfDoc) {
+  if (view === 'studio' && !state.studio.pdfDoc && !state.studio.isLoading) {
     loadDocumentIntoStudio(null).then((loaded) => {
-      if (!loaded) switchWorkspaceView('home', 'privacy', false);
+      if (!loaded && !state.studio.isLoading) switchWorkspaceView('home', 'privacy', false);
     });
   }
 
@@ -1309,9 +1309,57 @@ function generateBlankA4PdfBytes() {
   return buf.buffer;
 }
 
-async function loadDocumentIntoStudio(file) {
+function syncStudioZoomSelect(scale) {
+  const sel = $('#zoom-select');
+  if (!sel) return;
+  if (scale === 'fit-width') {
+    sel.value = 'fit-width';
+    return;
+  }
+  const num = Number(scale) || 1.0;
+  let found = false;
+  for (const opt of sel.options) {
+    if (opt.value === 'fit-width') continue;
+    if (Math.abs(Number(opt.value) - num) < 0.05) {
+      sel.value = opt.value;
+      found = true;
+      break;
+    }
+  }
+  if (!found) {
+    let customOpt = sel.querySelector('option[data-custom="true"]');
+    if (!customOpt) {
+      customOpt = document.createElement('option');
+      customOpt.setAttribute('data-custom', 'true');
+      sel.appendChild(customOpt);
+    }
+    customOpt.value = num.toString();
+    customOpt.textContent = `${Math.round(num * 100)}%`;
+    sel.value = customOpt.value;
+  }
+}
+
+function showStudioLoading(text = 'Loading document…') {
+  const overlay = $('#studio-loading-overlay');
+  const textEl = $('#studio-loading-text');
+  if (textEl) textEl.textContent = text;
+  if (overlay) overlay.hidden = false;
   const container = $('#studio-thumbnails-container');
-  if (container) container.innerHTML = '<div style="color: #fff; font-size: 12px; text-align: center; padding: 20px;">Rendering studio previews…</div>';
+  if (container) container.innerHTML = `<div style="color: #94a3b8; font-size: 12px; text-align: center; padding: 24px;"><div class="studio-spinner" style="margin: 0 auto 10px; width: 24px; height: 24px; border-width: 2px;"></div>${escapeHtml(text)}</div>`;
+}
+
+function hideStudioLoading() {
+  const overlay = $('#studio-loading-overlay');
+  if (overlay) overlay.hidden = true;
+}
+
+async function loadDocumentIntoStudio(file) {
+  if (file === null && state.studio.isLoading) {
+    return false;
+  }
+
+  const container = $('#studio-thumbnails-container');
+  if (container) container.innerHTML = '<div style="color: #94a3b8; font-size: 12px; text-align: center; padding: 20px;"><div class="studio-spinner" style="margin: 0 auto 10px; width: 20px; height: 20px; border-width: 2px;"></div>Rendering previews…</div>';
 
   try {
     let arrayBuffer;
@@ -1339,6 +1387,7 @@ async function loadDocumentIntoStudio(file) {
     }
 
     // Render Page 1 on canvas
+    syncStudioZoomSelect(state.studio.scale);
     await renderStudioPage(1);
 
     // Load into Phase 3 Professional Page Organizer
@@ -1347,10 +1396,13 @@ async function loadDocumentIntoStudio(file) {
     } else {
       renderStudioThumbnails();
     }
+    hideStudioLoading();
     return true;
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
     console.error('Failed to load PDF in Studio:', err);
+    hideStudioLoading();
+    showToast(`Failed to load PDF in Studio: ${reason}`, 'error', 6000);
     if (container) container.innerHTML = `<div style="color: #ff6b6b; font-size: 11px; padding: 12px;">Failed to load PDF in Studio: ${escapeHtml(reason)}</div>`;
     return false;
   }
@@ -1498,19 +1550,20 @@ $('#next-page-btn').onclick = () => {
 $('#zoom-in-btn').onclick = () => {
   const current = Number(state.studio.scale) || 1.0;
   state.studio.scale = Math.min(2.5, current + 0.25);
-  $('#zoom-select').value = state.studio.scale.toString();
+  syncStudioZoomSelect(state.studio.scale);
   renderStudioPage(state.studio.currentPage);
 };
 
 $('#zoom-out-btn').onclick = () => {
   const current = Number(state.studio.scale) || 1.0;
   state.studio.scale = Math.max(0.5, current - 0.25);
-  $('#zoom-select').value = state.studio.scale.toString();
+  syncStudioZoomSelect(state.studio.scale);
   renderStudioPage(state.studio.currentPage);
 };
 
 $('#zoom-select').onchange = e => {
   state.studio.scale = e.target.value;
+  syncStudioZoomSelect(state.studio.scale);
   renderStudioPage(state.studio.currentPage);
 };
 
@@ -1524,8 +1577,7 @@ if (studioCanvasArea) {
       const delta = e.deltaY < 0 ? 0.15 : -0.15;
       const newScale = Math.max(0.5, Math.min(3.0, +(current + delta).toFixed(2)));
       state.studio.scale = newScale;
-      const zoomSelect = $('#zoom-select');
-      if (zoomSelect) zoomSelect.value = newScale.toString();
+      syncStudioZoomSelect(newScale);
       renderStudioPage(state.studio.currentPage);
     }
   }, { passive: false });
@@ -1540,8 +1592,7 @@ if (drawCanvasEl) {
       const delta = e.deltaY < 0 ? 0.15 : -0.15;
       const newScale = Math.max(0.5, Math.min(3.0, +(current + delta).toFixed(2)));
       state.studio.scale = newScale;
-      const zoomSelect = $('#zoom-select');
-      if (zoomSelect) zoomSelect.value = newScale.toString();
+      syncStudioZoomSelect(newScale);
       renderStudioPage(state.studio.currentPage);
     } else if (studioCanvasArea) {
       if (e.deltaX) studioCanvasArea.scrollLeft += e.deltaX;
@@ -1836,13 +1887,20 @@ if (btnModeAnnotate && btnModeOrganize) {
     btnModeOrganize.classList.remove('active');
     if (annotateRibbon) annotateRibbon.hidden = false;
     if (batchBar) batchBar.hidden = true;
+    if (window.PaperplanePageOrganizer) {
+      window.PaperplanePageOrganizer._updateBatchToolbar();
+    }
   };
 
   btnModeOrganize.onclick = () => {
     btnModeOrganize.classList.add('active');
     btnModeAnnotate.classList.remove('active');
     if (annotateRibbon) annotateRibbon.hidden = true;
-    if (batchBar) batchBar.hidden = false;
+    if (window.PaperplanePageOrganizer) {
+      window.PaperplanePageOrganizer._updateBatchToolbar();
+    } else if (batchBar) {
+      batchBar.hidden = false;
+    }
   };
 }
 
@@ -2468,11 +2526,14 @@ function showDownloadResult(job, downloadUrl) {
   dlLink.setAttribute('download', outName);
   dlLink.hidden = false;
 
-  // Direct fetch fallback onclick to guarantee zero download error across all browsers
+  // Direct fetch fallback onclick with reassuring immediate UI feedback
   dlLink.onclick = async (e) => {
     e.preventDefault();
+    const originalContent = dlLink.innerHTML;
     try {
-      showToast('Starting file download…', 'info', 2000);
+      dlLink.style.pointerEvents = 'none';
+      dlLink.innerHTML = `<span class="studio-spinner" style="width: 14px; height: 14px; border-width: 2px; display: inline-block; vertical-align: middle; margin-right: 6px;"></span> Preparing download…`;
+      showToast('Preparing your file download…', 'info', 2000);
       const res = await fetch(downloadUrl, { credentials: 'same-origin' });
       if (!res.ok) throw new Error(`Server returned HTTP ${res.status}`);
       const blob = await res.blob();
@@ -2490,6 +2551,9 @@ function showDownloadResult(job, downloadUrl) {
     } catch (err) {
       console.warn('Blob download fallback:', err);
       showToast(`Download failed: ${err.message}`, 'error', 4000);
+    } finally {
+      dlLink.innerHTML = originalContent;
+      dlLink.style.pointerEvents = '';
     }
   };
 
@@ -2500,6 +2564,9 @@ function showDownloadResult(job, downloadUrl) {
     if (isPdf) {
       studioBtn.onclick = async (e) => {
         if (e) { e.preventDefault(); e.stopPropagation(); }
+        state.studio.isLoading = true;
+        switchWorkspaceView('studio');
+        showStudioLoading('Loading document…');
         showToast('Opening processed document in Studio…', 'info');
         try {
           const res = await fetch(downloadUrl, { credentials: 'same-origin' });
@@ -2508,11 +2575,15 @@ function showDownloadResult(job, downloadUrl) {
           const studioFile = new File([blob], outName, { type: blob.type || 'application/pdf' });
           const loaded = await loadDocumentIntoStudio(studioFile);
           if (!loaded) throw new Error('The processed file could not be rendered as a PDF.');
-          switchWorkspaceView('studio');
-          return;
         } catch (err) {
           console.warn('Could not load output into Studio directly:', err);
           showToast(`Could not open the processed PDF in Studio: ${err instanceof Error ? err.message : String(err)}`, 'error', 6500);
+          if (!state.studio.pdfDoc) {
+            switchWorkspaceView('desk');
+          }
+        } finally {
+          state.studio.isLoading = false;
+          hideStudioLoading();
         }
       };
     }
@@ -2922,14 +2993,14 @@ if (testConnBtn) {
     try {
       const res = await safeFetch('/api/ai/test-connection');
       if (res.status === 'connected' || res.status === 'inference_succeeded') {
-        showToast(`AI Connected: ${res.provider} (${res.model}) HTTP ${res.http_status}`, 'success');
-      } else if (res.status === 'upstream_client_restricted' || res.status === 'credentials_rejected') {
-        showToast(`AgentRouter (${res.model || 'gpt-6.1-sol'}): Client unauthorized (HTTP 401). Local BM25 Engine fallback active.`, 'info', 7000);
+        showToast(`AI Connected: ${res.provider} (${res.model})`, 'success');
+      } else if (res.status === 'configuration_missing') {
+        showToast('AI provider is not configured', 'warning', 6000);
       } else {
-        showToast(`AI Status (${res.status}): ${res.advice || res.message || 'Offline mode active'}`, 'warning', 6000);
+        showToast(res.message || 'AI request failed, please try again', 'error', 6000);
       }
     } catch (err) {
-      showToast(`AI Connection Test: Local deterministic BM25 fallback is active.`, 'info');
+      showToast(err.message || 'AI request failed, please try again', 'error');
     } finally {
       testConnBtn.disabled = false;
       testConnBtn.textContent = 'Test AI Connection';
@@ -2989,8 +3060,9 @@ $('#chat-form').onsubmit = async e => {
       : '';
     msgs.innerHTML += `<div class="chat-bubble ai"><strong>Paperplane AI:</strong><div class="chat-markdown">${renderMarkdown(res.answer)}</div><div class="chat-citation-tags">${citationTags}</div>${retrievalInfo}</div>`;
   } catch (err) {
-    msgs.innerHTML += `<div class="chat-bubble ai" style="border-color: var(--error); color: var(--error);">Error: ${escapeHtml(err.message)}</div>`;
-    showToast(err.message, 'error');
+    const errMsg = err.message || 'AI request failed, please try again';
+    msgs.innerHTML += `<div class="chat-bubble ai" style="border-color: var(--error); color: var(--error);"><strong>Paperplane AI:</strong> ${escapeHtml(errMsg)}</div>`;
+    showToast(errMsg, 'error');
   } finally {
     btn.disabled = false;
     btn.textContent = 'Ask';
@@ -3020,7 +3092,11 @@ $('#trigger-summary-btn').onclick = async () => {
     if (actionsBar) actionsBar.hidden = false;
     showToast('Executive brief generated successfully!', 'success');
   } catch (err) {
-    showToast(err.message, 'error');
+    const errMsg = err.message || 'AI request failed, please try again';
+    $('#summary-display').innerHTML = `<div style="color: var(--error); padding: 14px; font-weight: 500; border: 1px solid var(--error); border-radius: 8px; background: rgba(239, 68, 68, 0.05);">${escapeHtml(errMsg)}</div>`;
+    const actionsBar = $('#summary-actions-bar');
+    if (actionsBar) actionsBar.hidden = true;
+    showToast(errMsg, 'error');
   } finally {
     btn.disabled = false;
     btn.textContent = 'Generate Executive Brief';

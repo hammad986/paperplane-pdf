@@ -1546,6 +1546,16 @@ def ocr_pdf(
     if not lang_file.exists():
         raise ValueError(f"Required OCR language data for '{language}' is not installed.")
 
+    if not source.exists():
+        raise ValueError(f"File '{source.name}' does not exist.")
+
+    chk = fitz.open(str(source))
+    try:
+        if chk.is_encrypted or chk.needs_pass:
+            raise ValueError("This document is password-protected. Please unlock it before running OCR.")
+    finally:
+        chk.close()
+
     doc = fitz.open(str(source))
     total_pages = len(doc)
     original_size = source.stat().st_size
@@ -1613,7 +1623,19 @@ def ocr_pdf(
     temp_out = output.with_name(f"{output.stem}_ocr_tmp_{os.getpid()}_{uuid.uuid4().hex[:6]}.pdf")
     doc.save(str(temp_out), garbage=3, deflate=True)
     doc.close()
+
+    if not temp_out.exists() or temp_out.stat().st_size < 50:
+        if temp_out.exists():
+            temp_out.unlink(missing_ok=True)
+        raise RuntimeError("OCR produced an invalid or empty output file.")
     temp_out.replace(output)
+
+    # Verification
+    verify = fitz.open(str(output))
+    try:
+        _ = len(verify)
+    finally:
+        verify.close()
 
     elapsed = round(time.time() - start_time, 2)
     output_size = output.stat().st_size
@@ -1694,6 +1716,15 @@ def compress_pdf(
     Performs true lossy and lossless PDF compression.
     Backward-compatible with quality and max_dpi arguments, with support for Phase 4 presets.
     """
+    if not source.exists():
+        raise ValueError(f"File '{source.name}' does not exist.")
+
+    chk = fitz.open(str(source))
+    try:
+        if chk.is_encrypted or chk.needs_pass:
+            raise ValueError("This document is password-protected. Please unlock it before compressing.")
+    finally:
+        chk.close()
     PRESET_CONFIGS = {
         "100kb": {"max_w": 650, "max_h": 900, "quality": 45, "downsample": True, "garbage": 4},
         "200kb": {"max_w": 850, "max_h": 1200, "quality": 55, "downsample": True, "garbage": 4},
@@ -1876,6 +1907,11 @@ def compress_pdf(
                 target_achieved = False
                 reason = f"Compressed to {round(current_size / 1024, 1)} KB (target {round(target_size_bytes / 1024, 1)} KB for {num_pages} pages reached at maximum readable compression)."
 
+    if not temp_res.exists() or temp_res.stat().st_size < 50:
+        if temp_res.exists():
+            temp_res.unlink(missing_ok=True)
+        raise RuntimeError("Compression produced an invalid or empty output file.")
+
     temp_res.replace(output)
     output_size = output.stat().st_size
     saved_bytes = max(0, original_size - output_size)
@@ -2031,6 +2067,11 @@ def repair_pdf_advanced(source: Path, output: Path, mode: str = "automatic") -> 
                 raise ValueError("Reconstructed file contains zero readable pages.")
             _ = val_doc[0].get_pixmap()
             val_doc.close()
+            # Verify pypdf can parse pages and catalog
+            val_reader = pypdf.PdfReader(str(temp_out))
+            if len(val_reader.pages) == 0:
+                temp_out.unlink(missing_ok=True)
+                raise ValueError("Reconstructed file contains zero readable pages.")
         except Exception as v_err:
             temp_out.unlink(missing_ok=True)
             raise ValueError(f"Document is severely corrupted and could not be reconstructed into readable pages ({v_err}).")
@@ -2955,22 +2996,51 @@ def get_pdf_metadata_pages(source: Path) -> dict:
 
 def convert_pdf_to_grayscale(source: Path, output: Path) -> dict:
     """Convert all pages of a PDF to grayscale by re-rendering each page as a grayscale image."""
+    if not source.exists():
+        raise ValueError(f"File '{source.name}' does not exist.")
+
+    chk = fitz.open(str(source))
+    try:
+        if chk.is_encrypted or chk.needs_pass:
+            raise ValueError("This document is password-protected. Please unlock it before converting to grayscale.")
+        if len(chk) == 0:
+            raise ValueError("Cannot convert an empty PDF document.")
+    finally:
+        chk.close()
+
     original_size = source.stat().st_size
     doc = fitz.open(str(source))
     new_doc = fitz.open()
     page_count = len(doc)
-    for page in doc:
-        pix = page.get_pixmap(colorspace=fitz.csGRAY, dpi=150)
-        img_bytes = pix.tobytes("png")
-        img_doc = fitz.open("png", img_bytes)
-        pdf_bytes = img_doc.convert_to_pdf()
-        page_pdf = fitz.open("pdf", pdf_bytes)
-        new_doc.insert_pdf(page_pdf)
-        img_doc.close()
-        page_pdf.close()
-    new_doc.save(str(output), garbage=4, deflate=True, deflate_images=True)
-    new_doc.close()
-    doc.close()
+    try:
+        for page in doc:
+            pix = page.get_pixmap(colorspace=fitz.csGRAY, dpi=150)
+            img_bytes = pix.tobytes("png")
+            img_doc = fitz.open("png", img_bytes)
+            pdf_bytes = img_doc.convert_to_pdf()
+            page_pdf = fitz.open("pdf", pdf_bytes)
+            new_doc.insert_pdf(page_pdf)
+            img_doc.close()
+            page_pdf.close()
+        temp_out = output.with_name(f"{output.stem}_gray_tmp_{os.getpid()}_{uuid.uuid4().hex[:6]}.pdf")
+        new_doc.save(str(temp_out), garbage=4, deflate=True, deflate_images=True)
+    finally:
+        new_doc.close()
+        doc.close()
+
+    if not temp_out.exists() or temp_out.stat().st_size < 50:
+        if temp_out.exists():
+            temp_out.unlink(missing_ok=True)
+        raise RuntimeError("Grayscale conversion produced an invalid or empty output file.")
+    temp_out.replace(output)
+
+    # Verification
+    verify = fitz.open(str(output))
+    try:
+        _ = len(verify)
+    finally:
+        verify.close()
+
     output_size = output.stat().st_size
     return {
         "page_count": page_count,

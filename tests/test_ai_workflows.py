@@ -20,20 +20,26 @@ def make_pdf(path: Path) -> None:
     doc.close()
 
 
-def test_agentrouter_network_failure_does_not_retry(monkeypatch):
-    monkeypatch.setattr(ai_engine, "AGENTROUTER_API_KEY", "test-key")
-    monkeypatch.setattr(ai_engine, "AGENTROUTER_MAX_RETRIES", 1)
-
-    with patch("ai_engine.urllib.request.urlopen", side_effect=URLError("offline")) as open_url:
-        assert ai_engine.call_agentrouter("system", "user") == ""
-
-    assert open_url.call_count == 1
-    assert open_url.call_args.kwargs["timeout"] <= 8
+def test_bluesminds_missing_key_raises_clear_error(monkeypatch):
+    monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "")
+    monkeypatch.setenv("BLUESMINDS_API_KEY", "")
+    import pytest
+    with pytest.raises(ValueError, match="AI provider is not configured"):
+        ai_engine.call_bluesminds("system", "user")
 
 
-def test_agentrouter_uses_fresh_environment_key(monkeypatch):
-    monkeypatch.setattr(ai_engine, "AGENTROUTER_API_KEY", ai_engine._INITIAL_AGENTROUTER_API_KEY)
-    monkeypatch.setenv("AGENTROUTER_API_KEY", "fresh-key-from-environment")
+def test_bluesminds_network_failure_raises_clear_error(monkeypatch):
+    monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "test-key")
+
+    import pytest
+    with patch("ai_engine.urllib.request.urlopen", side_effect=URLError("offline")):
+        with pytest.raises(RuntimeError, match="AI request failed, please try again"):
+            ai_engine.call_bluesminds("system", "user")
+
+
+def test_bluesminds_uses_fresh_environment_key(monkeypatch):
+    monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", ai_engine._INITIAL_BLUESMINDS_API_KEY)
+    monkeypatch.setenv("BLUESMINDS_API_KEY", "fresh-bluesminds-key-from-environment")
 
     class FakeResponse:
         status = 200
@@ -48,14 +54,14 @@ def test_agentrouter_uses_fresh_environment_key(monkeypatch):
             return b'{"choices":[{"message":{"content":"upstream response"}}]}'
 
     with patch("ai_engine.urllib.request.urlopen", return_value=FakeResponse()) as open_url:
-        assert ai_engine.call_agentrouter("system", "user") == "upstream response"
+        assert ai_engine.call_bluesminds("system", "user") == "upstream response"
 
     request = open_url.call_args.args[0]
-    assert request.get_header("Authorization") == "Bearer fresh-key-from-environment"
+    assert request.get_header("Authorization") == "Bearer fresh-bluesminds-key-from-environment"
 
 
 def test_translation_batch_requires_structured_json(monkeypatch):
-    monkeypatch.setattr(ai_engine, "AGENTROUTER_API_KEY", "test-key")
+    monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "test-key")
     captured = {}
 
     def fake_call_llm(system_prompt, user_prompt, timeout_seconds=None):
@@ -74,7 +80,7 @@ def test_translation_fallback_preserves_source_text(tmp_path, monkeypatch):
     source = tmp_path / "source.pdf"
     output = tmp_path / "translated.pdf"
     make_pdf(source)
-    monkeypatch.setattr(ai_engine, "AGENTROUTER_API_KEY", "test-key")
+    monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "test-key")
     monkeypatch.setattr(ai_engine, "GEMINI_API_KEY", "")
     monkeypatch.setattr(ai_engine, "OPENAI_API_KEY", "")
     monkeypatch.setattr(ai_engine, "call_llm", lambda *args, **kwargs: "provider timed out")
@@ -145,3 +151,57 @@ def test_scanned_pdf_uses_mupdf_ocr_when_native_text_is_empty(tmp_path):
     assert "Certificate" in extracted
     assert ("TN-4202608046409" in extracted or "4202608046409" in extracted)
     assert "Priya Raman" in extracted
+
+
+def test_ai_chat_and_summarize_endpoints(tmp_path, monkeypatch):
+    from fastapi.testclient import TestClient
+    from server import app
+
+    client = TestClient(app)
+    pdf_path = tmp_path / "test_doc.pdf"
+    make_pdf(pdf_path)
+
+    # 1. When BLUESMINDS_API_KEY is missing -> HTTP 503 "AI provider is not configured"
+    monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "")
+    monkeypatch.setenv("BLUESMINDS_API_KEY", "")
+
+    with open(pdf_path, "rb") as f:
+        res = client.post("/api/ai/chat", data={"question": "What is the deadline?"}, files={"file": ("test.pdf", f, "application/pdf")})
+    assert res.status_code == 503
+    assert res.json()["detail"] == "AI provider is not configured"
+
+    with open(pdf_path, "rb") as f:
+        res = client.post("/api/ai/summarize", files={"file": ("test.pdf", f, "application/pdf")})
+    assert res.status_code == 503
+    assert res.json()["detail"] == "AI provider is not configured"
+
+    # 2. When BLUESMINDS_API_KEY is present and upstream succeeds -> HTTP 200 with result
+    monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "valid-test-key")
+    monkeypatch.setattr(ai_engine, "call_llm", lambda sys, usr, timeout_seconds=None: "October 25, 2026 is the deadline [Page 1].")
+
+    with open(pdf_path, "rb") as f:
+        res = client.post("/api/ai/chat", data={"question": "What is the deadline?"}, files={"file": ("test.pdf", f, "application/pdf")})
+    assert res.status_code == 200
+    data = res.json()
+    assert "October 25, 2026" in data["answer"]
+    assert "Bluesminds" in data["provider"]
+
+    with open(pdf_path, "rb") as f:
+        res = client.post("/api/ai/summarize", files={"file": ("test.pdf", f, "application/pdf")})
+    assert res.status_code == 200
+    assert "October 25, 2026" in res.json()["summary"]
+
+    # 3. When call fails -> HTTP 502 "AI request failed, please try again"
+    def fail_call(*args, **kwargs):
+        raise RuntimeError("AI request failed, please try again")
+
+    monkeypatch.setattr(ai_engine, "call_llm", fail_call)
+    with open(pdf_path, "rb") as f:
+        res = client.post("/api/ai/chat", data={"question": "What is the deadline?"}, files={"file": ("test.pdf", f, "application/pdf")})
+    assert res.status_code == 502
+    assert res.json()["detail"] == "AI request failed, please try again"
+
+    with open(pdf_path, "rb") as f:
+        res = client.post("/api/ai/summarize", files={"file": ("test.pdf", f, "application/pdf")})
+    assert res.status_code == 502
+    assert res.json()["detail"] == "AI request failed, please try again"

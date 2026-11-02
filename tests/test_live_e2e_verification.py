@@ -9,6 +9,7 @@ from server import app
 import persistence
 from persistence import init_db, connect, get_user_by_email
 import fitz
+import ai_engine
 
 client = TestClient(app)
 
@@ -150,8 +151,16 @@ def test_e2e_otp_signup_and_login_lifecycle(tmp_path, monkeypatch):
     assert new_token is not None
 
 
-def test_e2e_ai_features_with_sample_document(tmp_path):
+def test_e2e_ai_features_with_sample_document(tmp_path, monkeypatch):
     """Test AI test-connection, chat, summarize, and extract endpoints."""
+    # Mock LLM for happy-path endpoint tests
+    monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "test-valid-key")
+    monkeypatch.setattr(
+        ai_engine,
+        "call_llm",
+        lambda sys, usr, timeout_seconds=None: "Mission Apollo 2026 budget $4,500,000 USD directed by Dr. Sarah Connor [Page 1]." if "Executive" not in sys else "Executive Summary: Apollo 2026 Mission budget $4,500,000 USD."
+    )
+
     # 1. Diagnostic test-connection endpoint
     conn_res = client.get("/api/ai/test-connection")
     assert conn_res.status_code == 200
