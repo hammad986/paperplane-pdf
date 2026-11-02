@@ -3298,6 +3298,108 @@ async def ai_chat(
         shutil.rmtree(temp_dir, ignore_errors=True)
 
 
+@app.post("/api/ai/chat/stream")
+async def ai_chat_stream(
+    file: UploadFile | None = File(None),
+    question: str = Form(...),
+    user_id: str | None = Depends(current_user),
+):
+    """SSE chat endpoint: reports real work stages and streams upstream content deltas."""
+    temp_dir = Path(tempfile.mkdtemp())
+
+    def frame(kind: str, **data: Any) -> str:
+        return f"event: {kind}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+    async def events():
+        try:
+            yield frame("stage", stage="Thinking…")
+            if ai_engine._is_code_request(question):
+                yield frame("replace", text=ai_engine._CODE_SCOPE_REPLY)
+                yield frame("done", citations=[])
+                return
+            if ai_engine._is_identity_question(question):
+                yield frame("replace", text=ai_engine._PAPERPLANE_IDENTITY)
+                yield frame("done", citations=[])
+                return
+
+            citations: list[int] = []
+            system_prompt = ai_engine._PAPERPLANE_SYSTEM_PROMPT
+            user_prompt = question
+            if file is not None:
+                temp_pdf = temp_dir / "chat_stream.pdf"
+                await save_upload_spooled_async(file, temp_pdf)
+                yield frame("stage", stage="Extracting…")
+                chunks = await asyncio.to_thread(ai_engine.extract_chunks_from_pdf, temp_pdf)
+                yield frame("stage", stage="Analysing…")
+                if not chunks:
+                    yield frame("replace", text="No readable text was found in this document to answer your question.")
+                    yield frame("done", citations=[])
+                    return
+                yield frame("stage", stage="Getting info…")
+                page_match = re.search(r"\bpage\s+(\d+)\b", question, re.IGNORECASE)
+                broad_summary = bool(re.search(r"\b(summar(?:y|ize|ise)|overview|key points|important information)\b", question, re.IGNORECASE))
+                if page_match:
+                    requested = int(page_match.group(1))
+                    chosen = [chunk for chunk in chunks if chunk.page_number == requested]
+                elif broad_summary:
+                    chosen = ai_engine._select_broad_summary_chunks(chunks)
+                else:
+                    chosen = ai_engine.LightweightRAG(chunks).search(question, top_k=8)
+                if not chosen:
+                    yield frame("replace", text="No relevant information found in the document for your question.")
+                    yield frame("done", citations=[])
+                    return
+                citations = sorted({chunk.page_number for chunk in chosen})
+                context = "\n\n---\n\n".join(f"[Page {chunk.page_number}]:\n{chunk.text}" for chunk in chosen)
+                system_prompt += " Answer accurately using only the provided document excerpts and cite factual claims as [Page X]."
+                user_prompt = f"DOCUMENT EXCERPTS:\n{context}\n\nUSER QUESTION: {question}"
+            else:
+                yield frame("stage", stage="Analysing…")
+
+            yield frame("stage", stage="Generating…")
+            stream = iter(ai_engine.stream_bluesminds(system_prompt, user_prompt))
+            sentinel = object()
+
+            def get_next():
+                try:
+                    return next(stream)
+                except StopIteration:
+                    return sentinel
+
+            accumulated = ""
+            max_forbidden_len = max([len(ai_engine.BLUESMINDS_MODEL or "")] + [len(word) for word in ("nemotron", "nvidia", "bluesminds", "openai", "anthropic", "google gemini")])
+            while True:
+                piece = await asyncio.to_thread(get_next)
+                if piece is sentinel:
+                    break
+                accumulated += piece
+                guarded = ai_engine._guard_ai_output(accumulated)
+                if guarded == ai_engine._PAPERPLANE_IDENTITY and accumulated != guarded:
+                    yield frame("replace", text=guarded)
+                    accumulated = guarded
+                    break
+                # Keep a small tail so a provider name split across deltas is never sent to the browser.
+                safe_limit = max(0, len(accumulated) - max_forbidden_len - 2)
+                safe_len = max(accumulated.rfind(" ", 0, safe_limit), accumulated.rfind("\n", 0, safe_limit), accumulated.rfind("\t", 0, safe_limit))
+                if safe_len:
+                    yield frame("token", text=accumulated[:safe_len + 1])
+                    accumulated = accumulated[safe_len + 1:]
+            if accumulated:
+                guarded_tail = ai_engine._guard_ai_output(accumulated)
+                yield frame("replace", text=guarded_tail) if guarded_tail == ai_engine._PAPERPLANE_IDENTITY and accumulated != guarded_tail else frame("token", text=accumulated)
+            yield frame("done", citations=citations)
+        except ValueError as exc:
+            logging.getLogger("paperplane").warning("AI stream configuration issue: %s", exc)
+            yield frame("error", message="AI provider is not configured")
+        except Exception as exc:
+            logging.getLogger("paperplane").warning("AI stream failed: %s", exc)
+            yield frame("error", message="AI request failed, please try again")
+        finally:
+            shutil.rmtree(temp_dir, ignore_errors=True)
+
+    return StreamingResponse(events(), media_type="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
 @app.post("/api/ai/summarize")
 async def ai_summarize(
     file: UploadFile = File(...),

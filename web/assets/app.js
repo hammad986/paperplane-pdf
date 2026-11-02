@@ -318,6 +318,7 @@ $('#collapse-sidebar-btn').onclick = () => {
 
 // Workspace View Switcher (Home / Desk / Studio / AI / Legal / ApiDocs)
 function switchWorkspaceView(view, extra = 'privacy', updateHistory = true) {
+  try { sessionStorage.setItem('paperplane-active-view', view); } catch { /* storage may be disabled */ }
   state.activeView = view;
   $('#tab-home-view')?.classList.toggle('active', view === 'home');
   $('#tab-desk-view')?.classList.toggle('active', view === 'desk');
@@ -489,7 +490,12 @@ function clearResultAndStudio() {
   const studioCount = $('#studio-page-count');
   if (studioCount) studioCount.textContent = '0';
   const pageIndicator = $('#page-indicator');
-  if (pageIndicator) pageIndicator.textContent = '0 / 0';
+  if (pageIndicator) {
+    const jump = $('#page-jump-input');
+    const total = $('#page-total-indicator');
+    if (jump) { jump.value = '0'; jump.disabled = true; }
+    if (total) total.textContent = '0';
+  }
 }
 
 function resetJobWorkflow() {
@@ -1370,6 +1376,10 @@ async function loadDocumentIntoStudio(file) {
   if (container) container.innerHTML = '<div style="color: #94a3b8; font-size: 12px; text-align: center; padding: 20px;"><div class="studio-spinner" style="margin: 0 auto 10px; width: 20px; height: 20px; border-width: 2px;"></div>Rendering previews…</div>';
 
   try {
+    try {
+      if (file) sessionStorage.setItem('paperplane-last-local-document', typeof file === 'string' ? 'processed PDF' : (file.name || 'PDF document'));
+      else sessionStorage.removeItem('paperplane-last-local-document');
+    } catch { /* storage may be disabled */ }
     $('#studio-canvas-area')?.querySelector('.studio-empty-state')?.remove();
     let arrayBuffer;
     if (typeof file === 'string' && file !== '/assets/demo.pdf') {
@@ -1385,6 +1395,10 @@ async function loadDocumentIntoStudio(file) {
     state.studio.totalCount = state.studio.pdfDoc.numPages;
     state.studio.currentPage = 1;
     $('#studio-page-count').textContent = state.studio.totalCount;
+    const pageJump = $('#page-jump-input');
+    const pageTotal = $('#page-total-indicator');
+    if (pageJump) { pageJump.min = '1'; pageJump.max = String(state.studio.totalCount); pageJump.value = '1'; pageJump.disabled = false; }
+    if (pageTotal) pageTotal.textContent = String(state.studio.totalCount);
 
     // Load into Phase 2 PaperplaneEditor
     let srcFile = file;
@@ -1427,15 +1441,41 @@ async function loadDocumentIntoStudio(file) {
 
 async function renderStudioPage(pageNum) {
   if (!state.studio.pdfDoc) return;
+  const renderToken = (state.studio.renderToken || 0) + 1;
+  state.studio.renderToken = renderToken;
+  const previousRender = state.studio.renderTask;
+  if (previousRender) {
+    try { previousRender.cancel(); } catch { /* an already completed task needs no cancellation */ }
+    try { await previousRender.promise; } catch { /* expected when a page render is superseded */ }
+  }
+  const loadingOverlay = $('#studio-loading-overlay');
+  const loadingText = $('#studio-loading-text');
+  if (loadingText) loadingText.textContent = `Loading page ${pageNum}…`;
+  if (loadingOverlay) loadingOverlay.hidden = false;
   state.studio.currentPage = pageNum;
-  $('#page-indicator').textContent = `${pageNum} / ${state.studio.totalCount}`;
+  const pageJump = $('#page-jump-input');
+  const pageTotal = $('#page-total-indicator');
+  if (pageJump) pageJump.value = String(pageNum);
+  if (pageTotal) pageTotal.textContent = String(state.studio.totalCount);
 
   if (window.PaperplanePageOrganizer && window.PaperplanePageOrganizer.state) {
     window.PaperplanePageOrganizer.state.activePage = pageNum;
     window.PaperplanePageOrganizer._updateCardStates();
+    const activeThumb = document.querySelector(`.organizer-thumb-card[data-page="${pageNum}"]`);
+    activeThumb?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 
-  const page = await state.studio.pdfDoc.getPage(pageNum);
+  let page;
+  try {
+    page = await state.studio.pdfDoc.getPage(pageNum);
+  } catch (err) {
+    if (renderToken === state.studio.renderToken) {
+      if (loadingText) loadingText.textContent = `Could not load page ${pageNum}. Choose the page again to retry.`;
+      console.error(`Studio could not load page ${pageNum}:`, err);
+    }
+    return;
+  }
+  if (renderToken !== state.studio.renderToken) return;
   const canvas = $('#pdf-canvas');
   const drawCanvas = $('#pdf-draw-canvas');
   const ctx = canvas.getContext('2d');
@@ -1464,7 +1504,18 @@ async function renderStudioPage(pageNum) {
 
   const transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
   const renderContext = { canvasContext: ctx, transform: transform, viewport: viewport };
-  await page.render(renderContext).promise;
+  const renderTask = page.render(renderContext);
+  state.studio.renderTask = renderTask;
+  try {
+    await renderTask.promise;
+  } catch (err) {
+    if (renderToken !== state.studio.renderToken) return;
+    if (loadingText) loadingText.textContent = `Could not render page ${pageNum}. Choose the page again to retry.`;
+    console.error(`Studio render failed for page ${pageNum}:`, err);
+    return;
+  }
+  if (renderToken !== state.studio.renderToken) return;
+  if (loadingOverlay) loadingOverlay.hidden = true;
 
   // Initialize and synchronize Phase 2 Editor overlay
   if (window.PaperplaneEditor) {
@@ -1516,6 +1567,7 @@ async function renderStudioThumbnails() {
       if (e.target.tagName.toLowerCase() === 'button') return;
       $$('.thumb-card').forEach(c => c.classList.remove('active'));
       card.classList.add('active');
+      $('#studio-canvas-area').scrollTop = 0;
       renderStudioPage(i);
     };
 
@@ -1554,15 +1606,29 @@ if (studioCloseDocBtn) {
 // Studio Navigation & Zoom Controls
 $('#prev-page-btn').onclick = () => {
   if (state.studio.currentPage > 1) {
-    renderStudioPage(state.studio.currentPage - 1);
+    const target = state.studio.currentPage - 1;
+    renderStudioPage(target).then(() => { studioCanvasArea.scrollTop = studioCanvasArea.scrollHeight; });
   }
 };
 
 $('#next-page-btn').onclick = () => {
   if (state.studio.currentPage < state.studio.totalCount) {
+    studioCanvasArea.scrollTop = 0;
     renderStudioPage(state.studio.currentPage + 1);
   }
 };
+
+const pageJumpInput = $('#page-jump-input');
+if (pageJumpInput) {
+  const jumpToEnteredPage = () => {
+    const target = Math.max(1, Math.min(state.studio.totalCount, Number(pageJumpInput.value) || 1));
+    pageJumpInput.value = String(target);
+    studioCanvasArea.scrollTop = 0;
+    renderStudioPage(target);
+  };
+  pageJumpInput.addEventListener('change', jumpToEnteredPage);
+  pageJumpInput.addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); jumpToEnteredPage(); pageJumpInput.blur(); } });
+}
 
 $('#zoom-in-btn').onclick = () => {
   const current = Number(state.studio.scale) || 1.0;
@@ -1587,6 +1653,26 @@ $('#zoom-select').onchange = e => {
 // Natural Smooth Wheel Scrolling & Ctrl+Wheel Zoom in Studio Viewport
 const studioCanvasArea = $('#studio-canvas-area');
 if (studioCanvasArea) {
+  let canvasPageWheelAt = 0;
+  studioCanvasArea.addEventListener('wheel', e => {
+    if (e.ctrlKey || !state.studio.pdfDoc) return;
+    const now = Date.now();
+    if (now - canvasPageWheelAt < 450) return;
+    const atTop = studioCanvasArea.scrollTop <= 1;
+    const atBottom = studioCanvasArea.scrollTop + studioCanvasArea.clientHeight >= studioCanvasArea.scrollHeight - 2;
+    const direction = e.deltaY > 0 && atBottom ? 1 : e.deltaY < 0 && atTop ? -1 : 0;
+    if (!direction) return;
+    const target = state.studio.currentPage + direction;
+    if (target < 1 || target > state.studio.totalCount) return;
+    e.preventDefault();
+    canvasPageWheelAt = now;
+    if (direction > 0) {
+      studioCanvasArea.scrollTop = 0;
+      renderStudioPage(target);
+    } else {
+      renderStudioPage(target).then(() => { studioCanvasArea.scrollTop = studioCanvasArea.scrollHeight; });
+    }
+  }, { passive: false });
   studioCanvasArea.addEventListener('wheel', e => {
     if (e.ctrlKey) {
       e.preventDefault();
@@ -2910,7 +2996,12 @@ function updateAiDocBar() {
     if (uploadZone) uploadZone.hidden = true;
     if (activeBar) activeBar.hidden = false;
     if (docName) docName.textContent = file.name;
-    if (docMeta) docMeta.textContent = `${formatBytes(file.size)} • PDF Document`;
+    if (docMeta) docMeta.textContent = `${formatBytes(file.size)} • PDF Document • Loaded & Ready`;
+    if (docMeta && window.pdfjsLib) {
+      file.arrayBuffer().then(buffer => window.pdfjsLib.getDocument({ data: buffer }).promise)
+        .then(pdf => { if (state.files[0] === file) docMeta.textContent = `${formatBytes(file.size)} • ${pdf.numPages} pages • Loaded & Ready`; })
+        .catch(() => { /* The chat upload still reports a readable user-facing status. */ });
+    }
     if (chatInput) {
       chatInput.disabled = false;
       chatInput.placeholder = `Ask a question about ${file.name}...`;
@@ -2946,6 +3037,7 @@ if (aiChangeDocBtn) aiChangeDocBtn.onclick = () => aiFileInput?.click();
 if (aiClearDocBtn) {
   aiClearDocBtn.onclick = () => {
     state.files = [];
+    try { sessionStorage.removeItem('paperplane-last-local-document'); } catch { /* storage may be disabled */ }
     updateAiDocBar();
     $('#chat-messages').innerHTML = `
       <div class="chat-bubble ai">
@@ -2968,6 +3060,7 @@ if (aiFileInput) {
         return;
       }
       state.files = [file];
+      try { sessionStorage.setItem('paperplane-last-local-document', file.name); } catch { /* storage may be disabled */ }
       updateAiDocBar();
       showToast(`Loaded ${file.name} for AI analysis`, 'success');
       aiFileInput.value = '';
@@ -2993,6 +3086,7 @@ if (aiUploadZone) {
         return;
       }
       state.files = [file];
+      try { sessionStorage.setItem('paperplane-last-local-document', file.name); } catch { /* storage may be disabled */ }
       updateAiDocBar();
       showToast(`Loaded ${file.name} for AI analysis`, 'success');
     }
@@ -3027,6 +3121,7 @@ if (testConnBtn) {
 const chatClearBtn = $('#ai-chat-clear-btn');
 if (chatClearBtn) {
   chatClearBtn.onclick = () => {
+    activeAIChatController?.abort();
     $('#chat-messages').innerHTML = `
       <div class="chat-bubble ai">
         <strong>Paperplane AI:</strong> Conversation cleared. Ask a general question or upload a PDF for cited answers.
@@ -3036,7 +3131,11 @@ if (chatClearBtn) {
   };
 }
 
-// AI Document Grounded Chat Submit
+// AI chat streams real provider deltas and server-reported work stages.
+let activeAIChatController = null;
+const chatStopBtn = $('#chat-stop-btn');
+chatStopBtn?.addEventListener('click', () => activeAIChatController?.abort());
+
 $('#chat-form').onsubmit = async e => {
   e.preventDefault();
   const input = $('#chat-input');
@@ -3044,7 +3143,20 @@ $('#chat-form').onsubmit = async e => {
   if (!question) return;
 
   const msgs = $('#chat-messages');
-  msgs.innerHTML += `<div class="chat-bubble user"><strong>You:</strong> ${escapeHtml(question)}</div>`;
+  const userBubble = document.createElement('div');
+  userBubble.className = 'chat-bubble user';
+  userBubble.innerHTML = `<strong>You:</strong> ${escapeHtml(question)}`;
+  msgs.appendChild(userBubble);
+  const answerBubble = document.createElement('div');
+  answerBubble.className = 'chat-bubble ai ai-stream-bubble';
+  answerBubble.innerHTML = '<strong>Paperplane AI:</strong><div class="ai-stage-line" aria-live="polite"><span class="ai-stage-dots">•••</span><span>Thinking…</span></div><div class="chat-markdown ai-stream-text"></div><div class="chat-citation-tags"></div>';
+  msgs.appendChild(answerBubble);
+  const stageNode = answerBubble.querySelector('.ai-stage-line span:last-child');
+  const stageDots = answerBubble.querySelector('.ai-stage-dots');
+  const textNode = answerBubble.querySelector('.ai-stream-text');
+  const citationsNode = answerBubble.querySelector('.chat-citation-tags');
+  let answerText = '';
+  let streamFailed = false;
   input.value = '';
   msgs.scrollTop = msgs.scrollHeight;
 
@@ -3053,36 +3165,79 @@ $('#chat-form').onsubmit = async e => {
   form.append('question', question);
 
   const btn = $('#chat-send-btn');
+  activeAIChatController = new AbortController();
   btn.disabled = true;
-  btn.textContent = state.files.length ? 'Searching…' : 'Thinking…';
+  btn.textContent = 'Ask';
+  input.disabled = true;
+  if (chatStopBtn) chatStopBtn.hidden = false;
 
   try {
-    const res = await safeFetch('/api/ai/chat', { method: 'POST', body: form });
-    const citations = res.citations?.length
-      ? `<br><span class="chat-citation-tag">Cited: Pages ${res.citations.join(', ')}</span>`
-      : '';
-    const retrievalInfo = res.retrieval_method
-      ? `<br><small style="color: var(--text-muted); font-size: 11px;">Grounded via ${res.retrieval_method}</small>`
-      : '';
-    const citationTags = res.citations?.length
-      ? res.citations.map(page => `<span class="ai-citation-tag">Page ${escapeHtml(page)}</span>`).join('')
-      : '';
-    msgs.innerHTML += `<div class="chat-bubble ai"><strong>Paperplane AI:</strong><div class="chat-markdown">${renderMarkdown(res.answer)}</div><div class="chat-citation-tags">${citationTags}</div>${retrievalInfo}</div>`;
+    const response = await fetch('/api/ai/chat/stream', { method: 'POST', body: form, signal: activeAIChatController.signal, credentials: 'same-origin' });
+    if (!response.ok || !response.body) {
+      let message = 'AI request failed, please try again';
+      try { const body = await response.json(); if (/not configured/i.test(body.detail || '')) message = 'AI provider is not configured'; } catch { /* retain plain fallback */ }
+      throw new Error(message);
+    }
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let pending = '';
+    let completed = false;
+    while (!completed) {
+      const { value, done } = await reader.read();
+      pending += decoder.decode(value || new Uint8Array(), { stream: !done });
+      const frames = pending.split(/\r?\n\r?\n/);
+      pending = frames.pop() || '';
+      for (const frame of frames) {
+        const eventName = frame.match(/^event:\s*(.+)$/m)?.[1]?.trim();
+        const dataLine = frame.match(/^data:\s*(.+)$/m)?.[1];
+        if (!dataLine) continue;
+        let payload;
+        try { payload = JSON.parse(dataLine); } catch { continue; }
+        if (eventName === 'stage') stageNode.textContent = payload.stage;
+        if (eventName === 'token') {
+          answerText += payload.text || '';
+          textNode.textContent = answerText;
+        }
+        if (eventName === 'replace') {
+          answerText = payload.text || '';
+          textNode.textContent = answerText;
+        }
+        if (eventName === 'done') {
+          citationsNode.innerHTML = (payload.citations || []).map(page => `<span class="ai-citation-tag">Page ${escapeHtml(page)}</span>`).join('');
+          stageNode.textContent = 'Complete';
+          textNode.innerHTML = renderMarkdown(answerText);
+          completed = true;
+        }
+        if (eventName === 'error') throw new Error(/not configured/i.test(payload.message || '') ? 'AI provider is not configured' : 'AI request failed, please try again');
+      }
+      if (done) completed = true;
+      msgs.scrollTop = msgs.scrollHeight;
+    }
   } catch (err) {
     const rawMessage = err.message || 'AI request failed, please try again';
     const errMsg = /not configured/i.test(rawMessage) ? 'AI provider is not configured' : 'AI request failed, please try again';
-    const failure = document.createElement('div');
-    failure.className = 'chat-bubble ai ai-chat-error';
-    failure.innerHTML = `<strong>Paperplane AI:</strong> ${escapeHtml(errMsg)} <button type="button" class="ai-chat-retry">Retry</button>`;
-    failure.querySelector('.ai-chat-retry').onclick = () => {
-      input.value = question;
-      $('#chat-form').requestSubmit();
-    };
-    msgs.appendChild(failure);
-    showToast(errMsg, 'error');
+    if (err.name === 'AbortError') {
+      stageNode.textContent = 'Stopped';
+      stageDots?.remove();
+    } else {
+      activeAIChatController?.abort();
+      streamFailed = true;
+      stageNode.textContent = 'Connection interrupted';
+      stageDots?.remove();
+      const failure = document.createElement('div');
+      failure.className = 'ai-chat-error';
+      failure.innerHTML = `${escapeHtml(errMsg)} <button type="button" class="ai-chat-retry">Retry</button>`;
+      failure.querySelector('.ai-chat-retry').onclick = () => { input.value = question; $('#chat-form').requestSubmit(); };
+      answerBubble.appendChild(failure);
+      showToast(errMsg, 'error');
+    }
   } finally {
+    activeAIChatController = null;
     btn.disabled = false;
     btn.textContent = 'Ask';
+    input.disabled = false;
+    if (chatStopBtn) chatStopBtn.hidden = true;
+    if (!streamFailed && stageNode.textContent === 'Complete') stageDots?.remove();
     msgs.scrollTop = msgs.scrollHeight;
   }
 };
@@ -4371,6 +4526,15 @@ async function init() {
     renderHomeToolsGrid();
     
     handleInitialRouting();
+    try {
+      const previousView = sessionStorage.getItem('paperplane-active-view');
+      if (previousView === 'studio' || previousView === 'ai') switchWorkspaceView(previousView);
+      const previousDoc = sessionStorage.getItem('paperplane-last-local-document');
+      if (previousDoc) {
+        showToast(`“${previousDoc}” was a local file and was not restored after reload. Select it again to continue.`, 'info', 7000);
+        sessionStorage.removeItem('paperplane-last-local-document');
+      }
+    } catch { /* session storage may be disabled */ }
   } catch (err) {
     console.error('Failed to load operations catalog:', err);
     showToast('Tool catalog is temporarily unavailable. The server-rendered page remains available.', 'warning', 6000);

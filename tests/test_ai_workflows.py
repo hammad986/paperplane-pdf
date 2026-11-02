@@ -77,6 +77,94 @@ def test_bluesminds_retries_transient_first_attempt(monkeypatch):
     assert open_url.call_count == 2
 
 
+def test_bluesminds_stream_parses_provider_deltas(monkeypatch):
+    monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "test-key")
+
+    class FakeResponse:
+        def __enter__(self): return self
+        def __exit__(self, exc_type, exc_value, traceback): return False
+        def __iter__(self):
+            yield b'data: {"choices":[{"delta":{"content":"Hello "}}]}\n'
+            yield b'data: {"choices":[{"delta":{"content":"there."}}]}\n'
+            yield b'data: [DONE]\n'
+
+    with patch("ai_engine.urllib.request.urlopen", return_value=FakeResponse()) as open_url:
+        assert list(ai_engine.stream_bluesminds("system", "user")) == ["Hello ", "there."]
+    request = open_url.call_args.args[0]
+    assert json.loads(request.data)["stream"] is True
+
+
+def test_bluesminds_stream_retries_transient_failure_before_first_token(monkeypatch):
+    from urllib.error import HTTPError
+
+    monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "test-key")
+
+    class FakeResponse:
+        def __enter__(self): return self
+        def __exit__(self, exc_type, exc_value, traceback): return False
+        def __iter__(self):
+            yield b'data: {"choices":[{"delta":{"content":"recovered"}}]}\n'
+            yield b'data: [DONE]\n'
+
+    with patch("ai_engine.urllib.request.urlopen", side_effect=[HTTPError("https://provider.invalid", 503, "busy", {}, None), FakeResponse()]) as open_url, patch("ai_engine.time.sleep"):
+        assert list(ai_engine.stream_bluesminds("system", "user")) == ["recovered"]
+    assert open_url.call_count == 2
+
+
+def test_bluesminds_stream_does_not_restart_after_partial_output(monkeypatch):
+    import pytest
+
+    monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "test-key")
+
+    class PartialResponse:
+        def __enter__(self): return self
+        def __exit__(self, exc_type, exc_value, traceback): return False
+        def __iter__(self):
+            yield b'data: {"choices":[{"delta":{"content":"partial"}}]}\n'
+            raise URLError("connection dropped")
+
+    with patch("ai_engine.urllib.request.urlopen", return_value=PartialResponse()) as open_url:
+        stream = ai_engine.stream_bluesminds("system", "user")
+        assert next(stream) == "partial"
+        with pytest.raises(RuntimeError, match="AI request failed, please try again"):
+            next(stream)
+    assert open_url.call_count == 1
+
+
+def test_ai_chat_stream_emits_real_stage_events_and_progressive_deltas(monkeypatch):
+    from fastapi.testclient import TestClient
+    from server import app
+
+    monkeypatch.setattr(ai_engine, "stream_bluesminds", lambda system, user, timeout_seconds=50: iter(["The first words arrive. ", "Then the rest streams."]))
+    response = TestClient(app).post("/api/ai/chat/stream", data={"question": "Tell me something useful."})
+    assert response.status_code == 200
+    body = response.text
+    assert body.index('stage": "Thinking') < body.index('stage": "Analysing') < body.index('stage": "Generating')
+    assert body.count("event: token") >= 2
+    assert '"text": "The ' in body and '"text": "first words arrive.' in body
+    assert "event: done" in body
+
+
+def test_ai_chat_stream_reports_document_stages_and_page_citation(tmp_path, monkeypatch):
+    from fastapi.testclient import TestClient
+    from server import app
+
+    source = tmp_path / "stream-page.pdf"
+    make_pdf(source)
+    monkeypatch.setattr(ai_engine, "stream_bluesminds", lambda system, user, timeout_seconds=50: iter(["October 25, 2026 is the deadline. [Page 1] ", "More context follows."]))
+    with source.open("rb") as handle:
+        response = TestClient(app).post(
+            "/api/ai/chat/stream",
+            data={"question": "What is on page 1?"},
+            files={"file": ("stream-page.pdf", handle, "application/pdf")},
+        )
+    body = response.text
+    ordered = ['stage": "Thinking', 'stage": "Extracting', 'stage": "Analysing', 'stage": "Getting info', 'stage": "Generating']
+    positions = [body.index(stage) for stage in ordered]
+    assert positions == sorted(positions)
+    assert '"citations": [1]' in body
+
+
 def test_ai_chat_answers_general_question_without_pdf(monkeypatch):
     from fastapi.testclient import TestClient
     from server import app

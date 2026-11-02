@@ -11,7 +11,7 @@ import urllib.error
 from collections import Counter
 import logging
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 
 logger = logging.getLogger("paperplane")
 
@@ -198,6 +198,18 @@ def _query_supporting_chunks(chunks: list[DocumentChunk], question: str) -> list
     return [chunk for _, chunk in ranked]
 
 
+def _select_broad_summary_chunks(chunks: list[DocumentChunk], max_pages: int = 12) -> list[DocumentChunk]:
+    """Sample readable pages across the full document to keep broad answers bounded."""
+    by_page: dict[int, DocumentChunk] = {}
+    for chunk in chunks:
+        by_page.setdefault(chunk.page_number, chunk)
+    pages = sorted(by_page)
+    if len(pages) <= max_pages:
+        return [by_page[page] for page in pages]
+    positions = {round(index * (len(pages) - 1) / (max_pages - 1)) for index in range(max_pages)}
+    return [by_page[pages[index]] for index in sorted(positions)]
+
+
 def call_gemini_flash(
     system_prompt: str,
     user_prompt: str,
@@ -321,6 +333,63 @@ def call_bluesminds(
             raise RuntimeError("AI request failed, please try again") from e
 
     raise RuntimeError("AI request failed, please try again") from last_error
+
+
+def stream_bluesminds(system_prompt: str, user_prompt: str, timeout_seconds: float = 50) -> Iterator[str]:
+    """Yield genuine content deltas from the configured OpenAI-compatible stream."""
+    if AI_KILL_SWITCH:
+        raise RuntimeError("AI request failed, please try again")
+    api_key = _current_bluesminds_api_key()
+    if not api_key:
+        raise ValueError("AI provider is not configured")
+    base = (BLUESMINDS_BASE_URL or "https://api.bluesminds.com/v1").rstrip("/")
+    endpoint = f"{base}/chat/completions" if base.endswith("/v1") else f"{base}/v1/chat/completions"
+    payload = {
+        "model": BLUESMINDS_MODEL or "openai/gpt-oss-20b",
+        "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
+        "temperature": 0.2,
+        "max_tokens": BLUESMINDS_MAX_OUTPUT_TOKENS or 4096,
+        "stream": True,
+    }
+    req = urllib.request.Request(
+        endpoint,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json", "Accept": "text/event-stream", "User-Agent": "Paperplane-PDF/1.0"},
+    )
+    attempts = 2
+    for attempt in range(attempts):
+        received_content = False
+        try:
+            with urllib.request.urlopen(req, timeout=max(5, min(60, timeout_seconds))) as response:
+                for raw_line in response:
+                    line = raw_line.decode("utf-8", errors="replace").strip()
+                    if not line.startswith("data:"):
+                        continue
+                    data = line[5:].strip()
+                    if data == "[DONE]":
+                        return
+                    try:
+                        packet = json.loads(data)
+                        delta = packet.get("choices", [{}])[0].get("delta", {}).get("content")
+                        if isinstance(delta, str) and delta:
+                            received_content = True
+                            yield delta
+                    except (ValueError, IndexError, AttributeError, TypeError):
+                        continue
+            return
+        except urllib.error.HTTPError as exc:
+            logger.warning("AI streaming provider returned HTTP %s", exc.code)
+            retryable = exc.code == 429 or 500 <= exc.code < 600
+            if retryable and not received_content and attempt + 1 < attempts:
+                time.sleep(0.4)
+                continue
+            raise RuntimeError("AI request failed, please try again") from exc
+        except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as exc:
+            logger.warning("AI streaming provider connection failed: %s", exc)
+            if not received_content and attempt + 1 < attempts:
+                time.sleep(0.4)
+                continue
+            raise RuntimeError("AI request failed, please try again") from exc
 
 
 def call_agentrouter(
@@ -537,9 +606,13 @@ def chat_with_pdf(pdf_path: Path, question: str) -> dict:
 
     rag = LightweightRAG(chunks)
     page_match = re.search(r"\bpage\s+(\d+)\b", question, re.IGNORECASE)
+    broad_summary = bool(re.search(r"\b(summar(?:y|ize|ise)|overview|key points|important information)\b", question, re.IGNORECASE))
     if page_match:
         requested_page = int(page_match.group(1))
         retrieved_chunks = [chunk for chunk in chunks if chunk.page_number == requested_page]
+        scored_chunks = [(1.0, chunk) for chunk in retrieved_chunks]
+    elif broad_summary:
+        retrieved_chunks = _select_broad_summary_chunks(chunks)
         scored_chunks = [(1.0, chunk) for chunk in retrieved_chunks]
     else:
         scored_chunks = rag.search_scored(question, top_k=8)
@@ -631,7 +704,16 @@ def _is_code_request(question: str) -> bool:
 def _guard_ai_output(answer: str) -> str:
     configured = (BLUESMINDS_MODEL or "").strip()
     forbidden = ("nemotron", "nvidia", "bluesminds", "openai", "anthropic", "google gemini")
-    if any(term in answer.lower() for term in forbidden) or (configured and configured.lower() in answer.lower()):
+    terms = [re.escape(term) for term in forbidden]
+    if configured:
+        terms.append(re.escape(configured))
+    names = "|".join(terms)
+    self_intro = re.search(
+        rf"\b(?:i['’]?m|i am|as (?:an? )?(?:ai|model|language model)|trained by|built by|developed by|created by)\b[^.!?\n]{{0,120}}\b(?:{names})\b",
+        answer,
+        re.IGNORECASE,
+    )
+    if self_intro:
         logger.warning("AI output identity guard replaced a response containing a provider/model identity")
         return _PAPERPLANE_IDENTITY
     return answer
@@ -642,10 +724,11 @@ def summarize_pdf(pdf_path: Path, max_pages: int | None = None) -> str:
     doc = fitz.open(str(pdf_path))
     texts = []
     page_limit = max_pages or doc.page_count
+    page_budget = max(300, min(1500, 22000 // max(1, page_limit)))
     for page in list(doc)[:page_limit]:
         t = page.get_text("text").strip()
         if t:
-            texts.append(f"--- Page {page.number + 1} ---\n{t[:2500]}")
+            texts.append(f"--- Page {page.number + 1} ---\n{t[:page_budget]}")
 
     full_text = "\n\n".join(texts)
     if not full_text:
