@@ -19,6 +19,8 @@ def test_docker_and_nginx_production_contracts():
     assert "/tmp:size=2g" in compose
     assert "gzip on;" in nginx
     assert "gzip_comp_level 6;" in nginx
+    # The HTTP body includes multipart framing in addition to the maximum PDF.
+    assert "client_max_body_size 512m;" in nginx
     assert "location /assets/" in nginx
     assert "expires 30d;" in nginx
     assert 'Cache-Control "public, no-transform"' in nginx
@@ -60,6 +62,32 @@ def test_deployment_and_ssl_scripts_are_idempotent_contracts():
     assert "--renew-only" in ssl_script
     assert "certbot/certbot" in ssl_script
     assert "docker compose" in ssl_script
+
+
+def test_deployment_dry_run_never_claims_live_signoff(tmp_path, monkeypatch, capsys):
+    import json
+    import sys
+    import scripts.deploy_production as deploy
+
+    monkeypatch.setattr(deploy, "REPORTS", tmp_path)
+    monkeypatch.setattr(deploy, "effective_env", lambda: {
+        "PAPERPLANE_ENV": "production",
+        "PAPERPLANE_SESSION_SECRET": "s" * 48,
+        "JWT_SECRET": "j" * 48,
+        "PAPERPLANE_DOMAIN": "localhost",
+    })
+    monkeypatch.setattr(deploy, "docker_available", lambda: False)
+    monkeypatch.setattr(deploy, "check_ports", lambda: ["port 80: available", "port 443: available"])
+    monkeypatch.setattr(sys, "argv", ["deploy_production.py", "--dry-run"])
+
+    assert deploy.main() == 0
+    output = capsys.readouterr().out
+    report = json.loads((tmp_path / "deployment_last_run.json").read_text(encoding="utf-8"))
+
+    assert report["status"] == "preflight_passed"
+    assert "DEPLOYMENT PREFLIGHT: PASS (dry-run only; deployment was not executed)" in output
+    assert "PRODUCTION DEPLOYMENT AND SMOKE TESTS: PASS" not in output
+    assert "Verified live URL:" not in output
 
 
 def test_linux_libreoffice_discovery_ignores_windows_host_override(monkeypatch):

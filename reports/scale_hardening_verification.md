@@ -21,7 +21,7 @@ Date: 2026-10-26
 | `pytest tests/` | PASS — 178 passed, 1 dependency warning |
 | Streaming spool regression tests | PASS — fixed 64 KiB reads, bounded peak heap, partial-file cleanup |
 | `python scripts/preflight_test.py` | PASS — 37/37 checks |
-| `python scripts/deploy_production.py --dry-run` | PASS — production deployment sign-off |
+| `python scripts/deploy_production.py --dry-run` | PASS — configuration preflight only; no image build, Nginx validation, or deployment was executed |
 | `python scripts/browser_verification.py` | PASS — pricing modal/theme flow rendered with 0 console errors, page errors, or failed requests |
 | `python scripts/cashfree_sandbox_smoke.py` | SKIPPED — `CASHFREE_APP_ID` and `CASHFREE_SECRET_KEY` are not configured here |
 

@@ -131,6 +131,18 @@ def test_bluesminds_stream_does_not_restart_after_partial_output(monkeypatch):
     assert open_url.call_count == 1
 
 
+def test_ai_test_connection_returns_specific_visible_http_failure(monkeypatch):
+    from fastapi.testclient import TestClient
+    from server import app
+
+    monkeypatch.setattr(ai_engine, "test_bluesminds_connectivity", lambda: {"status": "connection_error", "http_status": 401})
+    response = TestClient(app).get("/api/ai/test-connection")
+    assert response.status_code == 200
+    assert response.json()["status"] == "connection_error"
+    assert "HTTP 401" in response.json()["message"]
+    assert "model" not in response.json()
+
+
 def test_ai_chat_stream_emits_real_stage_events_and_progressive_deltas(monkeypatch):
     from fastapi.testclient import TestClient
     from server import app

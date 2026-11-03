@@ -52,10 +52,10 @@ docker run --rm --add-host paperplane:127.0.0.1 \
 
 ## Sign-off
 
-**Application and deployment automation: READY.**
+**Historical readiness claim superseded.** A successful `--dry-run` validates configuration and prints planned Docker actions; it does not build the image, run Nginx, start containers, or verify the live deployment.
 
-**Infrastructure execution: BLOCKED only by the local Docker Desktop daemon not
-running and the absence of a real production DNS domain/certificate authority
-environment.** No deployment was attempted against an external host.
+**Current production deployment status: NOT VERIFIED.** The local Docker Desktop Linux engine is unavailable, and this workspace has no production certificate files. Compose configuration and application checks can pass without those runtime checks. No deployment was attempted against an external host.
+
+The live site is checked separately from this workspace's deployment pipeline. A live site responding does not prove that the current local source builds into the same image or that a future deployment will succeed.
 
 Machine-readable dry-run output: `reports/deployment_last_run.json`.

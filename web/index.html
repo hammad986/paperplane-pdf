@@ -13,7 +13,7 @@
   <!-- Cashfree PG v3 checkout SDK; app.js initializes it with the server-issued session. -->
   <script src="https://sdk.cashfree.com/js/v3/cashfree.js" defer></script>
 
-  <link rel="stylesheet" href="/assets/styles.css?v=3.5.10" />
+  <link rel="stylesheet" href="/assets/styles.css?v=3.5.21" />
 
 </head>
 <body class="light-mode auth-pending">
@@ -308,7 +308,7 @@
                 or <button type="button" class="browse-link" id="browse">browse files</button>
                 or <button type="button" class="browse-link" id="cloud-drop-btn">import from Google Drive / Dropbox</button>
               </p>
-              <small id="file-hint">Up to 50 MB free (up to 500 MB with Pro · batch up to 100 files)</small>
+              <small id="file-hint">Files up to 50 MB on Free and 500 MB with Pro · batches up to 100 files</small>
             </div>
 
             <!-- Uploaded File Queue -->
@@ -761,7 +761,10 @@
               <div class="ai-engine-info">
                 <span class="ai-engine-pill">Retrieval: BM25 Lexical Keyword Search</span>
               </div>
-              <button type="button" class="ai-test-conn-btn" id="ai-test-connection-btn">Test AI Connection</button>
+              <div class="ai-connection-test-group">
+                <button type="button" class="ai-test-conn-btn" id="ai-test-connection-btn">Test AI Connection</button>
+                <span id="ai-connection-status" class="ai-connection-status" role="status" aria-live="polite" hidden></span>
+              </div>
             </div>
           </div>
 
@@ -1382,7 +1385,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
                 </ul>
                 <div class="platform-footer">
                   <span class="platform-status-tag ready">EXE / MSI Installer</span>
-                  <button type="button" class="btn-demo-upgrade btn-platform-join" onclick="document.getElementById('waitlist-platform').value='windows'; document.getElementById('waitlist-email').focus();">Request Build</button>
+                  <button type="button" class="btn-demo-upgrade btn-platform-join" data-platform="windows">Request Build</button>
                 </div>
               </div>
 
@@ -1405,7 +1408,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
                 </ul>
                 <div class="platform-footer">
                   <span class="platform-status-tag ready">DMG / PKG Universal</span>
-                  <button type="button" class="btn-demo-upgrade btn-platform-join" onclick="document.getElementById('waitlist-platform').value='macos'; document.getElementById('waitlist-email').focus();">Request Build</button>
+                  <button type="button" class="btn-demo-upgrade btn-platform-join" data-platform="macos">Request Build</button>
                 </div>
               </div>
 
@@ -1428,7 +1431,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
                 </ul>
                 <div class="platform-footer">
                   <span class="platform-status-tag ready">AppImage / Flatpak</span>
-                  <button type="button" class="btn-demo-upgrade btn-platform-join" onclick="document.getElementById('waitlist-platform').value='linux'; document.getElementById('waitlist-email').focus();">Request Build</button>
+                  <button type="button" class="btn-demo-upgrade btn-platform-join" data-platform="linux">Request Build</button>
                 </div>
               </div>
 
@@ -1451,7 +1454,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
                 </ul>
                 <div class="platform-footer">
                   <span class="platform-status-tag testing">APK Early Testing</span>
-                  <button type="button" class="btn-demo-upgrade btn-platform-join" onclick="document.getElementById('waitlist-platform').value='android'; document.getElementById('waitlist-email').focus();">Request Build</button>
+                  <button type="button" class="btn-demo-upgrade btn-platform-join" data-platform="android">Request Build</button>
                 </div>
               </div>
 
@@ -1474,7 +1477,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
                 </ul>
                 <div class="platform-footer">
                   <span class="platform-status-tag testing">TestFlight Beta</span>
-                  <button type="button" class="btn-demo-upgrade btn-platform-join" onclick="document.getElementById('waitlist-platform').value='ios'; document.getElementById('waitlist-email').focus();">Request Build</button>
+                  <button type="button" class="btn-demo-upgrade btn-platform-join" data-platform="ios">Request Build</button>
                 </div>
               </div>
             </div>
@@ -1576,7 +1579,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
               <div class="profile-avatar status-online" id="settings-user-avatar" style="width: 44px; height: 44px; font-size: 16px;">G</div>
               <div style="flex: 1; min-width: 0;">
                 <h4 id="settings-user-email" style="margin: 0 0 4px 0; font-size: 15px; color: var(--text-main);">Guest Explorer</h4>
-                <span class="profile-badge" id="settings-user-badge">Free Sovereign Tier · 100 free files/day</span>
+                <span class="profile-badge" id="settings-user-badge">Free Sovereign Tier · 100 operations/day</span>
               </div>
             </div>
           </div>
@@ -1660,9 +1663,9 @@ async function convertFileInBrowser(file, operation = 'compress') {
             </div>
             <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px;">
               <strong style="font-size: 20px; color: var(--text-main);" id="settings-tier-name">Free Sovereign Tier</strong>
-              <span style="font-size: 12.5px; color: var(--text-muted);">(100 conversions / day)</span>
+              <span style="font-size: 12.5px; color: var(--text-muted);" id="settings-daily-limit">(100 operations / day)</span>
             </div>
-            <p style="font-size: 12.5px; color: var(--text-muted); margin: 0 0 14px 0; line-height: 1.5;">Industry-leading freemium quota matching iLovePDF: 100 conversions/day with 500MB batch uploads.</p>
+            <p id="settings-quota-description" style="font-size: 12.5px; color: var(--text-muted); margin: 0 0 14px 0; line-height: 1.5;">Free: 100 PDF operations per day and files up to 50 MB each. Pro: no daily operation cap, files up to 500 MB, and batches up to 100 files.</p>
             <div class="quota-container" style="margin-bottom: 16px;">
               <div class="quota-label-row">
                 <span>Operations Today</span>
@@ -1928,7 +1931,14 @@ async function convertFileInBrowser(file, operation = 'compress') {
 
       <!-- Multi-Tier Pricing Grid -->
       <div class="pricing-tiers-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
-        
+        <!-- Free plan and limits are shown alongside paid offers. -->
+        <div class="pricing-tier-card">
+          <div class="tier-card-header"><span style="font-size: 20px;">🆓</span><div><h4 class="tier-title">Free Sovereign</h4><span class="tier-subtitle">For everyday PDF tasks</span></div></div>
+          <div class="tier-price-box"><div class="tier-price-main"><span class="tier-price-val">₹0</span><span class="tier-price-period">/ always</span></div><span class="tier-price-alt">No payment required</span></div>
+          <ul class="tier-features-list"><li><span>✓</span><strong>100 PDF operations per day</strong></li><li><span>✓</span>Files up to 50 MB each</li><li><span>✓</span>Guest access for supported tools</li></ul>
+          <div class="tier-actions"><span class="tier-price-alt">Included automatically</span></div>
+        </div>
+
         <!-- TIER 0: 24-Hour Exam Pass (₹19) -->
         <div class="pricing-tier-card">
           <div class="tier-popular-tag" style="background: #3b82f6;">EXAM DAY SPECIAL</div>
@@ -3117,7 +3127,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <div style="border-top: 1px solid var(--studio-border); padding-top: 12px;">
              <strong style="font-size: 13px;">Import Form Data</strong>
             <p style="font-size: 11.5px; color: var(--text-muted); margin: 4px 0 8px 0;">Paste JSON object containing field names and their target values to populate the document:</p>
-            <textarea id="forms-import-json-text" class="editor-input" aria-label="Form fields JSON definition" rows="4" placeholder='{"full_name": "Jane Doe", "agree": true}' style="width: 100%; font-family: monospace; font-size: 11px;"></textarea>
+            <textarea id="forms-import-json-text" class="editor-input" aria-label="Form fields JSON definition" rows="4" placeholder='{"Name": "Alex", "Email": "alex@example.com", "City": "Pune"}' style="width: 100%; font-family: monospace; font-size: 11px;"></textarea>
             <button type="button" class="btn-primary-action" id="btn-apply-import-json" style="margin-top: 8px; padding: 6px 14px; font-size: 12px;">Import JSON into Form →</button>
           </div>
         </div>
@@ -3329,19 +3339,19 @@ async function convertFileInBrowser(file, operation = 'compress') {
 
   <!-- Fixed Mobile Bottom Navigation Bar (Workspace Views) -->
   <nav class="mobile-workspace-bar" aria-label="Mobile Navigation">
-    <button type="button" class="mobile-nav-btn active" id="mob-nav-home" onclick="switchWorkspaceView('home')">
+    <button type="button" class="mobile-nav-btn active" id="mob-nav-home" data-workspace-view="home">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       <span>All Tools</span>
     </button>
-    <button type="button" class="mobile-nav-btn" id="mob-nav-desk" onclick="switchWorkspaceView('desk')">
+    <button type="button" class="mobile-nav-btn" id="mob-nav-desk" data-workspace-view="desk">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
       <span>Tool Desk</span>
     </button>
-    <button type="button" class="mobile-nav-btn" id="mob-nav-studio" onclick="switchWorkspaceView('studio')">
+    <button type="button" class="mobile-nav-btn" id="mob-nav-studio" data-workspace-view="studio">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
       <span>Studio</span>
     </button>
-    <button type="button" class="mobile-nav-btn" id="mob-nav-ai" onclick="switchWorkspaceView('ai')">
+    <button type="button" class="mobile-nav-btn" id="mob-nav-ai" data-workspace-view="ai">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a8 8 0 0 0-8 8c0 3.37 2.08 6.25 5 7.42V20a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-2.58c2.92-1.17 5-4.05 5-7.42a8 8 0 0 0-8-8z"/></svg>
       <span>AI Docs</span>
     </button>
@@ -3362,6 +3372,6 @@ async function convertFileInBrowser(file, operation = 'compress') {
   <!-- Phase 2 Professional Editor Engine -->
   <script src="/assets/editor.js?v=3.2.0" defer></script>
   <!-- Application Controller -->
-  <script src="/assets/app.js?v=3.5.9" defer></script>
+  <script src="/assets/app.js?v=3.5.14" defer></script>
 </body>
 </html>

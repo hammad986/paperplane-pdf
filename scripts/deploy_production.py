@@ -187,9 +187,9 @@ def smoke_tests(base_url: str, dry_run: bool) -> list[str]:
     if dry_run:
         return [
             "GET /health -> status healthy",
-            "GET /sitemap.xml -> XML with at least 37 URLs",
+            "GET /sitemap.xml -> valid XML and tool routes",
             "GET /robots.txt -> Allow: / and sitemap reference",
-            "GET /api/operations -> 37 operation definitions",
+            "GET /api/operations -> complete operation catalog",
             "DOCX -> PDF conversion inside the production container",
         ]
 
@@ -288,16 +288,22 @@ def main() -> int:
             public_url = "http://127.0.0.1:8501"
         report["checks"].extend(smoke_tests(public_url, args.dry_run))
         report["base_url"] = public_url
-        report["status"] = "passed"
-        log("PRODUCTION DEPLOYMENT SIGN-OFF: PASS")
+        report["status"] = "preflight_passed" if args.dry_run else "deployed_and_verified"
+        if args.dry_run:
+            log("DEPLOYMENT PREFLIGHT: PASS (dry-run only; deployment was not executed)")
+        else:
+            log("PRODUCTION DEPLOYMENT AND SMOKE TESTS: PASS")
         for check in report["checks"]:
             log(f"PASS: {check}")
-        log(f"Live URL: {public_url}")
-        log(f"API docs: {public_url}/api-docs")
+        if args.dry_run:
+            log(f"Planned base URL: {public_url}")
+        else:
+            log(f"Verified live URL: {public_url}")
+            log(f"API docs: {public_url}/api-docs")
         return 0
     except (DeploymentError, OSError, ValueError, ET.ParseError) as exc:
         report["error"] = str(exc)
-        log(f"PRODUCTION DEPLOYMENT SIGN-OFF: BLOCKED — {exc}")
+        log(f"{'DEPLOYMENT PREFLIGHT' if args.dry_run else 'PRODUCTION DEPLOYMENT'}: BLOCKED — {exc}")
         return 1
     finally:
         REPORTS.mkdir(exist_ok=True)

@@ -55,7 +55,7 @@ class TestDeveloperAPI(unittest.TestCase):
         shutil.rmtree(cls.temp_dir, ignore_errors=True)
 
     def test_01_v1_operations_catalog(self):
-        """Verifies GET /api/v1/operations lists all 37 tools with capabilities and categories."""
+        """Verifies GET /api/v1/operations lists the complete tool catalog."""
         res = self.client.get("/api/v1/operations")
         self.assertEqual(res.status_code, 200)
         data = res.json()

@@ -47,7 +47,7 @@ from config import (
     AI_PROVIDER, ALLOWED_ORIGINS, CLAMAV_HOST, CLAMAV_PORT, JOBS_DIR,
     JOB_TTL_SECONDS, MAX_FILE_SIZE, OPENAI_API_KEY, GEMINI_API_KEY,
     RATE_LIMIT_PER_MINUTE, REQUIRE_AUTH, S3_BUCKET, 
-    FREE_TIER_DAILY_LIMIT, PRO_TIER_PRICE_USD, PRO_TIER_PRICE_INR,
+    FREE_TIER_DAILY_LIMIT, FREE_TIER_MAX_FILE_SIZE_MB, PRO_TIER_PRICE_USD, PRO_TIER_PRICE_INR,
     DEV_TIER_PRICE_USD, DEV_TIER_PRICE_INR,
     EXAM_PASS_PRICE_INR, STUDENT_PRO_PRICE_INR, STUDENT_ANNUAL_PRICE_INR, CYBER_CAFE_PRICE_INR,
     TRUSTED_HOSTS,
@@ -157,7 +157,15 @@ def run_converter_with_timeout(
         )
         raise
 
-DISABLE_DOCS = os.getenv("PAPERPLANE_DISABLE_DOCS", "false").lower() in ("true", "1")
+def _should_disable_docs(environment: str, configured_disable: str | None = None) -> bool:
+    """Keep interactive API docs off public production deployments by default."""
+    if environment.lower() == "production":
+        return True
+    configured = os.getenv("PAPERPLANE_DISABLE_DOCS", "false") if configured_disable is None else configured_disable
+    return configured.lower() in ("true", "1", "yes")
+
+
+DISABLE_DOCS = _should_disable_docs(ENVIRONMENT)
 app = FastAPI(
     title="Paperplane PDF Enterprise API",
     version="2.0.0",
@@ -199,9 +207,9 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Cross-Origin-Opener-Policy"] = "same-origin-allow-popups"
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://accounts.google.com https://sdk.cashfree.com https://cdn.jsdelivr.net; "
+            "script-src 'self' 'wasm-unsafe-eval' https://accounts.google.com https://sdk.cashfree.com https://cdn.jsdelivr.net; "
             "worker-src 'self' blob:; "
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline' https://accounts.google.com https://fonts.googleapis.com https://cdn.jsdelivr.net; "
             "font-src 'self' https://fonts.gstatic.com data:; "
             "img-src 'self' data: blob: https:; "
             "connect-src 'self' https://accounts.google.com https://api.cashfree.com https://sandbox.cashfree.com; "
@@ -1380,6 +1388,24 @@ def parse_options(raw: str) -> dict:
 
 
 UPLOAD_CHUNK_SIZE = 64 * 1024
+MAX_BATCH_FILES = 100
+
+
+def plan_limits_payload() -> dict[str, int]:
+    """Public plan limits used by both the upload guard and client copy."""
+    return {
+        "free_operations_per_day": FREE_TIER_DAILY_LIMIT,
+        "free_max_file_size_mb": FREE_TIER_MAX_FILE_SIZE_MB,
+        "pro_max_file_size_mb": MAX_FILE_SIZE // (1024 * 1024),
+        "max_batch_files": MAX_BATCH_FILES,
+    }
+
+
+def upload_limit_bytes_for_tier(tier: str | None) -> int:
+    paid_tiers = {"pro", "developer", "student_pro", "cyber_cafe", "exam_pass"}
+    if (tier or "free").lower() in paid_tiers:
+        return MAX_FILE_SIZE
+    return min(MAX_FILE_SIZE, FREE_TIER_MAX_FILE_SIZE_MB * 1024 * 1024)
 
 
 def save_upload_spooled(
@@ -1411,10 +1437,10 @@ def save_upload_spooled(
     return total_bytes
 
 
-def save_upload(upload: UploadFile, directory: Path) -> Path:
+def save_upload(upload: UploadFile, directory: Path, max_bytes: int = MAX_FILE_SIZE) -> Path:
     safe_name = Path(upload.filename or "document.pdf").name
     destination = directory / f"{uuid.uuid4().hex}_{safe_name}"
-    save_upload_spooled(upload, destination)
+    save_upload_spooled(upload, destination, max_bytes=max_bytes)
     return destination
 
 
@@ -2853,6 +2879,7 @@ def get_current_user_profile(request: Request, user_id: str | None = Depends(cur
         "cyber_cafe": {"inr": CYBER_CAFE_PRICE_INR},
         "developer": {"inr": DEV_TIER_PRICE_INR},
     }
+    plan_limits = plan_limits_payload()
     if not user_id:
         usage = get_daily_usage(f"ip:{client_ip}")
         return {
@@ -2865,7 +2892,8 @@ def get_current_user_profile(request: Request, user_id: str | None = Depends(cur
             "daily_limit": FREE_TIER_DAILY_LIMIT,
             "usage_today": usage,
             "remaining_today": max(0, FREE_TIER_DAILY_LIMIT - usage),
-            "pricing": all_pricing
+            "pricing": all_pricing,
+            "plan_limits": plan_limits,
         }
     user = get_user(user_id)
     if not user:
@@ -2880,7 +2908,8 @@ def get_current_user_profile(request: Request, user_id: str | None = Depends(cur
             "daily_limit": FREE_TIER_DAILY_LIMIT,
             "usage_today": usage,
             "remaining_today": max(0, FREE_TIER_DAILY_LIMIT - usage),
-            "pricing": all_pricing
+            "pricing": all_pricing,
+            "plan_limits": plan_limits,
         }
     tier = (user.get("tier") or "free").lower()
     paid_tiers = ("pro", "developer", "student_pro", "cyber_cafe", "exam_pass")
@@ -2909,7 +2938,8 @@ def get_current_user_profile(request: Request, user_id: str | None = Depends(cur
         "daily_limit": None if is_pro else FREE_TIER_DAILY_LIMIT,
         "usage_today": usage,
         "remaining_today": "Unlimited" if is_pro else max(0, FREE_TIER_DAILY_LIMIT - usage),
-        "pricing": all_pricing
+        "pricing": all_pricing,
+        "plan_limits": plan_limits,
     }
 
 
@@ -3506,7 +3536,13 @@ def general_ai_test_connection():
         return {"status": "connected", "message": "AI Connected", "fallback_active": False}
     if status == "configuration_missing":
         return {"status": status, "message": "AI provider is not configured", "fallback_active": False}
-    return {"status": "connection_error", "message": "AI request failed, please try again", "fallback_active": False}
+    http_status = result.get("http_status")
+    error_label = f" (HTTP {int(http_status)})" if isinstance(http_status, int) else ""
+    return {
+        "status": "connection_error",
+        "message": f"AI connection failed{error_label}. Check the configured AI service and try again.",
+        "fallback_active": False,
+    }
 
 
 @app.post("/api/pdf/annotate")
@@ -5329,7 +5365,7 @@ def create_job_endpoint(
         raise HTTPException(400, "Please select at least one file to process.")
 
     # Batch limits (up to 100 for merge/scan/images)
-    max_files = 100 if operation in {"merge", "jpg_to_pdf", "scan_pdf"} else 2 if operation == "compare" else 1
+    max_files = MAX_BATCH_FILES if operation in {"merge", "jpg_to_pdf", "scan_pdf"} else 2 if operation == "compare" else 1
     if len(files) > max_files:
         raise HTTPException(400, f"This operation accepts at most {max_files} files.")
 
@@ -5346,19 +5382,20 @@ def create_job_endpoint(
             path="/"
         )
     
-    # Track usage count
-    subject = f"user:{user_id}" if user_id else f"ip:{client_ip}"
-    increment_daily_usage(subject)
     job_dir = JOBS / job_id
     job_dir.mkdir(parents=True, exist_ok=True)
 
     try:
         paths = []
+        upload_limit_bytes = upload_limit_bytes_for_tier(user_tier)
         for file in files:
-            p = save_upload(file, job_dir)
+            p = save_upload(file, job_dir, max_bytes=upload_limit_bytes)
             validate_upload(p, expected, operation)
             paths.append(p)
 
+        # Failed uploads and invalid files do not consume a daily operation.
+        subject = f"user:{user_id}" if user_id else f"ip:{client_ip}"
+        increment_daily_usage(subject)
         executor.submit(run_job, job_id, operation, paths, parsed_options, user_id)
         download_suffix = f"?token={guest_token}" if guest_token else ""
         return {
@@ -5368,6 +5405,10 @@ def create_job_endpoint(
             "status_url": f"/api/jobs/{job_id}{download_suffix}",
             "download_url": f"/api/jobs/{job_id}/download{download_suffix}"
         }
+    except HTTPException as error:
+        update_job(job_id, status="failed", error=str(error.detail))
+        shutil.rmtree(job_dir, ignore_errors=True)
+        raise HTTPException(error.status_code, error.detail) from error
     except Exception as error:
         update_job(job_id, status="failed", error=str(error))
         shutil.rmtree(job_dir, ignore_errors=True)
@@ -5442,7 +5483,7 @@ def _dev_rate_limit_headers(usage: dict) -> dict[str, str]:
 
 @app.get("/api/v1/operations", tags=["Developer API v1"])
 def list_v1_operations():
-    """Lists all 37 available PDF operations and their capabilities."""
+    """Lists all available PDF operations and their capabilities."""
     catalog = []
     for op_name, op_info in OPERATIONS.items():
         catalog.append({
@@ -5513,7 +5554,7 @@ async def create_v1_job(
     if operation != "html_to_pdf" and not files:
         raise HTTPException(400, "Please supply at least one input file in the 'files' multipart form field.")
 
-    max_files = 100 if operation in {"merge", "jpg_to_pdf", "scan_pdf"} else 2 if operation == "compare" else 1
+    max_files = MAX_BATCH_FILES if operation in {"merge", "jpg_to_pdf", "scan_pdf"} else 2 if operation == "compare" else 1
     if len(files) > max_files:
         raise HTTPException(400, f"Operation '{operation}' accepts at most {max_files} input file(s).")
 

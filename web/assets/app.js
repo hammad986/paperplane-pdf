@@ -8,6 +8,12 @@ const state = {
   category: 'Organize',
   files: [],
   user: null,
+  planLimits: {
+    free_operations_per_day: 100,
+    free_max_file_size_mb: 50,
+    pro_max_file_size_mb: 500,
+    max_batch_files: 100
+  },
   clientSideMode: false,
   activeView: 'home', // 'home', 'desk', 'studio', 'ai'
   
@@ -46,7 +52,7 @@ const CATEGORY_MAP = {
   ],
   'Edit': ['edit', 'annotate', 'sign', 'watermark', 'page_numbers', 'redact', 'crop', 'flatten'],
   'AI': ['ai_chat', 'ai_extract', 'summarize', 'translate', 'protect', 'unlock', 'compress', 'repair', 'ocr', 'compare', 'forms', 'metadata', 'mask_aadhaar'],
-  'All': [] // Dynamically holds all 37
+  'All': [] // Dynamically holds every operation returned by the server catalog.
 };
 
 // Stable public URLs shared with the FastAPI SEO router.  Internal operation
@@ -537,7 +543,7 @@ function renderSidebarTools() {
     const item = state.operations[key] || { label: key };
     const isActive = key === state.operation;
     return `
-      <button type="button" class="sidebar-tool-item ${isActive ? 'active' : ''}" onclick="selectOperation('${key}')">
+      <button type="button" class="sidebar-tool-item ${isActive ? 'active' : ''}" data-select-operation="${key}">
         ${item.label}
       </button>
     `;
@@ -664,7 +670,7 @@ function renderHomeToolsGrid(filterCategory = 'all', searchQuery = '') {
             const badgeText = isAvailable ? 'Ready' : (op.prerequisite || 'Engine Required');
             const badgeClass = isAvailable ? 'ready' : 'prereq';
             return `
-              <div class="home-tool-card" role="button" tabindex="0" onclick="selectOperation('${opId}')" onkeydown="if(event.key==='Enter'||event.key===' ')selectOperation('${opId}')">
+              <div class="home-tool-card" role="button" tabindex="0" data-select-operation="${opId}">
                 <div class="home-tool-icon" style="background: ${cat.iconColor}1a; color: ${cat.iconColor};">
                   ${getToolIconSvg(opId)}
                 </div>
@@ -690,7 +696,7 @@ function renderHomeToolsGrid(filterCategory = 'all', searchQuery = '') {
         <div class="no-results-icon">Search</div>
         <h3>No tools matched "${searchQuery}"</h3>
         <p>Try searching for "merge", "split", "word", "compress", or "sign".</p>
-        <button type="button" class="btn-primary-action" onclick="resetHomeSearch()">Clear Search</button>
+        <button type="button" class="btn-primary-action" data-reset-home-search>Clear Search</button>
       </div>
     `;
   }
@@ -835,13 +841,16 @@ function selectOperation(op, switchToDesk = true) {
   const tierBadge = $('#tool-tier-badge');
   if (tierBadge) {
     if (state.user) {
-      if (state.user && state.user.is_pro) {
-        tierBadge.textContent = '👑 Pro Power User · Unlimited (500 MB)';
+      const accountTier = String(state.user.tier || '').toLowerCase();
+      const paidAccount = Boolean(state.user.is_pro || state.user.is_dev || ['developer', 'student_pro', 'cyber_cafe', 'exam_pass'].includes(accountTier));
+      if (paidAccount) {
+        const paidLabel = state.user.is_dev || accountTier === 'developer' ? 'Developer' : accountTier === 'student_pro' ? 'Student Pro' : accountTier === 'cyber_cafe' ? 'Cyber Café' : accountTier === 'exam_pass' ? 'Exam Pass' : 'Pro Power User';
+        tierBadge.textContent = `👑 ${paidLabel} · Unlimited · ${state.planLimits.pro_max_file_size_mb} MB · ${state.planLimits.max_batch_files} files`;
         tierBadge.style.color = '#f59e0b';
         tierBadge.style.borderColor = 'rgba(245,158,11,0.3)';
         tierBadge.style.background = 'rgba(245,158,11,0.1)';
       } else {
-        tierBadge.textContent = '✨ Free Account · 100 ops/day (50 MB)';
+        tierBadge.textContent = `✨ Free Account · ${state.planLimits.free_operations_per_day} ops/day · ${state.planLimits.free_max_file_size_mb} MB/file`;
         tierBadge.style.color = '#38bdf8';
         tierBadge.style.borderColor = 'rgba(56,189,248,0.3)';
         tierBadge.style.background = 'rgba(56,189,248,0.1)';
@@ -852,7 +861,7 @@ function selectOperation(op, switchToDesk = true) {
       tierBadge.style.borderColor = 'rgba(245,158,11,0.3)';
       tierBadge.style.background = 'rgba(245,158,11,0.1)';
     } else {
-      tierBadge.textContent = '⚡ Free Guest Tool · No Account Required (100 ops/day · 50 MB)';
+      tierBadge.textContent = `⚡ Free Guest Tool · No Account Required (${state.planLimits.free_operations_per_day} ops/day · ${state.planLimits.free_max_file_size_mb} MB/file)`;
       tierBadge.style.color = '#10b981';
       tierBadge.style.borderColor = 'rgba(16,185,129,0.3)';
       tierBadge.style.background = 'rgba(16,185,129,0.1)';
@@ -876,7 +885,7 @@ function selectOperation(op, switchToDesk = true) {
 
   const hint = $('#file-hint');
   if (hint) {
-    hint.textContent = `${item.accept === 'image' ? 'Images' : item.accept === 'office' ? 'Office documents' : 'PDF files'} up to 50 MB free (up to 500 MB with Pro · batch up to 100 files)`;
+    hint.textContent = `${item.accept === 'image' ? 'Images' : item.accept === 'office' ? 'Office documents' : 'PDF files'} up to ${state.planLimits.free_max_file_size_mb} MB on Free and ${state.planLimits.pro_max_file_size_mb} MB with Pro · batches up to ${state.planLimits.max_batch_files} files`;
   }
 
   renderOptions();
@@ -906,11 +915,20 @@ function selectOperation(op, switchToDesk = true) {
 // ----------------------------------------------------------------------
 
 function updateBillingUI(data) {
+  if (data?.plan_limits) state.planLimits = { ...state.planLimits, ...data.plan_limits };
   const tier = (data && data.tier ? data.tier : 'free').toLowerCase();
   const isPaid = Boolean(data && (data.is_pro || data.is_dev || ['pro', 'developer', 'student_pro', 'cyber_cafe', 'exam_pass'].includes(tier)));
   const usage = data ? (data.usage_today || 0) : 0;
   const limit = data ? (data.daily_limit ?? 100) : 100;
+  const freeFileMb = state.planLimits.free_max_file_size_mb;
+  const proFileMb = state.planLimits.pro_max_file_size_mb;
+  const maxBatchFiles = state.planLimits.max_batch_files;
   state.dailyLimit = limit;
+
+  const quotaDescription = $('#settings-quota-description');
+  if (quotaDescription) quotaDescription.textContent = `Free: ${state.planLimits.free_operations_per_day} PDF operations per day and files up to ${freeFileMb} MB each. Pro: no daily operation cap, files up to ${proFileMb} MB, and batches up to ${maxBatchFiles} files.`;
+  const fileHint = $('#file-hint');
+  if (fileHint) fileHint.textContent = `Files up to ${freeFileMb} MB on Free and ${proFileMb} MB with Pro · batches up to ${maxBatchFiles} files`;
 
   const quotaText = $('#quota-text');
   const quotaFill = $('#quota-fill');
@@ -922,6 +940,8 @@ function updateBillingUI(data) {
   const settingsQuotaFill = $('#settings-quota-fill');
   const settingsTierName = $('#settings-tier-name');
   const settingsTierBadge = $('#settings-tier-badge');
+  const settingsDailyLimit = $('#settings-daily-limit');
+  if (settingsDailyLimit) settingsDailyLimit.textContent = isPaid ? '(No daily operation cap)' : `(${limit} operations / day)`;
 
   if (isPaid) {
     let tierName = 'Pro Power User Tier';
@@ -951,7 +971,7 @@ function updateBillingUI(data) {
       shortLabel = 'Exam Pass';
     }
 
-    if (quotaText) quotaText.textContent = `Unlimited (${shortLabel})`;
+    if (quotaText) quotaText.textContent = `Unlimited · ${proFileMb} MB · ${maxBatchFiles} files`;
     if (quotaFill) {
       quotaFill.style.width = '100%';
       quotaFill.className = 'quota-progress-fill pro';
@@ -1005,9 +1025,9 @@ function updateBillingUI(data) {
 async function checkAuthStatus() {
   try {
     const data = await safeFetch('/api/auth/me');
+    state.user = data.authenticated ? data : null;
     updateBillingUI(data);
     if (data.authenticated) {
-      state.user = data;
       const initial = (data.email[0] || 'U').toUpperCase();
       $('#user-avatar').textContent = initial;
       $('#user-name').textContent = data.email;
@@ -1022,7 +1042,7 @@ async function checkAuthStatus() {
       if (sAvatar) sAvatar.textContent = initial;
       if (sEmail) sEmail.textContent = data.email;
       if (sBadge) {
-        sBadge.textContent = data.is_dev ? 'Developer API Tier' : data.is_pro ? 'Pro Power User Tier' : 'Free Sovereign Tier (100 files/day)';
+        sBadge.textContent = data.is_dev ? 'Developer API Tier' : data.is_pro ? 'Pro Power User Tier' : `Free Sovereign Tier · ${state.planLimits.free_operations_per_day} operations/day`;
       }
       if ($('#settings-guest-actions')) $('#settings-guest-actions').hidden = true;
       if ($('#settings-user-actions')) $('#settings-user-actions').hidden = false;
@@ -1036,10 +1056,11 @@ async function checkAuthStatus() {
       if ($('#topbar-username')) $('#topbar-username').textContent = 'Guest Explorer';
       if ($('#settings-user-avatar')) $('#settings-user-avatar').textContent = 'G';
       if ($('#settings-user-email')) $('#settings-user-email').textContent = 'Guest Explorer';
-      if ($('#settings-user-badge')) $('#settings-user-badge').textContent = 'Free Sovereign Tier · 100 free files/day';
+      if ($('#settings-user-badge')) $('#settings-user-badge').textContent = `Free Sovereign Tier · ${state.planLimits.free_operations_per_day} operations/day`;
       if ($('#settings-guest-actions')) $('#settings-guest-actions').hidden = false;
       if ($('#settings-user-actions')) $('#settings-user-actions').hidden = true;
     }
+    if (state.activeView === 'desk' && $('#tool-title')) selectOperation(state.operation, false);
   } catch {
     state.user = null;
     $('#user-avatar').textContent = 'G';
@@ -1049,6 +1070,7 @@ async function checkAuthStatus() {
     if ($('#topbar-avatar')) $('#topbar-avatar').textContent = 'G';
     if ($('#topbar-username')) $('#topbar-username').textContent = 'Guest Explorer';
     updateBillingUI(null);
+    if (state.activeView === 'desk' && $('#tool-title')) selectOperation(state.operation, false);
   } finally {
     document.body.classList.remove('auth-pending');
   }
@@ -1172,7 +1194,7 @@ async function loadSettingsApiKeys() {
           <strong>${k.name}</strong> · <code style="font-family: var(--font-mono); font-size: 11px;">${k.key_prefix}</code>
           <small style="display: block; color: var(--text-muted);">Created: ${new Date(k.created_at * 1000).toLocaleDateString()}</small>
         </div>
-        <button type="button" class="delete-file-btn" onclick="revokeKey('${k.id}')" title="Revoke API Key"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        <button type="button" class="delete-file-btn" data-revoke-key="${escapeHtml(k.id)}" title="Revoke API Key"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
       </div>
     `).join('');
   } catch (err) {
@@ -1192,9 +1214,9 @@ if ($('#settings-create-key-form')) {
       alertEl.innerHTML = `
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
           <strong>API Key Generated:</strong>
-          <button type="button" class="btn-primary-action" style="padding: 4px 10px; font-size: 11px;" onclick="copyToClipboard('${data.api_key}')"> Copy Key</button>
+          <button type="button" class="btn-primary-action" style="padding: 4px 10px; font-size: 11px;" data-copy-value="${escapeHtml(data.api_key)}"> Copy Key</button>
         </div>
-        <code style="display: block; background: #fff; color: #111; padding: 8px 12px; margin: 8px 0; border: 1px solid var(--border-light); border-radius: 6px; font-weight: bold; word-break: break-all; font-family: var(--font-mono); cursor: pointer;" onclick="copyToClipboard('${data.api_key}')" title="Click to copy">${data.api_key}</code>
+        <code style="display: block; background: #fff; color: #111; padding: 8px 12px; margin: 8px 0; border: 1px solid var(--border-light); border-radius: 6px; font-weight: bold; word-break: break-all; font-family: var(--font-mono); cursor: pointer;" data-copy-value="${escapeHtml(data.api_key)}" title="Click to copy">${escapeHtml(data.api_key)}</code>
         <small style="color: var(--text-muted);">Store this secret key securely. It cannot be shown again.</small>
       `;
       alertEl.hidden = false;
@@ -1290,7 +1312,7 @@ function renderCommandResults(query) {
   }
 
   container.innerHTML = matches.map(([key, item]) => `
-    <div class="command-item" onclick="selectOperationFromCommand('${key}')">
+    <div class="command-item" data-command-operation="${key}" tabindex="0" role="button">
       <div class="command-item-left">
         <span style="font-weight: 700; color: var(--brand-accent);">API</span>
         <div>
@@ -2179,7 +2201,7 @@ function renderOptions() {
   } else if (state.operation === 'metadata') {
     fields += field('title', 'Document Title', 'text', '') + field('author', 'Author', 'text', '') + field('subject', 'Subject', 'text', '');
   } else if (state.operation === 'forms') {
-    fields += `<div class="option-field" style="grid-column: span 2;"><label for="fields">Form JSON Map</label><input id="fields" type="text" placeholder='{"FullName":"Alex", "Agreed": true}'></div>`;
+    fields += `<div class="option-field" style="grid-column: span 2;"><label for="fields">Form JSON Map</label><input id="fields" type="text" placeholder='{"Name":"Alex", "Email":"alex@example.com", "City":"Pune"}'></div>`;
   } else if (state.operation === 'ai_extract') {
     fields += selectField('doc_type', 'Document Type', ['auto', 'general', 'invoice', 'resume']);
   }
@@ -2233,7 +2255,7 @@ function renderFiles() {
         </div>
       </div>
       <div class="file-row-actions">
-        <button class="delete-file-btn" onclick="removeFile(${idx})" title="Remove file"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        <button class="delete-file-btn" data-remove-file="${idx}" title="Remove file"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
       </div>
     </div>
   `).join('');
@@ -2342,16 +2364,18 @@ const HEAVY_TOOLS = new Set([
 ]);
 
 function checkAccessRequirement(operation, files = []) {
-  if (state.user) return true;
-  if (HEAVY_TOOLS.has(operation)) {
+  const accountTier = String(state.user?.tier || '').toLowerCase();
+  const paidAccount = Boolean(state.user && (state.user.is_pro || state.user.is_dev || ['developer', 'student_pro', 'cyber_cafe', 'exam_pass'].includes(accountTier)));
+  if (!state.user && HEAVY_TOOLS.has(operation)) {
     showToast('This advanced AI / conversion tool requires a free account. Please sign in or register.', 'info');
     openAuthModal('', 'login');
     return false;
   }
-  const largeFile = files.find(f => f.size > 50 * 1024 * 1024);
+  const maxMb = paidAccount ? state.planLimits.pro_max_file_size_mb : state.planLimits.free_max_file_size_mb;
+  const largeFile = files.find(f => f.size > maxMb * 1024 * 1024);
   if (largeFile) {
-    showToast(`File "${largeFile.name}" exceeds guest limit (50MB). Please sign in for up to 500MB uploads.`, 'warning');
-    openAuthModal('', 'login');
+    showToast(`"${largeFile.name}" is over the ${maxMb} MB ${paidAccount ? 'account' : 'Free'} file limit. Choose a smaller file${paidAccount ? '' : ' or upgrade for larger uploads'}.`, 'warning');
+    if (!state.user) openAuthModal('', 'login');
     return false;
   }
   return true;
@@ -3097,19 +3121,31 @@ if (aiUploadZone) {
 const testConnBtn = $('#ai-test-connection-btn');
 if (testConnBtn) {
   testConnBtn.onclick = async () => {
+    const statusEl = $('#ai-connection-status');
     testConnBtn.disabled = true;
     testConnBtn.textContent = 'Testing...';
+    if (statusEl) {
+      statusEl.hidden = false;
+      statusEl.className = 'ai-connection-status pending';
+      statusEl.textContent = 'Checking AI service…';
+    }
     try {
       const res = await safeFetch('/api/ai/test-connection');
       if (res.status === 'connected' || res.status === 'inference_succeeded') {
+        if (statusEl) { statusEl.className = 'ai-connection-status'; statusEl.textContent = 'AI Connected'; }
         showToast('AI Connected', 'success');
       } else if (res.status === 'configuration_missing') {
+        if (statusEl) { statusEl.className = 'ai-connection-status error'; statusEl.textContent = 'AI provider is not configured'; }
         showToast('AI provider is not configured', 'warning', 6000);
       } else {
-        showToast(res.message || 'AI request failed, please try again', 'error', 6000);
+        const message = res.message || 'AI request failed, please try again';
+        if (statusEl) { statusEl.className = 'ai-connection-status error'; statusEl.textContent = message; }
+        showToast(message, 'error', 6000);
       }
     } catch (err) {
-      showToast(err.message || 'AI request failed, please try again', 'error');
+      const message = err.message || 'AI request failed, please try again';
+      if (statusEl) { statusEl.className = 'ai-connection-status error'; statusEl.textContent = message; }
+      showToast(message, 'error', 6000);
     } finally {
       testConnBtn.disabled = false;
       testConnBtn.textContent = 'Test AI Connection';
@@ -3633,7 +3669,7 @@ async function loadApiKeys() {
           <strong>${k.name}</strong> · <code style="font-family: var(--font-mono); font-size: 11px;">${k.key_prefix}</code>
           <small style="display: block; color: var(--text-muted);">Created: ${new Date(k.created_at * 1000).toLocaleDateString()}</small>
         </div>
-        <button class="delete-file-btn" onclick="revokeKey('${k.id}')" title="Revoke API Key"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        <button class="delete-file-btn" data-revoke-key="${escapeHtml(k.id)}" title="Revoke API Key"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
       </div>
     `).join('');
   } catch (err) {
@@ -3664,9 +3700,9 @@ if ($('#create-key-form')) {
     $('#new-key-alert').innerHTML = `
       <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
         <strong>API Key Generated:</strong>
-        <button type="button" class="btn-primary-action" style="padding: 4px 10px; font-size: 11px;" onclick="copyToClipboard('${data.api_key}')"> Copy Key</button>
+        <button type="button" class="btn-primary-action" style="padding: 4px 10px; font-size: 11px;" data-copy-value="${escapeHtml(data.api_key)}"> Copy Key</button>
       </div>
-      <code style="display: block; background: #fff; padding: 8px 12px; margin: 8px 0; border: 1px solid var(--border-light); border-radius: 6px; font-weight: bold; word-break: break-all; font-family: var(--font-mono); cursor: pointer;" onclick="copyToClipboard('${data.api_key}')" title="Click to copy">${data.api_key}</code>
+      <code style="display: block; background: #fff; padding: 8px 12px; margin: 8px 0; border: 1px solid var(--border-light); border-radius: 6px; font-weight: bold; word-break: break-all; font-family: var(--font-mono); cursor: pointer;" data-copy-value="${escapeHtml(data.api_key)}" title="Click to copy">${escapeHtml(data.api_key)}</code>
       <small style="color: var(--text-muted);">Click key to copy. It cannot be shown again.</small>
     `;
     $('#new-key-alert').hidden = false;
@@ -4670,6 +4706,31 @@ window.openMobileSidebar = openMobileSidebar;
 window.closeMobileSidebar = closeMobileSidebar;
 window.resetHomeSearch = resetHomeSearch;
 window.resetJobWorkflow = resetJobWorkflow;
+
+// Keep interaction handlers in this script instead of executable HTML attributes.
+document.addEventListener('click', event => {
+  const target = event.target.closest('[data-workspace-view], [data-platform], [data-select-operation], [data-command-operation], [data-reset-home-search], [data-remove-file], [data-revoke-key], [data-copy-value]');
+  if (!target) return;
+  if (target.dataset.workspaceView) switchWorkspaceView(target.dataset.workspaceView);
+  else if (target.dataset.platform) {
+    const platformInput = $('#waitlist-platform');
+    if (platformInput) platformInput.value = target.dataset.platform;
+    $('#waitlist-email')?.focus();
+  } else if (target.dataset.selectOperation) selectOperation(target.dataset.selectOperation);
+  else if (target.dataset.commandOperation) selectOperationFromCommand(target.dataset.commandOperation);
+  else if (target.hasAttribute('data-reset-home-search')) resetHomeSearch();
+  else if (target.hasAttribute('data-remove-file')) removeFile(Number(target.dataset.removeFile));
+  else if (target.dataset.revokeKey) revokeKey(target.dataset.revokeKey);
+  else if (target.hasAttribute('data-copy-value')) copyToClipboard(target.dataset.copyValue);
+});
+
+document.addEventListener('keydown', event => {
+  const target = event.target.closest('[data-select-operation], [data-command-operation]');
+  if (!target || !['Enter', ' '].includes(event.key)) return;
+  if (target.classList.contains('home-tool-card')) event.preventDefault();
+  if (target.dataset.selectOperation) selectOperation(target.dataset.selectOperation);
+  else if (target.dataset.commandOperation) selectOperationFromCommand(target.dataset.commandOperation);
+});
 
 // Native Desktop & Mobile Apps Waitlist Form Handler
 const waitlistForm = $('#waitlist-form');

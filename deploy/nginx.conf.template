@@ -53,8 +53,8 @@ server {
     ssl_session_cache shared:SSL:10m;
     ssl_session_tickets off;
 
-    # Maximum file upload size: 500 MB (matches PAPERPLANE_MAX_FILE_SIZE)
-    client_max_body_size 500m;
+    # Allow multipart boundaries and headers in addition to the 500 MiB file cap.
+    client_max_body_size 512m;
     proxy_read_timeout 900s;
     proxy_send_timeout 900s;
     proxy_connect_timeout 90s;

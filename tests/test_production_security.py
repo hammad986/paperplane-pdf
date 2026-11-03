@@ -392,24 +392,85 @@ def test_user_change_password_endpoint():
 
 
 def test_swagger_api_docs_route():
-    """Verify Swagger UI and OpenAPI documentation are correctly hosted at /api-docs."""
-    # 1. /api-docs serves Swagger UI
+    """Docs are available in development and absent from production."""
+    from server import DISABLE_DOCS
+
     docs_res = client.get("/api-docs")
+    openapi_res = client.get("/openapi.json")
+    if DISABLE_DOCS:
+        assert docs_res.status_code == 404
+        assert openapi_res.status_code == 404
+        return
+
     assert docs_res.status_code == 200
     assert "swagger" in docs_res.text.lower() or "openapi" in docs_res.text.lower()
 
-    # 2. /openapi.json serves valid OpenAPI specification
-    openapi_res = client.get("/openapi.json")
     assert openapi_res.status_code == 200
     schema = openapi_res.json()
     assert "openapi" in schema
     assert "paths" in schema
     assert "/api/jobs/create" in schema["paths"]
 
-    # 3. /docs redirects to canonical /api-docs
     redirect_res = client.get("/docs", follow_redirects=False)
     assert redirect_res.status_code in (301, 302, 307, 308)
     assert redirect_res.headers["location"] == "/api-docs"
+
+
+def test_public_api_docs_disabled_for_production_even_if_env_false():
+    from server import _should_disable_docs
+
+    assert _should_disable_docs("production", "false") is True
+    assert _should_disable_docs("development", "false") is False
+    assert _should_disable_docs("development", "true") is True
+
+
+def test_csp_does_not_allow_inline_script_execution():
+    response = client.get("/")
+    policy = response.headers["content-security-policy"]
+    script_policy = policy.split("style-src", 1)[0]
+    assert "unsafe-inline" not in script_policy
+    assert "wasm-unsafe-eval" in script_policy
+    style_policy = policy.split("style-src", 1)[1].split("font-src", 1)[0]
+    assert "unsafe-inline" in style_policy
+    assert "https://accounts.google.com" in style_policy
+
+
+def test_plan_limits_match_server_upload_limits():
+    from server import MAX_FILE_SIZE, plan_limits_payload, upload_limit_bytes_for_tier
+
+    limits = plan_limits_payload()
+    assert limits["free_operations_per_day"] > 0
+    assert limits["free_max_file_size_mb"] > 0
+    assert limits["max_batch_files"] == 100
+    assert upload_limit_bytes_for_tier("free") == min(
+        MAX_FILE_SIZE, limits["free_max_file_size_mb"] * 1024 * 1024
+    )
+    assert upload_limit_bytes_for_tier("pro") == MAX_FILE_SIZE
+    assert upload_limit_bytes_for_tier("developer") == MAX_FILE_SIZE
+
+
+def test_auth_profile_exposes_the_authoritative_plan_limits():
+    from server import plan_limits_payload
+
+    response = client.get("/api/auth/me")
+    assert response.status_code == 200
+    assert response.json()["plan_limits"] == plan_limits_payload()
+
+
+def test_free_job_upload_limit_returns_actionable_413(monkeypatch):
+    """The UI-advertised free cap is enforced by the upload route."""
+    import server
+
+    monkeypatch.setattr(server, "FREE_TIER_MAX_FILE_SIZE_MB", 1)
+    oversized_pdf = b"%PDF-1.7\n" + (b"x" * (1024 * 1024))
+    response = client.post(
+        "/api/jobs/create",
+        data={"operation": "merge"},
+        files={"files": ("oversized.pdf", oversized_pdf, "application/pdf")},
+    )
+
+    assert response.status_code == 413
+    assert "1 MB" in response.json()["detail"]
 
 
 def test_studio_pdf_header_validation():

@@ -133,6 +133,8 @@ CASHFREE_DEFAULT_CUSTOMER_PHONE = os.getenv("CASHFREE_DEFAULT_CUSTOMER_PHONE", "
 # Cashfree checkout defaults to INR. USD amounts remain available for merchants
 # whose Cashfree account is enabled for USD settlement.
 FREE_TIER_DAILY_LIMIT = int(os.getenv("PAPERPLANE_FREE_TIER_DAILY_LIMIT", "100"))
+# App workflow upload caps, shared with /api/auth/me for UI copy.
+FREE_TIER_MAX_FILE_SIZE_MB = int(os.getenv("PAPERPLANE_FREE_TIER_MAX_FILE_SIZE_MB", "50"))
 PRO_TIER_PRICE_USD = float(os.getenv("PAPERPLANE_PRO_PRICE_USD", "3.00"))
 PRO_TIER_PRICE_INR = int(os.getenv("PAPERPLANE_PRO_PRICE_INR", "250"))
 DEV_TIER_PRICE_USD = float(os.getenv("PAPERPLANE_DEV_PRICE_USD", "9.00"))
