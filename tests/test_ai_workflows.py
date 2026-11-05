@@ -33,7 +33,7 @@ def test_bluesminds_network_failure_raises_clear_error(monkeypatch):
 
     import pytest
     with patch("ai_engine.urllib.request.urlopen", side_effect=URLError("offline")):
-        with pytest.raises(RuntimeError, match="AI request failed, please try again"):
+        with pytest.raises(RuntimeError, match="AI service could not be reached or timed out"):
             ai_engine.call_bluesminds("system", "user")
 
 
@@ -126,7 +126,7 @@ def test_bluesminds_stream_does_not_restart_after_partial_output(monkeypatch):
     with patch("ai_engine.urllib.request.urlopen", return_value=PartialResponse()) as open_url:
         stream = ai_engine.stream_bluesminds("system", "user")
         assert next(stream) == "partial"
-        with pytest.raises(RuntimeError, match="AI request failed, please try again"):
+        with pytest.raises(RuntimeError, match="AI service could not be reached or timed out"):
             next(stream)
     assert open_url.call_count == 1
 
@@ -364,7 +364,8 @@ def test_ai_chat_and_summarize_endpoints(tmp_path, monkeypatch):
     assert res.status_code == 200
     data = res.json()
     assert "October 25, 2026" in data["answer"]
-    assert "Bluesminds" in data["provider"]
+    assert "provider" not in data
+    assert "model" not in data
 
     with open(pdf_path, "rb") as f:
         res = client.post("/api/ai/summarize", files={"file": ("test.pdf", f, "application/pdf")})

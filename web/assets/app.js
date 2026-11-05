@@ -16,6 +16,7 @@ const state = {
   },
   clientSideMode: false,
   activeView: 'home', // 'home', 'desk', 'studio', 'ai'
+  activeToolResult: null,
   
   // PDF Studio Engine State
   studio: {
@@ -23,6 +24,9 @@ const state = {
     currentPage: 1,
     scale: 1.0,
     totalCount: 0,
+    srcFile: null,
+    pageObserver: null,
+    pageRenderTasks: new Map(),
     activeTool: 'pan', // 'pan', 'draw', 'highlight', 'text', 'redact'
     isDrawing: false,
     annotations: [], // array of draw paths and stamps per page
@@ -30,8 +34,59 @@ const state = {
   }
 };
 
+// Keep tool inputs and completed outputs while the user moves between views.
+// File objects stay in memory only; the browser never silently persists them.
+const toolSessionCache = new Map();
+
+function rememberLocalWork(filename) {
+  try { sessionStorage.setItem('paperplane-last-local-document', filename || 'PDF work'); } catch { /* storage may be disabled */ }
+}
+
+function clearLocalWorkMarkerIfEmpty() {
+  const cachedWork = [...toolSessionCache.values()].some(session => session.files?.length || session.result);
+  if (state.files.length || state.activeToolResult || state.studio?.pdfDoc || cachedWork) return;
+  try { sessionStorage.removeItem('paperplane-last-local-document'); } catch { /* storage may be disabled */ }
+}
+
+function captureToolFormValues() {
+  const form = $('#job-form');
+  if (!form) return {};
+  return Object.fromEntries([...form.elements]
+    .filter(control => control.id && control.type !== 'file' && control.type !== 'submit' && control.type !== 'button')
+    .map(control => [control.id, {
+      value: control.value,
+      checked: control.type === 'checkbox' || control.type === 'radio' ? control.checked : undefined
+    }]));
+}
+
+function restoreToolFormValues(values = {}) {
+  Object.entries(values).forEach(([id, saved]) => {
+    const control = document.getElementById(id);
+    if (!control) return;
+    if (typeof saved.checked === 'boolean') control.checked = saved.checked;
+    else if (saved.value !== undefined) control.value = saved.value;
+  });
+}
+
+function saveToolSession(operation) {
+  if (!operation) return;
+  toolSessionCache.set(operation, {
+    files: [...state.files],
+    splitPageCount: state.splitPageCount ?? null,
+    formValues: captureToolFormValues(),
+    result: state.activeToolResult ? { ...state.activeToolResult } : null
+  });
+}
+
 const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
+
+// Keep the quota area useful while account status is still loading. Without
+// JavaScript the server-rendered 0 / daily-limit fallback remains visible.
+const initialQuotaText = $('#quota-text');
+if (document.body.classList.contains('auth-pending') && initialQuotaText) {
+  initialQuotaText.textContent = 'Checking usage…';
+}
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -301,7 +356,8 @@ async function safeFetch(url, options = {}) {
     }
 
     if (response.status === 413) {
-      const msg = 'File exceeds the 500 MB limit. Please select a smaller document or compress it first.';
+      const detail = typeof data.detail === 'string' ? data.detail : data.detail?.message;
+      const msg = detail || 'This file is larger than the upload limit for your plan. Please select a smaller document or compress it first.';
       showUserErrorModal('File Size Limit Exceeded', msg, { icon: 'Archive' });
       throw new Error(msg);
     }
@@ -319,11 +375,17 @@ async function safeFetch(url, options = {}) {
 
 // Toggle Sidebar Collapse
 $('#collapse-sidebar-btn').onclick = () => {
+  if (window.matchMedia('(max-width: 900px)').matches && $('#sidebar')?.classList.contains('mobile-open')) {
+    closeMobileSidebar();
+    return;
+  }
   $('#app-shell').classList.toggle('sidebar-collapsed');
 };
 
 // Workspace View Switcher (Home / Desk / Studio / AI / Legal / ApiDocs)
 function switchWorkspaceView(view, extra = 'privacy', updateHistory = true) {
+  if (view !== 'cloud' && $('#cloud-modal')) $('#cloud-modal').hidden = true;
+  if ($('#sidebar')?.classList.contains('mobile-open')) closeMobileSidebar();
   try { sessionStorage.setItem('paperplane-active-view', view); } catch { /* storage may be disabled */ }
   state.activeView = view;
   $('#tab-home-view')?.classList.toggle('active', view === 'home');
@@ -340,6 +402,7 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true) {
   if ($('#view-api-docs')) $('#view-api-docs').hidden = view !== 'api-docs';
   if ($('#view-download')) $('#view-download').hidden = view !== 'download';
   $('.main-area')?.classList.toggle('studio-active', view === 'studio');
+  $('#app-shell')?.classList.toggle('studio-active', view === 'studio');
   $('#app-shell')?.classList.toggle('ai-active', view === 'ai');
 
   // Strict SEO Content containment: Only display crawlable SEO sections on Home and Tool Desk views
@@ -393,7 +456,7 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true) {
     if (crumbCat) crumbCat.textContent = state.operations[state.operation]?.category || 'Organize PDF';
     if (crumbTool) crumbTool.textContent = state.operations[state.operation]?.label || 'Merge PDF';
     if (updateHistory && window.history.pushState) {
-      const targetPath = operationPath(state.operation);
+      const targetPath = '/tool-desk';
       if (window.location.pathname !== targetPath) {
         window.history.pushState({ view: 'desk', op: state.operation }, '', targetPath);
       }
@@ -414,7 +477,8 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true) {
     home: '#mob-nav-home',
     desk: '#mob-nav-desk',
     studio: '#mob-nav-studio',
-    ai: '#mob-nav-ai'
+    ai: '#mob-nav-ai',
+    download: '#mob-nav-download'
   };
   $$('.mobile-nav-btn').forEach(b => b.classList.remove('active'));
   if (mobMap[view]) {
@@ -436,7 +500,10 @@ function showStudioEmptyState() {
 
 // Navigation event bindings
 $('#tab-home-view')?.addEventListener('click', () => switchWorkspaceView('home'));
-$('#tab-desk-view')?.addEventListener('click', () => switchWorkspaceView('desk'));
+$('#tab-desk-view')?.addEventListener('click', () => {
+  if (state.activeView === 'home' && state.operation !== 'merge') selectOperation('merge', false);
+  switchWorkspaceView('desk');
+});
 $('#tab-studio-view')?.addEventListener('click', () => switchWorkspaceView('studio'));
 $('#tab-ai-view')?.addEventListener('click', () => switchWorkspaceView('ai'));
 $('#tab-download-view')?.addEventListener('click', () => switchWorkspaceView('download'));
@@ -447,7 +514,7 @@ $('#result-home-btn')?.addEventListener('click', () => switchWorkspaceView('home
 $('#result-restart-btn')?.addEventListener('click', resetJobWorkflow);
 $$('.brand').forEach(b => b.addEventListener('click', (e) => { e.preventDefault(); switchWorkspaceView('home'); }));
 
-function clearResultAndStudio() {
+function clearResultPanel() {
   const resEl = $('#result');
   if (resEl) {
     resEl.hidden = true;
@@ -472,9 +539,17 @@ function clearResultAndStudio() {
     studioBtn.onclick = null;
   }
   if ($('#dropzone')) $('#dropzone').hidden = false;
+  state.activeToolResult = null;
+}
+
+function clearResultAndStudio() {
+  clearResultPanel();
 
   // Reset Studio Document State across operations
   if (state.studio) {
+    if (state.studio.pageObserver) state.studio.pageObserver.disconnect();
+    state.studio.pageRenderTasks.forEach(task => { try { task.cancel(); } catch { /* ignore completed tasks */ } });
+    state.studio.pageRenderTasks.clear();
     if (state.studio.pdfDoc && typeof state.studio.pdfDoc.destroy === 'function') {
       try { state.studio.pdfDoc.destroy(); } catch (e) { /* ignore */ }
     }
@@ -491,8 +566,12 @@ function clearResultAndStudio() {
   }
   const studioThumbs = $('#studio-thumbnails-container');
   if (studioThumbs) studioThumbs.innerHTML = '';
-  const studioPage = $('#studio-page-container');
-  if (studioPage) studioPage.innerHTML = '';
+  const studioPageStack = $('#studio-page-stack');
+  const drawCanvas = $('#pdf-draw-canvas');
+  if (studioPageStack) {
+    studioPageStack.innerHTML = '<section class="page-render-wrapper studio-page-sheet" id="page-render-wrapper" data-page="1" aria-label="Page 1"><div class="studio-page-loading">No document open</div><canvas id="pdf-canvas" class="pdf-page-canvas"></canvas></section>';
+    if (drawCanvas) studioPageStack.firstElementChild.appendChild(drawCanvas);
+  }
   const studioCount = $('#studio-page-count');
   if (studioCount) studioCount.textContent = '0';
   const pageIndicator = $('#page-indicator');
@@ -502,11 +581,13 @@ function clearResultAndStudio() {
     if (jump) { jump.value = '0'; jump.disabled = true; }
     if (total) total.textContent = '0';
   }
+  clearLocalWorkMarkerIfEmpty();
 }
 
 function resetJobWorkflow() {
   state.files = [];
   state.splitPageCount = null;
+  toolSessionCache.delete(state.operation);
   const form = $('#job-form');
   if (form) form.reset();
   renderFiles();
@@ -514,6 +595,7 @@ function resetJobWorkflow() {
   updateButton();
   if ($('#progress-card')) $('#progress-card').hidden = true;
   clearResultAndStudio();
+  clearLocalWorkMarkerIfEmpty();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -818,16 +900,18 @@ async function syncSeoContent(operation) {
 
 // Select an operation and update view
 function selectOperation(op, switchToDesk = true) {
-  const opChanged = (state.operation !== op);
+  const previousOperation = state.operation;
+  const opChanged = (previousOperation !== op);
+  if (opChanged) saveToolSession(previousOperation);
+  const cachedSession = opChanged ? toolSessionCache.get(op) || null : null;
   state.operation = op;
   if (opChanged) {
-    state.files = [];
-    state.splitPageCount = null;
+    state.files = cachedSession?.files ? [...cachedSession.files] : [];
+    state.splitPageCount = cachedSession?.splitPageCount ?? null;
     const form = $('#job-form');
     if (form) form.reset();
-    renderFiles();
     if ($('#progress-card')) $('#progress-card').hidden = true;
-    clearResultAndStudio();
+    clearResultPanel();
   }
   const item = state.operations[op] || { label: op, accept: 'pdf', category: 'Organize PDF' };
 
@@ -889,6 +973,13 @@ function selectOperation(op, switchToDesk = true) {
   }
 
   renderOptions();
+  if (opChanged) {
+    restoreToolFormValues(cachedSession?.formValues || {});
+    renderFiles();
+    if (cachedSession?.result) {
+      showDownloadResult(cachedSession.result.job, cachedSession.result.downloadUrl, { silent: true });
+    }
+  }
   renderSidebarTools();
   updateButton();
   if (op === 'ai_chat' && switchToDesk && state.activeView === 'home') {
@@ -1399,8 +1490,8 @@ async function loadDocumentIntoStudio(file) {
 
   try {
     try {
-      if (file) sessionStorage.setItem('paperplane-last-local-document', typeof file === 'string' ? 'processed PDF' : (file.name || 'PDF document'));
-      else sessionStorage.removeItem('paperplane-last-local-document');
+      if (file) rememberLocalWork(typeof file === 'string' ? 'processed PDF' : (file.name || 'PDF document'));
+      else clearLocalWorkMarkerIfEmpty();
     } catch { /* storage may be disabled */ }
     $('#studio-canvas-area')?.querySelector('.studio-empty-state')?.remove();
     let arrayBuffer;
@@ -1413,9 +1504,16 @@ async function loadDocumentIntoStudio(file) {
       // Create a clean, single blank white A4 PDF page dynamically when no document is uploaded
       arrayBuffer = generateBlankA4PdfBytes();
     }
+    if (state.studio.pageObserver) state.studio.pageObserver.disconnect();
+    state.studio.pageRenderTasks.forEach(task => { try { task.cancel(); } catch { /* task may already be complete */ } });
+    state.studio.pageRenderTasks.clear();
+    if (state.studio.pdfDoc && state.studio.pdfDoc !== file && typeof state.studio.pdfDoc.destroy === 'function') {
+      try { await state.studio.pdfDoc.destroy(); } catch { /* a previous document may already be destroyed */ }
+    }
     state.studio.pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     state.studio.totalCount = state.studio.pdfDoc.numPages;
     state.studio.currentPage = 1;
+    state.studio.srcFile = file;
     $('#studio-page-count').textContent = state.studio.totalCount;
     const pageJump = $('#page-jump-input');
     const pageTotal = $('#page-total-indicator');
@@ -1431,9 +1529,12 @@ async function loadDocumentIntoStudio(file) {
       window.PaperplaneEditor.loadDocument(srcFile, srcFile.name, state.studio.totalCount);
     }
 
-    // Render Page 1 on canvas
+    // Build stable page slots first so the viewer has a real continuous scroll
+    // range before thumbnails or off-screen pages are painted.
+    prepareStudioPageStack(state.studio.totalCount);
     syncStudioZoomSelect(state.studio.scale);
-    await renderStudioPage(1);
+    setupStudioPageObserver();
+    await renderStudioPage(1, { priority: true });
 
     // Load into Phase 3 Professional Page Organizer
     if (window.PaperplanePageOrganizer) {
@@ -1461,100 +1562,258 @@ async function loadDocumentIntoStudio(file) {
   }
 }
 
-async function renderStudioPage(pageNum) {
-  if (!state.studio.pdfDoc) return;
-  const renderToken = (state.studio.renderToken || 0) + 1;
-  state.studio.renderToken = renderToken;
-  const previousRender = state.studio.renderTask;
-  if (previousRender) {
-    try { previousRender.cancel(); } catch { /* an already completed task needs no cancellation */ }
-    try { await previousRender.promise; } catch { /* expected when a page render is superseded */ }
+function createStudioPageSlot(pageNum) {
+  const stack = $('#studio-page-stack');
+  const slot = document.createElement('section');
+  slot.className = 'page-render-wrapper studio-page-sheet';
+  slot.dataset.page = String(pageNum);
+  slot.setAttribute('aria-label', `Page ${pageNum}`);
+  slot.style.setProperty('--studio-page-ratio', '595 / 842');
+  const availableWidth = Math.max(180, ($('#studio-canvas-area')?.clientWidth || window.innerWidth) - (window.innerWidth <= 900 ? 28 : 64));
+  const initialWidth = Math.min(595, availableWidth);
+  slot.style.width = `${initialWidth}px`;
+  slot.style.height = `${Math.ceil(initialWidth * 842 / 595)}px`;
+  slot.innerHTML = `<div class="studio-page-loading" role="status">Page ${pageNum} is loading…</div><canvas class="pdf-page-canvas" aria-label="PDF page ${pageNum}"></canvas>`;
+  stack.appendChild(slot);
+  return slot;
+}
+
+function prepareStudioPageStack(pageCount) {
+  const stack = $('#studio-page-stack');
+  if (!stack) return;
+  const existingDrawCanvas = $('#pdf-draw-canvas');
+  stack.innerHTML = '';
+  for (let pageNum = 1; pageNum <= pageCount; pageNum++) {
+    const slot = createStudioPageSlot(pageNum);
+    const pdfCanvas = slot.querySelector('.pdf-page-canvas');
+    if (pageNum === 1) pdfCanvas.id = 'pdf-canvas';
+    if (pageNum === 1 && existingDrawCanvas) slot.appendChild(existingDrawCanvas);
   }
-  const loadingOverlay = $('#studio-loading-overlay');
-  const loadingText = $('#studio-loading-text');
-  if (loadingText) loadingText.textContent = `Loading page ${pageNum}…`;
-  if (loadingOverlay) loadingOverlay.hidden = false;
-  state.studio.currentPage = pageNum;
+  const first = stack.querySelector('.studio-page-sheet[data-page="1"]');
+  if (first) first.id = 'page-render-wrapper';
+}
+
+function studioPageSlot(pageNum) {
+  return document.querySelector(`#studio-page-stack .studio-page-sheet[data-page="${Number(pageNum)}"]`);
+}
+
+function setupStudioPageObserver() {
+  const area = $('#studio-canvas-area');
+  if (!area || !('IntersectionObserver' in window)) return;
+  if (state.studio.pageObserver) state.studio.pageObserver.disconnect();
+  state.studio.pageObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const pageNum = Number(entry.target.dataset.page);
+      renderStudioPage(pageNum).catch(err => console.error(`Studio page ${pageNum} render failed:`, err));
+    });
+  }, { root: area, rootMargin: '120% 0px', threshold: 0.01 });
+  document.querySelectorAll('#studio-page-stack .studio-page-sheet').forEach(slot => state.studio.pageObserver.observe(slot));
+}
+
+function getStudioPageScale(baseViewport) {
+  const area = $('#studio-canvas-area');
+  const horizontalPadding = window.innerWidth <= 900 ? 28 : 64;
+  const availableWidth = Math.max(180, (area?.clientWidth || window.innerWidth) - horizontalPadding);
+  const requested = state.studio.scale === 'fit-width' ? Number.POSITIVE_INFINITY : (Number(state.studio.scale) || 1);
+  return Math.max(0.3, Math.min(requested, availableWidth / baseViewport.width));
+}
+
+function updateStudioPageSlotSize(slot, viewport) {
+  slot.style.setProperty('--studio-page-ratio', `${viewport.width} / ${viewport.height}`);
+  slot.style.width = `${Math.ceil(viewport.width)}px`;
+  slot.style.height = `${Math.ceil(viewport.height)}px`;
+  slot.dataset.pageWidth = String(viewport.width);
+  slot.dataset.pageHeight = String(viewport.height);
+}
+
+function scrollStudioThumbnailIntoView(pageNum) {
+  const panel = $('#studio-thumbnails-container');
+  const card = panel?.querySelector(`.organizer-thumb-card[data-page="${Number(pageNum)}"]`);
+  if (!panel || !card) return;
+
+  const grid = panel.querySelector('.organizer-grid');
+  const horizontalPhoneStrip = window.matchMedia('(max-width: 900px)').matches && grid?.classList.contains('strip-mode');
+  const scrollport = horizontalPhoneStrip ? grid : panel;
+
+  // Native scrollIntoView can scroll the entire document when a deep thumbnail
+  // becomes active, hiding the Studio toolbar and canvas. Move only the
+  // thumbnail panel on its active axis instead.
+  const panelRect = scrollport.getBoundingClientRect();
+  const cardRect = card.getBoundingClientRect();
+  if (horizontalPhoneStrip) {
+    if (cardRect.left < panelRect.left) scrollport.scrollLeft += cardRect.left - panelRect.left;
+    else if (cardRect.right > panelRect.right) scrollport.scrollLeft += cardRect.right - panelRect.right;
+  } else {
+    if (cardRect.top < panelRect.top) scrollport.scrollTop += cardRect.top - panelRect.top;
+    else if (cardRect.bottom > panelRect.bottom) scrollport.scrollTop += cardRect.bottom - panelRect.bottom;
+  }
+}
+
+function setActiveStudioPage(pageNum, { scrollThumbnail = true } = {}) {
+  if (!state.studio.pdfDoc) return;
+  const target = Math.max(1, Math.min(state.studio.totalCount, Number(pageNum) || 1));
+  state.studio.currentPage = target;
   const pageJump = $('#page-jump-input');
   const pageTotal = $('#page-total-indicator');
-  if (pageJump) pageJump.value = String(pageNum);
+  if (pageJump) pageJump.value = String(target);
   if (pageTotal) pageTotal.textContent = String(state.studio.totalCount);
 
-  if (window.PaperplanePageOrganizer && window.PaperplanePageOrganizer.state) {
-    window.PaperplanePageOrganizer.state.activePage = pageNum;
-    window.PaperplanePageOrganizer._updateCardStates();
-    const activeThumb = document.querySelector(`.organizer-thumb-card[data-page="${pageNum}"]`);
-    activeThumb?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  const activeSlot = studioPageSlot(target);
+  if (activeSlot) {
+    document.querySelectorAll('#studio-page-stack .studio-page-sheet.is-current').forEach(slot => slot.classList.remove('is-current'));
+    document.querySelectorAll('#studio-page-stack .studio-page-sheet').forEach(slot => { if (slot !== activeSlot) slot.removeAttribute('id'); });
+    activeSlot.classList.add('is-current');
+    activeSlot.id = 'page-render-wrapper';
+    document.querySelectorAll('#studio-page-stack .pdf-page-canvas').forEach(canvas => canvas.removeAttribute('id'));
+    activeSlot.querySelector('.pdf-page-canvas')?.setAttribute('id', 'pdf-canvas');
+    const drawCanvas = $('#pdf-draw-canvas');
+    if (drawCanvas && drawCanvas.parentElement !== activeSlot) activeSlot.appendChild(drawCanvas);
   }
 
-  let page;
-  try {
-    page = await state.studio.pdfDoc.getPage(pageNum);
-  } catch (err) {
-    if (renderToken === state.studio.renderToken) {
-      if (loadingText) loadingText.textContent = `Could not load page ${pageNum}. Choose the page again to retry.`;
-      console.error(`Studio could not load page ${pageNum}:`, err);
-    }
-    return;
+  const pageOrganizer = window.PaperplanePageOrganizer;
+  if (pageOrganizer?.state) {
+    pageOrganizer.state.activePage = target;
+    pageOrganizer._updateCardStates();
+    if (scrollThumbnail) scrollStudioThumbnailIntoView(target);
   }
-  if (renderToken !== state.studio.renderToken) return;
-  const canvas = $('#pdf-canvas');
-  const drawCanvas = $('#pdf-draw-canvas');
-  const ctx = canvas.getContext('2d');
+  const activeCanvas = activeSlot?.querySelector('.pdf-page-canvas');
+  if (activeCanvas?.dataset.rendered === 'true' && window.PaperplaneEditor) {
+    const baseWidth = Number(activeSlot.dataset.baseWidth || 595);
+    const baseHeight = Number(activeSlot.dataset.baseHeight || 842);
+    const scale = Number(activeSlot.dataset.effectiveScale || 1);
+    window.PaperplaneEditor.onPageRendered(activeCanvas, $('#pdf-draw-canvas'), activeSlot, scale, target, baseWidth, baseHeight);
+  }
+}
 
-  let scale = state.studio.scale;
-  if (scale === 'fit-width') {
-    const containerWidth = $('#studio-canvas-area').clientWidth - 64;
-    const baseViewport = page.getViewport({ scale: 1.0 });
-    scale = containerWidth / baseViewport.width;
-  } else {
-    scale = Number(scale);
+async function renderStudioPage(pageNum, { priority = false, force = false } = {}) {
+  if (!state.studio.pdfDoc) return false;
+  const target = Math.max(1, Math.min(state.studio.totalCount, Number(pageNum) || 1));
+  const slot = studioPageSlot(target) || createStudioPageSlot(target);
+  const canvas = slot.querySelector('.pdf-page-canvas');
+  const loading = slot.querySelector('.studio-page-loading');
+  const basePage = await state.studio.pdfDoc.getPage(target);
+  const baseViewport = basePage.getViewport({ scale: 1 });
+  const scale = getStudioPageScale(baseViewport);
+  const viewport = basePage.getViewport({ scale });
+  updateStudioPageSlotSize(slot, viewport);
+  slot.dataset.baseWidth = String(baseViewport.width);
+  slot.dataset.baseHeight = String(baseViewport.height);
+  slot.dataset.effectiveScale = String(scale);
+  if (!force && canvas.dataset.rendered === 'true' && Number(canvas.dataset.renderedScale) === scale) {
+    if (target === state.studio.currentPage) setActiveStudioPage(target, { scrollThumbnail: false });
+    return true;
   }
 
-  const viewport = page.getViewport({ scale: scale });
+  const oldTask = state.studio.pageRenderTasks.get(target);
+  if (oldTask) { try { oldTask.cancel(); } catch { /* already completed */ } }
+  const renderId = String((Number(slot.dataset.renderId) || 0) + 1);
+  slot.dataset.renderId = renderId;
+  if (loading) { loading.hidden = false; loading.textContent = `Loading page ${target}…`; }
+  if (priority) {
+    const overlay = $('#studio-loading-overlay');
+    if (overlay) overlay.hidden = false;
+    const text = $('#studio-loading-text');
+    if (text) text.textContent = `Rendering page ${target}…`;
+  }
+
   const outputScale = window.devicePixelRatio || 1;
-
-  canvas.width = Math.floor(viewport.width * outputScale);
-  canvas.height = Math.floor(viewport.height * outputScale);
-  canvas.style.width = Math.floor(viewport.width) + "px";
-  canvas.style.height = Math.floor(viewport.height) + "px";
-
-  drawCanvas.width = canvas.width;
-  drawCanvas.height = canvas.height;
-  drawCanvas.style.width = canvas.style.width;
-  drawCanvas.style.height = canvas.style.height;
-
+  canvas.width = Math.ceil(viewport.width * outputScale);
+  canvas.height = Math.ceil(viewport.height * outputScale);
+  canvas.style.width = `${Math.ceil(viewport.width)}px`;
+  canvas.style.height = `${Math.ceil(viewport.height)}px`;
+  const context = canvas.getContext('2d', { alpha: false });
   const transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
-  const renderContext = { canvasContext: ctx, transform: transform, viewport: viewport };
-  const renderTask = page.render(renderContext);
-  state.studio.renderTask = renderTask;
+  const renderTask = basePage.render({ canvasContext: context, transform, viewport });
+  state.studio.pageRenderTasks.set(target, renderTask);
   try {
     await renderTask.promise;
   } catch (err) {
-    if (renderToken !== state.studio.renderToken) return;
-    if (loadingText) loadingText.textContent = `Could not render page ${pageNum}. Choose the page again to retry.`;
-    console.error(`Studio render failed for page ${pageNum}:`, err);
-    return;
+    if (slot.dataset.renderId !== renderId || err?.name === 'RenderingCancelledException') return false;
+    if (loading) {
+      loading.hidden = false;
+      loading.innerHTML = `Page ${target} could not render. <button type="button" class="studio-page-retry" data-page="${target}">Retry</button>`;
+    }
+    console.error(`Studio render failed for page ${target}:`, err);
+    return false;
+  } finally {
+    if (state.studio.pageRenderTasks.get(target) === renderTask) state.studio.pageRenderTasks.delete(target);
   }
-  if (renderToken !== state.studio.renderToken) return;
-  if (loadingOverlay) loadingOverlay.hidden = true;
-
-  // Initialize and synchronize Phase 2 Editor overlay
-  if (window.PaperplaneEditor) {
-    const baseVp = page.getViewport({ scale: 1.0 });
-    window.PaperplaneEditor.onPageRendered(
-      canvas,
-      drawCanvas,
-      $('#page-render-wrapper'),
-      scale,
-      pageNum,
-      baseVp.width,
-      baseVp.height
-    );
-  } else {
-    initStudioDrawingLayer();
-  }
+  if (slot.dataset.renderId !== renderId) return false;
+  canvas.dataset.rendered = 'true';
+  canvas.dataset.renderedScale = String(scale);
+  if (loading) loading.hidden = true;
+  const overlay = $('#studio-loading-overlay');
+  if (overlay) overlay.hidden = true;
+  if (target === state.studio.currentPage) setActiveStudioPage(target, { scrollThumbnail: false });
+  if (window.PaperplaneEditor && target === state.studio.currentPage) {
+    window.PaperplaneEditor.onPageRendered(canvas, $('#pdf-draw-canvas'), slot, scale, target, baseViewport.width, baseViewport.height);
+  } else if (!window.PaperplaneEditor && target === state.studio.currentPage) initStudioDrawingLayer();
+  pruneStudioPageCanvases(target);
+  return true;
 }
+
+function pruneStudioPageCanvases(centerPage) {
+  document.querySelectorAll('#studio-page-stack .studio-page-sheet').forEach(slot => {
+    const pageNum = Number(slot.dataset.page);
+    if (Math.abs(pageNum - centerPage) <= 2 || state.studio.pageRenderTasks.has(pageNum)) return;
+    const canvas = slot.querySelector('.pdf-page-canvas');
+    if (canvas?.dataset.rendered === 'true') {
+      canvas.width = 0;
+      canvas.height = 0;
+      canvas.dataset.rendered = 'false';
+      const loading = slot.querySelector('.studio-page-loading');
+      if (loading) { loading.hidden = false; loading.textContent = `Page ${pageNum} will render as you scroll.`; }
+    }
+  });
+}
+
+async function jumpToStudioPage(pageNum, behavior = 'smooth') {
+  if (!state.studio.pdfDoc) return false;
+  const target = Math.max(1, Math.min(state.studio.totalCount, Number(pageNum) || 1));
+  const slot = studioPageSlot(target) || createStudioPageSlot(target);
+  setActiveStudioPage(target);
+  const area = $('#studio-canvas-area');
+  if (area) {
+    const areaTop = area.getBoundingClientRect().top;
+    const pageTop = slot.getBoundingClientRect().top - areaTop + area.scrollTop;
+    area.scrollTo({ top: Math.max(0, pageTop - 10), behavior });
+  }
+  return renderStudioPage(target, { priority: true });
+}
+
+const studioPageStack = $('#studio-page-stack');
+const studioCanvasArea = $('#studio-canvas-area');
+if (studioPageStack) {
+  studioPageStack.addEventListener('click', event => {
+    const retry = event.target.closest('.studio-page-retry');
+    if (retry) renderStudioPage(Number(retry.dataset.page), { priority: true, force: true });
+  });
+}
+if (studioCanvasArea) {
+  let activeSyncScheduled = false;
+  studioCanvasArea.addEventListener('scroll', () => {
+    if (activeSyncScheduled) return;
+    activeSyncScheduled = true;
+    requestAnimationFrame(() => {
+      activeSyncScheduled = false;
+      if (!state.studio.pdfDoc) return;
+      const areaRect = studioCanvasArea.getBoundingClientRect();
+      const centerY = areaRect.top + Math.min(areaRect.height * 0.38, 280);
+      let closest = state.studio.currentPage;
+      let distance = Number.POSITIVE_INFINITY;
+      document.querySelectorAll('#studio-page-stack .studio-page-sheet').forEach(slot => {
+        const rect = slot.getBoundingClientRect();
+        if (rect.bottom < areaRect.top || rect.top > areaRect.bottom) return;
+        const d = Math.abs((rect.top + Math.min(rect.height * 0.25, 180)) - centerY);
+        if (d < distance) { distance = d; closest = Number(slot.dataset.page); }
+      });
+      if (closest !== state.studio.currentPage) setActiveStudioPage(closest);
+    });
+  }, { passive: true });
+}
+
+window.jumpToStudioPage = jumpToStudioPage;
 
 async function renderStudioThumbnails() {
   const container = $('#studio-thumbnails-container');
@@ -1589,8 +1848,7 @@ async function renderStudioThumbnails() {
       if (e.target.tagName.toLowerCase() === 'button') return;
       $$('.thumb-card').forEach(c => c.classList.remove('active'));
       card.classList.add('active');
-      $('#studio-canvas-area').scrollTop = 0;
-      renderStudioPage(i);
+      jumpToStudioPage(i);
     };
 
     container.appendChild(card);
@@ -1626,87 +1884,87 @@ if (studioCloseDocBtn) {
 }
 
 // Studio Navigation & Zoom Controls
-$('#prev-page-btn').onclick = () => {
-  if (state.studio.currentPage > 1) {
-    const target = state.studio.currentPage - 1;
-    renderStudioPage(target).then(() => { studioCanvasArea.scrollTop = studioCanvasArea.scrollHeight; });
-  }
-};
+$('#prev-page-btn').onclick = () => jumpToStudioPage(state.studio.currentPage - 1);
 
-$('#next-page-btn').onclick = () => {
-  if (state.studio.currentPage < state.studio.totalCount) {
-    studioCanvasArea.scrollTop = 0;
-    renderStudioPage(state.studio.currentPage + 1);
-  }
-};
+$('#next-page-btn').onclick = () => jumpToStudioPage(state.studio.currentPage + 1);
 
 const pageJumpInput = $('#page-jump-input');
 if (pageJumpInput) {
   const jumpToEnteredPage = () => {
     const target = Math.max(1, Math.min(state.studio.totalCount, Number(pageJumpInput.value) || 1));
     pageJumpInput.value = String(target);
-    studioCanvasArea.scrollTop = 0;
-    renderStudioPage(target);
+    jumpToStudioPage(target);
   };
   pageJumpInput.addEventListener('change', jumpToEnteredPage);
   pageJumpInput.addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); jumpToEnteredPage(); pageJumpInput.blur(); } });
 }
 
+async function refreshVisibleStudioPages() {
+  if (!state.studio.pdfDoc) return;
+  const area = $('#studio-canvas-area');
+  const areaRect = area?.getBoundingClientRect();
+  const visible = [...document.querySelectorAll('#studio-page-stack .studio-page-sheet')].filter(slot => {
+    if (!areaRect) return Number(slot.dataset.page) === state.studio.currentPage;
+    const rect = slot.getBoundingClientRect();
+    return rect.bottom >= areaRect.top - areaRect.height && rect.top <= areaRect.bottom + areaRect.height;
+  });
+  document.querySelectorAll('#studio-page-stack .studio-page-sheet').forEach(slot => {
+    const canvas = slot.querySelector('.pdf-page-canvas');
+    const page = Number(slot.dataset.page);
+    const baseWidth = Number(slot.dataset.baseWidth || 595);
+    const baseHeight = Number(slot.dataset.baseHeight || 842);
+    const effectiveScale = getStudioPageScale({ width: baseWidth });
+    const width = baseWidth * effectiveScale;
+    const height = baseHeight * effectiveScale;
+    updateStudioPageSlotSize(slot, { width, height });
+    slot.dataset.effectiveScale = String(effectiveScale);
+    if (canvas) {
+      canvas.dataset.rendered = 'false';
+      canvas.width = 0;
+      canvas.height = 0;
+      const status = slot.querySelector('.studio-page-loading');
+      if (status) { status.hidden = false; status.textContent = `Page ${page} will render as you scroll.`; }
+    }
+  });
+  state.studio.pageRenderTasks.forEach(task => { try { task.cancel(); } catch { /* already complete */ } });
+  state.studio.pageRenderTasks.clear();
+  const pages = new Set([state.studio.currentPage, ...visible.map(slot => Number(slot.dataset.page))]);
+  await Promise.all([...pages].map(page => renderStudioPage(page, { priority: page === state.studio.currentPage, force: true })));
+}
+
+function setStudioZoom(value) {
+  state.studio.scale = value;
+  syncStudioZoomSelect(value);
+  refreshVisibleStudioPages();
+}
+
 $('#zoom-in-btn').onclick = () => {
   const current = Number(state.studio.scale) || 1.0;
-  state.studio.scale = Math.min(2.5, current + 0.25);
-  syncStudioZoomSelect(state.studio.scale);
-  renderStudioPage(state.studio.currentPage);
+  setStudioZoom(Math.min(3, +(current + 0.25).toFixed(2)));
 };
 
 $('#zoom-out-btn').onclick = () => {
   const current = Number(state.studio.scale) || 1.0;
-  state.studio.scale = Math.max(0.5, current - 0.25);
-  syncStudioZoomSelect(state.studio.scale);
-  renderStudioPage(state.studio.currentPage);
+  setStudioZoom(Math.max(0.3, +(current - 0.25).toFixed(2)));
 };
 
-$('#zoom-select').onchange = e => {
-  state.studio.scale = e.target.value;
-  syncStudioZoomSelect(state.studio.scale);
-  renderStudioPage(state.studio.currentPage);
-};
+$('#zoom-select').onchange = e => setStudioZoom(e.target.value);
 
-// Natural Smooth Wheel Scrolling & Ctrl+Wheel Zoom in Studio Viewport
-const studioCanvasArea = $('#studio-canvas-area');
-if (studioCanvasArea) {
-  let canvasPageWheelAt = 0;
-  studioCanvasArea.addEventListener('wheel', e => {
-    if (e.ctrlKey || !state.studio.pdfDoc) return;
-    const now = Date.now();
-    if (now - canvasPageWheelAt < 450) return;
-    const atTop = studioCanvasArea.scrollTop <= 1;
-    const atBottom = studioCanvasArea.scrollTop + studioCanvasArea.clientHeight >= studioCanvasArea.scrollHeight - 2;
-    const direction = e.deltaY > 0 && atBottom ? 1 : e.deltaY < 0 && atTop ? -1 : 0;
-    if (!direction) return;
-    const target = state.studio.currentPage + direction;
-    if (target < 1 || target > state.studio.totalCount) return;
-    e.preventDefault();
-    canvasPageWheelAt = now;
-    if (direction > 0) {
-      studioCanvasArea.scrollTop = 0;
-      renderStudioPage(target);
-    } else {
-      renderStudioPage(target).then(() => { studioCanvasArea.scrollTop = studioCanvasArea.scrollHeight; });
-    }
-  }, { passive: false });
-  studioCanvasArea.addEventListener('wheel', e => {
-    if (e.ctrlKey) {
-      e.preventDefault();
-      const current = Number(state.studio.scale) || 1.0;
-      const delta = e.deltaY < 0 ? 0.15 : -0.15;
-      const newScale = Math.max(0.5, Math.min(3.0, +(current + delta).toFixed(2)));
-      state.studio.scale = newScale;
-      syncStudioZoomSelect(newScale);
-      renderStudioPage(state.studio.currentPage);
-    }
-  }, { passive: false });
-}
+// Studio scroll is continuous. Ordinary wheel/touch gestures scroll all pages;
+// Ctrl/Cmd+wheel adjusts zoom without interrupting page navigation.
+if (studioCanvasArea) studioCanvasArea.addEventListener('wheel', e => {
+  if (!e.ctrlKey || !state.studio.pdfDoc) return;
+  e.preventDefault();
+  const current = Number(state.studio.scale) || 1.0;
+  const delta = e.deltaY < 0 ? 0.1 : -0.1;
+  setStudioZoom(Math.max(0.3, Math.min(3, +(current + delta).toFixed(2))));
+}, { passive: false });
+
+let studioResizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(studioResizeTimer);
+  studioResizeTimer = setTimeout(() => refreshVisibleStudioPages(), 180);
+});
 
 const drawCanvasEl = $('#pdf-draw-canvas');
 if (drawCanvasEl) {
@@ -1716,12 +1974,7 @@ if (drawCanvasEl) {
       const current = Number(state.studio.scale) || 1.0;
       const delta = e.deltaY < 0 ? 0.15 : -0.15;
       const newScale = Math.max(0.5, Math.min(3.0, +(current + delta).toFixed(2)));
-      state.studio.scale = newScale;
-      syncStudioZoomSelect(newScale);
-      renderStudioPage(state.studio.currentPage);
-    } else if (studioCanvasArea) {
-      if (e.deltaX) studioCanvasArea.scrollLeft += e.deltaX;
-      if (e.deltaY) studioCanvasArea.scrollTop += e.deltaY;
+      setStudioZoom(newScale);
     }
   }, { passive: false });
 }
@@ -1799,34 +2052,12 @@ $('#clear-canvas-btn')?.addEventListener('click', () => {
   }
 });
 
-// Page operations
-$('#editor-insert-page-btn')?.addEventListener('click', async () => {
-  if (!window.PaperplaneEditor) return;
-  const newFile = await window.PaperplaneEditor.insertBlankPage(state.studio.currentPage);
-  if (newFile) {
-    state.files = [newFile];
-    await initStudioViewer(newFile);
-  }
-});
-
-$('#editor-dup-page-btn')?.addEventListener('click', async () => {
-  if (!window.PaperplaneEditor) return;
-  const newFile = await window.PaperplaneEditor.duplicatePage(state.studio.currentPage);
-  if (newFile) {
-    state.files = [newFile];
-    await initStudioViewer(newFile);
-  }
-});
-
-$('#editor-delete-page-btn')?.addEventListener('click', async () => {
-  if (!window.PaperplaneEditor) return;
-  if (confirm(`Delete page ${state.studio.currentPage}?`)) {
-    const newFile = await window.PaperplaneEditor.deletePage(state.studio.currentPage);
-    if (newFile) {
-      state.files = [newFile];
-      await initStudioViewer(newFile);
-    }
-  }
+// Page insertion, duplication, and deletion are owned by the Phase 3 page
+// organizer controller. Avoid a second legacy handler here: it ran a parallel
+// mutation and called the removed initStudioViewer() entry point.
+$('#editor-extract-page-btn')?.addEventListener('click', () => {
+  if (!window.PaperplanePageOrganizer || !state.studio.pdfDoc) return;
+  window.PaperplanePageOrganizer.extractPages([state.studio.currentPage]);
 });
 
 // Export / Save PDF Button
@@ -2150,7 +2381,7 @@ function renderOptions() {
   } else if (state.operation === 'mask_aadhaar') {
     fields += '<div class="option-field option-field-wide" style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; padding: 12px;"><strong style="color: #10b981;">🛡️ UIDAI Compliant 1-Click Masking</strong><p style="margin: 4px 0 0; font-size: 12px; color: var(--text-muted);">Paperplane automatically searches for 12-digit Aadhaar numbers and permanently black-boxes or redacts the first 8 digits (XXXX-XXXX-1234) in memory.</p></div>';
   } else if (state.operation === 'grayscale') {
-    fields += '<div class="option-field option-field-wide" style="background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; padding: 12px;"><strong style="color: #3b82f6;">🖤 High-Fidelity Monochrome Conversion</strong><p style="margin: 4px 0 0; font-size: 12px; color: var(--text-muted);">Removes all color channels and converts each page to pure 8-bit grayscale for reduced file size and crisp black-and-white printing.</p></div>';
+    fields += '<div class="option-field option-field-wide" style="background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; padding: 12px;"><strong style="color: #3b82f6;">🖤 Grayscale for monochrome printing</strong><p style="margin: 4px 0 0; font-size: 12px; color: var(--text-muted);">Already-grayscale PDFs are preserved. Colored pages are rendered as images, so the output can be larger and their text may need OCR before it can be searched or copied. Use Compress PDF when reducing file size is your goal.</p></div>';
   } else if (state.operation === 'flatten') {
     fields += '<div class="option-field option-field-wide" style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; padding: 12px;"><strong style="color: #f59e0b;">📑 Permanent Form Flattening</strong><p style="margin: 4px 0 0; font-size: 12px; color: var(--text-muted);">Permanently bakes interactive AcroForm field values directly into the page content, preventing further modification in final submissions.</p></div>';
   } else if (state.operation === 'watermark') {
@@ -2265,6 +2496,7 @@ window.removeFile = idx => {
   state.files.splice(idx, 1);
   renderFiles();
   updateButton();
+  clearLocalWorkMarkerIfEmpty();
 };
 
 function addFiles(newFiles) {
@@ -2279,6 +2511,7 @@ function addFiles(newFiles) {
   }
 
   state.files = [...state.files, ...newFiles];
+  if (state.files.length) rememberLocalWork(state.files[0].name || 'PDF document');
   renderFiles();
   updateButton();
 
@@ -2463,6 +2696,8 @@ $('#cloud-form').onsubmit = async e => {
   e.preventDefault();
   const fileUrl = $('#cloud-url').value.trim();
   const btn = $('#cloud-submit-btn');
+  const errorBox = $('#cloud-error');
+  if (errorBox) { errorBox.hidden = true; errorBox.textContent = ''; }
   btn.disabled = true;
   btn.textContent = 'Importing Document…';
 
@@ -2472,13 +2707,16 @@ $('#cloud-form').onsubmit = async e => {
     const res = await safeFetch('/api/cloud/sync', { method: 'POST', body: formData });
     if (res.data_url) {
       const file = dataUrlToFile(res.data_url, res.filename);
+      const signature = await file.slice(0, 5).text();
+      if (file.type !== 'application/pdf' || signature !== '%PDF-') {
+        throw new Error('This tool currently imports PDF files only. Choose a direct PDF link; images and Office files must use their matching converter.');
+      }
       addFiles([file]);
       $('#cloud-modal').hidden = true;
       showToast(`Imported ${res.filename} via ${res.provider}!`);
-    }
+    } else throw new Error('The link did not return a downloadable PDF. Check sharing access and try again.');
   } catch (err) {
-    $('#cloud-error').textContent = err.message;
-    $('#cloud-error').hidden = false;
+    if (errorBox) { errorBox.textContent = err.message; errorBox.hidden = false; }
   } finally {
     btn.disabled = false;
     btn.innerHTML = 'Fetch & Import Document <span>→</span>';
@@ -2646,7 +2884,15 @@ async function waitForJob(url) {
   throw new Error('Processing timed out.');
 }
 
-function showDownloadResult(job, downloadUrl) {
+function showDownloadResult(job, downloadUrl, { silent = false } = {}) {
+  state.activeToolResult = { job: { ...job }, downloadUrl };
+  toolSessionCache.set(state.operation, {
+    files: [...state.files],
+    splitPageCount: state.splitPageCount ?? null,
+    formValues: captureToolFormValues(),
+    result: state.activeToolResult
+  });
+  rememberLocalWork(job?.output_name || 'processed PDF');
   const result = $('#result');
   result.className = 'result-card';
   const content = $('#result-content');
@@ -2726,11 +2972,18 @@ function showDownloadResult(job, downloadUrl) {
   }
 
   result.hidden = false;
-  checkAuthStatus();
-  showToast('Processing complete! Document ready for download.');
+  if (!silent) {
+    checkAuthStatus();
+    showToast('Processing complete! Document ready for download.');
+  }
 }
 
 function showResult(message, isError = false) {
+  if (isError) {
+    state.activeToolResult = null;
+    const session = toolSessionCache.get(state.operation);
+    if (session) { session.result = null; toolSessionCache.set(state.operation, session); }
+  }
   const result = $('#result');
   result.className = isError ? 'result-card error' : 'result-card';
   $('#result-title').textContent = isError ? 'Operation Failed' : 'Notice';
@@ -3004,6 +3257,32 @@ function downloadBlob(bytes, filename, mimeType) {
 // ----------------------------------------------------------------------
 
 let currentExtractionData = null;
+let executiveBriefAvailable = null;
+
+function setExecutiveBriefAvailability(available) {
+  executiveBriefAvailable = typeof available === 'boolean' ? available : null;
+  const button = $('#trigger-summary-btn');
+  const summaryBox = $('#summary-display');
+  if (button) button.disabled = executiveBriefAvailable === false;
+  if (!summaryBox) return;
+
+  if (executiveBriefAvailable === false) {
+    summaryBox.textContent = 'Executive Brief is unavailable because AI analysis is not configured for this workspace. Ask the site administrator to configure AI, then reload this page.';
+  } else if (summaryBox.textContent.includes('AI analysis is not configured for this workspace')) {
+    summaryBox.textContent = 'Summary will appear here after generation...';
+  }
+}
+
+async function checkExecutiveBriefAvailability() {
+  try {
+    const capability = await safeFetch('/api/ai/capabilities');
+    setExecutiveBriefAvailability(capability.executive_brief_available === true);
+  } catch {
+    // Keep the action available if the capability check itself is temporarily unavailable;
+    // the operation endpoint will return the specific actionable service error.
+    setExecutiveBriefAvailability(null);
+  }
+}
 
 function updateAiDocBar() {
   const uploadZone = $('#ai-upload-zone');
@@ -3032,7 +3311,7 @@ function updateAiDocBar() {
     }
     if (chatBtn) chatBtn.disabled = false;
     if (extractBtn) extractBtn.disabled = false;
-    if (summaryBtn) summaryBtn.disabled = false;
+    if (summaryBtn) summaryBtn.disabled = executiveBriefAvailable === false;
   } else {
     if (uploadZone) uploadZone.hidden = false;
     if (activeBar) activeBar.hidden = true;
@@ -3042,7 +3321,7 @@ function updateAiDocBar() {
     }
     if (chatBtn) chatBtn.disabled = false;
     if (extractBtn) extractBtn.disabled = false;
-    if (summaryBtn) summaryBtn.disabled = false;
+    if (summaryBtn) summaryBtn.disabled = executiveBriefAvailable === false;
   }
 }
 
@@ -3061,7 +3340,7 @@ if (aiChangeDocBtn) aiChangeDocBtn.onclick = () => aiFileInput?.click();
 if (aiClearDocBtn) {
   aiClearDocBtn.onclick = () => {
     state.files = [];
-    try { sessionStorage.removeItem('paperplane-last-local-document'); } catch { /* storage may be disabled */ }
+    clearLocalWorkMarkerIfEmpty();
     updateAiDocBar();
     $('#chat-messages').innerHTML = `
       <div class="chat-bubble ai">
@@ -3084,7 +3363,7 @@ if (aiFileInput) {
         return;
       }
       state.files = [file];
-      try { sessionStorage.setItem('paperplane-last-local-document', file.name); } catch { /* storage may be disabled */ }
+      rememberLocalWork(file.name);
       updateAiDocBar();
       showToast(`Loaded ${file.name} for AI analysis`, 'success');
       aiFileInput.value = '';
@@ -3110,7 +3389,7 @@ if (aiUploadZone) {
         return;
       }
       state.files = [file];
-      try { sessionStorage.setItem('paperplane-last-local-document', file.name); } catch { /* storage may be disabled */ }
+      rememberLocalWork(file.name);
       updateAiDocBar();
       showToast(`Loaded ${file.name} for AI analysis`, 'success');
     }
@@ -3171,6 +3450,14 @@ if (chatClearBtn) {
 let activeAIChatController = null;
 const chatStopBtn = $('#chat-stop-btn');
 chatStopBtn?.addEventListener('click', () => activeAIChatController?.abort());
+
+function safeAiErrorMessage(error) {
+  const raw = String(error?.message || 'AI request failed. Please try again.').trim();
+  if (/api[_ -]?key|authorization|bearer\s|https?:\/\/|bluesminds|gemini|openai|anthropic|nvidia|gpt[-_]/i.test(raw)) {
+    return 'Paperplane AI could not complete this request. Please try again or contact support.';
+  }
+  return raw.slice(0, 240);
+}
 
 $('#chat-form').onsubmit = async e => {
   e.preventDefault();
@@ -3250,8 +3537,7 @@ $('#chat-form').onsubmit = async e => {
       msgs.scrollTop = msgs.scrollHeight;
     }
   } catch (err) {
-    const rawMessage = err.message || 'AI request failed, please try again';
-    const errMsg = /not configured/i.test(rawMessage) ? 'AI provider is not configured' : 'AI request failed, please try again';
+    const errMsg = safeAiErrorMessage(err);
     if (err.name === 'AbortError') {
       stageNode.textContent = 'Stopped';
       stageDots?.remove();
@@ -3279,37 +3565,47 @@ $('#chat-form').onsubmit = async e => {
 };
 
 // Executive Summarizer
-$('#trigger-summary-btn').onclick = async () => {
+async function generateExecutiveBrief() {
+  if (executiveBriefAvailable === false) {
+    setExecutiveBriefAvailability(false);
+    return;
+  }
   if (!state.files.length) {
     showToast('Please upload or select a PDF document first.', 'warning');
     aiFileInput?.click();
     return;
   }
   const btn = $('#trigger-summary-btn');
+  const summaryBox = $('#summary-display');
+  const actionsBar = $('#summary-actions-bar');
+  currentSummaryText = '';
   btn.disabled = true;
   btn.textContent = 'Generating Executive Brief...';
+  summaryBox.textContent = 'Generating an executive brief from this PDF…';
+  if (actionsBar) actionsBar.hidden = true;
   const form = new FormData();
   form.append('file', state.files[0]);
 
   try {
     const res = await safeFetch('/api/ai/summarize', { method: 'POST', body: form });
-    const summaryBox = $('#summary-display');
     currentSummaryText = res.summary || '';
+    if (!currentSummaryText.trim()) throw new Error('Paperplane AI returned an empty executive brief. Please retry.');
     summaryBox.innerHTML = renderMarkdown(currentSummaryText);
-    const actionsBar = $('#summary-actions-bar');
     if (actionsBar) actionsBar.hidden = false;
     showToast('Executive brief generated successfully!', 'success');
   } catch (err) {
-    const errMsg = err.message || 'AI request failed, please try again';
-    $('#summary-display').innerHTML = `<div style="color: var(--error); padding: 14px; font-weight: 500; border: 1px solid var(--error); border-radius: 8px; background: rgba(239, 68, 68, 0.05);">${escapeHtml(errMsg)}</div>`;
-    const actionsBar = $('#summary-actions-bar');
+    const errMsg = safeAiErrorMessage(err);
+    summaryBox.innerHTML = `<div class="ai-summary-error" role="alert">${escapeHtml(errMsg)} <button type="button" id="summary-retry-btn" class="btn-secondary-action">Retry</button></div>`;
+    $('#summary-retry-btn')?.addEventListener('click', generateExecutiveBrief, { once: true });
     if (actionsBar) actionsBar.hidden = true;
     showToast(errMsg, 'error');
   } finally {
     btn.disabled = false;
     btn.textContent = 'Generate Executive Brief';
   }
-};
+}
+
+$('#trigger-summary-btn').onclick = generateExecutiveBrief;
 
 const copySummaryBtn = $('#copy-summary-btn');
 if (copySummaryBtn) {
@@ -4420,9 +4716,14 @@ if (changePwForm) {
 // Mobile Navigation Drawer
 // ----------------------------------------------------------------------
 
+let restoreCollapsedSidebarAfterMobileClose = false;
+
 function openMobileSidebar() {
   const sidebar = $('#sidebar');
   const backdrop = $('#mobile-backdrop');
+  const shell = $('#app-shell');
+  restoreCollapsedSidebarAfterMobileClose = Boolean(shell?.classList.contains('sidebar-collapsed'));
+  shell?.classList.remove('sidebar-collapsed');
   if (sidebar) sidebar.classList.add('mobile-open');
   if (backdrop) backdrop.hidden = false;
   $('#mobile-menu-btn')?.setAttribute('aria-expanded', 'true');
@@ -4431,8 +4732,11 @@ function openMobileSidebar() {
 function closeMobileSidebar() {
   const sidebar = $('#sidebar');
   const backdrop = $('#mobile-backdrop');
+  const shell = $('#app-shell');
   if (sidebar) sidebar.classList.remove('mobile-open');
   if (backdrop) backdrop.hidden = true;
+  if (restoreCollapsedSidebarAfterMobileClose) shell?.classList.add('sidebar-collapsed');
+  restoreCollapsedSidebarAfterMobileClose = false;
   $('#mobile-menu-btn')?.setAttribute('aria-expanded', 'false');
 }
 
@@ -4552,6 +4856,7 @@ async function init() {
   initMobileNav();
   initHomeSearchAndFilter();
   await checkAuthStatus();
+  await checkExecutiveBriefAvailability();
   await handleCashfreeReturn();
   await initGoogleAuth();
 
@@ -4560,14 +4865,14 @@ async function init() {
     state.operations = data;
     renderSidebarTools();
     renderHomeToolsGrid();
-    
+    let previousView = null;
+    try { previousView = sessionStorage.getItem('paperplane-active-view'); } catch { /* storage may be disabled */ }
     handleInitialRouting();
     try {
-      const previousView = sessionStorage.getItem('paperplane-active-view');
       if (previousView === 'studio' || previousView === 'ai') switchWorkspaceView(previousView);
       const previousDoc = sessionStorage.getItem('paperplane-last-local-document');
       if (previousDoc) {
-        showToast(`“${previousDoc}” was a local file and was not restored after reload. Select it again to continue.`, 'info', 7000);
+        showToast(`Previous work for “${previousDoc}” was cleared after reload to protect your files and unsaved edits. Choose the source file again to continue.`, 'info', 8000);
         sessionStorage.removeItem('paperplane-last-local-document');
       }
     } catch { /* session storage may be disabled */ }
@@ -4797,6 +5102,9 @@ function handleInitialRouting() {
     switchWorkspaceView('api-docs', null, false);
   } else if (path.includes('download') || path.includes('apps') || urlParams.get('view') === 'download') {
     switchWorkspaceView('download', null, false);
+  } else if (pathSlug === 'tool-desk') {
+    selectOperation('merge', false);
+    switchWorkspaceView('desk', null, false);
   } else if (OPERATION_BY_SLUG[pathSlug]) {
     selectOperation(OPERATION_BY_SLUG[pathSlug], true);
   } else if (pathSlug === 'convert-pdf') {
@@ -4830,6 +5138,9 @@ window.addEventListener('popstate', e => {
     switchWorkspaceView('api-docs', null, false);
   } else if (path.includes('download') || path.includes('apps')) {
     switchWorkspaceView('download', null, false);
+  } else if (pathSlug === 'tool-desk') {
+    selectOperation('merge', false);
+    switchWorkspaceView('desk', null, false);
   } else if (OPERATION_BY_SLUG[pathSlug]) {
     selectOperation(OPERATION_BY_SLUG[pathSlug], true);
   } else if (urlParams.get('tool')) {

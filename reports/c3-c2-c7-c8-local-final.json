@@ -1,0 +1,165 @@
+[
+  {
+    "id": "C-3",
+    "case": {
+      "requested": "/compress-pdf",
+      "landing_before_click": "/tool-desk",
+      "desk_visible": true,
+      "landing_after_click": "/tool-desk",
+      "desk_visible_after": true,
+      "tab_active": true,
+      "tool_title": "Compress PDF",
+      "pass": true
+    }
+  },
+  {
+    "id": "C-3",
+    "case": {
+      "requested": "/ocr-pdf",
+      "landing_before_click": "/tool-desk",
+      "desk_visible": true,
+      "landing_after_click": "/tool-desk",
+      "desk_visible_after": true,
+      "tab_active": true,
+      "tool_title": "OCR PDF",
+      "pass": true
+    }
+  },
+  {
+    "id": "C-3",
+    "case": {
+      "requested": "/merge-pdf",
+      "landing_before_click": "/tool-desk",
+      "desk_visible": true,
+      "landing_after_click": "/tool-desk",
+      "desk_visible_after": true,
+      "tab_active": true,
+      "tool_title": "Merge PDF",
+      "pass": true
+    }
+  },
+  {
+    "id": "C-3",
+    "case": {
+      "requested": "/rotate-pdf",
+      "landing_before_click": "/tool-desk",
+      "desk_visible": true,
+      "landing_after_click": "/tool-desk",
+      "desk_visible_after": true,
+      "tab_active": true,
+      "tool_title": "Rotate PDF",
+      "pass": true
+    }
+  },
+  {
+    "id": "C-3",
+    "case": {
+      "requested": "/pdf-to-word",
+      "landing_before_click": "/tool-desk",
+      "desk_visible": true,
+      "landing_after_click": "/tool-desk",
+      "desk_visible_after": true,
+      "tab_active": true,
+      "tool_title": "PDF to Word",
+      "pass": true
+    }
+  },
+  {
+    "id": "C-3",
+    "case": {
+      "requested": "/",
+      "landing_before_click": "/",
+      "desk_visible": false,
+      "landing_after_click": "/tool-desk",
+      "desk_visible_after": true,
+      "tab_active": true,
+      "tool_title": "Merge PDF",
+      "pass": true
+    }
+  },
+  {
+    "id": "C-7",
+    "case": {
+      "operation": "ocr",
+      "opened": true,
+      "closed_on_navigation": true,
+      "pass": true
+    }
+  },
+  {
+    "id": "C-7",
+    "case": {
+      "operation": "rotate",
+      "opened": true,
+      "closed_on_navigation": true,
+      "pass": true
+    }
+  },
+  {
+    "id": "C-7",
+    "case": {
+      "operation": "pdf_to_word",
+      "opened": true,
+      "closed_on_navigation": true,
+      "pass": true
+    }
+  },
+  {
+    "id": "C-7",
+    "case": {
+      "cloud_png_rejected": "This tool currently imports PDF files only. Choose a direct PDF link; images and Office files must use their matching converter.",
+      "modal_stays_open": true,
+      "pass": true
+    }
+  },
+  {
+    "id": "C-2",
+    "case": {
+      "device": "desktop1366",
+      "capability": {
+        "executive_brief_available": false,
+        "reason": "ai_service_not_configured"
+      },
+      "button_disabled": true,
+      "message": "Executive Brief is unavailable because AI analysis is not configured for this workspace. Ask the site administrator to configure AI, then reload this page.",
+      "pass": true
+    }
+  },
+  {
+    "id": "C-8",
+    "case": {
+      "device": "desktop1366",
+      "picker_opened": true,
+      "picked_real_pdf": true,
+      "selected_file": "paperplane-notes-69-local.pdf",
+      "provider_error_surfaced": true,
+      "has_grounded_answer": "NOT VERIFIED - AI provider unavailable locally",
+      "js_errors": []
+    }
+  },
+  {
+    "id": "C-2",
+    "case": {
+      "device": "mobile375",
+      "capability": {
+        "executive_brief_available": false,
+        "reason": "ai_service_not_configured"
+      },
+      "button_disabled": true,
+      "message": "Executive Brief is unavailable because AI analysis is not configured for this workspace. Ask the site administrator to configure AI, then reload this page.",
+      "pass": true
+    }
+  },
+  {
+    "id": "C-8",
+    "case": {
+      "device": "mobile375",
+      "picker_opened": true,
+      "picked_real_pdf": true,
+      "selected_file": "paperplane-notes-69-local.pdf",
+      "provider_error_surfaced": true,
+      "has_grounded_answer": "NOT VERIFIED - AI provider unavailable locally",
+      "js_errors": []
+    }
+  }
+]

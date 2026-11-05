@@ -1,0 +1,79 @@
+[
+  {
+    "step": "duplicate-one",
+    "ok": true,
+    "counts": {
+      "header": "70",
+      "counter_total": "70",
+      "thumbnails": 70
+    },
+    "toast": "OK\nDuplicated 1 page(s)."
+  },
+  {
+    "step": "delete-one",
+    "ok": false,
+    "counts": {
+      "header": "70",
+      "counter_total": "70",
+      "thumbnails": 70
+    },
+    "toast": null
+  },
+  {
+    "step": "delete-two",
+    "ok": false,
+    "counts": {
+      "header": "70",
+      "counter_total": "70",
+      "thumbnails": 70
+    },
+    "toast": null
+  },
+  {
+    "step": "delete-all-guard",
+    "before": {
+      "header": "70",
+      "counter_total": "70",
+      "thumbnails": 70
+    },
+    "after": {
+      "header": "70",
+      "counter_total": "70",
+      "thumbnails": 70
+    },
+    "toast": "!\nCannot delete all pages. The document must contain at least one page.",
+    "ok": false
+  },
+  {
+    "step": "insert-blank",
+    "ok": false,
+    "counts": {
+      "header": "71",
+      "counter_total": "71",
+      "thumbnails": 71
+    },
+    "toast": null
+  },
+  {
+    "step": "extract-selected-1-and-3",
+    "output": {
+      "filename": "extracted_1-3_paperplane-notes-69-local.pdf",
+      "bytes": 1078,
+      "pages": 2,
+      "text": [
+        "NOTES PAGE 1/69",
+        ""
+      ],
+      "signature": "%PDF-"
+    },
+    "source_counts": {
+      "header": "71",
+      "counter_total": "71",
+      "thumbnails": 71
+    }
+  },
+  {
+    "step": "js-errors",
+    "errors": []
+  }
+]

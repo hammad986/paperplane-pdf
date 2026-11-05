@@ -387,8 +387,9 @@ class TestDeveloperAPI(unittest.TestCase):
         )
         self.assertEqual(res.status_code, 200)
         data = res.json()
-        self.assertEqual(data["provider"], "Bluesminds")
         self.assertIn("status", data)
+        self.assertNotIn("provider", data)
+        self.assertNotIn("model", data)
         # Secret key must NEVER be in response
         if config.BLUESMINDS_API_KEY:
             self.assertNotIn(config.BLUESMINDS_API_KEY, json.dumps(data))

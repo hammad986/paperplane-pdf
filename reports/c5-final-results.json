@@ -1,0 +1,74 @@
+[
+  {
+    "step": "duplicate one selected page (69 -> 70)",
+    "counts": {
+      "studio_state": 70,
+      "pages_header": 70,
+      "page_counter_total": 70,
+      "thumbnails": 70
+    },
+    "toast": "OK\nDuplicated 1 page(s).",
+    "count_consistent": true
+  },
+  {
+    "step": "delete one selected page (70 -> 69)",
+    "counts": {
+      "studio_state": 69,
+      "pages_header": 69,
+      "page_counter_total": 69,
+      "thumbnails": 69
+    },
+    "toast": "OK\nDeleted 1 page(s).",
+    "count_consistent": true
+  },
+  {
+    "step": "delete two selected pages (69 -> 67)",
+    "counts": {
+      "studio_state": 67,
+      "pages_header": 67,
+      "page_counter_total": 67,
+      "thumbnails": 67
+    },
+    "toast": "OK\nDeleted 2 page(s).",
+    "count_consistent": true
+  },
+  {
+    "step": "select all then delete guard",
+    "counts": {
+      "studio_state": 67,
+      "pages_header": 67,
+      "page_counter_total": 67,
+      "thumbnails": 67
+    },
+    "toast": "!\nCannot delete all pages. The document must contain at least one page.",
+    "count_consistent": true
+  },
+  {
+    "step": "insert blank page after current (67 -> 68)",
+    "counts": {
+      "studio_state": 68,
+      "pages_header": 68,
+      "page_counter_total": 68,
+      "thumbnails": 68
+    },
+    "toast": "OK\nBlank page inserted after page 1.",
+    "count_consistent": true
+  },
+  {
+    "step": "extract selected source pages 1 and 3",
+    "filename": "paperplane-final-extracted_1-3_notes.pdf",
+    "bytes": 59653,
+    "page_count": 2,
+    "text_chars": [
+      132,
+      2499
+    ],
+    "page1_contains_title": true,
+    "page2_has_text": true,
+    "signature": "%PDF-"
+  },
+  {
+    "step": "final javascript errors",
+    "errors": []
+  }
+]

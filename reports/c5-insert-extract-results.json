@@ -1,0 +1,37 @@
+[
+  {
+    "step": "insert blank page through annotate toolbar",
+    "counts": {
+      "state": 70,
+      "header": 70,
+      "counter_total": 70,
+      "thumbs": 70
+    },
+    "toast": "OK\nBlank page inserted after page 1.",
+    "page65_blank_chars": null
+  },
+  {
+    "step": "extract two selected pages",
+    "filename": "paperplane_extracted_1-2_notes.pdf",
+    "pages": 2,
+    "text_characters_each_page": [
+      132,
+      0
+    ],
+    "pdf_signature": "%PDF-",
+    "download_size": 37366
+  },
+  {
+    "step": "post-extract source remains intact",
+    "counts": {
+      "state": 70,
+      "header": 70,
+      "counter_total": 70,
+      "thumbs": 70
+    },
+    "toast": "OK\nExtracted PDF downloaded.",
+    "js_errors": [
+      "initStudioViewer is not defined"
+    ]
+  }
+]

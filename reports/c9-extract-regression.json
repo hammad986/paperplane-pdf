@@ -1,0 +1,28 @@
+[
+  {
+    "step": "single-page-toolbar-extract",
+    "filename": "extracted_1_paperplane-notes-69-local.pdf",
+    "bytes": 920,
+    "pages": 1,
+    "pdf_signature": "%PDF-",
+    "page_1_text_present": true,
+    "page_text": "NOTES PAGE 1/69\n"
+  },
+  {
+    "step": "batch-extract-source-pages-1-and-3",
+    "filename": "extracted_1-3_paperplane-notes-69-local.pdf",
+    "bytes": 1313,
+    "pages": 2,
+    "pdf_signature": "%PDF-",
+    "page_texts": [
+      "NOTES PAGE 1/69\n",
+      "NOTES PAGE 3/69\n"
+    ],
+    "page_1_correct": true,
+    "page_3_correct": true
+  },
+  {
+    "step": "javascript-errors",
+    "errors": []
+  }
+]

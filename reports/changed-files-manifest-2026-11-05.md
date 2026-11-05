@@ -1,0 +1,356 @@
+# Changed-files manifest — 2026-11-05
+
+This manifest lists every modified or untracked workspace file at final verification time. Existing historical reports/screenshots are retained; their reason is labeled as historical where applicable.
+
+- ai_engine.py — AI provider timeout/retry bounds, safe public error text, and provider/model output filtering.
+- config.py — Centralized INR pricing, Free/Pro upload limits, and AI timeout settings.
+- converters.py — Grayscale conversion integrity and output handling.
+- scripts/preflight_test.py — Preflight uses a local session fixture without sending account email and no longer claims production certification.
+- server.py — Upload caps, route security, billing currency enforcement, AI response hygiene, and PDF workflow endpoints.
+- tests/test_ai_workflows.py — Regression expectations for normalized errors and provider/model privacy.
+- tests/test_cashfree_billing.py — INR checkout contract and explicit rejection of USD checkout.
+- tests/test_developer_api.py — Assert public API diagnostics omit provider/model identifiers.
+- tests/test_production_security.py — Production security and documentation/access regression coverage.
+- tests/test_web_seo.py — Allow three or more FAQs so grayscale can explain file-size behavior.
+- web/assets/app.js — Studio navigation/scroll, selection, extraction, state recovery, AI status, quota loading fallback, and cache-versioned frontend behavior.
+- web/assets/editor.js — Editor event/render handling fixes.
+- web/assets/page_organizer.js — Page selection and organizer action handling.
+- web/assets/styles.css — Responsive page/studio layouts, mobile touch targets, dark states, and visible pending quota.
+- web/index.html — Responsive page shell, static quota fallback, and cache-busting versions for changed CSS/JS bundles.
+- reports/c1-continuous-scroll-results.json — C1 local Studio continuous-scroll and page/counter synchronization measurements.
+- reports/c1-final-scroll-results.json — C1 local Studio continuous-scroll and page/counter synchronization measurements.
+- reports/c1-grayscale-live-like-final.json — C1 local Studio continuous-scroll and page/counter synchronization measurements.
+- reports/c1-prevnext-final.json — C1 local Studio continuous-scroll and page/counter synchronization measurements.
+- reports/c1-ship-results.json — C1 local Studio continuous-scroll and page/counter synchronization measurements.
+- reports/c3-c2-c7-c8-local-final.json — Local navigation, AI capability, picker, and cloud-modal checks.
+- reports/c4-first-render-timings.json — C4 first-render and 0/10/30/60-second page-render measurements.
+- reports/c4-render-audit-final-v2.json — C4 first-render and 0/10/30/60-second page-render measurements.
+- reports/c4-render-audit-final.json — C4 first-render and 0/10/30/60-second page-render measurements.
+- reports/c5-batch-actions-results.json — C5 page organizer duplicate/delete/insert/extract regression results.
+- reports/c5-batch-regression-final.json — C5 page organizer duplicate/delete/insert/extract regression results.
+- reports/c5-batch-regression-rerun.json — C5 page organizer duplicate/delete/insert/extract regression results.
+- reports/c5-final-results.json — C5 page organizer duplicate/delete/insert/extract regression results.
+- reports/c5-insert-extract-results.json — C5 page organizer duplicate/delete/insert/extract regression results.
+- reports/c6-reload-notice-final.json — C6 in-app state retention and reload privacy notice results.
+- reports/c6-retention-final.json — C6 in-app state retention and reload privacy notice results.
+- reports/c9-extract-regression.json — C9 toolbar single/batch extraction PDF signature, page count, and text verification.
+- reports/launch-readiness-final-2026-11-05.md — Current C1–C10/R1–R8 audit, 41-tool workflow ledger, release blockers, and no-deploy decision.
+- reports/merge-69x2-timeout-final.json — Local 69+69-page merge duration and output integrity.
+- reports/r6-delay-and-cache-version-final.json — R6 no-JS, delayed API, failure fallback, and cache-version check.
+- reports/r6-delayed-api-fallback-final.json — R6 no-JS, delayed API, failure fallback, and cache-version check.
+- reports/r6-nojs-and-c10-dark-final.json — R6 no-JS, delayed API, failure fallback, and cache-version check.
+- reports/r6-static-fallback-local.json — R6 no-JS, delayed API, failure fallback, and cache-version check.
+- reports/r7-free-50mb-plus-one.json — R7 Free/Pro upload-size boundary and quota/account cleanup evidence.
+- reports/r7-pro-500mb-local.json — R7 Free/Pro upload-size boundary and quota/account cleanup evidence.
+- reports/responsive-detailed-group-matrix.json — C10 route, viewport, theme, sidebar, Studio zoom, clipping, and touch-target measurements.
+- reports/responsive-matrix-final-summary.json — C10 route, viewport, theme, sidebar, Studio zoom, clipping, and touch-target measurements.
+- reports/responsive-matrix-final.json — C10 route, viewport, theme, sidebar, Studio zoom, clipping, and touch-target measurements.
+- reports/responsive-matrix.json — C10 route, viewport, theme, sidebar, Studio zoom, clipping, and touch-target measurements.
+- reports/responsive-theme-sidebar-zoom-final.json — C10 route, viewport, theme, sidebar, Studio zoom, clipping, and touch-target measurements.
+- reports/responsive-touch-target-retest.json — C10 route, viewport, theme, sidebar, Studio zoom, clipping, and touch-target measurements.
+- reports/responsive-verified-36-matrix.json — C10 route, viewport, theme, sidebar, Studio zoom, clipping, and touch-target measurements.
+- reports/screenshots/audit-after-ai-error-mobile-375.png — Intermediate page-layout screenshot after responsive/AI handling changes.
+- reports/screenshots/audit-after-ai-mobile-375.png — Intermediate page-layout screenshot after responsive/AI handling changes.
+- reports/screenshots/audit-after-ai-unconfigured-mobile-375.png — Intermediate page-layout screenshot after responsive/AI handling changes.
+- reports/screenshots/audit-after-download-mobile-375.png — Intermediate page-layout screenshot after responsive/AI handling changes.
+- reports/screenshots/audit-after-layout-1024.png — Intermediate page-layout screenshot after responsive/AI handling changes.
+- reports/screenshots/audit-after-layout-1366.png — Intermediate page-layout screenshot after responsive/AI handling changes.
+- reports/screenshots/audit-after-layout-375.png — Intermediate page-layout screenshot after responsive/AI handling changes.
+- reports/screenshots/audit-after-sidebar-open-mobile-375.png — Intermediate page-layout screenshot after responsive/AI handling changes.
+- reports/screenshots/audit-after-studio-desktop-1366.png — Intermediate page-layout screenshot after responsive/AI handling changes.
+- reports/screenshots/audit-after-studio-mobile-375.png — Intermediate page-layout screenshot after responsive/AI handling changes.
+- reports/screenshots/audit-before-ai-375.png — Baseline page-layout screenshot captured before responsive fixes.
+- reports/screenshots/audit-before-download-1024.png — Baseline page-layout screenshot captured before responsive fixes.
+- reports/screenshots/audit-before-home-375.png — Baseline page-layout screenshot captured before responsive fixes.
+- reports/screenshots/audit-before-merge-375.png — Baseline page-layout screenshot captured before responsive fixes.
+- reports/screenshots/audit-final-ai-1024.png — Final local page screenshot for the named view and width.
+- reports/screenshots/audit-final-ai-375.png — Final local page screenshot for the named view and width.
+- reports/screenshots/audit-final-download-1024.png — Final local page screenshot for the named view and width.
+- reports/screenshots/audit-final-download-375.png — Final local page screenshot for the named view and width.
+- reports/screenshots/audit-final-home-1024.png — Final local page screenshot for the named view and width.
+- reports/screenshots/audit-final-home-375.png — Final local page screenshot for the named view and width.
+- reports/screenshots/audit-final-merge-1024.png — Final local page screenshot for the named view and width.
+- reports/screenshots/audit-final-merge-375.png — Final local page screenshot for the named view and width.
+- reports/screenshots/audit-final-pdf-to-word-1024.png — Final local page screenshot for the named view and width.
+- reports/screenshots/audit-final-pdf-to-word-375.png — Final local page screenshot for the named view and width.
+- reports/screenshots/audit-final-tool-desk-1024.png — Final local page screenshot for the named view and width.
+- reports/screenshots/audit-final-tool-desk-375.png — Final local page screenshot for the named view and width.
+- reports/screenshots/c1-after-desktop-jump1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-after-desktop-page1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-after-desktop-page2.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-after-desktop-page3.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-after-desktop-page69.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-after-mobile-375-jump1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-after-mobile-375-page1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-after-mobile-375-page2.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-after-mobile-375-page3.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-after-mobile-375-page69.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-before-desktop.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final-desktop-1366-number1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final-desktop-1366-page1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final-desktop-1366-scroll2.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final-desktop-1366-scroll3.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final-desktop-1366-scroll69.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final-desktop-1366-thumbnail69.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final-mobile-375-number1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final-mobile-375-page1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final-mobile-375-scroll2.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final-mobile-375-scroll3.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final-mobile-375-scroll69.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final-mobile-375-thumbnail69.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final2-desktop1366-number1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final2-desktop1366-page1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final2-desktop1366-scroll2.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final2-desktop1366-scroll3.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final2-desktop1366-scroll69.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final2-desktop1366-thumbnail69.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final2-mobile375-number1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final2-mobile375-page1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final2-mobile375-scroll2.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final2-mobile375-scroll3.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final2-mobile375-scroll69.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final2-mobile375-thumbnail69.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final3-desktop1366-number1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final3-desktop1366-page1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final3-desktop1366-scroll2.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final3-desktop1366-scroll3.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final3-desktop1366-scroll69.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final3-desktop1366-thumbnail69.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final3-mobile375-page1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final3-mobile375-scroll2.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final3-mobile375-scroll3.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-final3-mobile375-scroll69.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-gray-real-desktop1366-number1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-gray-real-desktop1366-page1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-gray-real-desktop1366-scroll2.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-gray-real-desktop1366-scroll3.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-gray-real-desktop1366-scroll69.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-gray-real-desktop1366-thumbnail69.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-gray-real-mobile375-number1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-gray-real-mobile375-page1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-gray-real-mobile375-scroll2.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-gray-real-mobile375-scroll3.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-gray-real-mobile375-scroll69.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-gray-real-mobile375-thumbnail69.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-grayscale-desktop1366-number1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-grayscale-desktop1366-page1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-grayscale-desktop1366-prevnext-final.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-grayscale-desktop1366-scroll2.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-grayscale-desktop1366-scroll3.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-grayscale-desktop1366-scroll69.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-grayscale-desktop1366-thumbnail69.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-grayscale-mobile375-page1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-grayscale-mobile375-prevnext-final.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-grayscale-mobile375-scroll2.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-grayscale-mobile375-scroll3.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-grayscale-mobile375-scroll69.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-layout-debug-mobile-375.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-postfix-desktop1366-page1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-postfix-mobile375-page1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-scroll-container-debug-1366.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-ship-desktop1366-number1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-ship-desktop1366-page1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-ship-desktop1366-scroll2.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-ship-desktop1366-scroll3.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-ship-desktop1366-scroll69.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-ship-desktop1366-thumbnail69.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-ship-mobile375-number1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-ship-mobile375-page1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-ship-mobile375-scroll2.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-ship-mobile375-scroll3.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-ship-mobile375-scroll69.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-ship-mobile375-thumbnail69.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-verified-desktop1366-number1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-verified-desktop1366-page1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-verified-desktop1366-scroll2.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-verified-desktop1366-scroll3.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-verified-desktop1366-scroll69.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-verified-desktop1366-thumbnail69.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-verified-mobile375-number1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-verified-mobile375-page1.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-verified-mobile375-scroll2.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-verified-mobile375-scroll3.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-verified-mobile375-scroll69.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c1-verified-mobile375-thumbnail69.png — Studio continuous-scroll/page-sync screenshot for the named page, action, and device width.
+- reports/screenshots/c10-dark-dropzone-hover-414.png — Dark-mode mobile dropzone hover screenshot.
+- reports/screenshots/c4-final-grayscale-0s.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/c4-final-grayscale-10s.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/c4-final-grayscale-30s.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/c4-final-grayscale-60s.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/c4-final-original-0s.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/c4-final-original-10s.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/c4-final-original-30s.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/c4-final-original-60s.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/c4-grayscale-0s-desktop-1366.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/c4-grayscale-10s-desktop-1366.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/c4-grayscale-30s-desktop-1366.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/c4-grayscale-60s-desktop-1366.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/c4-original-0s-desktop-1366.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/c4-original-10s-desktop-1366.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/c4-original-30s-desktop-1366.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/c4-original-60s-desktop-1366.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/c4-verified-grayscale-0s.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/c4-verified-grayscale-10s.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/c4-verified-grayscale-30s.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/c4-verified-grayscale-60s.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/c4-verified-original-0s.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/c4-verified-original-10s.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/c4-verified-original-30s.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/c4-verified-original-60s.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/c5-after-delete-one-desktop-1366.png — Studio organizer duplicate/delete/insert/extract regression screenshot.
+- reports/screenshots/c5-after-delete-two-desktop-1366.png — Studio organizer duplicate/delete/insert/extract regression screenshot.
+- reports/screenshots/c5-after-duplicate-desktop-1366.png — Studio organizer duplicate/delete/insert/extract regression screenshot.
+- reports/screenshots/c5-before-batch-desktop-1366.png — Studio organizer duplicate/delete/insert/extract regression screenshot.
+- reports/screenshots/c5-final-after-delete-multiple-1366.png — Studio organizer duplicate/delete/insert/extract regression screenshot.
+- reports/screenshots/c5-final-after-delete-one-1366.png — Studio organizer duplicate/delete/insert/extract regression screenshot.
+- reports/screenshots/c5-final-after-duplicate-1366.png — Studio organizer duplicate/delete/insert/extract regression screenshot.
+- reports/screenshots/c5-final-after-insert-1366.png — Studio organizer duplicate/delete/insert/extract regression screenshot.
+- reports/screenshots/c5-final-delete-all-guard-1366.png — Studio organizer duplicate/delete/insert/extract regression screenshot.
+- reports/screenshots/c5-insert-blank-desktop-1366.png — Studio organizer duplicate/delete/insert/extract regression screenshot.
+- reports/screenshots/c5-rerun-delete-all-guard.png — Studio organizer duplicate/delete/insert/extract regression screenshot.
+- reports/screenshots/c5-rerun-delete-one-70-to-69.png — Studio organizer duplicate/delete/insert/extract regression screenshot.
+- reports/screenshots/c5-rerun-delete-two-69-to-67.png — Studio organizer duplicate/delete/insert/extract regression screenshot.
+- reports/screenshots/c5-rerun-duplicate-69-to-70.png — Studio organizer duplicate/delete/insert/extract regression screenshot.
+- reports/screenshots/c5-rerun-extract-pages-1-and-3.png — Studio organizer duplicate/delete/insert/extract regression screenshot.
+- reports/screenshots/c5-rerun-insert-blank-67-to-68.png — Studio organizer duplicate/delete/insert/extract regression screenshot.
+- reports/screenshots/c5-verified-after-delete-one.png — Studio organizer duplicate/delete/insert/extract regression screenshot.
+- reports/screenshots/c5-verified-after-delete-two.png — Studio organizer duplicate/delete/insert/extract regression screenshot.
+- reports/screenshots/c5-verified-after-duplicate.png — Studio organizer duplicate/delete/insert/extract regression screenshot.
+- reports/screenshots/c5-verified-after-extract.png — Studio organizer duplicate/delete/insert/extract regression screenshot.
+- reports/screenshots/c5-verified-after-insert.png — Studio organizer duplicate/delete/insert/extract regression screenshot.
+- reports/screenshots/c5-verified-delete-all-guard.png — Studio organizer duplicate/delete/insert/extract regression screenshot.
+- reports/screenshots/c6-studio-cleared-after-reload.png — Studio navigation/reload-retention notice screenshot.
+- reports/screenshots/c6-studio-reload-notice-final.png — Studio navigation/reload-retention notice screenshot.
+- reports/screenshots/c6-studio-retained-before-reload.png — Studio navigation/reload-retention notice screenshot.
+- reports/screenshots/c8-ai-picker-desktop1366.png — AI PDF picker selection/error-state screenshot.
+- reports/screenshots/c8-ai-picker-mobile375.png — AI PDF picker selection/error-state screenshot.
+- reports/screenshots/c9-after-toolbar-extract-desktop1366.png — Toolbar PDF extraction before/after screenshot.
+- reports/screenshots/c9-before-toolbar-extract-desktop1366.png — Toolbar PDF extraction before/after screenshot.
+- reports/screenshots/debug-studio-1366.png — Local browser verification capture retained as audit evidence.
+- reports/screenshots/final-sidebar-open-mobile375.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/final-sidebar-open-tablet768.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/final-studio-laptop1366.png — Local browser verification capture retained as audit evidence.
+- reports/screenshots/final-studio-mobile375.png — Local browser verification capture retained as audit evidence.
+- reports/screenshots/final-studio-tablet768.png — Local browser verification capture retained as audit evidence.
+- reports/screenshots/r6-delayed-api-fallback-375.png — Quota visibility/loading/failure fallback screenshot.
+- reports/screenshots/r6-nojs-quota-visible.png — Quota visibility/loading/failure fallback screenshot.
+- reports/screenshots/responsive-detailed-ai-1024.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/responsive-detailed-ai-1280.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/responsive-detailed-ai-1366.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/responsive-detailed-ai-1920.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/responsive-detailed-ai-360.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/responsive-detailed-ai-375.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/responsive-detailed-ai-390.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/responsive-detailed-ai-414.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/responsive-detailed-ai-768.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/responsive-detailed-all-tools-1024.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/responsive-detailed-all-tools-1280.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/responsive-detailed-all-tools-1366.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/responsive-detailed-all-tools-1920.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/responsive-detailed-all-tools-360.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/responsive-detailed-all-tools-375.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/responsive-detailed-all-tools-390.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/responsive-detailed-all-tools-414.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/responsive-detailed-all-tools-768.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/responsive-detailed-studio-1024.png — Local browser verification capture retained as audit evidence.
+- reports/screenshots/responsive-detailed-studio-1280.png — Local browser verification capture retained as audit evidence.
+- reports/screenshots/responsive-detailed-studio-1366.png — Local browser verification capture retained as audit evidence.
+- reports/screenshots/responsive-detailed-studio-1920.png — Local browser verification capture retained as audit evidence.
+- reports/screenshots/responsive-detailed-studio-360.png — Local browser verification capture retained as audit evidence.
+- reports/screenshots/responsive-detailed-studio-375.png — Local browser verification capture retained as audit evidence.
+- reports/screenshots/responsive-detailed-studio-390.png — Local browser verification capture retained as audit evidence.
+- reports/screenshots/responsive-detailed-studio-414.png — Local browser verification capture retained as audit evidence.
+- reports/screenshots/responsive-detailed-studio-768.png — Local browser verification capture retained as audit evidence.
+- reports/screenshots/responsive-detailed-tool-pages-1024.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/responsive-detailed-tool-pages-1280.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/responsive-detailed-tool-pages-1366.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/responsive-detailed-tool-pages-1920.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/responsive-detailed-tool-pages-360.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/responsive-detailed-tool-pages-375.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/responsive-detailed-tool-pages-390.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/responsive-detailed-tool-pages-414.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/responsive-detailed-tool-pages-768.png — Local browser QA screenshot retained as visual evidence.
+- reports/screenshots/responsive-verified-ai-1024.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-ai-1280.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-ai-1366.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-ai-1920.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-ai-360.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-ai-375.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-ai-390.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-ai-414.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-ai-768.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-ai-dark-1024.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-ai-dark-1280.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-ai-dark-1366.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-ai-dark-1920.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-ai-dark-360.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-ai-dark-375.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-ai-dark-390.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-ai-dark-414.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-ai-dark-768.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-ai-sidebar-open-375.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-ai-sidebar-open-414.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-all-tools-1024.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-all-tools-1280.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-all-tools-1366.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-all-tools-1920.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-all-tools-360.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-all-tools-375.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-all-tools-390.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-all-tools-414.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-all-tools-768.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-all-tools-dark-1024.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-all-tools-dark-1280.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-all-tools-dark-1366.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-all-tools-dark-1920.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-all-tools-dark-360.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-all-tools-dark-375.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-all-tools-dark-390.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-all-tools-dark-414.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-all-tools-dark-768.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-all-tools-sidebar-open-375.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-all-tools-sidebar-open-414.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-studio-1024.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-studio-1280.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-studio-1366.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-studio-1920.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-studio-360.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-studio-375.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-studio-390.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-studio-414.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-studio-768.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-studio-dark-1024.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-studio-dark-1280.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-studio-dark-1366.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-studio-dark-1920.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-studio-dark-360.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-studio-dark-375.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-studio-dark-390.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-studio-dark-414.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-studio-dark-768.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-studio-sidebar-open-375.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-studio-sidebar-open-414.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-tool-merge-pdf-1024.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-tool-merge-pdf-1280.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-tool-merge-pdf-1366.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-tool-merge-pdf-1920.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-tool-merge-pdf-360.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-tool-merge-pdf-375.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-tool-merge-pdf-390.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-tool-merge-pdf-414.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-tool-merge-pdf-768.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-tool-ocr-pdf-375.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-tool-ocr-pdf-414.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-tool-pages-sidebar-open-375.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-tool-pages-sidebar-open-414.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-tool-split-pdf-375.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/responsive-verified-tool-split-pdf-414.png — Responsive route capture; filename records view/tool, viewport width, and light/dark/sidebar state.
+- reports/screenshots/touch-fixed-studio-dark-375.png — Mobile Studio screenshot after enforcing 44 px critical touch targets.
+- reports/screenshots/touch-fixed-studio-dark-414.png — Mobile Studio screenshot after enforcing 44 px critical touch targets.
+- reports/screenshots/touch-fixed-studio-light-360.png — Mobile Studio screenshot after enforcing 44 px critical touch targets.
+- reports/screenshots/touch-fixed-studio-light-375.png — Mobile Studio screenshot after enforcing 44 px critical touch targets.
+- reports/screenshots/touch-fixed-studio-light-390.png — Mobile Studio screenshot after enforcing 44 px critical touch targets.
+- reports/screenshots/touch-fixed-studio-light-414.png — Mobile Studio screenshot after enforcing 44 px critical touch targets.
+- reports/screenshots/touch-fixed-studio-light-768.png — Mobile Studio screenshot after enforcing 44 px critical touch targets.
+- tests/test_grayscale_integrity.py — New regression coverage for grayscale output integrity.
+- reports/changed-files-manifest-2026-11-05.md — Complete one-line inventory of every modified or untracked source, test, report, log, and screenshot artifact in this checkout.

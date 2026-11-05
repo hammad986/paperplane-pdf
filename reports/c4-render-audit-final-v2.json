@@ -1,0 +1,101 @@
+{
+  "viewport": {
+    "width": 1366,
+    "height": 900
+  },
+  "documents": [
+    {
+      "document": "original",
+      "file": "paperplane-notes-69-local.pdf",
+      "size_bytes": 31568,
+      "expected_pages": 69,
+      "first_render_seconds_observed": 0.02,
+      "measurements": [
+        {
+          "target_seconds": 0,
+          "actual_elapsed_seconds": 0.02,
+          "studio_visible": true,
+          "active_tab": true,
+          "page_count": "69",
+          "first_page_slot": true,
+          "page1_rendered": true
+        },
+        {
+          "target_seconds": 10,
+          "actual_elapsed_seconds": 10.02,
+          "studio_visible": true,
+          "active_tab": true,
+          "page_count": "69",
+          "first_page_slot": true,
+          "page1_rendered": true
+        },
+        {
+          "target_seconds": 30,
+          "actual_elapsed_seconds": 30.1,
+          "studio_visible": true,
+          "active_tab": true,
+          "page_count": "69",
+          "first_page_slot": true,
+          "page1_rendered": true
+        },
+        {
+          "target_seconds": 60,
+          "actual_elapsed_seconds": 60.1,
+          "studio_visible": true,
+          "active_tab": true,
+          "page_count": "69",
+          "first_page_slot": true,
+          "page1_rendered": true
+        }
+      ],
+      "js_errors": []
+    },
+    {
+      "document": "grayscale",
+      "file": "paperplane-notes-grayscale-fixed.pdf",
+      "size_bytes": 6937511,
+      "expected_pages": 69,
+      "first_render_seconds_observed": 0.75,
+      "measurements": [
+        {
+          "target_seconds": 0,
+          "actual_elapsed_seconds": 0.35,
+          "studio_visible": true,
+          "active_tab": true,
+          "page_count": "69",
+          "first_page_slot": true,
+          "page1_rendered": true
+        },
+        {
+          "target_seconds": 10,
+          "actual_elapsed_seconds": 10.19,
+          "studio_visible": true,
+          "active_tab": true,
+          "page_count": "69",
+          "first_page_slot": true,
+          "page1_rendered": true
+        },
+        {
+          "target_seconds": 30,
+          "actual_elapsed_seconds": 30.22,
+          "studio_visible": true,
+          "active_tab": true,
+          "page_count": "69",
+          "first_page_slot": true,
+          "page1_rendered": true
+        },
+        {
+          "target_seconds": 60,
+          "actual_elapsed_seconds": 60.23,
+          "studio_visible": true,
+          "active_tab": true,
+          "page_count": "69",
+          "first_page_slot": true,
+          "page1_rendered": true
+        }
+      ],
+      "js_errors": []
+    }
+  ],
+  "page_errors": []
+}

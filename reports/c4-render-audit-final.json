@@ -1,0 +1,93 @@
+{
+  "viewport": {
+    "width": 1366,
+    "height": 900
+  },
+  "documents": [
+    {
+      "document": "original",
+      "file": "paperplane-notes-69-local.pdf",
+      "size_bytes": 31568,
+      "page_count_expected": 69,
+      "first_render_seconds_observed": 0.0,
+      "measurements": [
+        {
+          "target_seconds": 0,
+          "actual_elapsed_seconds": 0.0,
+          "page_count": "69",
+          "first_page_slot": true,
+          "page1_rendered": true,
+          "canvas_width": "595"
+        },
+        {
+          "target_seconds": 10,
+          "actual_elapsed_seconds": 10.0,
+          "page_count": "69",
+          "first_page_slot": true,
+          "page1_rendered": true,
+          "canvas_width": "595"
+        },
+        {
+          "target_seconds": 30,
+          "actual_elapsed_seconds": 30.0,
+          "page_count": "69",
+          "first_page_slot": true,
+          "page1_rendered": true,
+          "canvas_width": "595"
+        },
+        {
+          "target_seconds": 60,
+          "actual_elapsed_seconds": 60.0,
+          "page_count": "69",
+          "first_page_slot": true,
+          "page1_rendered": true,
+          "canvas_width": "595"
+        }
+      ],
+      "js_errors": []
+    },
+    {
+      "document": "grayscale",
+      "file": "paperplane-notes-grayscale-fixed.pdf",
+      "size_bytes": 6937511,
+      "page_count_expected": 69,
+      "first_render_seconds_observed": 10.14,
+      "measurements": [
+        {
+          "target_seconds": 0,
+          "actual_elapsed_seconds": 0.37,
+          "page_count": "69",
+          "first_page_slot": true,
+          "page1_rendered": false,
+          "canvas_width": "596"
+        },
+        {
+          "target_seconds": 10,
+          "actual_elapsed_seconds": 10.14,
+          "page_count": "69",
+          "first_page_slot": true,
+          "page1_rendered": true,
+          "canvas_width": "596"
+        },
+        {
+          "target_seconds": 30,
+          "actual_elapsed_seconds": 30.14,
+          "page_count": "69",
+          "first_page_slot": true,
+          "page1_rendered": true,
+          "canvas_width": "596"
+        },
+        {
+          "target_seconds": 60,
+          "actual_elapsed_seconds": 60.1,
+          "page_count": "69",
+          "first_page_slot": true,
+          "page1_rendered": true,
+          "canvas_width": "596"
+        }
+      ],
+      "js_errors": []
+    }
+  ],
+  "page_errors": []
+}

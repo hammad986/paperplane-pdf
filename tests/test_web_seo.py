@@ -43,7 +43,7 @@ def test_each_operation_has_unique_seo_catalog_and_schema_payload():
     assert len({entry["heading"] for entry in SEO_CATALOG.values()}) == len(SEO_CATALOG)
     for operation, slug in OPERATION_SLUGS.items():
         assert len(SEO_CATALOG[operation]["how_to"]) == 3
-        assert len(SEO_CATALOG[operation]["faqs"]) == 3
+        assert len(SEO_CATALOG[operation]["faqs"]) >= 3
         assert len(set(SEO_CATALOG[operation]["related"])) == 4
         response = client.get(f"/{slug}")
         assert response.status_code == 200

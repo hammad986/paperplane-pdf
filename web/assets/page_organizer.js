@@ -706,9 +706,8 @@
         this._updateBatchToolbar();
 
         // Switch viewer canvas to this page
-        if (window.renderStudioPage) {
-          window.renderStudioPage(pageNum);
-        }
+        if (window.jumpToStudioPage) window.jumpToStudioPage(pageNum);
+        else if (window.renderStudioPage) window.renderStudioPage(pageNum);
       });
 
       // Keyboard navigation (Arrow keys, Enter, Alt+Arrow for reorder)
@@ -724,7 +723,8 @@
           this.state.select(pageNum, e.ctrlKey || e.metaKey, e.shiftKey);
           this._updateCardStates();
           this._updateBatchToolbar();
-          if (window.renderStudioPage) window.renderStudioPage(pageNum);
+          if (window.jumpToStudioPage) window.jumpToStudioPage(pageNum);
+          else if (window.renderStudioPage) window.renderStudioPage(pageNum);
         }
       });
 
@@ -1159,7 +1159,10 @@
 
       // Reload document into viewer & organizer
       if (window.loadDocumentIntoStudio) {
-        await window.loadDocumentIntoStudio(newFile);
+        const loaded = await window.loadDocumentIntoStudio(newFile);
+        if (loaded && window.jumpToStudioPage) {
+          await window.jumpToStudioPage(targetPage, 'auto');
+        }
       }
     }
 

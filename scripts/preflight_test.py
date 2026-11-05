@@ -254,6 +254,7 @@ def run_checks():
     # ------------------------------------------------------------------
     print("\n--- 7. Live Server End-to-End Boot & Async Job Test ---")
     proc = None
+    preflight_user_id = None
     try:
         proc = subprocess.Popen([sys.executable, "app.py"], cwd=str(ROOT))
         server_ready = False
@@ -284,14 +285,19 @@ def run_checks():
             ops = json.loads(res.read().decode())
             record("Operations catalog (/api/operations)", len(ops) >= 25, f"{len(ops)} total operations exposed")
 
-        # Developer API Key & Registration
+        # Use a local fixture instead of registering through the running app.
+        # Registration schedules a real account notification email, which a
+        # preflight must not send to a fabricated test address.
         test_email = f"deploy_{int(time.time())}@paperplane.test"
-        reg_payload = urllib.parse.urlencode({"email": test_email, "password": "DeploySecure2026!"}).encode()
-        req = urllib.request.Request("http://127.0.0.1:8501/api/auth/register", data=reg_payload)
-        with urllib.request.urlopen(req) as res:
-            auth_data = json.loads(res.read().decode())
-            user_token = auth_data["token"]
-            record("User Registration & JWT Session", bool(user_token), f"User {test_email}")
+        preflight_user_id = persistence.create_user(test_email, "DeploySecure2026!")
+        persistence.set_user_tier(preflight_user_id, tier="developer", status="active")
+        session = persistence.create_session_for_user(preflight_user_id)
+        user_token = session["token"]
+        record(
+            "Local authenticated preflight fixture",
+            session["user_id"] == preflight_user_id and bool(user_token),
+            "Session helper verified without account creation or email dispatch",
+        )
 
         # Developer API Key Creation
         key_payload = urllib.parse.urlencode({"name": "Preflight Validation Key"}).encode()
@@ -308,6 +314,12 @@ def run_checks():
     except Exception as exc:
         record("Live Server End-to-End Test", False, str(exc))
     finally:
+        if preflight_user_id:
+            with persistence.connect() as connection:
+                connection.execute("DELETE FROM user_usage WHERE subject = ?", (f"user:{preflight_user_id}",))
+                connection.execute("DELETE FROM audit_logs WHERE user_id = ?", (preflight_user_id,))
+                connection.execute("DELETE FROM users WHERE id = ?", (preflight_user_id,))
+                connection.commit()
         if proc:
             proc.terminate()
             proc.wait(timeout=5)
@@ -323,8 +335,8 @@ def run_checks():
     print("=" * 75)
 
     if failed == 0:
-        print("\n>>> ALL PRE-DEPLOYMENT VERIFICATION CHECKS PASSED WITH 100% SUCCESS <<<")
-        print(">>> PAPERPLANE PDF IS FULLY CERTIFIED FOR PRODUCTION DEPLOYMENT <<<\n")
+        print("\n>>> ALL SCRIPTED PREFLIGHT CHECKS PASSED <<<")
+        print(">>> This result does not replace production, provider, device, or live-release verification. <<<\n")
         return 0
     else:
         print(f"\n>>> WARNING: {failed} CHECKS FAILED. PLEASE RESOLVE BEFORE DEPLOYMENT <<<\n")

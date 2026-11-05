@@ -395,11 +395,17 @@ def test_swagger_api_docs_route():
     """Docs are available in development and absent from production."""
     from server import DISABLE_DOCS
 
-    docs_res = client.get("/api-docs")
+    docs_res = client.get("/api-docs", follow_redirects=False)
     openapi_res = client.get("/openapi.json")
     if DISABLE_DOCS:
-        assert docs_res.status_code == 404
+        assert docs_res.status_code in (301, 302, 307, 308)
+        assert docs_res.headers["location"] == "/developers"
         assert openapi_res.status_code == 404
+        redirected_docs = client.get("/api-docs")
+        assert redirected_docs.status_code == 200
+        docs_redirect = client.get("/docs", follow_redirects=False)
+        assert docs_redirect.status_code in (301, 302, 307, 308)
+        assert docs_redirect.headers["location"] == "/developers"
         return
 
     assert docs_res.status_code == 200
@@ -420,8 +426,12 @@ def test_public_api_docs_disabled_for_production_even_if_env_false():
     from server import _should_disable_docs
 
     assert _should_disable_docs("production", "false") is True
-    assert _should_disable_docs("development", "false") is False
-    assert _should_disable_docs("development", "true") is True
+    assert _should_disable_docs("production", "true") is True
+    assert _should_disable_docs("Prod", "true") is True
+    assert _should_disable_docs("staging", None) is True
+    assert _should_disable_docs("development", None) is True
+    assert _should_disable_docs("development", "false") is True
+    assert _should_disable_docs("development", "true") is False
 
 
 def test_csp_does_not_allow_inline_script_execution():
@@ -455,6 +465,35 @@ def test_auth_profile_exposes_the_authoritative_plan_limits():
     response = client.get("/api/auth/me")
     assert response.status_code == 200
     assert response.json()["plan_limits"] == plan_limits_payload()
+
+
+def test_ai_capability_endpoint_hides_provider_details_and_reports_local_availability(monkeypatch):
+    import ai_engine
+
+    monkeypatch.setattr(ai_engine, "AI_KILL_SWITCH", False)
+    monkeypatch.setattr(ai_engine, "_current_bluesminds_api_key", lambda: "")
+    unavailable = client.get("/api/ai/capabilities")
+    assert unavailable.status_code == 200
+    assert unavailable.json() == {
+        "executive_brief_available": False,
+        "reason": "ai_service_not_configured",
+    }
+
+    monkeypatch.setattr(ai_engine, "_current_bluesminds_api_key", lambda: "test-only-key")
+    monkeypatch.setattr(ai_engine, "AI_KILL_SWITCH", True)
+    disabled = client.get("/api/ai/capabilities")
+    assert disabled.status_code == 200
+    assert disabled.json() == {
+        "executive_brief_available": False,
+        "reason": "ai_service_disabled",
+    }
+
+    monkeypatch.setattr(ai_engine, "AI_KILL_SWITCH", False)
+    available = client.get("/api/ai/capabilities")
+    assert available.status_code == 200
+    assert available.json() == {"executive_brief_available": True, "reason": None}
+    assert "provider" not in available.text.lower()
+    assert "model" not in available.text.lower()
 
 
 def test_free_job_upload_limit_returns_actionable_413(monkeypatch):

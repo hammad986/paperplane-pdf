@@ -58,6 +58,18 @@ def test_cashfree_checkout_creates_inr_order_and_persists_order_id(monkeypatch):
     assert persistence.get_user_by_payment_order(payload["order_id"])["id"] == user_id
 
 
+def test_cashfree_checkout_rejects_non_inr_currency():
+    client, _, _ = _registered_client()
+
+    response = client.post(
+        "/api/billing/checkout-session",
+        json={"tier": "pro", "currency": "USD"},
+    )
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Paperplane checkout currently supports INR only."
+
+
 def test_cashfree_paid_order_promotes_tier_from_audited_order(monkeypatch):
     client, user_id, _ = _registered_client()
     order_id = f"order_pp_{user_id[:8]}_{int(time.time())}_verify"

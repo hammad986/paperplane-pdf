@@ -2995,7 +2995,7 @@ def get_pdf_metadata_pages(source: Path) -> dict:
 
 
 def convert_pdf_to_grayscale(source: Path, output: Path) -> dict:
-    """Convert all pages of a PDF to grayscale by re-rendering each page as a grayscale image."""
+    """Convert colored pages to grayscale; preserve already-grayscale PDFs losslessly."""
     if not source.exists():
         raise ValueError(f"File '{source.name}' does not exist.")
 
@@ -3012,18 +3012,33 @@ def convert_pdf_to_grayscale(source: Path, output: Path) -> dict:
     doc = fitz.open(str(source))
     new_doc = fitz.open()
     page_count = len(doc)
+    already_grayscale = True
     try:
-        for page in doc:
-            pix = page.get_pixmap(colorspace=fitz.csGRAY, dpi=150)
-            img_bytes = pix.tobytes("png")
-            img_doc = fitz.open("png", img_bytes)
-            pdf_bytes = img_doc.convert_to_pdf()
-            page_pdf = fitz.open("pdf", pdf_bytes)
-            new_doc.insert_pdf(page_pdf)
-            img_doc.close()
-            page_pdf.close()
         temp_out = output.with_name(f"{output.stem}_gray_tmp_{os.getpid()}_{uuid.uuid4().hex[:6]}.pdf")
-        new_doc.save(str(temp_out), garbage=4, deflate=True, deflate_images=True)
+        for page in doc:
+            # Sampling at 72 DPI catches ordinary colored text, drawings, and images
+            # while avoiding a full-resolution extra render for documents that are
+            # already suitable for monochrome printing.
+            sample = page.get_pixmap(colorspace=fitz.csRGB, dpi=72, alpha=False)
+            pixels = sample.samples
+            if any(pixels[i] != pixels[i + 1] or pixels[i] != pixels[i + 2]
+                   for i in range(0, len(pixels), sample.n)):
+                already_grayscale = False
+                break
+
+        if already_grayscale:
+            # Re-rendering grayscale notes enlarged the sample PDF and destroyed
+            # its text layer. Keep an already-gray source byte-for-byte intact.
+            shutil.copyfile(source, temp_out)
+        else:
+            for page in doc:
+                pix = page.get_pixmap(colorspace=fitz.csGRAY, dpi=150)
+                img_bytes = pix.tobytes("png")
+                with fitz.open("png", img_bytes) as img_doc:
+                    pdf_bytes = img_doc.convert_to_pdf()
+                with fitz.open("pdf", pdf_bytes) as page_pdf:
+                    new_doc.insert_pdf(page_pdf)
+            new_doc.save(str(temp_out), garbage=4, deflate=True, deflate_images=True)
     finally:
         new_doc.close()
         doc.close()
@@ -3047,4 +3062,6 @@ def convert_pdf_to_grayscale(source: Path, output: Path) -> dict:
         "original_size": original_size,
         "output_size": output_size,
         "saved_bytes": max(0, original_size - output_size),
+        "size_delta_bytes": output_size - original_size,
+        "already_grayscale": already_grayscale,
     }

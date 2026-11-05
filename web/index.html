@@ -13,7 +13,7 @@
   <!-- Cashfree PG v3 checkout SDK; app.js initializes it with the server-issued session. -->
   <script src="https://sdk.cashfree.com/js/v3/cashfree.js" defer></script>
 
-  <link rel="stylesheet" href="/assets/styles.css?v=3.5.21" />
+  <link rel="stylesheet" href="/assets/styles.css?v=3.5.22" />
 
 </head>
 <body class="light-mode auth-pending">
@@ -106,7 +106,7 @@
               <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
               Operations Today
             </span>
-            <span id="quota-text">0 / 100</span>
+            <span id="quota-text">0 / %%FREE_DAILY%%</span>
           </div>
           <div class="quota-progress-track">
             <div class="quota-progress-fill" id="quota-fill" style="width: 0%;"></div>
@@ -147,6 +147,7 @@
           <button type="button" class="mobile-menu-btn" id="mobile-menu-btn" title="Toggle Mobile Navigation" aria-label="Toggle Navigation" aria-expanded="false" aria-controls="sidebar">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           </button>
+          <button type="button" class="mobile-brand" data-workspace-view="home" aria-label="Paperplane home">paperplane<span>.</span></button>
           <div class="breadcrumb-trail">
             <span>Paperplane</span>
             <span class="crumb-sep">/</span>
@@ -185,7 +186,7 @@
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
             <span>Pro Plan</span>
           </button>
-          <button type="button" class="topbar-action-btn" id="topbar-cloud-btn">
+          <button type="button" class="topbar-action-btn" id="topbar-cloud-btn" title="Open Cloud Import" aria-label="Open Cloud Import">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
             <span>Cloud</span>
           </button>
@@ -308,7 +309,7 @@
                 or <button type="button" class="browse-link" id="browse">browse files</button>
                 or <button type="button" class="browse-link" id="cloud-drop-btn">import from Google Drive / Dropbox</button>
               </p>
-              <small id="file-hint">Files up to 50 MB on Free and 500 MB with Pro · batches up to 100 files</small>
+              <small id="file-hint">Files up to %%FREE_MB%% MB on Free and %%PRO_MB%% MB on paid plans · batches up to %%BATCH_FILES%% files</small>
             </div>
 
             <!-- Uploaded File Queue -->
@@ -627,6 +628,10 @@
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                     <span class="tool-btn-text">Dup</span>
                   </button>
+                  <button type="button" class="studio-tool-btn" id="editor-extract-page-btn" title="Extract current page as a PDF">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0-12L8 7m4-4 4 4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+                    <span class="tool-btn-text">Extract</span>
+                  </button>
                   <button type="button" class="studio-tool-btn" id="editor-delete-page-btn" title="Delete current page">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                     <span class="tool-btn-text">Del</span>
@@ -711,9 +716,12 @@
                 <div class="studio-spinner"></div>
                 <div class="studio-loading-text" id="studio-loading-text">Loading document…</div>
               </div>
-              <div class="page-render-wrapper" id="page-render-wrapper">
-                <canvas id="pdf-canvas" class="pdf-page-canvas"></canvas>
-                <canvas id="pdf-draw-canvas" class="pdf-draw-canvas"></canvas>
+              <div id="studio-page-stack" class="studio-page-stack" aria-label="PDF pages">
+                <div class="page-render-wrapper studio-page-sheet" id="page-render-wrapper" data-page="1" aria-label="Page 1">
+                  <div class="studio-page-loading" aria-live="polite">Page 1 is loading…</div>
+                  <canvas id="pdf-canvas" class="pdf-page-canvas"></canvas>
+                  <canvas id="pdf-draw-canvas" class="pdf-draw-canvas"></canvas>
+                </div>
               </div>
             </div>
 
@@ -727,6 +735,7 @@
              VIEW 3: AI Document Intelligence Studio
              ------------------------------------------------------------------ -->
         <div id="view-ai-studio" class="ai-studio-wrapper" hidden>
+          <h1 class="sr-only">AI Document Intelligence</h1>
           
           <!-- Top Document Context & Engine Banner -->
           <div class="ai-studio-topbar">
@@ -945,7 +954,7 @@
 
                 <section>
                   <h3>3. Processing Limitations & Availability</h3>
-                  <p>Free tier users may process up to 100 operations per day with maximum file sizes of 50 MB per document. Pro and Developer tier limits are subject to subscription agreements. Services are provided on an "as is" and "as available" basis without express warranties of uninterrupted availability.</p>
+                  <p>Free tier users may process up to %%FREE_DAILY%% operations per day with maximum file sizes of %%FREE_MB%% MB per document. Paid tiers allow files up to %%PRO_MB%% MB and batches up to %%BATCH_FILES%% files, subject to subscription terms. Services are provided on an "as is" and "as available" basis without express warranties of uninterrupted availability.</p>
                 </section>
 
                 <section>
@@ -1301,7 +1310,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
             </button>
             <div class="view-header-title">
               <h2>Paperplane Native Apps Ecosystem</h2>
-              <span class="view-header-badge">100% Offline · $0 Server Cost</span>
+              <span class="view-header-badge">Browser-based · No cloud upload in local mode</span>
             </div>
             <div>
               <span class="download-badge-fast">⚡ Powered by Tauri v2 + PDFium</span>
@@ -1579,7 +1588,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
               <div class="profile-avatar status-online" id="settings-user-avatar" style="width: 44px; height: 44px; font-size: 16px;">G</div>
               <div style="flex: 1; min-width: 0;">
                 <h4 id="settings-user-email" style="margin: 0 0 4px 0; font-size: 15px; color: var(--text-main);">Guest Explorer</h4>
-                <span class="profile-badge" id="settings-user-badge">Free Sovereign Tier · 100 operations/day</span>
+                <span class="profile-badge" id="settings-user-badge">Free Sovereign Tier · %%FREE_DAILY%% operations/day</span>
               </div>
             </div>
           </div>
@@ -1663,9 +1672,9 @@ async function convertFileInBrowser(file, operation = 'compress') {
             </div>
             <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px;">
               <strong style="font-size: 20px; color: var(--text-main);" id="settings-tier-name">Free Sovereign Tier</strong>
-              <span style="font-size: 12.5px; color: var(--text-muted);" id="settings-daily-limit">(100 operations / day)</span>
+              <span style="font-size: 12.5px; color: var(--text-muted);" id="settings-daily-limit">(%%FREE_DAILY%% operations / day)</span>
             </div>
-            <p id="settings-quota-description" style="font-size: 12.5px; color: var(--text-muted); margin: 0 0 14px 0; line-height: 1.5;">Free: 100 PDF operations per day and files up to 50 MB each. Pro: no daily operation cap, files up to 500 MB, and batches up to 100 files.</p>
+            <p id="settings-quota-description" style="font-size: 12.5px; color: var(--text-muted); margin: 0 0 14px 0; line-height: 1.5;">Free: %%FREE_DAILY%% PDF operations per day and files up to %%FREE_MB%% MB each. Paid tiers: no daily operation cap, files up to %%PRO_MB%% MB, and batches up to %%BATCH_FILES%% files.</p>
             <div class="quota-container" style="margin-bottom: 16px;">
               <div class="quota-label-row">
                 <span>Operations Today</span>
@@ -1899,7 +1908,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
         <h3>Cloud Document Import</h3>
         <button class="close-modal-btn" id="close-cloud-modal"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
       </div>
-      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">Directly sync and load files from Google Drive, Dropbox, OneDrive, or any secure HTTPS link.</p>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">Import a direct, publicly accessible PDF link from Google Drive, Dropbox, OneDrive, or HTTPS. Use the matching converter to upload image or Office files.</p>
       <form id="cloud-form">
         <div class="option-field" style="margin-bottom: 14px;">
           <label for="cloud-url">Shareable File Link</label>
@@ -1935,7 +1944,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
         <div class="pricing-tier-card">
           <div class="tier-card-header"><span style="font-size: 20px;">🆓</span><div><h4 class="tier-title">Free Sovereign</h4><span class="tier-subtitle">For everyday PDF tasks</span></div></div>
           <div class="tier-price-box"><div class="tier-price-main"><span class="tier-price-val">₹0</span><span class="tier-price-period">/ always</span></div><span class="tier-price-alt">No payment required</span></div>
-          <ul class="tier-features-list"><li><span>✓</span><strong>100 PDF operations per day</strong></li><li><span>✓</span>Files up to 50 MB each</li><li><span>✓</span>Guest access for supported tools</li></ul>
+          <ul class="tier-features-list"><li><span>✓</span><strong>%%FREE_DAILY%% PDF operations per day</strong></li><li><span>✓</span>Files up to %%FREE_MB%% MB each</li><li><span>✓</span>Guest access for supported tools</li></ul>
           <div class="tier-actions"><span class="tier-price-alt">Included automatically</span></div>
         </div>
 
@@ -2071,7 +2080,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
               <span class="tier-price-val">₹750</span>
               <span class="tier-price-period">/month</span>
             </div>
-            <span class="tier-price-alt">INR default · USD available when enabled</span>
+            <span class="tier-price-alt">INR pricing · Developer API access</span>
           </div>
           <ul class="tier-features-list">
             <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Everything in Pro Tier:</strong> Unlimited Web UI access & 500MB batch processing.</li>
@@ -3355,6 +3364,10 @@ async function convertFileInBrowser(file, operation = 'compress') {
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a8 8 0 0 0-8 8c0 3.37 2.08 6.25 5 7.42V20a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-2.58c2.92-1.17 5-4.05 5-7.42a8 8 0 0 0-8-8z"/></svg>
       <span>AI Docs</span>
     </button>
+    <button type="button" class="mobile-nav-btn" id="mob-nav-download" data-workspace-view="download" aria-label="Download Apps">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span>Download Apps</span>
+    </button>
   </nav>
 
   <!-- Heavy PDF engines are deferred so the shell can paint before parsing them. -->
@@ -3368,10 +3381,10 @@ async function convertFileInBrowser(file, operation = 'compress') {
   <!-- Phase 4 Compression, Repair & OCR Engine -->
   <script src="/assets/optimization_engine.js?v=4.2.0" defer></script>
   <!-- Phase 3 Professional Page Management Engine -->
-  <script src="/assets/page_organizer.js?v=3.2.0" defer></script>
+  <script src="/assets/page_organizer.js?v=3.2.1" defer></script>
   <!-- Phase 2 Professional Editor Engine -->
-  <script src="/assets/editor.js?v=3.2.0" defer></script>
+  <script src="/assets/editor.js?v=3.2.1" defer></script>
   <!-- Application Controller -->
-  <script src="/assets/app.js?v=3.5.14" defer></script>
+  <script src="/assets/app.js?v=3.5.15" defer></script>
 </body>
 </html>

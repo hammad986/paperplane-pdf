@@ -308,21 +308,21 @@ def call_bluesminds(
                     content = choices[0]["message"].get("content", "").strip()
                     if content:
                         return content
-                raise RuntimeError("AI request failed, please try again")
+                raise RuntimeError("AI service returned an empty response. Please try again.")
         except urllib.error.HTTPError as e:
             logger.warning("AI provider returned HTTP %s", e.code)
             last_error = e
             if attempt_idx + 1 < attempts and e.code in (408, 429, 500, 502, 503, 504):
                 time.sleep(0.4)
                 continue
-            raise RuntimeError("AI request failed, please try again") from e
+            raise RuntimeError(f"AI service returned HTTP {e.code}. Please try again.") from e
         except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as e:
             logger.warning("AI provider connection error: %s", e)
             last_error = e
             if attempt_idx + 1 < attempts:
                 time.sleep(0.4)
                 continue
-            raise RuntimeError("AI request failed, please try again") from e
+            raise RuntimeError("AI service could not be reached or timed out. Please try again.") from e
         except Exception as e:
             if isinstance(e, (ValueError, RuntimeError)):
                 raise
@@ -330,9 +330,9 @@ def call_bluesminds(
             last_error = e
             if attempt_idx < len(models_to_try) - 1:
                 continue
-            raise RuntimeError("AI request failed, please try again") from e
+            raise RuntimeError("AI request failed due to an unexpected service error. Please try again.") from e
 
-    raise RuntimeError("AI request failed, please try again") from last_error
+    raise RuntimeError("AI service could not complete the request. Please try again.") from last_error
 
 
 def stream_bluesminds(system_prompt: str, user_prompt: str, timeout_seconds: float = 50) -> Iterator[str]:
@@ -383,13 +383,13 @@ def stream_bluesminds(system_prompt: str, user_prompt: str, timeout_seconds: flo
             if retryable and not received_content and attempt + 1 < attempts:
                 time.sleep(0.4)
                 continue
-            raise RuntimeError("AI request failed, please try again") from exc
+            raise RuntimeError(f"AI service returned HTTP {exc.code}. Please try again.") from exc
         except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as exc:
             logger.warning("AI streaming provider connection failed: %s", exc)
             if not received_content and attempt + 1 < attempts:
                 time.sleep(0.4)
                 continue
-            raise RuntimeError("AI request failed, please try again") from exc
+            raise RuntimeError("AI service could not be reached or timed out. Please try again.") from exc
 
 
 def call_agentrouter(
@@ -403,7 +403,7 @@ def call_agentrouter(
 
 
 def test_bluesminds_connectivity() -> dict:
-    """Explicit diagnostics endpoint to test Bluesminds provider status without leaking secrets."""
+    """Test the configured Paperplane AI connection without exposing upstream identity."""
     api_key = _current_bluesminds_api_key()
     target_model = BLUESMINDS_MODEL or "openai/gpt-oss-20b"
     base_url = (BLUESMINDS_BASE_URL or "https://api.bluesminds.com/v1").rstrip("/")
@@ -415,18 +415,14 @@ def test_bluesminds_connectivity() -> dict:
     if AI_KILL_SWITCH:
         return {
             "status": "disabled",
-            "provider": "Bluesminds",
-            "model": target_model,
-            "message": "AI Kill Switch is active in configuration.",
+            "message": "AI is disabled by configuration.",
             "fallback_active": False
         }
     if not api_key:
         return {
             "status": "configuration_missing",
-            "provider": "Bluesminds",
-            "model": target_model,
             "message": "AI provider is not configured",
-            "advice": "Please set BLUESMINDS_API_KEY in your server configuration.",
+            "advice": "Ask the site administrator to configure Paperplane AI.",
             "fallback_active": False
         }
 
@@ -455,13 +451,9 @@ def test_bluesminds_connectivity() -> dict:
                 content = data.get("choices", [{}])[0].get("message", {}).get("content") or "OK"
                 return {
                     "status": "inference_succeeded",
-                    "provider": "Bluesminds",
-                    "model": candidate_model,
-                    "endpoint": endpoint,
                     "http_status": resp.status,
-                    "message": "AI provider connected successfully.",
-                    "response": content,
-                    "fallback_active": (candidate_model != target_model)
+                    "message": "AI connected successfully.",
+                    "fallback_active": False
                 }
         except urllib.error.HTTPError as e:
             if e.code == 429:
@@ -474,34 +466,27 @@ def test_bluesminds_connectivity() -> dict:
                         content_retry = data_retry.get("choices", [{}])[0].get("message", {}).get("content") or "OK"
                         return {
                             "status": "inference_succeeded",
-                            "provider": "Bluesminds",
-                            "model": candidate_model,
-                            "endpoint": endpoint,
                             "http_status": resp_retry.status,
-                            "message": "AI provider connected successfully.",
-                            "response": content_retry,
-                            "fallback_active": (candidate_model != target_model)
+                            "message": "AI connected successfully.",
+                            "fallback_active": False
                         }
                 except Exception as retry_err:
-                    last_error_advice = str(retry_err)
+                    last_error_advice = "AI service connection failed after retry."
 
             last_error_code = e.code
-            last_error_advice = f"Bluesminds provider returned HTTP {e.code} for model {candidate_model}."
+            last_error_advice = f"AI service returned HTTP {e.code}."
             if e.code in (502, 503, 504):
                 continue
             break
         except Exception as e:
-            last_error_advice = str(e)
+            last_error_advice = "AI service connection failed or timed out."
             continue
 
     return {
         "status": "connection_error",
-        "provider": "Bluesminds",
-        "model": target_model,
-        "endpoint": endpoint,
         "http_status": last_error_code or 502,
         "message": "AI request failed, please try again",
-        "advice": last_error_advice or "Bluesminds model inference timed out.",
+        "advice": last_error_advice or "AI service timed out.",
         "fallback_active": False
     }
 
@@ -537,13 +522,12 @@ def _offline_rag_fallback(system_prompt: str, user_prompt: str) -> str:
                     summary_points.append(l)
 
         pts = "\n".join(f"- {pt}" for pt in summary_points) if summary_points else "- General document overview available."
-        model_name = AGENTROUTER_MODEL or "gpt-6.1-sol"
         return (
             "### Executive Summary (Offline Analysis)\n\n"
             "This document was indexed and analyzed using Paperplane's deterministic local extraction engine.\n\n"
             "#### Key Findings & Extracted Topics\n"
             f"{pts}\n\n"
-            f"*(Local BM25 analysis active. External AgentRouter {model_name} inference available when client authorized upstream.)*"
+            "*(Generated from local document text analysis.)*"
         )
 
     # For chat Q&A fallback
@@ -600,7 +584,6 @@ def chat_with_pdf(pdf_path: Path, question: str) -> dict:
             "answer": "No readable text was found in this document to answer your question.",
             "citations": [],
             "retrieval_method": "BM25 Keyword Retrieval",
-            "provider": "Local Document Engine",
             "fallback_used": True
         }
 
@@ -641,7 +624,6 @@ def chat_with_pdf(pdf_path: Path, question: str) -> dict:
             "answer": "No relevant information found in the document for your question. The active document does not contain matching keywords or passages.",
             "citations": [],
             "retrieval_method": "BM25 Keyword Retrieval",
-            "provider": "Local Document Engine",
             "fallback_used": False,
             "relevant_passages": []
         }
@@ -667,14 +649,12 @@ def chat_with_pdf(pdf_path: Path, question: str) -> dict:
         # but unsupported questions must not receive fabricated answers or broad
         # citations merely because fallback context was used.
         answer = "No relevant information found in the document for your question. The active document does not contain matching keywords or passages."
-    provider_name = f"Bluesminds ({BLUESMINDS_MODEL or 'openai/gpt-oss-20b'})"
     is_fallback = False
 
     return {
         "answer": answer,
         "citations": sorted(citations),
         "retrieval_method": "Document Grounding + LLM Synthesis",
-        "provider": provider_name,
         "fallback_used": is_fallback,
         "relevant_passages": [{"page": c.page_number, "text": c.text[:200] + "..."} for c in citation_chunks]
     }
@@ -904,8 +884,8 @@ def _extract_metadata_with_agentrouter(
         ] if isinstance(source_pages, list) else []
         warnings = extracted.get("warnings")
         extracted["warnings"] = [str(item) for item in warnings] if isinstance(warnings, list) else []
-        extracted["provider"] = f"Bluesminds ({BLUESMINDS_MODEL or 'openai/gpt-oss-20b'})"
-        extracted["retrieval_method"] = "Bluesminds Structured Extraction"
+        extracted.pop("provider", None)
+        extracted["retrieval_method"] = "Paperplane AI structured extraction"
         extracted["csv_export"] = _generate_clean_csv(extracted)
         return extracted
     except Exception:
@@ -971,8 +951,7 @@ def extract_metadata_entities(pdf_path: Path, doc_type: str = "auto") -> dict:
         },
         "source_pages": [],
         "warnings": [],
-        "provider": "Deterministic Structural & Regex Parser",
-        "retrieval_method": "Page-Bounded Lexical Extractor"
+        "retrieval_method": "Page-bounded structural extraction"
     }
 
     if doc_type == "invoice":

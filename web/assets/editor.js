@@ -610,6 +610,14 @@ class EditCanvasManager {
     this.redraw();
   }
 
+  attachPage(pdfCanvas, editCanvasEl, wrapperEl) {
+    this._pdfCanvas = pdfCanvas;
+    this._editCanvas = editCanvasEl;
+    this._wrapperEl = wrapperEl;
+    this._setupCanvas();
+    this.redraw();
+  }
+
   setPage(pageNum) {
     this._currentPage = pageNum;
     this._selection.deselect();
@@ -1637,7 +1645,7 @@ class PaperplaneEditorController {
       });
     } else {
       this.mapper.update(scale, pageWidth, pageHeight);
-      this.canvas.syncSize();
+      this.canvas.attachPage(pdfCanvas, editCanvasEl, wrapperEl);
     }
 
     this.canvas.setPage(pageNum);

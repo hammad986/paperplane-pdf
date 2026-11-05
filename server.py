@@ -44,11 +44,11 @@ from pypdf import PdfReader, PdfWriter
 from reportlab.pdfgen import canvas
 
 from config import (
-    AI_PROVIDER, ALLOWED_ORIGINS, CLAMAV_HOST, CLAMAV_PORT, JOBS_DIR,
+    ALLOWED_ORIGINS, CLAMAV_HOST, CLAMAV_PORT, JOBS_DIR,
     JOB_TTL_SECONDS, MAX_FILE_SIZE, OPENAI_API_KEY, GEMINI_API_KEY,
     RATE_LIMIT_PER_MINUTE, REQUIRE_AUTH, S3_BUCKET, 
-    FREE_TIER_DAILY_LIMIT, FREE_TIER_MAX_FILE_SIZE_MB, PRO_TIER_PRICE_USD, PRO_TIER_PRICE_INR,
-    DEV_TIER_PRICE_USD, DEV_TIER_PRICE_INR,
+    FREE_TIER_DAILY_LIMIT, FREE_TIER_MAX_FILE_SIZE_MB, PRO_TIER_PRICE_INR,
+    DEV_TIER_PRICE_INR,
     EXAM_PASS_PRICE_INR, STUDENT_PRO_PRICE_INR, STUDENT_ANNUAL_PRICE_INR, CYBER_CAFE_PRICE_INR,
     TRUSTED_HOSTS,
     ALLOW_BILLING_SIMULATION, ENVIRONMENT, GOOGLE_CLIENT_ID, SECURE_COOKIES, COOKIE_SAMESITE,
@@ -101,6 +101,7 @@ executor = ThreadPoolExecutor(max_workers=max(4, int(os.getenv("PAPERPLANE_WORKE
 COMPRESS_TIMEOUT_SECONDS = 60.0    # multi-pass downsampling & stream compression
 OCR_TIMEOUT_SECONDS = 90.0         # page-by-page C++ Tesseract OCR execution
 GRAYSCALE_TIMEOUT_SECONDS = 45.0   # 150-DPI monochrome rasterization per page
+MERGE_TIMEOUT_SECONDS = 120.0       # bounded multi-file page copy; proxy allows 900s
 
 _CONVERTER_POOL = ThreadPoolExecutor(
     max_workers=min(32, max(4, (os.cpu_count() or 4) * 2)),
@@ -157,12 +158,12 @@ def run_converter_with_timeout(
         )
         raise
 
-def _should_disable_docs(environment: str, configured_disable: str | None = None) -> bool:
-    """Keep interactive API docs off public production deployments by default."""
-    if environment.lower() == "production":
+def _should_disable_docs(environment: str, configured_enable: str | None = None) -> bool:
+    """Fail closed; interactive API docs require an explicit non-production opt-in."""
+    if str(environment or "").strip().lower() in {"prod", "production"}:
         return True
-    configured = os.getenv("PAPERPLANE_DISABLE_DOCS", "false") if configured_disable is None else configured_disable
-    return configured.lower() in ("true", "1", "yes")
+    configured = os.getenv("PAPERPLANE_ENABLE_DOCS", "") if configured_enable is None else configured_enable
+    return str(configured).strip().lower() not in ("true", "1", "yes")
 
 
 DISABLE_DOCS = _should_disable_docs(ENVIRONMENT)
@@ -317,7 +318,7 @@ OPERATIONS = {
     "translate": {"label": "AI Translate", "category": "AI tools", "accept": "pdf", "implemented": True, "description": "Translate document content while preserving formatting."},
     "photo_resizer": {"label": "Exam Photo & Signature Resizer", "category": "Convert to PDF", "accept": "image", "implemented": True, "description": "Resize photos and signatures to exact dimensions and KB limits for SSC, UPSC, and state exams."},
     "mask_aadhaar": {"label": "Mask Aadhaar Card", "category": "Security", "accept": "pdf", "implemented": True, "description": "Automatically redact first 8 digits of Aadhaar numbers per UIDAI guidelines."},
-    "grayscale": {"label": "Convert to Grayscale", "category": "Organize PDF", "accept": "pdf", "implemented": True, "description": "Convert all PDF pages to grayscale to reduce file size and prepare for printing."},
+    "grayscale": {"label": "Convert to Grayscale", "category": "Organize PDF", "accept": "pdf", "implemented": True, "description": "Convert colored PDF pages to monochrome for printing. Output size varies, and colored pages may become image-based."},
     "flatten": {"label": "Flatten PDF Forms", "category": "Edit & Sign", "accept": "pdf", "implemented": True, "description": "Bake all interactive form fields into the page content, creating a non-editable submission copy."},
 }
 
@@ -882,14 +883,15 @@ SEO_CATALOG = {
         "related": ("redact", "protect", "unlock", "compress"),
     },
     "grayscale": {
-        "title": "Convert PDF to Grayscale Online Free | Paperplane",
-        "description": "Convert all PDF pages from color to grayscale online for free. Reduce file size and prepare for black-and-white printing.",
+        "title": "Convert PDF to Grayscale for Printing | Paperplane",
+        "description": "Convert colored PDF pages to grayscale for monochrome printing. Output size can vary, and image-based pages may not retain selectable text.",
         "heading": "Convert PDF to Grayscale",
-        "intro": "Remove all color from a PDF document and convert every page to pure grayscale — ideal for reducing file size and preparing documents for monochrome printing.",
+        "intro": "Convert colored PDF pages to grayscale for black-and-white printing. Already-grayscale files are preserved; color pages are rendered as images, so file size can increase and their text may no longer be selectable.",
         "how_to": ("Upload your color PDF", "Click Convert to Grayscale", "Download your grayscale PDF"),
         "faqs": (
-            ("Does grayscale conversion reduce file size?", "Yes. Removing color channel data typically reduces PDF size by 20-40% for image-heavy documents."),
-            ("Is the conversion reversible?", "No. Once converted to grayscale, the original color data is not recoverable from the output file."),
+            ("Does grayscale conversion reduce file size?", "Not always. Already-grayscale PDFs are preserved, while converting color pages to images can increase file size. Use Compress PDF when reducing size is your goal."),
+            ("Will text remain selectable?", "Text remains selectable when the source is already grayscale. Color pages are rendered to grayscale images and may need OCR before their text can be searched or copied."),
+            ("Is the conversion reversible?", "No. Once colored pages are converted to grayscale, their original color data is not recoverable from the output file."),
             ("Does it work on scanned PDFs?", "Yes. Scanned image PDFs are fully supported and every embedded image is converted."),
         ),
         "related": ("compress", "remove", "rotate", "merge"),
@@ -1143,7 +1145,7 @@ def render_web_page(request: Request, operation: str | None = None, landing_slug
                     "operatingSystem": "Web",
                     "url": canonical_url,
                     "description": context["description"],
-                    "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+                    "offers": {"@type": "Offer", "price": "0", "priceCurrency": "INR"},
                 },
                 {
                     "@type": "HowTo",
@@ -1170,6 +1172,14 @@ def render_web_page(request: Request, operation: str | None = None, landing_slug
     ).replace("</", "<\\/")
 
     html = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
+    plan_limits = plan_limits_payload()
+    for token, value in {
+        "%%FREE_DAILY%%": plan_limits["free_operations_per_day"],
+        "%%FREE_MB%%": plan_limits["free_max_file_size_mb"],
+        "%%PRO_MB%%": plan_limits["pro_max_file_size_mb"],
+        "%%BATCH_FILES%%": plan_limits["max_batch_files"],
+    }.items():
+        html = html.replace(token, str(value))
     meta = f"""
   <meta name="description" content="{description}" />
   <meta name="robots" content="index,follow,max-image-preview:large" />
@@ -1408,6 +1418,12 @@ def upload_limit_bytes_for_tier(tier: str | None) -> int:
     return min(MAX_FILE_SIZE, FREE_TIER_MAX_FILE_SIZE_MB * 1024 * 1024)
 
 
+def upload_limit_bytes_for_user(user_id: str | None) -> int:
+    user = get_user(user_id) if user_id else None
+    tier = user.get("tier", "free") if user else "free"
+    return upload_limit_bytes_for_tier(tier)
+
+
 def save_upload_spooled(
     upload_file: UploadFile,
     destination: Path,
@@ -1498,9 +1514,9 @@ def validate_upload(path: Path, expected: str, operation: str = "") -> None:
             raise ValueError("Malware scanner is unavailable; upload rejected by policy.") from error
 
 
-def save_pdf_upload(upload_file: UploadFile, destination: Path) -> Path:
+def save_pdf_upload(upload_file: UploadFile, destination: Path, user_id: str | None = None) -> Path:
     """Spool and validate a PDF upload while keeping the request heap bounded."""
-    save_upload_spooled(upload_file, destination)
+    save_upload_spooled(upload_file, destination, max_bytes=upload_limit_bytes_for_user(user_id))
     try:
         validate_upload(destination, "pdf")
     except ValueError as error:
@@ -1518,9 +1534,9 @@ async def save_upload_spooled_async(
     return await asyncio.to_thread(save_upload_spooled, upload_file, destination, max_bytes)
 
 
-async def save_pdf_upload_async(upload_file: UploadFile, destination: Path) -> Path:
+async def save_pdf_upload_async(upload_file: UploadFile, destination: Path, user_id: str | None = None) -> Path:
     """Async wrapper for bounded PDF spooling and validation."""
-    return await asyncio.to_thread(save_pdf_upload, upload_file, destination)
+    return await asyncio.to_thread(save_pdf_upload, upload_file, destination, user_id)
 
 
 def _purge_job_directories(job_ids: list[str]) -> int:
@@ -1691,6 +1707,22 @@ def _safe_int(val, default: int) -> int:
         return default
 
 
+def _merge_pdf_inputs(inputs: list[Path], output: Path, options: dict) -> Path:
+    passwords = options.get("passwords", {})
+    global_pw = str(options.get("password", ""))
+    writer = PdfWriter()
+    for idx, path in enumerate(inputs):
+        reader = PdfReader(str(path), strict=False)
+        if reader.is_encrypted:
+            pw = passwords.get(path.name) or passwords.get(str(idx)) or global_pw
+            if not pw or not reader.decrypt(pw):
+                raise ValueError(f"File '{path.name}' is password protected. Please provide a valid password.")
+        for page in reader.pages:
+            writer.add_page(page)
+    output.write_bytes(pdf_bytes(writer))
+    return output
+
+
 def process(operation: str, inputs: list[Path], options: dict, output_dir: Path) -> Path:
     source = inputs[0] if inputs else None
     stem = source.stem.split("_", 1)[-1] if source else "document"
@@ -1796,19 +1828,14 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
 
     # 4. Core PDF Organization (Merge, Split, Remove, Rotate, Organize)
     if operation == "merge":
-        passwords = options.get("passwords", {})
-        global_pw = str(options.get("password", ""))
-        writer = PdfWriter()
-        for idx, path in enumerate(inputs):
-            reader = PdfReader(str(path), strict=False)
-            if reader.is_encrypted:
-                pw = passwords.get(path.name) or passwords.get(str(idx)) or global_pw
-                if not pw or not reader.decrypt(pw):
-                    raise ValueError(f"File '{path.name}' is password protected. Please provide a valid password.")
-            for page in reader.pages:
-                writer.add_page(page)
-        output.write_bytes(pdf_bytes(writer))
-        return output
+        return run_converter_with_timeout(
+            _merge_pdf_inputs, inputs, output, options,
+            timeout_seconds=MERGE_TIMEOUT_SECONDS,
+            tool_name="merge",
+            source_path=inputs[0] if inputs else None,
+            output_path=output,
+            retry_hint="The merge exceeded its processing window. Try fewer files or split the source documents into smaller batches."
+        )
 
     if operation == "organize":
         page_specs = options.get("pages", [])
@@ -3066,31 +3093,18 @@ def create_checkout_session(
     if target_tier not in valid_tiers:
         target_tier = "pro"
     currency = str(payload.get("currency", "INR")).upper()
-    if currency not in {"INR", "USD"}:
-        raise HTTPException(400, "Unsupported billing currency. Use INR or USD.")
-
-    if currency == "INR":
-        if target_tier == "exam_pass":
-            amount = EXAM_PASS_PRICE_INR
-        elif target_tier == "student_pro":
-            amount = STUDENT_PRO_PRICE_INR
-        elif target_tier == "cyber_cafe":
-            amount = CYBER_CAFE_PRICE_INR
-        elif target_tier == "developer":
-            amount = DEV_TIER_PRICE_INR
-        else:
-            amount = PRO_TIER_PRICE_INR
+    if currency != "INR":
+        raise HTTPException(400, "Paperplane checkout currently supports INR only.")
+    if target_tier == "exam_pass":
+        amount = EXAM_PASS_PRICE_INR
+    elif target_tier == "student_pro":
+        amount = STUDENT_PRO_PRICE_INR
+    elif target_tier == "cyber_cafe":
+        amount = CYBER_CAFE_PRICE_INR
+    elif target_tier == "developer":
+        amount = DEV_TIER_PRICE_INR
     else:
-        if target_tier == "exam_pass":
-            amount = 0.49
-        elif target_tier == "student_pro":
-            amount = 0.99
-        elif target_tier == "cyber_cafe":
-            amount = 4.99
-        elif target_tier == "developer":
-            amount = DEV_TIER_PRICE_USD
-        else:
-            amount = PRO_TIER_PRICE_USD
+        amount = PRO_TIER_PRICE_INR
     # Cashfree order IDs are deliberately deterministic and traceable back to
     # the account that initiated the payment. The timestamp keeps retries from
     # colliding in normal operation while the database retains the active ID.
@@ -3313,7 +3327,7 @@ async def ai_chat(
             answer = ai_engine._guard_ai_output(answer)
             return {"answer": answer, "citations": [], "retrieval_method": None, "fallback_used": False}
         temp_pdf = temp_dir / "chat_doc.pdf"
-        await save_upload_spooled_async(file, temp_pdf)
+        await save_upload_spooled_async(file, temp_pdf, max_bytes=upload_limit_bytes_for_user(user_id))
         return await asyncio.to_thread(ai_engine.chat_with_pdf, temp_pdf, question)
     except ValueError as ve:
         raise HTTPException(status_code=503, detail=str(ve))
@@ -3357,7 +3371,7 @@ async def ai_chat_stream(
             user_prompt = question
             if file is not None:
                 temp_pdf = temp_dir / "chat_stream.pdf"
-                await save_upload_spooled_async(file, temp_pdf)
+                await save_upload_spooled_async(file, temp_pdf, max_bytes=upload_limit_bytes_for_user(user_id))
                 yield frame("stage", stage="Extracting…")
                 chunks = await asyncio.to_thread(ai_engine.extract_chunks_from_pdf, temp_pdf)
                 yield frame("stage", stage="Analysing…")
@@ -3423,7 +3437,10 @@ async def ai_chat_stream(
             yield frame("error", message="AI provider is not configured")
         except Exception as exc:
             logging.getLogger("paperplane").warning("AI stream failed: %s", exc)
-            yield frame("error", message="AI request failed, please try again")
+            safe_message = str(exc)
+            if not safe_message.startswith("AI service "):
+                safe_message = "Paperplane AI could not complete the request. Please try again."
+            yield frame("error", message=safe_message[:240])
         finally:
             shutil.rmtree(temp_dir, ignore_errors=True)
 
@@ -3438,7 +3455,7 @@ async def ai_summarize(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         temp_pdf = temp_dir / "summary_doc.pdf"
-        await save_upload_spooled_async(file, temp_pdf)
+        await save_upload_spooled_async(file, temp_pdf, max_bytes=upload_limit_bytes_for_user(user_id))
         summary = await asyncio.to_thread(ai_engine.summarize_pdf, temp_pdf)
         return {"status": "success", "summary": summary}
     except ValueError as ve:
@@ -3463,7 +3480,7 @@ async def ai_extract(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         temp_pdf = temp_dir / "extract_doc.pdf"
-        await save_pdf_upload_async(file, temp_pdf)
+        await save_pdf_upload_async(file, temp_pdf, user_id=user_id)
         data = await asyncio.to_thread(ai_engine.extract_metadata_entities, temp_pdf, doc_type)
         return {"status": "success", "data": data}
     except Exception as err:
@@ -3482,7 +3499,6 @@ async def ai_extract(
                     "detected_topics": ["General Document"],
                     "key_entities": []
                 },
-                "provider": "Local Deterministic BM25 Engine",
                 "retrieval_method": "Deterministic Structural Entity Extraction"
             }
         }
@@ -3499,7 +3515,7 @@ async def ai_translate_endpoint(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         temp_pdf = temp_dir / "translate_input.pdf"
-        save_pdf_upload(file, temp_pdf)
+        save_pdf_upload(file, temp_pdf, user_id=user_id)
         out_pdf = temp_dir / f"translated_{target_language}.pdf"
         translation_report: dict = {}
         await asyncio.to_thread(
@@ -3521,6 +3537,21 @@ async def ai_translate_endpoint(
         )
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
+
+
+@app.get("/api/ai/capabilities", tags=["AI Intelligence"])
+def ai_capabilities():
+    """Expose only whether executive summarization can run, never provider details."""
+    if ai_engine.AI_KILL_SWITCH:
+        return {
+            "executive_brief_available": False,
+            "reason": "ai_service_disabled",
+        }
+    available = bool(ai_engine._current_bluesminds_api_key())
+    return {
+        "executive_brief_available": available,
+        "reason": None if available else "ai_service_not_configured",
+    }
 
 
 @app.get("/api/ai/test-connection", tags=["AI Intelligence"])
@@ -3554,7 +3585,7 @@ async def pdf_annotate_endpoint(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         temp_pdf = temp_dir / "annot_input.pdf"
-        save_pdf_upload(file, temp_pdf)
+        save_pdf_upload(file, temp_pdf, user_id=user_id)
         out_pdf = temp_dir / "annotated.pdf"
         parsed = json.loads(annotations)
         converters.annotate_pdf(temp_pdf, out_pdf, annotations=parsed)
@@ -3598,7 +3629,7 @@ async def studio_apply_edits(
     try:
         # Save upload
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path)
+        save_pdf_upload(file, in_path, user_id=user_id)
 
         # Parse edit objects
         try:
@@ -3643,7 +3674,7 @@ async def studio_page_insert(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path)
+        save_pdf_upload(file, in_path, user_id=user_id)
 
         doc = fitz.open(str(in_path))
         total = len(doc)
@@ -3689,7 +3720,7 @@ async def studio_page_delete(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path)
+        save_pdf_upload(file, in_path, user_id=user_id)
 
         doc = fitz.open(str(in_path))
         total = len(doc)
@@ -3751,7 +3782,7 @@ async def studio_page_duplicate(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path)
+        save_pdf_upload(file, in_path, user_id=user_id)
 
         doc = fitz.open(str(in_path))
         total = len(doc)
@@ -3813,7 +3844,7 @@ async def studio_pages_reorder(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path)
+        save_pdf_upload(file, in_path, user_id=user_id)
 
         try:
             order_list = json.loads(order)
@@ -3869,7 +3900,7 @@ async def studio_pages_rotate(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path)
+        save_pdf_upload(file, in_path, user_id=user_id)
 
         pages_parsed: list[int] | str = "all"
         if pages != "all":
@@ -3915,7 +3946,7 @@ async def studio_pages_crop(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path)
+        save_pdf_upload(file, in_path, user_id=user_id)
 
         pages_parsed: list[int] | str = "all"
         if pages != "all":
@@ -3968,7 +3999,7 @@ async def studio_pages_resize(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path)
+        save_pdf_upload(file, in_path, user_id=user_id)
 
         pages_parsed: list[int] | str = "all"
         if pages != "all":
@@ -4012,7 +4043,7 @@ async def studio_pages_extract(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path)
+        save_pdf_upload(file, in_path, user_id=user_id)
 
         try:
             pages_list = json.loads(pages)
@@ -4059,10 +4090,10 @@ async def studio_pages_import(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         base_path = temp_dir / "base.pdf"
-        save_pdf_upload(base_file, base_path)
+        save_pdf_upload(base_file, base_path, user_id=user_id)
 
         import_path = temp_dir / "import.pdf"
-        save_pdf_upload(import_file, import_path)
+        save_pdf_upload(import_file, import_path, user_id=user_id)
 
         pages_list: list[int] | None = None
         if pages and pages != "[]":
@@ -4111,7 +4142,7 @@ async def studio_documents_merge(
 
         for idx, f in enumerate(files):
             p = temp_dir / f"doc_{idx}_{f.filename}"
-            save_pdf_upload(f, p)
+            save_pdf_upload(f, p, user_id=user_id)
             saved_paths[f.filename] = p
             path_list.append(p)
 
@@ -4161,7 +4192,7 @@ async def studio_documents_split(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path)
+        save_pdf_upload(file, in_path, user_id=user_id)
 
         split_dir = temp_dir / "split_output"
         try:
@@ -4211,7 +4242,7 @@ async def studio_pages_metadata(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path)
+        save_pdf_upload(file, in_path, user_id=user_id)
 
         data = converters.get_pdf_metadata_pages(in_path)
         return JSONResponse({"ok": True, "data": data})
@@ -4249,7 +4280,7 @@ async def studio_ocr(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path)
+        save_pdf_upload(file, in_path, user_id=user_id)
 
         pages_parsed: list[int] | str = "all"
         if pages != "all":
@@ -4347,7 +4378,7 @@ async def studio_compress_analyze(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path)
+        save_pdf_upload(file, in_path, user_id=user_id)
 
         report = converters.analyze_pdf_compression(in_path)
         return JSONResponse({"ok": True, "analysis": report})
@@ -4375,7 +4406,7 @@ async def studio_compress(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path)
+        save_pdf_upload(file, in_path, user_id=user_id)
 
         target_bytes = int(target_size_kb) * 1024 if target_size_kb and target_size_kb > 0 else None
         out_path = temp_dir / "compressed.pdf"
@@ -4457,7 +4488,7 @@ async def studio_repair(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_upload_spooled(file, in_path)
+        save_upload_spooled(file, in_path, max_bytes=upload_limit_bytes_for_user(user_id))
 
         out_path = temp_dir / "repaired.pdf"
         try:
@@ -4537,7 +4568,7 @@ async def studio_convert(
         in_stem = Path(file.filename or "document").stem
         in_suffix = Path(file.filename or "document.pdf").suffix.lower()
         in_path = temp_dir / f"input{in_suffix}"
-        await save_upload_spooled_async(file, in_path)
+        await save_upload_spooled_async(file, in_path, max_bytes=upload_limit_bytes_for_user(user_id))
 
         out_ext = f".{fmt}" if fmt != "zip" else ".zip"
         out_path = temp_dir / f"{in_stem}_converted{out_ext}"
@@ -4642,7 +4673,7 @@ async def studio_images_to_pdf(
             if ext not in (".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tiff", ".tif"):
                 ext = ".jpg"
             img_p = temp_dir / f"img_{idx:03d}{ext}"
-            size = await save_upload_spooled_async(upload, img_p)
+            size = await save_upload_spooled_async(upload, img_p, max_bytes=upload_limit_bytes_for_user(user_id))
             if size == 0:
                 img_p.unlink(missing_ok=True)
                 continue
@@ -4707,7 +4738,7 @@ async def studio_forms_analyze(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        await save_pdf_upload_async(file, in_path)
+        await save_pdf_upload_async(file, in_path, user_id=user_id)
         analysis = security_forms_engine.analyze_pdf_forms(in_path)
         return analysis
     except HTTPException:
@@ -4729,7 +4760,7 @@ async def studio_forms_add_field(
     try:
         in_path = temp_dir / "input.pdf"
         out_path = temp_dir / "field_added.pdf"
-        save_pdf_upload(file, in_path)
+        save_pdf_upload(file, in_path, user_id=user_id)
         parsed_data = parse_options(field_data)
         security_forms_engine.add_form_field(in_path, out_path, parsed_data)
         return StreamingResponse(
@@ -4756,7 +4787,7 @@ async def studio_forms_fill(
     try:
         in_path = temp_dir / "input.pdf"
         out_path = temp_dir / "filled.pdf"
-        save_pdf_upload(file, in_path)
+        save_pdf_upload(file, in_path, user_id=user_id)
         values = parse_options(field_values)
         security_forms_engine.fill_pdf_forms(in_path, out_path, values)
         return StreamingResponse(
@@ -4782,7 +4813,7 @@ async def studio_forms_flatten(
     try:
         in_path = temp_dir / "input.pdf"
         out_path = temp_dir / "flattened.pdf"
-        save_pdf_upload(file, in_path)
+        save_pdf_upload(file, in_path, user_id=user_id)
         security_forms_engine.flatten_pdf_forms(in_path, out_path)
         return StreamingResponse(
             io.BytesIO(out_path.read_bytes()),
@@ -4807,7 +4838,7 @@ async def studio_forms_reset(
     try:
         in_path = temp_dir / "input.pdf"
         out_path = temp_dir / "reset.pdf"
-        save_pdf_upload(file, in_path)
+        save_pdf_upload(file, in_path, user_id=user_id)
         security_forms_engine.reset_pdf_forms(in_path, out_path)
         return StreamingResponse(
             io.BytesIO(out_path.read_bytes()),
@@ -4831,7 +4862,7 @@ async def studio_forms_export(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path)
+        save_pdf_upload(file, in_path, user_id=user_id)
         data = security_forms_engine.export_form_data(in_path)
         return JSONResponse(data)
     except HTTPException:
@@ -4853,7 +4884,7 @@ async def studio_forms_import(
     try:
         in_path = temp_dir / "input.pdf"
         out_path = temp_dir / "imported.pdf"
-        save_pdf_upload(file, in_path)
+        save_pdf_upload(file, in_path, user_id=user_id)
         imported_values = parse_options(data)
         security_forms_engine.import_form_data(in_path, out_path, imported_values)
         return StreamingResponse(
@@ -4884,7 +4915,7 @@ async def studio_sign_visual(
     try:
         in_path = temp_dir / "input.pdf"
         out_path = temp_dir / "visual_signed.pdf"
-        save_pdf_upload(file, in_path)
+        save_pdf_upload(file, in_path, user_id=user_id)
 
         rect_coords = None
         if rect:
@@ -4927,7 +4958,7 @@ async def studio_sign_digital(
     try:
         in_path = temp_dir / "input.pdf"
         out_path = temp_dir / "digitally_signed.pdf"
-        save_pdf_upload(file, in_path)
+        save_pdf_upload(file, in_path, user_id=user_id)
 
         if custom_cert and custom_key:
             cert_path = temp_dir / "custom.crt"
@@ -4972,7 +5003,7 @@ async def studio_sign_verify(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path)
+        save_pdf_upload(file, in_path, user_id=user_id)
         report = security_forms_engine.verify_pdf_signatures(in_path)
         return report
     except HTTPException:
@@ -4996,7 +5027,7 @@ async def studio_security_protect(
     try:
         in_path = temp_dir / "input.pdf"
         out_path = temp_dir / "protected.pdf"
-        save_pdf_upload(file, in_path)
+        save_pdf_upload(file, in_path, user_id=user_id)
 
         perms_dict = None
         if permissions:
@@ -5054,7 +5085,7 @@ async def studio_security_unlock(
     try:
         in_path = temp_dir / "input.pdf"
         out_path = temp_dir / "unlocked.pdf"
-        save_pdf_upload(file, in_path)
+        save_pdf_upload(file, in_path, user_id=user_id)
 
         security_forms_engine.unlock_pdf(in_path, out_path, password=password)
         return StreamingResponse(
@@ -5099,7 +5130,7 @@ async def studio_security_inspect(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path)
+        save_pdf_upload(file, in_path, user_id=user_id)
 
         report = security_forms_engine.inspect_pdf_security(in_path, password=password)
         return report
@@ -5122,7 +5153,7 @@ async def studio_security_sanitize(
     try:
         in_path = temp_dir / "input.pdf"
         out_path = temp_dir / "sanitized.pdf"
-        save_pdf_upload(file, in_path)
+        save_pdf_upload(file, in_path, user_id=user_id)
 
         opts_dict = None
         if options:
@@ -5156,7 +5187,7 @@ async def studio_security_redact(
     try:
         in_path = temp_dir / "input.pdf"
         out_path = temp_dir / "redacted.pdf"
-        save_pdf_upload(file, in_path)
+        save_pdf_upload(file, in_path, user_id=user_id)
 
         redactions_list = parse_options(redactions)
         if isinstance(redactions_list, dict):
@@ -5258,12 +5289,15 @@ def cloud_sync(
 # ----------------------------------------------------------------------
 
 @app.post("/api/organize/thumbnails")
-async def organize_thumbnails(file: UploadFile = File(...)):
+async def organize_thumbnails(
+    file: UploadFile = File(...),
+    user_id: str | None = Depends(current_user),
+):
     """Generates preview thumbnails for each page in an uploaded PDF."""
     temp_dir = Path(tempfile.mkdtemp(prefix="paperplane-thumbnails-"))
     try:
         input_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, input_path)
+        save_pdf_upload(file, input_path, user_id=user_id)
         doc = fitz.open(str(input_path))
         thumbnails = []
         for page_idx, page in enumerate(doc, 1):
@@ -5565,7 +5599,7 @@ async def create_v1_job(
         for f in files:
             original_name = f.filename or "input.pdf"
             staged_path = staging_dir / f"{uuid.uuid4().hex}_{Path(original_name).name}"
-            total_bytes += await save_upload_spooled_async(f, staged_path)
+            total_bytes += await save_upload_spooled_async(f, staged_path, max_bytes=upload_limit_bytes_for_user(user_id))
             staged_files.append((original_name, staged_path))
     except Exception:
         shutil.rmtree(staging_dir, ignore_errors=True)
@@ -5747,7 +5781,7 @@ async def api_v1_ai_summarize(
     tmp_path = temp_dir / "input.pdf"
 
     try:
-        file_size = await save_upload_spooled_async(file, tmp_path)
+        file_size = await save_upload_spooled_async(file, tmp_path, max_bytes=upload_limit_bytes_for_user(user_id))
         allowed, quota_err, usage = check_and_consume_developer_quota(
             user_id, is_ai=True, file_size_bytes=file_size
         )
@@ -5770,7 +5804,7 @@ async def api_v1_ai_extract(
     tmp_path = temp_dir / "input.pdf"
 
     try:
-        file_size = await save_upload_spooled_async(file, tmp_path)
+        file_size = await save_upload_spooled_async(file, tmp_path, max_bytes=upload_limit_bytes_for_user(user_id))
         allowed, quota_err, usage = check_and_consume_developer_quota(
             user_id, is_ai=True, file_size_bytes=file_size
         )
@@ -5793,7 +5827,7 @@ async def api_v1_ai_chat(
     tmp_path = temp_dir / "input.pdf"
 
     try:
-        file_size = await save_upload_spooled_async(file, tmp_path)
+        file_size = await save_upload_spooled_async(file, tmp_path, max_bytes=upload_limit_bytes_for_user(user_id))
         allowed, quota_err, usage = check_and_consume_developer_quota(
             user_id, is_ai=True, file_size_bytes=file_size
         )
@@ -5836,6 +5870,11 @@ def download_page(request: Request):
     return render_web_page(request, landing_slug="download")
 
 
+@app.get("/tool-desk", response_class=HTMLResponse, include_in_schema=False)
+def tool_desk_page(request: Request):
+    return render_web_page(request)
+
+
 @app.get("/privacy", response_class=HTMLResponse)
 def privacy_route(request: Request):
     return render_web_page(request, landing_slug="privacy")
@@ -5853,7 +5892,12 @@ def reset_password_page(request: Request):
 
 @app.get("/docs", include_in_schema=False)
 def docs_redirect():
-    return RedirectResponse(url="/api-docs")
+    return RedirectResponse(url="/api-docs" if not DISABLE_DOCS else "/developers")
+
+
+@app.get("/api-docs", include_in_schema=False)
+def api_docs_help_fallback():
+    return RedirectResponse(url="/developers")
 
 
 @app.get("/health")
@@ -5864,7 +5908,6 @@ def health_check():
         "service": "Paperplane PDF Platform",
         "version": "2.0.0",
         "timestamp": time.time(),
-        "ai_provider": AI_PROVIDER,
         "daily_free_limit": FREE_TIER_DAILY_LIMIT,
         "max_file_size_bytes": MAX_FILE_SIZE,
         "jobs_directory": str(JOBS),
@@ -5916,6 +5959,7 @@ def sitemap_xml(request: Request):
 
 
 LEGACY_SLUG_REDIRECTS = {
+    "remove-pages": "remove-pages-pdf",
     "page-numbers": "add-page-numbers-to-pdf",
     "smart-metadata": "extract-pdf-data",
     "extract-metadata": "extract-pdf-data",

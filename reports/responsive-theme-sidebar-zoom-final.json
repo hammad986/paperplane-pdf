@@ -1,0 +1,229 @@
+[
+  {
+    "device": "mobile375",
+    "checks": [
+      {
+        "check": "theme-layout",
+        "theme": "light",
+        "docWidth": 375,
+        "bodyWidth": 375,
+        "viewport": 375,
+        "pass": true
+      },
+      {
+        "check": "theme-layout",
+        "theme": "dark",
+        "docWidth": 375,
+        "bodyWidth": 375,
+        "viewport": 375,
+        "pass": true
+      },
+      {
+        "check": "mobile-sidebar-drawer",
+        "opened": true,
+        "aria_expanded": "true",
+        "closed": true,
+        "pass": true
+      },
+      {
+        "check": "studio-zoom",
+        "zoom": "0.5",
+        "areaWidth": 373,
+        "areaScrollWidth": 373,
+        "pageWidth": 298,
+        "rendered": "true",
+        "docWidth": 375,
+        "windowWidth": 375,
+        "pass": true
+      },
+      {
+        "check": "studio-zoom",
+        "zoom": "1",
+        "areaWidth": 373,
+        "areaScrollWidth": 373,
+        "pageWidth": 346,
+        "rendered": "true",
+        "docWidth": 375,
+        "windowWidth": 375,
+        "pass": true
+      },
+      {
+        "check": "studio-zoom",
+        "zoom": "1.5",
+        "areaWidth": 373,
+        "areaScrollWidth": 373,
+        "pageWidth": 346,
+        "rendered": "true",
+        "docWidth": 375,
+        "windowWidth": 375,
+        "pass": true
+      },
+      {
+        "check": "studio-zoom",
+        "zoom": "fit-width",
+        "areaWidth": 373,
+        "areaScrollWidth": 373,
+        "pageWidth": 346,
+        "rendered": "true",
+        "docWidth": 375,
+        "windowWidth": 375,
+        "pass": true
+      }
+    ],
+    "js_errors": []
+  },
+  {
+    "device": "tablet768",
+    "checks": [
+      {
+        "check": "theme-layout",
+        "theme": "light",
+        "docWidth": 768,
+        "bodyWidth": 768,
+        "viewport": 768,
+        "pass": true
+      },
+      {
+        "check": "theme-layout",
+        "theme": "dark",
+        "docWidth": 768,
+        "bodyWidth": 768,
+        "viewport": 768,
+        "pass": true
+      },
+      {
+        "check": "mobile-sidebar-drawer",
+        "opened": true,
+        "aria_expanded": "true",
+        "closed": true,
+        "pass": true
+      },
+      {
+        "check": "studio-zoom",
+        "zoom": "0.5",
+        "areaWidth": 766,
+        "areaScrollWidth": 766,
+        "pageWidth": 298,
+        "rendered": "true",
+        "docWidth": 768,
+        "windowWidth": 768,
+        "pass": true
+      },
+      {
+        "check": "studio-zoom",
+        "zoom": "1",
+        "areaWidth": 766,
+        "areaScrollWidth": 766,
+        "pageWidth": 595,
+        "rendered": "true",
+        "docWidth": 768,
+        "windowWidth": 768,
+        "pass": true
+      },
+      {
+        "check": "studio-zoom",
+        "zoom": "1.5",
+        "areaWidth": 766,
+        "areaScrollWidth": 766,
+        "pageWidth": 738,
+        "rendered": "true",
+        "docWidth": 768,
+        "windowWidth": 768,
+        "pass": true
+      },
+      {
+        "check": "studio-zoom",
+        "zoom": "fit-width",
+        "areaWidth": 766,
+        "areaScrollWidth": 766,
+        "pageWidth": 738,
+        "rendered": "true",
+        "docWidth": 768,
+        "windowWidth": 768,
+        "pass": true
+      }
+    ],
+    "js_errors": []
+  },
+  {
+    "device": "laptop1366",
+    "checks": [
+      {
+        "check": "theme-layout",
+        "theme": "light",
+        "docWidth": 1366,
+        "bodyWidth": 1366,
+        "viewport": 1366,
+        "pass": true
+      },
+      {
+        "check": "theme-layout",
+        "theme": "dark",
+        "docWidth": 1366,
+        "bodyWidth": 1366,
+        "viewport": 1366,
+        "pass": true
+      },
+      {
+        "check": "desktop-sidebar-collapse",
+        "before": true,
+        "after": false,
+        "pass": true
+      },
+      {
+        "check": "studio-zoom",
+        "zoom": "0.5",
+        "areaWidth": 854,
+        "areaScrollWidth": 854,
+        "pageWidth": 298,
+        "rendered": "true",
+        "docWidth": 1366,
+        "windowWidth": 1366,
+        "pass": true
+      },
+      {
+        "check": "studio-zoom",
+        "zoom": "1",
+        "areaWidth": 854,
+        "areaScrollWidth": 854,
+        "pageWidth": 595,
+        "rendered": "true",
+        "docWidth": 1366,
+        "windowWidth": 1366,
+        "pass": true
+      },
+      {
+        "check": "studio-zoom",
+        "zoom": "1.5",
+        "areaWidth": 854,
+        "areaScrollWidth": 854,
+        "pageWidth": 790,
+        "rendered": "true",
+        "docWidth": 1366,
+        "windowWidth": 1366,
+        "pass": true
+      },
+      {
+        "check": "studio-zoom",
+        "zoom": "fit-width",
+        "areaWidth": 854,
+        "areaScrollWidth": 854,
+        "pageWidth": 790,
+        "rendered": "true",
+        "docWidth": 1366,
+        "windowWidth": 1366,
+        "pass": true
+      }
+    ],
+    "js_errors": []
+  },
+  {
+    "check": "Tool Desk route consistency",
+    "start_path": "/tool-desk",
+    "end_path": "/tool-desk",
+    "desk_visible": true,
+    "merge_selected": false,
+    "home_to_desk_path": "/tool-desk",
+    "pass": true
+  }
+]

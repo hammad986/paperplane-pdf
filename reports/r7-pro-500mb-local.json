@@ -1,0 +1,20 @@
+{
+  "limit_bytes": 524288000,
+  "transport": "local HTTP upload with streamed multipart file",
+  "payload_bytes": 524288000,
+  "base_pdf_bytes": 518,
+  "session_tier": "pro",
+  "status": 202,
+  "response": {
+    "job_id": "d20a5a96a9334b0ca25320a223a2e82b",
+    "status": "queued"
+  },
+  "job_id_received": true,
+  "server_received_exact_limit": true,
+  "job_dir_exists_after_upload": true,
+  "accepted_at_limit": true,
+  "test_account_cleaned": true,
+  "saved_input_bytes": 524288000,
+  "uploaded_pdf_pages": 1,
+  "job_artifacts_cleaned_after_verification": true
+}

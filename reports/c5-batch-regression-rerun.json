@@ -1,0 +1,96 @@
+[
+  {
+    "step": "duplicate-69-to-70",
+    "counts": {
+      "header": "70",
+      "counter_total": "70",
+      "thumbs": 70,
+      "selected": 0
+    },
+    "count_consistent": true,
+    "toast": "OK\nDuplicated 1 page(s)."
+  },
+  {
+    "step": "delete-one-70-to-69",
+    "counts": {
+      "header": "69",
+      "counter_total": "69",
+      "thumbs": 69,
+      "selected": 0
+    },
+    "count_consistent": true,
+    "toast": "OK\nDeleted 1 page(s).",
+    "confirmed_dialogs": 1
+  },
+  {
+    "step": "delete-two-69-to-67",
+    "counts": {
+      "header": "67",
+      "counter_total": "67",
+      "thumbs": 67,
+      "selected": 0
+    },
+    "count_consistent": true,
+    "toast": "OK\nDeleted 2 page(s).",
+    "confirmed_dialogs": 2
+  },
+  {
+    "step": "delete-all-guard",
+    "counts": {
+      "header": "67",
+      "counter_total": "67",
+      "thumbs": 67,
+      "selected": 67
+    },
+    "count_consistent": true,
+    "toast": "!\nCannot delete all pages. The document must contain at least one page.",
+    "before": {
+      "header": "67",
+      "counter_total": "67",
+      "thumbs": 67,
+      "selected": 67
+    },
+    "confirmed_dialogs": 2,
+    "guard_kept_document": true
+  },
+  {
+    "step": "insert-blank-67-to-68",
+    "counts": {
+      "header": "68",
+      "counter_total": "68",
+      "thumbs": 68,
+      "selected": 0
+    },
+    "count_consistent": true,
+    "toast": "OK\nBlank page inserted after page 1."
+  },
+  {
+    "step": "extract-pages-1-and-3",
+    "counts": {
+      "header": "68",
+      "counter_total": "68",
+      "thumbs": 68,
+      "selected": 2
+    },
+    "count_consistent": true,
+    "toast": "OK\nExtracted PDF downloaded.",
+    "filename": "extracted_1-3_paperplane-notes-69-local.pdf",
+    "bytes": 1313,
+    "pages": 2,
+    "text_contains_page_1": true,
+    "text_contains_page_3": false,
+    "signature": "%PDF-"
+  },
+  {
+    "step": "native-delete-confirmation",
+    "messages": [
+      "Are you sure you want to delete page 70? This cannot be undone.",
+      "Are you sure you want to delete 2 pages? This cannot be undone."
+    ],
+    "all_deletions_confirmed": true
+  },
+  {
+    "step": "javascript-errors",
+    "errors": []
+  }
+]

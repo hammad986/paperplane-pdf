@@ -1,0 +1,96 @@
+[
+  {
+    "device": "desktop1366",
+    "steps": [
+      {
+        "control": "#next-page-btn",
+        "target": 2,
+        "synced": true,
+        "visible": true,
+        "window_scroll_y": 0
+      },
+      {
+        "control": "#next-page-btn",
+        "target": 3,
+        "synced": true,
+        "visible": true,
+        "window_scroll_y": 0
+      },
+      {
+        "control": "#page-jump-input",
+        "target": 69,
+        "synced": true,
+        "visible": true,
+        "window_scroll_y": 0
+      },
+      {
+        "control": "#prev-page-btn",
+        "target": 68,
+        "synced": true,
+        "visible": true,
+        "window_scroll_y": 0
+      },
+      {
+        "control": "#next-page-btn",
+        "target": 69,
+        "synced": true,
+        "visible": true,
+        "window_scroll_y": 0
+      },
+      {
+        "control": "#page-jump-input",
+        "target": 1,
+        "synced": true,
+        "visible": true,
+        "window_scroll_y": 0
+      }
+    ]
+  },
+  {
+    "device": "mobile375",
+    "steps": [
+      {
+        "control": "#next-page-btn",
+        "target": 2,
+        "synced": true,
+        "visible": true,
+        "window_scroll_y": 0
+      },
+      {
+        "control": "#next-page-btn",
+        "target": 3,
+        "synced": true,
+        "visible": true,
+        "window_scroll_y": 0
+      },
+      {
+        "control": "#page-jump-input",
+        "target": 69,
+        "synced": true,
+        "visible": true,
+        "window_scroll_y": 0
+      },
+      {
+        "control": "#prev-page-btn",
+        "target": 68,
+        "synced": true,
+        "visible": true,
+        "window_scroll_y": 0
+      },
+      {
+        "control": "#next-page-btn",
+        "target": 69,
+        "synced": true,
+        "visible": true,
+        "window_scroll_y": 0
+      },
+      {
+        "control": "#page-jump-input",
+        "target": 1,
+        "synced": true,
+        "visible": true,
+        "window_scroll_y": 0
+      }
+    ]
+  }
+]

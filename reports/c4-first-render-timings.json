@@ -1,0 +1,75 @@
+[
+  {
+    "document": "original",
+    "file": "notes.pdf",
+    "size_bytes": 5456746,
+    "measurements": [
+      {
+        "target_seconds": 0,
+        "actual_elapsed_seconds": 0.05,
+        "page_count": "0",
+        "first_page_slot": true,
+        "page1_rendered": false
+      },
+      {
+        "target_seconds": 10,
+        "actual_elapsed_seconds": 10.05,
+        "page_count": "69",
+        "first_page_slot": true,
+        "page1_rendered": true
+      },
+      {
+        "target_seconds": 30,
+        "actual_elapsed_seconds": 30.08,
+        "page_count": "69",
+        "first_page_slot": true,
+        "page1_rendered": true
+      },
+      {
+        "target_seconds": 60,
+        "actual_elapsed_seconds": 60.09,
+        "page_count": "69",
+        "first_page_slot": true,
+        "page1_rendered": true
+      }
+    ]
+  },
+  {
+    "document": "grayscale",
+    "file": "notes_grayscale.pdf",
+    "size_bytes": 6937516,
+    "measurements": [
+      {
+        "target_seconds": 0,
+        "actual_elapsed_seconds": 0.03,
+        "page_count": "69",
+        "first_page_slot": true,
+        "page1_rendered": true
+      },
+      {
+        "target_seconds": 10,
+        "actual_elapsed_seconds": 10.06,
+        "page_count": "69",
+        "first_page_slot": true,
+        "page1_rendered": true
+      },
+      {
+        "target_seconds": 30,
+        "actual_elapsed_seconds": 30.09,
+        "page_count": "69",
+        "first_page_slot": true,
+        "page1_rendered": true
+      },
+      {
+        "target_seconds": 60,
+        "actual_elapsed_seconds": 60.07,
+        "page_count": "69",
+        "first_page_slot": true,
+        "page1_rendered": true
+      }
+    ]
+  },
+  {
+    "page_errors": []
+  }
+]
