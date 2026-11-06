@@ -25,6 +25,7 @@ const state = {
     scale: 1.0,
     totalCount: 0,
     srcFile: null,
+    isLoading: false,
     pageObserver: null,
     pageRenderTasks: new Map(),
     activeTool: 'pan', // 'pan', 'draw', 'highlight', 'text', 'redact'
@@ -37,16 +38,28 @@ const state = {
 // Keep tool inputs and completed outputs while the user moves between views.
 // File objects stay in memory only; the browser never silently persists them.
 const toolSessionCache = new Map();
+let workspaceNavigationVersion = 0;
 
 function rememberLocalWork(filename) {
   try { sessionStorage.setItem('paperplane-last-local-document', filename || 'PDF work'); } catch { /* storage may be disabled */ }
 }
 
-function clearLocalWorkMarkerIfEmpty() {
+function hasInMemoryWork() {
+  const hasConversation = Boolean($('#chat-messages')?.querySelector('.chat-bubble.user'));
   const cachedWork = [...toolSessionCache.values()].some(session => session.files?.length || session.result);
-  if (state.files.length || state.activeToolResult || state.studio?.pdfDoc || cachedWork) return;
+  return Boolean(state.files.length || state.activeToolResult || state.studio?.pdfDoc || cachedWork || hasConversation);
+}
+
+function clearLocalWorkMarkerIfEmpty() {
+  if (hasInMemoryWork()) return;
   try { sessionStorage.removeItem('paperplane-last-local-document'); } catch { /* storage may be disabled */ }
 }
+
+window.addEventListener('beforeunload', event => {
+  if (!hasInMemoryWork()) return;
+  event.preventDefault();
+  event.returnValue = '';
+});
 
 function captureToolFormValues() {
   const form = $('#job-form');
@@ -384,6 +397,7 @@ $('#collapse-sidebar-btn').onclick = () => {
 
 // Workspace View Switcher (Home / Desk / Studio / AI / Legal / ApiDocs)
 function switchWorkspaceView(view, extra = 'privacy', updateHistory = true) {
+  workspaceNavigationVersion += 1;
   if (view !== 'cloud' && $('#cloud-modal')) $('#cloud-modal').hidden = true;
   if ($('#sidebar')?.classList.contains('mobile-open')) closeMobileSidebar();
   try { sessionStorage.setItem('paperplane-active-view', view); } catch { /* storage may be disabled */ }
@@ -444,8 +458,8 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true) {
       }
     }
   } else if (view === 'download') {
-    if (crumbCat) crumbCat.textContent = 'Ecosystem';
-    if (crumbTool) crumbTool.textContent = 'Native Desktop & Mobile Apps';
+    if (crumbCat) crumbCat.textContent = 'Apps';
+    if (crumbTool) crumbTool.textContent = 'Early Access Waitlist';
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (updateHistory && window.history.pushState) {
       if (window.location.pathname !== '/download') {
@@ -456,7 +470,7 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true) {
     if (crumbCat) crumbCat.textContent = state.operations[state.operation]?.category || 'Organize PDF';
     if (crumbTool) crumbTool.textContent = state.operations[state.operation]?.label || 'Merge PDF';
     if (updateHistory && window.history.pushState) {
-      const targetPath = '/tool-desk';
+      const targetPath = operationPath(state.operation);
       if (window.location.pathname !== targetPath) {
         window.history.pushState({ view: 'desk', op: state.operation }, '', targetPath);
       }
@@ -475,7 +489,6 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true) {
   // Update mobile bottom navigation bar active button
   const mobMap = {
     home: '#mob-nav-home',
-    desk: '#mob-nav-desk',
     studio: '#mob-nav-studio',
     ai: '#mob-nav-ai',
     download: '#mob-nav-download'
@@ -500,10 +513,6 @@ function showStudioEmptyState() {
 
 // Navigation event bindings
 $('#tab-home-view')?.addEventListener('click', () => switchWorkspaceView('home'));
-$('#tab-desk-view')?.addEventListener('click', () => {
-  if (state.activeView === 'home' && state.operation !== 'merge') selectOperation('merge', false);
-  switchWorkspaceView('desk');
-});
 $('#tab-studio-view')?.addEventListener('click', () => switchWorkspaceView('studio'));
 $('#tab-ai-view')?.addEventListener('click', () => switchWorkspaceView('ai'));
 $('#tab-download-view')?.addEventListener('click', () => switchWorkspaceView('download'));
@@ -914,6 +923,18 @@ function selectOperation(op, switchToDesk = true) {
     clearResultPanel();
   }
   const item = state.operations[op] || { label: op, accept: 'pdf', category: 'Organize PDF' };
+  const operationUnavailable = item.available === false || item.status === 'DEPENDENCY_MISSING' || item.status === 'SERVICE_UNAVAILABLE';
+  const availabilityNotice = $('#tool-availability-notice');
+  if (availabilityNotice) {
+    availabilityNotice.hidden = !operationUnavailable;
+    availabilityNotice.textContent = operationUnavailable
+      ? `${item.label} is currently unavailable. ${item.prerequisite || 'The required service is not enabled.'}`
+      : '';
+  }
+  ['#file-input', '#browse', '#cloud-drop-btn'].forEach(selector => {
+    const control = $(selector);
+    if (control) control.disabled = operationUnavailable;
+  });
 
   if ($('#crumb-tool')) $('#crumb-tool').textContent = item.label;
   if ($('#crumb-category')) $('#crumb-category').textContent = item.category;
@@ -1484,6 +1505,7 @@ async function loadDocumentIntoStudio(file) {
   if (file === null && state.studio.isLoading) {
     return false;
   }
+  state.studio.isLoading = true;
 
   const container = $('#studio-thumbnails-container');
   if (container) container.innerHTML = '<div style="color: #94a3b8; font-size: 12px; text-align: center; padding: 20px;"><div class="studio-spinner" style="margin: 0 auto 10px; width: 20px; height: 20px; border-width: 2px;"></div>Rendering previews…</div>';
@@ -1545,6 +1567,7 @@ async function loadDocumentIntoStudio(file) {
     hideStudioLoading();
     return true;
   } catch (err) {
+    state.studio.isLoading = false;
     const reason = err instanceof Error ? err.message : String(err);
     console.error('Failed to load PDF in Studio:', err);
     hideStudioLoading();
@@ -1559,6 +1582,8 @@ async function loadDocumentIntoStudio(file) {
       }
     }
     return false;
+  } finally {
+    state.studio.isLoading = false;
   }
 }
 
@@ -1768,18 +1793,23 @@ function pruneStudioPageCanvases(centerPage) {
   });
 }
 
-async function jumpToStudioPage(pageNum, behavior = 'smooth') {
+async function jumpToStudioPage(pageNum, behavior = 'auto') {
   if (!state.studio.pdfDoc) return false;
   const target = Math.max(1, Math.min(state.studio.totalCount, Number(pageNum) || 1));
   const slot = studioPageSlot(target) || createStudioPageSlot(target);
   setActiveStudioPage(target);
+  // Put the requested sheet into the viewport before awaiting PDF.js. This keeps
+  // page entry/thumbnail navigation useful even when a large document needs time
+  // to paint the target; the visible page shows its render status immediately.
   const area = $('#studio-canvas-area');
   if (area) {
     const areaTop = area.getBoundingClientRect().top;
     const pageTop = slot.getBoundingClientRect().top - areaTop + area.scrollTop;
     area.scrollTo({ top: Math.max(0, pageTop - 10), behavior });
   }
-  return renderStudioPage(target, { priority: true });
+  let rendered = await renderStudioPage(target, { priority: true });
+  if (!rendered) rendered = await renderStudioPage(target, { priority: true, force: true });
+  return rendered;
 }
 
 const studioPageStack = $('#studio-page-stack');
@@ -2543,6 +2573,13 @@ function addFiles(newFiles) {
 function updateButton() {
   const btn = $('#run-button');
   if (!btn) return;
+  const currentOperation = state.operations[state.operation];
+  const toolLabel = currentOperation?.label || 'Run Tool';
+  if (currentOperation && (currentOperation.available === false || currentOperation.status === 'DEPENDENCY_MISSING' || currentOperation.status === 'SERVICE_UNAVAILABLE')) {
+    btn.disabled = true;
+    btn.innerHTML = `${toolLabel} unavailable <span>✕</span>`;
+    return;
+  }
   const isHtml = state.operation === 'html_to_pdf';
 
   if (isHtml) {
@@ -2557,7 +2594,7 @@ function updateButton() {
   }
 
   const hasFiles = state.files.length > 0;
-  const toolLabel = state.operations[state.operation]?.label || 'Run Tool';
+  const activeToolLabel = currentOperation?.label || 'Run Tool';
 
   const isSecurity = ['protect', 'unlock'].includes(state.operation) || (state.operation || '').includes('protect') || (state.operation || '').includes('unlock');
   if (isSecurity) {
@@ -2576,7 +2613,7 @@ function updateButton() {
       return;
     }
     btn.disabled = false;
-    btn.innerHTML = `${toolLabel} Now <span>→</span>`;
+    btn.innerHTML = `${activeToolLabel} Now <span>→</span>`;
     return;
   }
 
@@ -2588,7 +2625,7 @@ function updateButton() {
 
   btn.disabled = !hasFiles;
   btn.innerHTML = hasFiles
-    ? `${toolLabel} Now <span>→</span>`
+    ? `${activeToolLabel} Now <span>→</span>`
     : 'Select files to continue <span>→</span>';
 }
 
@@ -2597,6 +2634,11 @@ const HEAVY_TOOLS = new Set([
 ]);
 
 function checkAccessRequirement(operation, files = []) {
+  const operationInfo = state.operations[operation];
+  if (operationInfo && (operationInfo.available === false || operationInfo.status === 'DEPENDENCY_MISSING' || operationInfo.status === 'SERVICE_UNAVAILABLE')) {
+    showToast(operationInfo.prerequisite || `${operationInfo.label || 'This tool'} is currently unavailable.`, 'warning', 5000);
+    return false;
+  }
   const accountTier = String(state.user?.tier || '').toLowerCase();
   const paidAccount = Boolean(state.user && (state.user.is_pro || state.user.is_dev || ['developer', 'student_pro', 'cyber_cafe', 'exam_pass'].includes(accountTier)));
   if (!state.user && HEAVY_TOOLS.has(operation)) {
@@ -2691,6 +2733,15 @@ $('#cloud-drop-btn').onclick = (e) => {
 };
 
 $('#close-cloud-modal').onclick = () => $('#cloud-modal').hidden = true;
+$('#cloud-modal')?.addEventListener('click', event => {
+  if (event.target === $('#cloud-modal')) $('#cloud-modal').hidden = true;
+});
+document.addEventListener('keydown', event => {
+  const cloudModal = $('#cloud-modal');
+  if (event.key === 'Escape' && cloudModal && !cloudModal.hidden) {
+    cloudModal.hidden = true;
+  }
+});
 
 $('#cloud-form').onsubmit = async e => {
   e.preventDefault();
@@ -3442,6 +3493,7 @@ if (chatClearBtn) {
         <strong>Paperplane AI:</strong> Conversation cleared. Ask a general question or upload a PDF for cited answers.
       </div>
     `;
+    clearLocalWorkMarkerIfEmpty();
     showToast('Conversation cleared', 'info');
   };
 }
@@ -3472,11 +3524,28 @@ $('#chat-form').onsubmit = async e => {
   msgs.appendChild(userBubble);
   const answerBubble = document.createElement('div');
   answerBubble.className = 'chat-bubble ai ai-stream-bubble';
-  answerBubble.innerHTML = '<strong>Paperplane AI:</strong><div class="ai-stage-line" aria-live="polite"><span class="ai-stage-dots">•••</span><span>Thinking…</span></div><div class="chat-markdown ai-stream-text"></div><div class="chat-citation-tags"></div>';
+  answerBubble.innerHTML = '<strong>Paperplane AI:</strong><div class="ai-stage-line" aria-live="polite"><span class="ai-stage-dots">•••</span><span>Thinking…</span></div><ol class="ai-stage-timeline" aria-label="AI work stages"><li data-ai-stage="thinking">Thinking</li><li data-ai-stage="extracting">Extracting</li><li data-ai-stage="analysing">Analysing</li><li data-ai-stage="searching">Searching</li><li data-ai-stage="generating">Generating</li></ol><div class="chat-markdown ai-stream-text"></div><div class="ai-response-mode" hidden></div><div class="chat-citation-tags"></div>';
   msgs.appendChild(answerBubble);
   const stageNode = answerBubble.querySelector('.ai-stage-line span:last-child');
   const stageDots = answerBubble.querySelector('.ai-stage-dots');
+  const stageItems = [...answerBubble.querySelectorAll('[data-ai-stage]')];
+  const stageKeys = { 'Thinking…': 'thinking', 'Extracting…': 'extracting', 'Analysing…': 'analysing', 'Searching…': 'searching', 'Generating…': 'generating' };
+  const completedStages = new Set();
+  const updateStage = value => {
+    stageNode.textContent = value;
+    const active = stageKeys[value];
+    if (active) completedStages.add(active);
+    stageItems.forEach(item => {
+      const key = item.dataset.aiStage;
+      const isActive = key === active;
+      item.classList.toggle('is-active', isActive);
+      item.classList.toggle('is-complete', completedStages.has(key) && !isActive);
+      if (isActive) item.setAttribute('aria-current', 'step');
+      else item.removeAttribute('aria-current');
+    });
+  };
   const textNode = answerBubble.querySelector('.ai-stream-text');
+  const responseModeNode = answerBubble.querySelector('.ai-response-mode');
   const citationsNode = answerBubble.querySelector('.chat-citation-tags');
   let answerText = '';
   let streamFailed = false;
@@ -3486,6 +3555,7 @@ $('#chat-form').onsubmit = async e => {
   const form = new FormData();
   if (state.files.length) form.append('file', state.files[0]);
   form.append('question', question);
+  rememberLocalWork(state.files[0]?.name || 'AI chat');
 
   const btn = $('#chat-send-btn');
   activeAIChatController = new AbortController();
@@ -3516,7 +3586,7 @@ $('#chat-form').onsubmit = async e => {
         if (!dataLine) continue;
         let payload;
         try { payload = JSON.parse(dataLine); } catch { continue; }
-        if (eventName === 'stage') stageNode.textContent = payload.stage;
+        if (eventName === 'stage') updateStage(payload.stage);
         if (eventName === 'token') {
           answerText += payload.text || '';
           textNode.textContent = answerText;
@@ -3527,11 +3597,20 @@ $('#chat-form').onsubmit = async e => {
         }
         if (eventName === 'done') {
           citationsNode.innerHTML = (payload.citations || []).map(page => `<span class="ai-citation-tag">Page ${escapeHtml(page)}</span>`).join('');
-          stageNode.textContent = 'Complete';
+          if (payload.mode === 'local_extraction' && responseModeNode) {
+            responseModeNode.hidden = false;
+            responseModeNode.textContent = 'Local document extract · AI provider is disabled';
+          }
+          updateStage('Complete');
+          stageItems.forEach(item => {
+            if (completedStages.has(item.dataset.aiStage)) item.classList.add('is-complete');
+            item.classList.remove('is-active');
+            item.removeAttribute('aria-current');
+          });
           textNode.innerHTML = renderMarkdown(answerText);
           completed = true;
         }
-        if (eventName === 'error') throw new Error(/not configured/i.test(payload.message || '') ? 'AI provider is not configured' : 'AI request failed, please try again');
+        if (eventName === 'error') throw new Error(/not configured/i.test(payload.message || '') ? 'AI provider is not configured' : (payload.message || 'AI request failed, please try again'));
       }
       if (done) completed = true;
       msgs.scrollTop = msgs.scrollHeight;
@@ -3549,7 +3628,12 @@ $('#chat-form').onsubmit = async e => {
       const failure = document.createElement('div');
       failure.className = 'ai-chat-error';
       failure.innerHTML = `${escapeHtml(errMsg)} <button type="button" class="ai-chat-retry">Retry</button>`;
-      failure.querySelector('.ai-chat-retry').onclick = () => { input.value = question; $('#chat-form').requestSubmit(); };
+      failure.querySelector('.ai-chat-retry').onclick = () => {
+        failure.remove();
+        answerBubble.remove();
+        input.value = question;
+        $('#chat-form').requestSubmit();
+      };
       answerBubble.appendChild(failure);
       showToast(errMsg, 'error');
     }
@@ -3691,14 +3775,19 @@ function renderExtractionResultsModal(data) {
 
     if (docType === 'invoice') {
       const inv = data.invoice_data || {};
-      const cur = inv.currency ? ` (${escapeHtml(inv.currency)})` : '';
+      const currencyCode = typeof inv.currency === 'string' ? inv.currency.trim() : '';
+      const cur = currencyCode ? ` (${currencyCode})` : ' (currency not identified)';
+      const formatExtractedAmount = value => {
+        if (value == null || value === '') return null;
+        return currencyCode ? `${currencyCode} ${value}` : String(value);
+      };
       const fields = [
-        { label: `Total Amount${cur}`, val: inv.total_amount ? `${inv.currency || '$'}${inv.total_amount}` : null, highlight: true },
+        { label: `Total Amount${cur}`, val: formatExtractedAmount(inv.total_amount), highlight: true },
         { label: 'Invoice #', val: inv.invoice_number },
         { label: 'Invoice Date', val: inv.invoice_date },
         { label: 'Due Date', val: inv.due_date },
-        { label: 'Subtotal', val: inv.subtotal ? `${inv.currency || '$'}${inv.subtotal}` : null },
-        { label: 'Tax Amount', val: inv.tax_amount ? `${inv.currency || '$'}${inv.tax_amount}` : null },
+        { label: `Subtotal${currencyCode ? ` (${currencyCode})` : ''}`, val: formatExtractedAmount(inv.subtotal) },
+        { label: `Tax Amount${currencyCode ? ` (${currencyCode})` : ''}`, val: formatExtractedAmount(inv.tax_amount) },
         { label: 'Vendor / Issuer', val: inv.vendor },
         { label: 'Customer / Bill To', val: inv.customer },
         { label: 'Payment Terms', val: inv.payment_terms }
@@ -3738,8 +3827,8 @@ function renderExtractionResultsModal(data) {
             <td style="color: var(--text-muted); font-size: 11px;">${idx + 1}</td>
             <td><strong>${escapeHtml(item.description || 'Item')}</strong></td>
             <td style="text-align: right;">${item.quantity != null ? item.quantity : '1'}</td>
-            <td style="text-align: right;">${item.unit_price != null ? (inv.currency || '$') + item.unit_price : '-'}</td>
-            <td style="text-align: right; font-weight: 700;">${item.amount != null ? (inv.currency || '$') + item.amount : '-'}</td>
+            <td style="text-align: right;">${item.unit_price != null ? escapeHtml(formatExtractedAmount(item.unit_price) || '-') : '-'}</td>
+            <td style="text-align: right; font-weight: 700;">${item.amount != null ? escapeHtml(formatExtractedAmount(item.amount) || '-') : '-'}</td>
           `;
           tbody?.appendChild(tr);
         });
@@ -4852,6 +4941,17 @@ async function initiateCheckout(tier, btnEl) {
 // ----------------------------------------------------------------------
 
 async function init() {
+  const startupNavigationVersion = workspaceNavigationVersion;
+  // Snapshot reload-only session markers before asynchronous setup. Reading
+  // them after the network awaits can consume fresh work created by a fast user.
+  let previousView = null;
+  let previousDoc = null;
+  try {
+    previousView = sessionStorage.getItem('paperplane-active-view');
+    previousDoc = sessionStorage.getItem('paperplane-last-local-document');
+    if (previousDoc) sessionStorage.removeItem('paperplane-last-local-document');
+  } catch { /* session storage may be disabled */ }
+
   initBillingHandlers();
   initMobileNav();
   initHomeSearchAndFilter();
@@ -4865,15 +4965,23 @@ async function init() {
     state.operations = data;
     renderSidebarTools();
     renderHomeToolsGrid();
-    let previousView = null;
-    try { previousView = sessionStorage.getItem('paperplane-active-view'); } catch { /* storage may be disabled */ }
-    handleInitialRouting();
+    const userNavigatedDuringStartup = workspaceNavigationVersion !== startupNavigationVersion;
+    if (!userNavigatedDuringStartup) {
+      handleInitialRouting();
+    } else if (state.activeView === 'desk' && state.operations[state.operation]) {
+      // A slow auth/catalog startup must not discard a view the user already chose.
+      // Reapply the selected tool now that its server metadata is available.
+      selectOperation(state.operation, true);
+    }
     try {
-      if (previousView === 'studio' || previousView === 'ai') switchWorkspaceView(previousView);
-      const previousDoc = sessionStorage.getItem('paperplane-last-local-document');
+      // Preserve an ephemeral workspace on a plain root reload, but never let
+      // stale tab state override an explicit deep link (for example /rotate-pdf).
+      const isRootWorkspaceReload = window.location.pathname.replace(/\/+$/, '') === '' && !window.location.search;
+      if (!userNavigatedDuringStartup && isRootWorkspaceReload && (previousView === 'studio' || previousView === 'ai')) {
+        switchWorkspaceView(previousView);
+      }
       if (previousDoc) {
-        showToast(`Previous work for “${previousDoc}” was cleared after reload to protect your files and unsaved edits. Choose the source file again to continue.`, 'info', 8000);
-        sessionStorage.removeItem('paperplane-last-local-document');
+        showToast(`Previous in-memory work (${previousDoc}) was cleared after reload. PDFs and AI chat are temporary; choose the file again or ask your question again.`, 'info', 8000);
       }
     } catch { /* session storage may be disabled */ }
   } catch (err) {
@@ -5103,8 +5211,7 @@ function handleInitialRouting() {
   } else if (path.includes('download') || path.includes('apps') || urlParams.get('view') === 'download') {
     switchWorkspaceView('download', null, false);
   } else if (pathSlug === 'tool-desk') {
-    selectOperation('merge', false);
-    switchWorkspaceView('desk', null, false);
+    switchWorkspaceView('home', null, false);
   } else if (OPERATION_BY_SLUG[pathSlug]) {
     selectOperation(OPERATION_BY_SLUG[pathSlug], true);
   } else if (pathSlug === 'convert-pdf') {
@@ -5139,8 +5246,7 @@ window.addEventListener('popstate', e => {
   } else if (path.includes('download') || path.includes('apps')) {
     switchWorkspaceView('download', null, false);
   } else if (pathSlug === 'tool-desk') {
-    selectOperation('merge', false);
-    switchWorkspaceView('desk', null, false);
+    switchWorkspaceView('home', null, false);
   } else if (OPERATION_BY_SLUG[pathSlug]) {
     selectOperation(OPERATION_BY_SLUG[pathSlug], true);
   } else if (urlParams.get('tool')) {

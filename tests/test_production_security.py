@@ -513,9 +513,15 @@ def test_free_job_upload_limit_returns_actionable_413(monkeypatch):
 
 
 def test_studio_pdf_header_validation():
-    """Verify robust ISO 32000-1 %PDF- header check in security inspect and sign verify."""
-    # 1. Valid PDF with leading comment or CRLF
-    valid_pdf_content = b"%PDF-1.7\n1 0 obj\n<< /Type /Catalog >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF"
+    """Accept a valid PDF with a short preamble and reject corrupt lookalikes."""
+    import fitz
+
+    # Some valid PDFs contain a short preamble before the PDF header. Keep the
+    # fixture structurally valid so the route also exercises its page parser.
+    document = fitz.open()
+    document.new_page()
+    valid_pdf_content = b"% leading comment\r\n" + document.tobytes()
+    document.close()
     
     inspect_res = client.post(
         "/api/studio/security/inspect",
@@ -523,6 +529,15 @@ def test_studio_pdf_header_validation():
     )
     assert inspect_res.status_code == 200
     assert "is_encrypted" in inspect_res.json()
+
+    # A header marker without a readable PDF body must still be rejected.
+    corrupt_pdf = b"%PDF-1.7\nnot a parseable PDF"
+    corrupt_inspect = client.post(
+        "/api/studio/security/inspect",
+        files={"file": ("corrupt.pdf", corrupt_pdf, "application/pdf")},
+    )
+    assert corrupt_inspect.status_code == 422
+    assert "damaged or unreadable" in corrupt_inspect.json()["detail"]
 
     # 2. Truly invalid content (missing %PDF- in first 1024 bytes) returns 422
     bad_content = b"THIS IS NOT A PDF FILE AT ALL"

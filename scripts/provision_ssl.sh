@@ -160,10 +160,13 @@ main() {
   validate_dns
   if [[ "${1:-}" == "--renew-only" ]]; then
     renew
-  elif [[ -s "$CERT_DIR/fullchain.pem" && -s "$CERT_DIR/privkey.pem" && "${1:-}" != "--force" ]]; then
-    log "Certificates already exist; using idempotent renewal path"
+  elif [[ -s "$LETSENCRYPT_DIR/live/$DOMAIN/fullchain.pem" && -s "$LETSENCRYPT_DIR/live/$DOMAIN/privkey.pem" && "${1:-}" != "--force" ]]; then
+    log "Certbot-managed certificates already exist for $DOMAIN; using renewal path"
     renew
   else
+    if [[ -s "$CERT_DIR/fullchain.pem" || -s "$CERT_DIR/privkey.pem" ]]; then
+      log "Mounted certificate files are not a Certbot renewal source; provisioning a managed certificate for $DOMAIN"
+    fi
     initial_issue
   fi
 }

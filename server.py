@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import base64
 import asyncio
+import csv
 import difflib
 import hashlib
 import hmac
@@ -19,6 +20,7 @@ import sys
 import tempfile
 import threading
 import time
+from itertools import islice
 import urllib.request
 import urllib.error
 import urllib.parse
@@ -206,6 +208,12 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
         response.headers["Cross-Origin-Opener-Policy"] = "same-origin-allow-popups"
+        # Keep script-src free of unsafe-inline. style-src unsafe-inline is
+        # currently needed by inline style attributes in index.html and the
+        # app's CSSStyleDeclaration writes (progress widths, PDF canvas sizing,
+        # positioning, and modal/layout states). wasm-unsafe-eval is retained
+        # for PDF.js's WebAssembly parser/decoder path. Remove either only after
+        # migrating those call sites and retesting PDF rendering.
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
             "script-src 'self' 'wasm-unsafe-eval' https://accounts.google.com https://sdk.cashfree.com https://cdn.jsdelivr.net; "
@@ -947,19 +955,19 @@ SEO_LANDING_PAGES = {
         "related": ("protect", "unlock", "sign", "redact"),
     },
     "download": {
-        "title": "Download Paperplane PDF Client — 100% Free Offline Apps | Paperplane",
-        "description": "Download 100% free offline Paperplane client for Windows, macOS, Linux, Android, and iOS. Zero server cost, zero cloud upload, local compute.",
-        "heading": "Download 100% Free Native Desktop & Mobile Apps",
-        "category": "Native Client",
-        "intro": "Experience zero-latency document viewing and editing for PDF, Word (.docx), and Excel (.xlsx) computed 100% locally on your machine.",
+        "title": "Paperplane PDF Apps — Early Access Waitlist | Paperplane",
+        "description": "Join the Paperplane PDF apps waitlist. Native desktop and mobile installers are not available yet.",
+        "heading": "Join the Paperplane Apps Early Access Waitlist",
+        "category": "Apps Waitlist",
+        "intro": "Native desktop and mobile apps are not available to download yet. Request updates for your platform.",
         "related": ("merge", "split", "compress", "edit"),
     },
     "apps": {
-        "title": "Download Paperplane PDF Client — 100% Free Offline Apps | Paperplane",
-        "description": "Download 100% free offline Paperplane client for Windows, macOS, Linux, Android, and iOS. Zero server cost, zero cloud upload, local compute.",
-        "heading": "Download 100% Free Native Desktop & Mobile Apps",
-        "category": "Native Client",
-        "intro": "Experience zero-latency document viewing and editing for PDF, Word (.docx), and Excel (.xlsx) computed 100% locally on your machine.",
+        "title": "Paperplane PDF Apps — Early Access Waitlist | Paperplane",
+        "description": "Join the Paperplane PDF apps waitlist. Native desktop and mobile installers are not available yet.",
+        "heading": "Join the Paperplane Apps Early Access Waitlist",
+        "category": "Apps Waitlist",
+        "intro": "Native desktop and mobile apps are not available to download yet. Request updates for your platform.",
         "related": ("merge", "split", "compress", "edit"),
     },
     "privacy": {
@@ -1180,6 +1188,15 @@ def render_web_page(request: Request, operation: str | None = None, landing_slug
         "%%BATCH_FILES%%": plan_limits["max_batch_files"],
     }.items():
         html = html.replace(token, str(value))
+    if DISABLE_DOCS:
+        html = re.sub(
+            r'<a\b(?=[^>]*href="/docs")[^>]*>.*?</a>',
+            '',
+            html,
+            count=1,
+            flags=re.DOTALL,
+        )
+        html = re.sub(r'<a\b(?=[^>]*href="/redoc")[^>]*>.*?</a>', '', html, flags=re.DOTALL)
     meta = f"""
   <meta name="description" content="{description}" />
   <meta name="robots" content="index,follow,max-image-preview:large" />
@@ -1462,10 +1479,25 @@ def save_upload(upload: UploadFile, directory: Path, max_bytes: int = MAX_FILE_S
 
 def validate_upload(path: Path, expected: str, operation: str = "") -> None:
     with path.open("rb") as stream:
-        header = stream.read(16)
+        header = stream.read(1024)
 
-    if expected == "pdf" and not header.startswith(b"%PDF-"):
-        raise ValueError("The uploaded file does not have a valid PDF header (%PDF-).")
+    if expected == "pdf":
+        # Accept readers' common compatibility case where a short preamble
+        # precedes the PDF header, but still require PyMuPDF to parse at least
+        # one real page below. A signature alone must never pass as a document.
+        if b"%PDF-" not in header:
+            raise ValueError("The uploaded file does not have a valid PDF header (%PDF-).")
+        try:
+            document = fitz.open(str(path))
+            try:
+                if document.page_count < 1:
+                    raise ValueError("The uploaded PDF contains no readable pages.")
+            finally:
+                document.close()
+        except Exception as error:
+            if isinstance(error, ValueError) and str(error) == "The uploaded PDF contains no readable pages.":
+                raise
+            raise ValueError("The uploaded PDF is damaged or unreadable. Please choose a valid PDF.") from error
 
     if expected == "image":
         try:
@@ -1478,24 +1510,61 @@ def validate_upload(path: Path, expected: str, operation: str = "") -> None:
         if path.stat().st_size == 0:
             raise ValueError("The uploaded Office file is empty.")
         suffix = path.suffix.lower()
-        if operation == "excel_to_pdf" or (not operation and suffix in {".xlsx", ".xls", ".csv"}):
-            if suffix not in {".xlsx", ".xls", ".csv"}:
-                raise ValueError("Please provide a valid Excel file (.xlsx, .xls, .csv).")
-        elif operation == "word_to_pdf":
-            if suffix not in {".docx", ".doc", ".odt", ".rtf"}:
-                raise ValueError("Please provide a valid Word document (.docx, .doc, .odt).")
-        elif operation == "powerpoint_to_pdf":
-            if suffix not in {".pptx", ".ppt", ".odp"}:
-                raise ValueError("Please provide a valid PowerPoint presentation (.pptx, .ppt, .odp).")
-        # Check ZIP signature for modern docx, xlsx, pptx or OLE for legacy
-        if not header.startswith(b"PK\x03\x04") and not header.startswith(b"\xd0\xcf\x11\xe0"):
-            if operation == "excel_to_pdf":
-                raise ValueError("Please provide a valid Excel file (.xlsx, .xls, .csv).")
-            elif operation == "word_to_pdf":
-                raise ValueError("Please provide a valid Word document (.docx, .doc, .odt).")
-            elif operation == "powerpoint_to_pdf":
-                raise ValueError("Please provide a valid PowerPoint presentation (.pptx, .ppt, .odp).")
-            raise ValueError("Invalid Office document signature.")
+        allowed_by_operation = {
+            "excel_to_pdf": ({".xlsx", ".xls", ".csv"}, "Excel file (.xlsx, .xls, .csv)"),
+            "word_to_pdf": ({".docx", ".doc", ".odt", ".rtf"}, "Word document (.docx, .doc, .odt, .rtf)"),
+            "powerpoint_to_pdf": ({".pptx", ".ppt", ".odp"}, "PowerPoint presentation (.pptx, .ppt, .odp)"),
+        }
+        allowed, description = allowed_by_operation.get(
+            operation,
+            ({".xlsx", ".xls", ".csv", ".docx", ".doc", ".odt", ".rtf", ".pptx", ".ppt", ".odp"}, "Office document"),
+        )
+        if suffix not in allowed:
+            raise ValueError(f"Please provide a valid {description}.")
+
+        ole_signature = b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"
+        if suffix == ".csv":
+            if header.startswith(b"%PDF-") or b"\x00" in header:
+                raise ValueError("Please provide a readable CSV file, not a PDF or binary file.")
+            try:
+                with path.open("r", encoding="utf-8-sig", newline="") as stream:
+                    first_rows = list(islice(csv.reader(stream), 2))
+                if not first_rows or not any(cell.strip() for row in first_rows for cell in row):
+                    raise ValueError("The CSV file is empty or contains no readable rows.")
+            except UnicodeDecodeError as error:
+                raise ValueError("The CSV file is not valid UTF-8 text.") from error
+        elif suffix in {".xls", ".doc", ".ppt"}:
+            if not header.startswith(ole_signature):
+                raise ValueError(f"Please provide a valid {description}.")
+        else:
+            required_members = {
+                ".xlsx": {"[Content_Types].xml", "xl/workbook.xml"},
+                ".docx": {"[Content_Types].xml", "word/document.xml"},
+                ".pptx": {"[Content_Types].xml", "ppt/presentation.xml"},
+                ".odt": {"mimetype", "content.xml"},
+                ".odp": {"mimetype", "content.xml"},
+                ".rtf": set(),
+            }
+            if suffix == ".rtf":
+                try:
+                    with path.open("rb") as stream:
+                        sample = stream.read(4096).lstrip()
+                    if not sample.startswith(b"{\\rtf"):
+                        raise ValueError("Please provide a valid RTF document.")
+                except OSError as error:
+                    raise ValueError("The RTF document could not be read.") from error
+            else:
+                try:
+                    with zipfile.ZipFile(path) as archive:
+                        names = set(archive.namelist())
+                        if not required_members[suffix].issubset(names):
+                            raise ValueError(f"Please provide a valid {description}.")
+                        # Force the small structural parts to decompress so a fake or
+                        # truncated ZIP cannot pass validation and consume quota.
+                        for member in required_members[suffix]:
+                            archive.read(member)
+                except (OSError, zipfile.BadZipFile, RuntimeError) as error:
+                    raise ValueError(f"Please provide a valid {description}.") from error
 
     if CLAMAV_HOST:
         try:
@@ -2135,11 +2204,17 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
 # API Routes
 # ----------------------------------------------------------------------
 
+def translation_ai_available() -> bool:
+    """Translations require the configured upstream model; local fallback must not masquerade as translation."""
+    return not ai_engine.AI_KILL_SWITCH and bool(ai_engine._current_bluesminds_api_key())
+
+
 @app.get("/api/operations")
 def get_operations():
     chrome_ok = bool(converters.find_chrome_executable())
     tesseract_ok = bool(shutil.which("tesseract"))
     ai_ok = bool(OPENAI_API_KEY or GEMINI_API_KEY)
+    translation_ai_ok = translation_ai_available()
 
     result = {}
     for op_id, op_info in OPERATIONS.items():
@@ -2159,6 +2234,10 @@ def get_operations():
             info["available"] = True
             info["status"] = "AVAILABLE"
             info["prerequisite"] = "Local RAG Active" if not ai_ok else "Cloud AI Provider Active"
+        elif op_id == "translate":
+            info["available"] = translation_ai_ok
+            info["status"] = "AVAILABLE" if translation_ai_ok else "SERVICE_UNAVAILABLE"
+            info["prerequisite"] = None if translation_ai_ok else "Requires the Paperplane AI translation service to be configured and enabled"
         else:
             info["available"] = True
             info["status"] = "AVAILABLE"
@@ -3317,6 +3396,9 @@ async def ai_chat(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         if file is None:
+            private_reply = ai_engine._private_information_request_reply(question)
+            if private_reply:
+                return {"answer": private_reply, "citations": [], "retrieval_method": None, "fallback_used": False}
             if ai_engine._is_code_request(question):
                 return {"answer": ai_engine._CODE_SCOPE_REPLY, "citations": [], "retrieval_method": None, "fallback_used": False}
             if ai_engine._is_identity_question(question):
@@ -3357,6 +3439,11 @@ async def ai_chat_stream(
     async def events():
         try:
             yield frame("stage", stage="Thinking…")
+            private_reply = ai_engine._private_information_request_reply(question)
+            if private_reply:
+                yield frame("replace", text=private_reply)
+                yield frame("done", citations=[])
+                return
             if ai_engine._is_code_request(question):
                 yield frame("replace", text=ai_engine._CODE_SCOPE_REPLY)
                 yield frame("done", citations=[])
@@ -3374,12 +3461,17 @@ async def ai_chat_stream(
                 await save_upload_spooled_async(file, temp_pdf, max_bytes=upload_limit_bytes_for_user(user_id))
                 yield frame("stage", stage="Extracting…")
                 chunks = await asyncio.to_thread(ai_engine.extract_chunks_from_pdf, temp_pdf)
+                correction = await asyncio.to_thread(ai_engine.correct_false_premise, temp_pdf, question)
+                if correction:
+                    yield frame("replace", text=correction)
+                    yield frame("done", citations=[])
+                    return
                 yield frame("stage", stage="Analysing…")
                 if not chunks:
                     yield frame("replace", text="No readable text was found in this document to answer your question.")
                     yield frame("done", citations=[])
                     return
-                yield frame("stage", stage="Getting info…")
+                yield frame("stage", stage="Searching…")
                 page_match = re.search(r"\bpage\s+(\d+)\b", question, re.IGNORECASE)
                 broad_summary = bool(re.search(r"\b(summar(?:y|ize|ise)|overview|key points|important information)\b", question, re.IGNORECASE))
                 if page_match:
@@ -3400,6 +3492,19 @@ async def ai_chat_stream(
             else:
                 yield frame("stage", stage="Analysing…")
 
+            # With the external provider deliberately disabled, PDF chat still
+            # returns a clearly labelled local extractive answer. It never
+            # represents that answer as model-generated.
+            if file is not None and ai_engine.AI_KILL_SWITCH:
+                local_answer = ai_engine._offline_rag_fallback(system_prompt, user_prompt)
+                local_answer, local_citations = ai_engine.align_answer_citations(local_answer, citations)
+                yield frame("stage", stage="Generating…")
+                for word in re.findall(r"\S+\s*", local_answer):
+                    yield frame("token", text=word)
+                    await asyncio.sleep(0.02)
+                yield frame("done", citations=local_citations, mode="local_extraction")
+                return
+
             yield frame("stage", stage="Generating…")
             stream = iter(ai_engine.stream_bluesminds(system_prompt, user_prompt))
             sentinel = object()
@@ -3411,27 +3516,42 @@ async def ai_chat_stream(
                     return sentinel
 
             accumulated = ""
+            pending_output = ""
+            full_answer = ""
             max_forbidden_len = max([len(ai_engine.BLUESMINDS_MODEL or "")] + [len(word) for word in ("nemotron", "nvidia", "bluesminds", "openai", "anthropic", "google gemini")])
+            # Hold the entire possible self-identification phrase. A short
+            # rolling tail is unsafe because the introduction might already
+            # have been emitted before the provider name arrives in a later
+            # SSE delta.
+            identity_guard_buffer = max(180, max_forbidden_len + 140)
             while True:
                 piece = await asyncio.to_thread(get_next)
                 if piece is sentinel:
                     break
                 accumulated += piece
-                guarded = ai_engine._guard_ai_output(accumulated)
-                if guarded == ai_engine._PAPERPLANE_IDENTITY and accumulated != guarded:
-                    yield frame("replace", text=guarded)
-                    accumulated = guarded
+                full_answer += piece
+                pending_output += piece
+                guarded_full_answer = ai_engine._guard_ai_output(full_answer)
+                if guarded_full_answer == ai_engine._PAPERPLANE_IDENTITY and full_answer != guarded_full_answer:
+                    yield frame("replace", text=guarded_full_answer)
+                    accumulated = ""
+                    pending_output = ""
+                    full_answer = guarded_full_answer
                     break
-                # Keep a small tail so a provider name split across deltas is never sent to the browser.
-                safe_limit = max(0, len(accumulated) - max_forbidden_len - 2)
-                safe_len = max(accumulated.rfind(" ", 0, safe_limit), accumulated.rfind("\n", 0, safe_limit), accumulated.rfind("\t", 0, safe_limit))
+                safe_limit = max(0, len(pending_output) - identity_guard_buffer)
+                safe_len = max(pending_output.rfind(" ", 0, safe_limit), pending_output.rfind("\n", 0, safe_limit), pending_output.rfind("\t", 0, safe_limit))
                 if safe_len:
-                    yield frame("token", text=accumulated[:safe_len + 1])
-                    accumulated = accumulated[safe_len + 1:]
-            if accumulated:
-                guarded_tail = ai_engine._guard_ai_output(accumulated)
-                yield frame("replace", text=guarded_tail) if guarded_tail == ai_engine._PAPERPLANE_IDENTITY and accumulated != guarded_tail else frame("token", text=accumulated)
-            yield frame("done", citations=citations)
+                    yield frame("token", text=pending_output[:safe_len + 1])
+                    pending_output = pending_output[safe_len + 1:]
+            if pending_output:
+                yield frame("token", text=pending_output)
+            final_answer, aligned_citations = ai_engine.align_answer_citations(
+                ai_engine._guard_ai_output(full_answer), citations
+            )
+            # Replace the streamed draft once with its citation-validated final
+            # form; chips and inline page references now share one source.
+            yield frame("replace", text=final_answer)
+            yield frame("done", citations=aligned_citations)
         except ValueError as exc:
             logging.getLogger("paperplane").warning("AI stream configuration issue: %s", exc)
             yield frame("error", message="AI provider is not configured")
@@ -3512,6 +3632,8 @@ async def ai_translate_endpoint(
     target_language: str = Form("es"),
     user_id: str | None = Depends(current_user)
 ):
+    if not translation_ai_available():
+        raise HTTPException(503, "AI translation is unavailable because the Paperplane AI translation service is not configured or enabled.")
     temp_dir = Path(tempfile.mkdtemp())
     try:
         temp_pdf = temp_dir / "translate_input.pdf"
@@ -5235,37 +5357,28 @@ def cloud_sync(
         provider = "OneDrive"
 
     try:
-        raw_bytes, content_type = converters.safe_fetch_url(url, max_size=MAX_FILE_SIZE, timeout=30)
+        raw_bytes, content_type = converters.safe_fetch_url(
+            url,
+            max_size=upload_limit_bytes_for_user(user_id),
+            timeout=30,
+        )
 
         # Reject HTML preview, login, or error pages
         if raw_bytes.startswith((b"<!DOCTYPE", b"<!doctype", b"<html", b"<HTML", b"<body", b"<head")):
             raise ValueError("The provided link returned an HTML webpage or login screen instead of a direct file. Please ensure the link is publicly accessible without login.")
 
-        filename = "cloud_document.pdf"
-        if raw_bytes.startswith(b"%PDF-"):
-            filename = "cloud_imported.pdf"
-            content_type = "application/pdf"
-        elif raw_bytes.startswith(b"\x89PNG\r\n\x1a\n"):
-            filename = "cloud_imported.png"
-            content_type = "image/png"
-        elif raw_bytes.startswith(b"\xff\xd8\xff"):
-            filename = "cloud_imported.jpg"
-            content_type = "image/jpeg"
-        elif raw_bytes.startswith(b"PK\x03\x04"):
-            if b"word/" in raw_bytes[:2000]:
-                filename = "cloud_imported.docx"
-                content_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            elif b"xl/" in raw_bytes[:2000]:
-                filename = "cloud_imported.xlsx"
-                content_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            elif b"ppt/" in raw_bytes[:2000]:
-                filename = "cloud_imported.pptx"
-                content_type = "application/vnd.openxmlformats-officedocument.presentationml.presentation"
-            else:
-                filename = "cloud_imported.zip"
-                content_type = "application/zip"
-        else:
-            raise ValueError("The downloaded file is not a supported document or image format (%PDF-, PNG, JPEG, Office).")
+        if not raw_bytes.startswith(b"%PDF-"):
+            raise ValueError("Cloud Import accepts PDF files only. This link returned another file type; use its matching converter instead.")
+        try:
+            imported_pdf = fitz.open(stream=raw_bytes, filetype="pdf")
+            page_count = imported_pdf.page_count
+            imported_pdf.close()
+        except Exception as invalid_pdf:
+            raise ValueError("The link returned a damaged or unreadable PDF. Choose a valid PDF and try again.") from invalid_pdf
+        if page_count < 1:
+            raise ValueError("The linked PDF has no pages to import.")
+        filename = "cloud_imported.pdf"
+        content_type = "application/pdf"
 
         b64_data = base64.b64encode(raw_bytes).decode("utf-8")
         return {
@@ -5389,6 +5502,8 @@ def create_job_endpoint(
 
     if not OPERATIONS[operation]["implemented"]:
         raise HTTPException(501, OPERATIONS[operation].get("description", "Operation not available."))
+    if operation == "translate" and not translation_ai_available():
+        raise HTTPException(503, "AI translation is unavailable because the Paperplane AI translation service is not configured or enabled.")
 
     parsed_options = parse_options(options)
 
@@ -5581,6 +5696,8 @@ async def create_v1_job(
 
     if not OPERATIONS[operation].get("implemented", False):
         raise HTTPException(501, OPERATIONS[operation].get("description", "Operation not currently implemented."))
+    if operation == "translate" and not translation_ai_available():
+        raise HTTPException(503, "AI translation is unavailable because the Paperplane AI translation service is not configured or enabled.")
 
     is_ai = operation in {"summarize", "ai_chat", "ai_extract", "translate"}
 
@@ -5816,6 +5933,20 @@ async def api_v1_ai_extract(
         shutil.rmtree(temp_dir, ignore_errors=True)
 
 
+def _remove_ai_identity_fields(value: Any) -> Any:
+    """Remove upstream identity fields recursively from public AI JSON contracts."""
+    hidden_keys = {"provider", "provider_name", "model", "model_name", "upstream_provider", "upstream_model"}
+    if isinstance(value, dict):
+        return {
+            key: _remove_ai_identity_fields(item)
+            for key, item in value.items()
+            if str(key).casefold() not in hidden_keys
+        }
+    if isinstance(value, list):
+        return [_remove_ai_identity_fields(item) for item in value]
+    return value
+
+
 @app.post("/api/v1/ai/chat", tags=["Developer AI"])
 async def api_v1_ai_chat(
     file: UploadFile = File(...),
@@ -5834,7 +5965,7 @@ async def api_v1_ai_chat(
         if not allowed:
             raise HTTPException(429, detail=quota_err, headers=_dev_rate_limit_headers(usage))
         chat_result = ai_engine.chat_with_pdf(tmp_path, question)
-        return JSONResponse(chat_result, headers=_dev_rate_limit_headers(usage))
+        return JSONResponse(_remove_ai_identity_fields(chat_result), headers=_dev_rate_limit_headers(usage))
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
 
@@ -5847,7 +5978,7 @@ def test_ai_connection(user_id: str = Depends(require_developer_key)):
     Returns status and diagnostic details without exposing API secrets.
     """
     result = ai_engine.test_bluesminds_connectivity()
-    return result
+    return _remove_ai_identity_fields(result)
 
 
 @app.get("/developers", response_class=HTMLResponse, tags=["Web Pages"])
@@ -5870,9 +6001,11 @@ def download_page(request: Request):
     return render_web_page(request, landing_slug="download")
 
 
-@app.get("/tool-desk", response_class=HTMLResponse, include_in_schema=False)
+@app.get("/tool-desk", response_class=RedirectResponse, include_in_schema=False)
 def tool_desk_page(request: Request):
-    return render_web_page(request)
+    # The former tab was only an alias for the last-selected operation (often
+    # Merge PDF). Send old bookmarks to the real, predictable tool directory.
+    return RedirectResponse(url="/", status_code=307)
 
 
 @app.get("/privacy", response_class=HTMLResponse)

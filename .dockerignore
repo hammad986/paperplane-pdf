@@ -6,6 +6,7 @@ deploy/certs/*.pem
 
 # Runtime Data and Databases
 runtime_data/
+runtime_data_codex_audit/
 runtime_jobs/
 *.sqlite3
 *.sqlite3-wal
@@ -24,6 +25,7 @@ htmlcov/
 .gitignore
 .dockerignore
 tests/
+reports/launch-audit-v3/
 redact_test*.pdf
 scratch/
 

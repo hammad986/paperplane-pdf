@@ -147,13 +147,17 @@ def test_ai_chat_stream_emits_real_stage_events_and_progressive_deltas(monkeypat
     from fastapi.testclient import TestClient
     from server import app
 
-    monkeypatch.setattr(ai_engine, "stream_bluesminds", lambda system, user, timeout_seconds=50: iter(["The first words arrive. ", "Then the rest streams."]))
+    monkeypatch.setattr(ai_engine, "AI_KILL_SWITCH", False)
+    first = "The first words arrive. " + ("A long answer streams progressively through the Paperplane workspace. " * 8)
+    second = "Then the rest streams. " + ("More grounded detail arrives in a later chunk. " * 8)
+    monkeypatch.setattr(ai_engine, "stream_bluesminds", lambda system, user, timeout_seconds=50: iter([first, second]))
     response = TestClient(app).post("/api/ai/chat/stream", data={"question": "Tell me something useful."})
     assert response.status_code == 200
     body = response.text
     assert body.index('stage": "Thinking') < body.index('stage": "Analysing') < body.index('stage": "Generating')
     assert body.count("event: token") >= 2
-    assert '"text": "The ' in body and '"text": "first words arrive.' in body
+    assert '"text": "The first words arrive.' in body
+    assert body.count("event: token") >= 2
     assert "event: done" in body
 
 
@@ -163,7 +167,8 @@ def test_ai_chat_stream_reports_document_stages_and_page_citation(tmp_path, monk
 
     source = tmp_path / "stream-page.pdf"
     make_pdf(source)
-    monkeypatch.setattr(ai_engine, "stream_bluesminds", lambda system, user, timeout_seconds=50: iter(["October 25, 2026 is the deadline. [Page 1] ", "More context follows."]))
+    monkeypatch.setattr(ai_engine, "AI_KILL_SWITCH", False)
+    monkeypatch.setattr(ai_engine, "stream_bluesminds", lambda system, user, timeout_seconds=50: iter(["October 25, 2026 is the deadline. [Page 1] " + ("More context follows. " * 20)]))
     with source.open("rb") as handle:
         response = TestClient(app).post(
             "/api/ai/chat/stream",
@@ -171,7 +176,7 @@ def test_ai_chat_stream_reports_document_stages_and_page_citation(tmp_path, monk
             files={"file": ("stream-page.pdf", handle, "application/pdf")},
         )
     body = response.text
-    ordered = ['stage": "Thinking', 'stage": "Extracting', 'stage": "Analysing', 'stage": "Getting info', 'stage": "Generating']
+    ordered = ['stage": "Thinking', 'stage": "Extracting', 'stage": "Analysing', 'stage": "Searching', 'stage": "Generating']
     positions = [body.index(stage) for stage in ordered]
     assert positions == sorted(positions)
     assert '"citations": [1]' in body

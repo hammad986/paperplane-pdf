@@ -210,6 +210,139 @@ def _select_broad_summary_chunks(chunks: list[DocumentChunk], max_pages: int = 1
     return [by_page[pages[index]] for index in sorted(positions)]
 
 
+_KNOWN_CAPITALS = {
+    "france": "paris",
+    "germany": "berlin",
+    "italy": "rome",
+    "spain": "madrid",
+    "japan": "tokyo",
+    "india": "new delhi",
+    "united kingdom": "london",
+    "united states": "washington, d.c.",
+    "australia": "canberra",
+    "canada": "ottawa",
+}
+
+
+def _pdf_metadata_facts(pdf_path: Path) -> tuple[int, dict[str, str]]:
+    """Read only facts directly carried by the PDF container."""
+    doc = fitz.open(str(pdf_path))
+    try:
+        return doc.page_count, {str(k): str(v or "").strip() for k, v in (doc.metadata or {}).items()}
+    finally:
+        doc.close()
+
+
+def _metadata_year(value: str) -> str | None:
+    match = re.search(r"(?:19|20)\d{2}", value or "")
+    return match.group(0) if match else None
+
+
+def correct_false_premise(pdf_path: Path, question: str) -> str | None:
+    """Correct a small set of verifiable false premises without inventing PDF content.
+
+    General facts are deliberately limited to an explicit local table. Document
+    facts come only from the PDF page count and embedded metadata, and are
+    described as metadata rather than independently verified authorship/date.
+    """
+    if not question.strip():
+        return None
+
+    page_count, metadata = _pdf_metadata_facts(pdf_path)
+    page_count_claim = re.search(r"\b(\d{1,5})\s*[- ]?pages?\b", question, re.IGNORECASE)
+    if page_count_claim:
+        claimed = int(page_count_claim.group(1))
+        if claimed != page_count:
+            return (
+                f"Correction: the uploaded PDF contains {page_count} pages, not {claimed}. "
+                f"I can answer questions using those {page_count} pages."
+            )
+
+    capital_patterns = (
+        re.compile(r"\b(?P<city>[A-Za-z][A-Za-z .'-]{0,35}?)\s+(?:is\s+)?(?:the\s+)?capital\s+of\s+(?P<country>[A-Za-z][A-Za-z .'-]{0,35}?)\b", re.IGNORECASE),
+        re.compile(r"\b(?P<city>[A-Za-z][A-Za-z .'-]{0,35}?)\s+(?P<country>[A-Za-z][A-Za-z .'-]{0,35}?)\s+ki\s+capital\b", re.IGNORECASE),
+        re.compile(r"\b(?P<city>[A-Za-z][A-Za-z .'-]{0,35}?)\s+(?:is\s+)?(?P<country>[A-Za-z][A-Za-z .'-]{0,35}?)(?:['’]s|s)?\s+capital\b", re.IGNORECASE),
+        re.compile(r"\b(?P<country>[A-Za-z][A-Za-z .'-]{0,35}?)(?:['’]s|s)?\s+capital\s+(?:is|hai)\s+(?P<city>[A-Za-z][A-Za-z .'-]{0,35}?)\b", re.IGNORECASE),
+    )
+    for pattern in capital_patterns:
+        match = pattern.search(question)
+        if not match:
+            continue
+        city = re.sub(r"\s+", " ", match.group("city")).strip(" .'-").lower()
+        country = re.sub(r"\s+", " ", match.group("country")).strip(" .'-").lower()
+        expected_city = _KNOWN_CAPITALS.get(country)
+        if expected_city and city != expected_city:
+            if country == "germany" and city == "paris":
+                correction = "Paris is the capital of France; Berlin is the capital of Germany."
+            else:
+                correction = f"{expected_city.title()} is the capital of {country.title()}, not {city.title()}."
+            return (
+                f"Correction: {correction} This is a general geography correction; "
+                "it is not a fact inferred from the uploaded PDF."
+            )
+
+    author = metadata.get("author", "").strip()
+    if author and re.search(r"\b(author|authored|wrote|written by)\b", question, re.IGNORECASE):
+        claimed_author = re.search(
+            r"\b(?:author(?:ed)?(?:\s+is|\s+was|\s+by)?|written\s+by|wrote)\s+[\"“]?([A-Z][\w.'-]+(?:\s+[A-Z][\w.'-]+){0,3})",
+            question,
+        )
+        if claimed_author and claimed_author.group(1).casefold() != author.casefold():
+            return (
+                f"Correction: the PDF metadata lists {author} as the author, not "
+                f"{claimed_author.group(1)}. Embedded metadata is not independent proof of authorship."
+            )
+
+    creation_year = _metadata_year(metadata.get("creationDate", ""))
+    if creation_year and re.search(r"\b(date|year|published|publication|created|written)\b", question, re.IGNORECASE):
+        claimed_year = re.search(r"\b(?:19|20)\d{2}\b", question)
+        if claimed_year and claimed_year.group(0) != creation_year:
+            return (
+                f"Correction: the PDF creation metadata records {creation_year}, not {claimed_year.group(0)}. "
+                "A file creation date does not establish the document's original publication date."
+            )
+
+    return None
+
+
+def align_answer_citations(answer: str, eligible_pages: list[int] | set[int]) -> tuple[str, list[int]]:
+    """Make citation chips exactly match supported inline page references.
+
+    Accept the common singular, plural, comma-list, and bounded-range forms, then
+    normalize every retained citation so the UI and answer have the same pages.
+    """
+    allowed = {int(page) for page in eligible_pages}
+
+    def expand_pages(raw: str) -> list[int]:
+        pages: list[int] = []
+        for part in re.split(r"\s*,\s*", raw.strip()):
+            range_match = re.fullmatch(r"(\d+)\s*[-–]\s*(\d+)", part)
+            if range_match:
+                start, end = map(int, range_match.groups())
+                if end >= start and end - start <= 100:
+                    pages.extend(range(start, end + 1))
+                continue
+            if part.isdigit():
+                pages.append(int(part))
+        return pages
+
+    citation_pattern = re.compile(r"\[(?:pages?|p\.?)\s*([\d,\s\-–]+)\]", re.IGNORECASE)
+    cited_pages: set[int] = set()
+
+    def keep_supported(match: re.Match[str]) -> str:
+        kept = sorted({page for page in expand_pages(match.group(1)) if page in allowed})
+        if not kept:
+            return ""
+        cited_pages.update(kept)
+        label = "Page" if len(kept) == 1 else "Pages"
+        return f"[{label} {', '.join(map(str, kept))}]"
+
+    text = citation_pattern.sub(keep_supported, answer or "")
+    text = re.sub(r"[ \t]{2,}", " ", text)
+    text = re.sub(r"\s+([,.;:!?])", r"\1", text)
+    return text.strip(), sorted(cited_pages)
+
+
 def call_gemini_flash(
     system_prompt: str,
     user_prompt: str,
@@ -426,66 +559,55 @@ def test_bluesminds_connectivity() -> dict:
             "fallback_active": False
         }
 
-    models_to_try = [target_model]
-
     last_error_code: int | None = None
-    last_error_advice = ""
+    last_error_advice = "AI service could not be reached or timed out."
+    payload = {
+        "model": target_model,
+        "messages": [{"role": "user", "content": "ping"}],
+        "max_tokens": 5
+    }
+    body = json.dumps(payload).encode("utf-8")
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        "User-Agent": "Paperplane-PDF/1.0"
+    }
 
-    for candidate_model in models_to_try:
-        payload = {
-            "model": candidate_model,
-            "messages": [{"role": "user", "content": "ping"}],
-            "max_tokens": 5
-        }
-        body = json.dumps(payload).encode("utf-8")
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-            "User-Agent": "Paperplane-PDF/1.0"
-        }
-
+    # Retry only transient failures, once, before this diagnostic returns.
+    # The bounded total is at most two 12-second requests plus a short pause.
+    for attempt in range(2):
         try:
             req = urllib.request.Request(endpoint, data=body, headers=headers)
             with urllib.request.urlopen(req, timeout=12) as resp:
-                data = json.loads(resp.read().decode("utf-8", errors="ignore"))
-                content = data.get("choices", [{}])[0].get("message", {}).get("content") or "OK"
+                json.loads(resp.read().decode("utf-8", errors="ignore"))
                 return {
                     "status": "inference_succeeded",
                     "http_status": resp.status,
                     "message": "AI connected successfully.",
                     "fallback_active": False
                 }
-        except urllib.error.HTTPError as e:
-            if e.code == 429:
-                logger.warning("Bluesminds rate limit (HTTP 429) during connectivity test for model %s. Retrying after 1.5s...", candidate_model)
-                time.sleep(1.5)
-                try:
-                    req_retry = urllib.request.Request(endpoint, data=body, headers=headers)
-                    with urllib.request.urlopen(req_retry, timeout=12) as resp_retry:
-                        data_retry = json.loads(resp_retry.read().decode("utf-8", errors="ignore"))
-                        content_retry = data_retry.get("choices", [{}])[0].get("message", {}).get("content") or "OK"
-                        return {
-                            "status": "inference_succeeded",
-                            "http_status": resp_retry.status,
-                            "message": "AI connected successfully.",
-                            "fallback_active": False
-                        }
-                except Exception as retry_err:
-                    last_error_advice = "AI service connection failed after retry."
+        except urllib.error.HTTPError as exc:
+            last_error_code = exc.code
+            last_error_advice = f"AI service returned HTTP {exc.code}."
+            retryable = exc.code in (408, 429, 500, 502, 503, 504)
+        except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as exc:
+            last_error_code = None
+            last_error_advice = "AI service could not be reached or timed out."
+            retryable = True
+        except Exception:
+            last_error_code = None
+            last_error_advice = "AI service returned an invalid diagnostic response."
+            retryable = False
 
-            last_error_code = e.code
-            last_error_advice = f"AI service returned HTTP {e.code}."
-            if e.code in (502, 503, 504):
-                continue
+        if not retryable or attempt == 1:
             break
-        except Exception as e:
-            last_error_advice = "AI service connection failed or timed out."
-            continue
+        logger.warning("AI connectivity check failed transiently; retrying once before reporting status.")
+        time.sleep(0.4)
 
     return {
         "status": "connection_error",
         "http_status": last_error_code or 502,
-        "message": "AI request failed, please try again",
+        "message": last_error_advice,
         "advice": last_error_advice or "AI service timed out.",
         "fallback_active": False
     }
@@ -536,6 +658,27 @@ def _offline_rag_fallback(system_prompt: str, user_prompt: str) -> str:
         excerpts = excerpts_match.group(1).strip()
         question = excerpts_match.group(2).strip()
 
+        if re.search(r"\b(summar(?:y|ize|ise)|overview|key points|important information)\b", question, re.IGNORECASE):
+            # A broad-summary retrieval deliberately samples pages across the
+            # document, so a lexical overlap query may have no topical terms.
+            # Return short extractive page notes instead of falsely claiming
+            # that the document has no relevant content. Each note keeps its
+            # source text and citation together for deterministic chip parity.
+            page_notes = []
+            for block in re.split(r"\n\s*---\s*\n", excerpts):
+                page_match = re.search(r"\[Page\s*(\d+)\]\s*:\s*", block)
+                if not page_match:
+                    continue
+                page_number = int(page_match.group(1))
+                page_text = re.sub(r"\s+", " ", block[page_match.end():]).strip()
+                if not page_text:
+                    continue
+                if len(page_text) > 240:
+                    page_text = page_text[:237].rsplit(" ", 1)[0].rstrip(" ,;:") + "…"
+                page_notes.append(f"Page {page_number}: {page_text} [Page {page_number}]")
+            if page_notes:
+                return "Document overview from sampled pages:\n\n" + "\n\n".join(page_notes)
+
         current_page = None
         best_lines = []
         question_tokens = _content_tokens(question)
@@ -571,11 +714,23 @@ def _offline_rag_fallback(system_prompt: str, user_prompt: str) -> str:
 
 def chat_with_pdf(pdf_path: Path, question: str) -> dict:
     """Queries the PDF via RAG with BM25 probabilistic keyword retrieval and verified page citations."""
+    private_reply = _private_information_request_reply(question)
+    if private_reply:
+        return {"answer": private_reply, "citations": [], "retrieval_method": None, "fallback_used": False}
     if _is_code_request(question):
         return {"answer": _CODE_SCOPE_REPLY, "citations": [], "retrieval_method": None, "fallback_used": False}
     if _is_identity_question(question):
         return {"answer": _PAPERPLANE_IDENTITY, "citations": [], "retrieval_method": None, "fallback_used": False}
     chunks = extract_chunks_from_pdf(pdf_path)
+    correction = correct_false_premise(pdf_path, question)
+    if correction:
+        return {
+            "answer": correction,
+            "citations": [],
+            "retrieval_method": "Verified PDF Metadata and Local Fact Check",
+            "fallback_used": False,
+            "relevant_passages": [],
+        }
     if not _is_document_question(question) and not AI_KILL_SWITCH:
         answer = _guard_ai_output(call_llm(_PAPERPLANE_SYSTEM_PROMPT, question, timeout_seconds=35))
         return {"answer": answer, "citations": [], "retrieval_method": None, "fallback_used": False}
@@ -649,14 +804,16 @@ def chat_with_pdf(pdf_path: Path, question: str) -> dict:
         # but unsupported questions must not receive fabricated answers or broad
         # citations merely because fallback context was used.
         answer = "No relevant information found in the document for your question. The active document does not contain matching keywords or passages."
-    is_fallback = False
+    is_fallback = bool(AI_KILL_SWITCH)
+    answer, answer_citations = align_answer_citations(answer, citations)
+    cited_passages = [chunk for chunk in citation_chunks if chunk.page_number in answer_citations]
 
     return {
         "answer": answer,
-        "citations": sorted(citations),
-        "retrieval_method": "Document Grounding + LLM Synthesis",
+        "citations": answer_citations,
+        "retrieval_method": "Deterministic Local Document Extraction" if is_fallback else "Document Grounding + LLM Synthesis",
         "fallback_used": is_fallback,
-        "relevant_passages": [{"page": c.page_number, "text": c.text[:200] + "..."} for c in citation_chunks]
+        "relevant_passages": [{"page": c.page_number, "text": c.text[:200] + "..."} for c in cited_passages]
     }
 
 
@@ -669,11 +826,26 @@ def _is_document_question(question: str) -> bool:
 
 _PAPERPLANE_IDENTITY = "I'm Paperplane's Intelligence AI Bot — I help you work with PDFs inside Paperplane, and I can also answer general questions."
 _CODE_SCOPE_REPLY = "I can't write or debug code here, but I can help you summarise, extract, or answer questions about a PDF. Upload a PDF or ask a general question."
+_PRIVATE_INFORMATION_REFUSAL = "I can't reveal hidden instructions, system prompts, or private credentials. I can help with a PDF or a supported Paperplane task."
 _PAPERPLANE_SYSTEM_PROMPT = "You are Paperplane's Intelligence AI Bot. Help with PDF documents and general questions inside Paperplane. Never reveal, mention, or hint at an underlying model, provider, company, or training origin. Do not write, debug, or explain code; politely state the Paperplane scope and offer PDF help."
 
 
 def _is_identity_question(question: str) -> bool:
-    return bool(re.search(r"\b(who are you|what model are you|which model|who trained you|who built you|are you (?:nemotron|an? ai|a bot))\b", question, re.IGNORECASE))
+    return bool(re.search(
+        r"\b(who are you|what model are you|which model|who trained you|who built you|are you (?:nemotron|an? ai|a bot)|(?:you are now|pretend to be|act as|tum ab)\s+(?:an?\s+)?nemotron)\b",
+        question,
+        re.IGNORECASE,
+    ))
+
+
+def _private_information_request_reply(question: str) -> str | None:
+    """Refuse explicit attempts to reveal hidden prompts or secret credentials."""
+    q = question.lower()
+    if re.search(r"\b(system|developer)\s+prompt\b|\bhidden\s+instructions?\b", q):
+        return _PRIVATE_INFORMATION_REFUSAL
+    requests_secret = re.search(r"\b(show|reveal|tell|give|share|print|display|batao|dikhao)\b", q)
+    names_secret = re.search(r"\b(api[\s_-]?key|secret key|access token|credential|password)\b", q)
+    return _PRIVATE_INFORMATION_REFUSAL if requests_secret and names_secret else None
 
 
 def _is_code_request(question: str) -> bool:

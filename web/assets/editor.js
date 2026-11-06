@@ -1057,8 +1057,19 @@ class EditCanvasManager {
     el.addEventListener('mousemove', e => this._onPointerMove(e));
     el.addEventListener('mouseup', e => this._onPointerUp(e));
     el.addEventListener('mouseleave', e => this._onPointerUp(e));
-    el.addEventListener('touchstart', e => { e.preventDefault(); this._onPointerDown(e.touches[0]); }, { passive: false });
-    el.addEventListener('touchmove', e => { e.preventDefault(); this._onPointerMove(e.touches[0]); }, { passive: false });
+    // Pan mode uses the browser's native touch scrolling on the containing PDF
+    // viewport. Cancelling touch events here prevented phone users from moving
+    // through multi-page documents. Drawing/edit modes still own the gesture.
+    el.addEventListener('touchstart', e => {
+      if (this._activeTool === 'pan') return;
+      e.preventDefault();
+      this._onPointerDown(e.touches[0]);
+    }, { passive: false });
+    el.addEventListener('touchmove', e => {
+      if (this._activeTool === 'pan') return;
+      e.preventDefault();
+      this._onPointerMove(e.touches[0]);
+    }, { passive: false });
     el.addEventListener('touchend', e => this._onPointerUp(e.changedTouches[0]));
 
     // Keyboard: Delete, Backspace → delete selected

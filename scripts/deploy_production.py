@@ -15,8 +15,12 @@ import time
 import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+from cryptography import x509
+from cryptography.hazmat.primitives import serialization
 
 ROOT = Path(__file__).resolve().parents[1]
 REPORTS = ROOT / "reports"
@@ -94,6 +98,59 @@ def validate_configuration(env: dict[str, str], dry_run: bool) -> list[str]:
         raise DeploymentError("docker-compose.yml must enforce PAPERPLANE_ENV=production and PAPERPLANE_HOST=0.0.0.0")
     checks.append("Docker Compose enforces production environment and 0.0.0.0 binding")
     return checks
+
+
+def validate_tls_certificate(domain: str) -> str:
+    """Reject deployment with a missing, expired, mismatched, or unrelated TLS keypair."""
+    cert_path = ROOT / "deploy" / "certs" / "fullchain.pem"
+    key_path = ROOT / "deploy" / "certs" / "privkey.pem"
+    if not cert_path.is_file() or not key_path.is_file():
+        raise DeploymentError(
+            "A TLS certificate and private key are required in deploy/certs; "
+            "run scripts/provision_ssl.sh for the configured domain first"
+        )
+
+    try:
+        certificate = x509.load_pem_x509_certificate(cert_path.read_bytes())
+        private_key = serialization.load_pem_private_key(key_path.read_bytes(), password=None)
+    except (OSError, ValueError, TypeError) as error:
+        raise DeploymentError("The TLS certificate or private key is unreadable") from error
+
+    now = datetime.now(timezone.utc)
+    if certificate.not_valid_before_utc > now or certificate.not_valid_after_utc <= now:
+        raise DeploymentError("The TLS certificate is not currently valid; provision or renew it before deployment")
+
+    try:
+        names = certificate.extensions.get_extension_for_class(x509.SubjectAlternativeName).value.get_values_for_type(x509.DNSName)
+    except x509.ExtensionNotFound as error:
+        raise DeploymentError("The TLS certificate has no DNS subject alternative names") from error
+
+    requested = domain.strip().rstrip(".").lower()
+
+    def name_matches(candidate: str) -> bool:
+        normalized = candidate.rstrip(".").lower()
+        if normalized == requested:
+            return True
+        if normalized.startswith("*."):
+            suffix = normalized[2:]
+            return requested.endswith(f".{suffix}") and requested.count(".") == suffix.count(".") + 1
+        return False
+
+    if not requested or not any(name_matches(name) for name in names):
+        raise DeploymentError("The TLS certificate does not cover PAPERPLANE_DOMAIN")
+
+    cert_public_key = certificate.public_key().public_bytes(
+        serialization.Encoding.DER,
+        serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
+    private_public_key = private_key.public_key().public_bytes(
+        serialization.Encoding.DER,
+        serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
+    if cert_public_key != private_public_key:
+        raise DeploymentError("The TLS certificate and private key do not match")
+
+    return f"TLS certificate covers PAPERPLANE_DOMAIN and is valid through {certificate.not_valid_after_utc.date()}"
 
 
 def docker_available() -> bool:
@@ -266,6 +323,11 @@ def main() -> int:
             raise DeploymentError("Docker Engine with Compose v2 is required")
         if args.dry_run and not docker_available():
             log("Docker is not available; continuing because this is a configuration-only dry-run")
+
+        if args.dry_run:
+            report["checks"].append("TLS certificate domain, expiry, and private-key checks are deferred in dry-run")
+        else:
+            report["checks"].append(validate_tls_certificate(env.get("PAPERPLANE_DOMAIN", "")))
 
         run_command(compose_command() + ["config", "--quiet"], dry_run=args.dry_run, timeout=120)
         validate_nginx(args.dry_run, env.get("PAPERPLANE_DOMAIN", "localhost"))
