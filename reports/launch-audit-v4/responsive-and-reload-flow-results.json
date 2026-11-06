@@ -1,0 +1,213 @@
+{
+  "testCount": 25,
+  "passed": 23,
+  "failed": 0,
+  "pageErrors": [],
+  "generalAiService": {
+    "requestSeen": true,
+    "answer": "You: ok find me some important keyword from olden pdf uploaded\nPaperplane AI:\n\nUpload a PDF to ask questions about a document. General questions work without a PDF.\n\nYou: Can you write a poem?\nPaperplane AI:\nConnection interrupted\nThinking\nExtracting\nAnalysing\nSearching\nGenerating\nAI provider is not configured Retry",
+    "httpStatuses": [
+      200
+    ]
+  },
+  "results": [
+    {
+      "check": "mobile sidebar drawer opens above backdrop",
+      "status": "PASS",
+      "drawerOpen": true,
+      "backdropVisible": true,
+      "sidebarZ": 500,
+      "backdropZ": 45
+    },
+    {
+      "check": "mobile sidebar backdrop closes drawer",
+      "status": "PASS",
+      "drawerClosed": true
+    },
+    {
+      "check": "document question without PDF gets upload guidance without API request",
+      "status": "PASS",
+      "requestSeen": false,
+      "guidance": "Paperplane AI:\n\nUpload a PDF to ask questions about a document. General questions work without a PDF."
+    },
+    {
+      "check": "AI document guidance and chat restore with its styled state",
+      "status": "PASS",
+      "guidanceClassRestored": true,
+      "questionRestored": true
+    },
+    {
+      "check": "general AI question reaches the chat API",
+      "status": "PASS",
+      "requestSeen": true,
+      "httpStatuses": [
+        200
+      ]
+    },
+    {
+      "check": "general AI provider returns a usable answer",
+      "status": "BLOCKED",
+      "providerConfigured": false,
+      "reason": "AI provider is not configured in this local environment",
+      "answerTail": "You: ok find me some important keyword from olden pdf uploaded\nPaperplane AI:\n\nUpload a PDF to ask questions about a document. General questions work without a PDF.\n\nYou: Can you write a poem?\nPaperplane AI:\nConnection interrupted\nThinking\nExtracting\nAnalysing\nSearching\nGenerating\nAI provider is not configured Retry"
+    },
+    {
+      "check": "AI PDF composer uses a short phone placeholder",
+      "status": "PASS",
+      "placeholder": "Ask about this PDF\u2026"
+    },
+    {
+      "check": "AI source PDF restores after reload",
+      "status": "PASS",
+      "filename": "notes_69pages_audit.pdf"
+    },
+    {
+      "check": "AI clear saved work removes PDF and restores empty state after reload",
+      "status": "PASS",
+      "activeDocumentVisible": false,
+      "emptyStateVisible": true
+    },
+    {
+      "check": "Empty AI composer keeps a short phone placeholder",
+      "status": "PASS",
+      "placeholder": "Ask anything\u2026"
+    },
+    {
+      "check": "AI workspace has no horizontal overflow across 10 widths in light and dark themes",
+      "status": "PASS",
+      "checks": 20,
+      "overflows": []
+    },
+    {
+      "check": "AI composer stays above fixed navigation at five phone widths",
+      "status": "PASS",
+      "checks": 5,
+      "overlaps": []
+    },
+    {
+      "check": "AI composer placeholder shortens when resizing back to phone width",
+      "status": "PASS",
+      "placeholder": "Ask anything\u2026"
+    },
+    {
+      "check": "CSS zoom simulation only; native browser zoom is not verified",
+      "status": "INFO",
+      "note": "CSS zoom simulation is not equivalent to browser zoom; native 80%, 100%, 125%, and 150% zoom remain untested.",
+      "measurements": [
+        {
+          "viewport": 375,
+          "documentWidth": 375,
+          "bodyWidth": 469,
+          "zoom": "0.8"
+        },
+        {
+          "viewport": 375,
+          "documentWidth": 375,
+          "bodyWidth": 375,
+          "zoom": "1"
+        },
+        {
+          "viewport": 375,
+          "documentWidth": 375,
+          "bodyWidth": 300,
+          "zoom": "1.25"
+        },
+        {
+          "viewport": 375,
+          "documentWidth": 375,
+          "bodyWidth": 250,
+          "zoom": "1.5"
+        },
+        {
+          "viewport": 1366,
+          "documentWidth": 1366,
+          "bodyWidth": 1708,
+          "zoom": "0.8"
+        },
+        {
+          "viewport": 1366,
+          "documentWidth": 1366,
+          "bodyWidth": 1366,
+          "zoom": "1"
+        },
+        {
+          "viewport": 1366,
+          "documentWidth": 1366,
+          "bodyWidth": 1093,
+          "zoom": "1.25"
+        },
+        {
+          "viewport": 1366,
+          "documentWidth": 1366,
+          "bodyWidth": 911,
+          "zoom": "1.5"
+        }
+      ]
+    },
+    {
+      "check": "Studio loads the 69-page PDF and builds page slots",
+      "status": "PASS",
+      "pageCount": "69",
+      "sheetCount": 69
+    },
+    {
+      "check": "Studio page jump activates page 5",
+      "status": "PASS",
+      "currentPageInput": "5",
+      "pageFiveCurrent": true
+    },
+    {
+      "check": "Studio page 5 canvas renders after page jump",
+      "status": "PASS",
+      "rendered": true
+    },
+    {
+      "check": "Studio source PDF and page 5 restore after reload",
+      "status": "PASS",
+      "pageCountRestored": true,
+      "pageFiveRestored": true,
+      "currentPageInput": "5"
+    },
+    {
+      "check": "Studio restored page 5 canvas renders",
+      "status": "PASS",
+      "rendered": true
+    },
+    {
+      "check": "Mobile Studio toast stays above fixed navigation",
+      "status": "PASS",
+      "toastBottom": 739.5901489257812,
+      "navTop": 746,
+      "toastZ": 1101,
+      "navZ": 1000
+    },
+    {
+      "check": "Studio has no horizontal page overflow across 10 responsive widths and 2 themes",
+      "status": "PASS",
+      "checks": 20,
+      "overflows": []
+    },
+    {
+      "check": "Studio current page rerenders after viewport and theme changes",
+      "status": "PASS",
+      "checks": 20,
+      "failures": []
+    },
+    {
+      "check": "Studio clear saved work requests explicit confirmation",
+      "status": "PASS"
+    },
+    {
+      "check": "Studio clear confirmation removes loaded work",
+      "status": "PASS",
+      "pageCount": "0",
+      "sheetCount": 0
+    },
+    {
+      "check": "Cleared Studio PDF does not return after reload",
+      "status": "PASS",
+      "pageCount": "0"
+    }
+  ],
+  "blocked": 1
+}

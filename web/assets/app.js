@@ -32,22 +32,285 @@ const state = {
     isDrawing: false,
     annotations: [], // array of draw paths and stamps per page
     drawContext: null
-  }
+  },
+  aiConversation: []
 };
 
-// Keep tool inputs and completed outputs while the user moves between views.
-// File objects stay in memory only; the browser never silently persists them.
+// Tool-session values remain in memory while navigating. The two active
+// workspaces may also save their source PDF and lightweight state in this
+// browser's IndexedDB; the clear controls remove those local records.
 const toolSessionCache = new Map();
 let workspaceNavigationVersion = 0;
+let localWorkDbPromise = null;
+let pendingStudioRestore = null;
+let studioPositionSaveTimer = null;
+let studioRestorePending = false;
+let aiWorkspaceRestored = false;
+let aiWorkspaceRestorePromise = null;
+
+function openLocalWorkDb() {
+  if (!('indexedDB' in window)) return Promise.reject(new Error('Local browser storage is unavailable.'));
+  if (!localWorkDbPromise) {
+    localWorkDbPromise = new Promise((resolve, reject) => {
+      const request = indexedDB.open('paperplane-local-work', 1);
+      request.onupgradeneeded = () => {
+        if (!request.result.objectStoreNames.contains('work')) request.result.createObjectStore('work');
+      };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error || new Error('Could not open local browser storage.'));
+      request.onblocked = () => reject(new Error('Local browser storage is busy in another tab.'));
+    });
+  }
+  return localWorkDbPromise;
+}
+
+async function readLocalWork(key) {
+  const db = await openLocalWorkDb();
+  return new Promise((resolve, reject) => {
+    const request = db.transaction('work', 'readonly').objectStore('work').get(key);
+    request.onsuccess = () => resolve(request.result ?? null);
+    request.onerror = () => reject(request.error || new Error('Could not read saved work.'));
+  });
+}
+
+async function writeLocalWork(key, value) {
+  const db = await openLocalWorkDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('work', 'readwrite');
+    tx.objectStore('work').put(value, key);
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject(tx.error || new Error('Could not save work in this browser.'));
+    tx.onabort = () => reject(tx.error || new Error('Saving work was interrupted.'));
+  });
+}
+
+async function removeLocalWork(...keys) {
+  const db = await openLocalWorkDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('work', 'readwrite');
+    const store = tx.objectStore('work');
+    keys.forEach(key => store.delete(key));
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject(tx.error || new Error('Could not clear saved work.'));
+    tx.onabort = () => reject(tx.error || new Error('Clearing saved work was interrupted.'));
+  });
+}
+
+function localPdfRecord(file) {
+  return {
+    blob: file,
+    name: file.name || 'document.pdf',
+    type: file.type || 'application/pdf',
+    lastModified: file.lastModified || Date.now()
+  };
+}
+
+function fileFromLocalRecord(record) {
+  if (!record?.blob) return null;
+  return new File([record.blob], record.name || 'document.pdf', {
+    type: record.type || 'application/pdf',
+    lastModified: record.lastModified || Date.now()
+  });
+}
+
+function saveStudioPagePosition() {
+  if (!state.studio.pdfDoc) return;
+  clearTimeout(studioPositionSaveTimer);
+  studioPositionSaveTimer = setTimeout(() => {
+    writeLocalWork('studio-position', { page: state.studio.currentPage }).catch(error => {
+      console.warn('Paperplane could not save the Studio page position:', error);
+    });
+  }, 180);
+}
+
+function persistAiConversation() {
+  const messages = state.aiConversation.slice(-50);
+  writeLocalWork('ai-conversation', messages).catch(error => {
+    console.warn('Paperplane could not save AI chat locally:', error);
+  });
+}
+
+function addAiConversationTurn(question, answer, citations = []) {
+  state.aiConversation.push({ role: 'user', text: question });
+  state.aiConversation.push({ role: 'assistant', text: answer, citations });
+  state.aiConversation = state.aiConversation.slice(-50);
+  persistAiConversation();
+}
+
+window.confirmAction = async function confirmAction(message, { confirmLabel = 'Continue', danger = false } = {}) {
+  if (!('HTMLDialogElement' in window) || typeof HTMLDialogElement.prototype.showModal !== 'function') {
+    return window.confirm(message);
+  }
+  const dialog = document.createElement('dialog');
+  dialog.className = 'app-confirm-dialog';
+  dialog.setAttribute('aria-labelledby', 'app-confirm-title');
+  const title = document.createElement('h2');
+  title.id = 'app-confirm-title';
+  title.textContent = 'Please confirm';
+  const copy = document.createElement('p');
+  copy.textContent = message;
+  const actions = document.createElement('div');
+  actions.className = 'app-confirm-actions';
+  const cancel = document.createElement('button');
+  cancel.type = 'button';
+  cancel.className = 'app-confirm-cancel';
+  cancel.textContent = 'Cancel';
+  const approve = document.createElement('button');
+  approve.type = 'button';
+  approve.className = danger ? 'app-confirm-accept danger' : 'app-confirm-accept';
+  approve.textContent = confirmLabel;
+  actions.append(cancel, approve);
+  dialog.append(title, copy, actions);
+  document.body.append(dialog);
+  return new Promise(resolve => {
+    const finish = value => {
+      if (dialog.open) dialog.close();
+      dialog.remove();
+      resolve(value);
+    };
+    cancel.addEventListener('click', () => finish(false), { once: true });
+    approve.addEventListener('click', () => finish(true), { once: true });
+    dialog.addEventListener('cancel', event => { event.preventDefault(); finish(false); }, { once: true });
+    dialog.showModal();
+    cancel.focus();
+  });
+};
+
+async function restoreAiWorkspace() {
+  if (aiWorkspaceRestored) return false;
+  if (aiWorkspaceRestorePromise) return aiWorkspaceRestorePromise;
+  aiWorkspaceRestorePromise = (async () => {
+  try {
+    const [savedFile, savedMessages] = await Promise.all([
+      readLocalWork('ai-pdf'),
+      readLocalWork('ai-conversation')
+    ]);
+    const file = fileFromLocalRecord(savedFile);
+    if (file) state.files = [file];
+    state.aiConversation = Array.isArray(savedMessages) ? savedMessages.slice(-50) : [];
+    updateAiDocBar();
+    renderAiConversation(state.aiConversation);
+    if (file || state.aiConversation.length) rememberLocalWork(file?.name || 'AI chat');
+    aiWorkspaceRestored = true;
+    return Boolean(file || state.aiConversation.length);
+  } catch (error) {
+    console.warn('Paperplane could not restore AI work from this browser:', error);
+    aiWorkspaceRestored = true;
+    return false;
+  }
+  })();
+  return aiWorkspaceRestorePromise;
+}
+
+async function restoreStudioWorkspace() {
+  if (state.studio.pdfDoc || state.studio.isLoading || studioRestorePending) return;
+  studioRestorePending = true;
+  try {
+  let saved = pendingStudioRestore;
+  if (!saved) {
+    try {
+      const [file, position] = await Promise.all([readLocalWork('studio-pdf'), readLocalWork('studio-position')]);
+      if (file) saved = { file, position };
+    } catch (error) { console.warn('Paperplane could not read saved Studio work:', error); }
+  }
+  if (!saved) return;
+  pendingStudioRestore = null;
+  const file = fileFromLocalRecord(saved.file);
+  if (!file) return;
+  const loaded = await loadDocumentIntoStudio(file);
+  if (loaded) {
+    const target = Math.max(1, Math.min(state.studio.totalCount, Number(saved.position?.page) || 1));
+    await jumpToStudioPage(target);
+    const targetSlot = studioPageSlot(target);
+    if (targetSlot && window.matchMedia('(max-width: 900px)').matches) {
+      window.scrollTo({ top: Math.max(0, targetSlot.getBoundingClientRect().top + window.scrollY - 78), behavior: 'auto' });
+    }
+    showToast(`Restored ${file.name} on page ${target}`, 'success', 4000);
+  }
+  } finally {
+    studioRestorePending = false;
+  }
+}
+
+async function clearStudioWorkspace() {
+  await removeLocalWork('studio-pdf', 'studio-position').catch(error => console.warn('Could not clear Studio work locally:', error));
+  if (state.studio.pageObserver) state.studio.pageObserver.disconnect();
+  state.studio.pageRenderTasks.forEach(task => { try { task.cancel(); } catch { /* already complete */ } });
+  state.studio.pageRenderTasks.clear();
+  try { await state.studio.pdfDoc?.destroy?.(); } catch { /* already destroyed */ }
+  state.studio.pdfDoc = null;
+  state.studio.srcFile = null;
+  state.studio.totalCount = 0;
+  state.studio.currentPage = 1;
+  $('#studio-page-stack')?.replaceChildren();
+  $('#studio-page-count').textContent = '0';
+  $('#page-jump-input').value = '1';
+  $('#page-jump-input').disabled = true;
+  $('#page-total-indicator').textContent = '0';
+  if (window.PaperplaneEditor) window.PaperplaneEditor.loadDocument(null, 'document.pdf', 0);
+  if (window.PaperplanePageOrganizer) {
+    window.PaperplanePageOrganizer.pdfDoc = null;
+    window.PaperplanePageOrganizer.sourceFile = null;
+    window.PaperplanePageOrganizer.sourceName = 'document.pdf';
+    window.PaperplanePageOrganizer.state.setPages(0);
+    window.PaperplanePageOrganizer.renderThumbnails();
+    window.PaperplanePageOrganizer._updateBatchToolbar();
+  }
+  showStudioEmptyState();
+}
+
+document.getElementById('studio-clear-work-btn')?.addEventListener('click', async () => {
+  const confirmed = await window.confirmAction('Clear the saved PDF and page position from this browser? Export any annotations you want to keep first.', { confirmLabel: 'Clear saved work', danger: true });
+  if (!confirmed) return;
+  await clearStudioWorkspace();
+  clearLocalWorkMarkerIfEmpty();
+  showToast('Saved PDF and page position cleared from this browser', 'success');
+});
+
+function renderAiConversation(messages = []) {
+  const container = $('#chat-messages');
+  if (!container) return;
+  container.querySelectorAll('.chat-bubble').forEach(node => node.remove());
+  const emptyState = $('#ai-empty-state');
+  if (emptyState) container.prepend(emptyState);
+  messages.forEach(message => {
+    const bubble = document.createElement('div');
+    const isDocumentRequired = message.kind === 'document-required';
+    bubble.className = `chat-bubble ${message.role === 'user' ? 'user' : 'ai'}${isDocumentRequired ? ' ai-document-required' : ''}`;
+    if (message.role === 'user') {
+      const label = document.createElement('strong');
+      label.textContent = 'You: ';
+      bubble.append(label, document.createTextNode(message.text || ''));
+    } else if (isDocumentRequired) {
+      const label = document.createElement('strong');
+      label.textContent = 'Paperplane AI:';
+      const guidance = document.createElement('p');
+      guidance.textContent = message.text || 'Upload a PDF to ask questions about a document. General questions work without a PDF.';
+      bubble.append(label, guidance);
+    } else {
+      const label = document.createElement('strong');
+      label.textContent = 'Paperplane AI:';
+      const answer = document.createElement('div');
+      answer.className = 'chat-markdown';
+      answer.innerHTML = renderMarkdown(message.text || '');
+      bubble.append(label, answer);
+      const citations = document.createElement('div');
+      citations.className = 'chat-citation-tags';
+      citations.innerHTML = (message.citations || []).map(page => `<span class="ai-citation-tag">Page ${escapeHtml(page)}</span>`).join('');
+      bubble.appendChild(citations);
+    }
+    container.appendChild(bubble);
+  });
+  updateAiDocBar();
+}
 
 function rememberLocalWork(filename) {
   try { sessionStorage.setItem('paperplane-last-local-document', filename || 'PDF work'); } catch { /* storage may be disabled */ }
 }
 
 function hasInMemoryWork() {
-  const hasConversation = Boolean($('#chat-messages')?.querySelector('.chat-bubble.user'));
   const cachedWork = [...toolSessionCache.values()].some(session => session.files?.length || session.result);
-  return Boolean(state.files.length || state.activeToolResult || state.studio?.pdfDoc || cachedWork || hasConversation);
+  return Boolean(state.activeToolResult || cachedWork || window.PaperplaneEditor?.editorState?.dirty);
 }
 
 function clearLocalWorkMarkerIfEmpty() {
@@ -418,6 +681,8 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true) {
   $('.main-area')?.classList.toggle('studio-active', view === 'studio');
   $('#app-shell')?.classList.toggle('studio-active', view === 'studio');
   $('#app-shell')?.classList.toggle('ai-active', view === 'ai');
+  if (view === 'studio' && !state.studio.pdfDoc) restoreStudioWorkspace();
+  if (view === 'ai' && !aiWorkspaceRestored) restoreAiWorkspace();
 
   // Strict SEO Content containment: Only display crawlable SEO sections on Home and Tool Desk views
   const seoSection = $('.seo-content');
@@ -1547,6 +1812,12 @@ async function loadDocumentIntoStudio(file) {
     if (!srcFile || typeof srcFile === 'string') {
       srcFile = new File([arrayBuffer], (file && file.name) || 'document.pdf', { type: 'application/pdf' });
     }
+    state.studio.srcFile = srcFile;
+    writeLocalWork('studio-pdf', localPdfRecord(srcFile)).catch(error => {
+      console.warn('Paperplane could not save the Studio PDF locally:', error);
+      showToast('This browser could not save a local copy. Export your PDF before closing this tab.', 'warning', 7000);
+    });
+    writeLocalWork('studio-position', { page: 1 }).catch(() => {});
     if (window.PaperplaneEditor) {
       window.PaperplaneEditor.loadDocument(srcFile, srcFile.name, state.studio.totalCount);
     }
@@ -1632,7 +1903,7 @@ function setupStudioPageObserver() {
       const pageNum = Number(entry.target.dataset.page);
       renderStudioPage(pageNum).catch(err => console.error(`Studio page ${pageNum} render failed:`, err));
     });
-  }, { root: area, rootMargin: '120% 0px', threshold: 0.01 });
+  }, { root: window.matchMedia('(max-width: 900px)').matches ? null : area, rootMargin: '120% 0px', threshold: 0.01 });
   document.querySelectorAll('#studio-page-stack .studio-page-sheet').forEach(slot => state.studio.pageObserver.observe(slot));
 }
 
@@ -1709,6 +1980,7 @@ function setActiveStudioPage(pageNum, { scrollThumbnail = true } = {}) {
     const scale = Number(activeSlot.dataset.effectiveScale || 1);
     window.PaperplaneEditor.onPageRendered(activeCanvas, $('#pdf-draw-canvas'), activeSlot, scale, target, baseWidth, baseHeight);
   }
+  saveStudioPagePosition();
 }
 
 async function renderStudioPage(pageNum, { priority = false, force = false } = {}) {
@@ -1781,7 +2053,10 @@ async function renderStudioPage(pageNum, { priority = false, force = false } = {
 function pruneStudioPageCanvases(centerPage) {
   document.querySelectorAll('#studio-page-stack .studio-page-sheet').forEach(slot => {
     const pageNum = Number(slot.dataset.page);
-    if (Math.abs(pageNum - centerPage) <= 2 || state.studio.pageRenderTasks.has(pageNum)) return;
+    // A render started for an older scroll position can finish after the user
+    // has navigated elsewhere. Keep the active page (and its immediate neighbors)
+    // pinned so that an outdated render cannot blank the page the user is viewing.
+    if (Math.abs(pageNum - centerPage) <= 2 || Math.abs(pageNum - state.studio.currentPage) <= 2 || state.studio.pageRenderTasks.has(pageNum)) return;
     const canvas = slot.querySelector('.pdf-page-canvas');
     if (canvas?.dataset.rendered === 'true') {
       canvas.width = 0;
@@ -1803,9 +2078,15 @@ async function jumpToStudioPage(pageNum, behavior = 'auto') {
   // to paint the target; the visible page shows its render status immediately.
   const area = $('#studio-canvas-area');
   if (area) {
-    const areaTop = area.getBoundingClientRect().top;
-    const pageTop = slot.getBoundingClientRect().top - areaTop + area.scrollTop;
-    area.scrollTo({ top: Math.max(0, pageTop - 10), behavior });
+    if (window.matchMedia('(max-width: 900px)').matches) {
+      const headerOffset = $('.topbar')?.getBoundingClientRect().height || 56;
+      const pageTop = slot.getBoundingClientRect().top + window.scrollY - headerOffset - 12;
+      window.scrollTo({ top: Math.max(0, pageTop), behavior });
+    } else {
+      const areaTop = area.getBoundingClientRect().top;
+      const pageTop = slot.getBoundingClientRect().top - areaTop + area.scrollTop;
+      area.scrollTo({ top: Math.max(0, pageTop - 10), behavior });
+    }
   }
   let rendered = await renderStudioPage(target, { priority: true });
   if (!rendered) rendered = await renderStudioPage(target, { priority: true, force: true });
@@ -1822,14 +2103,19 @@ if (studioPageStack) {
 }
 if (studioCanvasArea) {
   let activeSyncScheduled = false;
-  studioCanvasArea.addEventListener('scroll', () => {
+  const syncActivePageToViewport = () => {
     if (activeSyncScheduled) return;
     activeSyncScheduled = true;
     requestAnimationFrame(() => {
       activeSyncScheduled = false;
       if (!state.studio.pdfDoc) return;
-      const areaRect = studioCanvasArea.getBoundingClientRect();
-      const centerY = areaRect.top + Math.min(areaRect.height * 0.38, 280);
+      const mobilePageFlow = window.matchMedia('(max-width: 900px)').matches;
+      const areaRect = mobilePageFlow
+        ? { top: $('.topbar')?.getBoundingClientRect().bottom || 0, bottom: window.innerHeight }
+        : studioCanvasArea.getBoundingClientRect();
+      const centerY = mobilePageFlow
+        ? areaRect.top + Math.min((areaRect.bottom - areaRect.top) * 0.34, 260)
+        : areaRect.top + Math.min(areaRect.height * 0.38, 280);
       let closest = state.studio.currentPage;
       let distance = Number.POSITIVE_INFINITY;
       document.querySelectorAll('#studio-page-stack .studio-page-sheet').forEach(slot => {
@@ -1840,7 +2126,9 @@ if (studioCanvasArea) {
       });
       if (closest !== state.studio.currentPage) setActiveStudioPage(closest);
     });
-  }, { passive: true });
+  };
+  studioCanvasArea.addEventListener('scroll', syncActivePageToViewport, { passive: true });
+  window.addEventListener('scroll', syncActivePageToViewport, { passive: true });
 }
 
 window.jumpToStudioPage = jumpToStudioPage;
@@ -1920,9 +2208,15 @@ $('#next-page-btn').onclick = () => jumpToStudioPage(state.studio.currentPage + 
 
 const pageJumpInput = $('#page-jump-input');
 if (pageJumpInput) {
+  let lastJumpTarget = null;
+  let lastJumpAt = 0;
   const jumpToEnteredPage = () => {
     const target = Math.max(1, Math.min(state.studio.totalCount, Number(pageJumpInput.value) || 1));
     pageJumpInput.value = String(target);
+    const now = performance.now();
+    if (target === lastJumpTarget && now - lastJumpAt < 500) return;
+    lastJumpTarget = target;
+    lastJumpAt = now;
     jumpToStudioPage(target);
   };
   pageJumpInput.addEventListener('change', jumpToEnteredPage);
@@ -1993,7 +2287,10 @@ if (studioCanvasArea) studioCanvasArea.addEventListener('wheel', e => {
 let studioResizeTimer;
 window.addEventListener('resize', () => {
   clearTimeout(studioResizeTimer);
-  studioResizeTimer = setTimeout(() => refreshVisibleStudioPages(), 180);
+  studioResizeTimer = setTimeout(() => {
+    if (state.studio.pdfDoc) setupStudioPageObserver();
+    refreshVisibleStudioPages();
+  }, 180);
 });
 
 const drawCanvasEl = $('#pdf-draw-canvas');
@@ -3335,9 +3632,24 @@ async function checkExecutiveBriefAvailability() {
   }
 }
 
+function getAiChatPlaceholder() {
+  const file = state.files.find(item => item?.name?.toLowerCase().endsWith('.pdf'));
+  if (window.matchMedia('(max-width: 480px)').matches) {
+    return file ? 'Ask about this PDF…' : 'Ask anything…';
+  }
+  return file ? `Ask a question about ${file.name}...` : 'Ask a general question or about your PDF...';
+}
+
+window.addEventListener('resize', () => {
+  const input = $('#chat-input');
+  if (input) input.placeholder = getAiChatPlaceholder();
+}, { passive: true });
+
 function updateAiDocBar() {
   const uploadZone = $('#ai-upload-zone');
   const activeBar = $('#ai-active-doc-bar');
+  const emptyState = $('#ai-empty-state');
+  const inlineUploadButton = $('#ai-upload-inline-btn');
   const docName = $('#ai-doc-name');
   const docMeta = $('#ai-doc-meta');
   const chatInput = $('#chat-input');
@@ -3349,6 +3661,8 @@ function updateAiDocBar() {
     const file = state.files[0];
     if (uploadZone) uploadZone.hidden = true;
     if (activeBar) activeBar.hidden = false;
+    if (emptyState) emptyState.hidden = true;
+    if (inlineUploadButton) inlineUploadButton.hidden = true;
     if (docName) docName.textContent = file.name;
     if (docMeta) docMeta.textContent = `${formatBytes(file.size)} • PDF Document • Loaded & Ready`;
     if (docMeta && window.pdfjsLib) {
@@ -3358,7 +3672,7 @@ function updateAiDocBar() {
     }
     if (chatInput) {
       chatInput.disabled = false;
-      chatInput.placeholder = `Ask a question about ${file.name}...`;
+      chatInput.placeholder = getAiChatPlaceholder();
     }
     if (chatBtn) chatBtn.disabled = false;
     if (extractBtn) extractBtn.disabled = false;
@@ -3366,9 +3680,11 @@ function updateAiDocBar() {
   } else {
     if (uploadZone) uploadZone.hidden = false;
     if (activeBar) activeBar.hidden = true;
+    if (emptyState) emptyState.hidden = state.aiConversation.length > 0;
+    if (inlineUploadButton) inlineUploadButton.hidden = false;
     if (chatInput) {
       chatInput.disabled = false;
-      chatInput.placeholder = 'Ask a general question or about your PDF...';
+      chatInput.placeholder = getAiChatPlaceholder();
     }
     if (chatBtn) chatBtn.disabled = false;
     if (extractBtn) extractBtn.disabled = false;
@@ -3379,25 +3695,25 @@ function updateAiDocBar() {
 // AI Studio File Input & Dropzone Wiring
 const aiFileInput = $('#ai-file-input');
 const aiUploadBtn = $('#ai-upload-btn');
+const aiInlineUploadBtn = $('#ai-upload-inline-btn');
 const aiBrowseTrigger = $('#ai-browse-trigger');
 const aiUploadZone = $('#ai-upload-zone');
 const aiChangeDocBtn = $('#ai-change-doc-btn');
 const aiClearDocBtn = $('#ai-clear-doc-btn');
 
 if (aiUploadBtn) aiUploadBtn.onclick = (e) => { e.stopPropagation(); aiFileInput?.click(); };
+if (aiInlineUploadBtn) aiInlineUploadBtn.onclick = () => aiFileInput?.click();
 if (aiBrowseTrigger) aiBrowseTrigger.onclick = () => aiFileInput?.click();
 if (aiChangeDocBtn) aiChangeDocBtn.onclick = () => aiFileInput?.click();
 
 if (aiClearDocBtn) {
-  aiClearDocBtn.onclick = () => {
+  aiClearDocBtn.onclick = async () => {
     state.files = [];
+    state.aiConversation = [];
+    await removeLocalWork('ai-pdf', 'ai-conversation').catch(error => console.warn('Could not clear AI work locally:', error));
     clearLocalWorkMarkerIfEmpty();
     updateAiDocBar();
-    $('#chat-messages').innerHTML = `
-      <div class="chat-bubble ai">
-        <strong>Paperplane AI:</strong> Document cleared. Ask a general question or upload a PDF for cited answers.
-      </div>
-    `;
+    renderAiConversation([]);
     $('#summary-display').textContent = 'Summary will appear here after generation...';
     const sumActions = $('#summary-actions-bar');
     if (sumActions) sumActions.hidden = true;
@@ -3406,7 +3722,7 @@ if (aiClearDocBtn) {
 }
 
 if (aiFileInput) {
-  aiFileInput.onchange = (e) => {
+  aiFileInput.onchange = async (e) => {
     if (e.target.files?.length) {
       const file = e.target.files[0];
       if (!file.name.toLowerCase().endsWith('.pdf')) {
@@ -3414,6 +3730,10 @@ if (aiFileInput) {
         return;
       }
       state.files = [file];
+      writeLocalWork('ai-pdf', localPdfRecord(file)).catch(error => {
+        console.warn('Paperplane could not save the AI PDF locally:', error);
+        showToast('This browser could not save the PDF locally. Download any results you want to keep.', 'warning', 7000);
+      });
       rememberLocalWork(file.name);
       updateAiDocBar();
       showToast(`Loaded ${file.name} for AI analysis`, 'success');
@@ -3440,6 +3760,10 @@ if (aiUploadZone) {
         return;
       }
       state.files = [file];
+      writeLocalWork('ai-pdf', localPdfRecord(file)).catch(error => {
+        console.warn('Paperplane could not save the AI PDF locally:', error);
+        showToast('This browser could not save the PDF locally. Download any results you want to keep.', 'warning', 7000);
+      });
       rememberLocalWork(file.name);
       updateAiDocBar();
       showToast(`Loaded ${file.name} for AI analysis`, 'success');
@@ -3486,17 +3810,29 @@ if (testConnBtn) {
 // AI Chat Clear
 const chatClearBtn = $('#ai-chat-clear-btn');
 if (chatClearBtn) {
-  chatClearBtn.onclick = () => {
+  chatClearBtn.onclick = async () => {
     activeAIChatController?.abort();
-    $('#chat-messages').innerHTML = `
-      <div class="chat-bubble ai">
-        <strong>Paperplane AI:</strong> Conversation cleared. Ask a general question or upload a PDF for cited answers.
-      </div>
-    `;
+    state.aiConversation = [];
+    renderAiConversation([]);
+    await removeLocalWork('ai-conversation').catch(error => console.warn('Could not clear AI chat locally:', error));
     clearLocalWorkMarkerIfEmpty();
     showToast('Conversation cleared', 'info');
   };
 }
+
+$('#ai-clear-work-btn')?.addEventListener('click', async () => {
+  activeAIChatController?.abort();
+  state.files = [];
+  state.aiConversation = [];
+  await removeLocalWork('ai-pdf', 'ai-conversation').catch(error => console.warn('Could not clear AI work locally:', error));
+  renderAiConversation([]);
+  updateAiDocBar();
+  $('#summary-display').textContent = 'Summary will appear here after generation...';
+  const summaryActions = $('#summary-actions-bar');
+  if (summaryActions) summaryActions.hidden = true;
+  clearLocalWorkMarkerIfEmpty();
+  showToast('Saved PDF and chat history cleared from this browser', 'success');
+});
 
 // AI chat streams real provider deltas and server-reported work stages.
 let activeAIChatController = null;
@@ -3511,6 +3847,12 @@ function safeAiErrorMessage(error) {
   return raw.slice(0, 240);
 }
 
+function questionRequiresPdf(question) {
+  const asksAboutSource = /\b(?:this|that|my|your|uploaded|attached|older|current)\s+(?:pdf|document|file|paper|notes?|invoice|resume|report|contract)\b|\b(?:from|in|inside|on)\s+(?:the\s+)?(?:pdf|document|file|upload|attachment)\b|\baccording\s+to\s+(?:the|this|my)\b|\bpage\s+\d+\b/i.test(question);
+  const asksForSourceAnalysis = /\b(?:summari[sz]e|summary|extract|find|identify|quote|cite|search|look\s+for|keywords?)\b.*\b(?:pdf|document|file|paper|notes?|uploaded|attached)\b|\b(?:pdf|document|file|paper|notes?)\b.*\b(?:keyword|summari[sz]e|summary|extract|page|citation|quote)\b|\b(?:keyword|summari[sz]e|summary|extract|find|identify|quote|cite)\b.*\b(?:from|in|inside|of|within)\b.*\b(?:pdf|document|file|paper|notes?)\b/i.test(question);
+  return asksAboutSource || asksForSourceAnalysis;
+}
+
 $('#chat-form').onsubmit = async e => {
   e.preventDefault();
   const input = $('#chat-input');
@@ -3518,10 +3860,26 @@ $('#chat-form').onsubmit = async e => {
   if (!question) return;
 
   const msgs = $('#chat-messages');
+  const emptyState = $('#ai-empty-state');
+  if (emptyState) emptyState.hidden = true;
   const userBubble = document.createElement('div');
   userBubble.className = 'chat-bubble user';
   userBubble.innerHTML = `<strong>You:</strong> ${escapeHtml(question)}`;
   msgs.appendChild(userBubble);
+  input.value = '';
+  if (!state.files.length && questionRequiresPdf(question)) {
+    const guidance = document.createElement('div');
+    guidance.className = 'chat-bubble ai ai-document-required';
+    guidance.innerHTML = '<strong>Paperplane AI:</strong><p>Upload a PDF to ask questions about a document. General questions work without a PDF.</p>';
+    msgs.appendChild(guidance);
+    state.aiConversation.push({ role: 'user', text: question });
+    state.aiConversation.push({ role: 'assistant', kind: 'document-required', text: 'Upload a PDF to ask questions about a document. General questions work without a PDF.' });
+    state.aiConversation = state.aiConversation.slice(-50);
+    persistAiConversation();
+    updateAiDocBar();
+    msgs.scrollTop = msgs.scrollHeight;
+    return;
+  }
   const answerBubble = document.createElement('div');
   answerBubble.className = 'chat-bubble ai ai-stream-bubble';
   answerBubble.innerHTML = '<strong>Paperplane AI:</strong><div class="ai-stage-line" aria-live="polite"><span class="ai-stage-dots">•••</span><span>Thinking…</span></div><ol class="ai-stage-timeline" aria-label="AI work stages"><li data-ai-stage="thinking">Thinking</li><li data-ai-stage="extracting">Extracting</li><li data-ai-stage="analysing">Analysing</li><li data-ai-stage="searching">Searching</li><li data-ai-stage="generating">Generating</li></ol><div class="chat-markdown ai-stream-text"></div><div class="ai-response-mode" hidden></div><div class="chat-citation-tags"></div>';
@@ -3548,8 +3906,8 @@ $('#chat-form').onsubmit = async e => {
   const responseModeNode = answerBubble.querySelector('.ai-response-mode');
   const citationsNode = answerBubble.querySelector('.chat-citation-tags');
   let answerText = '';
+  let responseCitations = [];
   let streamFailed = false;
-  input.value = '';
   msgs.scrollTop = msgs.scrollHeight;
 
   const form = new FormData();
@@ -3596,7 +3954,8 @@ $('#chat-form').onsubmit = async e => {
           textNode.textContent = answerText;
         }
         if (eventName === 'done') {
-          citationsNode.innerHTML = (payload.citations || []).map(page => `<span class="ai-citation-tag">Page ${escapeHtml(page)}</span>`).join('');
+          responseCitations = Array.isArray(payload.citations) ? payload.citations : [];
+          citationsNode.innerHTML = responseCitations.map(page => `<span class="ai-citation-tag">Page ${escapeHtml(page)}</span>`).join('');
           if (payload.mode === 'local_extraction' && responseModeNode) {
             responseModeNode.hidden = false;
             responseModeNode.textContent = 'Local document extract · AI provider is disabled';
@@ -3644,6 +4003,7 @@ $('#chat-form').onsubmit = async e => {
     input.disabled = false;
     if (chatStopBtn) chatStopBtn.hidden = true;
     if (!streamFailed && stageNode.textContent === 'Complete') stageDots?.remove();
+    if (!streamFailed && stageNode.textContent === 'Complete') addAiConversationTurn(question, answerText, responseCitations);
     msgs.scrollTop = msgs.scrollHeight;
   }
 };
@@ -4974,15 +5334,19 @@ async function init() {
       selectOperation(state.operation, true);
     }
     try {
-      // Preserve an ephemeral workspace on a plain root reload, but never let
-      // stale tab state override an explicit deep link (for example /rotate-pdf).
+      // Restore the last workspace only on a plain root reload; explicit tool
+      // and document routes continue to take precedence.
       const isRootWorkspaceReload = window.location.pathname.replace(/\/+$/, '') === '' && !window.location.search;
       if (!userNavigatedDuringStartup && isRootWorkspaceReload && (previousView === 'studio' || previousView === 'ai')) {
         switchWorkspaceView(previousView);
       }
-      if (previousDoc) {
-        showToast(`Previous in-memory work (${previousDoc}) was cleared after reload. PDFs and AI chat are temporary; choose the file again or ask your question again.`, 'info', 8000);
+      let restoredWork = false;
+      if (state.activeView === 'ai') restoredWork = await restoreAiWorkspace();
+      if (state.activeView === 'studio') {
+        await restoreStudioWorkspace();
+        restoredWork = Boolean(state.studio.pdfDoc);
       }
+      if (previousDoc && !restoredWork) showToast('Some temporary tool uploads may need to be selected again after reload.', 'info', 7000);
     } catch { /* session storage may be disabled */ }
   } catch (err) {
     console.error('Failed to load operations catalog:', err);

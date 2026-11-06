@@ -13,7 +13,7 @@
   <!-- Cashfree PG v3 checkout SDK; app.js initializes it with the server-issued session. -->
   <script src="https://sdk.cashfree.com/js/v3/cashfree.js" defer></script>
 
-  <link rel="stylesheet" href="/assets/styles.css?v=3.5.26" />
+  <link rel="stylesheet" href="/assets/styles.css?v=3.5.27" />
 
 </head>
 <body class="light-mode auth-pending">
@@ -404,7 +404,7 @@
 
           <!-- Center Canvas Studio Viewport -->
           <div class="studio-main-viewport">
-            <p class="ephemeral-work-notice" role="note">PDFs and AI chat stay in memory only. Reloading or closing this tab clears them; download results you want to keep.</p>
+            <div class="ephemeral-work-notice" role="note"><span>Your PDF and page position stay on this device in this browser. Export annotations before reloading.</span><button type="button" id="studio-clear-work-btn" class="work-clear-btn">Clear saved work</button></div>
             <!-- Studio Toolbar with 2-Tier Modern Professional Ribbon -->
             <div class="studio-toolbar" id="studio-toolbar">
               
@@ -492,7 +492,7 @@
 
                 <!-- More Tools Popover Menu -->
                 <div class="studio-dropdown-wrapper">
-                  <button type="button" class="studio-tool-btn studio-dropdown-trigger" id="btn-more-tools-trigger" aria-haspopup="true" aria-expanded="false" title="Document Engines & Transformations">
+                  <button type="button" class="studio-tool-btn studio-dropdown-trigger" id="btn-more-tools-trigger" aria-label="More tools" aria-haspopup="true" aria-expanded="false" title="Document Engines & Transformations">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
                     <span class="tool-btn-text">More Tools</span>
                     <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
@@ -531,7 +531,7 @@
 
                 <!-- Clear & Export Actions (Right-aligned) -->
                 <div class="studio-tool-group studio-export-group" style="margin-left: auto;">
-                  <button type="button" class="studio-tool-btn studio-clear-btn" id="clear-canvas-btn" title="Clear All Page Annotations">
+                  <button type="button" class="studio-tool-btn studio-clear-btn" id="clear-canvas-btn" aria-label="Clear page annotations" title="Clear All Page Annotations">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
                     <span class="tool-btn-text">Clear</span>
                   </button>
@@ -546,31 +546,31 @@
               <div class="studio-sub-ribbon" id="studio-annotate-ribbon">
                 <!-- Modes & Annotation -->
                 <div class="studio-tool-group" title="Annotation Tools">
-                  <button type="button" class="studio-tool-btn" id="tool-select-btn" title="Select & Move Objects (V)">
+                  <button type="button" class="studio-tool-btn" id="tool-select-btn" aria-label="Select and move objects" title="Select & Move Objects (V)">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>
                     <span class="tool-btn-text">Select</span>
                   </button>
-                  <button type="button" class="studio-tool-btn active" id="tool-pan-btn" title="Pan Mode (H)">
+                  <button type="button" class="studio-tool-btn active" id="tool-pan-btn" aria-label="Pan the document" title="Pan Mode (H)">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v3"/><path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v7"/><path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
                     <span class="tool-btn-text">Pan</span>
                   </button>
-                  <button type="button" class="studio-tool-btn" id="tool-text-btn" title="Text Overlay (T)">
+                  <button type="button" class="studio-tool-btn" id="tool-text-btn" aria-label="Add text" title="Text Overlay (T)">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
                     <span class="tool-btn-text">Text</span>
                   </button>
-                  <button type="button" class="studio-tool-btn" id="tool-draw-btn" title="Freehand Pen (P)">
+                  <button type="button" class="studio-tool-btn" id="tool-draw-btn" aria-label="Draw freehand" title="Freehand Pen (P)">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
                     <span class="tool-btn-text">Draw</span>
                   </button>
-                  <button type="button" class="studio-tool-btn" id="tool-highlight-btn" title="Highlighter">
+                  <button type="button" class="studio-tool-btn" id="tool-highlight-btn" aria-label="Highlight text" title="Highlighter">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 11-6 6v3h3l6-6"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>
                     <span class="tool-btn-text">Highlight</span>
                   </button>
-                  <button type="button" class="studio-tool-btn" id="tool-redact-btn" title="Permanent Redaction">
+                  <button type="button" class="studio-tool-btn" id="tool-redact-btn" aria-label="Redact content" title="Permanent Redaction">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><rect x="3" y="5" width="18" height="14" rx="2"/></svg>
                     <span class="tool-btn-text">Redact</span>
                   </button>
-                  <button type="button" class="studio-tool-btn" id="tool-sig-btn" title="Signature Stamp (S)">
+                  <button type="button" class="studio-tool-btn" id="tool-sig-btn" aria-label="Add a signature" title="Signature Stamp (S)">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.5 3.5a2.121 2.121 0 0 1 3 3L7 23l-4 1 1-4L20.5 3.5z"/><path d="M3 20c3-1 6-1 8 0s4 2 8 1"/></svg>
                     <span class="tool-btn-text">Sign</span>
                   </button>
@@ -580,20 +580,25 @@
 
                 <!-- Shapes Group -->
                 <div class="studio-tool-group" title="Shapes & Media">
-                  <button type="button" class="studio-tool-btn" id="tool-rect-btn" title="Rectangle Shape">
+                  <button type="button" class="studio-tool-btn" id="tool-rect-btn" title="Rectangle Shape" aria-label="Rectangle">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+                    <span class="tool-btn-text">Rectangle</span>
                   </button>
-                  <button type="button" class="studio-tool-btn" id="tool-ellipse-btn" title="Circle Shape">
+                  <button type="button" class="studio-tool-btn" id="tool-ellipse-btn" title="Circle Shape" aria-label="Circle">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>
+                    <span class="tool-btn-text">Circle</span>
                   </button>
-                  <button type="button" class="studio-tool-btn" id="tool-arrow-btn" title="Arrow Line">
+                  <button type="button" class="studio-tool-btn" id="tool-arrow-btn" title="Arrow Line" aria-label="Arrow">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    <span class="tool-btn-text">Arrow</span>
                   </button>
-                  <button type="button" class="studio-tool-btn" id="tool-image-btn" title="Insert Image Stamp">
+                  <button type="button" class="studio-tool-btn" id="tool-image-btn" title="Insert Image Stamp" aria-label="Image">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <span class="tool-btn-text">Image</span>
                   </button>
-                  <button type="button" class="studio-tool-btn" id="tool-stamp-btn" title="Approval Stamps">
+                  <button type="button" class="studio-tool-btn" id="tool-stamp-btn" title="Approval Stamps" aria-label="Stamp">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 21h14M8 17h8a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2h-1V7a3 3 0 0 0-6 0v3H8a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2z"/></svg>
+                    <span class="tool-btn-text">Stamp</span>
                   </button>
                 </div>
 
@@ -610,6 +615,7 @@
                   </select>
                   <button type="button" class="studio-tool-btn" id="editor-delete-obj-btn" title="Delete Selected Object (Del)" aria-label="Delete Selected Object">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+                    <span class="tool-btn-text">Delete object</span>
                   </button>
                 </div>
 
@@ -617,21 +623,21 @@
 
                 <!-- Page Operations -->
                 <div class="studio-tool-group" title="Page Operations">
-                  <button type="button" class="studio-tool-btn" id="editor-insert-page-btn" title="Insert Blank Page after current page">
+                  <button type="button" class="studio-tool-btn" id="editor-insert-page-btn" aria-label="Insert a blank page" title="Insert Blank Page after current page">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     <span class="tool-btn-text">Add Page</span>
                   </button>
-                  <button type="button" class="studio-tool-btn" id="editor-dup-page-btn" title="Duplicate current page">
+                  <button type="button" class="studio-tool-btn" id="editor-dup-page-btn" aria-label="Duplicate current page" title="Duplicate current page">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                    <span class="tool-btn-text">Dup</span>
+                    <span class="tool-btn-text">Duplicate</span>
                   </button>
-                  <button type="button" class="studio-tool-btn" id="editor-extract-page-btn" title="Extract current page as a PDF">
+                  <button type="button" class="studio-tool-btn" id="editor-extract-page-btn" aria-label="Extract current page as a PDF" title="Extract current page as a PDF">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0-12L8 7m4-4 4 4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
                     <span class="tool-btn-text">Extract</span>
                   </button>
-                  <button type="button" class="studio-tool-btn" id="editor-delete-page-btn" title="Delete current page">
+                  <button type="button" class="studio-tool-btn" id="editor-delete-page-btn" aria-label="Delete current page" title="Delete current page">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                    <span class="tool-btn-text">Del</span>
+                    <span class="tool-btn-text">Delete page</span>
                   </button>
                 </div>
               </div>
@@ -732,21 +738,11 @@
              VIEW 3: AI Document Intelligence Studio
              ------------------------------------------------------------------ -->
         <div id="view-ai-studio" class="ai-studio-wrapper" hidden>
-          <p class="ephemeral-work-notice" role="note">PDFs and AI chat stay in memory only. Reloading or closing this tab clears them; download results you want to keep.</p>
+          <div class="ephemeral-work-notice" role="note"><span>Your PDF and chat history stay on this device in this browser. Clear them whenever you want.</span><button type="button" id="ai-clear-work-btn" class="work-clear-btn">Clear saved work</button></div>
           <h1 class="sr-only">AI Document Intelligence</h1>
           
           <!-- Top Document Context & Engine Banner -->
           <div class="ai-studio-topbar">
-            <!-- Upload Dropzone (visible if no file selected) -->
-            <div id="ai-upload-zone" class="ai-upload-strip">
-              <input type="file" id="ai-file-input" accept=".pdf" hidden aria-label="Upload PDF for AI intelligence" />
-              <div class="ai-upload-content" id="ai-browse-trigger">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                <span><strong>Upload a PDF</strong> for cited answers, extraction, and summaries. General chat works without a document.</span>
-                <button type="button" class="btn-primary-action" id="ai-upload-btn" style="padding: 6px 14px; font-size: 12.5px;">Choose PDF</button>
-              </div>
-            </div>
-
             <!-- Active Document Card (visible when a file is loaded) -->
             <div id="ai-active-doc-bar" class="ai-active-doc-strip" hidden>
               <div class="ai-doc-info-group">
@@ -785,12 +781,21 @@
                   <strong>AI Chat</strong>
                   <small style="display: block; color: var(--text-muted);">Ask general questions or get cited answers from a PDF.</small>
                 </div>
+                <button type="button" class="btn-demo-upgrade ai-upload-inline-btn" id="ai-upload-inline-btn">Upload PDF</button>
                 <button type="button" class="btn-demo-upgrade" id="ai-chat-clear-btn" style="padding: 4px 10px; font-size: 11px;">Clear Chat</button>
               </div>
 
               <div class="ai-chat-messages" id="chat-messages">
-                <div class="chat-bubble ai">
-                  <strong>Paperplane AI:</strong> Ask a general question, or upload a PDF for answers grounded in its pages.
+                <div class="ai-empty-state" id="ai-empty-state">
+                  <div class="ai-empty-copy"><strong>What can I help with?</strong><span>Ask a general question, or choose a PDF for answers with page citations.</span></div>
+                  <div id="ai-upload-zone" class="ai-upload-strip">
+                    <input type="file" id="ai-file-input" class="visually-hidden-file-input" accept="application/pdf,.pdf" aria-label="Choose a PDF to chat about" />
+                    <div class="ai-upload-content" id="ai-browse-trigger">
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                      <span><strong>Upload a PDF</strong><span>For cited answers, extraction, and summaries. General chat works without a document.</span></span>
+                      <button type="button" class="btn-primary-action" id="ai-upload-btn">Choose PDF</button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -3360,7 +3365,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
     </button>
     <button type="button" class="mobile-nav-btn" id="mob-nav-download" data-workspace-view="download" aria-label="Apps Waitlist">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      <span>Apps</span>
+      <span>Waitlist</span>
     </button>
   </nav>
 
@@ -3375,10 +3380,10 @@ async function convertFileInBrowser(file, operation = 'compress') {
   <!-- Phase 4 Compression, Repair & OCR Engine -->
   <script src="/assets/optimization_engine.js?v=4.2.0" defer></script>
   <!-- Phase 3 Professional Page Management Engine -->
-  <script src="/assets/page_organizer.js?v=3.2.1" defer></script>
+  <script src="/assets/page_organizer.js?v=3.2.2" defer></script>
   <!-- Phase 2 Professional Editor Engine -->
 <script src="/assets/editor.js?v=3.2.2" defer></script>
   <!-- Application Controller -->
-  <script src="/assets/app.js?v=3.5.24" defer></script>
+  <script src="/assets/app.js?v=3.5.25" defer></script>
 </body>
 </html>

@@ -1261,7 +1261,8 @@
       const msg = pages.length === 1
         ? `Are you sure you want to delete page ${pages[0]}? This cannot be undone.`
         : `Are you sure you want to delete ${pages.length} pages? This cannot be undone.`;
-      if (!confirm(msg)) return;
+      const confirmed = await (window.confirmAction ? window.confirmAction(msg, { confirmLabel: 'Delete pages', danger: true }) : Promise.resolve(window.confirm(msg)));
+      if (!confirmed) return;
 
       window.showToast(`Deleting ${pages.length} page(s)…`, 'info');
       const newFile = await this._sendPageMutation('/api/studio/page/delete', {

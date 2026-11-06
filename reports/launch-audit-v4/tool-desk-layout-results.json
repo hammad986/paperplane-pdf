@@ -1,0 +1,32 @@
+{
+  "operations": 41,
+  "widths": [
+    333,
+    360,
+    375,
+    390,
+    414,
+    768,
+    1024,
+    1280,
+    1366,
+    1920
+  ],
+  "checks": 410,
+  "overflows": [],
+  "browserErrors": [],
+  "unavailable": [
+    {
+      "key": "ocr",
+      "label": "OCR PDF",
+      "status": "DEPENDENCY_MISSING",
+      "prerequisite": "Requires Tesseract OCR engine installed"
+    },
+    {
+      "key": "translate",
+      "label": "AI Translate",
+      "status": "SERVICE_UNAVAILABLE",
+      "prerequisite": "Requires the Paperplane AI translation service to be configured and enabled"
+    }
+  ]
+}

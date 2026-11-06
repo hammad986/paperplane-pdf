@@ -4428,18 +4428,25 @@ body.dark-mode .btn-secondary-action {
 
 .api-docs-meta-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
   margin-bottom: 24px;
 }
 
 @media (max-width: 900px) {
   .api-docs-meta-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .api-docs-meta-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
 .api-meta-item {
+  min-width: 0;
   background: var(--bg-panel-alt);
   border: 1px solid var(--border-light);
   border-radius: 12px;
@@ -4460,6 +4467,11 @@ body.dark-mode .btn-secondary-action {
   font-weight: 700;
   color: var(--text-main);
   font-family: var(--font-mono);
+}
+
+.api-docs-meta-grid .meta-val {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .api-code-workbench-card {
@@ -7526,6 +7538,16 @@ body:not(.dark-mode) .waitlist-email-input {
   .main-content {
     padding-bottom: 74px !important;
   }
+
+  .toast-notice {
+    left: 12px;
+    right: 12px;
+    bottom: calc(74px + env(safe-area-inset-bottom, 0px));
+    z-index: 1101;
+    max-width: calc(100vw - 24px);
+    box-sizing: border-box;
+    justify-content: center;
+  }
 }
 
 /* Keep the full workspace navigation inside the column left by the desktop sidebar. */
@@ -7804,20 +7826,6 @@ body:not(.dark-mode) .waitlist-email-input {
   .studio-active .studio-dropdown-trigger { min-width: 102px; }
   .studio-active .studio-sub-ribbon .studio-tool-btn {
     min-width: 78px;
-  }
-  .studio-active .studio-sub-ribbon #tool-rect-btn::after { content: "Rectangle"; }
-  .studio-active .studio-sub-ribbon #tool-ellipse-btn::after { content: "Circle"; }
-  .studio-active .studio-sub-ribbon #tool-arrow-btn::after { content: "Arrow"; }
-  .studio-active .studio-sub-ribbon #tool-image-btn::after { content: "Image"; }
-  .studio-active .studio-sub-ribbon #tool-stamp-btn::after { content: "Stamp"; }
-  .studio-active .studio-sub-ribbon #editor-delete-obj-btn::after { content: "Delete"; }
-  .studio-active .studio-sub-ribbon #editor-insert-page-btn::after { content: "Add page"; }
-  .studio-active .studio-sub-ribbon #editor-dup-page-btn::after { content: "Duplicate"; }
-  .studio-active .studio-sub-ribbon #editor-delete-page-btn::after { content: "Delete page"; }
-  .studio-active .studio-sub-ribbon button::after {
-    color: inherit;
-    font-size: 11px;
-    white-space: nowrap;
   }
   .studio-active .studio-empty-state {
     min-height: 34dvh;
@@ -8165,6 +8173,191 @@ body.dark-mode .dropzone:hover, body.dark-mode .dropzone.over { background: #202
   line-height: 1.45;
 }
 
+/* Accessible local-work controls. */
+.ephemeral-work-notice { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.ephemeral-work-notice > span { min-width: 0; }
+.work-clear-btn { flex: 0 0 auto; min-height: 36px; padding: 6px 10px; border: 1px solid var(--border-light); border-radius: 8px; color: var(--text-main); background: var(--bg-panel); cursor: pointer; }
+.work-clear-btn:hover { border-color: var(--accent); color: var(--accent); }
+.visually-hidden-file-input { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; clip-path: inset(50%) !important; border: 0 !important; }
+.ai-empty-state { display: grid; justify-items: center; gap: 20px; width: 100%; max-width: 760px; margin: auto; padding: 28px 16px; box-sizing: border-box; text-align: center; }
+.ai-empty-copy { display: grid; gap: 8px; max-width: 540px; }
+.ai-empty-copy strong { color: var(--text-main); font-size: clamp(20px, 4vw, 28px); }
+.ai-empty-copy span { color: var(--text-muted); line-height: 1.55; }
+.ai-empty-state .ai-upload-strip { width: min(100%, 580px); max-width: 580px; }
+.ai-empty-state .ai-upload-content { display: grid; justify-items: center; width: 100%; box-sizing: border-box; text-align: center; }
+.ai-empty-state .ai-upload-content > span { display: grid; gap: 4px; }
+.ai-upload-inline-btn { flex: 0 0 auto; }
+.ai-studio-wrapper > .ephemeral-work-notice { align-self: stretch; margin: 0 0 10px; }
+
+/* Phone workspaces use document scrolling. This gives every toolbar row,
+   thumbnail and result its own space instead of stacking fixed panels. */
+@media (max-width: 900px) {
+  html, body { height: auto !important; min-height: 100% !important; overflow-x: hidden !important; overflow-y: auto !important; }
+  #app-shell, #app-shell.studio-active, #app-shell.ai-active {
+    display: block !important;
+    height: auto !important;
+    min-height: 100dvh !important;
+    overflow: visible !important;
+    padding-bottom: calc(68px + env(safe-area-inset-bottom));
+  }
+  .topbar { position: fixed !important; inset: 0 0 auto !important; z-index: 120 !important; }
+  .main-area, .main-area.studio-active, .ai-active .main-area {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: calc(100dvh - 56px) !important;
+    padding-top: 64px !important;
+    overflow: visible !important;
+  }
+  .dynamic-workspace, .studio-active .dynamic-workspace, .ai-active .dynamic-workspace {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 10px 8px 24px !important;
+    overflow: visible !important;
+    box-sizing: border-box;
+  }
+  .sidebar.mobile-open { z-index: 500 !important; }
+  .app-global-footer { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+
+  /* Editor thumbnail strip and toolbar all participate in normal page flow. */
+  .studio-active #view-pdf-studio,
+  .studio-active .pdf-studio,
+  .studio-active .studio-main-viewport {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    box-sizing: border-box;
+  }
+  .studio-active .studio-main-viewport { flex: 0 0 auto !important; }
+  .studio-active .pdf-studio { border-radius: 10px; }
+  .studio-active .studio-thumbnails-bar {
+    display: flex !important;
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border-right: 0;
+    border-bottom: 1px solid var(--studio-border);
+  }
+  .studio-active .studio-thumbnails-scroll {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: 176px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding: 8px !important;
+    box-sizing: border-box;
+  }
+  .studio-active .organizer-subnav { display: flex; width: 100%; min-height: 42px; justify-content: space-between; }
+  .studio-active .organizer-grid.strip-mode { display: flex !important; flex-flow: row nowrap !important; width: max-content !important; min-width: 100%; max-width: none !important; gap: 8px; overflow: visible !important; }
+  .studio-active .organizer-grid.strip-mode .organizer-thumb-card { flex: 0 0 76px !important; width: 76px !important; max-width: 76px !important; min-height: 112px; }
+  .studio-active .organizer-thumb-card canvas,
+  .studio-active .organizer-thumb-card img { display: block; max-width: 100%; height: auto; }
+  .studio-active .studio-main-viewport { gap: 0; }
+  .studio-active .studio-main-viewport > .ephemeral-work-notice { flex: 0 0 auto; margin: 8px; font-size: 12px; }
+  .studio-active .work-clear-btn { min-height: 40px; }
+  .studio-active .studio-toolbar { position: relative !important; top: auto !important; z-index: 10 !important; width: 100%; height: auto !important; max-height: none !important; overflow: visible !important; }
+  .studio-active .studio-primary-ribbon,
+  .studio-active .studio-sub-ribbon {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    height: auto !important;
+    padding: 7px !important;
+    overflow: visible !important;
+    white-space: normal !important;
+    box-sizing: border-box;
+  }
+  .studio-active .studio-primary-ribbon > *,
+  .studio-active .studio-sub-ribbon > *,
+  .studio-active .studio-tool-group,
+  .studio-active .studio-mode-switcher { flex: 0 1 auto !important; flex-wrap: wrap !important; min-width: 0; }
+  .studio-active .studio-divider { display: none !important; }
+  .studio-active .studio-tool-btn { min-width: 44px; min-height: 44px; max-width: 100%; }
+  .studio-active .studio-sub-ribbon .studio-tool-btn { min-width: 0 !important; }
+  .studio-active .studio-tool-btn::after { content: none !important; display: none !important; }
+  .studio-active .studio-tool-btn .tool-btn-text { display: inline !important; }
+  .studio-active .studio-canvas-area {
+    display: block !important;
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 42dvh !important;
+    max-height: none !important;
+    padding: 10px 4px 20px !important;
+    overflow: visible !important;
+    box-sizing: border-box;
+  }
+  .studio-active #studio-page-stack { display: flex; width: 100% !important; min-width: 0 !important; align-items: center; overflow: visible; }
+  .studio-active .studio-page-sheet { max-width: calc(100vw - 40px) !important; }
+  .studio-active .studio-page-sheet .pdf-page-canvas { display: block; max-width: 100% !important; height: auto !important; }
+  .studio-active .studio-empty-state { min-height: 38dvh; }
+
+  /* AI chat is a regular page section with a clear upload entry point. */
+  .ai-active #view-ai-studio {
+    position: relative !important;
+    inset: auto !important;
+    display: flex !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    padding: 8px 0 20px !important;
+    overflow: visible !important;
+  }
+  .ai-active .ai-studio-topbar { display: flex; flex-direction: column; width: 100%; gap: 10px; }
+  .ai-active .ai-engine-notice-bar { flex-wrap: wrap; gap: 8px; padding: 8px 10px; }
+  .ai-active .ai-engine-info { display: none !important; }
+  .ai-active .ai-studio-container {
+    display: flex !important;
+    flex: 0 0 auto !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    gap: 14px !important;
+    padding: 0 0 18px !important;
+    overflow: visible !important;
+  }
+  .ai-active .ai-chat-card { flex: 0 0 auto !important; width: 100% !important; height: auto !important; min-height: 0 !important; }
+  .ai-active .ai-chat-header { flex-wrap: wrap; gap: 8px; }
+  .ai-active .ai-chat-header > div { flex: 1 1 160px !important; }
+  .ai-active .ai-chat-card:has(#ai-empty-state:not([hidden])) .ai-chat-header small { display: none !important; }
+  .ai-active .ai-chat-card:has(#ai-empty-state:not([hidden])) #ai-upload-inline-btn,
+  .ai-active .ai-chat-card:has(#ai-empty-state:not([hidden])) #ai-chat-clear-btn { display: none !important; }
+  .ai-active .ai-chat-messages { display: flex; flex-direction: column; min-height: 250px !important; max-height: min(58dvh, 520px) !important; height: auto !important; overflow-y: auto !important; }
+  .ai-active .ai-chat-messages:has(.ai-empty-state) { min-height: 350px !important; max-height: none !important; }
+  .ai-active .ai-chat-messages:has(.ai-empty-state:not([hidden])) { flex: 0 0 auto !important; height: auto !important; min-height: 280px !important; overflow: visible !important; }
+  .ai-active .ai-chat-form { position: sticky; bottom: calc(66px + env(safe-area-inset-bottom)); z-index: 20; background: var(--bg-panel); }
+  .ai-active .ai-chat-card:has(.ai-empty-state:not([hidden])) .ai-chat-form { position: relative; bottom: auto; }
+  .ai-active .ai-studio-container > div:last-child { display: flex !important; flex: 0 0 auto !important; width: 100% !important; flex-direction: column; gap: 12px !important; }
+  .ai-active .ai-studio-container > div:last-child .ai-chat-card { flex: 0 0 auto !important; height: auto !important; min-height: 0 !important; }
+  .ai-active #summary-display { min-height: 100px; max-height: 300px; }
+  .ai-active .ephemeral-work-notice { align-items: flex-start; }
+  .ai-active .work-clear-btn { min-height: 40px; }
+  .ai-active .ai-upload-strip { width: 100%; max-width: 100%; }
+  .ai-active .ai-empty-state { gap: 12px; padding: 16px 12px; }
+  .ai-active .ai-empty-copy { gap: 5px; }
+  .ai-active .ai-empty-copy strong { font-size: 22px; }
+  .ai-active .ai-empty-copy span { font-size: 13px; line-height: 1.4; }
+  .ai-active .ai-empty-state .ai-upload-content { gap: 8px; padding: 12px !important; }
+}
+
 .ai-stage-timeline {
   display: flex;
   gap: 6px;
@@ -8208,6 +8401,25 @@ body.dark-mode .dropzone:hover, body.dark-mode .dropzone.over { background: #202
   font-size: 11px;
   line-height: 1.35;
 }
+
+.app-confirm-dialog {
+  width: min(440px, calc(100vw - 32px));
+  max-width: none;
+  padding: 22px;
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  color: var(--text-main);
+  background: var(--bg-panel);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .38);
+}
+.app-confirm-dialog::backdrop { background: rgba(5, 12, 14, .64); }
+.app-confirm-dialog h2 { margin: 0 0 8px; font-size: 19px; }
+.app-confirm-dialog p { margin: 0; color: var(--text-muted); line-height: 1.55; overflow-wrap: anywhere; }
+.app-confirm-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+.app-confirm-actions button { min-height: 44px; padding: 8px 14px; border: 1px solid var(--border-light); border-radius: 8px; color: var(--text-main); background: var(--bg-panel-alt); cursor: pointer; }
+.app-confirm-actions .app-confirm-accept { border-color: var(--accent); color: #fff; background: var(--accent); }
+.app-confirm-actions .app-confirm-accept.danger { border-color: #dc2626; background: #dc2626; }
+.app-confirm-actions button:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 46%, white); outline-offset: 2px; }
 
 @media (max-width: 420px) {
   .ai-stage-timeline {
