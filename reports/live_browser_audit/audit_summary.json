@@ -1,0 +1,36 @@
+{
+  "timestamp": 1794016385.4204113,
+  "base_url": "https://paperplane.qd.je",
+  "pages_checked": [
+    {
+      "page": "Home",
+      "viewport": "1366x768",
+      "status": "rendered"
+    }
+  ],
+  "tools_tested": [],
+  "studio_checks": [
+    {
+      "test": "View in Studio from Grayscale",
+      "count": "1"
+    }
+  ],
+  "ai_checks": [
+    {
+      "test": "General Chat SSE Stream",
+      "status": "timeout_or_error",
+      "error": "Page.wait_for_selector: Timeout 35000ms exceeded.\nCall log:\n  - waiting for locator(\".ai-stage-line:has-text('Complete')\") to be visible\n"
+    },
+    {
+      "test": "False Premise Guard",
+      "status": "success"
+    },
+    {
+      "test": "Document RAG with citations",
+      "citations": ""
+    }
+  ],
+  "layout_overflows": [],
+  "console_errors": [],
+  "network_failures": []
+}
