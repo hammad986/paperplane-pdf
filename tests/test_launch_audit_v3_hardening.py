@@ -181,7 +181,7 @@ def test_disabled_provider_document_chat_returns_labeled_local_extract(tmp_path,
         for data_line in body.splitlines()
         if data_line.startswith("data: {") and '"text":' in data_line
     )
-    assert "Page 2 covers supervised learning" in token_text
+    assert "[Page 2] covers supervised learning" in token_text
     assert '"citations": [2]' in body
 
 

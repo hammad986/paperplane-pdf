@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import base64
+import csv
+import html
 import io
 import ipaddress
 import logging
@@ -355,21 +357,42 @@ def word_to_pdf(source: Path, output: Path) -> Path:
 
 
 def excel_to_pdf(source: Path, output: Path) -> Path:
-    """Converts an Excel spreadsheet (.xlsx, .xls) to formatted PDF."""
+    """Convert an Excel workbook or CSV into a readable, wrapped PDF table."""
     suffix = source.suffix.lower()
     if suffix not in {".xlsx", ".xls", ".csv"}:
         raise ValueError("Please provide a valid Excel file (.xlsx, .xls, .csv).")
 
-    try:
-        if _convert_with_libreoffice(source, output):
-            return output
-    except Exception as lo_err:
-        logger.warning(f"LibreOffice conversion failed for {source.name}: {lo_err}")
+    # LibreOffice's default Calc export can silently clip values when a sheet
+    # has no print-area/column-width metadata. Use our bounded, wrapped table
+    # renderer for modern workbooks and CSV so every cell remains readable.
+    # Legacy .xls files still use LibreOffice because openpyxl cannot read them.
+    if suffix == ".xls":
+        try:
+            if _convert_with_libreoffice(source, output):
+                return output
+        except Exception as lo_err:
+            logger.warning(f"LibreOffice conversion failed for {source.name}: {lo_err}")
+        raise ValueError("Converting legacy .xls files requires LibreOffice. Save the spreadsheet as .xlsx and retry.")
 
-    try:
-        wb = openpyxl.load_workbook(str(source), data_only=True)
-    except Exception as exc:
-        raise ValueError(f"Please provide a valid Excel spreadsheet (.xlsx, .xls). File parsing failed: {exc}")
+    if suffix == ".csv":
+        try:
+            with source.open("r", encoding="utf-8-sig", newline="") as stream:
+                csv_rows = list(csv.reader(stream))
+        except Exception as exc:
+            raise ValueError(f"Please provide a valid UTF-8 CSV file. File parsing failed: {exc}") from exc
+        sheets = [(source.stem or "CSV", csv_rows[:150])]
+    else:
+        try:
+            wb = openpyxl.load_workbook(str(source), data_only=True, read_only=True)
+            sheets = []
+            for sheet in wb.worksheets:
+                rows = []
+                for row in sheet.iter_rows(min_row=1, max_row=150, max_col=min(sheet.max_column or 1, 15), values_only=True):
+                    rows.append(list(row))
+                sheets.append((sheet.title, rows))
+            wb.close()
+        except Exception as exc:
+            raise ValueError(f"Please provide a valid Excel spreadsheet (.xlsx). File parsing failed: {exc}") from exc
 
     pdf = SimpleDocTemplate(
         str(output),
@@ -382,22 +405,21 @@ def excel_to_pdf(source: Path, output: Path) -> Path:
     styles = getSampleStyleSheet()
     story: list[Any] = []
     sheet_title_style = ParagraphStyle('SheetTitle', parent=styles['Heading2'], fontSize=14, spaceAfter=10, textColor=colors.HexColor("#172126"))
-    cell_style = ParagraphStyle('Cell', parent=styles['Normal'], fontSize=8, leading=10)
+    cell_style = ParagraphStyle('Cell', parent=styles['Normal'], fontSize=8, leading=10, splitLongWords=1, wordWrap='CJK')
 
-    for sheet in wb.worksheets:
-        story.append(Paragraph(f"Sheet: {sheet.title}", sheet_title_style))
+    for sheet_title, source_rows in sheets:
+        story.append(Paragraph(f"Sheet: {html.escape(str(sheet_title))}", sheet_title_style))
         data: list[list[Any]] = []
-        max_cols = min(sheet.max_column or 1, 15)  # Limit columns for landscape layout
-        max_rows = min(sheet.max_row or 1, 150)    # Reasonable max per sheet
+        max_cols = min(max((len(row) for row in source_rows), default=1), 15)  # Landscape page width bound
 
-        for r in range(1, max_rows + 1):
+        for row in source_rows:
             row_vals = []
             has_val = False
-            for c in range(1, max_cols + 1):
-                val = sheet.cell(row=r, column=c).value
+            for c in range(max_cols):
+                val = row[c] if c < len(row) else None
                 if val is not None:
                     has_val = True
-                    row_vals.append(Paragraph(str(val), cell_style))
+                    row_vals.append(Paragraph(html.escape(str(val)), cell_style))
                 else:
                     row_vals.append(Paragraph("", cell_style))
             if has_val:
@@ -1619,6 +1641,16 @@ def ocr_pdf(
                     pages_already_searchable += 1
         except Exception:
             pages_failed += 1
+
+    if pages_processed == 0:
+        doc.close()
+        raise ValueError("No valid pages were selected for OCR.")
+    if pages_ocrd == 0 and pages_already_searchable == 0:
+        doc.close()
+        detail = f"OCR could not add searchable text to any of the {pages_processed} selected page(s)."
+        if pages_failed:
+            detail += f" {pages_failed} page(s) failed OCR. Check that the requested language data is installed and the pages are readable."
+        raise RuntimeError(detail)
 
     temp_out = output.with_name(f"{output.stem}_ocr_tmp_{os.getpid()}_{uuid.uuid4().hex[:6]}.pdf")
     doc.save(str(temp_out), garbage=3, deflate=True)

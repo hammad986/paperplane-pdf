@@ -1,0 +1,152 @@
+{
+  "identity": "launch-audit@example.test",
+  "routes": [
+    "/",
+    "/tool-desk",
+    "/merge-pdf",
+    "/studio",
+    "/download"
+  ],
+  "cycles": [
+    {
+      "cycle": 1,
+      "route": "/",
+      "pending": {
+        "route": "/",
+        "cached_email": "launch-audit@example.test",
+        "user_hidden": false,
+        "user_visibility": "visible",
+        "user_visible": true,
+        "guest_hidden": true,
+        "guest_text": "Log In\n            Sign Up Free",
+        "auth_pending": true,
+        "quota_text": "—",
+        "quota_has_loading_copy": false
+      },
+      "settled": {
+        "user_visible": true,
+        "guest_hidden": true,
+        "email": "launch-audit@example.test",
+        "quota_text": "6 / 100",
+        "auth_restoring": false
+      }
+    },
+    {
+      "cycle": 2,
+      "route": "/tool-desk",
+      "pending": {
+        "route": "/tool-desk",
+        "cached_email": "launch-audit@example.test",
+        "user_hidden": false,
+        "user_visibility": "visible",
+        "user_visible": true,
+        "guest_hidden": true,
+        "guest_text": "Log In\n            Sign Up Free",
+        "auth_pending": true,
+        "quota_text": "—",
+        "quota_has_loading_copy": false
+      },
+      "settled": {
+        "user_visible": true,
+        "guest_hidden": true,
+        "email": "launch-audit@example.test",
+        "quota_text": "6 / 100",
+        "auth_restoring": false
+      }
+    },
+    {
+      "cycle": 3,
+      "route": "/merge-pdf",
+      "pending": {
+        "route": "/merge-pdf",
+        "cached_email": "launch-audit@example.test",
+        "user_hidden": false,
+        "user_visibility": "visible",
+        "user_visible": true,
+        "guest_hidden": true,
+        "guest_text": "Log In\n            Sign Up Free",
+        "auth_pending": true,
+        "quota_text": "—",
+        "quota_has_loading_copy": false
+      },
+      "settled": {
+        "user_visible": true,
+        "guest_hidden": true,
+        "email": "launch-audit@example.test",
+        "quota_text": "6 / 100",
+        "auth_restoring": false
+      }
+    },
+    {
+      "cycle": 4,
+      "route": "/studio",
+      "pending": {
+        "route": "/studio",
+        "cached_email": "launch-audit@example.test",
+        "user_hidden": false,
+        "user_visibility": "visible",
+        "user_visible": true,
+        "guest_hidden": true,
+        "guest_text": "Log In\n            Sign Up Free",
+        "auth_pending": true,
+        "quota_text": "—",
+        "quota_has_loading_copy": false
+      },
+      "settled": {
+        "user_visible": true,
+        "guest_hidden": true,
+        "email": "launch-audit@example.test",
+        "quota_text": "6 / 100",
+        "auth_restoring": false
+      }
+    },
+    {
+      "cycle": 5,
+      "route": "/download",
+      "pending": {
+        "route": "/download",
+        "cached_email": "launch-audit@example.test",
+        "user_hidden": false,
+        "user_visibility": "visible",
+        "user_visible": true,
+        "guest_hidden": true,
+        "guest_text": "Log In\n            Sign Up Free",
+        "auth_pending": true,
+        "quota_text": "—",
+        "quota_has_loading_copy": false
+      },
+      "settled": {
+        "user_visible": true,
+        "guest_hidden": true,
+        "email": "launch-audit@example.test",
+        "quota_text": "6 / 100",
+        "auth_restoring": false
+      }
+    }
+  ],
+  "console_or_page_errors": [],
+  "operations_responses": [
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8501/api/operations"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8501/api/operations"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8501/api/operations"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8501/api/operations"
+    },
+    {
+      "status": 200,
+      "url": "http://127.0.0.1:8501/api/operations"
+    }
+  ],
+  "screenshot": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\auth-restore-pending-375.png",
+  "auth_contract": "The cached email is only a same-tab display hint; every cycle waits for a mocked authenticated API response before the app applies an authenticated state or quota."
+}

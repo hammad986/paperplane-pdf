@@ -15,7 +15,7 @@ const state = {
     max_batch_files: 100
   },
   clientSideMode: false,
-  activeView: 'home', // 'home', 'desk', 'studio', 'ai'
+  activeView: 'home', // 'home', 'tool-desk', 'desk', 'studio', 'ai'
   activeToolResult: null,
   
   // PDF Studio Engine State
@@ -36,6 +36,29 @@ const state = {
   aiConversation: []
 };
 
+let generatedControlId = 0;
+function addMissingControlLabels(root) {
+  const controls = [];
+  if (root instanceof Element && root.matches('input, select, textarea')) controls.push(root);
+  if (root.querySelectorAll) controls.push(...root.querySelectorAll('input, select, textarea'));
+  controls.forEach(control => {
+    if (control.type === 'hidden' || control.closest('label') || control.labels?.length) return;
+    if (!control.id) control.id = `paperplane-control-${++generatedControlId}`;
+    const label = document.createElement('label');
+    label.className = 'sr-only';
+    label.htmlFor = control.id;
+    label.textContent = control.getAttribute('aria-label') || control.title || control.placeholder || control.name || control.id.replace(/[-_]/g, ' ');
+    control.parentElement?.insertBefore(label, control);
+  });
+}
+
+addMissingControlLabels(document);
+new MutationObserver(records => {
+  records.forEach(record => record.addedNodes.forEach(node => {
+    if (node.nodeType === Node.ELEMENT_NODE) addMissingControlLabels(node);
+  }));
+}).observe(document.body, { childList: true, subtree: true });
+
 // Tool-session values remain in memory while navigating. The two active
 // workspaces may also save their source PDF and lightweight state in this
 // browser's IndexedDB; the clear controls remove those local records.
@@ -44,7 +67,9 @@ let workspaceNavigationVersion = 0;
 let localWorkDbPromise = null;
 let pendingStudioRestore = null;
 let studioPositionSaveTimer = null;
+let studioPageJumpLockUntil = 0;
 let studioRestorePending = false;
+let studioRestorePromise = null;
 let aiWorkspaceRestored = false;
 let aiWorkspaceRestorePromise = null;
 
@@ -115,17 +140,18 @@ function fileFromLocalRecord(record) {
 
 function saveStudioPagePosition() {
   if (!state.studio.pdfDoc) return;
+  const position = { page: state.studio.currentPage };
+  try { sessionStorage.setItem('paperplane-studio-position', JSON.stringify(position)); } catch { /* IndexedDB remains the durable store. */ }
   clearTimeout(studioPositionSaveTimer);
   studioPositionSaveTimer = setTimeout(() => {
-    writeLocalWork('studio-position', { page: state.studio.currentPage }).catch(error => {
+    writeLocalWork('studio-position', position).catch(error => {
       console.warn('Paperplane could not save the Studio page position:', error);
     });
   }, 180);
 }
 
 function persistAiConversation() {
-  const messages = state.aiConversation.slice(-50);
-  writeLocalWork('ai-conversation', messages).catch(error => {
+  writeLocalWork('ai-conversation', state.aiConversation).catch(error => {
     console.warn('Paperplane could not save AI chat locally:', error);
   });
 }
@@ -133,7 +159,6 @@ function persistAiConversation() {
 function addAiConversationTurn(question, answer, citations = []) {
   state.aiConversation.push({ role: 'user', text: question });
   state.aiConversation.push({ role: 'assistant', text: answer, citations });
-  state.aiConversation = state.aiConversation.slice(-50);
   persistAiConversation();
 }
 
@@ -187,7 +212,7 @@ async function restoreAiWorkspace() {
     ]);
     const file = fileFromLocalRecord(savedFile);
     if (file) state.files = [file];
-    state.aiConversation = Array.isArray(savedMessages) ? savedMessages.slice(-50) : [];
+    state.aiConversation = Array.isArray(savedMessages) ? savedMessages : [];
     updateAiDocBar();
     renderAiConversation(state.aiConversation);
     if (file || state.aiConversation.length) rememberLocalWork(file?.name || 'AI chat');
@@ -203,37 +228,42 @@ async function restoreAiWorkspace() {
 }
 
 async function restoreStudioWorkspace() {
-  if (state.studio.pdfDoc || state.studio.isLoading || studioRestorePending) return;
+  if (state.studio.pdfDoc || state.studio.isLoading) return false;
+  if (studioRestorePromise) return studioRestorePromise;
   studioRestorePending = true;
-  try {
-  let saved = pendingStudioRestore;
-  if (!saved) {
+  studioRestorePromise = (async () => {
     try {
-      const [file, position] = await Promise.all([readLocalWork('studio-pdf'), readLocalWork('studio-position')]);
-      if (file) saved = { file, position };
-    } catch (error) { console.warn('Paperplane could not read saved Studio work:', error); }
-  }
-  if (!saved) return;
-  pendingStudioRestore = null;
-  const file = fileFromLocalRecord(saved.file);
-  if (!file) return;
-  const loaded = await loadDocumentIntoStudio(file);
-  if (loaded) {
-    const target = Math.max(1, Math.min(state.studio.totalCount, Number(saved.position?.page) || 1));
-    await jumpToStudioPage(target);
-    const targetSlot = studioPageSlot(target);
-    if (targetSlot && window.matchMedia('(max-width: 900px)').matches) {
-      window.scrollTo({ top: Math.max(0, targetSlot.getBoundingClientRect().top + window.scrollY - 78), behavior: 'auto' });
+      let saved = pendingStudioRestore;
+      if (!saved) {
+        try {
+          const [file, position] = await Promise.all([readLocalWork('studio-pdf'), readLocalWork('studio-position')]);
+          let sessionPosition = null;
+          try { sessionPosition = JSON.parse(sessionStorage.getItem('paperplane-studio-position') || 'null'); } catch { /* ignore corrupt tab state */ }
+          if (file) saved = { file, position: sessionPosition || position };
+        } catch (error) { console.warn('Paperplane could not read saved Studio work:', error); }
+      }
+      if (!saved) return false;
+      pendingStudioRestore = null;
+      const file = fileFromLocalRecord(saved.file);
+      if (!file) return false;
+      const requestedPage = Math.max(1, Number(saved.position?.page) || 1);
+      const loaded = await loadDocumentIntoStudio(file, { initialPage: requestedPage, persist: false });
+      if (loaded) {
+        showToast(`Restored ${file.name} on page ${state.studio.currentPage}`, 'success', 4000);
+      }
+      return Boolean(loaded);
+    } finally {
+      studioRestorePending = false;
+      studioRestorePromise = null;
     }
-    showToast(`Restored ${file.name} on page ${target}`, 'success', 4000);
-  }
-  } finally {
-    studioRestorePending = false;
-  }
+  })();
+  return studioRestorePromise;
 }
 
 async function clearStudioWorkspace() {
+  clearTimeout(studioPositionSaveTimer);
   await removeLocalWork('studio-pdf', 'studio-position').catch(error => console.warn('Could not clear Studio work locally:', error));
+  try { sessionStorage.removeItem('paperplane-studio-position'); } catch { /* storage may be disabled */ }
   if (state.studio.pageObserver) state.studio.pageObserver.disconnect();
   state.studio.pageRenderTasks.forEach(task => { try { task.cancel(); } catch { /* already complete */ } });
   state.studio.pageRenderTasks.clear();
@@ -257,7 +287,44 @@ async function clearStudioWorkspace() {
     window.PaperplanePageOrganizer._updateBatchToolbar();
   }
   showStudioEmptyState();
+  await removeLocalWork('studio-pdf', 'studio-position').catch(error => console.warn('Could not finalize clearing Studio work:', error));
+  try { sessionStorage.removeItem('paperplane-studio-position'); } catch { /* storage may be disabled */ }
 }
+
+let studioUndoTimer = null;
+window.showStudioUndoMutation = (previousFile, page, description, expectedCurrentFile) => {
+  const banner = $('#studio-undo-banner');
+  if (!banner) return;
+  clearTimeout(studioUndoTimer);
+  banner.replaceChildren();
+  const copy = document.createElement('span');
+  copy.textContent = `${description}. `;
+  const undo = document.createElement('button');
+  undo.type = 'button';
+  undo.className = 'work-clear-btn';
+  undo.textContent = 'Undo';
+  undo.addEventListener('click', async () => {
+    if (state.studio.srcFile !== expectedCurrentFile) {
+      banner.hidden = true;
+      showToast('Undo expired because the document changed again.', 'warning');
+      return;
+    }
+    undo.disabled = true;
+    undo.textContent = 'Restoring…';
+    const restored = await loadDocumentIntoStudio(previousFile, { initialPage: page });
+    if (restored) {
+      banner.hidden = true;
+      showToast('Last page deletion undone.', 'success');
+    } else {
+      undo.disabled = false;
+      undo.textContent = 'Retry undo';
+      showToast('Undo could not restore the prior PDF. Try again before leaving Studio.', 'error', 7000);
+    }
+  }, { once: true });
+  banner.append(copy, undo);
+  banner.hidden = false;
+  studioUndoTimer = setTimeout(() => { banner.hidden = true; }, 10000);
+};
 
 document.getElementById('studio-clear-work-btn')?.addEventListener('click', async () => {
   const confirmed = await window.confirmAction('Clear the saved PDF and page position from this browser? Export any annotations you want to keep first.', { confirmLabel: 'Clear saved work', danger: true });
@@ -285,7 +352,7 @@ function renderAiConversation(messages = []) {
       const label = document.createElement('strong');
       label.textContent = 'Paperplane AI:';
       const guidance = document.createElement('p');
-      guidance.textContent = message.text || 'Upload a PDF to ask questions about a document. General questions work without a PDF.';
+      guidance.textContent = message.text || 'Upload PDF to chat and ask questions about a document. General questions work without a PDF.';
       bubble.append(label, guidance);
     } else {
       const label = document.createElement('strong');
@@ -316,6 +383,33 @@ function hasInMemoryWork() {
 function clearLocalWorkMarkerIfEmpty() {
   if (hasInMemoryWork()) return;
   try { sessionStorage.removeItem('paperplane-last-local-document'); } catch { /* storage may be disabled */ }
+}
+
+// Keep only the last signed-in email as a same-tab display hint. This is not
+// an auth token or entitlement cache; API responses remain authoritative.
+const AUTH_SHELL_SESSION_KEY = 'paperplane-last-auth-shell-email';
+
+function cacheAuthShellEmail(email) {
+  if (!email || typeof email !== 'string') return;
+  try { sessionStorage.setItem(AUTH_SHELL_SESSION_KEY, email); } catch { /* session storage may be disabled */ }
+}
+
+function clearAuthShellEmail() {
+  try { sessionStorage.removeItem(AUTH_SHELL_SESSION_KEY); } catch { /* session storage may be disabled */ }
+}
+
+function restoreCachedAuthShell() {
+  let email = '';
+  try { email = sessionStorage.getItem(AUTH_SHELL_SESSION_KEY) || ''; } catch { /* storage may be disabled */ }
+  if (!email || !$('#topbar-auth-user') || !$('#topbar-username')) return false;
+
+  const initial = (email[0] || 'U').toUpperCase();
+  document.body.classList.add('auth-restoring');
+  if ($('#topbar-auth-guest')) $('#topbar-auth-guest').hidden = true;
+  $('#topbar-auth-user').hidden = false;
+  $('#topbar-username').textContent = email;
+  if ($('#topbar-avatar')) $('#topbar-avatar').textContent = initial;
+  return true;
 }
 
 window.addEventListener('beforeunload', event => {
@@ -361,7 +455,8 @@ const $$ = s => document.querySelectorAll(s);
 // JavaScript the server-rendered 0 / daily-limit fallback remains visible.
 const initialQuotaText = $('#quota-text');
 if (document.body.classList.contains('auth-pending') && initialQuotaText) {
-  initialQuotaText.textContent = 'Checking usage…';
+  initialQuotaText.textContent = '—';
+  initialQuotaText.setAttribute('aria-label', 'Usage is loading');
 }
 
 function escapeHtml(value) {
@@ -658,20 +753,22 @@ $('#collapse-sidebar-btn').onclick = () => {
   $('#app-shell').classList.toggle('sidebar-collapsed');
 };
 
-// Workspace View Switcher (Home / Desk / Studio / AI / Legal / ApiDocs)
-function switchWorkspaceView(view, extra = 'privacy', updateHistory = true) {
+// Workspace View Switcher (directory, workbench, Studio, AI and public pages)
+function switchWorkspaceView(view, extra = 'privacy', updateHistory = true, preserveOpenCloudModal = false) {
   workspaceNavigationVersion += 1;
-  if (view !== 'cloud' && $('#cloud-modal')) $('#cloud-modal').hidden = true;
+  if (!preserveOpenCloudModal && view !== 'cloud' && $('#cloud-modal')) $('#cloud-modal').hidden = true;
   if ($('#sidebar')?.classList.contains('mobile-open')) closeMobileSidebar();
   try { sessionStorage.setItem('paperplane-active-view', view); } catch { /* storage may be disabled */ }
   state.activeView = view;
   $('#tab-home-view')?.classList.toggle('active', view === 'home');
+  $('#tab-tool-desk-view')?.classList.toggle('active', view === 'tool-desk');
   $('#tab-desk-view')?.classList.toggle('active', view === 'desk');
   $('#tab-studio-view')?.classList.toggle('active', view === 'studio');
   $('#tab-ai-view')?.classList.toggle('active', view === 'ai');
   $('#tab-download-view')?.classList.toggle('active', view === 'download');
 
   if ($('#view-home')) $('#view-home').hidden = view !== 'home';
+  if ($('#view-tool-desk-directory')) $('#view-tool-desk-directory').hidden = view !== 'tool-desk';
   if ($('#view-tool-desk')) $('#view-tool-desk').hidden = view !== 'desk';
   if ($('#view-pdf-studio')) $('#view-pdf-studio').hidden = view !== 'studio';
   if ($('#view-ai-studio')) $('#view-ai-studio').hidden = view !== 'ai';
@@ -681,6 +778,8 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true) {
   $('.main-area')?.classList.toggle('studio-active', view === 'studio');
   $('#app-shell')?.classList.toggle('studio-active', view === 'studio');
   $('#app-shell')?.classList.toggle('ai-active', view === 'ai');
+  document.documentElement.classList.toggle('studio-active', view === 'studio');
+  document.body.classList.toggle('studio-active', view === 'studio');
   if (view === 'studio' && !state.studio.pdfDoc) restoreStudioWorkspace();
   if (view === 'ai' && !aiWorkspaceRestored) restoreAiWorkspace();
 
@@ -700,6 +799,13 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (updateHistory && window.history.pushState && window.location.pathname !== '/') {
       window.history.pushState({ view: 'home' }, '', '/');
+    }
+  } else if (view === 'tool-desk') {
+    if (crumbCat) crumbCat.textContent = 'Workspace';
+    if (crumbTool) crumbTool.textContent = 'Tool Desk';
+    renderToolDeskDirectory();
+    if (updateHistory && window.history.pushState && window.location.pathname !== '/tool-desk') {
+      window.history.pushState({ view: 'tool-desk' }, '', '/tool-desk');
     }
   } else if (view === 'legal') {
     if (crumbCat) crumbCat.textContent = 'Compliance';
@@ -743,6 +849,9 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true) {
   } else if (view === 'studio') {
     if (crumbCat) crumbCat.textContent = 'Workspace';
     if (crumbTool) crumbTool.textContent = 'Advanced PDF Studio';
+    if (updateHistory && window.history.pushState && window.location.pathname !== '/studio') {
+      window.history.pushState({ view: 'studio' }, '', '/studio');
+    }
   } else if (view === 'ai') {
     if (crumbCat) crumbCat.textContent = 'Workspace';
     if (crumbTool) crumbTool.textContent = 'AI Document Intelligence';
@@ -754,6 +863,7 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true) {
   // Update mobile bottom navigation bar active button
   const mobMap = {
     home: '#mob-nav-home',
+    'tool-desk': '#mob-nav-desk',
     studio: '#mob-nav-studio',
     ai: '#mob-nav-ai',
     download: '#mob-nav-download'
@@ -778,6 +888,7 @@ function showStudioEmptyState() {
 
 // Navigation event bindings
 $('#tab-home-view')?.addEventListener('click', () => switchWorkspaceView('home'));
+$('#tab-tool-desk-view')?.addEventListener('click', () => switchWorkspaceView('tool-desk'));
 $('#tab-studio-view')?.addEventListener('click', () => switchWorkspaceView('studio'));
 $('#tab-ai-view')?.addEventListener('click', () => switchWorkspaceView('ai'));
 $('#tab-download-view')?.addEventListener('click', () => switchWorkspaceView('download'));
@@ -1071,6 +1182,53 @@ function renderHomeToolsGrid(filterCategory = 'all', searchQuery = '') {
   }
 }
 
+function renderToolDeskDirectory(category = null, searchQuery = null) {
+  const catalog = $('#tool-desk-tools-catalog');
+  if (!catalog) return;
+  const activeFilter = category || $('#tool-desk-directory-filters .filter-pill.active')?.dataset.deskCategory || 'all';
+  const query = (searchQuery ?? $('#tool-desk-search')?.value ?? '').trim().toLowerCase();
+  let totalVisible = 0;
+  const sections = HOME_CATEGORIES.map(cat => {
+    if (activeFilter !== 'all' && cat.id !== activeFilter) return '';
+    const ops = cat.ops.filter(id => {
+      const op = state.operations[id];
+      if (!op) return false;
+      return !query || `${op.label} ${op.description || ''} ${id}`.toLowerCase().includes(query);
+    });
+    if (!ops.length) return '';
+    totalVisible += ops.length;
+    return `<section class="home-cat-section" data-cat="${cat.id}">
+      <div class="home-cat-header"><div class="home-cat-title-group"><h2 class="home-cat-title" style="--cat-accent:${cat.iconColor}">${escapeHtml(cat.title)}</h2><span class="home-cat-count">${ops.length} tools</span></div></div>
+      <div class="home-cat-grid">${ops.map(id => {
+        const op = state.operations[id];
+        const available = op.available !== false && !['DEPENDENCY_MISSING', 'SERVICE_UNAVAILABLE'].includes(op.status);
+        const badge = available ? 'Ready' : (op.prerequisite || 'Temporarily unavailable');
+        return `<button type="button" class="home-tool-card" data-select-operation="${escapeHtml(id)}">
+          <span class="home-tool-icon" style="background:${cat.iconColor}1a;color:${cat.iconColor}">${getToolIconSvg(id)}</span>
+          <span class="home-tool-body"><span class="home-tool-title">${escapeHtml(op.label)}</span><span class="home-tool-desc">${escapeHtml(op.description || 'Fast, private PDF processing.')}</span>
+          <span class="home-tool-footer"><span class="home-status-badge ${available ? 'ready' : 'prereq'}">${escapeHtml(badge)}</span><span class="home-tool-arrow" aria-hidden="true">→</span></span></span></button>`;
+      }).join('')}</div></section>`;
+  }).join('');
+  catalog.innerHTML = totalVisible ? sections : `<div class="home-no-results"><h2>No matching tools</h2><p>Try “merge”, “compress”, “sign”, or choose another category.</p><button type="button" class="btn-primary-action" id="tool-desk-reset-search">Clear search</button></div>`;
+  const meta = $('#tool-desk-search-meta');
+  if (meta) meta.textContent = `${totalVisible} ${totalVisible === 1 ? 'tool' : 'tools'}${query ? ` found for “${$('#tool-desk-search')?.value.trim()}”` : ' available'}`;
+  $('#tool-desk-reset-search')?.addEventListener('click', () => {
+    const input = $('#tool-desk-search');
+    if (input) input.value = '';
+    const all = $('#tool-desk-directory-filters [data-desk-category="all"]');
+    $$('#tool-desk-directory-filters .filter-pill').forEach(item => item.classList.toggle('active', item === all));
+    renderToolDeskDirectory('all', '');
+  });
+}
+
+function initToolDeskDirectory() {
+  $('#tool-desk-search')?.addEventListener('input', () => renderToolDeskDirectory());
+  $$('#tool-desk-directory-filters [data-desk-category]').forEach(button => button.addEventListener('click', () => {
+    $$('#tool-desk-directory-filters .filter-pill').forEach(item => item.classList.toggle('active', item === button));
+    renderToolDeskDirectory(button.dataset.deskCategory);
+  }));
+}
+
 function initHomeSearchAndFilter() {
   const searchInput = $('#home-search-input');
   const clearBtn = $('#home-search-clear');
@@ -1173,7 +1331,7 @@ async function syncSeoContent(operation) {
 }
 
 // Select an operation and update view
-function selectOperation(op, switchToDesk = true) {
+function selectOperation(op, switchToDesk = true, preserveOpenCloudModal = false) {
   const previousOperation = state.operation;
   const opChanged = (previousOperation !== op);
   if (opChanged) saveToolSession(previousOperation);
@@ -1269,11 +1427,11 @@ function selectOperation(op, switchToDesk = true) {
   renderSidebarTools();
   updateButton();
   if (op === 'ai_chat' && switchToDesk && state.activeView === 'home') {
-    switchWorkspaceView('ai');
+    switchWorkspaceView('ai', null, true, preserveOpenCloudModal);
     return;
   }
   if (switchToDesk) {
-    switchWorkspaceView('desk');
+    switchWorkspaceView('desk', null, true, preserveOpenCloudModal);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -1301,6 +1459,7 @@ function updateBillingUI(data) {
   const proFileMb = state.planLimits.pro_max_file_size_mb;
   const maxBatchFiles = state.planLimits.max_batch_files;
   state.dailyLimit = limit;
+  state.dailyUsage = usage;
 
   const quotaDescription = $('#settings-quota-description');
   if (quotaDescription) quotaDescription.textContent = `Free: ${state.planLimits.free_operations_per_day} PDF operations per day and files up to ${freeFileMb} MB each. Pro: no daily operation cap, files up to ${proFileMb} MB, and batches up to ${maxBatchFiles} files.`;
@@ -1318,6 +1477,7 @@ function updateBillingUI(data) {
   const settingsTierName = $('#settings-tier-name');
   const settingsTierBadge = $('#settings-tier-badge');
   const settingsDailyLimit = $('#settings-daily-limit');
+  quotaText?.removeAttribute('aria-label');
   if (settingsDailyLimit) settingsDailyLimit.textContent = isPaid ? '(No daily operation cap)' : `(${limit} operations / day)`;
 
   if (isPaid) {
@@ -1399,12 +1559,52 @@ function updateBillingUI(data) {
   }
 }
 
+function applyQuotaCount(count) {
+  const numericCount = Number(count);
+  if (!Number.isFinite(numericCount)) return;
+  state.dailyUsage = numericCount;
+  const tier = String(state.user?.tier || 'free').toLowerCase();
+  if (['pro', 'developer', 'student_pro', 'cyber_cafe', 'exam_pass'].includes(tier)) return;
+  const limit = Number(state.planLimits.free_operations_per_day) || 100;
+  const pct = Math.min(100, Math.round((numericCount / limit) * 100));
+  const quotaText = $('#quota-text');
+  const quotaFill = $('#quota-fill');
+  const settingsQuotaText = $('#settings-quota-text');
+  const settingsQuotaFill = $('#settings-quota-fill');
+  if (quotaText) quotaText.textContent = `${numericCount} / ${limit}`;
+  if (settingsQuotaText) settingsQuotaText.textContent = `${numericCount} / ${limit}`;
+  if (quotaFill) { quotaFill.style.width = `${pct}%`; quotaFill.className = `quota-progress-fill${numericCount >= limit ? ' full' : numericCount >= limit - 5 ? ' warn' : ''}`; }
+  if (settingsQuotaFill) { settingsQuotaFill.style.width = `${pct}%`; settingsQuotaFill.className = `quota-progress-fill${numericCount >= limit ? ' full' : numericCount >= limit - 5 ? ' warn' : ''}`; }
+}
+
+const paperplaneNativeFetch = window.fetch.bind(window);
+window.fetch = async (...args) => {
+  const response = await paperplaneNativeFetch(...args);
+  const count = response.headers.get('X-Paperplane-Operations-Today');
+  if (count !== null) applyQuotaCount(count);
+  return response;
+};
+
+async function refreshQuotaUsage() {
+  try {
+    const response = await paperplaneNativeFetch('/api/auth/me', { credentials: 'same-origin' });
+    if (!response.ok) return;
+    const data = await response.json();
+    state.user = data.authenticated ? data : null;
+    updateBillingUI(data);
+  } catch (error) {
+    console.warn('Paperplane could not refresh the operation count:', error);
+  }
+}
+
 async function checkAuthStatus() {
   try {
     const data = await safeFetch('/api/auth/me');
     state.user = data.authenticated ? data : null;
     updateBillingUI(data);
     if (data.authenticated) {
+      cacheAuthShellEmail(data.email);
+      document.body.classList.remove('auth-restoring');
       const initial = (data.email[0] || 'U').toUpperCase();
       $('#user-avatar').textContent = initial;
       $('#user-name').textContent = data.email;
@@ -1424,6 +1624,8 @@ async function checkAuthStatus() {
       if ($('#settings-guest-actions')) $('#settings-guest-actions').hidden = true;
       if ($('#settings-user-actions')) $('#settings-user-actions').hidden = false;
     } else {
+      clearAuthShellEmail();
+      document.body.classList.remove('auth-restoring');
       state.user = null;
       $('#user-avatar').textContent = 'G';
       $('#user-name').textContent = 'Guest Explorer';
@@ -1440,13 +1642,16 @@ async function checkAuthStatus() {
     if (state.activeView === 'desk' && $('#tool-title')) selectOperation(state.operation, false);
   } catch {
     state.user = null;
-    $('#user-avatar').textContent = 'G';
-    $('#user-name').textContent = 'Guest Explorer';
-    if ($('#topbar-auth-guest')) $('#topbar-auth-guest').hidden = false;
-    if ($('#topbar-auth-user')) $('#topbar-auth-user').hidden = true;
-    if ($('#topbar-avatar')) $('#topbar-avatar').textContent = 'G';
-    if ($('#topbar-username')) $('#topbar-username').textContent = 'Guest Explorer';
-    updateBillingUI(null);
+    if (!restoreCachedAuthShell()) {
+      document.body.classList.remove('auth-restoring');
+      $('#user-avatar').textContent = 'G';
+      $('#user-name').textContent = 'Guest Explorer';
+      if ($('#topbar-auth-guest')) $('#topbar-auth-guest').hidden = false;
+      if ($('#topbar-auth-user')) $('#topbar-auth-user').hidden = true;
+      if ($('#topbar-avatar')) $('#topbar-avatar').textContent = 'G';
+      if ($('#topbar-username')) $('#topbar-username').textContent = 'Guest Explorer';
+      updateBillingUI(null);
+    }
     if (state.activeView === 'desk' && $('#tool-title')) selectOperation(state.operation, false);
   } finally {
     document.body.classList.remove('auth-pending');
@@ -1766,7 +1971,7 @@ function hideStudioLoading() {
   if (overlay) overlay.hidden = true;
 }
 
-async function loadDocumentIntoStudio(file) {
+async function loadDocumentIntoStudio(file, { initialPage = 1, persist = true } = {}) {
   if (file === null && state.studio.isLoading) {
     return false;
   }
@@ -1797,14 +2002,14 @@ async function loadDocumentIntoStudio(file) {
     if (state.studio.pdfDoc && state.studio.pdfDoc !== file && typeof state.studio.pdfDoc.destroy === 'function') {
       try { await state.studio.pdfDoc.destroy(); } catch { /* a previous document may already be destroyed */ }
     }
-    state.studio.pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    state.studio.pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer, isEvalSupported: false }).promise;
     state.studio.totalCount = state.studio.pdfDoc.numPages;
-    state.studio.currentPage = 1;
+    state.studio.currentPage = Math.max(1, Math.min(state.studio.totalCount, Number(initialPage) || 1));
     state.studio.srcFile = file;
     $('#studio-page-count').textContent = state.studio.totalCount;
     const pageJump = $('#page-jump-input');
     const pageTotal = $('#page-total-indicator');
-    if (pageJump) { pageJump.min = '1'; pageJump.max = String(state.studio.totalCount); pageJump.value = '1'; pageJump.disabled = false; }
+    if (pageJump) { pageJump.min = '1'; pageJump.max = String(state.studio.totalCount); pageJump.value = String(state.studio.currentPage); pageJump.disabled = false; }
     if (pageTotal) pageTotal.textContent = String(state.studio.totalCount);
 
     // Load into Phase 2 PaperplaneEditor
@@ -1813,11 +2018,18 @@ async function loadDocumentIntoStudio(file) {
       srcFile = new File([arrayBuffer], (file && file.name) || 'document.pdf', { type: 'application/pdf' });
     }
     state.studio.srcFile = srcFile;
-    writeLocalWork('studio-pdf', localPdfRecord(srcFile)).catch(error => {
-      console.warn('Paperplane could not save the Studio PDF locally:', error);
-      showToast('This browser could not save a local copy. Export your PDF before closing this tab.', 'warning', 7000);
-    });
-    writeLocalWork('studio-position', { page: 1 }).catch(() => {});
+    if (persist) {
+      try {
+        await Promise.all([
+          writeLocalWork('studio-pdf', localPdfRecord(srcFile)),
+          writeLocalWork('studio-position', { page: state.studio.currentPage })
+        ]);
+        try { sessionStorage.setItem('paperplane-studio-position', JSON.stringify({ page: state.studio.currentPage })); } catch { /* IndexedDB is the durable store. */ }
+      } catch (error) {
+        console.warn('Paperplane could not save the Studio PDF locally:', error);
+        showToast('This browser could not save the PDF locally. Export your document before closing this tab.', 'warning', 7000);
+      }
+    }
     if (window.PaperplaneEditor) {
       window.PaperplaneEditor.loadDocument(srcFile, srcFile.name, state.studio.totalCount);
     }
@@ -1827,13 +2039,36 @@ async function loadDocumentIntoStudio(file) {
     prepareStudioPageStack(state.studio.totalCount);
     syncStudioZoomSelect(state.studio.scale);
     setupStudioPageObserver();
-    await renderStudioPage(1, { priority: true });
+    setActiveStudioPage(state.studio.currentPage, { scrollThumbnail: false });
+    const firstPage = state.studio.currentPage;
+    const renderDeadline = Date.now() + 10000;
+    let firstPageRendered = false;
+    let renderAttempt = 0;
+    let firstCanvas = null;
+    while (Date.now() < renderDeadline) {
+      firstCanvas = studioPageSlot(firstPage)?.querySelector('.pdf-page-canvas');
+      if (firstCanvas?.dataset.rendered === 'true' && firstCanvas.width > 1 && firstCanvas.height > 1) {
+        firstPageRendered = true;
+        break;
+      }
+      firstPageRendered = await renderStudioPage(firstPage, { priority: true, force: renderAttempt > 0 });
+      renderAttempt += 1;
+      firstCanvas = studioPageSlot(firstPage)?.querySelector('.pdf-page-canvas');
+      if (firstPageRendered && firstCanvas?.dataset.rendered === 'true' && firstCanvas.width > 1 && firstCanvas.height > 1) break;
+      await new Promise(resolve => setTimeout(resolve, 120));
+    }
+    if (!firstPageRendered || !firstCanvas || firstCanvas.dataset.rendered !== 'true' || firstCanvas.width < 1 || firstCanvas.height < 1) {
+      throw new Error(`Page ${state.studio.currentPage} did not produce a visible canvas. Please retry or reopen the PDF.`);
+    }
 
     // Load into Phase 3 Professional Page Organizer
     if (window.PaperplanePageOrganizer) {
       window.PaperplanePageOrganizer.loadDocument(state.studio.pdfDoc, srcFile, srcFile.name, state.studio.totalCount);
     } else {
       renderStudioThumbnails();
+    }
+    if (state.studio.currentPage > 1) {
+      await jumpToStudioPage(state.studio.currentPage);
     }
     hideStudioLoading();
     return true;
@@ -1929,7 +2164,9 @@ function scrollStudioThumbnailIntoView(pageNum) {
   if (!panel || !card) return;
 
   const grid = panel.querySelector('.organizer-grid');
-  const horizontalPhoneStrip = window.matchMedia('(max-width: 900px)').matches && grid?.classList.contains('strip-mode');
+  const horizontalPhoneStrip = window.matchMedia('(max-width: 900px)').matches
+    && grid?.classList.contains('strip-mode')
+    && getComputedStyle(grid).display === 'flex';
   const scrollport = horizontalPhoneStrip ? grid : panel;
 
   // Native scrollIntoView can scroll the entire document when a deep thumbnail
@@ -1985,11 +2222,13 @@ function setActiveStudioPage(pageNum, { scrollThumbnail = true } = {}) {
 
 async function renderStudioPage(pageNum, { priority = false, force = false } = {}) {
   if (!state.studio.pdfDoc) return false;
+  const studioDoc = state.studio.pdfDoc;
   const target = Math.max(1, Math.min(state.studio.totalCount, Number(pageNum) || 1));
   const slot = studioPageSlot(target) || createStudioPageSlot(target);
   const canvas = slot.querySelector('.pdf-page-canvas');
   const loading = slot.querySelector('.studio-page-loading');
-  const basePage = await state.studio.pdfDoc.getPage(target);
+  const basePage = await studioDoc.getPage(target);
+  if (state.studio.pdfDoc !== studioDoc) return false;
   const baseViewport = basePage.getViewport({ scale: 1 });
   const scale = getStudioPageScale(baseViewport);
   const viewport = basePage.getViewport({ scale });
@@ -2003,7 +2242,14 @@ async function renderStudioPage(pageNum, { priority = false, force = false } = {
   }
 
   const oldTask = state.studio.pageRenderTasks.get(target);
-  if (oldTask) { try { oldTask.cancel(); } catch { /* already completed */ } }
+  if (oldTask && target === state.studio.currentPage) {
+    try { await oldTask.promise; } catch { /* the active page may be re-queued below */ }
+    if (state.studio.pdfDoc !== studioDoc) return false;
+    if (canvas.dataset.rendered === 'true' && Number(canvas.dataset.renderedScale) === scale) return true;
+    if (state.studio.pageRenderTasks.get(target) === oldTask) state.studio.pageRenderTasks.delete(target);
+  } else if (oldTask) {
+    try { oldTask.cancel(); } catch { /* already completed */ }
+  }
   const renderId = String((Number(slot.dataset.renderId) || 0) + 1);
   slot.dataset.renderId = renderId;
   if (loading) { loading.hidden = false; loading.textContent = `Loading page ${target}…`; }
@@ -2026,7 +2272,11 @@ async function renderStudioPage(pageNum, { priority = false, force = false } = {
   try {
     await renderTask.promise;
   } catch (err) {
-    if (slot.dataset.renderId !== renderId || err?.name === 'RenderingCancelledException') return false;
+    if (slot.dataset.renderId !== renderId || state.studio.pdfDoc !== studioDoc) return false;
+    if (err?.name === 'RenderingCancelledException') {
+      if (target === state.studio.currentPage) requestAnimationFrame(() => renderStudioPage(target, { priority: true, force: true }));
+      return false;
+    }
     if (loading) {
       loading.hidden = false;
       loading.innerHTML = `Page ${target} could not render. <button type="button" class="studio-page-retry" data-page="${target}">Retry</button>`;
@@ -2056,7 +2306,7 @@ function pruneStudioPageCanvases(centerPage) {
     // A render started for an older scroll position can finish after the user
     // has navigated elsewhere. Keep the active page (and its immediate neighbors)
     // pinned so that an outdated render cannot blank the page the user is viewing.
-    if (Math.abs(pageNum - centerPage) <= 2 || Math.abs(pageNum - state.studio.currentPage) <= 2 || state.studio.pageRenderTasks.has(pageNum)) return;
+    if (pageNum === state.studio.currentPage || Math.abs(pageNum - centerPage) <= 2 || Math.abs(pageNum - state.studio.currentPage) <= 2 || state.studio.pageRenderTasks.has(pageNum)) return;
     const canvas = slot.querySelector('.pdf-page-canvas');
     if (canvas?.dataset.rendered === 'true') {
       canvas.width = 0;
@@ -2073,14 +2323,20 @@ async function jumpToStudioPage(pageNum, behavior = 'auto') {
   const target = Math.max(1, Math.min(state.studio.totalCount, Number(pageNum) || 1));
   const slot = studioPageSlot(target) || createStudioPageSlot(target);
   setActiveStudioPage(target);
-  // Put the requested sheet into the viewport before awaiting PDF.js. This keeps
-  // page entry/thumbnail navigation useful even when a large document needs time
-  // to paint the target; the visible page shows its render status immediately.
+  // Render first, then align the final page box. PDF.js can replace the initial
+  // placeholder dimensions while it paints, which otherwise shifts phone scroll
+  // by nearly a full page and makes reload restore the previous page.
+  let rendered = await renderStudioPage(target, { priority: true });
+  if (!rendered) rendered = await renderStudioPage(target, { priority: true, force: true });
+  setActiveStudioPage(target, { scrollThumbnail: false });
+
   const area = $('#studio-canvas-area');
   if (area) {
     if (window.matchMedia('(max-width: 900px)').matches) {
-      const headerOffset = $('.topbar')?.getBoundingClientRect().height || 56;
-      const pageTop = slot.getBoundingClientRect().top + window.scrollY - headerOffset - 12;
+      const headerBottom = $('.topbar')?.getBoundingClientRect().bottom || 56;
+      const focusLine = headerBottom + Math.min((window.innerHeight - headerBottom) * 0.34, 260);
+      const pageAnchor = slot.getBoundingClientRect().top + window.scrollY + Math.min(slot.getBoundingClientRect().height * 0.25, 180);
+      const pageTop = pageAnchor - focusLine;
       window.scrollTo({ top: Math.max(0, pageTop), behavior });
     } else {
       const areaTop = area.getBoundingClientRect().top;
@@ -2088,8 +2344,7 @@ async function jumpToStudioPage(pageNum, behavior = 'auto') {
       area.scrollTo({ top: Math.max(0, pageTop - 10), behavior });
     }
   }
-  let rendered = await renderStudioPage(target, { priority: true });
-  if (!rendered) rendered = await renderStudioPage(target, { priority: true, force: true });
+  studioPageJumpLockUntil = performance.now() + 900;
   return rendered;
 }
 
@@ -2109,6 +2364,8 @@ if (studioCanvasArea) {
     requestAnimationFrame(() => {
       activeSyncScheduled = false;
       if (!state.studio.pdfDoc) return;
+      if (state.studio.isLoading) return;
+      if (performance.now() < studioPageJumpLockUntil) return;
       const mobilePageFlow = window.matchMedia('(max-width: 900px)').matches;
       const areaRect = mobilePageFlow
         ? { top: $('.topbar')?.getBoundingClientRect().bottom || 0, bottom: window.innerHeight }
@@ -2565,6 +2822,12 @@ const annotateRibbon = $('#studio-annotate-ribbon');
 const batchBar = $('#organizer-batch-bar');
 
 if (btnModeAnnotate && btnModeOrganize) {
+  const preservePageThroughModeChange = () => {
+    if (!state.studio.pdfDoc) return;
+    const pageToKeep = Math.max(1, Number($('#page-jump-input')?.value) || state.studio.currentPage || 1);
+    requestAnimationFrame(() => requestAnimationFrame(() => jumpToStudioPage(pageToKeep, 'auto')));
+  };
+
   btnModeAnnotate.onclick = () => {
     btnModeAnnotate.classList.add('active');
     btnModeOrganize.classList.remove('active');
@@ -2573,6 +2836,7 @@ if (btnModeAnnotate && btnModeOrganize) {
     if (window.PaperplanePageOrganizer) {
       window.PaperplanePageOrganizer._updateBatchToolbar();
     }
+    preservePageThroughModeChange();
   };
 
   btnModeOrganize.onclick = () => {
@@ -2584,6 +2848,7 @@ if (btnModeAnnotate && btnModeOrganize) {
     } else if (batchBar) {
       batchBar.hidden = true;
     }
+    preservePageThroughModeChange();
   };
 }
 
@@ -2759,7 +3024,7 @@ function renderOptions() {
   } else if (state.operation === 'metadata') {
     fields += field('title', 'Document Title', 'text', '') + field('author', 'Author', 'text', '') + field('subject', 'Subject', 'text', '');
   } else if (state.operation === 'forms') {
-    fields += `<div class="option-field" style="grid-column: span 2;"><label for="fields">Form JSON Map</label><input id="fields" type="text" placeholder='{"Name":"Alex", "Email":"alex@example.com", "City":"Pune"}'></div>`;
+    fields += `<div class="option-field option-field-wide"><label for="fields">Form JSON Map</label><textarea id="fields" rows="3" wrap="soft" placeholder='{"Name":"Alex", "Email":"alex@example.com", "City":"Pune"}'></textarea></div>`;
   } else if (state.operation === 'ai_extract') {
     fields += selectField('doc_type', 'Document Type', ['auto', 'general', 'invoice', 'resume']);
   }
@@ -2767,6 +3032,20 @@ function renderOptions() {
   o.innerHTML = fields;
   o.hidden = !fields;
   o.style.display = fields ? '' : 'none';
+
+  if (state.operation === 'forms') {
+    const formMap = $('#fields');
+    if (formMap) {
+      const resizeFormMap = () => {
+        formMap.style.height = 'auto';
+        const maxHeight = Math.max(240, Math.min(720, Math.round(window.innerHeight * 0.85)));
+        formMap.style.height = `${Math.min(formMap.scrollHeight, maxHeight)}px`;
+        formMap.style.overflowY = formMap.scrollHeight > maxHeight ? 'auto' : 'hidden';
+      };
+      formMap.addEventListener('input', resizeFormMap);
+      resizeFormMap();
+    }
+  }
 
   if (state.operation === 'html_to_pdf') {
     const urlEl = $('#url');
@@ -2854,7 +3133,7 @@ function addFiles(newFiles) {
           renderOptions();
           updateButton();
         } else if (typeof pdfjsLib !== 'undefined') {
-          const doc = await pdfjsLib.getDocument({ data: e.target.result }).promise;
+          const doc = await pdfjsLib.getDocument({ data: e.target.result, isEvalSupported: false }).promise;
           state.splitPageCount = doc.numPages;
           renderOptions();
           updateButton();
@@ -3059,9 +3338,27 @@ $('#cloud-form').onsubmit = async e => {
       if (file.type !== 'application/pdf' || signature !== '%PDF-') {
         throw new Error('This tool currently imports PDF files only. Choose a direct PDF link; images and Office files must use their matching converter.');
       }
-      addFiles([file]);
+      let pageCount = 0;
+      try {
+        const parsed = await pdfjsLib.getDocument({ data: await file.arrayBuffer(), isEvalSupported: false }).promise;
+        pageCount = parsed.numPages;
+        await parsed.destroy();
+      } catch {
+        throw new Error('The link returned a PDF file, but this browser could not open it. Check that the PDF is not damaged or password-protected.');
+      }
+      if (state.activeView === 'ai') {
+        state.files = [file];
+        await writeLocalWork('ai-pdf', localPdfRecord(file));
+        rememberLocalWork(file.name);
+        updateAiDocBar();
+      } else if (state.activeView === 'studio') {
+        const loaded = await loadDocumentIntoStudio(file);
+        if (!loaded) throw new Error('The PDF could not be opened in Studio. Your current document is still available.');
+      } else {
+        addFiles([file]);
+      }
       $('#cloud-modal').hidden = true;
-      showToast(`Imported ${res.filename} via ${res.provider}!`);
+      showToast(`Imported ${file.name} · ${(file.size / (1024 * 1024)).toFixed(2)} MB · ${pageCount} pages`, 'success', 6000);
     } else throw new Error('The link did not return a downloadable PDF. Check sharing access and try again.');
   } catch (err) {
     if (errorBox) { errorBox.textContent = err.message; errorBox.hidden = false; }
@@ -3144,7 +3441,7 @@ $('#job-form').onsubmit = async e => {
 
   // Server Workflow Execution
   const options = {};
-  $$('#options input, #options select').forEach(input => {
+  $$('#options input, #options select, #options textarea').forEach(input => {
     if (input.value) {
       options[input.id] = input.type === 'number' ? Number(input.value) : input.value;
     }
@@ -3447,13 +3744,19 @@ function showAiChatDeskResult(data) {
   $('.ai-open-studio-result-btn')?.addEventListener('click', () => switchWorkspaceView('ai'));
 }
 
-function showSummaryDeskResult(summary) {
+function summaryCitationHtml(citations = []) {
+  const pages = [...new Set((Array.isArray(citations) ? citations : []).map(Number).filter(Number.isInteger))].sort((a, b) => a - b);
+  if (!pages.length) return '<div class="ai-result-citations"><strong>Sources</strong><span class="ai-citation-tag muted">No verified page citations returned</span></div>';
+  return `<div class="ai-result-citations"><strong>Verified pages</strong>${pages.map(page => `<span class="ai-citation-tag">Page ${page}</span>`).join('')}</div>`;
+}
+
+function showSummaryDeskResult(summary, citations = []) {
   currentSummaryText = summary || '';
   const fileName = (state.files[0]?.name || 'document').replace(/\.[^/.]+$/, '');
   showRichAiResult(
     'Executive briefing ready',
     `${fileName} · formatted Markdown · local/provider grounded`,
-    `<article class="ai-result-markdown">${renderMarkdown(currentSummaryText)}</article><div class="ai-result-actions"><button type="button" class="btn-demo-upgrade" id="desk-copy-summary-btn">Copy Summary</button><button type="button" class="btn-demo-upgrade" id="desk-download-summary-txt-btn">Download TXT</button><button type="button" class="btn-demo-upgrade" id="desk-download-summary-pdf-btn">Download PDF</button></div>`,
+    `<article class="ai-result-markdown">${renderMarkdown(currentSummaryText)}</article>${summaryCitationHtml(citations)}<div class="ai-result-actions"><button type="button" class="btn-demo-upgrade" id="desk-copy-summary-btn">Copy Summary</button><button type="button" class="btn-demo-upgrade" id="desk-download-summary-txt-btn">Download TXT</button><button type="button" class="btn-demo-upgrade" id="desk-download-summary-pdf-btn">Download PDF</button></div>`,
     { showStudio: false },
   );
   $('#desk-copy-summary-btn')?.addEventListener('click', async () => {
@@ -3489,7 +3792,7 @@ async function runDeskAiWorkflow(options) {
     const form = new FormData();
     form.append('file', state.files[0]);
     const data = await safeFetch('/api/ai/summarize', { method: 'POST', body: form });
-    showSummaryDeskResult(data.summary);
+    showSummaryDeskResult(data.summary, data.citations);
     showToast('Executive briefing rendered on-screen.', 'success');
     return;
   }
@@ -3509,12 +3812,26 @@ async function runDeskAiWorkflow(options) {
     form.append('file', state.files[0]);
     form.append('target_language', options.target_language || 'es');
     const { blob, response } = await fetchBinary('/api/ai/translate', { method: 'POST', body: form });
-    const url = URL.createObjectURL(blob);
     const warningCount = response.headers.get('X-Paperplane-Translation-Warnings') || '0';
     const mode = response.headers.get('X-Paperplane-Translation-Mode') || 'translated';
     const name = `${(state.files[0]?.name || 'document').replace(/\.[^/.]+$/, '')}_translated.pdf`;
-    showRichAiResult('Translation workflow complete', `${options.target_language || 'es'} · ${mode === 'translated' ? 'translated blocks' : 'source preserved fallback'} · ${warningCount} warning(s)`, `<p>${mode === 'translated' ? 'Translated text was rendered into the original page layout.' : 'The provider was unavailable within the bounded budget, so source text was preserved instead of claiming a false translation.'}</p><a class="btn-download" href="${url}" download="${escapeHtml(name)}">Download translated PDF</a>`, { showStudio: false });
-    showToast('Translation result rendered with bounded fallback behavior.', mode === 'translated' ? 'success' : 'warning');
+    const targetLanguage = options.target_language || 'es';
+    if (mode === 'failed' || mode === 'source_preserved') {
+      showRichAiResult('Translation failed', `${targetLanguage} · no translated text produced · ${warningCount} warning(s)`, '<p>No translated PDF is available. The source document was not changed. Check the provider connection and retry.</p>', { showStudio: false });
+      showToast('Translation failed. No translated download was created.', 'error');
+      return;
+    }
+
+    const url = URL.createObjectURL(blob);
+    const isPartial = mode === 'partial';
+    const resultTitle = isPartial ? 'Partial translation ready' : 'Translation complete';
+    const resultSummary = `${targetLanguage} · ${isPartial ? 'some source text was preserved' : 'translated text'} · ${warningCount} warning(s)`;
+    const resultMessage = isPartial
+      ? 'Some text could not be translated and remains in the original language. Review the PDF before sharing it.'
+      : 'Translated text was rendered into the original page layout.';
+    const downloadLabel = isPartial ? 'Download partial translation' : 'Download translated PDF';
+    showRichAiResult(resultTitle, resultSummary, `<p>${resultMessage}</p><a class="btn-download" href="${url}" download="${escapeHtml(name)}">${downloadLabel}</a>`, { showStudio: false });
+    showToast(isPartial ? 'Partial translation ready; some source text remains.' : 'Translation completed.', isPartial ? 'warning' : 'success');
   }
 }
 
@@ -3666,7 +3983,7 @@ function updateAiDocBar() {
     if (docName) docName.textContent = file.name;
     if (docMeta) docMeta.textContent = `${formatBytes(file.size)} • PDF Document • Loaded & Ready`;
     if (docMeta && window.pdfjsLib) {
-      file.arrayBuffer().then(buffer => window.pdfjsLib.getDocument({ data: buffer }).promise)
+      file.arrayBuffer().then(buffer => window.pdfjsLib.getDocument({ data: buffer, isEvalSupported: false }).promise)
         .then(pdf => { if (state.files[0] === file) docMeta.textContent = `${formatBytes(file.size)} • ${pdf.numPages} pages • Loaded & Ready`; })
         .catch(() => { /* The chat upload still reports a readable user-facing status. */ });
     }
@@ -3870,11 +4187,10 @@ $('#chat-form').onsubmit = async e => {
   if (!state.files.length && questionRequiresPdf(question)) {
     const guidance = document.createElement('div');
     guidance.className = 'chat-bubble ai ai-document-required';
-    guidance.innerHTML = '<strong>Paperplane AI:</strong><p>Upload a PDF to ask questions about a document. General questions work without a PDF.</p>';
+    guidance.innerHTML = '<strong>Paperplane AI:</strong><p>Upload PDF to chat and ask questions about a document. General questions work without a PDF.</p>';
     msgs.appendChild(guidance);
     state.aiConversation.push({ role: 'user', text: question });
-    state.aiConversation.push({ role: 'assistant', kind: 'document-required', text: 'Upload a PDF to ask questions about a document. General questions work without a PDF.' });
-    state.aiConversation = state.aiConversation.slice(-50);
+    state.aiConversation.push({ role: 'assistant', kind: 'document-required', text: 'Upload PDF to chat and ask questions about a document. General questions work without a PDF.' });
     persistAiConversation();
     updateAiDocBar();
     msgs.scrollTop = msgs.scrollHeight;
@@ -4003,7 +4319,10 @@ $('#chat-form').onsubmit = async e => {
     input.disabled = false;
     if (chatStopBtn) chatStopBtn.hidden = true;
     if (!streamFailed && stageNode.textContent === 'Complete') stageDots?.remove();
-    if (!streamFailed && stageNode.textContent === 'Complete') addAiConversationTurn(question, answerText, responseCitations);
+    if (!streamFailed && stageNode.textContent === 'Complete') {
+      addAiConversationTurn(question, answerText, responseCitations);
+      await refreshQuotaUsage();
+    }
     msgs.scrollTop = msgs.scrollHeight;
   }
 };
@@ -4034,7 +4353,7 @@ async function generateExecutiveBrief() {
     const res = await safeFetch('/api/ai/summarize', { method: 'POST', body: form });
     currentSummaryText = res.summary || '';
     if (!currentSummaryText.trim()) throw new Error('Paperplane AI returned an empty executive brief. Please retry.');
-    summaryBox.innerHTML = renderMarkdown(currentSummaryText);
+    summaryBox.innerHTML = `${renderMarkdown(currentSummaryText)}${summaryCitationHtml(res.citations)}`;
     if (actionsBar) actionsBar.hidden = false;
     showToast('Executive brief generated successfully!', 'success');
   } catch (err) {
@@ -4227,8 +4546,8 @@ function renderExtractionResultsModal(data) {
       const gen = data.general_data || {};
       const fields = [
         { label: 'Document Title', val: gen.title, highlight: true },
-        { label: 'Document Date', val: gen.document_date },
-        { label: 'Detected Topics Count', val: gen.detected_topics?.length ? `${gen.detected_topics.length} topics` : null }
+        ...(gen.document_date ? [{ label: 'Document Date', val: gen.document_date }] : []),
+        { label: 'Detected Topics Count', val: gen.detected_topics?.length ? `${gen.detected_topics.length} topic${gen.detected_topics.length === 1 ? '' : 's'}` : null }
       ];
 
       fields.forEach(f => {
@@ -5302,6 +5621,7 @@ async function initiateCheckout(tier, btnEl) {
 
 async function init() {
   const startupNavigationVersion = workspaceNavigationVersion;
+  restoreCachedAuthShell();
   // Snapshot reload-only session markers before asynchronous setup. Reading
   // them after the network awaits can consume fresh work created by a fast user.
   let previousView = null;
@@ -5315,6 +5635,7 @@ async function init() {
   initBillingHandlers();
   initMobileNav();
   initHomeSearchAndFilter();
+  initToolDeskDirectory();
   await checkAuthStatus();
   await checkExecutiveBriefAvailability();
   await handleCashfreeReturn();
@@ -5325,6 +5646,7 @@ async function init() {
     state.operations = data;
     renderSidebarTools();
     renderHomeToolsGrid();
+    renderToolDeskDirectory();
     const userNavigatedDuringStartup = workspaceNavigationVersion !== startupNavigationVersion;
     if (!userNavigatedDuringStartup) {
       handleInitialRouting();
@@ -5558,38 +5880,43 @@ function handleInitialRouting() {
   const path = window.location.pathname.toLowerCase();
   const pathSlug = path.replace(/^\/+|\/+$/g, '');
   const urlParams = new URLSearchParams(window.location.search);
+  // Initial route resolution may finish after the user has opened Cloud Import.
+  // Preserve that explicit action instead of silently dismissing the modal.
+  const setInitialView = (view, extra = null) => switchWorkspaceView(view, extra, false, true);
 
   if (typeof checkPasswordResetUrl === 'function') {
     checkPasswordResetUrl();
   }
 
   if (path.includes('terms') || urlParams.get('legal') === 'terms' || urlParams.get('tab') === 'terms') {
-    switchWorkspaceView('legal', 'terms', false);
+    setInitialView('legal', 'terms');
   } else if (path.includes('privacy') || urlParams.get('legal') === 'privacy' || urlParams.get('view') === 'legal') {
-    switchWorkspaceView('legal', 'privacy', false);
+    setInitialView('legal', 'privacy');
   } else if (path.includes('reset-password')) {
     checkPasswordResetUrl();
-    switchWorkspaceView('home', null, false);
+    setInitialView('home');
   } else if (path.includes('developers') || path.includes('api-docs') || path.includes('/docs/api') || urlParams.get('view') === 'api-docs') {
-    switchWorkspaceView('api-docs', null, false);
+    setInitialView('api-docs');
   } else if (path.includes('download') || path.includes('apps') || urlParams.get('view') === 'download') {
-    switchWorkspaceView('download', null, false);
+    setInitialView('download');
   } else if (pathSlug === 'tool-desk') {
-    switchWorkspaceView('home', null, false);
+    setInitialView('tool-desk');
+  } else if (pathSlug === 'studio' || urlParams.get('view') === 'studio') {
+    setInitialView('studio');
   } else if (OPERATION_BY_SLUG[pathSlug]) {
-    selectOperation(OPERATION_BY_SLUG[pathSlug], true);
+    selectOperation(OPERATION_BY_SLUG[pathSlug], true, true);
   } else if (pathSlug === 'convert-pdf') {
     activateHomeCategoryFilter('convert');
-    switchWorkspaceView('home', null, false);
+    setInitialView('home');
   } else if (pathSlug === 'pdf-security') {
     activateHomeCategoryFilter('security');
-    switchWorkspaceView('home', null, false);
+    setInitialView('home');
   } else if (urlParams.get('tool') && state.operations && state.operations[urlParams.get('tool')]) {
     // Backward compatibility for links created before clean URL routing.
-    selectOperation(urlParams.get('tool'), true);
+    selectOperation(urlParams.get('tool'), true, true);
   } else {
     selectOperation('merge', false);
-    switchWorkspaceView('home', null, false);
+    setInitialView('home');
   }
 }
 
@@ -5610,7 +5937,9 @@ window.addEventListener('popstate', e => {
   } else if (path.includes('download') || path.includes('apps')) {
     switchWorkspaceView('download', null, false);
   } else if (pathSlug === 'tool-desk') {
-    switchWorkspaceView('home', null, false);
+    switchWorkspaceView('tool-desk', null, false);
+  } else if (pathSlug === 'studio') {
+    switchWorkspaceView('studio', null, false);
   } else if (OPERATION_BY_SLUG[pathSlug]) {
     selectOperation(OPERATION_BY_SLUG[pathSlug], true);
   } else if (urlParams.get('tool')) {

@@ -1,0 +1,38 @@
+# 1124f76067814f8ebe2716d7041344aa_audit-sample
+
+## Page 1
+
+
+# PAPERPLANE_AUDIT_SAMPLE
+
+### AUDIT_PAGE_1
+
+Applicant: Synthetic Example Person
+
+Document date: 2026-11-07
+
+TEST_SECRET: REDACT_ME_NOW
+
+| Item | Amount | Status |
+| --- | --- | --- |
+| Application | 19.00 | Paid |
+| Processing | 49.00 | Pending |
+
+---
+
+## Page 2
+
+
+# PAPERPLANE_AUDIT_SAMPLE
+
+### AUDIT_PAGE_2
+
+Applicant: Synthetic Example Person
+
+Document date: 2026-11-07
+
+TEST_SECRET: REDACT_ME_NOW
+
+AUDIT_SECOND_PAGE_ORIGINAL
+
+Synthetic Aadhaar test: 1234 5678 9012

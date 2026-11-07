@@ -1,0 +1,27 @@
+{
+  "before": {
+    "modalHidden": false,
+    "button": "<button type=\"submit\" class=\"btn-primary-action\" id=\"cloud-submit-btn\" style=\"width: 100%; justify-content: center;\">\n          Fetch &amp; Import Document <span>\u2192</span>\n        </button>",
+    "buttonText": "Fetch & Import Document\n\u2192",
+    "disabled": false,
+    "formValid": true
+  },
+  "clicked": false,
+  "click_error": "Locator.click: Timeout 10000ms exceeded.",
+  "elapsed": 100.1,
+  "states": [
+    {
+      "modalHidden": false,
+      "disabled": false,
+      "text": "\n          Fetch & Import Document \u2192\n        ",
+      "errorHidden": false,
+      "error": "",
+      "toast": null,
+      "count": "0"
+    }
+  ],
+  "requests": [],
+  "responses": [],
+  "errors": [],
+  "url": "http://127.0.0.1:8501/studio"
+}

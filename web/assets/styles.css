@@ -1243,7 +1243,12 @@ body.high-contrast .dropzone.over {
 }
 
 .option-field input,
-.option-field select {
+.option-field select,
+.option-field textarea {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   padding: 10px 14px;
   border: 1px solid var(--border-light);
   border-radius: 8px;
@@ -1254,8 +1259,16 @@ body.high-contrast .dropzone.over {
   transition: border-color 0.15s ease;
 }
 
+.option-field textarea {
+  min-height: 4.5em;
+  line-height: 1.45;
+  resize: vertical;
+  overflow-wrap: anywhere;
+}
+
 .option-field input:focus,
-.option-field select:focus {
+.option-field select:focus,
+.option-field textarea:focus {
   border-color: var(--accent);
   background: var(--bg-panel-alt);
 }
@@ -5208,6 +5221,11 @@ body:not(.light-mode) .editor-select option {
 .auth-pending #topbar-auth-guest, .auth-pending #topbar-auth-user,
 .auth-pending #topbar-upgrade-btn, .auth-pending #sidebar-upgrade-btn,
 .auth-pending .profile-card { visibility: hidden; }
+.auth-restoring #topbar-auth-guest,
+.auth-restoring #topbar-upgrade-btn,
+.auth-restoring #sidebar-upgrade-btn,
+.auth-restoring .profile-card { visibility: hidden; }
+.auth-pending.auth-restoring #topbar-auth-user { visibility: visible; }
 .dynamic-workspace, .tool-desk-container, .home-tools-catalog, .home-cat-section { min-width: 0; max-width: 100%; }
 .home-cat-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr)); }
 [hidden] { display: none !important; }
@@ -8189,6 +8207,53 @@ body.dark-mode .dropzone:hover, body.dark-mode .dropzone.over { background: #202
 .ai-upload-inline-btn { flex: 0 0 auto; }
 .ai-studio-wrapper > .ephemeral-work-notice { align-self: stretch; margin: 0 0 10px; }
 
+@media (min-width: 901px) and (max-width: 1180px) {
+  .workspace-tabs { max-width: 100%; overflow-x: auto; scrollbar-width: thin; }
+  .tab-pill { min-height: 40px; flex: 0 0 auto; white-space: nowrap; }
+  .topbar-left, .topbar-right { min-width: 0; }
+}
+
+.tool-desk-directory { width: min(100%, 1480px); margin: 0 auto; padding: 28px 24px 48px; box-sizing: border-box; }
+.tool-desk-directory-hero { max-width: 980px; margin: 8px auto 32px; padding: clamp(20px, 4vw, 36px); border: 1px solid var(--border-subtle); border-radius: 18px; background: var(--bg-panel); box-shadow: 0 10px 28px rgba(14, 26, 28, .08); }
+.tool-desk-directory-hero h1 { margin: 6px 0 8px; font-size: clamp(28px, 4vw, 42px); line-height: 1.1; }
+.tool-desk-directory-hero > p { max-width: 620px; margin: 0; color: var(--text-muted); line-height: 1.55; }
+.tool-desk-search-wrap { display: flex; align-items: center; gap: 12px; max-width: 720px; min-height: 52px; margin: 22px 0 14px; padding: 0 15px; border: 1px solid var(--border-light); border-radius: 12px; color: var(--text-muted); background: var(--bg-main); box-sizing: border-box; }
+.tool-desk-search-wrap:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent); }
+.tool-desk-search-wrap input { width: 100%; min-width: 0; min-height: 48px; border: 0; outline: 0; background: transparent; color: var(--text-main); font: inherit; }
+.tool-desk-directory-filters { display: flex; gap: 8px; max-width: 100%; overflow-x: auto; padding: 3px 2px 8px; scrollbar-width: thin; }
+.tool-desk-directory-filters .filter-pill { min-height: 40px; flex: 0 0 auto; }
+.tool-desk-directory .home-tool-card { width: 100%; text-align: left; font: inherit; cursor: pointer; }
+.tool-desk-search-meta { margin: 0 0 14px; color: var(--text-muted); font-size: 13px; }
+.studio-action-feedback { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; margin: 8px 0; padding: 10px 12px; border: 1px solid var(--border-light); border-radius: 10px; color: var(--text-main); background: var(--bg-panel); font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; }
+.studio-action-feedback a { color: var(--accent); font-weight: 700; }
+.studio-action-feedback[hidden] { display: none !important; }
+.studio-action-feedback .work-clear-btn { min-height: 36px; }
+section, h1, h2, h3 { scroll-margin-top: 104px; }
+
+@media (max-width: 900px) {
+  .sidebar-tool-item,
+  .nav-category-tab {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .tool-desk-directory { padding: 16px 8px 30px; }
+  .tool-desk-directory-hero { margin: 0 0 18px; padding: 18px 14px; border-radius: 14px; }
+  .tool-desk-directory-hero h1 { font-size: 30px; }
+  .tool-desk-directory-filters { flex-wrap: wrap; overflow: visible; margin-right: 0; }
+  .tool-desk-directory .home-cat-grid { display: grid; grid-template-columns: minmax(0, 1fr); overflow: visible; gap: 12px; }
+  .tool-desk-directory .home-tool-card { width: 100%; min-width: 0; }
+  .tool-desk-search-meta { padding: 0 4px; }
+  .mobile-workspace-bar { display: flex; }
+  .mobile-nav-btn { flex: 1 1 0; min-width: 0; padding: 5px 2px; font-size: 9px; gap: 3px; }
+  .mobile-nav-btn span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .studio-action-feedback { align-items: flex-start; margin: 8px 0; font-size: 12px; }
+  .studio-active .studio-undo-banner { position: relative; }
+  #forms-import-json-text { display: block; width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; white-space: pre-wrap; overflow-wrap: anywhere; overflow-x: auto; }
+}
+
 /* Phone workspaces use document scrolling. This gives every toolbar row,
    thumbnail and result its own space instead of stacking fixed panels. */
 @media (max-width: 900px) {
@@ -8219,7 +8284,7 @@ body.dark-mode .dropzone:hover, body.dark-mode .dropzone.over { background: #202
     overflow: visible !important;
     box-sizing: border-box;
   }
-  .sidebar.mobile-open { z-index: 500 !important; }
+  .sidebar.mobile-open { z-index: 90 !important; }
   .app-global-footer { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
 
   /* Editor thumbnail strip and toolbar all participate in normal page flow. */
@@ -8254,20 +8319,34 @@ body.dark-mode .dropzone:hover, body.dark-mode .dropzone.over { background: #202
     height: auto !important;
     min-height: 0 !important;
     max-height: 176px !important;
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
     padding: 8px !important;
     box-sizing: border-box;
   }
   .studio-active .organizer-subnav { display: flex; width: 100%; min-height: 42px; justify-content: space-between; }
-  .studio-active .organizer-grid.strip-mode { display: flex !important; flex-flow: row nowrap !important; width: max-content !important; min-width: 100%; max-width: none !important; gap: 8px; overflow: visible !important; }
-  .studio-active .organizer-grid.strip-mode .organizer-thumb-card { flex: 0 0 76px !important; width: 76px !important; max-width: 76px !important; min-height: 112px; }
+  .studio-active .organizer-grid.strip-mode {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    gap: 8px;
+    overflow: visible !important;
+  }
+  .studio-active .organizer-grid.strip-mode .organizer-thumb-card {
+    flex: initial !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    min-height: 112px;
+  }
   .studio-active .organizer-thumb-card canvas,
   .studio-active .organizer-thumb-card img { display: block; max-width: 100%; height: auto; }
   .studio-active .studio-main-viewport { gap: 0; }
   .studio-active .studio-main-viewport > .ephemeral-work-notice { flex: 0 0 auto; margin: 8px; font-size: 12px; }
   .studio-active .work-clear-btn { min-height: 40px; }
-  .studio-active .studio-toolbar { position: relative !important; top: auto !important; z-index: 10 !important; width: 100%; height: auto !important; max-height: none !important; overflow: visible !important; }
+  .studio-active .studio-toolbar { position: relative !important; top: auto !important; z-index: 130 !important; width: 100%; height: auto !important; max-height: none !important; overflow: visible !important; }
   .studio-active .studio-primary-ribbon,
   .studio-active .studio-sub-ribbon {
     display: flex !important;
@@ -8430,4 +8509,205 @@ body.dark-mode .dropzone:hover, body.dark-mode .dropzone.over { background: #202
     padding: 4px 7px;
     font-size: 10px;
   }
+}
+
+/* Keep mobile tool discovery readable without requiring a sideways swipe. */
+@media (max-width: 900px) {
+  .home-cat-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    overflow: visible !important;
+    padding: 2px 0 10px;
+    scroll-snap-type: none;
+  }
+
+  .home-tool-card {
+    width: 100%;
+    min-width: 0;
+    flex: initial !important;
+    scroll-snap-align: none;
+  }
+}
+
+/* Mobile Studio is a fixed editor workspace: thumbnails stay reachable while
+   continuous page scrolling happens inside the canvas viewport. */
+@media (max-width: 900px) {
+  html.studio-active,
+  html.studio-active body {
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    overflow: hidden !important;
+  }
+
+  html.studio-active body #app-shell {
+    display: block !important;
+    width: 100% !important;
+    height: 100dvh !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  html.studio-active body #app-shell .main-area {
+    display: flex !important;
+    flex: 1 1 auto !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    height: calc(100dvh - 62px) !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 64px 0 0 !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+
+  html.studio-active body #app-shell .dynamic-workspace {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  html.studio-active body #view-pdf-studio {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  html.studio-active body .pdf-studio {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+    border-radius: 0 !important;
+  }
+
+  html.studio-active body .studio-thumbnails-bar {
+    display: flex !important;
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: 180px !important;
+    overflow: hidden !important;
+  }
+
+  html.studio-active body .studio-thumbnails-header { flex: 0 0 40px !important; min-height: 40px !important; }
+  html.studio-active body .studio-thumbnails-scroll {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: 138px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    padding-bottom: 64px !important;
+    box-sizing: border-box !important;
+  }
+
+  html.studio-active body .organizer-grid.strip-mode {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    gap: 8px !important;
+    overflow: visible !important;
+  }
+  html.studio-active body .organizer-grid.strip-mode .organizer-thumb-card {
+    flex: initial !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    min-height: 112px !important;
+  }
+
+  html.studio-active body .studio-main-viewport {
+    display: flex !important;
+    flex: 1 1 0 !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    height: 0 !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: hidden !important;
+  }
+  html.studio-active body .studio-toolbar {
+    position: relative !important;
+    top: auto !important;
+    z-index: 130 !important;
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  html.studio-active body .studio-primary-ribbon,
+  html.studio-active body .studio-sub-ribbon {
+    display: flex !important;
+    flex: 0 0 52px !important;
+    flex-flow: row nowrap !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 6px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 52px !important;
+    max-height: 52px !important;
+    height: 52px !important;
+    padding: 5px 8px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+    scrollbar-width: thin;
+  }
+  html.studio-active body .studio-primary-ribbon > *,
+  html.studio-active body .studio-sub-ribbon > *,
+  html.studio-active body .studio-tool-group,
+  html.studio-active body .studio-mode-switcher {
+    flex: 0 0 auto !important;
+    flex-wrap: nowrap !important;
+    min-width: max-content;
+  }
+  html.studio-active body .studio-divider { display: block !important; flex: 0 0 1px !important; height: 24px !important; }
+  html.studio-active body .studio-tool-btn { flex: 0 0 auto !important; min-height: 42px !important; white-space: nowrap !important; }
+  html.studio-active body .studio-canvas-area {
+    display: block !important;
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    height: 0 !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    padding: 10px 8px 20px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    box-sizing: border-box !important;
+  }
+  html.studio-active body #studio-page-stack {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    overflow: visible !important;
+    gap: 12px !important;
+  }
+  html.studio-active body .studio-page-sheet { max-width: calc(100vw - 40px) !important; }
+  html.studio-active body .studio-page-sheet .pdf-page-canvas { display: block; max-width: 100% !important; height: auto !important; }
 }

@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8501/translate-pdf",
+  "mocked_modes": [
+    "failed",
+    "partial"
+  ],
+  "response_headers": [
+    {
+      "x-paperplane-translation-warnings": "1",
+      "content-length": "1001",
+      "x-paperplane-translation-mode": "failed",
+      "content-type": "application/pdf"
+    },
+    {
+      "x-paperplane-translation-warnings": "1",
+      "content-length": "1001",
+      "x-paperplane-translation-mode": "partial",
+      "content-type": "application/pdf"
+    }
+  ],
+  "results": [
+    {
+      "mode": "failed",
+      "heading": "Translation failed",
+      "download_links": 0,
+      "download_label": null
+    },
+    {
+      "mode": "partial",
+      "heading": "Partial translation ready",
+      "download_links": 1,
+      "download_label": "Download partial translation"
+    }
+  ],
+  "page_or_console_errors": []
+}

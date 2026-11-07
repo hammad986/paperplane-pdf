@@ -1,0 +1,806 @@
+{
+  "catalog_operation_count": 41,
+  "attempted": 37,
+  "skipped_unavailable": {
+    "ocr": {
+      "status": "DEPENDENCY_MISSING",
+      "reason": "Requires Tesseract OCR engine installed"
+    },
+    "ai_chat": {
+      "status": "SERVICE_UNAVAILABLE",
+      "reason": "Requires the Paperplane AI service to be configured and enabled"
+    },
+    "summarize": {
+      "status": "SERVICE_UNAVAILABLE",
+      "reason": "Requires the Paperplane AI service to be configured and enabled"
+    },
+    "translate": {
+      "status": "SERVICE_UNAVAILABLE",
+      "reason": "Requires the Paperplane AI translation service to be configured and enabled"
+    }
+  },
+  "results": [
+    {
+      "operation": "merge",
+      "status": "completed",
+      "elapsed_seconds": 0.19,
+      "output_filename": "audit-sample_merge.pdf",
+      "output_bytes": 10960,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\merge.pdf",
+      "verification": {
+        "extension": ".pdf",
+        "bytes": 10960,
+        "verified": true,
+        "opened_as_pdf": true,
+        "page_count": 4,
+        "text_chars": 778,
+        "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: Synthetic Example Person\nDocument date: 2026-11-07\nTEST_SECRET: REDACT_ME_NOW\nItem\nAmount\nStatus\nApplication\n19.00\nPaid\nProcessing\n49.00\nPending\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: Synthetic Example Person\nDocument date"
+      }
+    },
+    {
+      "operation": "split",
+      "status": "completed",
+      "elapsed_seconds": 0.19,
+      "output_filename": "audit-sample_split.pdf",
+      "output_bytes": 4367,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\split.pdf",
+      "verification": {
+        "extension": ".pdf",
+        "bytes": 4367,
+        "verified": true,
+        "opened_as_pdf": true,
+        "page_count": 1,
+        "text_chars": 193,
+        "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: Synthetic Example Person\nDocument date: 2026-11-07\nTEST_SECRET: REDACT_ME_NOW\nItem\nAmount\nStatus\nApplication\n19.00\nPaid\nProcessing\n49.00\nPending\n"
+      }
+    },
+    {
+      "operation": "remove",
+      "status": "completed",
+      "elapsed_seconds": 0.19,
+      "output_filename": "audit-sample_remove.pdf",
+      "output_bytes": 2143,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\remove.pdf",
+      "verification": {
+        "extension": ".pdf",
+        "bytes": 2143,
+        "verified": true,
+        "opened_as_pdf": true,
+        "page_count": 1,
+        "text_chars": 192,
+        "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: Synthetic Example Person\nDocument date: 2026-11-07\nTEST_SECRET: REDACT_ME_NOW\nAUDIT_SECOND_PAGE_ORIGINAL\nSynthetic Aadhaar test: 1234 5678 9012\n"
+      }
+    },
+    {
+      "operation": "rotate",
+      "status": "completed",
+      "elapsed_seconds": 0.19,
+      "output_filename": "audit-sample_rotate.pdf",
+      "output_bytes": 6024,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\rotate.pdf",
+      "verification": {
+        "extension": ".pdf",
+        "bytes": 6024,
+        "verified": true,
+        "opened_as_pdf": true,
+        "page_count": 2,
+        "text_chars": 386,
+        "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: Synthetic Example Person\nDocument date: 2026-11-07\nTEST_SECRET: REDACT_ME_NOW\nItem\nAmount\nStatus\nApplication\n19.00\nPaid\nProcessing\n49.00\nPending\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: Synthetic Example Person\nDocument date",
+        "rotations": [
+          90,
+          90
+        ]
+      }
+    },
+    {
+      "operation": "organize",
+      "status": "completed",
+      "elapsed_seconds": 0.19,
+      "output_filename": "audit-sample_organize.pdf",
+      "output_bytes": 5052,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\organize.pdf",
+      "verification": {
+        "extension": ".pdf",
+        "bytes": 5052,
+        "verified": true,
+        "opened_as_pdf": true,
+        "page_count": 2,
+        "text_chars": 386,
+        "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: Synthetic Example Person\nDocument date: 2026-11-07\nTEST_SECRET: REDACT_ME_NOW\nAUDIT_SECOND_PAGE_ORIGINAL\nSynthetic Aadhaar test: 1234 5678 9012\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: Synthetic Example Person\nDocument date:"
+      }
+    },
+    {
+      "operation": "scan_pdf",
+      "status": "completed",
+      "elapsed_seconds": 0.19,
+      "output_filename": "audit-photo_scan_pdf.pdf",
+      "output_bytes": 54384,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\scan_pdf.pdf",
+      "verification": {
+        "extension": ".pdf",
+        "bytes": 54384,
+        "verified": true,
+        "opened_as_pdf": true,
+        "page_count": 1,
+        "text_chars": 0,
+        "text_sample": "",
+        "first_page_dimensions": [
+          900,
+          1200
+        ]
+      }
+    },
+    {
+      "operation": "compress",
+      "status": "completed",
+      "elapsed_seconds": 0.21,
+      "output_filename": "audit-sample_compress.pdf",
+      "output_bytes": 1587,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\compress.pdf",
+      "verification": {
+        "extension": ".pdf",
+        "bytes": 1587,
+        "verified": true,
+        "opened_as_pdf": true,
+        "page_count": 2,
+        "text_chars": 386,
+        "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: Synthetic Example Person\nDocument date: 2026-11-07\nTEST_SECRET: REDACT_ME_NOW\nItem\nAmount\nStatus\nApplication\n19.00\nPaid\nProcessing\n49.00\nPending\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: Synthetic Example Person\nDocument date",
+        "source_bytes": 5053
+      }
+    },
+    {
+      "operation": "repair",
+      "status": "completed",
+      "elapsed_seconds": 0.22,
+      "output_filename": "audit-sample_repair.pdf",
+      "output_bytes": 1587,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\repair.pdf",
+      "verification": {
+        "extension": ".pdf",
+        "bytes": 1587,
+        "verified": true,
+        "opened_as_pdf": true,
+        "page_count": 2,
+        "text_chars": 386,
+        "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: Synthetic Example Person\nDocument date: 2026-11-07\nTEST_SECRET: REDACT_ME_NOW\nItem\nAmount\nStatus\nApplication\n19.00\nPaid\nProcessing\n49.00\nPending\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: Synthetic Example Person\nDocument date"
+      }
+    },
+    {
+      "operation": "ocr",
+      "status": "skipped_unavailable",
+      "reason": "Requires Tesseract OCR engine installed"
+    },
+    {
+      "operation": "jpg_to_pdf",
+      "status": "completed",
+      "elapsed_seconds": 0.2,
+      "output_filename": "audit-photo_jpg_to_pdf.pdf",
+      "output_bytes": 148292,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\jpg_to_pdf.pdf",
+      "verification": {
+        "extension": ".pdf",
+        "bytes": 148292,
+        "verified": true,
+        "opened_as_pdf": true,
+        "page_count": 2,
+        "text_chars": 1,
+        "text_sample": "\n",
+        "first_page_dimensions": [
+          596,
+          842
+        ]
+      }
+    },
+    {
+      "operation": "word_to_pdf",
+      "status": "completed",
+      "elapsed_seconds": 9.58,
+      "output_filename": "audit-office_word_to_pdf.pdf",
+      "output_bytes": 31195,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\word_to_pdf.pdf",
+      "verification": {
+        "extension": ".pdf",
+        "bytes": 31195,
+        "verified": true,
+        "opened_as_pdf": true,
+        "page_count": 1,
+        "text_chars": 128,
+        "text_sample": "PAPERPLANE_DOCX_AUDIT\nSynthetic office source for local converter verification.\nExpected text marker: AUDIT_OFFICE_WORD_OUTPUT.\n"
+      }
+    },
+    {
+      "operation": "excel_to_pdf",
+      "status": "completed",
+      "elapsed_seconds": 0.19,
+      "output_filename": "audit-office_excel_to_pdf.pdf",
+      "output_bytes": 2013,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\excel_to_pdf.pdf",
+      "verification": {
+        "extension": ".pdf",
+        "bytes": 2013,
+        "verified": true,
+        "opened_as_pdf": true,
+        "page_count": 1,
+        "text_chars": 122,
+        "text_sample": "Sheet: Audit Data\nItem\nAmount\nStatus\nApplication\n19\nPaid\nProcessing\n49\nPending\nMarker\nAUDIT_OFFICE_EXCEL_OUTPUT\nSynthetic\n",
+        "expected_marker": "audit_office_excel_output"
+      }
+    },
+    {
+      "operation": "powerpoint_to_pdf",
+      "status": "completed",
+      "elapsed_seconds": 9.59,
+      "output_filename": "audit-office_powerpoint_to_pdf.pdf",
+      "output_bytes": 27868,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\powerpoint_to_pdf.pdf",
+      "verification": {
+        "extension": ".pdf",
+        "bytes": 27868,
+        "verified": true,
+        "opened_as_pdf": true,
+        "page_count": 1,
+        "text_chars": 54,
+        "text_sample": "PAPERPLANE_PPTX_AUDIT\nAUDIT_OFFICE_POWERPOINT_OUTP\nUT\n"
+      }
+    },
+    {
+      "operation": "html_to_pdf",
+      "status": "completed",
+      "elapsed_seconds": 2.17,
+      "output_filename": "document_html_to_pdf.pdf",
+      "output_bytes": 77337,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\html_to_pdf.pdf",
+      "verification": {
+        "extension": ".pdf",
+        "bytes": 77337,
+        "verified": true,
+        "opened_as_pdf": true,
+        "page_count": 1,
+        "text_chars": 970,
+        "text_sample": "This domain is for use in documentation examples without\nneeding permission. This is not a service; avoid relying on it\nfor testing and monitoring purposes.\nLearn more\n.هذا النطاق ُمخصص للاستخدام في أمثلة التوثيق دون الحاجة إلى إذن\n.هذه ليست خدمة، ُيرجى تجنب الاعتماد عليها لأغراض"
+      }
+    },
+    {
+      "operation": "pdf_to_jpg",
+      "status": "completed",
+      "elapsed_seconds": 0.49,
+      "output_filename": "audit-sample_pdf_to_jpg.zip",
+      "output_bytes": 66473,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\pdf_to_jpg.zip",
+      "verification": {
+        "extension": ".zip",
+        "bytes": 66473,
+        "verified": true,
+        "archive_entries": [
+          "page_001.jpg",
+          "page_002.jpg"
+        ],
+        "image_entries": 2,
+        "valid_jpegs": 2
+      }
+    },
+    {
+      "operation": "pdf_to_word",
+      "status": "completed",
+      "http_status": 402,
+      "detail": {
+        "detail": {
+          "code": "TIER_LIMIT_REACHED",
+          "message": "Daily guest limit reached (100/100 operations). Create a free account or upgrade to Pro Power User (₹250/mo) for unlimited operations.",
+          "limit": 100,
+          "usage": 100,
+          "tier": "free"
+        }
+      },
+      "output_bytes": 36146,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\pdf_to_word.docx",
+      "verification": {
+        "extension": ".docx",
+        "bytes": 36146,
+        "verified": true,
+        "paragraph_count": 12,
+        "text_sample": "\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: Synthetic Example Person \nDocument date: 2026-11-07 \nTEST_SECRET: REDACT_ME_NOW\n\n\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: Synthetic Example Person \nDocument date: 2026-11-07 \nTEST_SECRET: REDACT_ME_NOW\nAUDIT_SECOND_PAGE_ORIGINAL\nSynthetic Aadhaar test: 1234 5678 9012"
+      }
+    },
+    {
+      "operation": "pdf_to_excel",
+      "status": "completed",
+      "http_status": 402,
+      "detail": {
+        "detail": {
+          "code": "TIER_LIMIT_REACHED",
+          "message": "Daily guest limit reached (100/100 operations). Create a free account or upgrade to Pro Power User (₹250/mo) for unlimited operations.",
+          "limit": 100,
+          "usage": 100,
+          "tier": "free"
+        }
+      },
+      "output_bytes": 5083,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\pdf_to_excel.xlsx",
+      "verification": {
+        "extension": ".xlsx",
+        "bytes": 5083,
+        "verified": true,
+        "sheet_count": 1,
+        "cell_values": [
+          "Item",
+          "Amount",
+          "Status",
+          "Application",
+          "19.00",
+          "Paid",
+          "Processing",
+          "49.00",
+          "Pending"
+        ]
+      }
+    },
+    {
+      "operation": "pdf_to_powerpoint",
+      "status": "completed",
+      "http_status": 402,
+      "detail": {
+        "detail": {
+          "code": "TIER_LIMIT_REACHED",
+          "message": "Daily guest limit reached (100/100 operations). Create a free account or upgrade to Pro Power User (₹250/mo) for unlimited operations.",
+          "limit": 100,
+          "usage": 100,
+          "tier": "free"
+        }
+      },
+      "output_bytes": 116708,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\pdf_to_powerpoint.pptx",
+      "verification": {
+        "extension": ".pptx",
+        "bytes": 116708,
+        "verified": true,
+        "slide_count": 2,
+        "text_sample": "",
+        "slides_with_full_page_images": 2
+      }
+    },
+    {
+      "operation": "pdf_to_pdfa",
+      "status": "completed",
+      "elapsed_seconds": 0.19,
+      "output_filename": "audit-sample_pdf_to_pdfa.pdf",
+      "output_bytes": 1817,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\pdf_to_pdfa.pdf",
+      "verification": {
+        "extension": ".pdf",
+        "bytes": 1817,
+        "verified": true,
+        "opened_as_pdf": true,
+        "page_count": 2,
+        "text_chars": 386,
+        "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: Synthetic Example Person\nDocument date: 2026-11-07\nTEST_SECRET: REDACT_ME_NOW\nItem\nAmount\nStatus\nApplication\n19.00\nPaid\nProcessing\n49.00\nPending\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: Synthetic Example Person\nDocument date",
+        "archival_marker_present": true
+      }
+    },
+    {
+      "operation": "pdf_to_text",
+      "status": "completed",
+      "elapsed_seconds": 0.19,
+      "output_filename": "audit-sample_pdf_to_text.txt",
+      "output_bytes": 440,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\pdf_to_text.txt",
+      "verification": {
+        "extension": ".txt",
+        "bytes": 440,
+        "verified": true,
+        "text_sample": "--- Page 1 ---\r\nPAPERPLANE_AUDIT_SAMPLE\r\nAUDIT_PAGE_1\r\nApplicant: Synthetic Example Person\r\nDocument date: 2026-11-07\r\nTEST_SECRET: REDACT_ME_NOW\r\nItem\r\nAmount\r\nStatus\r\nApplication\r\n19.00\r\nPaid\r\nProcessing\r\n49.00\r\nPending\r\n\r\n--- Page 2 ---\r\nPAPERPLANE_AUDIT_SAMPLE\r\nAUDIT_PAGE_2\r\nApplicant: Synthetic Example Person\r\nDocument date: 2026-11-07\r\nTEST_SECRET: REDACT_ME_NOW\r\nAUDIT_SECOND_PAGE_ORIGINAL\r\nSynthetic Aadhaar test: 1234 5678 9012\r\n"
+      }
+    },
+    {
+      "operation": "pdf_to_markdown",
+      "status": "completed",
+      "elapsed_seconds": 0.23,
+      "output_filename": "audit-sample_pdf_to_markdown.md",
+      "output_bytes": 569,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\pdf_to_markdown.md",
+      "verification": {
+        "extension": ".md",
+        "bytes": 569,
+        "verified": true,
+        "text_sample": "# 1124f76067814f8ebe2716d7041344aa_audit-sample\r\n\r\n## Page 1\r\n\r\n\r\n# PAPERPLANE_AUDIT_SAMPLE\r\n\r\n### AUDIT_PAGE_1\r\n\r\nApplicant: Synthetic Example Person\r\n\r\nDocument date: 2026-11-07\r\n\r\nTEST_SECRET: REDACT_ME_NOW\r\n\r\n| Item | Amount | Status |\r\n| --- | --- | --- |\r\n| Application | 19.00 | Paid |\r\n| Processing | 49.00 | Pending |\r\n\r\n---\r\n\r\n## Page 2\r\n\r\n\r\n# PAPERPLANE_AUDIT_SAMPLE\r\n\r\n### AUDIT_PAGE_2\r\n\r\nApplicant: Synthetic Example Person\r\n\r\nDocument date: 2026-11-07\r\n\r\nTEST_SECRET: REDACT_ME_NOW\r\n\r\nAUDIT_SECOND_PAGE_ORIGINAL\r\n\r\nSynthetic Aadhaar test: 1234 5678 9012\r\n"
+      }
+    },
+    {
+      "operation": "edit",
+      "status": "completed",
+      "elapsed_seconds": 0.2,
+      "output_filename": "audit-sample_edit.pdf",
+      "output_bytes": 5248,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\edit.pdf",
+      "verification": {
+        "extension": ".pdf",
+        "bytes": 5248,
+        "verified": true,
+        "opened_as_pdf": true,
+        "page_count": 2,
+        "text_chars": 409,
+        "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: Synthetic Example Person\nDocument date: 2026-11-07\nTEST_SECRET: REDACT_ME_NOW\nItem\nAmount\nStatus\nApplication\n19.00\nPaid\nProcessing\n49.00\nPending\nPAPERPLANE_EDITED_TEXT\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: Synthetic Examp",
+        "expected_marker": "PAPERPLANE_EDITED_TEXT"
+      }
+    },
+    {
+      "operation": "annotate",
+      "status": "completed",
+      "elapsed_seconds": 0.19,
+      "output_filename": "audit-sample_annotate.pdf",
+      "output_bytes": 5245,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\annotate.pdf",
+      "verification": {
+        "extension": ".pdf",
+        "bytes": 5245,
+        "verified": true,
+        "opened_as_pdf": true,
+        "page_count": 2,
+        "text_chars": 408,
+        "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: Synthetic Example Person\nDocument date: 2026-11-07\nTEST_SECRET: REDACT_ME_NOW\nItem\nAmount\nStatus\nApplication\n19.00\nPaid\nProcessing\n49.00\nPending\nANNOTATION_AUDIT_NOTE\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: Synthetic Exampl",
+        "expected_marker": "ANNOTATION_AUDIT_NOTE"
+      }
+    },
+    {
+      "operation": "crop",
+      "status": "completed",
+      "elapsed_seconds": 0.19,
+      "output_filename": "audit-sample_crop.pdf",
+      "output_bytes": 5099,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\crop.pdf",
+      "verification": {
+        "extension": ".pdf",
+        "bytes": 5099,
+        "verified": true,
+        "opened_as_pdf": true,
+        "page_count": 2,
+        "text_chars": 386,
+        "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: Synthetic Example Person\nDocument date: 2026-11-07\nTEST_SECRET: REDACT_ME_NOW\nItem\nAmount\nStatus\nApplication\n19.00\nPaid\nProcessing\n49.00\nPending\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: Synthetic Example Person\nDocument date",
+        "page_sizes": [
+          [
+            559.0,
+            806.0
+          ],
+          [
+            559.0,
+            806.0
+          ]
+        ]
+      }
+    },
+    {
+      "operation": "redact",
+      "status": "completed",
+      "elapsed_seconds": 0.2,
+      "output_filename": "audit-sample_redact.pdf",
+      "output_bytes": 1762,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\redact.pdf",
+      "verification": {
+        "extension": ".pdf",
+        "bytes": 1762,
+        "verified": true,
+        "opened_as_pdf": true,
+        "page_count": 2,
+        "text_chars": 364,
+        "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: Synthetic Example Person\nDocument date: 2026-11-07\n: REDACT_ME_NOW\nItem\nAmount\nStatus\nApplication\n19.00\nPaid\nProcessing\n49.00\nPending\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: Synthetic Example Person\nDocument date: 2026-11-0",
+        "redacted_term_remaining": false
+      }
+    },
+    {
+      "operation": "watermark",
+      "status": "completed",
+      "elapsed_seconds": 0.19,
+      "output_filename": "audit-sample_watermark.pdf",
+      "output_bytes": 3864,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\watermark.pdf",
+      "verification": {
+        "extension": ".pdf",
+        "bytes": 3864,
+        "verified": true,
+        "opened_as_pdf": true,
+        "page_count": 2,
+        "text_chars": 305,
+        "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: Synthetic Example Person\nDocument date: 2026-11-07\nTEST_SECRET: REDACT_ME_NOW\nItem\nAmount\nStatus\nApplication\n19.00\nPaid\nProcessing\n49.00\nPending\nAUDIT_WATERMARK\n\nAUDIT_PAGE_2\nAUDIT_SECOND_PAGE_ORIGINAL\nSynthetic Aadhaar test: 1234 5",
+        "expected_marker": "AUDIT_WATERMARK"
+      }
+    },
+    {
+      "operation": "page_numbers",
+      "status": "completed",
+      "elapsed_seconds": 0.19,
+      "output_filename": "audit-sample_page_numbers.pdf",
+      "output_bytes": 3324,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\page_numbers.pdf",
+      "verification": {
+        "extension": ".pdf",
+        "bytes": 3324,
+        "verified": true,
+        "opened_as_pdf": true,
+        "page_count": 2,
+        "text_chars": 297,
+        "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: Synthetic Example Person\nDocument date: 2026-11-07\nTEST_SECRET: REDACT_ME_NOW\nItem\nAmount\nStatus\nApplication\n19.00\nPaid\nProcessing\n49.00\nPending\nPage 1 of 2\n\nAUDIT_PAGE_2\nAUDIT_SECOND_PAGE_ORIGINAL\nSynthetic Aadhaar test: 1234 5678 ",
+        "expected_marker": "Page 1 of 2"
+      }
+    },
+    {
+      "operation": "protect",
+      "status": "completed",
+      "elapsed_seconds": 0.25,
+      "output_filename": "audit-sample_protect.pdf",
+      "output_bytes": 6234,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\protect.pdf",
+      "verification": {
+        "extension": ".pdf",
+        "bytes": 6234,
+        "verified": true,
+        "opened_as_pdf": true,
+        "encrypted": true,
+        "password_accepted": true,
+        "page_count": 2
+      },
+      "protected_source": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\protect.pdf"
+    },
+    {
+      "operation": "unlock",
+      "status": "completed",
+      "elapsed_seconds": 0.26,
+      "output_filename": "protect_unlock.pdf",
+      "output_bytes": 1587,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\unlock.pdf",
+      "verification": {
+        "extension": ".pdf",
+        "bytes": 1587,
+        "verified": true,
+        "opened_as_pdf": true,
+        "page_count": 2,
+        "text_chars": 386,
+        "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: Synthetic Example Person\nDocument date: 2026-11-07\nTEST_SECRET: REDACT_ME_NOW\nItem\nAmount\nStatus\nApplication\n19.00\nPaid\nProcessing\n49.00\nPending\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: Synthetic Example Person\nDocument date",
+        "encrypted": false
+      }
+    },
+    {
+      "operation": "sign",
+      "status": "completed",
+      "elapsed_seconds": 0.2,
+      "output_filename": "audit-sample_sign.pdf",
+      "output_bytes": 5772,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\sign.pdf",
+      "verification": {
+        "extension": ".pdf",
+        "bytes": 5772,
+        "verified": true,
+        "opened_as_pdf": true,
+        "page_count": 2,
+        "text_chars": 449,
+        "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: Synthetic Example Person\nDocument date: 2026-11-07\nTEST_SECRET: REDACT_ME_NOW\nItem\nAmount\nStatus\nApplication\n19.00\nPaid\nProcessing\n49.00\nPending\nPAPERPLANE AUDIT\nPAPERPLANE AUDIT SIGNATURE | 2026-11-07 06:28\n\nPAPERPLANE_AUDIT_SAMPLE",
+        "signer_marker_present": true
+      }
+    },
+    {
+      "operation": "compare",
+      "status": "completed",
+      "elapsed_seconds": 0.19,
+      "output_filename": "audit-sample_compare.txt",
+      "output_bytes": 334,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\compare.txt",
+      "verification": {
+        "extension": ".txt",
+        "bytes": 334,
+        "verified": true,
+        "text_sample": "--- 1eaa87efdff54e99add8d617241084b1_audit-sample.pdf\r\n+++ 1fad24aeabc4404b8acc2fbe6bd6cc4b_audit-sample-changed.pdf\r\n@@ -18,5 +18,5 @@\r\n Applicant: Synthetic Example Person\r\n Document date: 2026-11-07\r\n TEST_SECRET: REDACT_ME_NOW\r\n-AUDIT_SECOND_PAGE_ORIGINAL\r\n Synthetic Aadhaar test: 1234 5678 9012\r\n+AUDIT_SECOND_PAGE_CHANGED_DELTA"
+      }
+    },
+    {
+      "operation": "forms",
+      "status": "completed",
+      "elapsed_seconds": 0.19,
+      "output_filename": "p2-fill-form-1366-after_forms.pdf",
+      "output_bytes": 3559,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\forms.pdf",
+      "verification": {
+        "extension": ".pdf",
+        "bytes": 3559,
+        "verified": true,
+        "opened_as_pdf": true,
+        "page_count": 1,
+        "text_chars": 164,
+        "text_sample": "Applicant name\nContact email\nProgram title\nStatement\nAudit Applicant\naudit@example.test\nPaperplane Output Audit\nSynthetic form value for local output verification.\n",
+        "widget_values": {
+          "ApplicantName": "Audit Applicant",
+          "ContactEmail": "audit@example.test",
+          "ProgramTitle": "Paperplane Output Audit",
+          "Statement": "Synthetic form value for local output verification."
+        }
+      }
+    },
+    {
+      "operation": "metadata",
+      "status": "completed",
+      "elapsed_seconds": 0.19,
+      "output_filename": "audit-sample_metadata.pdf",
+      "output_bytes": 6089,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\metadata.pdf",
+      "verification": {
+        "extension": ".pdf",
+        "bytes": 6089,
+        "verified": true,
+        "opened_as_pdf": true,
+        "page_count": 2,
+        "text_chars": 386,
+        "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: Synthetic Example Person\nDocument date: 2026-11-07\nTEST_SECRET: REDACT_ME_NOW\nItem\nAmount\nStatus\nApplication\n19.00\nPaid\nProcessing\n49.00\nPending\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: Synthetic Example Person\nDocument date",
+        "metadata": {
+          "/Producer": "pypdf",
+          "/Title": "PAPERPLANE_AUDIT_METADATA",
+          "/Author": "Synthetic Audit"
+        }
+      }
+    },
+    {
+      "operation": "ai_chat",
+      "status": "skipped_unavailable",
+      "reason": "Requires the Paperplane AI service to be configured and enabled"
+    },
+    {
+      "operation": "ai_extract",
+      "status": "completed",
+      "elapsed_seconds": 0.19,
+      "output_filename": "audit-sample_ai_extract.json",
+      "output_bytes": 765,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\ai_extract.json",
+      "verification": {
+        "extension": ".json",
+        "bytes": 765,
+        "verified": true,
+        "json_keys": [
+          "document_type",
+          "total_pages",
+          "contact",
+          "source_pages",
+          "warnings",
+          "retrieval_method",
+          "general_data",
+          "csv_export"
+        ]
+      }
+    },
+    {
+      "operation": "summarize",
+      "status": "skipped_unavailable",
+      "reason": "Requires the Paperplane AI service to be configured and enabled"
+    },
+    {
+      "operation": "translate",
+      "status": "skipped_unavailable",
+      "reason": "Requires the Paperplane AI translation service to be configured and enabled"
+    },
+    {
+      "operation": "photo_resizer",
+      "status": "completed",
+      "elapsed_seconds": 0.19,
+      "output_filename": "audit-photo_photo_resizer.jpg",
+      "output_bytes": 35840,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\photo_resizer.jpg",
+      "verification": {
+        "extension": ".jpg",
+        "bytes": 35840,
+        "verified": true,
+        "dimensions": [
+          350,
+          450
+        ],
+        "format": "JPEG"
+      }
+    },
+    {
+      "operation": "mask_aadhaar",
+      "status": "completed",
+      "elapsed_seconds": 0.2,
+      "output_filename": "audit-sample_mask_aadhaar.pdf",
+      "output_bytes": 5059,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\mask_aadhaar.pdf",
+      "verification": {
+        "extension": ".pdf",
+        "bytes": 5059,
+        "verified": true,
+        "opened_as_pdf": true,
+        "page_count": 2,
+        "text_chars": 388,
+        "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: Synthetic Example Person\nDocument date: 2026-11-07\nTEST_SECRET: REDACT_ME_NOW\nItem\nAmount\nStatus\nApplication\n19.00\nPaid\nProcessing\n49.00\nPending\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: Synthetic Example Person\nDocument date",
+        "masked_prefix_present": true,
+        "original_prefix_present": false,
+        "last_four_present": true
+      }
+    },
+    {
+      "operation": "grayscale",
+      "status": "completed",
+      "elapsed_seconds": 0.36,
+      "output_filename": "audit-sample_grayscale.pdf",
+      "output_bytes": 47520,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\grayscale.pdf",
+      "verification": {
+        "extension": ".pdf",
+        "bytes": 47520,
+        "verified": true,
+        "opened_as_pdf": true,
+        "page_count": 2,
+        "text_chars": 1,
+        "text_sample": "\n",
+        "colored_pixel_mismatches": 0
+      }
+    },
+    {
+      "operation": "flatten",
+      "status": "completed",
+      "elapsed_seconds": 0.2,
+      "output_filename": "p2-fill-form-1366-after_flatten.pdf",
+      "output_bytes": 2329,
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-outputs\\flatten.pdf",
+      "verification": {
+        "extension": ".pdf",
+        "bytes": 2329,
+        "verified": true,
+        "opened_as_pdf": true,
+        "page_count": 1,
+        "text_chars": 863,
+        "text_sample": "Applicant name\nContact email\nProgram title\nStatement\nAlexandra Elizabeth Montgomery-Smith\nalexandra.montgomery.smith@example-research-institute.org\nA longitudinal study of low-resource document workflows, multilingual accessibility, and robust community-l\nThis extended statement ",
+        "active_widgets": 0
+      }
+    }
+  ],
+  "wrong_password_unlock": {
+    "operation": "unlock",
+    "status": "failed",
+    "elapsed_seconds": 0.24,
+    "error": "Incorrect password provided for document unlock.",
+    "rejected_as_expected": true
+  },
+  "environment_limitations": {
+    "AI provider workflows": "unavailable in local environment; not invoked",
+    "OCR": "Tesseract dependency is not installed; tool advertises unavailable and was not invoked",
+    "HTML to PDF": "uses public example.com as a minimal external smoke input"
+  },
+  "saved_output_rechecks": {
+    "pdf_to_word": {
+      "verified": true,
+      "verification": {
+        "extension": ".docx",
+        "bytes": 36146,
+        "verified": true,
+        "paragraph_count": 12,
+        "text_sample": "\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: Synthetic Example Person \nDocument date: 2026-11-07 \nTEST_SECRET: REDACT_ME_NOW\n\n\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: Synthetic Example Person \nDocument date: 2026-11-07 \nTEST_SECRET: REDACT_ME_NOW\nAUDIT_SECOND_PAGE_ORIGINAL\nSynthetic Aadhaar test: 1234 5678 9012"
+      }
+    },
+    "pdf_to_excel": {
+      "verified": true,
+      "verification": {
+        "extension": ".xlsx",
+        "bytes": 5083,
+        "verified": true,
+        "sheet_count": 1,
+        "cell_values": [
+          "Item",
+          "Amount",
+          "Status",
+          "Application",
+          "19.00",
+          "Paid",
+          "Processing",
+          "49.00",
+          "Pending"
+        ]
+      }
+    },
+    "pdf_to_powerpoint": {
+      "verified": true,
+      "verification": {
+        "extension": ".pptx",
+        "bytes": 116708,
+        "verified": true,
+        "slide_count": 2,
+        "text_sample": "",
+        "slides_with_full_page_images": 2
+      }
+    }
+  }
+}

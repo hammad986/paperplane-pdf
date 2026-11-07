@@ -246,6 +246,82 @@ def get_client_ip(request: Request) -> str:
     return "127.0.0.1"
 
 
+_BILLABLE_AI_ENDPOINTS = {
+    "/api/ai/chat",
+    "/api/ai/chat/stream",
+    "/api/ai/summarize",
+    "/api/ai/extract",
+    "/api/ai/translate",
+}
+
+
+def _quota_identity_from_request(request: Request) -> str | None:
+    token = (request.headers.get("x-api-key") or "").strip()
+    authorization = request.headers.get("authorization", "")
+    if not token and authorization.lower().startswith("bearer "):
+        token = authorization[7:].strip()
+    if not token:
+        token = (request.cookies.get("paperplane_token") or "").strip()
+    return authenticate(token) if token else None
+
+
+def _quota_limit_response(usage: int, tier: str, authenticated: bool) -> JSONResponse:
+    if authenticated:
+        message = f"Daily limit reached ({FREE_TIER_DAILY_LIMIT}/{FREE_TIER_DAILY_LIMIT} operations on Free Tier). Upgrade to Pro Power User (₹250/mo) or Developer Tier (₹750/mo) for unlimited operations."
+    else:
+        message = f"Daily guest limit reached ({FREE_TIER_DAILY_LIMIT}/{FREE_TIER_DAILY_LIMIT} operations). Create a free account or upgrade to Pro Power User (₹250/mo) for unlimited operations."
+    return JSONResponse(status_code=402, content={
+        "detail": {"code": "TIER_LIMIT_REACHED", "message": message, "limit": FREE_TIER_DAILY_LIMIT, "usage": usage, "tier": tier}
+    })
+
+
+@app.middleware("http")
+async def count_ai_and_studio_operations(request: Request, call_next):
+    """Apply the same free daily operation quota to billable AI and Studio POST workflows."""
+    path = request.url.path
+    billable = request.method == "POST" and (
+        path in _BILLABLE_AI_ENDPOINTS or path.startswith("/api/studio/")
+    )
+    if not billable:
+        return await call_next(request)
+
+    user_id = _quota_identity_from_request(request)
+    if REQUIRE_AUTH and not user_id:
+        return await call_next(request)
+    client_ip = get_client_ip(request)
+    allowed, usage, tier = check_operation_quota(user_id, client_ip, FREE_TIER_DAILY_LIMIT)
+    if not allowed:
+        return _quota_limit_response(usage, tier, bool(user_id))
+
+    subject = f"user:{user_id}" if user_id else f"ip:{client_ip}"
+    response = await call_next(request)
+    if response.status_code >= 400:
+        return response
+
+    if path == "/api/ai/chat/stream" and getattr(response, "body_iterator", None) is not None:
+        body_iterator = response.body_iterator
+
+        async def count_after_completed_stream():
+            completed = False
+            failed = False
+            async for chunk in body_iterator:
+                data = chunk.decode("utf-8", errors="ignore") if isinstance(chunk, bytes) else str(chunk)
+                completed = completed or "event: done" in data
+                failed = failed or "event: error" in data
+                yield chunk
+            if completed and not failed:
+                count = increment_daily_usage(subject)
+                request.state.usage_today = count
+
+        response.body_iterator = count_after_completed_stream()
+        return response
+
+    count = increment_daily_usage(subject)
+    request.state.usage_today = count
+    response.headers["X-Paperplane-Operations-Today"] = str(count)
+    return response
+
+
 # Periodic background cleanup daemon
 #
 # Cleanup is deliberately owned by this daemon.  Request handlers may ask the
@@ -1025,6 +1101,41 @@ def public_site_url(request: Request) -> str:
 
 
 def seo_page_context(operation: str | None, landing_slug: str | None = None) -> dict:
+    if landing_slug in {"tool-desk", "studio"}:
+        landing = {
+            "tool-desk": {
+                "title": "Paperplane PDF Tool Desk — Browse All PDF Tools",
+                "description": "Browse and search Paperplane PDF tools by task, with clear routes for organizing, converting, editing, and protecting documents.",
+                "heading": "Find the right PDF tool for your task",
+                "category": "PDF tools",
+                "intro": "Search the tool directory, choose a category, and open a focused workflow for your document.",
+                "related": ("merge", "split", "compress", "edit"),
+            },
+            "studio": {
+                "title": "Paperplane Advanced PDF Studio — Edit and Organize PDFs",
+                "description": "Open Paperplane PDF Studio to view, annotate, organize, and export PDF documents in a responsive workspace.",
+                "heading": "Work with PDF pages in Studio",
+                "category": "PDF Studio",
+                "intro": "Open a PDF or create a page, then use the page list and document tools to make and export changes.",
+                "related": ("merge", "split", "edit", "sign"),
+            },
+        }[landing_slug]
+        return {
+            **landing,
+            "operation": None,
+            "slug": landing_slug,
+            "how_to": (
+                "Open the tool directory or Studio workspace",
+                "Choose a document task and add your PDF",
+                "Review and download the finished result",
+            ),
+            "faqs": (
+                ("Can I use Paperplane on a phone?", "Yes. The web workspace adapts to mobile browsers and touch controls."),
+                ("Can I use these pages without an account?", "Many document workflows are available without signing in; account features depend on the selected service."),
+                ("Are uploaded files kept permanently?", "Processing and retention depend on the selected workflow. Review the privacy information for details."),
+            ),
+        }
+
     if landing_slug:
         landing = SEO_LANDING_PAGES[landing_slug]
         return {
@@ -1256,6 +1367,36 @@ def render_web_page(request: Request, operation: str | None = None, landing_slug
         html = html.replace('<span id="crumb-category">Organize PDF</span>', f'<span id="crumb-category">{html_escape(info["category"])}</span>', 1)
         html = html.replace('<b id="crumb-tool">Directory</b>', f'<b id="crumb-tool">{html_escape(info["label"])}</b>', 1)
         html = html.replace('<b id="crumb-tool">Merge PDF</b>', f'<b id="crumb-tool">{html_escape(info["label"])}</b>', 1)
+    elif landing_slug == "tool-desk":
+        html = html.replace(
+            '<div id="view-home" class="home-container">',
+            '<div id="view-home" class="home-container" hidden>',
+            1,
+        )
+        html = html.replace(
+            '<div id="view-tool-desk-directory" class="tool-desk-directory" hidden>',
+            '<div id="view-tool-desk-directory" class="tool-desk-directory">',
+            1,
+        )
+        html = html.replace('<span id="crumb-category">All Tools</span>', '<span id="crumb-category">Workspace</span>', 1)
+        html = html.replace('<span id="crumb-category">Organize PDF</span>', '<span id="crumb-category">Workspace</span>', 1)
+        html = html.replace('<b id="crumb-tool">Directory</b>', '<b id="crumb-tool">Tool Desk</b>', 1)
+        html = html.replace('<b id="crumb-tool">Merge PDF</b>', '<b id="crumb-tool">Tool Desk</b>', 1)
+    elif landing_slug == "studio":
+        html = html.replace(
+            '<div id="view-home" class="home-container">',
+            '<div id="view-home" class="home-container" hidden>',
+            1,
+        )
+        html = html.replace(
+            '<div id="view-pdf-studio" class="pdf-studio" hidden>',
+            '<div id="view-pdf-studio" class="pdf-studio">',
+            1,
+        )
+        html = html.replace('<span id="crumb-category">All Tools</span>', '<span id="crumb-category">Workspace</span>', 1)
+        html = html.replace('<span id="crumb-category">Organize PDF</span>', '<span id="crumb-category">Workspace</span>', 1)
+        html = html.replace('<b id="crumb-tool">Directory</b>', '<b id="crumb-tool">Advanced PDF Studio</b>', 1)
+        html = html.replace('<b id="crumb-tool">Merge PDF</b>', '<b id="crumb-tool">Advanced PDF Studio</b>', 1)
     elif landing_slug in ("privacy", "terms"):
         html = html.replace(
             '<div id="view-home" class="home-container">',
@@ -2213,7 +2354,7 @@ def translation_ai_available() -> bool:
 def get_operations():
     chrome_ok = bool(converters.find_chrome_executable())
     tesseract_ok = bool(shutil.which("tesseract"))
-    ai_ok = bool(OPENAI_API_KEY or GEMINI_API_KEY)
+    ai_ok = not ai_engine.AI_KILL_SWITCH and bool(ai_engine._current_bluesminds_api_key())
     translation_ai_ok = translation_ai_available()
 
     result = {}
@@ -2231,9 +2372,9 @@ def get_operations():
             info["status"] = "AVAILABLE" if tesseract_ok else "DEPENDENCY_MISSING"
             info["prerequisite"] = None if tesseract_ok else "Requires Tesseract OCR engine installed"
         elif op_id in ("ai_chat", "ai_extract", "summarize"):
-            info["available"] = True
-            info["status"] = "AVAILABLE"
-            info["prerequisite"] = "Local RAG Active" if not ai_ok else "Cloud AI Provider Active"
+            info["available"] = ai_ok or op_id == "ai_extract"
+            info["status"] = "AVAILABLE" if info["available"] else "SERVICE_UNAVAILABLE"
+            info["prerequisite"] = None if ai_ok else ("Local extraction available; provider-backed extraction disabled" if op_id == "ai_extract" else "Requires the Paperplane AI service to be configured and enabled")
         elif op_id == "translate":
             info["available"] = translation_ai_ok
             info["status"] = "AVAILABLE" if translation_ai_ok else "SERVICE_UNAVAILABLE"
@@ -2256,8 +2397,10 @@ def get_seo_operation(operation: str):
 
 @app.get("/api/integrations")
 def get_integrations():
+    ai_ok = not ai_engine.AI_KILL_SWITCH and bool(ai_engine._current_bluesminds_api_key())
     return {
-        "ai": bool(OPENAI_API_KEY or GEMINI_API_KEY),
+        "ai": ai_ok,
+        "ai_status": "connected" if ai_ok else "not_configured",
         "object_storage": bool(S3_BUCKET),
         "billing": bool(CASHFREE_APP_ID and CASHFREE_SECRET_KEY),
         "billing_provider": "cashfree",
@@ -3405,6 +3548,9 @@ async def ai_chat(
                 return {"answer": ai_engine._PAPERPLANE_IDENTITY, "citations": [], "retrieval_method": None, "fallback_used": False}
             if ai_engine._is_document_question(question):
                 return {"answer": "No PDF is open. Upload a document for a cited answer, or ask a general question directly.", "citations": [], "retrieval_method": None}
+            correction = ai_engine.correct_false_premise(None, question)
+            if correction:
+                return {"answer": correction, "citations": [], "retrieval_method": None, "fallback_used": False}
             answer = await asyncio.to_thread(ai_engine.call_llm, ai_engine._PAPERPLANE_SYSTEM_PROMPT, question, 35)
             answer = ai_engine._guard_ai_output(answer)
             return {"answer": answer, "citations": [], "retrieval_method": None, "fallback_used": False}
@@ -3491,6 +3637,11 @@ async def ai_chat_stream(
                 user_prompt = f"DOCUMENT EXCERPTS:\n{context}\n\nUSER QUESTION: {question}"
             else:
                 yield frame("stage", stage="Analysing…")
+                correction = await asyncio.to_thread(ai_engine.correct_false_premise, None, question)
+                if correction:
+                    yield frame("replace", text=correction)
+                    yield frame("done", citations=[])
+                    return
 
             # With the external provider deliberately disabled, PDF chat still
             # returns a clearly labelled local extractive answer. It never
@@ -3577,7 +3728,9 @@ async def ai_summarize(
         temp_pdf = temp_dir / "summary_doc.pdf"
         await save_upload_spooled_async(file, temp_pdf, max_bytes=upload_limit_bytes_for_user(user_id))
         summary = await asyncio.to_thread(ai_engine.summarize_pdf, temp_pdf)
-        return {"status": "success", "summary": summary}
+        eligible_pages = sorted({chunk.page_number for chunk in await asyncio.to_thread(ai_engine.extract_chunks_from_pdf, temp_pdf) if chunk.text.strip()})
+        summary, citations = ai_engine.align_answer_citations(summary, eligible_pages)
+        return {"status": "success", "summary": summary, "citations": citations}
     except ValueError as ve:
         raise HTTPException(status_code=503, detail=str(ve))
     except RuntimeError as re:
@@ -3653,7 +3806,7 @@ async def ai_translate_endpoint(
             media_type="application/pdf",
             headers={
                 "Content-Disposition": f'attachment; filename="translated_{target_language}.pdf"',
-                "X-Paperplane-Translation-Mode": "translated" if translation_report.get("blocks_translated") else "source-preserved-fallback",
+                "X-Paperplane-Translation-Mode": "translated" if translation_report.get("blocks_translated") and not translation_report.get("blocks_preserved") else "partial" if translation_report.get("blocks_translated") else "failed",
                 "X-Paperplane-Translation-Warnings": str(len(translation_report.get("warnings", []))),
             }
         )
@@ -4439,12 +4592,13 @@ async def studio_ocr(
             "X-Pages-Processed": str(report["pages_processed"]),
             "X-Pages-OCRed": str(report["pages_ocrd"]),
             "X-Already-Searchable": str(report["pages_already_searchable"]),
+            "X-Pages-Failed": str(report["pages_failed"]),
             "X-Language": report["language"],
             "X-Extracted-Chars": str(report["extracted_chars"]),
             "X-Elapsed-Seconds": str(report["elapsed_seconds"]),
             "X-Original-Size": str(report["original_size"]),
             "X-Output-Size": str(report["output_size"]),
-            "Access-Control-Expose-Headers": "X-Pages-Processed, X-Pages-OCRed, X-Already-Searchable, X-Language, X-Extracted-Chars, X-Elapsed-Seconds, X-Original-Size, X-Output-Size"
+            "Access-Control-Expose-Headers": "X-Pages-Processed, X-Pages-OCRed, X-Already-Searchable, X-Pages-Failed, X-Language, X-Extracted-Chars, X-Elapsed-Seconds, X-Original-Size, X-Output-Size"
         }
 
         return StreamingResponse(
@@ -5544,7 +5698,8 @@ def create_job_endpoint(
 
         # Failed uploads and invalid files do not consume a daily operation.
         subject = f"user:{user_id}" if user_id else f"ip:{client_ip}"
-        increment_daily_usage(subject)
+        usage_today = increment_daily_usage(subject)
+        response.headers["X-Paperplane-Operations-Today"] = str(usage_today)
         executor.submit(run_job, job_id, operation, paths, parsed_options, user_id)
         download_suffix = f"?token={guest_token}" if guest_token else ""
         return {
@@ -6001,11 +6156,14 @@ def download_page(request: Request):
     return render_web_page(request, landing_slug="download")
 
 
-@app.get("/tool-desk", response_class=RedirectResponse, include_in_schema=False)
+@app.get("/tool-desk", response_class=HTMLResponse, include_in_schema=False)
 def tool_desk_page(request: Request):
-    # The former tab was only an alias for the last-selected operation (often
-    # Merge PDF). Send old bookmarks to the real, predictable tool directory.
-    return RedirectResponse(url="/", status_code=307)
+    return render_web_page(request, landing_slug="tool-desk")
+
+
+@app.get("/studio", response_class=HTMLResponse, include_in_schema=False)
+def studio_workspace_page(request: Request):
+    return render_web_page(request, landing_slug="studio")
 
 
 @app.get("/privacy", response_class=HTMLResponse)
@@ -6092,6 +6250,8 @@ def sitemap_xml(request: Request):
 
 
 LEGACY_SLUG_REDIRECTS = {
+    "fill-form": "fill-pdf-form",
+    "ai-translate": "translate-pdf",
     "remove-pages": "remove-pages-pdf",
     "page-numbers": "add-page-numbers-to-pdf",
     "smart-metadata": "extract-pdf-data",

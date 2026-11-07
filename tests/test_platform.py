@@ -248,7 +248,13 @@ class TestPaperplanePlatform(unittest.TestCase):
         try:
             # 1. Layout-Preserving Translation
             trans_out = temp_dir / "translated_es.pdf"
-            ai_engine.translate_pdf_layout(self.sample_pdf, trans_out, target_lang="es")
+            with patch(
+                "ai_engine._translate_text_batch",
+                side_effect=lambda blocks, target_language: {
+                    block_id: f"Texto traducido: {text}" for block_id, text in blocks
+                },
+            ):
+                ai_engine.translate_pdf_layout(self.sample_pdf, trans_out, target_lang="es")
             self.assertTrue(trans_out.exists())
             self.assertGreater(trans_out.stat().st_size, 500)
 

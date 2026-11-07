@@ -1,0 +1,109 @@
+{
+  "compress_preset": [
+    {
+      "viewport": 1366,
+      "value": "100kb",
+      "selectedText": "🎯 Under 100 KB (Govt / SSC Exam Form)",
+      "label": "Target Compression Preset",
+      "width": 314,
+      "height": 42,
+      "right": 645,
+      "documentOverflow": false,
+      "screenshot": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\compress-preset-1366-after.png"
+    },
+    {
+      "viewport": 375,
+      "value": "100kb",
+      "selectedText": "🎯 Under 100 KB (Govt / SSC Exam Form)",
+      "label": "Target Compression Preset",
+      "width": 309,
+      "height": 42,
+      "right": 342,
+      "documentOverflow": false,
+      "screenshot": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\compress-preset-375-after.png"
+    }
+  ],
+  "fill_form": [
+    {
+      "viewport": 1366,
+      "textarea_layout": {
+        "tag": "TEXTAREA",
+        "width": 974,
+        "height": 203,
+        "clientWidth": 972,
+        "scrollWidth": 972,
+        "clientHeight": 201,
+        "scrollHeight": 203,
+        "right": 1305,
+        "viewport": 1366,
+        "documentWidth": 1366,
+        "documentOverflow": false,
+        "valueLength": 1183
+      },
+      "output_filename": "p2-long-form-source_forms.pdf",
+      "output_bytes": 4790,
+      "output_page_count": 1,
+      "output_widget_values_match": true,
+      "output_widget_names": [
+        "ApplicantName",
+        "ContactEmail",
+        "ProgramTitle",
+        "Statement"
+      ],
+      "output_statement_chars": 880,
+      "browser_errors": [],
+      "legacy_input_metrics": {
+        "tag": "INPUT",
+        "width": 974,
+        "height": 40,
+        "clientWidth": 972,
+        "scrollWidth": 7871,
+        "valueLength": 1183
+      },
+      "before_screenshot": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\p2-fill-form-1366-before.png",
+      "after_screenshot": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\p2-fill-form-1366-after.png",
+      "output_pdf": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\p2-fill-form-1366-after.pdf"
+    },
+    {
+      "viewport": 375,
+      "textarea_layout": {
+        "tag": "TEXTAREA",
+        "width": 309,
+        "height": 629,
+        "clientWidth": 307,
+        "scrollWidth": 307,
+        "clientHeight": 627,
+        "scrollHeight": 629,
+        "right": 342,
+        "viewport": 375,
+        "documentWidth": 375,
+        "documentOverflow": false,
+        "valueLength": 1183
+      },
+      "output_filename": "p2-long-form-source_forms.pdf",
+      "output_bytes": 4790,
+      "output_page_count": 1,
+      "output_widget_values_match": true,
+      "output_widget_names": [
+        "ApplicantName",
+        "ContactEmail",
+        "ProgramTitle",
+        "Statement"
+      ],
+      "output_statement_chars": 880,
+      "browser_errors": [],
+      "legacy_input_metrics": {
+        "tag": "INPUT",
+        "width": 309,
+        "height": 40,
+        "clientWidth": 307,
+        "scrollWidth": 7871,
+        "valueLength": 1183
+      },
+      "before_screenshot": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\p2-fill-form-375-before.png",
+      "after_screenshot": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\p2-fill-form-375-after.png",
+      "output_pdf": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\p2-fill-form-375-after.pdf"
+    }
+  ],
+  "json_chars": 1183
+}

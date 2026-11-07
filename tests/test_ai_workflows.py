@@ -261,7 +261,8 @@ def test_translation_batch_requires_structured_json(monkeypatch):
     assert ai_engine._parse_translation_batch("not json", [0]) == {}
 
 
-def test_translation_fallback_preserves_source_text(tmp_path, monkeypatch):
+def test_translation_zero_result_fails_without_emitting_source_disguised_as_translation(tmp_path, monkeypatch):
+    import pytest
     source = tmp_path / "source.pdf"
     output = tmp_path / "translated.pdf"
     make_pdf(source)
@@ -271,18 +272,14 @@ def test_translation_fallback_preserves_source_text(tmp_path, monkeypatch):
     monkeypatch.setattr(ai_engine, "call_llm", lambda *args, **kwargs: "provider timed out")
 
     report = {}
-    ai_engine.translate_pdf_layout(source, output, target_lang="es", report=report)
+    with pytest.raises(RuntimeError, match="No text was translated"):
+        ai_engine.translate_pdf_layout(source, output, target_lang="es", report=report)
 
-    translated_doc = fitz.open(str(output))
-    text = "\n".join(page.get_text() for page in translated_doc)
-    translated_doc.close()
-
-    assert output.exists()
-    assert "Paperplane document intelligence" in text
+    assert not output.exists()
     assert report["fallback_used"] is True
     assert report["blocks_translated"] == 0
     assert report["blocks_preserved"] >= 1
-    assert "[ES]" not in text
+    assert "No text blocks were translated" in report["warnings"][-1]
 
 
 def test_short_document_chat_uses_full_context_but_keeps_unsupported_queries_uncited(tmp_path, monkeypatch):

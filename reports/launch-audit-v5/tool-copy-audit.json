@@ -1,0 +1,2016 @@
+[
+  {
+    "operation": "merge",
+    "route": "/merge-pdf",
+    "http_status": 200,
+    "heading": "Merge PDF files in your preferred order",
+    "intro": "Combine contracts, scans, invoices, or reports into one PDF while keeping page order visible before you export.",
+    "steps": [
+      "Upload PDFs in the desired order",
+      "Rearrange thumbnails before processing",
+      "Download the merged document"
+    ],
+    "faqs": [
+      [
+        "Can I merge PDF files without uploading them?",
+        "Yes. Supported browser workflows can run in Zero-Upload Client Privacy Mode with local PDF processing. Server mode remains available for larger or unsupported files."
+      ],
+      [
+        "Does merging change page quality?",
+        "Merging copies the source page objects into one document. It does not rasterize pages, so selectable text, vector artwork, and embedded images retain their source quality."
+      ],
+      [
+        "How many PDFs can I combine at once?",
+        "The web workflow accepts batch uploads within the configured file and request limits. The thumbnail organizer shows the final sequence before the merge job starts."
+      ]
+    ],
+    "related": [
+      "split",
+      "compress",
+      "organize",
+      "rotate"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Upload PDFs in the desired order",
+      "Rearrange thumbnails before processing",
+      "Download the merged document"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Can I merge PDF files without uploading them?",
+      "Does merging change page quality?",
+      "How many PDFs can I combine at once?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "split",
+    "route": "/split-pdf",
+    "http_status": 200,
+    "heading": "Split a PDF by pages or ranges",
+    "intro": "Extract only the pages you need from a long PDF and keep the result ready for sharing, archiving, or editing.",
+    "steps": [
+      "Choose the source PDF",
+      "Enter page numbers or ranges",
+      "Download the extracted PDF files"
+    ],
+    "faqs": [
+      [
+        "Can I split a PDF into selected pages?",
+        "Yes. Enter individual pages such as 2,5,9 or ranges such as 3-7. Duplicate page selections are normalized before the output is written."
+      ],
+      [
+        "Will splitting preserve links and text?",
+        "The page objects are copied rather than rendered as images, so selectable text, annotations, links, and vector content remain available when the source PDF supports them."
+      ],
+      [
+        "Can I split every page into its own PDF?",
+        "Use the page-range workflow with a full range or the document split controls to generate separate page outputs, packaged for convenient download when multiple files are created."
+      ]
+    ],
+    "related": [
+      "merge",
+      "remove",
+      "organize",
+      "pdf_to_jpg"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Choose the source PDF",
+      "Enter page numbers or ranges",
+      "Download the extracted PDF files"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Can I split a PDF into selected pages?",
+      "Will splitting preserve links and text?",
+      "Can I split every page into its own PDF?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "remove",
+    "route": "/remove-pages-pdf",
+    "http_status": 200,
+    "heading": "Remove unwanted pages from a PDF",
+    "intro": "Clean up duplicate scans, blank pages, or confidential sections without rebuilding the entire document from scratch.",
+    "steps": [
+      "Open the PDF page organizer",
+      "Select pages to delete",
+      "Confirm and download the cleaned PDF"
+    ],
+    "faqs": [
+      [
+        "Can I delete more than one PDF page at a time?",
+        "Yes. Select multiple thumbnails or enter page selections, then confirm the deletion. The service prevents deleting every page so the result remains a valid document."
+      ],
+      [
+        "Is deleting a page reversible?",
+        "The exported PDF does not contain the deleted page objects. Keep the original file if you may need to restore those pages later."
+      ],
+      [
+        "Does the remaining PDF keep its original formatting?",
+        "Yes. Remaining pages are retained as PDF page objects; page content is not converted into screenshots during deletion."
+      ]
+    ],
+    "related": [
+      "organize",
+      "split",
+      "redact",
+      "merge"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Open the PDF page organizer",
+      "Select pages to delete",
+      "Confirm and download the cleaned PDF"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Can I delete more than one PDF page at a time?",
+      "Is deleting a page reversible?",
+      "Does the remaining PDF keep its original formatting?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "rotate",
+    "route": "/rotate-pdf",
+    "http_status": 200,
+    "heading": "Rotate PDF pages to the correct orientation",
+    "intro": "Fix sideways scans, mixed landscape pages, and presentation documents with a visual page-by-page rotation workflow.",
+    "steps": [
+      "Upload the PDF",
+      "Select pages and a rotation angle",
+      "Download the reoriented PDF"
+    ],
+    "faqs": [
+      [
+        "Can I rotate only one page in a PDF?",
+        "Yes. Choose a single thumbnail or page number and apply 90, 180, or 270 degrees without rotating the rest of the document."
+      ],
+      [
+        "Does rotation reduce image quality?",
+        "No. Rotation updates the page orientation metadata and layout rather than re-encoding the page as a lower-quality image."
+      ],
+      [
+        "Can I rotate mixed portrait and landscape pages?",
+        "Yes. Each selected page can be rotated independently, which is useful for scanned packets with inconsistent orientation."
+      ]
+    ],
+    "related": [
+      "organize",
+      "crop",
+      "merge",
+      "pdf_to_jpg"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Upload the PDF",
+      "Select pages and a rotation angle",
+      "Download the reoriented PDF"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Can I rotate only one page in a PDF?",
+      "Does rotation reduce image quality?",
+      "Can I rotate mixed portrait and landscape pages?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "organize",
+    "route": "/organize-pdf",
+    "http_status": 200,
+    "heading": "Organize PDF pages with a visual editor",
+    "intro": "Use thumbnails instead of guessing page numbers when you need to rearrange a report, scan, legal packet, or presentation.",
+    "steps": [
+      "Load the PDF into the page organizer",
+      "Drag pages or use touch controls to change order",
+      "Apply page actions and export"
+    ],
+    "faqs": [
+      [
+        "Can I reorder PDF pages on a phone?",
+        "Yes. The responsive organizer supports touch-friendly move controls for devices where HTML5 drag-and-drop is unavailable."
+      ],
+      [
+        "Can the organizer rotate and delete pages too?",
+        "Yes. Page cards expose quick rotate, duplicate, delete, and move actions, with batch controls for selected pages."
+      ],
+      [
+        "Are thumbnails generated locally?",
+        "The browser renders page previews with the local PDF.js engine when available. Server operations still return a verified PDF result."
+      ]
+    ],
+    "related": [
+      "merge",
+      "remove",
+      "rotate",
+      "page_numbers"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Load the PDF into the page organizer",
+      "Drag pages or use touch controls to change order",
+      "Apply page actions and export"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Can I reorder PDF pages on a phone?",
+      "Can the organizer rotate and delete pages too?",
+      "Are thumbnails generated locally?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "scan_pdf",
+    "route": "/scan-to-pdf",
+    "http_status": 200,
+    "heading": "Turn photos and scans into a readable PDF",
+    "intro": "Prepare receipts, whiteboard photos, and paper documents for sharing with a focused scan-to-PDF workflow.",
+    "steps": [
+      "Add scanned images or camera photos",
+      "Adjust enhancement and page order",
+      "Export the optimized PDF"
+    ],
+    "faqs": [
+      [
+        "What image formats can I use for scan to PDF?",
+        "The workflow accepts common image formats including JPG, PNG, TIFF, and WebP when the browser or server image decoder can verify them safely."
+      ],
+      [
+        "Does scan enhancement create searchable text?",
+        "Enhancement improves the visual scan. Use OCR PDF afterward when you also need a searchable text layer."
+      ],
+      [
+        "Can I combine multiple photographed pages?",
+        "Yes. Add a batch of images, arrange their sequence, and export them as a single PDF document."
+      ]
+    ],
+    "related": [
+      "jpg_to_pdf",
+      "ocr",
+      "compress",
+      "organize"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Add scanned images or camera photos",
+      "Adjust enhancement and page order",
+      "Export the optimized PDF"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "What image formats can I use for scan to PDF?",
+      "Does scan enhancement create searchable text?",
+      "Can I combine multiple photographed pages?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "compress",
+    "route": "/compress-pdf",
+    "http_status": 200,
+    "heading": "Compress a PDF without guesswork",
+    "intro": "Choose a balanced, smaller, or maximum reduction profile and compare the output size before sharing the result.",
+    "steps": [
+      "Upload a PDF and inspect its size",
+      "Choose lossless or quality-based compression",
+      "Download the smaller verified PDF"
+    ],
+    "faqs": [
+      [
+        "How much can PDF compression reduce a file?",
+        "The reduction depends on image resolution, embedded fonts, duplicate objects, and stream structure. Text-heavy PDFs often shrink less than scan-heavy PDFs with large images."
+      ],
+      [
+        "Does compression make a PDF blurry?",
+        "Lossless mode avoids image quality changes. Quality-based profiles may downsample or recompress images, so choose the balanced profile when readability matters."
+      ],
+      [
+        "Can I compress a PDF locally?",
+        "Supported browser operations can use Zero-Upload Client Privacy Mode. The standalone Tauri client is designed to run compression entirely on the device."
+      ]
+    ],
+    "related": [
+      "pdf_to_jpg",
+      "repair",
+      "ocr",
+      "merge"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Upload a PDF and inspect its size",
+      "Choose lossless or quality-based compression",
+      "Download the smaller verified PDF"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "How much can PDF compression reduce a file?",
+      "Does compression make a PDF blurry?",
+      "Can I compress a PDF locally?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "repair",
+    "route": "/repair-pdf",
+    "http_status": 200,
+    "heading": "Repair a damaged or unreadable PDF",
+    "intro": "Attempt a controlled PDF repair when a viewer reports a broken xref table, missing objects, or a malformed file structure.",
+    "steps": [
+      "Select the damaged PDF",
+      "Run structural recovery",
+      "Download and verify the repaired file"
+    ],
+    "faqs": [
+      [
+        "What PDF problems can repair fix?",
+        "Repair can recover files with damaged cross-reference tables, inconsistent object offsets, or recoverable stream structure. It cannot reconstruct bytes that were never saved."
+      ],
+      [
+        "Will repair change the visible pages?",
+        "The repair process prioritizes preserving recoverable page objects. Always compare the result with the original because severely damaged files may lose unrecoverable content."
+      ],
+      [
+        "Is a repaired PDF safe to open?",
+        "The output is validated before download, but users should still treat untrusted PDFs as untrusted and use sanitize controls when removing active content matters."
+      ]
+    ],
+    "related": [
+      "compress",
+      "metadata",
+      "redact",
+      "pdf_to_text"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Select the damaged PDF",
+      "Run structural recovery",
+      "Download and verify the repaired file"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "What PDF problems can repair fix?",
+      "Will repair change the visible pages?",
+      "Is a repaired PDF safe to open?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "ocr",
+    "route": "/ocr-pdf",
+    "http_status": 200,
+    "heading": "Make a scanned PDF searchable with OCR",
+    "intro": "Create a text layer for scanned invoices, receipts, forms, and archival documents so users can search and copy recognized text.",
+    "steps": [
+      "Upload a scanned PDF",
+      "Select the OCR language and quality",
+      "Download the searchable PDF"
+    ],
+    "faqs": [
+      [
+        "Does OCR change the original scan?",
+        "OCR adds recognized text behind or alongside the scanned page. The visual page remains available, while recognition accuracy depends on resolution, contrast, and language."
+      ],
+      [
+        "Which languages are supported?",
+        "Available languages depend on the installed OCR language packs and deployment configuration. The interface reports runtime capability instead of claiming unsupported languages."
+      ],
+      [
+        "Can OCR recognize handwriting?",
+        "Standard OCR is optimized for printed characters. Handwriting accuracy varies substantially and should be reviewed before relying on the extracted text."
+      ]
+    ],
+    "related": [
+      "scan_pdf",
+      "pdf_to_text",
+      "compress",
+      "pdf_to_markdown"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Upload a scanned PDF",
+      "Select the OCR language and quality",
+      "Download the searchable PDF"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Does OCR change the original scan?",
+      "Which languages are supported?",
+      "Can OCR recognize handwriting?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "jpg_to_pdf",
+    "route": "/jpg-to-pdf",
+    "http_status": 200,
+    "heading": "Convert images into one PDF",
+    "intro": "Build a shareable PDF from photos, receipts, scans, or design exports without opening a full desktop office suite.",
+    "steps": [
+      "Select JPG or other supported images",
+      "Arrange the image page order",
+      "Download the generated PDF"
+    ],
+    "faqs": [
+      [
+        "Can I convert several JPG files into one PDF?",
+        "Yes. Add multiple images, reorder their thumbnails, and export them as pages in one PDF document."
+      ],
+      [
+        "What happens to image resolution?",
+        "The converter preserves the source pixel data where practical and maps it to a PDF page. Very large images may be normalized to keep the output manageable."
+      ],
+      [
+        "Can I create a PDF from phone photos?",
+        "Yes. Mobile browsers can select images from the device file picker, and the responsive workflow supports touch-first ordering."
+      ]
+    ],
+    "related": [
+      "pdf_to_jpg",
+      "scan_pdf",
+      "compress",
+      "merge"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Select JPG or other supported images",
+      "Arrange the image page order",
+      "Download the generated PDF"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Can I convert several JPG files into one PDF?",
+      "What happens to image resolution?",
+      "Can I create a PDF from phone photos?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "word_to_pdf",
+    "route": "/word-to-pdf",
+    "http_status": 200,
+    "heading": "Convert Word documents to PDF",
+    "intro": "Turn editable DOCX files into shareable PDFs while preserving headings, tables, images, and page layout as faithfully as the installed converter allows.",
+    "steps": [
+      "Choose a DOC or DOCX file",
+      "Review conversion and page settings",
+      "Download the rendered PDF"
+    ],
+    "faqs": [
+      [
+        "Will Word formatting be preserved in the PDF?",
+        "The conversion uses the available document renderer and preserves supported styles, tables, images, headers, and footers. Complex fonts or unsupported features may vary by renderer."
+      ],
+      [
+        "Can I convert Word to PDF without Microsoft Word?",
+        "Yes. Paperplane uses a local or configured document conversion engine, so Microsoft Word does not need to be installed on the browser device."
+      ],
+      [
+        "Can I protect the converted PDF afterward?",
+        "Yes. Send the resulting PDF to Protect PDF to apply password encryption and permissions after the document conversion completes."
+      ]
+    ],
+    "related": [
+      "pdf_to_word",
+      "compress",
+      "protect",
+      "pdf_to_pdfa"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Choose a DOC or DOCX file",
+      "Review conversion and page settings",
+      "Download the rendered PDF"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Will Word formatting be preserved in the PDF?",
+      "Can I convert Word to PDF without Microsoft Word?",
+      "Can I protect the converted PDF afterward?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "excel_to_pdf",
+    "route": "/excel-to-pdf",
+    "http_status": 200,
+    "heading": "Convert Excel spreadsheets to PDF",
+    "intro": "Create a fixed-layout PDF from workbooks, tables, and financial sheets for review, printing, and distribution.",
+    "steps": [
+      "Upload an XLS or XLSX workbook",
+      "Choose the sheets and page layout",
+      "Download the formatted PDF"
+    ],
+    "faqs": [
+      [
+        "Can Excel to PDF include multiple worksheets?",
+        "Yes. The converter can render workbook sheets supported by the installed Office engine. Review page counts and sheet breaks before distributing the output."
+      ],
+      [
+        "Why does a spreadsheet become landscape PDF?",
+        "Wide tables generally need landscape orientation to keep columns legible. The conversion engine chooses a layout that fits the workbook content where possible."
+      ],
+      [
+        "Are formulas recalculated before conversion?",
+        "Calculation behavior depends on the source workbook and converter. The resulting PDF contains rendered values and formatting, not editable spreadsheet formulas."
+      ]
+    ],
+    "related": [
+      "pdf_to_excel",
+      "compress",
+      "protect",
+      "word_to_pdf"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Upload an XLS or XLSX workbook",
+      "Choose the sheets and page layout",
+      "Download the formatted PDF"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Can Excel to PDF include multiple worksheets?",
+      "Why does a spreadsheet become landscape PDF?",
+      "Are formulas recalculated before conversion?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "powerpoint_to_pdf",
+    "route": "/powerpoint-to-pdf",
+    "http_status": 200,
+    "heading": "Convert PowerPoint slides to PDF",
+    "intro": "Share a stable, device-independent version of a presentation without asking recipients to install PowerPoint.",
+    "steps": [
+      "Select a PPT or PPTX presentation",
+      "Check slide orientation and output options",
+      "Download the PDF slide deck"
+    ],
+    "faqs": [
+      [
+        "Does PowerPoint to PDF keep the slide order?",
+        "Yes. Slides are rendered in their source sequence unless you reorganize the exported PDF afterward with Page Organizer."
+      ],
+      [
+        "Are animations included in a PDF?",
+        "PDF is a static format, so animations and transitions are represented by the slide's static content rather than playable motion."
+      ],
+      [
+        "Can I extract slides back to PowerPoint?",
+        "Use PDF to PowerPoint for an editable reconstruction. Text and layout fidelity depends on the PDF structure and the conversion engine."
+      ]
+    ],
+    "related": [
+      "pdf_to_powerpoint",
+      "pdf_to_jpg",
+      "compress",
+      "protect"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Select a PPT or PPTX presentation",
+      "Check slide orientation and output options",
+      "Download the PDF slide deck"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Does PowerPoint to PDF keep the slide order?",
+      "Are animations included in a PDF?",
+      "Can I extract slides back to PowerPoint?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "html_to_pdf",
+    "route": "/html-to-pdf",
+    "http_status": 200,
+    "heading": "Convert HTML content into a PDF",
+    "intro": "Create a portable PDF from HTML snippets, print-ready pages, or an allowed public URL without manually printing from a browser.",
+    "steps": [
+      "Provide HTML or an allowed public URL",
+      "Choose page size and rendering options",
+      "Download the rendered PDF"
+    ],
+    "faqs": [
+      [
+        "Can HTML to PDF access private network URLs?",
+        "No. Server-side URL imports enforce SSRF protections and reject loopback, private-network, and metadata endpoints. Prefer supplying HTML directly for sensitive content."
+      ],
+      [
+        "Will CSS styles render in the PDF?",
+        "Supported CSS is rendered by the configured browser engine. Highly dynamic scripts, cross-origin assets, and unsupported browser features may not reproduce exactly."
+      ],
+      [
+        "Can I use HTML to PDF for invoices?",
+        "Yes, if the HTML is trusted and the page layout is designed for print. Validate fonts, page breaks, and external assets before using the output operationally."
+      ]
+    ],
+    "related": [
+      "pdf_to_text",
+      "pdf_to_markdown",
+      "compress",
+      "protect"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Provide HTML or an allowed public URL",
+      "Choose page size and rendering options",
+      "Download the rendered PDF"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Can HTML to PDF access private network URLs?",
+      "Will CSS styles render in the PDF?",
+      "Can I use HTML to PDF for invoices?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "pdf_to_jpg",
+    "route": "/pdf-to-jpg",
+    "http_status": 200,
+    "heading": "Convert PDF pages to JPG images",
+    "intro": "Rasterize selected document pages for sharing in systems that accept images instead of PDF files.",
+    "steps": [
+      "Upload the source PDF",
+      "Choose page and image quality options",
+      "Download the JPG image bundle"
+    ],
+    "faqs": [
+      [
+        "Is PDF to JPG conversion lossless?",
+        "JPG is a lossy image format. Choose an appropriate quality setting, or use a lossless image workflow when text and line art must remain pixel-perfect."
+      ],
+      [
+        "Can I convert only selected PDF pages?",
+        "Yes. Configure the page range or selected pages before rendering so you do not need to export the entire document."
+      ],
+      [
+        "Why is the result downloaded as a ZIP file?",
+        "A multi-page PDF produces multiple image files. Packaging them in a ZIP keeps the page set together and avoids ambiguous browser downloads."
+      ]
+    ],
+    "related": [
+      "jpg_to_pdf",
+      "pdf_to_text",
+      "compress",
+      "split"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Upload the source PDF",
+      "Choose page and image quality options",
+      "Download the JPG image bundle"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Is PDF to JPG conversion lossless?",
+      "Can I convert only selected PDF pages?",
+      "Why is the result downloaded as a ZIP file?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "pdf_to_word",
+    "route": "/pdf-to-word",
+    "http_status": 200,
+    "heading": "Convert PDF files to editable Word documents",
+    "intro": "Recover editable paragraphs and tables from a PDF when the next step is revision rather than distribution.",
+    "steps": [
+      "Select a text or scanned PDF",
+      "Choose conversion and OCR options",
+      "Download the editable DOCX file"
+    ],
+    "faqs": [
+      [
+        "Will PDF to Word preserve the original layout?",
+        "The converter reconstructs paragraphs, text blocks, and supported tables. Exact fidelity varies with columns, positioned text, embedded fonts, and scanned content."
+      ],
+      [
+        "Can scanned PDFs be converted to Word?",
+        "Scanned pages need OCR before editable text can be reconstructed. Use OCR PDF first when the source contains page images rather than a text layer."
+      ],
+      [
+        "Does PDF to Word preserve signatures?",
+        "Visual signature marks may convert as page artwork, but cryptographic signature semantics are not preserved as an editable Word signature."
+      ]
+    ],
+    "related": [
+      "word_to_pdf",
+      "ocr",
+      "pdf_to_text",
+      "compress"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Select a text or scanned PDF",
+      "Choose conversion and OCR options",
+      "Download the editable DOCX file"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Will PDF to Word preserve the original layout?",
+      "Can scanned PDFs be converted to Word?",
+      "Does PDF to Word preserve signatures?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "pdf_to_excel",
+    "route": "/pdf-to-excel",
+    "http_status": 200,
+    "heading": "Convert PDF tables to Excel",
+    "intro": "Move tabular data out of a report and into a workbook without manually retyping every row.",
+    "steps": [
+      "Upload a table-containing PDF",
+      "Review detected table regions",
+      "Download the XLSX workbook"
+    ],
+    "faqs": [
+      [
+        "Can PDF to Excel extract scanned tables?",
+        "Scanned tables require OCR and table recognition. Results depend on scan quality, cell borders, column alignment, and the language model available to the converter."
+      ],
+      [
+        "Will formulas be created in the Excel output?",
+        "The output represents extracted values and table structure. It does not infer business formulas that were not explicitly encoded in the PDF."
+      ],
+      [
+        "Why do merged cells need review?",
+        "PDFs store visual positions rather than spreadsheet cell semantics. Merged headers and irregular columns may need spreadsheet cleanup after extraction."
+      ]
+    ],
+    "related": [
+      "excel_to_pdf",
+      "ocr",
+      "pdf_to_text",
+      "compress"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Upload a table-containing PDF",
+      "Review detected table regions",
+      "Download the XLSX workbook"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Can PDF to Excel extract scanned tables?",
+      "Will formulas be created in the Excel output?",
+      "Why do merged cells need review?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "pdf_to_powerpoint",
+    "route": "/pdf-to-powerpoint",
+    "http_status": 200,
+    "heading": "Convert a PDF into PowerPoint slides",
+    "intro": "Rebuild a slide deck from a PDF when you need to edit supported text and visual elements in a presentation workspace.",
+    "steps": [
+      "Choose the source PDF",
+      "Select slide and text reconstruction options",
+      "Download the PPTX presentation"
+    ],
+    "faqs": [
+      [
+        "Will each PDF page become a slide?",
+        "The default workflow maps PDF pages to presentation slides. Complex page content may be represented as grouped or rasterized artwork depending on the source."
+      ],
+      [
+        "Can I edit text after conversion?",
+        "Recognized text may be editable, while positioned glyphs, outlines, and scanned page images may remain visual content."
+      ],
+      [
+        "Are animations restored?",
+        "No. A PDF contains static page appearances, so animations and transitions cannot be recovered from the source alone."
+      ]
+    ],
+    "related": [
+      "powerpoint_to_pdf",
+      "pdf_to_jpg",
+      "pdf_to_text",
+      "compress"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Choose the source PDF",
+      "Select slide and text reconstruction options",
+      "Download the PPTX presentation"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Will each PDF page become a slide?",
+      "Can I edit text after conversion?",
+      "Are animations restored?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "pdf_to_pdfa",
+    "route": "/pdf-to-pdfa",
+    "http_status": 200,
+    "heading": "Convert a PDF to archive-ready PDF/A",
+    "intro": "Prepare long-term records for systems that require a standardized, self-contained archival PDF profile.",
+    "steps": [
+      "Upload the source PDF",
+      "Choose PDF/A conversion settings",
+      "Download the archive-ready document"
+    ],
+    "faqs": [
+      [
+        "What is PDF/A-1b?",
+        "PDF/A-1b is an archival conformance profile focused on reliable visual reproduction. It restricts features that depend on external resources or dynamic behavior."
+      ],
+      [
+        "Why can a PDF/A conversion fail?",
+        "Missing fonts, unsupported transparency, encrypted input, invalid metadata, or active content can prevent a document from meeting the selected archival profile."
+      ],
+      [
+        "Does PDF/A protect a file with a password?",
+        "PDF/A is an archival conformance target, not an encryption feature. Apply Protect PDF separately when access control is required."
+      ]
+    ],
+    "related": [
+      "metadata",
+      "repair",
+      "protect",
+      "compress"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Upload the source PDF",
+      "Choose PDF/A conversion settings",
+      "Download the archive-ready document"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "What is PDF/A-1b?",
+      "Why can a PDF/A conversion fail?",
+      "Does PDF/A protect a file with a password?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "pdf_to_text",
+    "route": "/pdf-to-text",
+    "http_status": 200,
+    "heading": "Extract text from a PDF",
+    "intro": "Turn a text-based PDF into a clean text stream when you need content without page styling or visual layout.",
+    "steps": [
+      "Select a text-based PDF",
+      "Choose page or extraction options",
+      "Download the plain text result"
+    ],
+    "faqs": [
+      [
+        "Can PDF to Text extract text from scanned pages?",
+        "Scanned pages contain images rather than characters. Run OCR PDF first to create a searchable text layer, then extract the recognized text."
+      ],
+      [
+        "Does extraction keep the original formatting?",
+        "Plain text preserves reading order and line content where possible, but it does not retain fonts, colors, exact columns, or page graphics."
+      ],
+      [
+        "Can I extract only certain pages?",
+        "Yes. Use the page-range controls to limit extraction to the relevant pages and avoid processing unrelated sections."
+      ]
+    ],
+    "related": [
+      "ocr",
+      "pdf_to_markdown",
+      "pdf_to_word",
+      "split"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Select a text-based PDF",
+      "Choose page or extraction options",
+      "Download the plain text result"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Can PDF to Text extract text from scanned pages?",
+      "Does extraction keep the original formatting?",
+      "Can I extract only certain pages?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "pdf_to_markdown",
+    "route": "/pdf-to-markdown",
+    "http_status": 200,
+    "heading": "Convert PDF content to Markdown",
+    "intro": "Create a portable, developer-friendly text representation for documentation, notes, repositories, and knowledge bases.",
+    "steps": [
+      "Upload a text-based or OCR PDF",
+      "Choose the pages to convert",
+      "Download the generated Markdown file"
+    ],
+    "faqs": [
+      [
+        "Does PDF to Markdown preserve headings?",
+        "The converter infers structure from text positioning and typography. Clear heading styles and consistent spacing improve the resulting Markdown hierarchy."
+      ],
+      [
+        "Can images be included in Markdown output?",
+        "Text conversion focuses on document structure. Image extraction behavior depends on the source PDF and the selected export options."
+      ],
+      [
+        "Should I run OCR before Markdown conversion?",
+        "Yes for scans. OCR gives the Markdown converter a text layer to work with instead of a page image with no characters."
+      ]
+    ],
+    "related": [
+      "pdf_to_text",
+      "ocr",
+      "html_to_pdf",
+      "pdf_to_word"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Upload a text-based or OCR PDF",
+      "Choose the pages to convert",
+      "Download the generated Markdown file"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Does PDF to Markdown preserve headings?",
+      "Can images be included in Markdown output?",
+      "Should I run OCR before Markdown conversion?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "edit",
+    "route": "/edit-pdf",
+    "http_status": 200,
+    "heading": "Edit PDF pages without rebuilding the document",
+    "intro": "Make practical edits to an existing PDF when you need to add a label, date, stamp, or visual correction before sharing.",
+    "steps": [
+      "Open the PDF in the editor",
+      "Choose an editing tool and place it on the page",
+      "Apply changes and export the edited PDF"
+    ],
+    "faqs": [
+      [
+        "Can I edit existing PDF text?",
+        "The editor is designed for adding positioned content and annotations. Direct replacement of arbitrary existing glyphs depends on the page structure and tool support."
+      ],
+      [
+        "Are PDF edits applied to the file or only displayed?",
+        "Exporting writes the positioned edits into the output PDF so they remain visible when the file is opened elsewhere."
+      ],
+      [
+        "Can I edit a PDF on a phone?",
+        "Yes. The editor adapts its controls for touch screens, although precise text placement is easier on a larger display."
+      ]
+    ],
+    "related": [
+      "annotate",
+      "watermark",
+      "sign",
+      "redact"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Open the PDF in the editor",
+      "Choose an editing tool and place it on the page",
+      "Apply changes and export the edited PDF"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Can I edit existing PDF text?",
+      "Are PDF edits applied to the file or only displayed?",
+      "Can I edit a PDF on a phone?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "annotate",
+    "route": "/annotate-pdf",
+    "http_status": 200,
+    "heading": "Annotate PDF pages for review",
+    "intro": "Mark up contracts, research papers, proofs, and drafts without changing the original page text underneath your review layer.",
+    "steps": [
+      "Load the PDF into Studio",
+      "Choose highlight, note, or drawing tools",
+      "Save the annotated PDF for review"
+    ],
+    "faqs": [
+      [
+        "Can I highlight text in a PDF?",
+        "Yes, when the page contains selectable text. Image-only pages can still receive visual drawing or rectangle annotations."
+      ],
+      [
+        "Are annotations permanent?",
+        "Annotations are written into the exported PDF. Use Sanitize or flattening controls when a review copy must become a fixed visual document."
+      ],
+      [
+        "Can collaborators see my comments in another PDF viewer?",
+        "Standard PDF annotation compatibility varies by viewer. Export and verify the result in the target review application before relying on a specific annotation type."
+      ]
+    ],
+    "related": [
+      "edit",
+      "redact",
+      "sign",
+      "forms"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Load the PDF into Studio",
+      "Choose highlight, note, or drawing tools",
+      "Save the annotated PDF for review"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Can I highlight text in a PDF?",
+      "Are annotations permanent?",
+      "Can collaborators see my comments in another PDF viewer?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "crop",
+    "route": "/crop-pdf",
+    "http_status": 200,
+    "heading": "Crop PDF pages to the content area",
+    "intro": "Trim inconsistent scan borders and improve document presentation without resizing the content manually in a design tool.",
+    "steps": [
+      "Open the PDF crop tool",
+      "Set the crop box for one or more pages",
+      "Preview and download the cropped document"
+    ],
+    "faqs": [
+      [
+        "Does cropping delete the hidden content outside the box?",
+        "Cropping changes the visible page area. For sensitive information, use hardened redaction or page deletion because cropping alone may not remove underlying objects."
+      ],
+      [
+        "Can I crop all pages with the same margins?",
+        "Yes. Apply a crop rectangle to the selected page scope when the source document uses consistent page geometry."
+      ],
+      [
+        "Can crop fix a sideways scan?",
+        "Crop controls trim the page boundary. Use Rotate PDF first or afterward when the problem is page orientation rather than excess margins."
+      ]
+    ],
+    "related": [
+      "rotate",
+      "redact",
+      "scan_pdf",
+      "organize"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Open the PDF crop tool",
+      "Set the crop box for one or more pages",
+      "Preview and download the cropped document"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Does cropping delete the hidden content outside the box?",
+      "Can I crop all pages with the same margins?",
+      "Can crop fix a sideways scan?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "redact",
+    "route": "/redact-pdf",
+    "http_status": 200,
+    "heading": "Permanently redact sensitive PDF content",
+    "intro": "Remove confidential names, identifiers, and phrases from a document while verifying that the redacted value is absent from the output.",
+    "steps": [
+      "Upload the source PDF",
+      "Identify text or regions to redact",
+      "Apply hardened redaction and verify the result"
+    ],
+    "faqs": [
+      [
+        "Is a black rectangle enough to redact a PDF?",
+        "No. A visual rectangle may leave the original text selectable underneath. Hardened redaction removes or replaces the affected content and verifies the target is not still extractable."
+      ],
+      [
+        "Can redaction be undone?",
+        "A correctly exported redacted PDF is irreversible. Keep an access-controlled original separately if your retention policy requires it."
+      ],
+      [
+        "Does redaction remove metadata too?",
+        "Redaction targets visible page content. Use PDF Security or Sanitize to remove metadata, attachments, annotations, and active content as a separate cleanup step."
+      ]
+    ],
+    "related": [
+      "protect",
+      "annotate",
+      "metadata",
+      "sign"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Upload the source PDF",
+      "Identify text or regions to redact",
+      "Apply hardened redaction and verify the result"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Is a black rectangle enough to redact a PDF?",
+      "Can redaction be undone?",
+      "Does redaction remove metadata too?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "watermark",
+    "route": "/watermark-pdf",
+    "http_status": 200,
+    "heading": "Watermark PDF pages for ownership or status",
+    "intro": "Label drafts, approvals, confidential copies, and branded documents with a watermark that stays visible in the exported PDF.",
+    "steps": [
+      "Choose a PDF and watermark type",
+      "Set text, image, opacity, and position",
+      "Apply the watermark and download"
+    ],
+    "faqs": [
+      [
+        "Can I watermark every page?",
+        "Yes. Choose the full document scope or a selected page range before applying the overlay."
+      ],
+      [
+        "Can I change watermark opacity?",
+        "Yes. Opacity controls let you balance visibility against readability so body text remains usable underneath the mark."
+      ],
+      [
+        "Is a watermark a security control?",
+        "A watermark communicates status or ownership but does not prevent copying. Use Protect PDF, permissions, or redaction when access control or removal of content is required."
+      ]
+    ],
+    "related": [
+      "page_numbers",
+      "protect",
+      "edit",
+      "annotate"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Choose a PDF and watermark type",
+      "Set text, image, opacity, and position",
+      "Apply the watermark and download"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Can I watermark every page?",
+      "Can I change watermark opacity?",
+      "Is a watermark a security control?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "page_numbers",
+    "route": "/add-page-numbers-to-pdf",
+    "http_status": 200,
+    "heading": "Add page numbers to a PDF",
+    "intro": "Make reports, legal packets, and printed documents easier to navigate with consistent numbering applied at export time.",
+    "steps": [
+      "Upload the PDF",
+      "Choose position, format, and starting number",
+      "Apply numbering and download"
+    ],
+    "faqs": [
+      [
+        "Can numbering start at a custom value?",
+        "Yes. Set the starting number and choose the placement pattern so front matter can use a different numbering convention when required."
+      ],
+      [
+        "Can I add numbers to only selected pages?",
+        "The operation supports page-scoped options where available. Review the page range before applying numbering to avoid altering cover pages."
+      ],
+      [
+        "Will page numbers overlap existing content?",
+        "Choose a margin-aware header or footer position and preview the document. Cropping or dense source layouts may require a larger offset."
+      ]
+    ],
+    "related": [
+      "organize",
+      "watermark",
+      "edit",
+      "merge"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Upload the PDF",
+      "Choose position, format, and starting number",
+      "Apply numbering and download"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Can numbering start at a custom value?",
+      "Can I add numbers to only selected pages?",
+      "Will page numbers overlap existing content?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "protect",
+    "route": "/protect-pdf",
+    "http_status": 200,
+    "heading": "Protect a PDF with strong password encryption",
+    "intro": "Add document-open and owner controls before sharing a PDF that contains private, regulated, or commercially sensitive information.",
+    "steps": [
+      "Upload the PDF to the security tool",
+      "Set user and owner passwords plus permissions",
+      "Encrypt and download the protected PDF"
+    ],
+    "faqs": [
+      [
+        "What encryption does Protect PDF use?",
+        "The security workflow targets AES-256 PDF encryption through the native PDF security engine when the required capability is available. Passwords are not written to job history."
+      ],
+      [
+        "What is the difference between a user and owner password?",
+        "The user password controls opening the document. The owner password controls permission changes and administrative operations supported by the PDF security handler."
+      ],
+      [
+        "Can I prevent copying or printing?",
+        "Yes. Permission flags can restrict printing, copying, editing, annotations, or form filling, although PDF permissions should be treated as policy signals rather than absolute DRM."
+      ]
+    ],
+    "related": [
+      "unlock",
+      "sign",
+      "redact",
+      "metadata"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Upload the PDF to the security tool",
+      "Set user and owner passwords plus permissions",
+      "Encrypt and download the protected PDF"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "What encryption does Protect PDF use?",
+      "What is the difference between a user and owner password?",
+      "Can I prevent copying or printing?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "unlock",
+    "route": "/unlock-pdf",
+    "http_status": 200,
+    "heading": "Unlock a PDF with the correct password",
+    "intro": "Remove encryption or restrictive permissions from a document you are authorized to access, without attempting to bypass an unknown password.",
+    "steps": [
+      "Choose the protected PDF",
+      "Enter the valid user or owner password",
+      "Download the authorized unencrypted copy"
+    ],
+    "faqs": [
+      [
+        "Can Unlock PDF crack a forgotten password?",
+        "No. The workflow authenticates against a supplied password and does not bypass unknown encryption or permissions."
+      ],
+      [
+        "What happens to the original protected file?",
+        "The original upload is not modified. A separate unencrypted output is generated after successful authentication."
+      ],
+      [
+        "Can I protect the unlocked PDF again?",
+        "Yes. After unlocking, use Protect PDF to apply a new password and permission policy for the next recipient."
+      ]
+    ],
+    "related": [
+      "protect",
+      "sign",
+      "metadata",
+      "redact"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Choose the protected PDF",
+      "Enter the valid user or owner password",
+      "Download the authorized unencrypted copy"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Can Unlock PDF crack a forgotten password?",
+      "What happens to the original protected file?",
+      "Can I protect the unlocked PDF again?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "sign",
+    "route": "/sign-pdf",
+    "http_status": 200,
+    "heading": "Sign a PDF for approval or integrity",
+    "intro": "Place a visible signature or apply a cryptographic document seal when a PDF needs an approval mark and verifiable integrity.",
+    "steps": [
+      "Upload the document to Sign PDF",
+      "Choose visual stamp or digital signing",
+      "Verify the signature and download"
+    ],
+    "faqs": [
+      [
+        "What is the difference between a visual and digital PDF signature?",
+        "A visual signature is an appearance placed on the page. A digital signature uses certificate-backed cryptographic validation to detect changes after signing."
+      ],
+      [
+        "Does Paperplane provide a certificate authority?",
+        "No. Cryptographic signing requires an authorized certificate and key material. The application can create or verify supported signature structures but does not replace your trust provider."
+      ],
+      [
+        "Can I verify a signed PDF after downloading it?",
+        "Yes. Use the verification workflow to inspect signature status, byte ranges, and integrity information supported by the document."
+      ]
+    ],
+    "related": [
+      "protect",
+      "unlock",
+      "forms",
+      "metadata"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Upload the document to Sign PDF",
+      "Choose visual stamp or digital signing",
+      "Verify the signature and download"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "What is the difference between a visual and digital PDF signature?",
+      "Does Paperplane provide a certificate authority?",
+      "Can I verify a signed PDF after downloading it?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "compare",
+    "route": "/compare-pdf",
+    "http_status": 200,
+    "heading": "Compare two PDF versions side by side",
+    "intro": "Find changes between drafts, signed versions, and revised reports without manually switching between separate viewer windows.",
+    "steps": [
+      "Upload the original and revised PDFs",
+      "Run the page and text comparison",
+      "Review highlighted differences and export notes"
+    ],
+    "faqs": [
+      [
+        "Can Compare PDF detect layout changes?",
+        "The comparison can identify page-level and text-level differences. Visual shifts, font substitutions, or complex graphics may require human review of the rendered pages."
+      ],
+      [
+        "Do both PDFs need the same page count?",
+        "No. Added, removed, or reordered pages are useful comparison results and are reported as structural differences."
+      ],
+      [
+        "Can I compare scanned documents?",
+        "Scans need OCR for meaningful text comparison. Without a text layer, the workflow can still compare rendered page appearances where supported."
+      ]
+    ],
+    "related": [
+      "annotate",
+      "pdf_to_text",
+      "merge",
+      "redact"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Upload the original and revised PDFs",
+      "Run the page and text comparison",
+      "Review highlighted differences and export notes"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Can Compare PDF detect layout changes?",
+      "Do both PDFs need the same page count?",
+      "Can I compare scanned documents?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "forms",
+    "route": "/fill-pdf-form",
+    "http_status": 200,
+    "heading": "Fill and prepare interactive PDF forms",
+    "intro": "Populate AcroForm fields, review required values, and create a stable flattened copy for submission or archiving.",
+    "steps": [
+      "Open the interactive PDF form",
+      "Fill fields or import JSON data",
+      "Save, flatten, and download the completed form"
+    ],
+    "faqs": [
+      [
+        "Can I import form values from JSON?",
+        "Yes. The form workspace accepts field-name/value mappings so repeated or automated form filling does not require manual entry for every field."
+      ],
+      [
+        "What does flattening a PDF form do?",
+        "Flattening bakes field appearances into page content and removes normal interactive editing behavior, which is useful for final submissions and archives."
+      ],
+      [
+        "Can I add new fields to a PDF?",
+        "Supported field types can be placed with coordinates and labels. Verify the result in the target PDF reader because viewer support for advanced field features varies."
+      ]
+    ],
+    "related": [
+      "edit",
+      "sign",
+      "pdf_to_text",
+      "protect"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Open the interactive PDF form",
+      "Fill fields or import JSON data",
+      "Save, flatten, and download the completed form"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Can I import form values from JSON?",
+      "What does flattening a PDF form do?",
+      "Can I add new fields to a PDF?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "metadata",
+    "route": "/pdf-metadata",
+    "http_status": 200,
+    "heading": "Inspect and edit PDF metadata",
+    "intro": "Clean up document identity fields and remove accidental author or application details before you share a PDF externally.",
+    "steps": [
+      "Upload the PDF",
+      "Review title, author, subject, and keywords",
+      "Save the updated metadata and download"
+    ],
+    "faqs": [
+      [
+        "What PDF metadata can I change?",
+        "Common fields include title, author, subject, keywords, creator, producer, and creation or modification dates when the source permits updates."
+      ],
+      [
+        "Does metadata editing change visible page content?",
+        "No. Metadata is document-level information. It does not rewrite the visible page content unless you choose another editing or sanitization operation."
+      ],
+      [
+        "How do I remove metadata completely?",
+        "Use the sanitize workflow to strip private metadata and related embedded content according to the selected cleanup policy."
+      ]
+    ],
+    "related": [
+      "pdf_to_pdfa",
+      "repair",
+      "protect",
+      "redact"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Upload the PDF",
+      "Review title, author, subject, and keywords",
+      "Save the updated metadata and download"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "What PDF metadata can I change?",
+      "Does metadata editing change visible page content?",
+      "How do I remove metadata completely?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "ai_chat",
+    "route": "/ai-pdf-chat",
+    "http_status": 200,
+    "heading": "Ask questions about a PDF with citations",
+    "intro": "Search a document conversationally when scanning headings and pages manually is slower than asking a focused question.",
+    "steps": [
+      "Upload a supported PDF",
+      "Ask a question about its contents",
+      "Review the answer and cited pages"
+    ],
+    "faqs": [
+      [
+        "Does AI PDF Chat work without an external AI provider?",
+        "The application can expose a local fallback for supported retrieval workflows, but model-generated answers require the configured provider and policy. The UI reports unavailable capabilities honestly."
+      ],
+      [
+        "Are answers guaranteed to be correct?",
+        "No. Treat generated answers as an assistive summary and inspect the cited source pages before making a legal, financial, or operational decision."
+      ],
+      [
+        "Can I use AI PDF Chat for confidential files?",
+        "Review the deployment's provider and retention policy first. Use Zero-Upload or the offline client when the document must never leave the device."
+      ]
+    ],
+    "related": [
+      "pdf_to_text",
+      "summarize",
+      "ai_extract",
+      "translate"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Upload a supported PDF",
+      "Ask a question about its contents",
+      "Review the answer and cited pages"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Does AI PDF Chat work without an external AI provider?",
+      "Are answers guaranteed to be correct?",
+      "Can I use AI PDF Chat for confidential files?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "ai_extract",
+    "route": "/extract-pdf-data",
+    "http_status": 200,
+    "heading": "Extract structured data from a PDF",
+    "intro": "Turn semi-structured documents into fields that can be reviewed, copied, or passed into a downstream business workflow.",
+    "steps": [
+      "Upload an invoice, resume, or supported PDF",
+      "Choose the extraction schema",
+      "Review and export JSON or CSV"
+    ],
+    "faqs": [
+      [
+        "What document types can Smart Metadata extract?",
+        "The built-in schemas focus on common invoice and resume fields. Custom document layouts may require human review or a different extraction strategy."
+      ],
+      [
+        "Is the extracted JSON guaranteed to be complete?",
+        "No. Extraction is probabilistic and depends on text quality, layout, and provider behavior. Always validate required fields before importing the result into a system of record."
+      ],
+      [
+        "Can I export extracted fields as CSV?",
+        "Yes. Structured results can be normalized into a CSV representation suitable for spreadsheets and simple batch review."
+      ]
+    ],
+    "related": [
+      "pdf_to_text",
+      "ai_chat",
+      "summarize",
+      "pdf_to_excel"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Upload an invoice, resume, or supported PDF",
+      "Choose the extraction schema",
+      "Review and export JSON or CSV"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "What document types can Smart Metadata extract?",
+      "Is the extracted JSON guaranteed to be complete?",
+      "Can I export extracted fields as CSV?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "summarize",
+    "route": "/summarize-pdf",
+    "http_status": 200,
+    "heading": "Summarize a PDF into its key points",
+    "intro": "Get a fast orientation to a long report while keeping the original document available for checking important details.",
+    "steps": [
+      "Upload the source PDF",
+      "Choose summary length or audience",
+      "Review the brief with source references"
+    ],
+    "faqs": [
+      [
+        "Can a summary replace reading the original PDF?",
+        "No. A summary is a navigation aid, not a substitute for reviewing source language, exceptions, tables, and obligations that affect a decision."
+      ],
+      [
+        "Does summarization include page references?",
+        "When retrieval and citation support are available, the generated brief can include source page references for targeted verification."
+      ],
+      [
+        "Can I summarize a scanned PDF?",
+        "Scanned pages should be OCR-processed first so the summarizer has text to retrieve. Recognition quality directly affects the summary."
+      ]
+    ],
+    "related": [
+      "ai_chat",
+      "ai_extract",
+      "ocr",
+      "pdf_to_text"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Upload the source PDF",
+      "Choose summary length or audience",
+      "Review the brief with source references"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Can a summary replace reading the original PDF?",
+      "Does summarization include page references?",
+      "Can I summarize a scanned PDF?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "translate",
+    "route": "/translate-pdf",
+    "http_status": 200,
+    "heading": "Translate PDF content for multilingual review",
+    "intro": "Create a translated working copy while keeping the original document available for legal and editorial comparison.",
+    "steps": [
+      "Upload a text-based or OCR PDF",
+      "Choose source and target languages",
+      "Review and download the translated copy"
+    ],
+    "faqs": [
+      [
+        "Does translation preserve the exact PDF layout?",
+        "Layout preservation depends on text length, fonts, columns, and the translation engine. Longer translated phrases may reflow or require manual review."
+      ],
+      [
+        "Is the translated PDF legally certified?",
+        "No. Machine translation is not a certified legal translation. Use a qualified translator for contracts, filings, or regulated communications."
+      ],
+      [
+        "Can I translate a scanned PDF?",
+        "Run OCR first so the translation engine can access text. Image-only pages cannot be reliably translated without recognition."
+      ]
+    ],
+    "related": [
+      "ocr",
+      "pdf_to_text",
+      "ai_chat",
+      "summarize"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Upload a text-based or OCR PDF",
+      "Choose source and target languages",
+      "Review and download the translated copy"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Does translation preserve the exact PDF layout?",
+      "Is the translated PDF legally certified?",
+      "Can I translate a scanned PDF?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "photo_resizer",
+    "route": "/ssc-photo-resizer",
+    "http_status": 200,
+    "heading": "SSC & UPSC Photo and Signature Resizer",
+    "intro": "Quickly resize photos and signature images to the exact dimensions (3.5x4.5cm, 4x2cm) and file size requirements (20KB-50KB) of Indian recruitment portals.",
+    "steps": [
+      "Upload candidate photo or signature image",
+      "Choose the exam preset (SSC, UPSC, IBPS)",
+      "Download the verified resized image or PDF"
+    ],
+    "faqs": [
+      [
+        "What is the exact SSC photo size?",
+        "SSC requires a passport photo between 20 KB and 50 KB, with dimensions of approximately 3.5 cm width by 4.5 cm height (350x450 px)."
+      ],
+      [
+        "What is the SSC signature size requirement?",
+        "SSC signatures must be between 10 KB and 20 KB with dimensions of 4.0 cm width by 2.0 cm height."
+      ],
+      [
+        "Can I export as JPG or PDF?",
+        "Yes. You can download the output directly as an optimized JPG image or a single-page PDF document."
+      ]
+    ],
+    "related": [
+      "jpg_to_pdf",
+      "compress",
+      "crop",
+      "scan_pdf"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Upload candidate photo or signature image",
+      "Choose the exam preset (SSC, UPSC, IBPS)",
+      "Download the verified resized image or PDF"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "What is the exact SSC photo size?",
+      "What is the SSC signature size requirement?",
+      "Can I export as JPG or PDF?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "mask_aadhaar",
+    "route": "/mask-aadhaar-card-online",
+    "http_status": 200,
+    "heading": "Mask Aadhaar Card PDF & Image Online",
+    "intro": "UIDAI mandates masking the first 8 digits of Aadhaar before sharing with private entities or employers. Paperplane permanently black-boxes or redacts the first 8 digits in memory.",
+    "steps": [
+      "Upload Aadhaar PDF or scan image",
+      "Click Mask Aadhaar Now",
+      "Download your UIDAI-compliant masked PDF"
+    ],
+    "faqs": [
+      [
+        "Is it safe to mask Aadhaar online with Paperplane?",
+        "Yes. Paperplane operates with zero data persistence. Files are processed in ephemeral memory sandboxes and permanently deleted within seconds."
+      ],
+      [
+        "Does it work on password-protected e-Aadhaar PDFs?",
+        "Use our Unlock PDF tool first to remove the master password, then mask the first 8 digits."
+      ],
+      [
+        "Are the first 8 digits permanently unrecoverable?",
+        "Yes. PyMuPDF true redaction destroys the underlying vector characters and pixels permanently."
+      ]
+    ],
+    "related": [
+      "redact",
+      "protect",
+      "unlock",
+      "compress"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Upload Aadhaar PDF or scan image",
+      "Click Mask Aadhaar Now",
+      "Download your UIDAI-compliant masked PDF"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Is it safe to mask Aadhaar online with Paperplane?",
+      "Does it work on password-protected e-Aadhaar PDFs?",
+      "Are the first 8 digits permanently unrecoverable?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "grayscale",
+    "route": "/convert-pdf-to-grayscale",
+    "http_status": 200,
+    "heading": "Convert PDF to Grayscale",
+    "intro": "Convert colored PDF pages to grayscale for black-and-white printing. Already-grayscale files are preserved; color pages are rendered as images, so file size can increase and their text may no longer be selectable.",
+    "steps": [
+      "Upload your color PDF",
+      "Click Convert to Grayscale",
+      "Download your grayscale PDF"
+    ],
+    "faqs": [
+      [
+        "Does grayscale conversion reduce file size?",
+        "Not always. Already-grayscale PDFs are preserved, while converting color pages to images can increase file size. Use Compress PDF when reducing size is your goal."
+      ],
+      [
+        "Will text remain selectable?",
+        "Text remains selectable when the source is already grayscale. Color pages are rendered to grayscale images and may need OCR before their text can be searched or copied."
+      ],
+      [
+        "Is the conversion reversible?",
+        "No. Once colored pages are converted to grayscale, their original color data is not recoverable from the output file."
+      ],
+      [
+        "Does it work on scanned PDFs?",
+        "Yes. Scanned image PDFs are fully supported and every embedded image is converted."
+      ]
+    ],
+    "related": [
+      "compress",
+      "remove",
+      "rotate",
+      "merge"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Upload your color PDF",
+      "Click Convert to Grayscale",
+      "Download your grayscale PDF"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "Does grayscale conversion reduce file size?",
+      "Will text remain selectable?",
+      "Is the conversion reversible?",
+      "Does it work on scanned PDFs?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  },
+  {
+    "operation": "flatten",
+    "route": "/flatten-pdf",
+    "http_status": 200,
+    "heading": "Flatten PDF Form Fields",
+    "intro": "Permanently bake all AcroForm field appearances into the page — essential for final submission, archiving, and preventing further editing.",
+    "steps": [
+      "Upload your fillable PDF form",
+      "Click Flatten Form Fields",
+      "Download the permanently flattened PDF"
+    ],
+    "faqs": [
+      [
+        "What does flattening a PDF do?",
+        "Flattening converts interactive field widgets into static page content. The PDF looks the same but fields can no longer be typed in."
+      ],
+      [
+        "Can I unflatten a flattened PDF?",
+        "No. Flattening is permanent and irreversible. Keep the original fillable PDF before flattening."
+      ],
+      [
+        "Does flattening reduce file size?",
+        "Usually yes, as interactive form metadata and widget streams are removed."
+      ]
+    ],
+    "related": [
+      "forms",
+      "protect",
+      "compress",
+      "sign"
+    ],
+    "rendered_heading_present": true,
+    "rendered_intro_present": true,
+    "rendered_how_to_steps": [
+      "Upload your fillable PDF form",
+      "Click Flatten Form Fields",
+      "Download the permanently flattened PDF"
+    ],
+    "rendered_steps_match_context": true,
+    "rendered_faq_questions": [
+      "What does flattening a PDF do?",
+      "Can I unflatten a flattened PDF?",
+      "Does flattening reduce file size?"
+    ],
+    "rendered_faqs_match_context": true,
+    "visible_steps_match_context": true,
+    "visible_faqs_match_context": true,
+    "route_copy_verified": true
+  }
+]

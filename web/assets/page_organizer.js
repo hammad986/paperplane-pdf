@@ -386,7 +386,7 @@
         if (docNameLabel) docNameLabel.textContent = `${f.name} (Loading…)`;
         try {
           const ab = await f.arrayBuffer();
-          secondaryDoc = await pdfjsLib.getDocument({ data: ab }).promise;
+          secondaryDoc = await pdfjsLib.getDocument({ data: ab, isEvalSupported: false }).promise;
           const numPages = secondaryDoc.numPages;
           if (docNameLabel) docNameLabel.textContent = `${f.name} (${numPages} pages)`;
           if (previewArea) previewArea.style.display = 'block';
@@ -1159,7 +1159,7 @@
 
       // Reload document into viewer & organizer
       if (window.loadDocumentIntoStudio) {
-        const loaded = await window.loadDocumentIntoStudio(newFile);
+        const loaded = await window.loadDocumentIntoStudio(newFile, { initialPage: targetPage });
         if (loaded && window.jumpToStudioPage) {
           await window.jumpToStudioPage(targetPage, 'auto');
         }
@@ -1258,20 +1258,30 @@
         return;
       }
 
+      // Capture before opening the confirmation dialog; focusing the modal can
+      // scroll the mobile document and change the visible page counter.
+      const oldPage = Math.max(1, Number(document.getElementById('page-jump-input')?.value) || this.state.activePage || 1);
+
       const msg = pages.length === 1
         ? `Are you sure you want to delete page ${pages[0]}? This cannot be undone.`
         : `Are you sure you want to delete ${pages.length} pages? This cannot be undone.`;
       const confirmed = await (window.confirmAction ? window.confirmAction(msg, { confirmLabel: 'Delete pages', danger: true }) : Promise.resolve(window.confirm(msg)));
       if (!confirmed) return;
 
+      const previousFile = this.sourceFile;
       window.showToast(`Deleting ${pages.length} page(s)…`, 'info');
       const newFile = await this._sendPageMutation('/api/studio/page/delete', {
         pages: JSON.stringify(pages)
       });
 
       if (newFile) {
-        const nextActive = Math.max(1, Math.min(pages[0], total - pages.length));
+        const deletedBeforeActive = pages.filter(page => page < oldPage).length;
+        const activeWasDeleted = pages.includes(oldPage);
+        const nextActive = Math.max(1, Math.min(activeWasDeleted ? oldPage - deletedBeforeActive : oldPage - deletedBeforeActive, total - pages.length));
         await this._reloadPdfAfterMutation(newFile, nextActive);
+        if (previousFile && window.showStudioUndoMutation) {
+          window.showStudioUndoMutation(previousFile, oldPage, `${pages.length} page(s) deleted`, newFile);
+        }
         window.showToast(`Deleted ${pages.length} page(s).`, 'success');
       }
     }
@@ -1306,6 +1316,7 @@
         return;
       }
 
+      const suggestedName = `extracted_${pages.join('-')}_${this.sourceName.replace(/[^\w.-]+/g, '_')}`;
       window.showToast(`Extracting ${pages.length} page(s)…`, 'info');
       const form = new FormData();
       form.append('file', this.sourceFile, this.sourceName);
@@ -1314,20 +1325,38 @@
       try {
         const resp = await fetch('/api/studio/pages/extract', { method: 'POST', body: form });
         if (!resp.ok) {
-          window.showToast('Extraction failed.', 'error');
+          let detail = `Extraction failed (${resp.status}).`;
+          try { const body = await resp.json(); detail = body.detail || detail; } catch { /* non-JSON failure response */ }
+          window.showToast(detail, 'error', 7000);
           return;
         }
 
         const blob = await resp.blob();
+        const signature = new TextDecoder().decode(await blob.slice(0, 5).arrayBuffer());
+        if (blob.type !== 'application/pdf' || signature !== '%PDF-') {
+          throw new Error('The server response was not a valid PDF. No download was started. Please retry.');
+        }
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `extracted_${pages.join('-')}_${this.sourceName}`;
+        a.download = suggestedName;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 10000);
-        window.showToast('Extracted PDF downloaded.', 'success');
+        const feedback = document.getElementById('studio-download-feedback');
+        if (feedback) {
+          feedback.replaceChildren();
+          const copy = document.createElement('span');
+          copy.textContent = 'Extracted PDF ready. If the download did not start, use this link: ';
+          const retry = document.createElement('a');
+          retry.href = url;
+          retry.download = suggestedName;
+          retry.textContent = suggestedName;
+          feedback.append(copy, retry);
+          feedback.hidden = false;
+        }
+        setTimeout(() => URL.revokeObjectURL(url), 120000);
+        window.showToast('Extracted PDF is ready. If it did not download automatically, use the link above the canvas.', 'success', 6000);
       } catch (err) {
         window.showToast(`Extraction error: ${err.message}`, 'error');
       }

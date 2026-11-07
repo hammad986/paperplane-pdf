@@ -221,6 +221,62 @@ _KNOWN_CAPITALS = {
     "united states": "washington, d.c.",
     "australia": "canberra",
     "canada": "ottawa",
+    "china": "beijing",
+    "brazil": "brasilia",
+    "mexico": "mexico city",
+    "russia": "moscow",
+    "south korea": "seoul",
+    "north korea": "pyongyang",
+    "argentina": "buenos aires",
+    "egypt": "cairo",
+    "turkey": "ankara",
+    "türkiye": "ankara",
+    "ireland": "dublin",
+    "norway": "oslo",
+    "sweden": "stockholm",
+    "denmark": "copenhagen",
+    "netherlands": "amsterdam",
+    "belgium": "brussels",
+    "switzerland": "bern",
+    "poland": "warsaw",
+    "portugal": "lisbon",
+    "greece": "athens",
+    "new zealand": "wellington",
+    "nigeria": "abuja",
+    "kenya": "nairobi",
+    "south africa": "pretoria",
+    "saudi arabia": "riyadh",
+    "united arab emirates": "abu dhabi",
+    "pakistan": "islamabad",
+    "bangladesh": "dhaka",
+    "nepal": "kathmandu",
+    "thailand": "bangkok",
+    "vietnam": "hanoi",
+    "indonesia": "jakarta",
+    "philippines": "manila",
+    "malaysia": "kuala lumpur",
+    "singapore": "singapore",
+    "israel": "jerusalem",
+    "iran": "tehran",
+    "iraq": "baghdad",
+    "afghanistan": "kabul",
+    "ukraine": "kyiv",
+    "czech republic": "prague",
+    "czechia": "prague",
+    "romania": "bucharest",
+    "hungary": "budapest",
+    "finland": "helsinki",
+    "iceland": "reykjavik",
+    "chile": "santiago",
+    "peru": "lima",
+    "colombia": "bogota",
+    "venezuela": "caracas",
+    "morocco": "rabat",
+    "ethiopia": "addis ababa",
+    "ghana": "accra",
+    "cuba": "havana",
+    "jamaica": "kingston",
+    "luxembourg": "luxembourg",
 }
 
 
@@ -238,7 +294,7 @@ def _metadata_year(value: str) -> str | None:
     return match.group(0) if match else None
 
 
-def correct_false_premise(pdf_path: Path, question: str) -> str | None:
+def correct_false_premise(pdf_path: Path | None, question: str) -> str | None:
     """Correct a small set of verifiable false premises without inventing PDF content.
 
     General facts are deliberately limited to an explicit local table. Document
@@ -248,15 +304,17 @@ def correct_false_premise(pdf_path: Path, question: str) -> str | None:
     if not question.strip():
         return None
 
-    page_count, metadata = _pdf_metadata_facts(pdf_path)
-    page_count_claim = re.search(r"\b(\d{1,5})\s*[- ]?pages?\b", question, re.IGNORECASE)
-    if page_count_claim:
-        claimed = int(page_count_claim.group(1))
-        if claimed != page_count:
-            return (
-                f"Correction: the uploaded PDF contains {page_count} pages, not {claimed}. "
-                f"I can answer questions using those {page_count} pages."
-            )
+    metadata: dict[str, str] = {}
+    if pdf_path is not None:
+        page_count, metadata = _pdf_metadata_facts(pdf_path)
+        page_count_claim = re.search(r"\b(\d{1,5})\s*[- ]?pages?\b", question, re.IGNORECASE)
+        if page_count_claim:
+            claimed = int(page_count_claim.group(1))
+            if claimed != page_count:
+                return (
+                    f"Correction: the uploaded PDF contains {page_count} pages, not {claimed}. "
+                    f"I can answer questions using those {page_count} pages."
+                )
 
     capital_patterns = (
         re.compile(r"\b(?P<city>[A-Za-z][A-Za-z .'-]{0,35}?)\s+(?:is\s+)?(?:the\s+)?capital\s+of\s+(?P<country>[A-Za-z][A-Za-z .'-]{0,35}?)\b", re.IGNORECASE),
@@ -326,7 +384,11 @@ def align_answer_citations(answer: str, eligible_pages: list[int] | set[int]) ->
                 pages.append(int(part))
         return pages
 
-    citation_pattern = re.compile(r"\[(?:pages?|p\.?)\s*([\d,\s\-–]+)\]", re.IGNORECASE)
+    citation_patterns = (
+        re.compile(r"\[(?:pages?|p\.?)\s*([\d,\s\-–]+)\]", re.IGNORECASE),
+        re.compile(r"\((?:pages?|p\.?)\s*([\d,\s\-–]+)\)", re.IGNORECASE),
+        re.compile(r"\bpages?\s+([\d]+(?:\s*[-–,]\s*[\d]+)*)\b", re.IGNORECASE),
+    )
     cited_pages: set[int] = set()
 
     def keep_supported(match: re.Match[str]) -> str:
@@ -337,7 +399,11 @@ def align_answer_citations(answer: str, eligible_pages: list[int] | set[int]) ->
         label = "Page" if len(kept) == 1 else "Pages"
         return f"[{label} {', '.join(map(str, kept))}]"
 
-    text = citation_pattern.sub(keep_supported, answer or "")
+    text = answer or ""
+    # Remove literal prompt templates before normalizing real page references.
+    text = re.sub(r"\[(?:pages?|p\.?)\s*[xX](?:\s*[-–]\s*[xX])?\]", "", text, flags=re.IGNORECASE)
+    for citation_pattern in citation_patterns:
+        text = citation_pattern.sub(keep_supported, text)
     text = re.sub(r"[ \t]{2,}", " ", text)
     text = re.sub(r"\s+([,.;:!?])", r"\1", text)
     return text.strip(), sorted(cited_pages)
@@ -888,9 +954,12 @@ def summarize_pdf(pdf_path: Path, max_pages: int | None = None) -> str:
 
     system_prompt = (
         "You are an executive document synthesizer. Provide an insightful Executive Summary followed by "
-        "Bullet Points of key details, decisions, numbers, and deadlines."
+        "bullet points of key details, decisions, numbers, and deadlines. Ground every document fact in the "
+        "provided text and append a page citation in the exact form [Page N] or [Pages N-M]. Do not invent citations."
     )
-    return _guard_ai_output(call_llm(system_prompt, f"DOCUMENT CONTENT:\n\n{full_text}", timeout_seconds=50))
+    summary = _guard_ai_output(call_llm(system_prompt, f"DOCUMENT CONTENT:\n\n{full_text}", timeout_seconds=50))
+    eligible_pages = {chunk.page_number for chunk in extract_chunks_from_pdf(pdf_path) if chunk.text.strip()}
+    return align_answer_citations(summary, eligible_pages)[0]
 
 
 def _generate_clean_csv(extracted: dict) -> str:
@@ -1497,9 +1566,15 @@ def translate_pdf_layout(
                     color=(0.1, 0.12, 0.15)
                 )
 
-    if report_data["fallback_used"] and not report_data["blocks_translated"]:
+    if translated_block_count == 0:
+        report_data["fallback_used"] = True
         report_data["warnings"].append(
-            "No external translation completed within the bounded provider budget; source text was preserved."
+            "No text blocks were translated. No translated document was produced; source text must not be presented as a translation."
         )
+        out_doc.close()
+        doc.close()
+        raise RuntimeError("No text was translated. The translation service did not produce a translated PDF; please retry later.")
     out_doc.save(str(output_path), garbage=4, deflate=True)
+    out_doc.close()
+    doc.close()
     return output_path

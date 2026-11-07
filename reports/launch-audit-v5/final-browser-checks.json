@@ -1,0 +1,235 @@
+{
+  "extract": [
+    {
+      "viewport": 1366,
+      "selected_pages": [
+        1
+      ],
+      "download": true,
+      "filename": "extracted_1_notes_69pages_audit.pdf",
+      "bytes": 1233,
+      "opened_by_pymupdf": true,
+      "page_count": 1,
+      "text_chars": 247,
+      "elapsed_seconds": 0.691,
+      "errors": [],
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\extract-1366-pages-1.pdf"
+    },
+    {
+      "viewport": 1366,
+      "selected_pages": [
+        1,
+        2
+      ],
+      "download": true,
+      "filename": "extracted_1-2_notes_69pages_audit.pdf",
+      "bytes": 1941,
+      "opened_by_pymupdf": true,
+      "page_count": 2,
+      "text_chars": 495,
+      "elapsed_seconds": 0.361,
+      "errors": [],
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\extract-1366-pages-1-2.pdf"
+    },
+    {
+      "viewport": 375,
+      "selected_pages": [
+        1
+      ],
+      "download": true,
+      "filename": "extracted_1_notes_69pages_audit.pdf",
+      "bytes": 1233,
+      "opened_by_pymupdf": true,
+      "page_count": 1,
+      "text_chars": 247,
+      "elapsed_seconds": 3.651,
+      "errors": [],
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\extract-375-pages-1.pdf"
+    },
+    {
+      "viewport": 375,
+      "selected_pages": [
+        1,
+        2
+      ],
+      "download": true,
+      "filename": "extracted_1-2_notes_69pages_audit.pdf",
+      "bytes": 1941,
+      "opened_by_pymupdf": true,
+      "page_count": 2,
+      "text_chars": 495,
+      "elapsed_seconds": 3.516,
+      "errors": [],
+      "output_path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\extract-375-pages-1-2.pdf"
+    }
+  ],
+  "studio_render_and_reload": {
+    "viewport": 375,
+    "render_samples": [
+      {
+        "target_seconds": 0,
+        "elapsed_seconds": 0.104,
+        "page_count": "0",
+        "canvas": {
+          "rendered": false,
+          "width": 300,
+          "height": 150,
+          "nonWhiteSamples": 45000
+        }
+      },
+      {
+        "target_seconds": 5,
+        "elapsed_seconds": 5.009,
+        "page_count": "69",
+        "canvas": {
+          "rendered": true,
+          "width": 346,
+          "height": 489,
+          "nonWhiteSamples": 535
+        }
+      },
+      {
+        "target_seconds": 15,
+        "elapsed_seconds": 15.046,
+        "page_count": "69",
+        "canvas": {
+          "rendered": true,
+          "width": 346,
+          "height": 489,
+          "nonWhiteSamples": 535
+        }
+      },
+      {
+        "target_seconds": 30,
+        "elapsed_seconds": 30.038,
+        "page_count": "69",
+        "canvas": {
+          "rendered": true,
+          "width": 346,
+          "height": 489,
+          "nonWhiteSamples": 535
+        }
+      }
+    ],
+    "page_jumps": [
+      {
+        "target": 69,
+        "input_after_enter_before_waiting_for_render": "69",
+        "slot_after_enter_before_waiting_for_render": "69",
+        "counter_after_render": "69",
+        "current_slot_after_render": "69",
+        "rendered": true,
+        "canvas": {
+          "rendered": true,
+          "width": 346,
+          "height": 489,
+          "nonWhiteSamples": 541
+        },
+        "elapsed_seconds": 0.238
+      },
+      {
+        "target": 1,
+        "input_after_enter_before_waiting_for_render": "1",
+        "slot_after_enter_before_waiting_for_render": "1",
+        "counter_after_render": "1",
+        "current_slot_after_render": "1",
+        "rendered": true,
+        "canvas": {
+          "rendered": true,
+          "width": 346,
+          "height": 489,
+          "nonWhiteSamples": 535
+        },
+        "elapsed_seconds": 0.172
+      },
+      {
+        "target": 35,
+        "input_after_enter_before_waiting_for_render": "35",
+        "slot_after_enter_before_waiting_for_render": "35",
+        "counter_after_render": "35",
+        "current_slot_after_render": "35",
+        "rendered": true,
+        "canvas": {
+          "rendered": true,
+          "width": 346,
+          "height": 489,
+          "nonWhiteSamples": 537
+        },
+        "elapsed_seconds": 0.263
+      }
+    ],
+    "deletion_before_reload": {
+      "page_before_delete": "5",
+      "page_count": "68",
+      "page": "5",
+      "toast": "OK\nDeleted 1 page(s)."
+    },
+    "reloads": [
+      {
+        "iteration": 1,
+        "url": "http://127.0.0.1:8501/studio",
+        "page_count": "68",
+        "page": "5",
+        "toast": "OK\nRestored notes_69pages_audit.pdf on page 5"
+      },
+      {
+        "iteration": 2,
+        "url": "http://127.0.0.1:8501/studio",
+        "page_count": "68",
+        "page": "5",
+        "toast": "OK\nRestored notes_69pages_audit.pdf on page 5"
+      }
+    ],
+    "sidebar_open_layout": {
+      "drawerOpen": true,
+      "sidebarZ": "90",
+      "toolbarZ": "130",
+      "saveButton": {
+        "left": 1091,
+        "right": 1213,
+        "top": 347.0625,
+        "bottom": 391.0625,
+        "width": 122,
+        "height": 44
+      },
+      "viewport": 375
+    },
+    "sidebar_open_export": {
+      "tapped": true,
+      "filename": "edited_notes_69pages_audit.pdf",
+      "bytes": 49296,
+      "page_count": 68
+    },
+    "console_or_page_errors": [],
+    "screenshots": [
+      "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\studio-page1-375-after.png",
+      "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\studio-delete-375-after.png"
+    ]
+  },
+  "cloud_import": {
+    "source": "owner-provided Google Drive share link",
+    "elapsed_seconds": 4.38,
+    "before_route_resolution": {
+      "modal_open": true,
+      "retained_url": "https://drive.google.com/file/d/1lAdtz5YIxTAOzaNDTbiOvRyon_AAj2Mq/view?usp=drive_link"
+    },
+    "after_route_resolution": {
+      "modal_open": true,
+      "retained_url": "https://drive.google.com/file/d/1lAdtz5YIxTAOzaNDTbiOvRyon_AAj2Mq/view?usp=drive_link"
+    },
+    "modal_open": false,
+    "error": null,
+    "page_count": "1",
+    "toast": "OK\nImported cloud_imported.pdf · 0.53 MB · 1 pages",
+    "loaded_filename": null,
+    "api_responses": [
+      {
+        "status": 200,
+        "url": "http://127.0.0.1:8501/api/cloud/sync"
+      }
+    ],
+    "click_error": null,
+    "csp_violations": [],
+    "errors": []
+  }
+}
