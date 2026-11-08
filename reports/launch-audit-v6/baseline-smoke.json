@@ -1,0 +1,55 @@
+{
+  "base": "http://127.0.0.1:8501",
+  "fixture": {
+    "path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\runtime_data_codex_audit\\notes_69pages_audit.pdf",
+    "pages": 69,
+    "bytes": 54433,
+    "first_page_text": "Introduction to Machine Learning Class Notes · Page 1\nPage 1 discusses supervised learning, polynomial degrees, vector orthogonality, and\npositive semi-definite operators. This deterministic sample supports page navigation and\nlocal answer tests.\n"
+  },
+  "merge_input": {
+    "path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v5\\catalog-samples\\audit-sample.pdf",
+    "pages": 2,
+    "bytes": 5053,
+    "first_page_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: Synthetic Example Person\nDocument date: 2026-11-07\nTEST_SECRET: REDACT_ME_NOW\nItem\nAmount\nStatus\nApplication\n19.00\nPaid\nProcessing\n49.00\nPending\n"
+  },
+  "page_errors": [],
+  "console_errors": [],
+  "ai_summary_baseline": {
+    "button_disabled": true,
+    "initial_text": "Executive Brief is unavailable because AI analysis is not configured for this workspace. Ask the site administrator to configure AI, then reload this page.",
+    "http_status": 503,
+    "elapsed_seconds": 0.057,
+    "body": "{\"detail\":\"AI provider is not configured\"}"
+  },
+  "merge_baseline": {
+    "elapsed_seconds": 0.969,
+    "result_meta": "notes_69pages_audit_merge.pdf · 60.1 KB",
+    "filename": "notes_69pages_audit_merge.pdf",
+    "download": {
+      "path": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v6\\before-merge-output.pdf",
+      "pages": 71,
+      "bytes": 61577,
+      "first_page_text": "Introduction to Machine Learning Class Notes · Page 1\nPage 1 discusses supervised learning, polynomial degrees, vector orthogonality, and\npositive semi-definite operators. This deterministic sample supports page navigation and\nlocal answer tests.\n"
+    }
+  },
+  "studio_delete_baseline": {
+    "before_reload": {
+      "count": "68",
+      "toast": "OK\nDeleted 1 page(s)."
+    },
+    "after_reloads": [
+      {
+        "reload": 1,
+        "count": "68",
+        "page": "5",
+        "toast": "OK\nRestored notes_69pages_audit.pdf on page 5"
+      },
+      {
+        "reload": 2,
+        "count": "68",
+        "page": "5",
+        "toast": "OK\nRestored notes_69pages_audit.pdf on page 5"
+      }
+    ]
+  }
+}

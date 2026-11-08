@@ -42,6 +42,14 @@ def test_citation_alignment_supports_plain_parenthesized_ranges_and_filters_temp
     assert "[Page 2]" in answer and "[Pages 3, 4]" in answer
     assert "99" not in answer and "[Page X]" not in answer
 
+    already_bracketed, bracketed_pages = ai_engine.align_answer_citations("The extracted answer [Page 1].", {1})
+    assert already_bracketed == "The extracted answer [Page 1]."
+    assert bracketed_pages == [1]
+
+    already_parenthesized, parenthesized_pages = ai_engine.align_answer_citations("The extracted answer (Page 2).", {2})
+    assert already_parenthesized == "The extracted answer [Page 2]."
+    assert parenthesized_pages == [2]
+
 
 def test_ai_status_endpoints_follow_bluesminds_provider_not_legacy_keys(monkeypatch):
     monkeypatch.setattr(server, "OPENAI_API_KEY", "")

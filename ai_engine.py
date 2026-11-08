@@ -387,7 +387,7 @@ def align_answer_citations(answer: str, eligible_pages: list[int] | set[int]) ->
     citation_patterns = (
         re.compile(r"\[(?:pages?|p\.?)\s*([\d,\s\-–]+)\]", re.IGNORECASE),
         re.compile(r"\((?:pages?|p\.?)\s*([\d,\s\-–]+)\)", re.IGNORECASE),
-        re.compile(r"\bpages?\s+([\d]+(?:\s*[-–,]\s*[\d]+)*)\b", re.IGNORECASE),
+        re.compile(r"(?<![\[(])\bpages?\s+([\d]+(?:\s*[-–,]\s*[\d]+)*)\b(?![\])])", re.IGNORECASE),
     )
     cited_pages: set[int] = set()
 
@@ -724,6 +724,16 @@ def _offline_rag_fallback(system_prompt: str, user_prompt: str) -> str:
         excerpts = excerpts_match.group(1).strip()
         question = excerpts_match.group(2).strip()
 
+        requested_page = re.search(r"\bpage\s+(\d+)\b", question, re.IGNORECASE)
+        if requested_page:
+            requested_number = int(requested_page.group(1))
+            for block in re.split(r"\n\s*---\s*\n", excerpts):
+                page_match = re.match(r"\[Page\s*(\d+)\]\s*:\s*", block)
+                if page_match and int(page_match.group(1)) == requested_number:
+                    page_text = re.sub(r"\s+", " ", block[page_match.end():]).strip()
+                    if page_text:
+                        return f"{page_text} [Page {requested_number}]"
+
         if re.search(r"\b(summar(?:y|ize|ise)|overview|key points|important information)\b", question, re.IGNORECASE):
             # A broad-summary retrieval deliberately samples pages across the
             # document, so a lexical overlap query may have no topical terms.
@@ -780,6 +790,9 @@ def _offline_rag_fallback(system_prompt: str, user_prompt: str) -> str:
 
 def chat_with_pdf(pdf_path: Path, question: str) -> dict:
     """Queries the PDF via RAG with BM25 probabilistic keyword retrieval and verified page citations."""
+    greeting = _simple_greeting_reply(question)
+    if greeting:
+        return {"answer": greeting, "citations": [], "retrieval_method": None, "fallback_used": False}
     private_reply = _private_information_request_reply(question)
     if private_reply:
         return {"answer": private_reply, "citations": [], "retrieval_method": None, "fallback_used": False}
@@ -797,7 +810,14 @@ def chat_with_pdf(pdf_path: Path, question: str) -> dict:
             "fallback_used": False,
             "relevant_passages": [],
         }
-    if not _is_document_question(question) and not AI_KILL_SWITCH:
+    if not _is_document_question(question):
+        if AI_KILL_SWITCH or not _current_bluesminds_api_key():
+            return {
+                "answer": "General chat is unavailable because the AI service is not configured. I can still help with questions about this PDF.",
+                "citations": [],
+                "retrieval_method": None,
+                "fallback_used": True,
+            }
         answer = _guard_ai_output(call_llm(_PAPERPLANE_SYSTEM_PROMPT, question, timeout_seconds=35))
         return {"answer": answer, "citations": [], "retrieval_method": None, "fallback_used": False}
     if not chunks:
@@ -864,13 +884,17 @@ def chat_with_pdf(pdf_path: Path, question: str) -> dict:
     )
     user_prompt = f"DOCUMENT EXCERPTS:\n{context_str}\n\nUSER QUESTION: {question}"
 
-    answer = _guard_ai_output(call_llm(_PAPERPLANE_SYSTEM_PROMPT + " " + system_prompt, user_prompt, timeout_seconds=50))
+    provider_unavailable = AI_KILL_SWITCH or not _current_bluesminds_api_key()
+    if provider_unavailable:
+        answer = _offline_rag_fallback(system_prompt, user_prompt)
+    else:
+        answer = _guard_ai_output(call_llm(_PAPERPLANE_SYSTEM_PROMPT + " " + system_prompt, user_prompt, timeout_seconds=50))
     if not citation_chunks:
         # The full short document was still supplied to the answering engine,
         # but unsupported questions must not receive fabricated answers or broad
         # citations merely because fallback context was used.
         answer = "No relevant information found in the document for your question. The active document does not contain matching keywords or passages."
-    is_fallback = bool(AI_KILL_SWITCH)
+    is_fallback = bool(provider_unavailable)
     answer, answer_citations = align_answer_citations(answer, citations)
     cited_passages = [chunk for chunk in citation_chunks if chunk.page_number in answer_citations]
 
@@ -888,6 +912,22 @@ def _is_document_question(question: str) -> bool:
     q = question.lower().strip()
     explicit = ("this document", "the document", "this pdf", "the pdf", "uploaded file", "in the file", "in this file", "according to", "what does the", "on which page", "which page", "summarize this", "summarize the", "in my document", "from the document", "certificate number", "applicant name", "invoice number", "due date", "total amount", "line item", "account number", "contract date", "the deadline", "what is the deadline", "mission budget", "lead director", "launch window", "primary payload")
     return bool(re.search(r"\bpage\s+\d+\b", q)) or any(phrase in q for phrase in explicit)
+
+
+def _simple_greeting_reply(question: str) -> str | None:
+    """Answer short greetings directly so an open PDF never turns them into a search."""
+    normalized = re.sub(r"[\s,!.?]+", " ", question.lower()).strip()
+    basic_greetings = {"hi", "hello", "hey", "howdy", "yo", "hi there", "hello there", "hey there"}
+    wellbeing_greetings = {
+        "how are you", "how are you doing", "hi how are you", "hello how are you",
+        "hey how are you", "hi how are you doing", "hello how are you doing",
+        "hey how are you doing",
+    }
+    if normalized in wellbeing_greetings:
+        return "I'm here and ready to help. What would you like to know or do with your PDF?"
+    if normalized in basic_greetings:
+        return "Hello! How can I help you today? You can ask a general question or ask about your PDF."
+    return None
 
 
 _PAPERPLANE_IDENTITY = "I'm Paperplane's Intelligence AI Bot — I help you work with PDFs inside Paperplane, and I can also answer general questions."

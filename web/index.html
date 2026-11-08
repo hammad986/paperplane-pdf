@@ -13,7 +13,7 @@
   <!-- Cashfree PG v3 checkout SDK; app.js initializes it with the server-issued session. -->
   <script src="https://sdk.cashfree.com/js/v3/cashfree.js" defer></script>
 
-  <link rel="stylesheet" href="/assets/styles.css?v=3.5.28" />
+  <link rel="stylesheet" href="/assets/styles.css?v=3.6.6" />
 
 </head>
 <body class="light-mode auth-pending">
@@ -87,17 +87,18 @@
            ==================================================================== -->
       <div class="sidebar-sticky-footer">
         
-        <!-- Privacy Mode Zero-Upload Toggle -->
+        <!-- Browser-local processing toggle; unavailable for server-only tools. -->
         <div class="footer-privacy-row">
           <div class="footer-privacy-label">
             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             <span id="privacy-mode-label">Server Mode</span>
           </div>
           <label class="toggle-switch-sm">
-            <input type="checkbox" id="client-privacy-toggle" aria-label="Toggle local client-side processing mode" />
+            <input type="checkbox" id="client-privacy-toggle" aria-label="Use local processing for Merge PDF" aria-describedby="privacy-mode-support" />
             <span class="toggle-slider-sm"></span>
           </label>
         </div>
+        <small id="privacy-mode-support" class="privacy-mode-support">Available for Merge, Split, Remove, Rotate</small>
 
         <!-- Freemium Daily Quota Tracker -->
         <div class="quota-container" id="quota-container">
@@ -147,11 +148,12 @@
           <button type="button" class="mobile-menu-btn" id="mobile-menu-btn" title="Toggle Mobile Navigation" aria-label="Toggle Navigation" aria-expanded="false" aria-controls="sidebar">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           </button>
-          <button type="button" class="mobile-brand" data-workspace-view="home" aria-label="Paperplane home">paperplane<span>.</span></button>
+          <button type="button" class="mobile-brand" data-workspace-view="tool-desk" aria-label="Paperplane home">paperplane<span>.</span></button>
+          <span id="mobile-view-pill" class="mobile-view-pill" aria-live="polite">Tool Desk</span>
           <div class="breadcrumb-trail">
             <span>Paperplane</span>
             <span class="crumb-sep">/</span>
-            <span id="crumb-category">All Tools</span>
+            <span id="crumb-category">Workspace</span>
             <span class="crumb-sep">/</span>
             <b id="crumb-tool">Directory</b>
           </div>
@@ -159,10 +161,6 @@
 
         <!-- Workspace View Switcher -->
         <div class="workspace-tabs">
-          <button type="button" class="tab-pill active" id="tab-home-view">
-            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            <span>All Tools</span>
-          </button>
           <button type="button" class="tab-pill" id="tab-tool-desk-view" aria-label="Open the Tool Desk directory">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>
             <span>Tool Desk</span>
@@ -210,57 +208,6 @@
       <!-- Dynamic Content Viewport -->
       <div class="dynamic-workspace">
         
-        <!-- ==================================================================
-             VIEW 0: Home Page & Tools Discovery (iLovePDF Simplicity)
-             ================================================================== -->
-        <div id="view-home" class="home-container">
-          
-          <!-- Hero Section -->
-          <section class="home-hero">
-            <div class="home-hero-badge">
-              <span class="badge-dot"></span> 100% Private & Sovereign PDF Processing
-            </div>
-            <h1 class="home-hero-title">
-              Every tool you need to work with PDFs in one place
-            </h1>
-            <p class="home-hero-subtitle">
-              Merge, split, compress, convert, edit, sign, and protect your PDF documents with total privacy, zero setup, and enterprise speed.
-            </p>
-
-            <!-- Search and Filter Bar -->
-            <div class="home-search-bar">
-              <div class="search-input-wrapper">
-                <span class="search-icon"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></span>
-                <input type="search" id="home-search-input" name="paperplane-tool-search" placeholder="Search 41 tools (e.g. merge, compress, word, sign, protect)..." aria-label="Search tools" autocomplete="off" spellcheck="false" />
-                <button type="button" id="home-search-clear" class="search-clear-btn" aria-label="Clear search" hidden>×</button>
-              </div>
-            </div>
-
-            <!-- Category Filter Pills -->
-            <div class="home-filter-pills" id="home-filter-pills" role="tablist">
-              <button type="button" class="filter-pill active" data-category="all" role="tab" aria-selected="true">All Tools (41)</button>
-              <button type="button" class="filter-pill" data-category="organize" role="tab" aria-selected="false">Organize PDF</button>
-              <button type="button" class="filter-pill" data-category="optimize" role="tab" aria-selected="false">Optimize PDF</button>
-              <button type="button" class="filter-pill" data-category="convert" role="tab" aria-selected="false">Convert PDF</button>
-              <button type="button" class="filter-pill" data-category="edit" role="tab" aria-selected="false">Edit PDF</button>
-              <button type="button" class="filter-pill" data-category="security" role="tab" aria-selected="false">Sign & Protect</button>
-              <button type="button" class="filter-pill" data-category="ai" role="tab" aria-selected="false">PDF Intelligence</button>
-            </div>
-          </section>
-
-          <!-- Search Results Counter (when searching) -->
-          <div id="home-search-meta" class="home-search-meta" hidden>
-            <span id="home-search-count">0</span> tools found matching "<span id="home-search-query"></span>"
-            <button type="button" class="link-btn" id="home-reset-search-btn">Reset search</button>
-          </div>
-
-          <!-- Grouped Tool Catalog Sections -->
-          <div id="home-tools-catalog" class="home-tools-catalog">
-            <!-- Dynamically rendered by app.js with category headers and tool cards -->
-          </div>
-
-        </div>
-
         <div id="view-tool-desk-directory" class="tool-desk-directory" hidden>
           <section class="tool-desk-directory-hero">
             <span class="tool-category-badge">41 PDF TOOLS</span>
@@ -417,8 +364,11 @@
               <div class="organizer-header-actions">
                 <button type="button" class="org-head-btn" id="organizer-split-trigger-btn" title="Split PDF (Ranges / Every N pages)">Split</button>
                 <button type="button" class="org-head-btn" id="organizer-import-trigger-btn" title="Import Pages from Another PDF">Import</button>
+                <button type="button" class="org-head-btn studio-mobile-pages-close" id="studio-mobile-pages-close">Done</button>
               </div>
             </div>
+
+            <div id="studio-mobile-batch-slot" class="studio-mobile-batch-slot" aria-live="polite"></div>
 
             <div class="studio-thumbnails-scroll" id="studio-thumbnails-container">
               <div class="organizer-empty-msg">
@@ -429,7 +379,7 @@
 
           <!-- Center Canvas Studio Viewport -->
           <div class="studio-main-viewport">
-            <div class="ephemeral-work-notice" role="note"><span>Studio PDF, page, deletes, reorder, and duplicates save in this browser. Annotations are not saved; export them before reload.</span><button type="button" id="studio-clear-work-btn" class="work-clear-btn">Clear saved work</button></div>
+            <div class="ephemeral-work-notice" role="note"><span>PDF and page edits save here. Export annotations to keep them.</span><button type="button" id="studio-clear-work-btn" class="work-clear-btn">Clear saved work</button></div>
             <div id="studio-undo-banner" class="studio-action-feedback" role="status" hidden></div>
             <!-- Studio Toolbar with 2-Tier Modern Professional Ribbon -->
             <div class="studio-toolbar" id="studio-toolbar">
@@ -757,6 +707,31 @@
 
           </div>
 
+          <nav class="studio-mobile-dock" id="studio-mobile-dock" aria-label="Studio controls">
+            <div class="studio-mobile-command-row" id="studio-mobile-command-row" aria-label="Save and history controls">
+              <div id="studio-mobile-history-slot"></div>
+              <div id="studio-mobile-export-slot"></div>
+            </div>
+            <div class="studio-mobile-status-row" aria-label="Page and view controls">
+              <button type="button" id="studio-mobile-pages-btn" class="studio-mobile-dock-btn" aria-expanded="false" aria-controls="studio-thumbnails-bar">
+                <span aria-hidden="true">▤</span><span>Pages</span>
+              </button>
+              <div id="studio-mobile-page-slot"></div>
+              <div id="studio-mobile-zoom-slot"></div>
+              <button type="button" id="studio-mobile-properties-btn" class="studio-mobile-dock-btn" aria-expanded="false" aria-controls="studio-mobile-properties-panel">
+                <span aria-hidden="true">☷</span><span>Properties</span>
+              </button>
+            </div>
+          </nav>
+
+          <aside class="studio-mobile-properties-panel" id="studio-mobile-properties-panel" aria-label="Page properties" hidden>
+            <div class="studio-mobile-properties-header">
+              <div><strong>Properties</strong><span id="studio-mobile-page-summary">Page 1 of 0</span></div>
+              <button type="button" id="studio-mobile-properties-close" aria-label="Close properties">×</button>
+            </div>
+            <div id="studio-mobile-properties-slot"></div>
+          </aside>
+
         </div>
 
         
@@ -923,7 +898,7 @@
                 </div>
                 <div>
                   <h3>Data Privacy & 24-Hour Ephemeral Storage</h3>
-                  <p>Uploaded documents are processed in temporary directories and automatically deleted within 24 hours. When Client Privacy Mode (WASM) is enabled, processing takes place entirely inside your browser sandbox.</p>
+                  <p>Server-powered jobs use temporary processing and are automatically deleted within 24 hours. Browser-local processing is available for Merge, Split / extract, Remove pages, and Rotate PDF; other tools use server processing.</p>
                 </div>
               </div>
 
@@ -1299,7 +1274,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
                       <td><span class="http-badge get">GET</span></td>
                       <td><code>/api/v1/ai/test-connection</code></td>
                       <td>Bearer Token</td>
-                      <td>Diagnostic connectivity probe for Bluesminds AI inference status</td>
+                      <td>Check the configured AI service connection and availability</td>
                     </tr>
                     <tr>
                       <td><span class="http-badge get">GET</span></td>
@@ -1343,7 +1318,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
               <span class="view-header-badge">No installers available yet</span>
             </div>
             <div>
-              <span class="download-badge-fast">⚡ Powered by Tauri v2 + PDFium</span>
+              <span class="download-badge-fast">Apps waitlist</span>
             </div>
           </div>
 
@@ -1355,7 +1330,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
               </div>
               <div class="download-hero-text">
                 <h3>Native PDF Apps, Coming Soon</h3>
-                <p>Desktop and mobile apps are in early access. No installers are available yet; join the waitlist for availability updates.</p>
+                  <p>Desktop and mobile apps are planned. No installers are available yet; join the waitlist for release updates.</p>
               </div>
             </div>
 
@@ -1397,8 +1372,8 @@ async function convertFileInBrowser(file, operation = 'compress') {
                   <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#059669" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
                 <div>
-                  <strong id="waitlist-position-badge">You're on the early access list!</strong>
-                  <p>We've reserved your build. When the native binary compiles for your platform, you'll receive a direct download link and zero-telemetry activation key via email.</p>
+                  <strong id="waitlist-position-badge">You're on the apps waitlist!</strong>
+                  <p>We will email you if a build for your selected platform becomes available.</p>
                 </div>
               </div>
             </div>
@@ -1417,14 +1392,12 @@ async function convertFileInBrowser(file, operation = 'compress') {
                   </div>
                 </div>
                 <ul class="platform-features">
-                  <li>Direct PDFium hardware rasterization</li>
-                  <li>Native Explorer context-menu integration</li>
-                  <li>Silent automated background updater</li>
-                  <li>Multi-gigabyte memory-mapped PDF support</li>
+                  <li>No Windows installer is available yet.</li>
+                  <li>Join the waitlist for Windows release updates.</li>
                 </ul>
                 <div class="platform-footer">
-                  <span class="platform-status-tag ready">EXE / MSI Installer</span>
-                  <button type="button" class="btn-demo-upgrade btn-platform-join" data-platform="windows">Request Build</button>
+                  <span class="platform-status-tag">Waitlist only</span>
+                  <button type="button" class="btn-demo-upgrade btn-platform-join" data-platform="windows">Join Waitlist</button>
                 </div>
               </div>
 
@@ -1440,14 +1413,12 @@ async function convertFileInBrowser(file, operation = 'compress') {
                   </div>
                 </div>
                 <ul class="platform-features">
-                  <li>Universal Binary (arm64 + x86_64)</li>
-                  <li>macOS Dark Mode & Stage Manager aware</li>
-                  <li>Hardware Apple Neural Engine acceleration</li>
-                  <li>Signed & Notarized with Apple Developer</li>
+                  <li>No macOS installer is available yet.</li>
+                  <li>Join the waitlist for macOS release updates.</li>
                 </ul>
                 <div class="platform-footer">
-                  <span class="platform-status-tag ready">DMG / PKG Universal</span>
-                  <button type="button" class="btn-demo-upgrade btn-platform-join" data-platform="macos">Request Build</button>
+                  <span class="platform-status-tag">Waitlist only</span>
+                  <button type="button" class="btn-demo-upgrade btn-platform-join" data-platform="macos">Join Waitlist</button>
                 </div>
               </div>
 
@@ -1463,14 +1434,12 @@ async function convertFileInBrowser(file, operation = 'compress') {
                   </div>
                 </div>
                 <ul class="platform-features">
-                  <li>Zero dependency standalone AppImage</li>
-                  <li>Sandboxed Flatpak with Wayland support</li>
-                  <li>Native CLI headless batch pipeline</li>
-                  <li>100% offline, privacy first sovereign engine</li>
+                  <li>No Linux installer is available yet.</li>
+                  <li>Join the waitlist for Linux release updates.</li>
                 </ul>
                 <div class="platform-footer">
-                  <span class="platform-status-tag ready">AppImage / Flatpak</span>
-                  <button type="button" class="btn-demo-upgrade btn-platform-join" data-platform="linux">Request Build</button>
+                  <span class="platform-status-tag">Waitlist only</span>
+                  <button type="button" class="btn-demo-upgrade btn-platform-join" data-platform="linux">Join Waitlist</button>
                 </div>
               </div>
 
@@ -1486,14 +1455,12 @@ async function convertFileInBrowser(file, operation = 'compress') {
                   </div>
                 </div>
                 <ul class="platform-features">
-                  <li>All-in-one PDF, Excel, Doc viewer & editor</li>
-                  <li>Smooth pinch-to-zoom & night reading mode</li>
-                  <li>Direct camera document scan to OCR PDF</li>
-                  <li>Finger & stylus e-signatures stamp</li>
+                  <li>No Android installer is available yet.</li>
+                  <li>Join the waitlist for Android release updates.</li>
                 </ul>
                 <div class="platform-footer">
-                  <span class="platform-status-tag testing">APK Early Testing</span>
-                  <button type="button" class="btn-demo-upgrade btn-platform-join" data-platform="android">Request Build</button>
+                  <span class="platform-status-tag">Waitlist only</span>
+                  <button type="button" class="btn-demo-upgrade btn-platform-join" data-platform="android">Join Waitlist</button>
                 </div>
               </div>
 
@@ -1509,14 +1476,12 @@ async function convertFileInBrowser(file, operation = 'compress') {
                   </div>
                 </div>
                 <ul class="platform-features">
-                  <li>Apple Pencil precision markup & signing</li>
-                  <li>Files app iCloud sovereign syncing</li>
-                  <li>Offline OCR with Apple Vision framework</li>
-                  <li>Split-screen multitasking on iPadOS</li>
+                  <li>No iOS installer is available yet.</li>
+                  <li>Join the waitlist for iOS and iPadOS release updates.</li>
                 </ul>
                 <div class="platform-footer">
-                  <span class="platform-status-tag testing">TestFlight Beta</span>
-                  <button type="button" class="btn-demo-upgrade btn-platform-join" data-platform="ios">Request Build</button>
+                  <span class="platform-status-tag">Waitlist only</span>
+                  <button type="button" class="btn-demo-upgrade btn-platform-join" data-platform="ios">Join Waitlist</button>
                 </div>
               </div>
             </div>
@@ -1533,9 +1498,9 @@ async function convertFileInBrowser(file, operation = 'compress') {
       <!-- Global Application Footer -->
       <footer class="app-global-footer">
         <div class="footer-left">
-          <span>Paperplane PDF Enterprise v2.0</span>
+          <span>Paperplane PDF Workspace</span>
           <span class="footer-sep">·</span>
-          <span>Ephemeral Local Processing</span>
+          <span>Temporary server files purged within 24 hours</span>
           <span class="footer-sep">·</span>
           <span>Auto-Purged in 24h</span>
         </div>
@@ -1604,7 +1569,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M21 2l-9.6 9.6M15.5 7.5l2.5 2.5"/></svg></span><span><strong>Developer API Keys</strong><small>REST access and keys</small></span>
           </button>
           <button type="button" class="settings-tab-btn" data-tab="privacy" id="settings-tab-btn-privacy">
-            <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span><span><strong>Storage & Privacy</strong><small>Ephemeral and zero-upload</small></span>
+            <span><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span><span><strong>Storage & Privacy</strong><small>Local or temporary processing</small></span>
          </button>
        </div>
 
@@ -1749,14 +1714,14 @@ async function convertFileInBrowser(file, operation = 'compress') {
            <div class="settings-card-item privacy-settings-card">
              <span class="settings-eyebrow">DATA CONTROL</span>
              <h4>Ephemeral encrypted storage</h4>
-             <p>Server jobs are isolated and automatically purged within 24 hours. Enable Zero-Upload Client Privacy Mode when a browser-only workflow is available.</p>
+             <p>Server jobs use temporary processing and are automatically purged within 24 hours. Browser-local processing is available only for Merge, Split / extract, Remove pages, and Rotate PDF.</p>
              <div class="settings-privacy-toggle-row">
                <div>
-                 <strong>Zero-Upload Client Privacy Mode</strong>
-                 <small>Keep supported PDF operations inside your browser using local processing.</small>
+                 <strong>Local Processing</strong>
+                 <small id="settings-client-privacy-support">Available for Merge, Split / extract, Remove pages, and Rotate PDF.</small>
                </div>
                <label class="toggle-switch-sm">
-                 <input type="checkbox" id="settings-client-privacy-toggle" aria-label="Toggle client-side processing setting" />
+                 <input type="checkbox" id="settings-client-privacy-toggle" aria-label="Use local processing for Merge PDF" aria-describedby="settings-client-privacy-support" />
                  <span class="toggle-slider-sm"></span>
                </label>
              </div>
@@ -1769,7 +1734,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
          </div>
 
          <div class="settings-clean-footer" style="margin-top: 20px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 14px;">
-          <small style="color: #6b7280; font-size: 11.5px; font-family: var(--font-mono);">Paperplane PDF Enterprise v2.0 · Ephemeral Encrypted Storage</small>
+          <small style="color: #6b7280; font-size: 11.5px; font-family: var(--font-mono);">Paperplane PDF Workspace · Temporary server processing</small>
         </div>
 
        </div>
@@ -1997,7 +1962,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
           </div>
           <ul class="tier-features-list">
             <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Unlimited Form Resizing:</strong> Exact 100KB/200KB PDF & Photo resizer.</li>
-            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Fast OCR & Document Clean:</strong> Uncap scanned marksheets & certificates.</li>
+            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Fast OCR &amp; Document Cleanup:</strong> Unlock searchable scanned marksheets and certificates.</li>
             <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>24-Hour Full Access:</strong> Zero subscriptions or auto-debits.</li>
           </ul>
           <div class="tier-actions">
@@ -3357,10 +3322,10 @@ async function convertFileInBrowser(file, operation = 'compress') {
         <div id="sec-pane-redact" class="sec-pane" style="display: none;">
           <div class="form-group-row">
             <label for="redact-text-target">Sensitive Keyword or Phrase to Redact</label>
-            <input type="text" id="redact-text-target" class="editor-input" placeholder="e.g. Social Security Number, Confidential ID..." />
+            <input type="text" id="redact-text-target" class="editor-input" placeholder="e.g. Aadhaar number, PAN, or account ID" />
           </div>
           <div style="padding: 10px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; font-size: 11.5px; color: #fca5a5; margin-top: 8px;">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> <strong>Irreversible Redaction:</strong> Characters glyphs and vector coordinates are physically and permanently obliterated from the PDF byte stream. This operation cannot be reversed.
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> <strong>Irreversible Redaction:</strong> Character glyphs and vector content covered by the redaction are permanently removed from the output PDF.
           </div>
           <button type="button" class="btn-primary-action" id="btn-apply-hardened-redact" style="margin-top: 12px; background: #dc2626; border-color: #b91c1c;">Execute Hardened Redaction →</button>
         </div>
@@ -3378,10 +3343,6 @@ async function convertFileInBrowser(file, operation = 'compress') {
 
   <!-- Fixed Mobile Bottom Navigation Bar (Workspace Views) -->
   <nav class="mobile-workspace-bar" aria-label="Mobile Navigation">
-    <button type="button" class="mobile-nav-btn active" id="mob-nav-home" data-workspace-view="home">
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      <span>All Tools</span>
-    </button>
     <button type="button" class="mobile-nav-btn" id="mob-nav-desk" data-workspace-view="tool-desk" aria-label="Open Tool Desk directory">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>
       <span>Tool Desk</span>
@@ -3411,10 +3372,10 @@ async function convertFileInBrowser(file, operation = 'compress') {
   <!-- Phase 4 Compression, Repair & OCR Engine -->
   <script src="/assets/optimization_engine.js?v=4.2.0" defer></script>
   <!-- Phase 3 Professional Page Management Engine -->
-  <script src="/assets/page_organizer.js?v=3.2.3" defer></script>
+  <script src="/assets/page_organizer.js?v=3.2.4" defer></script>
   <!-- Phase 2 Professional Editor Engine -->
 <script src="/assets/editor.js?v=3.2.2" defer></script>
   <!-- Application Controller -->
-  <script src="/assets/app.js?v=3.5.26" defer></script>
+  <script src="/assets/app.js?v=3.6.6" defer></script>
 </body>
 </html>

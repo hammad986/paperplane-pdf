@@ -36,6 +36,9 @@ const state = {
   aiConversation: []
 };
 
+const CLIENT_SIDE_SUPPORTED_OPERATIONS = new Set(['merge', 'split', 'remove', 'rotate']);
+const CLIENT_SIDE_SUPPORTED_LABEL = 'Merge, Split / extract, Remove pages, and Rotate PDF';
+
 let generatedControlId = 0;
 function addMissingControlLabels(root) {
   const controls = [];
@@ -754,13 +757,116 @@ $('#collapse-sidebar-btn').onclick = () => {
 };
 
 // Workspace View Switcher (directory, workbench, Studio, AI and public pages)
+const studioMobileOrigins = new Map();
+let seoContentRequestVersion = 0;
+
+function placeStudioControl(selector, slotId, mobile) {
+  const control = document.querySelector(selector);
+  const slot = document.getElementById(slotId);
+  if (!control || !slot) return;
+  if (!studioMobileOrigins.has(control)) {
+    studioMobileOrigins.set(control, { parent: control.parentElement, next: control.nextElementSibling });
+  }
+  const origin = studioMobileOrigins.get(control);
+  if (mobile) {
+    if (control.parentElement !== slot) slot.appendChild(control);
+    return;
+  }
+  if (control.parentElement === origin.parent) return;
+  if (origin.next?.parentElement === origin.parent) origin.parent.insertBefore(control, origin.next);
+  else origin.parent.appendChild(control);
+}
+
+function syncStudioBatchPanelLocation() {
+  const mobile = window.matchMedia('(max-width: 900px)').matches;
+  const shell = $('#app-shell');
+  const organizing = $('#btn-mode-organize')?.classList.contains('active');
+  const drawerOpen = shell?.classList.contains('studio-pages-open');
+  const batchPanel = $('#organizer-batch-bar');
+  placeStudioControl('#organizer-batch-bar', 'studio-mobile-batch-slot', mobile && organizing && drawerOpen && batchPanel && !batchPanel.hidden);
+}
+window.syncStudioBatchPanelLocation = syncStudioBatchPanelLocation;
+
+function updateStudioMobilePageSummary() {
+  const summary = $('#studio-mobile-page-summary');
+  if (!summary) return;
+  const page = Math.max(1, Number($('#page-jump-input')?.value) || 1);
+  const total = Math.max(0, Number($('#page-total-indicator')?.textContent) || 0);
+  summary.textContent = `Page ${page} of ${total}`;
+}
+
+function syncStudioMobileLayout() {
+  const mobile = window.matchMedia('(max-width: 900px)').matches;
+  placeStudioControl('.studio-primary-ribbon > .studio-tool-group[title="History"]', 'studio-mobile-history-slot', mobile);
+  placeStudioControl('.studio-primary-ribbon > .studio-export-group', 'studio-mobile-export-slot', mobile);
+  placeStudioControl('#page-indicator', 'studio-mobile-page-slot', mobile);
+  placeStudioControl('.studio-primary-ribbon > .studio-tool-group[title="Zoom Controls"]', 'studio-mobile-zoom-slot', mobile);
+  placeStudioControl('.studio-sub-ribbon .editor-style-group', 'studio-mobile-properties-slot', mobile);
+
+  if (!mobile) {
+    $('#studio-mobile-properties-panel')?.setAttribute('hidden', '');
+    $('#studio-mobile-pages-btn')?.setAttribute('aria-expanded', 'false');
+    $('#studio-mobile-properties-btn')?.setAttribute('aria-expanded', 'false');
+    $('#app-shell')?.classList.remove('studio-pages-open');
+  }
+  syncStudioBatchPanelLocation();
+  updateStudioMobilePageSummary();
+}
+
+$('#studio-mobile-pages-btn')?.addEventListener('click', () => {
+  const shell = $('#app-shell');
+  if (!shell) return;
+  const open = shell.classList.toggle('studio-pages-open');
+  $('#studio-mobile-pages-btn')?.setAttribute('aria-expanded', String(open));
+  $('#studio-mobile-properties-panel')?.setAttribute('hidden', '');
+  $('#studio-mobile-properties-btn')?.setAttribute('aria-expanded', 'false');
+  syncStudioBatchPanelLocation();
+});
+
+$('#studio-mobile-pages-close')?.addEventListener('click', () => {
+  $('#app-shell')?.classList.remove('studio-pages-open');
+  $('#studio-mobile-pages-btn')?.setAttribute('aria-expanded', 'false');
+  syncStudioBatchPanelLocation();
+});
+
+$('#studio-mobile-properties-btn')?.addEventListener('click', () => {
+  const panel = $('#studio-mobile-properties-panel');
+  if (!panel) return;
+  const open = panel.hidden;
+  panel.hidden = !open;
+  panel.setAttribute('aria-hidden', String(!open));
+  $('#studio-mobile-properties-btn')?.setAttribute('aria-expanded', String(open));
+  $('#app-shell')?.classList.remove('studio-pages-open');
+  $('#studio-mobile-pages-btn')?.setAttribute('aria-expanded', 'false');
+  syncStudioBatchPanelLocation();
+  updateStudioMobilePageSummary();
+});
+
+$('#studio-mobile-properties-close')?.addEventListener('click', () => {
+  $('#studio-mobile-properties-panel')?.setAttribute('hidden', '');
+  $('#studio-mobile-properties-btn')?.setAttribute('aria-expanded', 'false');
+});
+
+window.addEventListener('resize', syncStudioMobileLayout, { passive: true });
+syncStudioMobileLayout();
+const studioPageSummaryObserver = new MutationObserver(updateStudioMobilePageSummary);
+['#page-jump-input', '#page-total-indicator', '#studio-page-count'].forEach(selector => {
+  const node = $(selector);
+  if (node) studioPageSummaryObserver.observe(node, { childList: true, subtree: true, characterData: true, attributes: true });
+});
+$('#page-jump-input')?.addEventListener('input', updateStudioMobilePageSummary);
+
 function switchWorkspaceView(view, extra = 'privacy', updateHistory = true, preserveOpenCloudModal = false) {
+  // The root route remains a useful entry point, but the Tool Desk is the
+  // single canonical directory for all PDF tools.
+  if (view === 'home') view = 'tool-desk';
   workspaceNavigationVersion += 1;
   if (!preserveOpenCloudModal && view !== 'cloud' && $('#cloud-modal')) $('#cloud-modal').hidden = true;
   if ($('#sidebar')?.classList.contains('mobile-open')) closeMobileSidebar();
   try { sessionStorage.setItem('paperplane-active-view', view); } catch { /* storage may be disabled */ }
   state.activeView = view;
-  $('#tab-home-view')?.classList.toggle('active', view === 'home');
+  const mobileViewLabels = { 'tool-desk': 'Tool Desk', desk: 'PDF Tool', studio: 'Studio', ai: 'AI', download: 'Waitlist' };
+  if ($('#mobile-view-pill')) $('#mobile-view-pill').textContent = mobileViewLabels[view] || 'Paperplane';
   $('#tab-tool-desk-view')?.classList.toggle('active', view === 'tool-desk');
   $('#tab-desk-view')?.classList.toggle('active', view === 'desk');
   $('#tab-studio-view')?.classList.toggle('active', view === 'studio');
@@ -782,12 +888,15 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true, pres
   document.body.classList.toggle('studio-active', view === 'studio');
   if (view === 'studio' && !state.studio.pdfDoc) restoreStudioWorkspace();
   if (view === 'ai' && !aiWorkspaceRestored) restoreAiWorkspace();
+  if (view === 'studio') syncStudioMobileLayout();
+  else {
+    $('#app-shell')?.classList.remove('studio-pages-open');
+    $('#studio-mobile-properties-panel')?.setAttribute('hidden', '');
+  }
 
   // Strict SEO Content containment: Only display crawlable SEO sections on Home and Tool Desk views
   const seoSection = $('.seo-content');
-  if (seoSection) {
-    seoSection.style.display = (view === 'home' || view === 'desk') ? '' : 'none';
-  }
+  if (seoSection) seoSection.style.display = (view === 'tool-desk' || view === 'desk') ? '' : 'none';
 
   // Dynamic Topbar Breadcrumb updates
   const crumbCat = $('#crumb-category');
@@ -862,7 +971,6 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true, pres
 
   // Update mobile bottom navigation bar active button
   const mobMap = {
-    home: '#mob-nav-home',
     'tool-desk': '#mob-nav-desk',
     studio: '#mob-nav-studio',
     ai: '#mob-nav-ai',
@@ -887,7 +995,6 @@ function showStudioEmptyState() {
 }
 
 // Navigation event bindings
-$('#tab-home-view')?.addEventListener('click', () => switchWorkspaceView('home'));
 $('#tab-tool-desk-view')?.addEventListener('click', () => switchWorkspaceView('tool-desk'));
 $('#tab-studio-view')?.addEventListener('click', () => switchWorkspaceView('studio'));
 $('#tab-ai-view')?.addEventListener('click', () => switchWorkspaceView('ai'));
@@ -1018,7 +1125,7 @@ function renderSidebarTools() {
 }
 
 // ----------------------------------------------------------------------
-// Home Page Tools Catalog & Categorical Discovery (iLovePDF Workflow)
+// Tool Desk catalog and category navigation.
 // ----------------------------------------------------------------------
 
 const HOME_CATEGORIES = [
@@ -1286,8 +1393,18 @@ async function syncSeoContent(operation) {
   const section = $('.seo-content');
   if (!section || !operation) return;
 
+  const requestVersion = ++seoContentRequestVersion;
+  const operationLabel = state.operations[operation]?.label || operation;
+  const isCurrentRequest = () => (
+    requestVersion === seoContentRequestVersion && state.operation === operation
+  );
+  document.title = `${operationLabel} | Paperplane`;
+  section.setAttribute('aria-busy', 'true');
+  section.innerHTML = `<div class="seo-content-inner"><p class="seo-lede" role="status">Loading ${escapeHtml(operationLabel)} details…</p></div>`;
+
   try {
     const context = await safeFetch(`/api/seo/${encodeURIComponent(operation)}`);
+    if (!isCurrentRequest()) return;
     const related = (context.related || []).map(relatedId => {
       const related = state.operations[relatedId] || { label: relatedId };
       const slug = TOOL_SLUGS[relatedId] || relatedId;
@@ -1297,7 +1414,7 @@ async function syncSeoContent(operation) {
       `<details class="seo-faq-item"><summary>${escapeHtml(question)}</summary><p>${escapeHtml(answer)}</p></details>`
     )).join('');
     const steps = (context.how_to || []).map((step, index) => (
-      `<article class="seo-howto-step"><span>${String(index + 1).padStart(2, '0')}</span><h3>${escapeHtml(step)}</h3><p>${escapeHtml(step)}</p></article>`
+      `<article class="seo-howto-step"><span>${String(index + 1).padStart(2, '0')}</span><h3>${escapeHtml(step)}</h3></article>`
     )).join('');
 
     section.innerHTML = `
@@ -1306,26 +1423,15 @@ async function syncSeoContent(operation) {
         <h2 id="seo-page-heading">${escapeHtml(context.heading)}</h2>
         <p class="seo-lede">${escapeHtml(context.intro)}</p>
         <div class="seo-howto-grid">${steps}</div>
-        <div class="seo-proof-grid">
-          <article class="seo-proof-card"><h3>Zero-Upload Client Privacy Mode</h3><p>For ${escapeHtml(context.heading.toLowerCase())}, supported browser workflows can run locally with pdf-lib and WebAssembly so the source file never touches a server.</p></article>
-          <article class="seo-proof-card"><h3>Built for practical PDF work</h3><p>The ${escapeHtml(context.heading.toLowerCase())} workflow keeps the relevant controls close to the upload queue so you can finish one document job without a heavyweight suite.</p></article>
-          <article class="seo-proof-card"><h3>Transparent safety controls</h3><p>Before you download ${escapeHtml(context.heading.toLowerCase())} results, Paperplane validates the output and applies isolated storage, path containment, and lifecycle cleanup.</p></article>
-        </div>
-        <div class="seo-comparison" role="region" aria-label="PDF tool comparison">
-          <h3>Why use Paperplane for ${escapeHtml(context.heading.toLowerCase())}?</h3>
-          <div class="seo-comparison-table" role="table">
-            <div class="seo-comparison-row seo-comparison-head" role="row"><span>Capability</span><span>Paperplane</span><span>Traditional desktop suites</span></div>
-            <div class="seo-comparison-row" role="row"><span>Browser zero-upload processing</span><strong>Supported</strong><span>Usually unavailable</span></div>
-            <div class="seo-comparison-row" role="row"><span>Dedicated ${escapeHtml(context.category)} URL</span><strong>One focused page</strong><span>One application shell</span></div>
-            <div class="seo-comparison-row" role="row"><span>Installation required</span><strong>No for web workflows</strong><span>Often required</span></div>
-          </div>
-        </div>
         <div class="seo-faq"><h3>Frequently asked questions</h3>${faqs}</div>
         <nav class="seo-related" aria-label="Related PDF tools"><strong>Related tools</strong>${related}</nav>
       </div>`;
+    section.removeAttribute('aria-busy');
+    if (context.title) document.title = context.title;
   } catch (error) {
-    // Keep the server-rendered copy visible if a client-side refresh fails;
-    // navigation must never blank the crawlable content surface.
+    if (!isCurrentRequest()) return;
+    section.removeAttribute('aria-busy');
+    section.innerHTML = `<div class="seo-content-inner"><p class="seo-lede" role="status">${escapeHtml(operationLabel)} details could not load right now. The PDF tool is still available.</p></div>`;
     console.warn('Could not refresh SEO content for operation:', operation, error);
   }
 }
@@ -1337,6 +1443,11 @@ function selectOperation(op, switchToDesk = true, preserveOpenCloudModal = false
   if (opChanged) saveToolSession(previousOperation);
   const cachedSession = opChanged ? toolSessionCache.get(op) || null : null;
   state.operation = op;
+  const localProcessingWasEnabled = state.clientSideMode;
+  syncClientSideControls();
+  if (localProcessingWasEnabled && !CLIENT_SIDE_SUPPORTED_OPERATIONS.has(op)) {
+    showToast(`${state.operations[op]?.label || op} uses server processing. Local Processing was turned off.`, 'info', 5000);
+  }
   if (opChanged) {
     state.files = cachedSession?.files ? [...cachedSession.files] : [];
     state.splitPageCount = cachedSession?.splitPageCount ?? null;
@@ -1811,29 +1922,56 @@ if ($('#settings-create-key-form')) {
   };
 }
 
-// Zero-Upload Client-Side WASM Toggle
-function setClientSideMode(enabled) {
-  state.clientSideMode = enabled;
+function syncClientSideControls() {
+  const supported = CLIENT_SIDE_SUPPORTED_OPERATIONS.has(state.operation);
+  if (!supported) state.clientSideMode = false;
+  const operationLabel = state.operations[state.operation]?.label || state.operation;
+  const helpText = supported
+    ? `Local processing is available for ${CLIENT_SIDE_SUPPORTED_LABEL}.`
+    : `${operationLabel} uses temporary server processing. Local processing is available for ${CLIENT_SIDE_SUPPORTED_LABEL}.`;
+
   ['client-privacy-toggle', 'settings-client-privacy-toggle'].forEach(id => {
     const input = $(`#${id}`);
-    if (input) input.checked = enabled;
+    if (!input) return;
+    input.checked = state.clientSideMode;
+    input.disabled = !supported;
+    input.title = helpText;
+    input.setAttribute('aria-label', supported
+      ? `Use local processing for ${operationLabel}`
+      : `Local processing is unavailable for ${operationLabel}; this tool uses temporary server processing`);
   });
-  const pill = $('#engine-status-pill');
-  const label = $('#privacy-mode-label');
-  const text = $('#engine-status-text');
 
-  if (state.clientSideMode) {
-    if (pill) pill.className = 'engine-pill wasm';
-    if (text) text.textContent = 'Zero-Upload WASM';
-    if (label) label.textContent = 'Zero-Upload WASM';
-    showToast('100% Client-Side Privacy Mode Activated (Zero Uploads).');
-  } else {
-    if (pill) pill.className = 'engine-pill';
-    if (text) text.textContent = 'Server Fast Queue';
-    if (label) label.textContent = 'Server Mode';
-    showToast('Server High-Speed Engine Active.');
+  const label = $('#privacy-mode-label');
+  if (label) label.textContent = state.clientSideMode ? 'Local Processing' : 'Server Mode';
+  const sidebarHelp = $('#privacy-mode-support');
+  if (sidebarHelp) sidebarHelp.textContent = supported
+    ? 'Available for Merge, Split, Remove, Rotate'
+    : 'This tool runs on the server';
+  const settingsHelp = $('#settings-client-privacy-support');
+  if (settingsHelp) settingsHelp.textContent = helpText;
+  const pill = $('#engine-status-pill');
+  if (pill) pill.className = state.clientSideMode ? 'engine-pill local' : 'engine-pill';
+  const text = $('#engine-status-text');
+  if (text) text.textContent = state.clientSideMode ? 'Local Processing' : 'Server Processing';
+}
+
+function setClientSideMode(enabled) {
+  const supported = CLIENT_SIDE_SUPPORTED_OPERATIONS.has(state.operation);
+  if (enabled && !supported) {
+    state.clientSideMode = false;
+    syncClientSideControls();
+    showToast(`${state.operations[state.operation]?.label || state.operation} uses server processing. Local Processing is available for ${CLIENT_SIDE_SUPPORTED_LABEL}.`, 'warning', 6000);
+    updateButton();
+    return false;
   }
+
+  state.clientSideMode = Boolean(enabled);
+  syncClientSideControls();
+  showToast(state.clientSideMode
+    ? `${state.operations[state.operation]?.label || state.operation} will run in your browser.`
+    : 'Server processing selected.', 'info');
   updateButton();
+  return true;
 }
 $('#client-privacy-toggle').onchange = e => setClientSideMode(e.target.checked);
 $('#settings-client-privacy-toggle').onchange = e => setClientSideMode(e.target.checked);
@@ -2313,37 +2451,41 @@ function pruneStudioPageCanvases(centerPage) {
       canvas.height = 0;
       canvas.dataset.rendered = 'false';
       const loading = slot.querySelector('.studio-page-loading');
-      if (loading) { loading.hidden = false; loading.textContent = `Page ${pageNum} will render as you scroll.`; }
+      if (loading) { loading.hidden = false; loading.textContent = `Page ${pageNum} preview is paused to keep Studio responsive. Select it to load the page.`; }
     }
   });
+}
+
+function alignStudioPageInViewport(slot, behavior = 'auto') {
+  const area = $('#studio-canvas-area');
+  if (area) {
+    const areaTop = area.getBoundingClientRect().top;
+    const pageTop = slot.getBoundingClientRect().top - areaTop + area.scrollTop;
+    area.scrollTo({ top: Math.max(0, pageTop - 10), behavior });
+  }
 }
 
 async function jumpToStudioPage(pageNum, behavior = 'auto') {
   if (!state.studio.pdfDoc) return false;
   const target = Math.max(1, Math.min(state.studio.totalCount, Number(pageNum) || 1));
   const slot = studioPageSlot(target) || createStudioPageSlot(target);
+  const canvas = slot.querySelector('.pdf-page-canvas');
+  const loading = slot.querySelector('.studio-page-loading');
   setActiveStudioPage(target);
-  // Render first, then align the final page box. PDF.js can replace the initial
-  // placeholder dimensions while it paints, which otherwise shifts phone scroll
-  // by nearly a full page and makes reload restore the previous page.
+  if (canvas?.dataset.rendered !== 'true' && loading) {
+    loading.hidden = false;
+    loading.textContent = `Loading page ${target}…`;
+  }
+  // Move the requested page into view before awaiting PDF.js. This keeps the
+  // prior page or its lazy-render placeholder from appearing as the jump result.
+  studioPageJumpLockUntil = performance.now() + 1200;
+  alignStudioPageInViewport(slot, behavior);
+
   let rendered = await renderStudioPage(target, { priority: true });
   if (!rendered) rendered = await renderStudioPage(target, { priority: true, force: true });
   setActiveStudioPage(target, { scrollThumbnail: false });
-
-  const area = $('#studio-canvas-area');
-  if (area) {
-    if (window.matchMedia('(max-width: 900px)').matches) {
-      const headerBottom = $('.topbar')?.getBoundingClientRect().bottom || 56;
-      const focusLine = headerBottom + Math.min((window.innerHeight - headerBottom) * 0.34, 260);
-      const pageAnchor = slot.getBoundingClientRect().top + window.scrollY + Math.min(slot.getBoundingClientRect().height * 0.25, 180);
-      const pageTop = pageAnchor - focusLine;
-      window.scrollTo({ top: Math.max(0, pageTop), behavior });
-    } else {
-      const areaTop = area.getBoundingClientRect().top;
-      const pageTop = slot.getBoundingClientRect().top - areaTop + area.scrollTop;
-      area.scrollTo({ top: Math.max(0, pageTop - 10), behavior });
-    }
-  }
+  // Page sizes can differ, so align again after the target's true dimensions are known.
+  alignStudioPageInViewport(slot, 'auto');
   studioPageJumpLockUntil = performance.now() + 900;
   return rendered;
 }
@@ -2504,7 +2646,7 @@ async function refreshVisibleStudioPages() {
       canvas.width = 0;
       canvas.height = 0;
       const status = slot.querySelector('.studio-page-loading');
-      if (status) { status.hidden = false; status.textContent = `Page ${page} will render as you scroll.`; }
+      if (status) { status.hidden = false; status.textContent = `Loading page ${page}…`; }
     }
   });
   state.studio.pageRenderTasks.forEach(task => { try { task.cancel(); } catch { /* already complete */ } });
@@ -2831,10 +2973,16 @@ if (btnModeAnnotate && btnModeOrganize) {
   btnModeAnnotate.onclick = () => {
     btnModeAnnotate.classList.add('active');
     btnModeOrganize.classList.remove('active');
+    if (window.matchMedia('(max-width: 900px)').matches) {
+      $('#app-shell')?.classList.remove('studio-pages-open');
+      $('#studio-mobile-pages-btn')?.setAttribute('aria-expanded', 'false');
+      syncStudioBatchPanelLocation();
+    }
     if (annotateRibbon) annotateRibbon.hidden = false;
     if (batchBar) batchBar.hidden = true;
     if (window.PaperplanePageOrganizer) {
       window.PaperplanePageOrganizer._updateBatchToolbar();
+      syncStudioBatchPanelLocation();
     }
     preservePageThroughModeChange();
   };
@@ -2842,12 +2990,22 @@ if (btnModeAnnotate && btnModeOrganize) {
   btnModeOrganize.onclick = () => {
     btnModeOrganize.classList.add('active');
     btnModeAnnotate.classList.remove('active');
+    if (window.matchMedia('(max-width: 900px)').matches) {
+      // Page selection only exists in the mobile pages drawer. Open it as part
+      // of entering Organize mode so the selected mode always exposes its work.
+      $('#app-shell')?.classList.add('studio-pages-open');
+      $('#studio-mobile-pages-btn')?.setAttribute('aria-expanded', 'true');
+      $('#studio-mobile-properties-panel')?.setAttribute('hidden', '');
+      $('#studio-mobile-properties-btn')?.setAttribute('aria-expanded', 'false');
+      syncStudioBatchPanelLocation();
+    }
     if (annotateRibbon) annotateRibbon.hidden = true;
     if (window.PaperplanePageOrganizer) {
       window.PaperplanePageOrganizer._updateBatchToolbar();
     } else if (batchBar) {
       batchBar.hidden = true;
     }
+    syncStudioBatchPanelLocation();
     preservePageThroughModeChange();
   };
 }
@@ -3149,6 +3307,7 @@ function addFiles(newFiles) {
 function updateButton() {
   const btn = $('#run-button');
   if (!btn) return;
+  syncClientSideControls();
   const currentOperation = state.operations[state.operation];
   const toolLabel = currentOperation?.label || 'Run Tool';
   if (currentOperation && (currentOperation.available === false || currentOperation.status === 'DEPENDENCY_MISSING' || currentOperation.status === 'SERVICE_UNAVAILABLE')) {
@@ -3431,7 +3590,8 @@ $('#job-form').onsubmit = async e => {
       setTimeout(() => $('#progress-card').hidden = true, 1200);
       return;
     } catch (clientErr) {
-      showResult(`Client-side mode error: ${clientErr.message}`, true);
+      console.warn('Browser-local processing failed:', clientErr);
+      showResult('This PDF could not be processed in your browser. Turn off Local Processing and retry with server processing.', true);
       return;
     } finally {
       btn.disabled = false;
@@ -3706,7 +3866,7 @@ function downloadTextFile(text, filename) {
 async function downloadSummaryPdf(text, filename) {
   if (typeof PDFLib === 'undefined') {
     downloadTextFile(text, filename.replace(/\.pdf$/i, '.txt'));
-    showToast('PDF-Lib is unavailable; downloaded the summary as TXT.', 'warning');
+    showToast('A PDF download is unavailable in this browser. The summary was downloaded as a text file instead.', 'warning');
     return;
   }
   const { PDFDocument, StandardFonts, rgb } = PDFLib;
@@ -3841,7 +4001,11 @@ async function runDeskAiWorkflow(options) {
 
 async function processClientSide() {
   if (typeof PDFLib === 'undefined') {
-    throw new Error('Client-side PDF-Lib is not loaded.');
+    throw new Error('The local PDF processor is unavailable in this browser.');
+  }
+
+  if (!CLIENT_SIDE_SUPPORTED_OPERATIONS.has(state.operation)) {
+    throw new Error('This tool uses temporary server processing. Turn off Local Processing and retry.');
   }
 
   const { PDFDocument, degrees, rgb } = PDFLib;
@@ -3901,7 +4065,7 @@ async function processClientSide() {
     return;
   }
 
-  throw new Error(`The operation '${state.operation}' requires the server high-speed engine.`);
+  throw new Error('This tool uses temporary server processing. Turn off Local Processing and retry.');
 }
 
 function downloadBlob(bytes, filename, mimeType) {
@@ -3981,10 +4145,10 @@ function updateAiDocBar() {
     if (emptyState) emptyState.hidden = true;
     if (inlineUploadButton) inlineUploadButton.hidden = true;
     if (docName) docName.textContent = file.name;
-    if (docMeta) docMeta.textContent = `${formatBytes(file.size)} • PDF Document • Loaded & Ready`;
+    if (docMeta) docMeta.textContent = `${formatBytes(file.size)} • PDF Document`;
     if (docMeta && window.pdfjsLib) {
       file.arrayBuffer().then(buffer => window.pdfjsLib.getDocument({ data: buffer, isEvalSupported: false }).promise)
-        .then(pdf => { if (state.files[0] === file) docMeta.textContent = `${formatBytes(file.size)} • ${pdf.numPages} pages • Loaded & Ready`; })
+        .then(pdf => { if (state.files[0] === file) docMeta.textContent = `${formatBytes(file.size)} • ${pdf.numPages} pages`; })
         .catch(() => { /* The chat upload still reports a readable user-facing status. */ });
     }
     if (chatInput) {
@@ -4053,7 +4217,6 @@ if (aiFileInput) {
       });
       rememberLocalWork(file.name);
       updateAiDocBar();
-      showToast(`Loaded ${file.name} for AI analysis`, 'success');
       aiFileInput.value = '';
     }
   };
@@ -4083,7 +4246,6 @@ if (aiUploadZone) {
       });
       rememberLocalWork(file.name);
       updateAiDocBar();
-      showToast(`Loaded ${file.name} for AI analysis`, 'success');
     }
   };
 }
@@ -4310,7 +4472,6 @@ $('#chat-form').onsubmit = async e => {
         $('#chat-form').requestSubmit();
       };
       answerBubble.appendChild(failure);
-      showToast(errMsg, 'error');
     }
   } finally {
     activeAIChatController = null;
@@ -4361,7 +4522,6 @@ async function generateExecutiveBrief() {
     summaryBox.innerHTML = `<div class="ai-summary-error" role="alert">${escapeHtml(errMsg)} <button type="button" id="summary-retry-btn" class="btn-secondary-action">Retry</button></div>`;
     $('#summary-retry-btn')?.addEventListener('click', generateExecutiveBrief, { once: true });
     if (actionsBar) actionsBar.hidden = true;
-    showToast(errMsg, 'error');
   } finally {
     btn.disabled = false;
     btn.textContent = 'Generate Executive Brief';
@@ -4476,7 +4636,7 @@ function renderExtractionResultsModal(data) {
         const card = document.createElement('div');
         card.className = 'extraction-field-card';
         const isNull = !f.val;
-        const displayVal = isNull ? 'Not detected' : escapeHtml(String(f.val));
+        const displayVal = isNull ? '—' : escapeHtml(String(f.val));
         const valClass = `extraction-field-value ${isNull ? 'null-val' : ''} ${f.highlight && !isNull ? 'highlight-val' : ''}`;
         card.innerHTML = `
           <span class="extraction-field-label">${escapeHtml(f.label)}</span>
@@ -4529,7 +4689,7 @@ function renderExtractionResultsModal(data) {
         const card = document.createElement('div');
         card.className = 'extraction-field-card';
         const isNull = !f.val;
-        const displayVal = isNull ? 'Not detected' : escapeHtml(String(f.val));
+        const displayVal = isNull ? '—' : escapeHtml(String(f.val));
         const valClass = `extraction-field-value ${isNull ? 'null-val' : ''} ${f.highlight && !isNull ? 'highlight-val' : ''}`;
         card.innerHTML = `
           <span class="extraction-field-label">${escapeHtml(f.label)}</span>
@@ -4554,7 +4714,7 @@ function renderExtractionResultsModal(data) {
         const card = document.createElement('div');
         card.className = 'extraction-field-card';
         const isNull = !f.val;
-        const displayVal = isNull ? 'Not detected' : escapeHtml(String(f.val));
+        const displayVal = isNull ? '—' : escapeHtml(String(f.val));
         const valClass = `extraction-field-value ${isNull ? 'null-val' : ''} ${f.highlight && !isNull ? 'highlight-val' : ''}`;
         card.innerHTML = `
           <span class="extraction-field-label">${escapeHtml(f.label)}</span>
@@ -5860,7 +6020,9 @@ if (waitlistForm) {
         successBox.hidden = false;
         const posBadge = $('#waitlist-position-badge');
         if (posBadge) {
-          posBadge.textContent = `You're on the early access list! (Queue Position #${data.waitlist_number || 42})`;
+          posBadge.textContent = data.waitlist_number
+            ? `You're on the apps waitlist! (Position #${data.waitlist_number})`
+            : "You're on the apps waitlist!";
         }
       }
       showToast('Successfully joined the native apps waitlist!', 'success');
@@ -5906,11 +6068,11 @@ function handleInitialRouting() {
   } else if (OPERATION_BY_SLUG[pathSlug]) {
     selectOperation(OPERATION_BY_SLUG[pathSlug], true, true);
   } else if (pathSlug === 'convert-pdf') {
-    activateHomeCategoryFilter('convert');
-    setInitialView('home');
+    renderToolDeskDirectory('convert');
+    setInitialView('tool-desk');
   } else if (pathSlug === 'pdf-security') {
-    activateHomeCategoryFilter('security');
-    setInitialView('home');
+    renderToolDeskDirectory('security');
+    setInitialView('tool-desk');
   } else if (urlParams.get('tool') && state.operations && state.operations[urlParams.get('tool')]) {
     // Backward compatibility for links created before clean URL routing.
     selectOperation(urlParams.get('tool'), true, true);

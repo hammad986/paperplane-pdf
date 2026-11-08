@@ -899,6 +899,7 @@
         bar.hidden = true;
         bar.classList.remove('visible');
       }
+      window.syncStudioBatchPanelLocation?.();
     }
 
     _bindSubnavEvents() {
@@ -1263,8 +1264,8 @@
       const oldPage = Math.max(1, Number(document.getElementById('page-jump-input')?.value) || this.state.activePage || 1);
 
       const msg = pages.length === 1
-        ? `Are you sure you want to delete page ${pages[0]}? This cannot be undone.`
-        : `Are you sure you want to delete ${pages.length} pages? This cannot be undone.`;
+        ? `Delete page ${pages[0]}? You can undo this for 10 seconds after the deletion completes.`
+        : `Delete ${pages.length} pages? You can undo this for 10 seconds after the deletion completes.`;
       const confirmed = await (window.confirmAction ? window.confirmAction(msg, { confirmLabel: 'Delete pages', danger: true }) : Promise.resolve(window.confirm(msg)));
       if (!confirmed) return;
 

@@ -1,0 +1,1360 @@
+{
+  "base": "http://127.0.0.1:8501",
+  "routes": {
+    "ocr": "/ocr-pdf",
+    "remove": "/remove-pages-pdf",
+    "grayscale": "/convert-pdf-to-grayscale",
+    "tool_desk": "/tool-desk"
+  },
+  "widths": [
+    375,
+    1104
+  ],
+  "results": [
+    {
+      "viewportWidth": 375,
+      "documentWidth": 375,
+      "bodyWidth": 375,
+      "scrollX": 0,
+      "scrollY": 0,
+      "mainScrollTop": 0,
+      "boxes": {
+        "topbar": {
+          "x": 0,
+          "y": 0,
+          "right": 375,
+          "bottom": 64,
+          "width": 375,
+          "height": 64
+        },
+        "title": {
+          "x": 23,
+          "y": 262,
+          "right": 352,
+          "bottom": 294,
+          "width": 329,
+          "height": 32
+        },
+        "dropzone": {
+          "x": 8,
+          "y": 459,
+          "right": 367,
+          "bottom": 738,
+          "width": 359,
+          "height": 279
+        },
+        "directory_filters": null
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 1,
+      "route": "ocr",
+      "width": 375,
+      "scroll": "top"
+    },
+    {
+      "viewportWidth": 375,
+      "documentWidth": 375,
+      "bodyWidth": 375,
+      "scrollX": 0,
+      "scrollY": 300,
+      "mainScrollTop": 0,
+      "boxes": {
+        "topbar": {
+          "x": 0,
+          "y": 0,
+          "right": 375,
+          "bottom": 64,
+          "width": 375,
+          "height": 64
+        },
+        "title": {
+          "x": 23,
+          "y": -38,
+          "right": 352,
+          "bottom": -8,
+          "width": 329,
+          "height": 30
+        },
+        "dropzone": {
+          "x": 8,
+          "y": 178,
+          "right": 367,
+          "bottom": 457,
+          "width": 359,
+          "height": 279
+        },
+        "directory_filters": null
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 1,
+      "route": "ocr",
+      "width": 375,
+      "scroll": "scrolled"
+    },
+    {
+      "viewportWidth": 1104,
+      "documentWidth": 1104,
+      "bodyWidth": 1104,
+      "scrollX": 0,
+      "scrollY": 0,
+      "mainScrollTop": 0,
+      "boxes": {
+        "topbar": {
+          "x": 270,
+          "y": 0,
+          "right": 1104,
+          "bottom": 76,
+          "width": 834,
+          "height": 76
+        },
+        "title": {
+          "x": 335,
+          "y": 263,
+          "right": 861,
+          "bottom": 293,
+          "width": 526,
+          "height": 30
+        },
+        "dropzone": {
+          "x": 306,
+          "y": 449,
+          "right": 1068,
+          "bottom": 696,
+          "width": 762,
+          "height": 247
+        },
+        "directory_filters": null
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 1,
+      "route": "ocr",
+      "width": 1104,
+      "scroll": "top"
+    },
+    {
+      "viewportWidth": 1104,
+      "documentWidth": 1104,
+      "bodyWidth": 1104,
+      "scrollX": 0,
+      "scrollY": 0,
+      "mainScrollTop": 300,
+      "boxes": {
+        "topbar": {
+          "x": 270,
+          "y": 0,
+          "right": 1104,
+          "bottom": 76,
+          "width": 834,
+          "height": 76
+        },
+        "title": {
+          "x": 335,
+          "y": -37,
+          "right": 861,
+          "bottom": -7,
+          "width": 526,
+          "height": 30
+        },
+        "dropzone": {
+          "x": 306,
+          "y": 149,
+          "right": 1068,
+          "bottom": 396,
+          "width": 762,
+          "height": 247
+        },
+        "directory_filters": null
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 1,
+      "route": "ocr",
+      "width": 1104,
+      "scroll": "scrolled"
+    },
+    {
+      "viewportWidth": 375,
+      "documentWidth": 375,
+      "bodyWidth": 375,
+      "scrollX": 0,
+      "scrollY": 0,
+      "mainScrollTop": 0,
+      "boxes": {
+        "topbar": {
+          "x": 0,
+          "y": 0,
+          "right": 375,
+          "bottom": 64,
+          "width": 375,
+          "height": 64
+        },
+        "title": {
+          "x": 23,
+          "y": 262,
+          "right": 352,
+          "bottom": 292,
+          "width": 329,
+          "height": 30
+        },
+        "dropzone": {
+          "x": 8,
+          "y": 356,
+          "right": 367,
+          "bottom": 635,
+          "width": 359,
+          "height": 279
+        },
+        "directory_filters": null
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 1,
+      "route": "remove",
+      "width": 375,
+      "scroll": "top"
+    },
+    {
+      "viewportWidth": 375,
+      "documentWidth": 375,
+      "bodyWidth": 375,
+      "scrollX": 0,
+      "scrollY": 300,
+      "mainScrollTop": 0,
+      "boxes": {
+        "topbar": {
+          "x": 0,
+          "y": 0,
+          "right": 375,
+          "bottom": 64,
+          "width": 375,
+          "height": 64
+        },
+        "title": {
+          "x": 23,
+          "y": -38,
+          "right": 352,
+          "bottom": -8,
+          "width": 329,
+          "height": 30
+        },
+        "dropzone": {
+          "x": 8,
+          "y": 56,
+          "right": 367,
+          "bottom": 335,
+          "width": 359,
+          "height": 279
+        },
+        "directory_filters": null
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 1,
+      "route": "remove",
+      "width": 375,
+      "scroll": "scrolled"
+    },
+    {
+      "viewportWidth": 1104,
+      "documentWidth": 1104,
+      "bodyWidth": 1104,
+      "scrollX": 0,
+      "scrollY": 0,
+      "mainScrollTop": 0,
+      "boxes": {
+        "topbar": {
+          "x": 270,
+          "y": 0,
+          "right": 1104,
+          "bottom": 76,
+          "width": 834,
+          "height": 76
+        },
+        "title": {
+          "x": 335,
+          "y": 263,
+          "right": 861,
+          "bottom": 293,
+          "width": 526,
+          "height": 30
+        },
+        "dropzone": {
+          "x": 306,
+          "y": 367,
+          "right": 1068,
+          "bottom": 614,
+          "width": 762,
+          "height": 247
+        },
+        "directory_filters": null
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 1,
+      "route": "remove",
+      "width": 1104,
+      "scroll": "top"
+    },
+    {
+      "viewportWidth": 1104,
+      "documentWidth": 1104,
+      "bodyWidth": 1104,
+      "scrollX": 0,
+      "scrollY": 0,
+      "mainScrollTop": 300,
+      "boxes": {
+        "topbar": {
+          "x": 270,
+          "y": 0,
+          "right": 1104,
+          "bottom": 76,
+          "width": 834,
+          "height": 76
+        },
+        "title": {
+          "x": 335,
+          "y": -37,
+          "right": 861,
+          "bottom": -7,
+          "width": 526,
+          "height": 30
+        },
+        "dropzone": {
+          "x": 306,
+          "y": 67,
+          "right": 1068,
+          "bottom": 314,
+          "width": 762,
+          "height": 247
+        },
+        "directory_filters": null
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 1,
+      "route": "remove",
+      "width": 1104,
+      "scroll": "scrolled"
+    },
+    {
+      "viewportWidth": 375,
+      "documentWidth": 375,
+      "bodyWidth": 375,
+      "scrollX": 0,
+      "scrollY": 0,
+      "mainScrollTop": 0,
+      "boxes": {
+        "topbar": {
+          "x": 0,
+          "y": 0,
+          "right": 375,
+          "bottom": 64,
+          "width": 375,
+          "height": 64
+        },
+        "title": {
+          "x": 23,
+          "y": 262,
+          "right": 352,
+          "bottom": 292,
+          "width": 329,
+          "height": 30
+        },
+        "dropzone": {
+          "x": 8,
+          "y": 398,
+          "right": 367,
+          "bottom": 677,
+          "width": 359,
+          "height": 279
+        },
+        "directory_filters": null
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 1,
+      "route": "grayscale",
+      "width": 375,
+      "scroll": "top"
+    },
+    {
+      "viewportWidth": 375,
+      "documentWidth": 375,
+      "bodyWidth": 375,
+      "scrollX": 0,
+      "scrollY": 300,
+      "mainScrollTop": 0,
+      "boxes": {
+        "topbar": {
+          "x": 0,
+          "y": 0,
+          "right": 375,
+          "bottom": 64,
+          "width": 375,
+          "height": 64
+        },
+        "title": {
+          "x": 23,
+          "y": -38,
+          "right": 352,
+          "bottom": -8,
+          "width": 329,
+          "height": 30
+        },
+        "dropzone": {
+          "x": 8,
+          "y": 98,
+          "right": 367,
+          "bottom": 377,
+          "width": 359,
+          "height": 279
+        },
+        "directory_filters": null
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 1,
+      "route": "grayscale",
+      "width": 375,
+      "scroll": "scrolled"
+    },
+    {
+      "viewportWidth": 1104,
+      "documentWidth": 1104,
+      "bodyWidth": 1104,
+      "scrollX": 0,
+      "scrollY": 0,
+      "mainScrollTop": 0,
+      "boxes": {
+        "topbar": {
+          "x": 270,
+          "y": 0,
+          "right": 1104,
+          "bottom": 76,
+          "width": 834,
+          "height": 76
+        },
+        "title": {
+          "x": 335,
+          "y": 263,
+          "right": 916,
+          "bottom": 293,
+          "width": 581,
+          "height": 30
+        },
+        "dropzone": {
+          "x": 306,
+          "y": 388,
+          "right": 1068,
+          "bottom": 635,
+          "width": 762,
+          "height": 247
+        },
+        "directory_filters": null
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 1,
+      "route": "grayscale",
+      "width": 1104,
+      "scroll": "top"
+    },
+    {
+      "viewportWidth": 1104,
+      "documentWidth": 1104,
+      "bodyWidth": 1104,
+      "scrollX": 0,
+      "scrollY": 0,
+      "mainScrollTop": 300,
+      "boxes": {
+        "topbar": {
+          "x": 270,
+          "y": 0,
+          "right": 1104,
+          "bottom": 76,
+          "width": 834,
+          "height": 76
+        },
+        "title": {
+          "x": 335,
+          "y": -37,
+          "right": 916,
+          "bottom": -7,
+          "width": 581,
+          "height": 30
+        },
+        "dropzone": {
+          "x": 306,
+          "y": 88,
+          "right": 1068,
+          "bottom": 335,
+          "width": 762,
+          "height": 247
+        },
+        "directory_filters": null
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 1,
+      "route": "grayscale",
+      "width": 1104,
+      "scroll": "scrolled"
+    },
+    {
+      "viewportWidth": 375,
+      "documentWidth": 375,
+      "bodyWidth": 375,
+      "scrollX": 0,
+      "scrollY": 0,
+      "mainScrollTop": 0,
+      "boxes": {
+        "topbar": {
+          "x": 0,
+          "y": 0,
+          "right": 375,
+          "bottom": 64,
+          "width": 375,
+          "height": 64
+        },
+        "title": {
+          "x": 31,
+          "y": 148,
+          "right": 344,
+          "bottom": 181,
+          "width": 313,
+          "height": 33
+        },
+        "dropzone": null,
+        "directory_filters": {
+          "x": 31,
+          "y": 327,
+          "right": 344,
+          "bottom": 474,
+          "width": 313,
+          "height": 147
+        }
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 1,
+      "route": "tool_desk",
+      "width": 375,
+      "scroll": "top"
+    },
+    {
+      "viewportWidth": 375,
+      "documentWidth": 375,
+      "bodyWidth": 375,
+      "scrollX": 0,
+      "scrollY": 300,
+      "mainScrollTop": 0,
+      "boxes": {
+        "topbar": {
+          "x": 0,
+          "y": 0,
+          "right": 375,
+          "bottom": 64,
+          "width": 375,
+          "height": 64
+        },
+        "title": {
+          "x": 31,
+          "y": -152,
+          "right": 344,
+          "bottom": -119,
+          "width": 313,
+          "height": 33
+        },
+        "dropzone": null,
+        "directory_filters": {
+          "x": 31,
+          "y": 27,
+          "right": 344,
+          "bottom": 174,
+          "width": 313,
+          "height": 147
+        }
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 1,
+      "route": "tool_desk",
+      "width": 375,
+      "scroll": "scrolled"
+    },
+    {
+      "viewportWidth": 1104,
+      "documentWidth": 1104,
+      "bodyWidth": 1104,
+      "scrollX": 0,
+      "scrollY": 0,
+      "mainScrollTop": 0,
+      "boxes": {
+        "topbar": {
+          "x": 270,
+          "y": 0,
+          "right": 1104,
+          "bottom": 76,
+          "width": 834,
+          "height": 76
+        },
+        "title": {
+          "x": 367,
+          "y": 216,
+          "right": 1007,
+          "bottom": 262,
+          "width": 640,
+          "height": 46
+        },
+        "dropzone": null,
+        "directory_filters": {
+          "x": 367,
+          "y": 383,
+          "right": 1007,
+          "bottom": 434,
+          "width": 640,
+          "height": 51
+        }
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 1,
+      "route": "tool_desk",
+      "width": 1104,
+      "scroll": "top"
+    },
+    {
+      "viewportWidth": 1104,
+      "documentWidth": 1104,
+      "bodyWidth": 1104,
+      "scrollX": 0,
+      "scrollY": 0,
+      "mainScrollTop": 300,
+      "boxes": {
+        "topbar": {
+          "x": 270,
+          "y": 0,
+          "right": 1104,
+          "bottom": 76,
+          "width": 834,
+          "height": 76
+        },
+        "title": {
+          "x": 367,
+          "y": -84,
+          "right": 1007,
+          "bottom": -38,
+          "width": 640,
+          "height": 46
+        },
+        "dropzone": null,
+        "directory_filters": {
+          "x": 367,
+          "y": 83,
+          "right": 1007,
+          "bottom": 134,
+          "width": 640,
+          "height": 51
+        }
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 1,
+      "route": "tool_desk",
+      "width": 1104,
+      "scroll": "scrolled"
+    },
+    {
+      "viewportWidth": 375,
+      "documentWidth": 375,
+      "bodyWidth": 375,
+      "scrollX": 0,
+      "scrollY": 0,
+      "mainScrollTop": 0,
+      "boxes": {
+        "topbar": {
+          "x": 0,
+          "y": 0,
+          "right": 375,
+          "bottom": 64,
+          "width": 375,
+          "height": 64
+        },
+        "title": {
+          "x": 23,
+          "y": 262,
+          "right": 352,
+          "bottom": 292,
+          "width": 329,
+          "height": 30
+        },
+        "dropzone": {
+          "x": 8,
+          "y": 478,
+          "right": 367,
+          "bottom": 757,
+          "width": 359,
+          "height": 279
+        },
+        "directory_filters": null
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 2,
+      "route": "ocr",
+      "width": 375,
+      "scroll": "top"
+    },
+    {
+      "viewportWidth": 375,
+      "documentWidth": 375,
+      "bodyWidth": 375,
+      "scrollX": 0,
+      "scrollY": 300,
+      "mainScrollTop": 0,
+      "boxes": {
+        "topbar": {
+          "x": 0,
+          "y": 0,
+          "right": 375,
+          "bottom": 64,
+          "width": 375,
+          "height": 64
+        },
+        "title": {
+          "x": 23,
+          "y": -38,
+          "right": 352,
+          "bottom": -8,
+          "width": 329,
+          "height": 30
+        },
+        "dropzone": {
+          "x": 8,
+          "y": 178,
+          "right": 367,
+          "bottom": 457,
+          "width": 359,
+          "height": 279
+        },
+        "directory_filters": null
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 2,
+      "route": "ocr",
+      "width": 375,
+      "scroll": "scrolled"
+    },
+    {
+      "viewportWidth": 1104,
+      "documentWidth": 1104,
+      "bodyWidth": 1104,
+      "scrollX": 0,
+      "scrollY": 0,
+      "mainScrollTop": 0,
+      "boxes": {
+        "topbar": {
+          "x": 270,
+          "y": 0,
+          "right": 1104,
+          "bottom": 76,
+          "width": 834,
+          "height": 76
+        },
+        "title": {
+          "x": 335,
+          "y": 263,
+          "right": 861,
+          "bottom": 293,
+          "width": 526,
+          "height": 30
+        },
+        "dropzone": {
+          "x": 306,
+          "y": 449,
+          "right": 1068,
+          "bottom": 696,
+          "width": 762,
+          "height": 247
+        },
+        "directory_filters": null
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 2,
+      "route": "ocr",
+      "width": 1104,
+      "scroll": "top"
+    },
+    {
+      "viewportWidth": 1104,
+      "documentWidth": 1104,
+      "bodyWidth": 1104,
+      "scrollX": 0,
+      "scrollY": 0,
+      "mainScrollTop": 300,
+      "boxes": {
+        "topbar": {
+          "x": 270,
+          "y": 0,
+          "right": 1104,
+          "bottom": 76,
+          "width": 834,
+          "height": 76
+        },
+        "title": {
+          "x": 335,
+          "y": -37,
+          "right": 861,
+          "bottom": -7,
+          "width": 526,
+          "height": 30
+        },
+        "dropzone": {
+          "x": 306,
+          "y": 149,
+          "right": 1068,
+          "bottom": 396,
+          "width": 762,
+          "height": 247
+        },
+        "directory_filters": null
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 2,
+      "route": "ocr",
+      "width": 1104,
+      "scroll": "scrolled"
+    },
+    {
+      "viewportWidth": 375,
+      "documentWidth": 375,
+      "bodyWidth": 375,
+      "scrollX": 0,
+      "scrollY": 0,
+      "mainScrollTop": 0,
+      "boxes": {
+        "topbar": {
+          "x": 0,
+          "y": 0,
+          "right": 375,
+          "bottom": 64,
+          "width": 375,
+          "height": 64
+        },
+        "title": {
+          "x": 23,
+          "y": 262,
+          "right": 352,
+          "bottom": 292,
+          "width": 329,
+          "height": 30
+        },
+        "dropzone": {
+          "x": 8,
+          "y": 356,
+          "right": 367,
+          "bottom": 635,
+          "width": 359,
+          "height": 279
+        },
+        "directory_filters": null
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 2,
+      "route": "remove",
+      "width": 375,
+      "scroll": "top"
+    },
+    {
+      "viewportWidth": 375,
+      "documentWidth": 375,
+      "bodyWidth": 375,
+      "scrollX": 0,
+      "scrollY": 300,
+      "mainScrollTop": 0,
+      "boxes": {
+        "topbar": {
+          "x": 0,
+          "y": 0,
+          "right": 375,
+          "bottom": 64,
+          "width": 375,
+          "height": 64
+        },
+        "title": {
+          "x": 23,
+          "y": -38,
+          "right": 352,
+          "bottom": -8,
+          "width": 329,
+          "height": 30
+        },
+        "dropzone": {
+          "x": 8,
+          "y": 56,
+          "right": 367,
+          "bottom": 335,
+          "width": 359,
+          "height": 279
+        },
+        "directory_filters": null
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 2,
+      "route": "remove",
+      "width": 375,
+      "scroll": "scrolled"
+    },
+    {
+      "viewportWidth": 1104,
+      "documentWidth": 1104,
+      "bodyWidth": 1104,
+      "scrollX": 0,
+      "scrollY": 0,
+      "mainScrollTop": 0,
+      "boxes": {
+        "topbar": {
+          "x": 270,
+          "y": 0,
+          "right": 1104,
+          "bottom": 76,
+          "width": 834,
+          "height": 76
+        },
+        "title": {
+          "x": 335,
+          "y": 263,
+          "right": 861,
+          "bottom": 293,
+          "width": 526,
+          "height": 30
+        },
+        "dropzone": {
+          "x": 306,
+          "y": 367,
+          "right": 1068,
+          "bottom": 614,
+          "width": 762,
+          "height": 247
+        },
+        "directory_filters": null
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 2,
+      "route": "remove",
+      "width": 1104,
+      "scroll": "top"
+    },
+    {
+      "viewportWidth": 1104,
+      "documentWidth": 1104,
+      "bodyWidth": 1104,
+      "scrollX": 0,
+      "scrollY": 0,
+      "mainScrollTop": 300,
+      "boxes": {
+        "topbar": {
+          "x": 270,
+          "y": 0,
+          "right": 1104,
+          "bottom": 76,
+          "width": 834,
+          "height": 76
+        },
+        "title": {
+          "x": 335,
+          "y": -37,
+          "right": 861,
+          "bottom": -7,
+          "width": 526,
+          "height": 30
+        },
+        "dropzone": {
+          "x": 306,
+          "y": 67,
+          "right": 1068,
+          "bottom": 314,
+          "width": 762,
+          "height": 247
+        },
+        "directory_filters": null
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 2,
+      "route": "remove",
+      "width": 1104,
+      "scroll": "scrolled"
+    },
+    {
+      "viewportWidth": 375,
+      "documentWidth": 375,
+      "bodyWidth": 375,
+      "scrollX": 0,
+      "scrollY": 0,
+      "mainScrollTop": 0,
+      "boxes": {
+        "topbar": {
+          "x": 0,
+          "y": 0,
+          "right": 375,
+          "bottom": 64,
+          "width": 375,
+          "height": 64
+        },
+        "title": {
+          "x": 23,
+          "y": 262,
+          "right": 352,
+          "bottom": 292,
+          "width": 329,
+          "height": 30
+        },
+        "dropzone": {
+          "x": 8,
+          "y": 398,
+          "right": 367,
+          "bottom": 677,
+          "width": 359,
+          "height": 279
+        },
+        "directory_filters": null
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 2,
+      "route": "grayscale",
+      "width": 375,
+      "scroll": "top"
+    },
+    {
+      "viewportWidth": 375,
+      "documentWidth": 375,
+      "bodyWidth": 375,
+      "scrollX": 0,
+      "scrollY": 300,
+      "mainScrollTop": 0,
+      "boxes": {
+        "topbar": {
+          "x": 0,
+          "y": 0,
+          "right": 375,
+          "bottom": 64,
+          "width": 375,
+          "height": 64
+        },
+        "title": {
+          "x": 23,
+          "y": -38,
+          "right": 352,
+          "bottom": -8,
+          "width": 329,
+          "height": 30
+        },
+        "dropzone": {
+          "x": 8,
+          "y": 98,
+          "right": 367,
+          "bottom": 377,
+          "width": 359,
+          "height": 279
+        },
+        "directory_filters": null
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 2,
+      "route": "grayscale",
+      "width": 375,
+      "scroll": "scrolled"
+    },
+    {
+      "viewportWidth": 1104,
+      "documentWidth": 1104,
+      "bodyWidth": 1104,
+      "scrollX": 0,
+      "scrollY": 0,
+      "mainScrollTop": 0,
+      "boxes": {
+        "topbar": {
+          "x": 270,
+          "y": 0,
+          "right": 1104,
+          "bottom": 76,
+          "width": 834,
+          "height": 76
+        },
+        "title": {
+          "x": 335,
+          "y": 263,
+          "right": 916,
+          "bottom": 293,
+          "width": 581,
+          "height": 30
+        },
+        "dropzone": {
+          "x": 306,
+          "y": 388,
+          "right": 1068,
+          "bottom": 635,
+          "width": 762,
+          "height": 247
+        },
+        "directory_filters": null
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 2,
+      "route": "grayscale",
+      "width": 1104,
+      "scroll": "top"
+    },
+    {
+      "viewportWidth": 1104,
+      "documentWidth": 1104,
+      "bodyWidth": 1104,
+      "scrollX": 0,
+      "scrollY": 0,
+      "mainScrollTop": 300,
+      "boxes": {
+        "topbar": {
+          "x": 270,
+          "y": 0,
+          "right": 1104,
+          "bottom": 76,
+          "width": 834,
+          "height": 76
+        },
+        "title": {
+          "x": 335,
+          "y": -37,
+          "right": 916,
+          "bottom": -7,
+          "width": 581,
+          "height": 30
+        },
+        "dropzone": {
+          "x": 306,
+          "y": 88,
+          "right": 1068,
+          "bottom": 335,
+          "width": 762,
+          "height": 247
+        },
+        "directory_filters": null
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 2,
+      "route": "grayscale",
+      "width": 1104,
+      "scroll": "scrolled"
+    },
+    {
+      "viewportWidth": 375,
+      "documentWidth": 375,
+      "bodyWidth": 375,
+      "scrollX": 0,
+      "scrollY": 0,
+      "mainScrollTop": 0,
+      "boxes": {
+        "topbar": {
+          "x": 0,
+          "y": 0,
+          "right": 375,
+          "bottom": 64,
+          "width": 375,
+          "height": 64
+        },
+        "title": {
+          "x": 31,
+          "y": 148,
+          "right": 344,
+          "bottom": 181,
+          "width": 313,
+          "height": 33
+        },
+        "dropzone": null,
+        "directory_filters": {
+          "x": 31,
+          "y": 327,
+          "right": 344,
+          "bottom": 474,
+          "width": 313,
+          "height": 147
+        }
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 2,
+      "route": "tool_desk",
+      "width": 375,
+      "scroll": "top"
+    },
+    {
+      "viewportWidth": 375,
+      "documentWidth": 375,
+      "bodyWidth": 375,
+      "scrollX": 0,
+      "scrollY": 300,
+      "mainScrollTop": 0,
+      "boxes": {
+        "topbar": {
+          "x": 0,
+          "y": 0,
+          "right": 375,
+          "bottom": 64,
+          "width": 375,
+          "height": 64
+        },
+        "title": {
+          "x": 31,
+          "y": -152,
+          "right": 344,
+          "bottom": -119,
+          "width": 313,
+          "height": 33
+        },
+        "dropzone": null,
+        "directory_filters": {
+          "x": 31,
+          "y": 27,
+          "right": 344,
+          "bottom": 174,
+          "width": 313,
+          "height": 147
+        }
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 2,
+      "route": "tool_desk",
+      "width": 375,
+      "scroll": "scrolled"
+    },
+    {
+      "viewportWidth": 1104,
+      "documentWidth": 1104,
+      "bodyWidth": 1104,
+      "scrollX": 0,
+      "scrollY": 0,
+      "mainScrollTop": 0,
+      "boxes": {
+        "topbar": {
+          "x": 270,
+          "y": 0,
+          "right": 1104,
+          "bottom": 76,
+          "width": 834,
+          "height": 76
+        },
+        "title": {
+          "x": 367,
+          "y": 216,
+          "right": 1007,
+          "bottom": 262,
+          "width": 640,
+          "height": 46
+        },
+        "dropzone": null,
+        "directory_filters": {
+          "x": 367,
+          "y": 383,
+          "right": 1007,
+          "bottom": 434,
+          "width": 640,
+          "height": 51
+        }
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 2,
+      "route": "tool_desk",
+      "width": 1104,
+      "scroll": "top"
+    },
+    {
+      "viewportWidth": 1104,
+      "documentWidth": 1104,
+      "bodyWidth": 1104,
+      "scrollX": 0,
+      "scrollY": 0,
+      "mainScrollTop": 300,
+      "boxes": {
+        "topbar": {
+          "x": 270,
+          "y": 0,
+          "right": 1104,
+          "bottom": 76,
+          "width": 834,
+          "height": 76
+        },
+        "title": {
+          "x": 367,
+          "y": -84,
+          "right": 1007,
+          "bottom": -38,
+          "width": 640,
+          "height": 46
+        },
+        "dropzone": null,
+        "directory_filters": {
+          "x": 367,
+          "y": 83,
+          "right": 1007,
+          "bottom": 134,
+          "width": 640,
+          "height": 51
+        }
+      },
+      "headerCoversTitle": false,
+      "filterOverflow": false,
+      "filterLabels": [],
+      "run": 2,
+      "route": "tool_desk",
+      "width": 1104,
+      "scroll": "scrolled"
+    }
+  ],
+  "page_errors": []
+}

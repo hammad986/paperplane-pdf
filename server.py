@@ -104,6 +104,8 @@ COMPRESS_TIMEOUT_SECONDS = 60.0    # multi-pass downsampling & stream compressio
 OCR_TIMEOUT_SECONDS = 90.0         # page-by-page C++ Tesseract OCR execution
 GRAYSCALE_TIMEOUT_SECONDS = 45.0   # 150-DPI monochrome rasterization per page
 MERGE_TIMEOUT_SECONDS = 120.0       # bounded multi-file page copy; proxy allows 900s
+AI_SUMMARY_REQUEST_TIMEOUT_SECONDS = 110.0  # two bounded 50s provider attempts plus local PDF work
+AI_TRANSLATION_REQUEST_TIMEOUT_SECONDS = 300.0  # bounded batches for documents up to the current text-block cap
 
 _CONVERTER_POOL = ThreadPoolExecutor(
     max_workers=min(32, max(4, (os.cpu_count() or 4) * 2)),
@@ -466,7 +468,7 @@ SEO_CATALOG = {
         "intro": "Combine contracts, scans, invoices, or reports into one PDF while keeping page order visible before you export.",
         "how_to": ("Upload PDFs in the desired order", "Rearrange thumbnails before processing", "Download the merged document"),
         "faqs": (
-            ("Can I merge PDF files without uploading them?", "Yes. Supported browser workflows can run in Zero-Upload Client Privacy Mode with local PDF processing. Server mode remains available for larger or unsupported files."),
+            ("Can I merge PDF files without uploading them?", "Yes. Choose Local Processing to merge supported files in your browser. Larger or unsupported files can use temporary server processing and are automatically purged within 24 hours."),
             ("Does merging change page quality?", "Merging copies the source page objects into one document. It does not rasterize pages, so selectable text, vector artwork, and embedded images retain their source quality."),
             ("How many PDFs can I combine at once?", "The web workflow accepts batch uploads within the configured file and request limits. The thumbnail organizer shows the final sequence before the merge job starts."),
         ),
@@ -520,7 +522,7 @@ SEO_CATALOG = {
         "faqs": (
             ("Can I reorder PDF pages on a phone?", "Yes. The responsive organizer supports touch-friendly move controls for devices where HTML5 drag-and-drop is unavailable."),
             ("Can the organizer rotate and delete pages too?", "Yes. Page cards expose quick rotate, duplicate, delete, and move actions, with batch controls for selected pages."),
-            ("Are thumbnails generated locally?", "The browser renders page previews with the local PDF.js engine when available. Server operations still return a verified PDF result."),
+            ("Are thumbnails generated locally?", "Page previews are rendered in your browser. Server-powered operations still return a verified PDF result."),
         ),
         "related": ("merge", "remove", "rotate", "page_numbers"),
     },
@@ -546,7 +548,7 @@ SEO_CATALOG = {
         "faqs": (
             ("How much can PDF compression reduce a file?", "The reduction depends on image resolution, embedded fonts, duplicate objects, and stream structure. Text-heavy PDFs often shrink less than scan-heavy PDFs with large images."),
             ("Does compression make a PDF blurry?", "Lossless mode avoids image quality changes. Quality-based profiles may downsample or recompress images, so choose the balanced profile when readability matters."),
-            ("Can I compress a PDF locally?", "Supported browser operations can use Zero-Upload Client Privacy Mode. The standalone Tauri client is designed to run compression entirely on the device."),
+            ("Where is my PDF processed?", "Compression runs in Paperplane's temporary processing workspace. The source file and result are automatically purged within 24 hours."),
         ),
         "related": ("pdf_to_jpg", "repair", "ocr", "merge"),
     },
@@ -591,7 +593,7 @@ SEO_CATALOG = {
     },
     "word_to_pdf": {
         "title": "Word to PDF Converter — Convert DOCX to PDF | Paperplane",
-        "description": "Convert DOCX and Word documents to PDF with layout-aware rendering, local processing options, and a verified download.",
+        "description": "Convert DOCX and Word documents to PDF with layout-aware rendering and a verified download.",
         "heading": "Convert Word documents to PDF",
         "intro": "Turn editable DOCX files into shareable PDFs while preserving headings, tables, images, and page layout as faithfully as the installed converter allows.",
         "how_to": ("Choose a DOC or DOCX file", "Review conversion and page settings", "Download the rendered PDF"),
@@ -838,7 +840,7 @@ SEO_CATALOG = {
     },
     "sign": {
         "title": "Sign PDF Online — Add Visual or Digital Signatures | Paperplane",
-        "description": "Sign PDF files with a visual signature stamp or supported PKCS#7 digital signature workflow while keeping the document local when possible.",
+        "description": "Sign PDF files with a visual signature stamp or supported PKCS#7 digital signature workflow.",
         "heading": "Sign a PDF for approval or integrity",
         "intro": "Place a visible signature or apply a cryptographic document seal when a PDF needs an approval mark and verifiable integrity.",
         "how_to": ("Upload the document to Sign PDF", "Choose visual stamp or digital signing", "Verify the signature and download"),
@@ -897,7 +899,7 @@ SEO_CATALOG = {
         "faqs": (
             ("Does AI PDF Chat work without an external AI provider?", "The application can expose a local fallback for supported retrieval workflows, but model-generated answers require the configured provider and policy. The UI reports unavailable capabilities honestly."),
             ("Are answers guaranteed to be correct?", "No. Treat generated answers as an assistive summary and inspect the cited source pages before making a legal, financial, or operational decision."),
-            ("Can I use AI PDF Chat for confidential files?", "Review the deployment's provider and retention policy first. Use Zero-Upload or the offline client when the document must never leave the device."),
+            ("Can I use AI PDF Chat for confidential files?", "AI Chat sends document text to the AI service configured for this workspace. Review the provider and retention policy before uploading confidential files."),
         ),
         "related": ("pdf_to_text", "summarize", "ai_extract", "translate"),
     },
@@ -919,7 +921,7 @@ SEO_CATALOG = {
         "description": "Summarize a PDF into key points and an executive brief with page-grounded retrieval when the configured AI service is enabled.",
         "heading": "Summarize a PDF into its key points",
         "intro": "Get a fast orientation to a long report while keeping the original document available for checking important details.",
-        "how_to": ("Upload the source PDF", "Choose summary length or audience", "Review the brief with source references"),
+        "how_to": ("Upload the source PDF", "Generate the executive summary", "Review the brief with source references"),
         "faqs": (
             ("Can a summary replace reading the original PDF?", "No. A summary is a navigation aid, not a substitute for reviewing source language, exceptions, tables, and obligations that affect a decision."),
             ("Does summarization include page references?", "When retrieval and citation support are available, the generated brief can include source page references for targeted verification."),
@@ -932,7 +934,7 @@ SEO_CATALOG = {
         "description": "Translate PDF text into another language with layout-aware assistance when the configured translation engine is available.",
         "heading": "Translate PDF content for multilingual review",
         "intro": "Create a translated working copy while keeping the original document available for legal and editorial comparison.",
-        "how_to": ("Upload a text-based or OCR PDF", "Choose source and target languages", "Review and download the translated copy"),
+        "how_to": ("Upload a text-based or OCR PDF", "Choose the target language", "Review and download the translated copy"),
         "faqs": (
             ("Does translation preserve the exact PDF layout?", "Layout preservation depends on text length, fonts, columns, and the translation engine. Longer translated phrases may reflow or require manual review."),
             ("Is the translated PDF legally certified?", "No. Machine translation is not a certified legal translation. Use a qualified translator for contracts, filings, or regulated communications."),
@@ -955,14 +957,14 @@ SEO_CATALOG = {
     },
     "mask_aadhaar": {
         "title": "Mask Aadhaar Card Online Free — UIDAI Compliant First 8 Digits Redaction | Paperplane",
-        "description": "Mask the first 8 digits of your Aadhaar card PDF or image online (XXXX-XXXX-1234). 100% private, ephemeral in-memory processing.",
+        "description": "Create a PDF or image copy with the first 8 digits of an Aadhaar number masked. Review the exported file before sharing.",
         "heading": "Mask Aadhaar Card PDF & Image Online",
-        "intro": "UIDAI mandates masking the first 8 digits of Aadhaar before sharing with private entities or employers. Paperplane permanently black-boxes or redacts the first 8 digits in memory.",
+        "intro": "Create a shareable copy with the first 8 digits masked, then review the exported file carefully before sharing it.",
         "how_to": ("Upload Aadhaar PDF or scan image", "Click Mask Aadhaar Now", "Download your UIDAI-compliant masked PDF"),
         "faqs": (
-            ("Is it safe to mask Aadhaar online with Paperplane?", "Yes. Paperplane operates with zero data persistence. Files are processed in ephemeral memory sandboxes and permanently deleted within seconds."),
+            ("How should I check a masked Aadhaar copy?", "Open the exported file and verify the first eight digits are fully obscured on every page before sharing. Server-powered jobs use temporary processing and are automatically purged within 24 hours."),
             ("Does it work on password-protected e-Aadhaar PDFs?", "Use our Unlock PDF tool first to remove the master password, then mask the first 8 digits."),
-            ("Are the first 8 digits permanently unrecoverable?", "Yes. PyMuPDF true redaction destroys the underlying vector characters and pixels permanently."),
+            ("Are the first 8 digits permanently unrecoverable?", "Yes. True redaction removes the covered text and image content from the output PDF."),
         ),
         "related": ("redact", "protect", "unlock", "compress"),
     },
@@ -1047,11 +1049,11 @@ SEO_LANDING_PAGES = {
         "related": ("merge", "split", "compress", "edit"),
     },
     "privacy": {
-        "title": "Privacy Policy & Zero-Persistence Architecture | Paperplane",
-        "description": "Read the Paperplane PDF privacy policy. Learn about our in-memory processing sandbox, immediate auto-purge, and client-side privacy mode.",
+        "title": "Privacy Policy & Data Handling | Paperplane",
+        "description": "Read the Paperplane PDF privacy policy and learn which supported tools run in your browser and how temporary server processing works.",
         "heading": "Paperplane Privacy Policy & Data Protection",
         "category": "Compliance",
-        "intro": "Your files are your property. Paperplane operates with zero permanent document storage: uploaded files are processed in ephemeral memory sandboxes and purged immediately upon download.",
+        "intro": "Some supported PDF operations can run in your browser. Server-powered jobs use temporary processing and are automatically purged within 24 hours; review the policy for account and service data details.",
         "related": ("protect", "unlock", "redact", "mask_aadhaar"),
     },
     "terms": {
@@ -1153,7 +1155,7 @@ def seo_page_context(operation: str | None, landing_slug: str | None = None) -> 
                 "Download the verified result",
             ),
             "faqs": (
-                ("Is Paperplane free to use?", "Paperplane includes free workflows for everyday PDF tasks, with browser-local processing available for supported operations."),
+                ("Is Paperplane free to use?", "Paperplane includes free workflows for everyday PDF tasks. Browser-local processing is available for Merge, Split / extract, Remove pages, and Rotate PDF."),
                 ("Are files stored permanently?", "No. Server-mode job files use isolated storage and an automatic lifecycle cleanup policy."),
                 ("Can I use these tools on mobile?", "Yes. The web workspace adapts to Android and iOS browsers with touch-friendly controls."),
             ),
@@ -1165,13 +1167,13 @@ def seo_page_context(operation: str | None, landing_slug: str | None = None) -> 
             "description": "Merge, split, compress, convert, edit, sign, protect, and organize PDF files with Paperplane's privacy-first online tools.",
             "heading": "Every tool you need to work with PDFs in one place",
             "category": "PDF tools",
-            "intro": "A responsive PDF workspace for fast document jobs, with browser-based zero-upload privacy mode and isolated server processing when you need more power.",
+            "intro": "A responsive PDF workspace with 41 focused tools, clear upload steps, and temporary processing for server-powered tasks.",
             "operation": None,
             "slug": "",
             "related": ("merge", "compress", "pdf_to_word", "sign"),
             "how_to": ("Choose a PDF tool", "Add the source document", "Download the verified output"),
             "faqs": (
-                ("Can Paperplane process files without uploading them?", "Supported browser workflows can run in Zero-Upload Client Privacy Mode."),
+                ("Where are files processed?", "Merge, Split / extract, Remove pages, and Rotate PDF can run in your browser when Local Processing is selected. Other tasks use temporary server processing and are automatically purged within 24 hours."),
                 ("What PDF operations are available?", "The catalog covers organizing, compression, conversion, editing, security, and document intelligence workflows."),
                 ("Does Paperplane work on phones?", "Yes. The public web workspace is responsive and uses touch-sized controls on mobile browsers."),
             ),
@@ -1219,23 +1221,7 @@ def render_seo_content(context: dict) -> str:
         <p class="seo-lede">{html_escape(context['intro'])}</p>
 
         <div class="seo-howto-grid">
-          {''.join(f'<article class="seo-howto-step"><span>{index:02d}</span><h3>{html_escape(step)}</h3><p>{html_escape(step)}</p></article>' for index, step in enumerate(context['how_to'], 1))}
-        </div>
-
-        <div class="seo-proof-grid">
-          <article class="seo-proof-card"><h3>Zero-Upload Client Privacy Mode</h3><p>For {html_escape(context['heading'].lower())}, supported browser workflows can run locally with pdf-lib and WebAssembly so the source file never touches a server.</p></article>
-          <article class="seo-proof-card"><h3>Built for practical PDF work</h3><p>The {html_escape(context['heading'].lower())} workflow keeps the relevant controls close to the upload queue so you can finish one document job without a heavyweight suite.</p></article>
-          <article class="seo-proof-card"><h3>Transparent safety controls</h3><p>Before you download {html_escape(context['heading'].lower())} results, Paperplane validates the output and applies isolated storage, path containment, and lifecycle cleanup.</p></article>
-        </div>
-
-        <div class="seo-comparison" role="region" aria-label="PDF tool comparison">
-          <h3>Why use Paperplane for {html_escape(context['heading'].lower())}?</h3>
-          <div class="seo-comparison-table" role="table">
-            <div class="seo-comparison-row seo-comparison-head" role="row"><span>Capability</span><span>Paperplane</span><span>Traditional desktop suites</span></div>
-            <div class="seo-comparison-row" role="row"><span>Browser zero-upload processing</span><strong>Supported</strong><span>Usually unavailable</span></div>
-            <div class="seo-comparison-row" role="row"><span>Dedicated {html_escape(context['category'])} URL</span><strong>One focused page</strong><span>One application shell</span></div>
-            <div class="seo-comparison-row" role="row"><span>Installation required</span><strong>No for web workflows</strong><span>Often required</span></div>
-          </div>
+          {''.join(f'<article class="seo-howto-step"><span>{index:02d}</span><h3>{html_escape(step)}</h3></article>' for index, step in enumerate(context['how_to'], 1))}
         </div>
 
         <div class="seo-faq"><h3>Frequently asked questions</h3>{faq_html}</div>
@@ -1367,7 +1353,7 @@ def render_web_page(request: Request, operation: str | None = None, landing_slug
         html = html.replace('<span id="crumb-category">Organize PDF</span>', f'<span id="crumb-category">{html_escape(info["category"])}</span>', 1)
         html = html.replace('<b id="crumb-tool">Directory</b>', f'<b id="crumb-tool">{html_escape(info["label"])}</b>', 1)
         html = html.replace('<b id="crumb-tool">Merge PDF</b>', f'<b id="crumb-tool">{html_escape(info["label"])}</b>', 1)
-    elif landing_slug == "tool-desk":
+    elif landing_slug in ("tool-desk", None):
         html = html.replace(
             '<div id="view-home" class="home-container">',
             '<div id="view-home" class="home-container" hidden>',
@@ -3539,6 +3525,9 @@ async def ai_chat(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         if file is None:
+            greeting = ai_engine._simple_greeting_reply(question)
+            if greeting:
+                return {"answer": greeting, "citations": [], "retrieval_method": None, "fallback_used": False}
             private_reply = ai_engine._private_information_request_reply(question)
             if private_reply:
                 return {"answer": private_reply, "citations": [], "retrieval_method": None, "fallback_used": False}
@@ -3585,6 +3574,11 @@ async def ai_chat_stream(
     async def events():
         try:
             yield frame("stage", stage="Thinking…")
+            greeting = ai_engine._simple_greeting_reply(question)
+            if greeting:
+                yield frame("replace", text=greeting)
+                yield frame("done", citations=[], mode="direct_conversation")
+                return
             private_reply = ai_engine._private_information_request_reply(question)
             if private_reply:
                 yield frame("replace", text=private_reply)
@@ -3602,7 +3596,8 @@ async def ai_chat_stream(
             citations: list[int] = []
             system_prompt = ai_engine._PAPERPLANE_SYSTEM_PROMPT
             user_prompt = question
-            if file is not None:
+            document_question = ai_engine._is_document_question(question)
+            if file is not None and document_question:
                 temp_pdf = temp_dir / "chat_stream.pdf"
                 await save_upload_spooled_async(file, temp_pdf, max_bytes=upload_limit_bytes_for_user(user_id))
                 yield frame("stage", stage="Extracting…")
@@ -3636,6 +3631,10 @@ async def ai_chat_stream(
                 system_prompt += " Answer accurately using only the provided document excerpts and cite factual claims as [Page X]."
                 user_prompt = f"DOCUMENT EXCERPTS:\n{context}\n\nUSER QUESTION: {question}"
             else:
+                if file is None and document_question:
+                    yield frame("replace", text="No PDF is open. Upload a document for a cited answer, or ask a general question directly.")
+                    yield frame("done", citations=[])
+                    return
                 yield frame("stage", stage="Analysing…")
                 correction = await asyncio.to_thread(ai_engine.correct_false_premise, None, question)
                 if correction:
@@ -3646,7 +3645,9 @@ async def ai_chat_stream(
             # With the external provider deliberately disabled, PDF chat still
             # returns a clearly labelled local extractive answer. It never
             # represents that answer as model-generated.
-            if file is not None and ai_engine.AI_KILL_SWITCH:
+            if file is not None and document_question and (
+                ai_engine.AI_KILL_SWITCH or not ai_engine._current_bluesminds_api_key()
+            ):
                 local_answer = ai_engine._offline_rag_fallback(system_prompt, user_prompt)
                 local_answer, local_citations = ai_engine.align_answer_citations(local_answer, citations)
                 yield frame("stage", stage="Generating…")
@@ -3724,12 +3725,34 @@ async def ai_summarize(
     user_id: str | None = Depends(current_user)
 ):
     temp_dir = Path(tempfile.mkdtemp())
+    summary_task: asyncio.Task | None = None
+    defer_temp_cleanup = False
     try:
         temp_pdf = temp_dir / "summary_doc.pdf"
         await save_upload_spooled_async(file, temp_pdf, max_bytes=upload_limit_bytes_for_user(user_id))
-        summary = await asyncio.to_thread(ai_engine.summarize_pdf, temp_pdf)
-        eligible_pages = sorted({chunk.page_number for chunk in await asyncio.to_thread(ai_engine.extract_chunks_from_pdf, temp_pdf) if chunk.text.strip()})
-        summary, citations = ai_engine.align_answer_citations(summary, eligible_pages)
+
+        def build_summary() -> tuple[str, list[int]]:
+            summary_text = ai_engine.summarize_pdf(temp_pdf)
+            eligible_pages = sorted({chunk.page_number for chunk in ai_engine.extract_chunks_from_pdf(temp_pdf) if chunk.text.strip()})
+            return ai_engine.align_answer_citations(summary_text, eligible_pages)
+
+        summary_task = asyncio.create_task(asyncio.to_thread(build_summary))
+        try:
+            summary, citations = await asyncio.wait_for(
+                asyncio.shield(summary_task),
+                timeout=AI_SUMMARY_REQUEST_TIMEOUT_SECONDS,
+            )
+        except asyncio.TimeoutError as exc:
+            defer_temp_cleanup = True
+            summary_task.add_done_callback(lambda _task: shutil.rmtree(temp_dir, ignore_errors=True))
+            raise HTTPException(
+                status_code=504,
+                detail="Executive Brief timed out. Please retry with a shorter PDF.",
+            ) from exc
+        except asyncio.CancelledError:
+            defer_temp_cleanup = True
+            summary_task.add_done_callback(lambda _task: shutil.rmtree(temp_dir, ignore_errors=True))
+            raise
         return {"status": "success", "summary": summary, "citations": citations}
     except ValueError as ve:
         raise HTTPException(status_code=503, detail=str(ve))
@@ -3741,7 +3764,8 @@ async def ai_summarize(
         logging.getLogger("paperplane").error("AI summarize failed: %s", err)
         raise HTTPException(status_code=502, detail="AI request failed, please try again")
     finally:
-        shutil.rmtree(temp_dir, ignore_errors=True)
+        if not defer_temp_cleanup:
+            shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 @app.post("/api/ai/extract")
@@ -3788,18 +3812,30 @@ async def ai_translate_endpoint(
     if not translation_ai_available():
         raise HTTPException(503, "AI translation is unavailable because the Paperplane AI translation service is not configured or enabled.")
     temp_dir = Path(tempfile.mkdtemp())
+    translation_task: asyncio.Task | None = None
+    defer_temp_cleanup = False
     try:
         temp_pdf = temp_dir / "translate_input.pdf"
         save_pdf_upload(file, temp_pdf, user_id=user_id)
         out_pdf = temp_dir / f"translated_{target_language}.pdf"
         translation_report: dict = {}
-        await asyncio.to_thread(
+        translation_task = asyncio.create_task(asyncio.to_thread(
             ai_engine.translate_pdf_layout,
             temp_pdf,
             out_pdf,
             target_lang=target_language,
             report=translation_report,
-        )
+        ))
+        try:
+            await asyncio.wait_for(asyncio.shield(translation_task), timeout=AI_TRANSLATION_REQUEST_TIMEOUT_SECONDS)
+        except asyncio.TimeoutError as exc:
+            defer_temp_cleanup = True
+            translation_task.add_done_callback(lambda _task: shutil.rmtree(temp_dir, ignore_errors=True))
+            raise HTTPException(status_code=504, detail="Translation timed out. Please retry with a shorter PDF.") from exc
+        except asyncio.CancelledError:
+            defer_temp_cleanup = True
+            translation_task.add_done_callback(lambda _task: shutil.rmtree(temp_dir, ignore_errors=True))
+            raise
         content = out_pdf.read_bytes()
         return StreamingResponse(
             io.BytesIO(content),
@@ -3810,8 +3846,19 @@ async def ai_translate_endpoint(
                 "X-Paperplane-Translation-Warnings": str(len(translation_report.get("warnings", []))),
             }
         )
+    except HTTPException:
+        raise
+    except ValueError as exc:
+        raise HTTPException(status_code=503, detail="AI translation is not configured for this workspace.") from exc
+    except RuntimeError as exc:
+        logging.getLogger("paperplane").warning("AI translation failed: %s", exc)
+        raise HTTPException(status_code=502, detail="Translation could not be completed. Please retry with a shorter PDF or try again later.") from exc
+    except Exception as exc:
+        logging.getLogger("paperplane").error("AI translation failed unexpectedly: %s", exc)
+        raise HTTPException(status_code=502, detail="Translation could not be completed. Please try again later.") from exc
     finally:
-        shutil.rmtree(temp_dir, ignore_errors=True)
+        if not defer_temp_cleanup:
+            shutil.rmtree(temp_dir, ignore_errors=True)
 
 
 @app.get("/api/ai/capabilities", tags=["AI Intelligence"])
@@ -3834,7 +3881,7 @@ def ai_capabilities():
 def general_ai_test_connection():
     """
     Public connection test endpoint for UI and workspace callers.
-    Safely probes upstream Bluesminds status without leaking secrets.
+    Safely checks the configured AI service without leaking secrets.
     """
     result = ai_engine.test_bluesminds_connectivity()
     status = result.get("status")
@@ -6129,7 +6176,7 @@ async def api_v1_ai_chat(
 @app.post("/api/v1/ai/test-connection", tags=["Developer AI"])
 def test_ai_connection(user_id: str = Depends(require_developer_key)):
     """
-    Explicit authenticated connectivity test for Bluesminds openai/gpt-oss-20b.
+    Explicit authenticated connectivity test for the configured AI service.
     Returns status and diagnostic details without exposing API secrets.
     """
     result = ai_engine.test_bluesminds_connectivity()
@@ -6252,7 +6299,11 @@ def sitemap_xml(request: Request):
 LEGACY_SLUG_REDIRECTS = {
     "fill-form": "fill-pdf-form",
     "ai-translate": "translate-pdf",
+    "ai-summarize": "summarize-pdf",
     "remove-pages": "remove-pages-pdf",
+    "exam-photo-signature-resizer": "ssc-photo-resizer",
+    "mask-aadhaar": "mask-aadhaar-card-online",
+    "flatten-pdf-forms": "flatten-pdf",
     "page-numbers": "add-page-numbers-to-pdf",
     "smart-metadata": "extract-pdf-data",
     "extract-metadata": "extract-pdf-data",

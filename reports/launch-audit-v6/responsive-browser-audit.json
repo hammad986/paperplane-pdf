@@ -1,0 +1,6818 @@
+{
+  "base": "http://127.0.0.1:8501",
+  "fixture_pages": 69,
+  "ai": {
+    "dark": {
+      "empty-360": {
+        "viewport": {
+          "width": 360,
+          "height": 812
+        },
+        "documentWidth": 360,
+        "bodyWidth": 360,
+        "theme": "dark",
+        "boxes": {
+          "wrapper": {
+            "x": 12,
+            "y": 74,
+            "width": 336,
+            "height": 1166,
+            "right": 348,
+            "bottom": 1240,
+            "visible": true
+          },
+          "topbar": {
+            "x": 12,
+            "y": 176,
+            "width": 336,
+            "height": 52,
+            "right": 348,
+            "bottom": 228,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 12,
+            "y": 176,
+            "width": 336,
+            "height": 52,
+            "right": 348,
+            "bottom": 228,
+            "visible": true
+          },
+          "grid": {
+            "x": 12,
+            "y": 240,
+            "width": 336,
+            "height": 980,
+            "right": 348,
+            "bottom": 1220,
+            "visible": true
+          },
+          "chat": {
+            "x": 12,
+            "y": 240,
+            "width": 336,
+            "height": 402,
+            "right": 348,
+            "bottom": 642,
+            "visible": true
+          },
+          "form": {
+            "x": 13,
+            "y": 576,
+            "width": 334,
+            "height": 65,
+            "right": 347,
+            "bottom": 641,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 746,
+            "width": 360,
+            "height": 66,
+            "right": 360,
+            "bottom": 812,
+            "visible": true
+          },
+          "doc": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "metadata": {
+            "x": 29,
+            "y": 819,
+            "width": 302,
+            "height": 48,
+            "right": 331,
+            "bottom": 867,
+            "visible": true
+          },
+          "summary": {
+            "x": 29,
+            "y": 1045,
+            "width": 302,
+            "height": 140,
+            "right": 331,
+            "bottom": 1185,
+            "visible": true
+          },
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 360,
+            "height": 64,
+            "right": 360,
+            "bottom": 64,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 259,
+            "y": 673,
+            "width": 72,
+            "height": 19,
+            "right": 331,
+            "bottom": 692,
+            "visible": true
+          }
+        },
+        "gridColumns": "336px",
+        "uploadHidden": false,
+        "uploadVisible": false,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      },
+      "empty-375": {
+        "viewport": {
+          "width": 375,
+          "height": 812
+        },
+        "documentWidth": 375,
+        "bodyWidth": 375,
+        "theme": "dark",
+        "boxes": {
+          "wrapper": {
+            "x": 12,
+            "y": 74,
+            "width": 351,
+            "height": 1166,
+            "right": 363,
+            "bottom": 1240,
+            "visible": true
+          },
+          "topbar": {
+            "x": 12,
+            "y": 176,
+            "width": 351,
+            "height": 52,
+            "right": 363,
+            "bottom": 228,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 12,
+            "y": 176,
+            "width": 351,
+            "height": 52,
+            "right": 363,
+            "bottom": 228,
+            "visible": true
+          },
+          "grid": {
+            "x": 12,
+            "y": 240,
+            "width": 351,
+            "height": 980,
+            "right": 363,
+            "bottom": 1220,
+            "visible": true
+          },
+          "chat": {
+            "x": 12,
+            "y": 240,
+            "width": 351,
+            "height": 402,
+            "right": 363,
+            "bottom": 642,
+            "visible": true
+          },
+          "form": {
+            "x": 13,
+            "y": 576,
+            "width": 349,
+            "height": 65,
+            "right": 362,
+            "bottom": 641,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 746,
+            "width": 375,
+            "height": 66,
+            "right": 375,
+            "bottom": 812,
+            "visible": true
+          },
+          "doc": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "metadata": {
+            "x": 29,
+            "y": 819,
+            "width": 317,
+            "height": 48,
+            "right": 346,
+            "bottom": 867,
+            "visible": true
+          },
+          "summary": {
+            "x": 29,
+            "y": 1045,
+            "width": 317,
+            "height": 140,
+            "right": 346,
+            "bottom": 1185,
+            "visible": true
+          },
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 375,
+            "height": 64,
+            "right": 375,
+            "bottom": 64,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 268,
+            "y": 673,
+            "width": 78,
+            "height": 19,
+            "right": 346,
+            "bottom": 692,
+            "visible": true
+          }
+        },
+        "gridColumns": "351px",
+        "uploadHidden": false,
+        "uploadVisible": false,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      },
+      "empty-414": {
+        "viewport": {
+          "width": 414,
+          "height": 812
+        },
+        "documentWidth": 414,
+        "bodyWidth": 414,
+        "theme": "dark",
+        "boxes": {
+          "wrapper": {
+            "x": 12,
+            "y": 74,
+            "width": 390,
+            "height": 1166,
+            "right": 402,
+            "bottom": 1240,
+            "visible": true
+          },
+          "topbar": {
+            "x": 12,
+            "y": 176,
+            "width": 390,
+            "height": 52,
+            "right": 402,
+            "bottom": 228,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 12,
+            "y": 176,
+            "width": 390,
+            "height": 52,
+            "right": 402,
+            "bottom": 228,
+            "visible": true
+          },
+          "grid": {
+            "x": 12,
+            "y": 240,
+            "width": 390,
+            "height": 980,
+            "right": 402,
+            "bottom": 1220,
+            "visible": true
+          },
+          "chat": {
+            "x": 12,
+            "y": 240,
+            "width": 390,
+            "height": 402,
+            "right": 402,
+            "bottom": 642,
+            "visible": true
+          },
+          "form": {
+            "x": 13,
+            "y": 576,
+            "width": 388,
+            "height": 65,
+            "right": 401,
+            "bottom": 641,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 746,
+            "width": 414,
+            "height": 66,
+            "right": 414,
+            "bottom": 812,
+            "visible": true
+          },
+          "doc": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "metadata": {
+            "x": 29,
+            "y": 819,
+            "width": 356,
+            "height": 48,
+            "right": 385,
+            "bottom": 867,
+            "visible": true
+          },
+          "summary": {
+            "x": 29,
+            "y": 1045,
+            "width": 356,
+            "height": 140,
+            "right": 385,
+            "bottom": 1185,
+            "visible": true
+          },
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 414,
+            "height": 64,
+            "right": 414,
+            "bottom": 64,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 307,
+            "y": 673,
+            "width": 78,
+            "height": 19,
+            "right": 385,
+            "bottom": 692,
+            "visible": true
+          }
+        },
+        "gridColumns": "390px",
+        "uploadHidden": false,
+        "uploadVisible": false,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      },
+      "empty-768": {
+        "viewport": {
+          "width": 768,
+          "height": 860
+        },
+        "documentWidth": 768,
+        "bodyWidth": 768,
+        "theme": "dark",
+        "boxes": {
+          "wrapper": {
+            "x": 12,
+            "y": 74,
+            "width": 744,
+            "height": 1167,
+            "right": 756,
+            "bottom": 1241,
+            "visible": true
+          },
+          "topbar": {
+            "x": 12,
+            "y": 164,
+            "width": 744,
+            "height": 52,
+            "right": 756,
+            "bottom": 216,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 12,
+            "y": 164,
+            "width": 744,
+            "height": 52,
+            "right": 756,
+            "bottom": 216,
+            "visible": true
+          },
+          "grid": {
+            "x": 12,
+            "y": 228,
+            "width": 744,
+            "height": 993,
+            "right": 756,
+            "bottom": 1221,
+            "visible": true
+          },
+          "chat": {
+            "x": 12,
+            "y": 228,
+            "width": 744,
+            "height": 450,
+            "right": 756,
+            "bottom": 678,
+            "visible": true
+          },
+          "form": {
+            "x": 13,
+            "y": 612,
+            "width": 742,
+            "height": 65,
+            "right": 755,
+            "bottom": 677,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 794,
+            "width": 768,
+            "height": 66,
+            "right": 768,
+            "bottom": 860,
+            "visible": true
+          },
+          "doc": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "metadata": {
+            "x": 29,
+            "y": 837,
+            "width": 710,
+            "height": 48,
+            "right": 739,
+            "bottom": 885,
+            "visible": true
+          },
+          "summary": {
+            "x": 29,
+            "y": 1046,
+            "width": 710,
+            "height": 140,
+            "right": 739,
+            "bottom": 1186,
+            "visible": true
+          },
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 768,
+            "height": 64,
+            "right": 768,
+            "bottom": 64,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 661,
+            "y": 709,
+            "width": 78,
+            "height": 19,
+            "right": 739,
+            "bottom": 728,
+            "visible": true
+          }
+        },
+        "gridColumns": "744px",
+        "uploadHidden": false,
+        "uploadVisible": false,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      },
+      "empty-1104": {
+        "viewport": {
+          "width": 1104,
+          "height": 860
+        },
+        "documentWidth": 1104,
+        "bodyWidth": 1104,
+        "theme": "dark",
+        "boxes": {
+          "wrapper": {
+            "x": 284,
+            "y": 112,
+            "width": 806,
+            "height": 736,
+            "right": 1090,
+            "bottom": 848,
+            "visible": true
+          },
+          "topbar": {
+            "x": 284,
+            "y": 188,
+            "width": 806,
+            "height": 27,
+            "right": 1090,
+            "bottom": 215,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 284,
+            "y": 188,
+            "width": 806,
+            "height": 27,
+            "right": 1090,
+            "bottom": 215,
+            "visible": true
+          },
+          "grid": {
+            "x": 284,
+            "y": 225,
+            "width": 806,
+            "height": 611,
+            "right": 1090,
+            "bottom": 836,
+            "visible": true
+          },
+          "chat": {
+            "x": 284,
+            "y": 225,
+            "width": 514,
+            "height": 611,
+            "right": 798,
+            "bottom": 836,
+            "visible": true
+          },
+          "form": {
+            "x": 285,
+            "y": 763,
+            "width": 512,
+            "height": 72,
+            "right": 797,
+            "bottom": 835,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "doc": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "metadata": {
+            "x": 829,
+            "y": 412,
+            "width": 242,
+            "height": 66,
+            "right": 1071,
+            "bottom": 478,
+            "visible": true
+          },
+          "summary": {
+            "x": 829,
+            "y": 698,
+            "width": 242,
+            "height": 119,
+            "right": 1071,
+            "bottom": 817,
+            "visible": true
+          },
+          "header": {
+            "x": 270,
+            "y": 0,
+            "width": 834,
+            "height": 104,
+            "right": 1104,
+            "bottom": 104,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 993,
+            "y": 253,
+            "width": 78,
+            "height": 19,
+            "right": 1071,
+            "bottom": 272,
+            "visible": true
+          }
+        },
+        "gridColumns": "514px 280px",
+        "uploadHidden": false,
+        "uploadVisible": true,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      },
+      "empty-1280": {
+        "viewport": {
+          "width": 1280,
+          "height": 860
+        },
+        "documentWidth": 1280,
+        "bodyWidth": 1280,
+        "theme": "dark",
+        "boxes": {
+          "wrapper": {
+            "x": 284,
+            "y": 101,
+            "width": 982,
+            "height": 747,
+            "right": 1266,
+            "bottom": 848,
+            "visible": true
+          },
+          "topbar": {
+            "x": 284,
+            "y": 177,
+            "width": 982,
+            "height": 27,
+            "right": 1266,
+            "bottom": 204,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 284,
+            "y": 177,
+            "width": 982,
+            "height": 27,
+            "right": 1266,
+            "bottom": 204,
+            "visible": true
+          },
+          "grid": {
+            "x": 284,
+            "y": 214,
+            "width": 982,
+            "height": 622,
+            "right": 1266,
+            "bottom": 836,
+            "visible": true
+          },
+          "chat": {
+            "x": 284,
+            "y": 214,
+            "width": 662,
+            "height": 622,
+            "right": 946,
+            "bottom": 836,
+            "visible": true
+          },
+          "form": {
+            "x": 285,
+            "y": 763,
+            "width": 660,
+            "height": 72,
+            "right": 945,
+            "bottom": 835,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "doc": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "metadata": {
+            "x": 981,
+            "y": 401,
+            "width": 266,
+            "height": 47,
+            "right": 1247,
+            "bottom": 448,
+            "visible": true
+          },
+          "summary": {
+            "x": 981,
+            "y": 675,
+            "width": 266,
+            "height": 142,
+            "right": 1247,
+            "bottom": 817,
+            "visible": true
+          },
+          "header": {
+            "x": 270,
+            "y": 0,
+            "width": 1010,
+            "height": 93,
+            "right": 1280,
+            "bottom": 93,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 1169,
+            "y": 242,
+            "width": 78,
+            "height": 19,
+            "right": 1247,
+            "bottom": 261,
+            "visible": true
+          }
+        },
+        "gridColumns": "661.594px 304.406px",
+        "uploadHidden": false,
+        "uploadVisible": true,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      },
+      "empty-1366": {
+        "viewport": {
+          "width": 1366,
+          "height": 860
+        },
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "theme": "dark",
+        "boxes": {
+          "wrapper": {
+            "x": 284,
+            "y": 101,
+            "width": 1068,
+            "height": 747,
+            "right": 1352,
+            "bottom": 848,
+            "visible": true
+          },
+          "topbar": {
+            "x": 284,
+            "y": 177,
+            "width": 1068,
+            "height": 27,
+            "right": 1352,
+            "bottom": 204,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 284,
+            "y": 177,
+            "width": 1068,
+            "height": 27,
+            "right": 1352,
+            "bottom": 204,
+            "visible": true
+          },
+          "grid": {
+            "x": 284,
+            "y": 214,
+            "width": 1068,
+            "height": 622,
+            "right": 1352,
+            "bottom": 836,
+            "visible": true
+          },
+          "chat": {
+            "x": 284,
+            "y": 214,
+            "width": 721,
+            "height": 622,
+            "right": 1005,
+            "bottom": 836,
+            "visible": true
+          },
+          "form": {
+            "x": 285,
+            "y": 763,
+            "width": 719,
+            "height": 72,
+            "right": 1004,
+            "bottom": 835,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "doc": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "metadata": {
+            "x": 1040,
+            "y": 384,
+            "width": 293,
+            "height": 47,
+            "right": 1333,
+            "bottom": 431,
+            "visible": true
+          },
+          "summary": {
+            "x": 1040,
+            "y": 675,
+            "width": 293,
+            "height": 142,
+            "right": 1333,
+            "bottom": 817,
+            "visible": true
+          },
+          "header": {
+            "x": 270,
+            "y": 0,
+            "width": 1096,
+            "height": 93,
+            "right": 1366,
+            "bottom": 93,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 1255,
+            "y": 233,
+            "width": 78,
+            "height": 19,
+            "right": 1333,
+            "bottom": 252,
+            "visible": true
+          }
+        },
+        "gridColumns": "720.922px 331.078px",
+        "uploadHidden": false,
+        "uploadVisible": true,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      },
+      "empty-1920": {
+        "viewport": {
+          "width": 1920,
+          "height": 860
+        },
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "theme": "dark",
+        "boxes": {
+          "wrapper": {
+            "x": 284,
+            "y": 72,
+            "width": 1622,
+            "height": 776,
+            "right": 1906,
+            "bottom": 848,
+            "visible": true
+          },
+          "topbar": {
+            "x": 284,
+            "y": 148,
+            "width": 1622,
+            "height": 27,
+            "right": 1906,
+            "bottom": 175,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 284,
+            "y": 148,
+            "width": 1622,
+            "height": 27,
+            "right": 1906,
+            "bottom": 175,
+            "visible": true
+          },
+          "grid": {
+            "x": 284,
+            "y": 185,
+            "width": 1622,
+            "height": 651,
+            "right": 1906,
+            "bottom": 836,
+            "visible": true
+          },
+          "chat": {
+            "x": 284,
+            "y": 185,
+            "width": 1196,
+            "height": 651,
+            "right": 1480,
+            "bottom": 836,
+            "visible": true
+          },
+          "form": {
+            "x": 285,
+            "y": 763,
+            "width": 1194,
+            "height": 72,
+            "right": 1479,
+            "bottom": 835,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "doc": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "metadata": {
+            "x": 1515,
+            "y": 338,
+            "width": 372,
+            "height": 47,
+            "right": 1887,
+            "bottom": 385,
+            "visible": true
+          },
+          "summary": {
+            "x": 1515,
+            "y": 642,
+            "width": 372,
+            "height": 175,
+            "right": 1887,
+            "bottom": 817,
+            "visible": true
+          },
+          "header": {
+            "x": 270,
+            "y": 0,
+            "width": 1650,
+            "height": 64,
+            "right": 1920,
+            "bottom": 64,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 1809,
+            "y": 204,
+            "width": 78,
+            "height": 19,
+            "right": 1887,
+            "bottom": 223,
+            "visible": true
+          }
+        },
+        "gridColumns": "1196px 410px",
+        "uploadHidden": false,
+        "uploadVisible": true,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      }
+    },
+    "light": {
+      "empty-360": {
+        "viewport": {
+          "width": 360,
+          "height": 812
+        },
+        "documentWidth": 360,
+        "bodyWidth": 360,
+        "theme": "light",
+        "boxes": {
+          "wrapper": {
+            "x": 12,
+            "y": 74,
+            "width": 336,
+            "height": 1218,
+            "right": 348,
+            "bottom": 1292,
+            "visible": true
+          },
+          "topbar": {
+            "x": 12,
+            "y": 194,
+            "width": 336,
+            "height": 52,
+            "right": 348,
+            "bottom": 246,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 12,
+            "y": 194,
+            "width": 336,
+            "height": 52,
+            "right": 348,
+            "bottom": 246,
+            "visible": true
+          },
+          "grid": {
+            "x": 12,
+            "y": 258,
+            "width": 336,
+            "height": 1015,
+            "right": 348,
+            "bottom": 1272,
+            "visible": true
+          },
+          "chat": {
+            "x": 12,
+            "y": 258,
+            "width": 336,
+            "height": 402,
+            "right": 348,
+            "bottom": 660,
+            "visible": true
+          },
+          "form": {
+            "x": 13,
+            "y": 594,
+            "width": 334,
+            "height": 65,
+            "right": 347,
+            "bottom": 659,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 746,
+            "width": 360,
+            "height": 66,
+            "right": 360,
+            "bottom": 812,
+            "visible": true
+          },
+          "doc": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "metadata": {
+            "x": 29,
+            "y": 854,
+            "width": 302,
+            "height": 48,
+            "right": 331,
+            "bottom": 902,
+            "visible": true
+          },
+          "summary": {
+            "x": 29,
+            "y": 1097,
+            "width": 302,
+            "height": 140,
+            "right": 331,
+            "bottom": 1237,
+            "visible": true
+          },
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 360,
+            "height": 64,
+            "right": 360,
+            "bottom": 64,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 253,
+            "y": 691,
+            "width": 78,
+            "height": 19,
+            "right": 331,
+            "bottom": 710,
+            "visible": true
+          }
+        },
+        "gridColumns": "336px",
+        "uploadHidden": false,
+        "uploadVisible": false,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      },
+      "empty-375": {
+        "viewport": {
+          "width": 375,
+          "height": 812
+        },
+        "documentWidth": 375,
+        "bodyWidth": 375,
+        "theme": "light",
+        "boxes": {
+          "wrapper": {
+            "x": 12,
+            "y": 74,
+            "width": 351,
+            "height": 1166,
+            "right": 363,
+            "bottom": 1240,
+            "visible": true
+          },
+          "topbar": {
+            "x": 12,
+            "y": 176,
+            "width": 351,
+            "height": 52,
+            "right": 363,
+            "bottom": 228,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 12,
+            "y": 176,
+            "width": 351,
+            "height": 52,
+            "right": 363,
+            "bottom": 228,
+            "visible": true
+          },
+          "grid": {
+            "x": 12,
+            "y": 240,
+            "width": 351,
+            "height": 980,
+            "right": 363,
+            "bottom": 1220,
+            "visible": true
+          },
+          "chat": {
+            "x": 12,
+            "y": 240,
+            "width": 351,
+            "height": 402,
+            "right": 363,
+            "bottom": 642,
+            "visible": true
+          },
+          "form": {
+            "x": 13,
+            "y": 576,
+            "width": 349,
+            "height": 65,
+            "right": 362,
+            "bottom": 641,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 746,
+            "width": 375,
+            "height": 66,
+            "right": 375,
+            "bottom": 812,
+            "visible": true
+          },
+          "doc": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "metadata": {
+            "x": 29,
+            "y": 819,
+            "width": 317,
+            "height": 48,
+            "right": 346,
+            "bottom": 867,
+            "visible": true
+          },
+          "summary": {
+            "x": 29,
+            "y": 1045,
+            "width": 317,
+            "height": 140,
+            "right": 346,
+            "bottom": 1185,
+            "visible": true
+          },
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 375,
+            "height": 64,
+            "right": 375,
+            "bottom": 64,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 268,
+            "y": 673,
+            "width": 78,
+            "height": 19,
+            "right": 346,
+            "bottom": 692,
+            "visible": true
+          }
+        },
+        "gridColumns": "351px",
+        "uploadHidden": false,
+        "uploadVisible": false,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      },
+      "empty-414": {
+        "viewport": {
+          "width": 414,
+          "height": 812
+        },
+        "documentWidth": 414,
+        "bodyWidth": 414,
+        "theme": "light",
+        "boxes": {
+          "wrapper": {
+            "x": 12,
+            "y": 74,
+            "width": 390,
+            "height": 1166,
+            "right": 402,
+            "bottom": 1240,
+            "visible": true
+          },
+          "topbar": {
+            "x": 12,
+            "y": 176,
+            "width": 390,
+            "height": 52,
+            "right": 402,
+            "bottom": 228,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 12,
+            "y": 176,
+            "width": 390,
+            "height": 52,
+            "right": 402,
+            "bottom": 228,
+            "visible": true
+          },
+          "grid": {
+            "x": 12,
+            "y": 240,
+            "width": 390,
+            "height": 980,
+            "right": 402,
+            "bottom": 1220,
+            "visible": true
+          },
+          "chat": {
+            "x": 12,
+            "y": 240,
+            "width": 390,
+            "height": 402,
+            "right": 402,
+            "bottom": 642,
+            "visible": true
+          },
+          "form": {
+            "x": 13,
+            "y": 576,
+            "width": 388,
+            "height": 65,
+            "right": 401,
+            "bottom": 641,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 746,
+            "width": 414,
+            "height": 66,
+            "right": 414,
+            "bottom": 812,
+            "visible": true
+          },
+          "doc": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "metadata": {
+            "x": 29,
+            "y": 819,
+            "width": 356,
+            "height": 48,
+            "right": 385,
+            "bottom": 867,
+            "visible": true
+          },
+          "summary": {
+            "x": 29,
+            "y": 1045,
+            "width": 356,
+            "height": 140,
+            "right": 385,
+            "bottom": 1185,
+            "visible": true
+          },
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 414,
+            "height": 64,
+            "right": 414,
+            "bottom": 64,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 307,
+            "y": 673,
+            "width": 78,
+            "height": 19,
+            "right": 385,
+            "bottom": 692,
+            "visible": true
+          }
+        },
+        "gridColumns": "390px",
+        "uploadHidden": false,
+        "uploadVisible": false,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      },
+      "empty-768": {
+        "viewport": {
+          "width": 768,
+          "height": 860
+        },
+        "documentWidth": 768,
+        "bodyWidth": 768,
+        "theme": "light",
+        "boxes": {
+          "wrapper": {
+            "x": 12,
+            "y": 74,
+            "width": 744,
+            "height": 1167,
+            "right": 756,
+            "bottom": 1241,
+            "visible": true
+          },
+          "topbar": {
+            "x": 12,
+            "y": 164,
+            "width": 744,
+            "height": 52,
+            "right": 756,
+            "bottom": 216,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 12,
+            "y": 164,
+            "width": 744,
+            "height": 52,
+            "right": 756,
+            "bottom": 216,
+            "visible": true
+          },
+          "grid": {
+            "x": 12,
+            "y": 228,
+            "width": 744,
+            "height": 993,
+            "right": 756,
+            "bottom": 1221,
+            "visible": true
+          },
+          "chat": {
+            "x": 12,
+            "y": 228,
+            "width": 744,
+            "height": 450,
+            "right": 756,
+            "bottom": 678,
+            "visible": true
+          },
+          "form": {
+            "x": 13,
+            "y": 612,
+            "width": 742,
+            "height": 65,
+            "right": 755,
+            "bottom": 677,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 794,
+            "width": 768,
+            "height": 66,
+            "right": 768,
+            "bottom": 860,
+            "visible": true
+          },
+          "doc": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "metadata": {
+            "x": 29,
+            "y": 837,
+            "width": 710,
+            "height": 48,
+            "right": 739,
+            "bottom": 885,
+            "visible": true
+          },
+          "summary": {
+            "x": 29,
+            "y": 1046,
+            "width": 710,
+            "height": 140,
+            "right": 739,
+            "bottom": 1186,
+            "visible": true
+          },
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 768,
+            "height": 64,
+            "right": 768,
+            "bottom": 64,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 661,
+            "y": 709,
+            "width": 78,
+            "height": 19,
+            "right": 739,
+            "bottom": 728,
+            "visible": true
+          }
+        },
+        "gridColumns": "744px",
+        "uploadHidden": false,
+        "uploadVisible": false,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      },
+      "empty-1104": {
+        "viewport": {
+          "width": 1104,
+          "height": 860
+        },
+        "documentWidth": 1104,
+        "bodyWidth": 1104,
+        "theme": "light",
+        "boxes": {
+          "wrapper": {
+            "x": 284,
+            "y": 112,
+            "width": 806,
+            "height": 736,
+            "right": 1090,
+            "bottom": 848,
+            "visible": true
+          },
+          "topbar": {
+            "x": 284,
+            "y": 188,
+            "width": 806,
+            "height": 27,
+            "right": 1090,
+            "bottom": 215,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 284,
+            "y": 188,
+            "width": 806,
+            "height": 27,
+            "right": 1090,
+            "bottom": 215,
+            "visible": true
+          },
+          "grid": {
+            "x": 284,
+            "y": 225,
+            "width": 806,
+            "height": 611,
+            "right": 1090,
+            "bottom": 836,
+            "visible": true
+          },
+          "chat": {
+            "x": 284,
+            "y": 225,
+            "width": 514,
+            "height": 611,
+            "right": 798,
+            "bottom": 836,
+            "visible": true
+          },
+          "form": {
+            "x": 285,
+            "y": 763,
+            "width": 512,
+            "height": 72,
+            "right": 797,
+            "bottom": 835,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "doc": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "metadata": {
+            "x": 829,
+            "y": 412,
+            "width": 242,
+            "height": 66,
+            "right": 1071,
+            "bottom": 478,
+            "visible": true
+          },
+          "summary": {
+            "x": 829,
+            "y": 698,
+            "width": 242,
+            "height": 119,
+            "right": 1071,
+            "bottom": 817,
+            "visible": true
+          },
+          "header": {
+            "x": 270,
+            "y": 0,
+            "width": 834,
+            "height": 104,
+            "right": 1104,
+            "bottom": 104,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 993,
+            "y": 253,
+            "width": 78,
+            "height": 19,
+            "right": 1071,
+            "bottom": 272,
+            "visible": true
+          }
+        },
+        "gridColumns": "514px 280px",
+        "uploadHidden": false,
+        "uploadVisible": true,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      },
+      "empty-1280": {
+        "viewport": {
+          "width": 1280,
+          "height": 860
+        },
+        "documentWidth": 1280,
+        "bodyWidth": 1280,
+        "theme": "light",
+        "boxes": {
+          "wrapper": {
+            "x": 284,
+            "y": 101,
+            "width": 982,
+            "height": 747,
+            "right": 1266,
+            "bottom": 848,
+            "visible": true
+          },
+          "topbar": {
+            "x": 284,
+            "y": 177,
+            "width": 982,
+            "height": 27,
+            "right": 1266,
+            "bottom": 204,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 284,
+            "y": 177,
+            "width": 982,
+            "height": 27,
+            "right": 1266,
+            "bottom": 204,
+            "visible": true
+          },
+          "grid": {
+            "x": 284,
+            "y": 214,
+            "width": 982,
+            "height": 622,
+            "right": 1266,
+            "bottom": 836,
+            "visible": true
+          },
+          "chat": {
+            "x": 284,
+            "y": 214,
+            "width": 662,
+            "height": 622,
+            "right": 946,
+            "bottom": 836,
+            "visible": true
+          },
+          "form": {
+            "x": 285,
+            "y": 763,
+            "width": 660,
+            "height": 72,
+            "right": 945,
+            "bottom": 835,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "doc": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "metadata": {
+            "x": 981,
+            "y": 401,
+            "width": 266,
+            "height": 47,
+            "right": 1247,
+            "bottom": 448,
+            "visible": true
+          },
+          "summary": {
+            "x": 981,
+            "y": 675,
+            "width": 266,
+            "height": 142,
+            "right": 1247,
+            "bottom": 817,
+            "visible": true
+          },
+          "header": {
+            "x": 270,
+            "y": 0,
+            "width": 1010,
+            "height": 93,
+            "right": 1280,
+            "bottom": 93,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 1169,
+            "y": 242,
+            "width": 78,
+            "height": 19,
+            "right": 1247,
+            "bottom": 261,
+            "visible": true
+          }
+        },
+        "gridColumns": "661.594px 304.406px",
+        "uploadHidden": false,
+        "uploadVisible": true,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      },
+      "empty-1366": {
+        "viewport": {
+          "width": 1366,
+          "height": 860
+        },
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "theme": "light",
+        "boxes": {
+          "wrapper": {
+            "x": 284,
+            "y": 101,
+            "width": 1068,
+            "height": 747,
+            "right": 1352,
+            "bottom": 848,
+            "visible": true
+          },
+          "topbar": {
+            "x": 284,
+            "y": 177,
+            "width": 1068,
+            "height": 27,
+            "right": 1352,
+            "bottom": 204,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 284,
+            "y": 177,
+            "width": 1068,
+            "height": 27,
+            "right": 1352,
+            "bottom": 204,
+            "visible": true
+          },
+          "grid": {
+            "x": 284,
+            "y": 214,
+            "width": 1068,
+            "height": 622,
+            "right": 1352,
+            "bottom": 836,
+            "visible": true
+          },
+          "chat": {
+            "x": 284,
+            "y": 214,
+            "width": 721,
+            "height": 622,
+            "right": 1005,
+            "bottom": 836,
+            "visible": true
+          },
+          "form": {
+            "x": 285,
+            "y": 763,
+            "width": 719,
+            "height": 72,
+            "right": 1004,
+            "bottom": 835,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "doc": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "metadata": {
+            "x": 1040,
+            "y": 384,
+            "width": 293,
+            "height": 47,
+            "right": 1333,
+            "bottom": 431,
+            "visible": true
+          },
+          "summary": {
+            "x": 1040,
+            "y": 675,
+            "width": 293,
+            "height": 142,
+            "right": 1333,
+            "bottom": 817,
+            "visible": true
+          },
+          "header": {
+            "x": 270,
+            "y": 0,
+            "width": 1096,
+            "height": 93,
+            "right": 1366,
+            "bottom": 93,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 1255,
+            "y": 233,
+            "width": 78,
+            "height": 19,
+            "right": 1333,
+            "bottom": 252,
+            "visible": true
+          }
+        },
+        "gridColumns": "720.922px 331.078px",
+        "uploadHidden": false,
+        "uploadVisible": true,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      },
+      "empty-1920": {
+        "viewport": {
+          "width": 1920,
+          "height": 860
+        },
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "theme": "light",
+        "boxes": {
+          "wrapper": {
+            "x": 284,
+            "y": 72,
+            "width": 1622,
+            "height": 776,
+            "right": 1906,
+            "bottom": 848,
+            "visible": true
+          },
+          "topbar": {
+            "x": 284,
+            "y": 148,
+            "width": 1622,
+            "height": 27,
+            "right": 1906,
+            "bottom": 175,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 284,
+            "y": 148,
+            "width": 1622,
+            "height": 27,
+            "right": 1906,
+            "bottom": 175,
+            "visible": true
+          },
+          "grid": {
+            "x": 284,
+            "y": 185,
+            "width": 1622,
+            "height": 651,
+            "right": 1906,
+            "bottom": 836,
+            "visible": true
+          },
+          "chat": {
+            "x": 284,
+            "y": 185,
+            "width": 1196,
+            "height": 651,
+            "right": 1480,
+            "bottom": 836,
+            "visible": true
+          },
+          "form": {
+            "x": 285,
+            "y": 763,
+            "width": 1194,
+            "height": 72,
+            "right": 1479,
+            "bottom": 835,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "doc": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "metadata": {
+            "x": 1515,
+            "y": 338,
+            "width": 372,
+            "height": 47,
+            "right": 1887,
+            "bottom": 385,
+            "visible": true
+          },
+          "summary": {
+            "x": 1515,
+            "y": 642,
+            "width": 372,
+            "height": 175,
+            "right": 1887,
+            "bottom": 817,
+            "visible": true
+          },
+          "header": {
+            "x": 270,
+            "y": 0,
+            "width": 1650,
+            "height": 64,
+            "right": 1920,
+            "bottom": 64,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 1809,
+            "y": 204,
+            "width": 78,
+            "height": 19,
+            "right": 1887,
+            "bottom": 223,
+            "visible": true
+          }
+        },
+        "gridColumns": "1196px 410px",
+        "uploadHidden": false,
+        "uploadVisible": true,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      }
+    },
+    "greetingsNoDocument": {
+      "hey": {
+        "completed": true,
+        "answer": "Hello! How can I help you today? You can ask a general question or ask about your PDF.",
+        "citations": []
+      },
+      "hello": {
+        "completed": true,
+        "answer": "Hello! How can I help you today? You can ask a general question or ask about your PDF.",
+        "citations": []
+      },
+      "how are you": {
+        "completed": true,
+        "answer": "I'm here and ready to help. What would you like to know or do with your PDF?",
+        "citations": []
+      }
+    },
+    "greetingsWithDocument": {
+      "hey": {
+        "completed": true,
+        "answer": "Hello! How can I help you today? You can ask a general question or ask about your PDF.",
+        "citations": []
+      },
+      "hello": {
+        "completed": true,
+        "answer": "Hello! How can I help you today? You can ask a general question or ask about your PDF.",
+        "citations": []
+      },
+      "how are you": {
+        "completed": true,
+        "answer": "I'm here and ready to help. What would you like to know or do with your PDF?",
+        "citations": []
+      }
+    },
+    "documentQuestionWithPdf": {
+      "completed": true,
+      "answer": "Introduction to Machine Learning Class Notes · [Page 1] [Page 1] discusses supervised learning, polynomial degrees, vector orthogonality, and positive semi-definite operators. This deterministic sample supports page navigation and local answer tests. [Page 1]",
+      "citations": [
+        "Page 1"
+      ]
+    },
+    "loaded": {
+      "dark-360": {
+        "viewport": {
+          "width": 360,
+          "height": 812
+        },
+        "documentWidth": 360,
+        "bodyWidth": 360,
+        "theme": "dark",
+        "boxes": {
+          "wrapper": {
+            "x": 12,
+            "y": -168,
+            "width": 336,
+            "height": 1398,
+            "right": 348,
+            "bottom": 1230,
+            "visible": true
+          },
+          "topbar": {
+            "x": 12,
+            "y": -48,
+            "width": 336,
+            "height": 182,
+            "right": 348,
+            "bottom": 134,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 12,
+            "y": 82,
+            "width": 336,
+            "height": 52,
+            "right": 348,
+            "bottom": 134,
+            "visible": true
+          },
+          "grid": {
+            "x": 12,
+            "y": 146,
+            "width": 336,
+            "height": 1064,
+            "right": 348,
+            "bottom": 1210,
+            "visible": true
+          },
+          "chat": {
+            "x": 12,
+            "y": 146,
+            "width": 336,
+            "height": 340,
+            "right": 348,
+            "bottom": 486,
+            "visible": true
+          },
+          "form": {
+            "x": 13,
+            "y": 420,
+            "width": 334,
+            "height": 65,
+            "right": 347,
+            "bottom": 485,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 746,
+            "width": 360,
+            "height": 66,
+            "right": 360,
+            "bottom": 812,
+            "visible": true
+          },
+          "doc": {
+            "x": 12,
+            "y": -48,
+            "width": 336,
+            "height": 122,
+            "right": 348,
+            "bottom": 74,
+            "visible": true
+          },
+          "metadata": {
+            "x": 29,
+            "y": 680,
+            "width": 302,
+            "height": 48,
+            "right": 331,
+            "bottom": 728,
+            "visible": true
+          },
+          "summary": {
+            "x": 29,
+            "y": 1018,
+            "width": 302,
+            "height": 157,
+            "right": 331,
+            "bottom": 1175,
+            "visible": true
+          },
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 360,
+            "height": 64,
+            "right": 360,
+            "bottom": 64,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 253,
+            "y": 517,
+            "width": 78,
+            "height": 19,
+            "right": 331,
+            "bottom": 536,
+            "visible": true
+          }
+        },
+        "gridColumns": "336px",
+        "uploadHidden": true,
+        "uploadVisible": false,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      },
+      "dark-375": {
+        "viewport": {
+          "width": 375,
+          "height": 812
+        },
+        "documentWidth": 375,
+        "bodyWidth": 375,
+        "theme": "dark",
+        "boxes": {
+          "wrapper": {
+            "x": 12,
+            "y": -168,
+            "width": 351,
+            "height": 1353,
+            "right": 363,
+            "bottom": 1185,
+            "visible": true
+          },
+          "topbar": {
+            "x": 12,
+            "y": -66,
+            "width": 351,
+            "height": 155,
+            "right": 363,
+            "bottom": 89,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 12,
+            "y": 37,
+            "width": 351,
+            "height": 52,
+            "right": 363,
+            "bottom": 89,
+            "visible": true
+          },
+          "grid": {
+            "x": 12,
+            "y": 101,
+            "width": 351,
+            "height": 1064,
+            "right": 363,
+            "bottom": 1165,
+            "visible": true
+          },
+          "chat": {
+            "x": 12,
+            "y": 101,
+            "width": 351,
+            "height": 340,
+            "right": 363,
+            "bottom": 441,
+            "visible": true
+          },
+          "form": {
+            "x": 13,
+            "y": 375,
+            "width": 349,
+            "height": 65,
+            "right": 362,
+            "bottom": 440,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 746,
+            "width": 375,
+            "height": 66,
+            "right": 375,
+            "bottom": 812,
+            "visible": true
+          },
+          "doc": {
+            "x": 12,
+            "y": -66,
+            "width": 351,
+            "height": 95,
+            "right": 363,
+            "bottom": 29,
+            "visible": true
+          },
+          "metadata": {
+            "x": 29,
+            "y": 618,
+            "width": 317,
+            "height": 48,
+            "right": 346,
+            "bottom": 666,
+            "visible": true
+          },
+          "summary": {
+            "x": 29,
+            "y": 956,
+            "width": 317,
+            "height": 174,
+            "right": 346,
+            "bottom": 1130,
+            "visible": true
+          },
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 375,
+            "height": 64,
+            "right": 375,
+            "bottom": 64,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 268,
+            "y": 472,
+            "width": 78,
+            "height": 19,
+            "right": 346,
+            "bottom": 491,
+            "visible": true
+          }
+        },
+        "gridColumns": "351px",
+        "uploadHidden": true,
+        "uploadVisible": false,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      },
+      "dark-414": {
+        "viewport": {
+          "width": 414,
+          "height": 812
+        },
+        "documentWidth": 414,
+        "bodyWidth": 414,
+        "theme": "dark",
+        "boxes": {
+          "wrapper": {
+            "x": 12,
+            "y": 74,
+            "width": 390,
+            "height": 1353,
+            "right": 402,
+            "bottom": 1427,
+            "visible": true
+          },
+          "topbar": {
+            "x": 12,
+            "y": 176,
+            "width": 390,
+            "height": 155,
+            "right": 402,
+            "bottom": 331,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 12,
+            "y": 279,
+            "width": 390,
+            "height": 52,
+            "right": 402,
+            "bottom": 331,
+            "visible": true
+          },
+          "grid": {
+            "x": 12,
+            "y": 343,
+            "width": 390,
+            "height": 1064,
+            "right": 402,
+            "bottom": 1407,
+            "visible": true
+          },
+          "chat": {
+            "x": 12,
+            "y": 343,
+            "width": 390,
+            "height": 340,
+            "right": 402,
+            "bottom": 683,
+            "visible": true
+          },
+          "form": {
+            "x": 13,
+            "y": 617,
+            "width": 388,
+            "height": 65,
+            "right": 401,
+            "bottom": 682,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 746,
+            "width": 414,
+            "height": 66,
+            "right": 414,
+            "bottom": 812,
+            "visible": true
+          },
+          "doc": {
+            "x": 12,
+            "y": 176,
+            "width": 390,
+            "height": 95,
+            "right": 402,
+            "bottom": 271,
+            "visible": true
+          },
+          "metadata": {
+            "x": 29,
+            "y": 860,
+            "width": 356,
+            "height": 48,
+            "right": 385,
+            "bottom": 908,
+            "visible": true
+          },
+          "summary": {
+            "x": 29,
+            "y": 1198,
+            "width": 356,
+            "height": 174,
+            "right": 385,
+            "bottom": 1372,
+            "visible": true
+          },
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 414,
+            "height": 64,
+            "right": 414,
+            "bottom": 64,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 307,
+            "y": 714,
+            "width": 78,
+            "height": 19,
+            "right": 385,
+            "bottom": 733,
+            "visible": true
+          }
+        },
+        "gridColumns": "390px",
+        "uploadHidden": true,
+        "uploadVisible": false,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      },
+      "dark-768": {
+        "viewport": {
+          "width": 768,
+          "height": 860
+        },
+        "documentWidth": 768,
+        "bodyWidth": 768,
+        "theme": "dark",
+        "boxes": {
+          "wrapper": {
+            "x": 12,
+            "y": 74,
+            "width": 744,
+            "height": 1485,
+            "right": 756,
+            "bottom": 1559,
+            "visible": true
+          },
+          "topbar": {
+            "x": 12,
+            "y": 164,
+            "width": 744,
+            "height": 155,
+            "right": 756,
+            "bottom": 319,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 12,
+            "y": 267,
+            "width": 744,
+            "height": 52,
+            "right": 756,
+            "bottom": 319,
+            "visible": true
+          },
+          "grid": {
+            "x": 12,
+            "y": 331,
+            "width": 744,
+            "height": 1208,
+            "right": 756,
+            "bottom": 1539,
+            "visible": true
+          },
+          "chat": {
+            "x": 12,
+            "y": 331,
+            "width": 744,
+            "height": 388,
+            "right": 756,
+            "bottom": 719,
+            "visible": true
+          },
+          "form": {
+            "x": 13,
+            "y": 653,
+            "width": 742,
+            "height": 65,
+            "right": 755,
+            "bottom": 718,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 794,
+            "width": 768,
+            "height": 66,
+            "right": 768,
+            "bottom": 860,
+            "visible": true
+          },
+          "doc": {
+            "x": 12,
+            "y": 164,
+            "width": 744,
+            "height": 95,
+            "right": 756,
+            "bottom": 259,
+            "visible": true
+          },
+          "metadata": {
+            "x": 29,
+            "y": 878,
+            "width": 710,
+            "height": 48,
+            "right": 739,
+            "bottom": 926,
+            "visible": true
+          },
+          "summary": {
+            "x": 29,
+            "y": 1265,
+            "width": 710,
+            "height": 240,
+            "right": 739,
+            "bottom": 1504,
+            "visible": true
+          },
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 768,
+            "height": 64,
+            "right": 768,
+            "bottom": 64,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 661,
+            "y": 750,
+            "width": 78,
+            "height": 19,
+            "right": 739,
+            "bottom": 769,
+            "visible": true
+          }
+        },
+        "gridColumns": "744px",
+        "uploadHidden": true,
+        "uploadVisible": false,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      },
+      "dark-1104": {
+        "viewport": {
+          "width": 1104,
+          "height": 860
+        },
+        "documentWidth": 1104,
+        "bodyWidth": 1104,
+        "theme": "dark",
+        "boxes": {
+          "wrapper": {
+            "x": 284,
+            "y": 112,
+            "width": 806,
+            "height": 736,
+            "right": 1090,
+            "bottom": 848,
+            "visible": true
+          },
+          "topbar": {
+            "x": 284,
+            "y": 188,
+            "width": 806,
+            "height": 91,
+            "right": 1090,
+            "bottom": 279,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 284,
+            "y": 252,
+            "width": 806,
+            "height": 27,
+            "right": 1090,
+            "bottom": 279,
+            "visible": true
+          },
+          "grid": {
+            "x": 284,
+            "y": 289,
+            "width": 806,
+            "height": 547,
+            "right": 1090,
+            "bottom": 836,
+            "visible": true
+          },
+          "chat": {
+            "x": 284,
+            "y": 289,
+            "width": 514,
+            "height": 547,
+            "right": 798,
+            "bottom": 836,
+            "visible": true
+          },
+          "form": {
+            "x": 285,
+            "y": 763,
+            "width": 512,
+            "height": 72,
+            "right": 797,
+            "bottom": 835,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "doc": {
+            "x": 284,
+            "y": 188,
+            "width": 806,
+            "height": 56,
+            "right": 1090,
+            "bottom": 244,
+            "visible": true
+          },
+          "metadata": {
+            "x": 829,
+            "y": 476,
+            "width": 242,
+            "height": 66,
+            "right": 1071,
+            "bottom": 542,
+            "visible": true
+          },
+          "summary": {
+            "x": 829,
+            "y": 733,
+            "width": 242,
+            "height": 84,
+            "right": 1071,
+            "bottom": 817,
+            "visible": true
+          },
+          "header": {
+            "x": 270,
+            "y": 0,
+            "width": 834,
+            "height": 104,
+            "right": 1104,
+            "bottom": 104,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 993,
+            "y": 317,
+            "width": 78,
+            "height": 19,
+            "right": 1071,
+            "bottom": 336,
+            "visible": true
+          }
+        },
+        "gridColumns": "514px 280px",
+        "uploadHidden": true,
+        "uploadVisible": false,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      },
+      "dark-1280": {
+        "viewport": {
+          "width": 1280,
+          "height": 860
+        },
+        "documentWidth": 1280,
+        "bodyWidth": 1280,
+        "theme": "dark",
+        "boxes": {
+          "wrapper": {
+            "x": 284,
+            "y": 101,
+            "width": 982,
+            "height": 747,
+            "right": 1266,
+            "bottom": 848,
+            "visible": true
+          },
+          "topbar": {
+            "x": 284,
+            "y": 177,
+            "width": 982,
+            "height": 91,
+            "right": 1266,
+            "bottom": 268,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 284,
+            "y": 241,
+            "width": 982,
+            "height": 27,
+            "right": 1266,
+            "bottom": 268,
+            "visible": true
+          },
+          "grid": {
+            "x": 284,
+            "y": 278,
+            "width": 982,
+            "height": 558,
+            "right": 1266,
+            "bottom": 836,
+            "visible": true
+          },
+          "chat": {
+            "x": 284,
+            "y": 278,
+            "width": 662,
+            "height": 558,
+            "right": 946,
+            "bottom": 836,
+            "visible": true
+          },
+          "form": {
+            "x": 285,
+            "y": 763,
+            "width": 660,
+            "height": 72,
+            "right": 945,
+            "bottom": 835,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "doc": {
+            "x": 284,
+            "y": 177,
+            "width": 982,
+            "height": 56,
+            "right": 1266,
+            "bottom": 233,
+            "visible": true
+          },
+          "metadata": {
+            "x": 981,
+            "y": 465,
+            "width": 266,
+            "height": 47,
+            "right": 1247,
+            "bottom": 512,
+            "visible": true
+          },
+          "summary": {
+            "x": 981,
+            "y": 710,
+            "width": 266,
+            "height": 107,
+            "right": 1247,
+            "bottom": 817,
+            "visible": true
+          },
+          "header": {
+            "x": 270,
+            "y": 0,
+            "width": 1010,
+            "height": 93,
+            "right": 1280,
+            "bottom": 93,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 1169,
+            "y": 306,
+            "width": 78,
+            "height": 19,
+            "right": 1247,
+            "bottom": 325,
+            "visible": true
+          }
+        },
+        "gridColumns": "661.594px 304.406px",
+        "uploadHidden": true,
+        "uploadVisible": false,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      },
+      "dark-1366": {
+        "viewport": {
+          "width": 1366,
+          "height": 860
+        },
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "theme": "dark",
+        "boxes": {
+          "wrapper": {
+            "x": 284,
+            "y": 101,
+            "width": 1068,
+            "height": 747,
+            "right": 1352,
+            "bottom": 848,
+            "visible": true
+          },
+          "topbar": {
+            "x": 284,
+            "y": 177,
+            "width": 1068,
+            "height": 91,
+            "right": 1352,
+            "bottom": 268,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 284,
+            "y": 241,
+            "width": 1068,
+            "height": 27,
+            "right": 1352,
+            "bottom": 268,
+            "visible": true
+          },
+          "grid": {
+            "x": 284,
+            "y": 278,
+            "width": 1068,
+            "height": 558,
+            "right": 1352,
+            "bottom": 836,
+            "visible": true
+          },
+          "chat": {
+            "x": 284,
+            "y": 278,
+            "width": 721,
+            "height": 558,
+            "right": 1005,
+            "bottom": 836,
+            "visible": true
+          },
+          "form": {
+            "x": 285,
+            "y": 763,
+            "width": 719,
+            "height": 72,
+            "right": 1004,
+            "bottom": 835,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "doc": {
+            "x": 284,
+            "y": 177,
+            "width": 1068,
+            "height": 56,
+            "right": 1352,
+            "bottom": 233,
+            "visible": true
+          },
+          "metadata": {
+            "x": 1040,
+            "y": 448,
+            "width": 293,
+            "height": 47,
+            "right": 1333,
+            "bottom": 495,
+            "visible": true
+          },
+          "summary": {
+            "x": 1040,
+            "y": 710,
+            "width": 293,
+            "height": 107,
+            "right": 1333,
+            "bottom": 817,
+            "visible": true
+          },
+          "header": {
+            "x": 270,
+            "y": 0,
+            "width": 1096,
+            "height": 93,
+            "right": 1366,
+            "bottom": 93,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 1255,
+            "y": 297,
+            "width": 78,
+            "height": 19,
+            "right": 1333,
+            "bottom": 316,
+            "visible": true
+          }
+        },
+        "gridColumns": "720.922px 331.078px",
+        "uploadHidden": true,
+        "uploadVisible": false,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      },
+      "dark-1920": {
+        "viewport": {
+          "width": 1920,
+          "height": 860
+        },
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "theme": "dark",
+        "boxes": {
+          "wrapper": {
+            "x": 284,
+            "y": 72,
+            "width": 1622,
+            "height": 776,
+            "right": 1906,
+            "bottom": 848,
+            "visible": true
+          },
+          "topbar": {
+            "x": 284,
+            "y": 148,
+            "width": 1622,
+            "height": 91,
+            "right": 1906,
+            "bottom": 239,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 284,
+            "y": 212,
+            "width": 1622,
+            "height": 27,
+            "right": 1906,
+            "bottom": 239,
+            "visible": true
+          },
+          "grid": {
+            "x": 284,
+            "y": 249,
+            "width": 1622,
+            "height": 587,
+            "right": 1906,
+            "bottom": 836,
+            "visible": true
+          },
+          "chat": {
+            "x": 284,
+            "y": 249,
+            "width": 1196,
+            "height": 587,
+            "right": 1480,
+            "bottom": 836,
+            "visible": true
+          },
+          "form": {
+            "x": 285,
+            "y": 763,
+            "width": 1194,
+            "height": 72,
+            "right": 1479,
+            "bottom": 835,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "doc": {
+            "x": 284,
+            "y": 148,
+            "width": 1622,
+            "height": 56,
+            "right": 1906,
+            "bottom": 204,
+            "visible": true
+          },
+          "metadata": {
+            "x": 1515,
+            "y": 402,
+            "width": 372,
+            "height": 47,
+            "right": 1887,
+            "bottom": 449,
+            "visible": true
+          },
+          "summary": {
+            "x": 1515,
+            "y": 677,
+            "width": 372,
+            "height": 140,
+            "right": 1887,
+            "bottom": 817,
+            "visible": true
+          },
+          "header": {
+            "x": 270,
+            "y": 0,
+            "width": 1650,
+            "height": 64,
+            "right": 1920,
+            "bottom": 64,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 1809,
+            "y": 268,
+            "width": 78,
+            "height": 19,
+            "right": 1887,
+            "bottom": 287,
+            "visible": true
+          }
+        },
+        "gridColumns": "1196px 410px",
+        "uploadHidden": true,
+        "uploadVisible": false,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      },
+      "light-360": {
+        "viewport": {
+          "width": 360,
+          "height": 812
+        },
+        "documentWidth": 360,
+        "bodyWidth": 360,
+        "theme": "light",
+        "boxes": {
+          "wrapper": {
+            "x": 12,
+            "y": 74,
+            "width": 336,
+            "height": 1398,
+            "right": 348,
+            "bottom": 1472,
+            "visible": true
+          },
+          "topbar": {
+            "x": 12,
+            "y": 194,
+            "width": 336,
+            "height": 182,
+            "right": 348,
+            "bottom": 376,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 12,
+            "y": 324,
+            "width": 336,
+            "height": 52,
+            "right": 348,
+            "bottom": 376,
+            "visible": true
+          },
+          "grid": {
+            "x": 12,
+            "y": 388,
+            "width": 336,
+            "height": 1064,
+            "right": 348,
+            "bottom": 1452,
+            "visible": true
+          },
+          "chat": {
+            "x": 12,
+            "y": 388,
+            "width": 336,
+            "height": 340,
+            "right": 348,
+            "bottom": 728,
+            "visible": true
+          },
+          "form": {
+            "x": 13,
+            "y": 662,
+            "width": 334,
+            "height": 65,
+            "right": 347,
+            "bottom": 727,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 746,
+            "width": 360,
+            "height": 66,
+            "right": 360,
+            "bottom": 812,
+            "visible": true
+          },
+          "doc": {
+            "x": 12,
+            "y": 194,
+            "width": 336,
+            "height": 122,
+            "right": 348,
+            "bottom": 316,
+            "visible": true
+          },
+          "metadata": {
+            "x": 29,
+            "y": 922,
+            "width": 302,
+            "height": 48,
+            "right": 331,
+            "bottom": 970,
+            "visible": true
+          },
+          "summary": {
+            "x": 29,
+            "y": 1260,
+            "width": 302,
+            "height": 157,
+            "right": 331,
+            "bottom": 1417,
+            "visible": true
+          },
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 360,
+            "height": 64,
+            "right": 360,
+            "bottom": 64,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 253,
+            "y": 759,
+            "width": 78,
+            "height": 19,
+            "right": 331,
+            "bottom": 778,
+            "visible": true
+          }
+        },
+        "gridColumns": "336px",
+        "uploadHidden": true,
+        "uploadVisible": false,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      },
+      "light-375": {
+        "viewport": {
+          "width": 375,
+          "height": 812
+        },
+        "documentWidth": 375,
+        "bodyWidth": 375,
+        "theme": "light",
+        "boxes": {
+          "wrapper": {
+            "x": 12,
+            "y": 74,
+            "width": 351,
+            "height": 1353,
+            "right": 363,
+            "bottom": 1427,
+            "visible": true
+          },
+          "topbar": {
+            "x": 12,
+            "y": 176,
+            "width": 351,
+            "height": 155,
+            "right": 363,
+            "bottom": 331,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 12,
+            "y": 279,
+            "width": 351,
+            "height": 52,
+            "right": 363,
+            "bottom": 331,
+            "visible": true
+          },
+          "grid": {
+            "x": 12,
+            "y": 343,
+            "width": 351,
+            "height": 1064,
+            "right": 363,
+            "bottom": 1407,
+            "visible": true
+          },
+          "chat": {
+            "x": 12,
+            "y": 343,
+            "width": 351,
+            "height": 340,
+            "right": 363,
+            "bottom": 683,
+            "visible": true
+          },
+          "form": {
+            "x": 13,
+            "y": 617,
+            "width": 349,
+            "height": 65,
+            "right": 362,
+            "bottom": 682,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 746,
+            "width": 375,
+            "height": 66,
+            "right": 375,
+            "bottom": 812,
+            "visible": true
+          },
+          "doc": {
+            "x": 12,
+            "y": 176,
+            "width": 351,
+            "height": 95,
+            "right": 363,
+            "bottom": 271,
+            "visible": true
+          },
+          "metadata": {
+            "x": 29,
+            "y": 860,
+            "width": 317,
+            "height": 48,
+            "right": 346,
+            "bottom": 908,
+            "visible": true
+          },
+          "summary": {
+            "x": 29,
+            "y": 1198,
+            "width": 317,
+            "height": 174,
+            "right": 346,
+            "bottom": 1372,
+            "visible": true
+          },
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 375,
+            "height": 64,
+            "right": 375,
+            "bottom": 64,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 268,
+            "y": 714,
+            "width": 78,
+            "height": 19,
+            "right": 346,
+            "bottom": 733,
+            "visible": true
+          }
+        },
+        "gridColumns": "351px",
+        "uploadHidden": true,
+        "uploadVisible": false,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      },
+      "light-414": {
+        "viewport": {
+          "width": 414,
+          "height": 812
+        },
+        "documentWidth": 414,
+        "bodyWidth": 414,
+        "theme": "light",
+        "boxes": {
+          "wrapper": {
+            "x": 12,
+            "y": 74,
+            "width": 390,
+            "height": 1353,
+            "right": 402,
+            "bottom": 1427,
+            "visible": true
+          },
+          "topbar": {
+            "x": 12,
+            "y": 176,
+            "width": 390,
+            "height": 155,
+            "right": 402,
+            "bottom": 331,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 12,
+            "y": 279,
+            "width": 390,
+            "height": 52,
+            "right": 402,
+            "bottom": 331,
+            "visible": true
+          },
+          "grid": {
+            "x": 12,
+            "y": 343,
+            "width": 390,
+            "height": 1064,
+            "right": 402,
+            "bottom": 1407,
+            "visible": true
+          },
+          "chat": {
+            "x": 12,
+            "y": 343,
+            "width": 390,
+            "height": 340,
+            "right": 402,
+            "bottom": 683,
+            "visible": true
+          },
+          "form": {
+            "x": 13,
+            "y": 617,
+            "width": 388,
+            "height": 65,
+            "right": 401,
+            "bottom": 682,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 746,
+            "width": 414,
+            "height": 66,
+            "right": 414,
+            "bottom": 812,
+            "visible": true
+          },
+          "doc": {
+            "x": 12,
+            "y": 176,
+            "width": 390,
+            "height": 95,
+            "right": 402,
+            "bottom": 271,
+            "visible": true
+          },
+          "metadata": {
+            "x": 29,
+            "y": 860,
+            "width": 356,
+            "height": 48,
+            "right": 385,
+            "bottom": 908,
+            "visible": true
+          },
+          "summary": {
+            "x": 29,
+            "y": 1198,
+            "width": 356,
+            "height": 174,
+            "right": 385,
+            "bottom": 1372,
+            "visible": true
+          },
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 414,
+            "height": 64,
+            "right": 414,
+            "bottom": 64,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 307,
+            "y": 714,
+            "width": 78,
+            "height": 19,
+            "right": 385,
+            "bottom": 733,
+            "visible": true
+          }
+        },
+        "gridColumns": "390px",
+        "uploadHidden": true,
+        "uploadVisible": false,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      },
+      "light-768": {
+        "viewport": {
+          "width": 768,
+          "height": 860
+        },
+        "documentWidth": 768,
+        "bodyWidth": 768,
+        "theme": "light",
+        "boxes": {
+          "wrapper": {
+            "x": 12,
+            "y": 74,
+            "width": 744,
+            "height": 1485,
+            "right": 756,
+            "bottom": 1559,
+            "visible": true
+          },
+          "topbar": {
+            "x": 12,
+            "y": 164,
+            "width": 744,
+            "height": 155,
+            "right": 756,
+            "bottom": 319,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 12,
+            "y": 267,
+            "width": 744,
+            "height": 52,
+            "right": 756,
+            "bottom": 319,
+            "visible": true
+          },
+          "grid": {
+            "x": 12,
+            "y": 331,
+            "width": 744,
+            "height": 1208,
+            "right": 756,
+            "bottom": 1539,
+            "visible": true
+          },
+          "chat": {
+            "x": 12,
+            "y": 331,
+            "width": 744,
+            "height": 388,
+            "right": 756,
+            "bottom": 719,
+            "visible": true
+          },
+          "form": {
+            "x": 13,
+            "y": 653,
+            "width": 742,
+            "height": 65,
+            "right": 755,
+            "bottom": 718,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 794,
+            "width": 768,
+            "height": 66,
+            "right": 768,
+            "bottom": 860,
+            "visible": true
+          },
+          "doc": {
+            "x": 12,
+            "y": 164,
+            "width": 744,
+            "height": 95,
+            "right": 756,
+            "bottom": 259,
+            "visible": true
+          },
+          "metadata": {
+            "x": 29,
+            "y": 878,
+            "width": 710,
+            "height": 48,
+            "right": 739,
+            "bottom": 926,
+            "visible": true
+          },
+          "summary": {
+            "x": 29,
+            "y": 1265,
+            "width": 710,
+            "height": 240,
+            "right": 739,
+            "bottom": 1504,
+            "visible": true
+          },
+          "header": {
+            "x": 0,
+            "y": 0,
+            "width": 768,
+            "height": 64,
+            "right": 768,
+            "bottom": 64,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 661,
+            "y": 750,
+            "width": 78,
+            "height": 19,
+            "right": 739,
+            "bottom": 769,
+            "visible": true
+          }
+        },
+        "gridColumns": "744px",
+        "uploadHidden": true,
+        "uploadVisible": false,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      },
+      "light-1104": {
+        "viewport": {
+          "width": 1104,
+          "height": 860
+        },
+        "documentWidth": 1104,
+        "bodyWidth": 1104,
+        "theme": "light",
+        "boxes": {
+          "wrapper": {
+            "x": 284,
+            "y": 112,
+            "width": 806,
+            "height": 736,
+            "right": 1090,
+            "bottom": 848,
+            "visible": true
+          },
+          "topbar": {
+            "x": 284,
+            "y": 188,
+            "width": 806,
+            "height": 91,
+            "right": 1090,
+            "bottom": 279,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 284,
+            "y": 252,
+            "width": 806,
+            "height": 27,
+            "right": 1090,
+            "bottom": 279,
+            "visible": true
+          },
+          "grid": {
+            "x": 284,
+            "y": 289,
+            "width": 806,
+            "height": 547,
+            "right": 1090,
+            "bottom": 836,
+            "visible": true
+          },
+          "chat": {
+            "x": 284,
+            "y": 289,
+            "width": 514,
+            "height": 547,
+            "right": 798,
+            "bottom": 836,
+            "visible": true
+          },
+          "form": {
+            "x": 285,
+            "y": 763,
+            "width": 512,
+            "height": 72,
+            "right": 797,
+            "bottom": 835,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "doc": {
+            "x": 284,
+            "y": 188,
+            "width": 806,
+            "height": 56,
+            "right": 1090,
+            "bottom": 244,
+            "visible": true
+          },
+          "metadata": {
+            "x": 829,
+            "y": 476,
+            "width": 242,
+            "height": 66,
+            "right": 1071,
+            "bottom": 542,
+            "visible": true
+          },
+          "summary": {
+            "x": 829,
+            "y": 733,
+            "width": 242,
+            "height": 84,
+            "right": 1071,
+            "bottom": 817,
+            "visible": true
+          },
+          "header": {
+            "x": 270,
+            "y": 0,
+            "width": 834,
+            "height": 104,
+            "right": 1104,
+            "bottom": 104,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 993,
+            "y": 317,
+            "width": 78,
+            "height": 19,
+            "right": 1071,
+            "bottom": 336,
+            "visible": true
+          }
+        },
+        "gridColumns": "514px 280px",
+        "uploadHidden": true,
+        "uploadVisible": false,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      },
+      "light-1280": {
+        "viewport": {
+          "width": 1280,
+          "height": 860
+        },
+        "documentWidth": 1280,
+        "bodyWidth": 1280,
+        "theme": "light",
+        "boxes": {
+          "wrapper": {
+            "x": 284,
+            "y": 101,
+            "width": 982,
+            "height": 747,
+            "right": 1266,
+            "bottom": 848,
+            "visible": true
+          },
+          "topbar": {
+            "x": 284,
+            "y": 177,
+            "width": 982,
+            "height": 91,
+            "right": 1266,
+            "bottom": 268,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 284,
+            "y": 241,
+            "width": 982,
+            "height": 27,
+            "right": 1266,
+            "bottom": 268,
+            "visible": true
+          },
+          "grid": {
+            "x": 284,
+            "y": 278,
+            "width": 982,
+            "height": 558,
+            "right": 1266,
+            "bottom": 836,
+            "visible": true
+          },
+          "chat": {
+            "x": 284,
+            "y": 278,
+            "width": 662,
+            "height": 558,
+            "right": 946,
+            "bottom": 836,
+            "visible": true
+          },
+          "form": {
+            "x": 285,
+            "y": 763,
+            "width": 660,
+            "height": 72,
+            "right": 945,
+            "bottom": 835,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "doc": {
+            "x": 284,
+            "y": 177,
+            "width": 982,
+            "height": 56,
+            "right": 1266,
+            "bottom": 233,
+            "visible": true
+          },
+          "metadata": {
+            "x": 981,
+            "y": 465,
+            "width": 266,
+            "height": 47,
+            "right": 1247,
+            "bottom": 512,
+            "visible": true
+          },
+          "summary": {
+            "x": 981,
+            "y": 710,
+            "width": 266,
+            "height": 107,
+            "right": 1247,
+            "bottom": 817,
+            "visible": true
+          },
+          "header": {
+            "x": 270,
+            "y": 0,
+            "width": 1010,
+            "height": 93,
+            "right": 1280,
+            "bottom": 93,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 1169,
+            "y": 306,
+            "width": 78,
+            "height": 19,
+            "right": 1247,
+            "bottom": 325,
+            "visible": true
+          }
+        },
+        "gridColumns": "661.594px 304.406px",
+        "uploadHidden": true,
+        "uploadVisible": false,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      },
+      "light-1366": {
+        "viewport": {
+          "width": 1366,
+          "height": 860
+        },
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "theme": "light",
+        "boxes": {
+          "wrapper": {
+            "x": 284,
+            "y": 101,
+            "width": 1068,
+            "height": 747,
+            "right": 1352,
+            "bottom": 848,
+            "visible": true
+          },
+          "topbar": {
+            "x": 284,
+            "y": 177,
+            "width": 1068,
+            "height": 91,
+            "right": 1352,
+            "bottom": 268,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 284,
+            "y": 241,
+            "width": 1068,
+            "height": 27,
+            "right": 1352,
+            "bottom": 268,
+            "visible": true
+          },
+          "grid": {
+            "x": 284,
+            "y": 278,
+            "width": 1068,
+            "height": 558,
+            "right": 1352,
+            "bottom": 836,
+            "visible": true
+          },
+          "chat": {
+            "x": 284,
+            "y": 278,
+            "width": 721,
+            "height": 558,
+            "right": 1005,
+            "bottom": 836,
+            "visible": true
+          },
+          "form": {
+            "x": 285,
+            "y": 763,
+            "width": 719,
+            "height": 72,
+            "right": 1004,
+            "bottom": 835,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "doc": {
+            "x": 284,
+            "y": 177,
+            "width": 1068,
+            "height": 56,
+            "right": 1352,
+            "bottom": 233,
+            "visible": true
+          },
+          "metadata": {
+            "x": 1040,
+            "y": 448,
+            "width": 293,
+            "height": 47,
+            "right": 1333,
+            "bottom": 495,
+            "visible": true
+          },
+          "summary": {
+            "x": 1040,
+            "y": 710,
+            "width": 293,
+            "height": 107,
+            "right": 1333,
+            "bottom": 817,
+            "visible": true
+          },
+          "header": {
+            "x": 270,
+            "y": 0,
+            "width": 1096,
+            "height": 93,
+            "right": 1366,
+            "bottom": 93,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 1255,
+            "y": 297,
+            "width": 78,
+            "height": 19,
+            "right": 1333,
+            "bottom": 316,
+            "visible": true
+          }
+        },
+        "gridColumns": "720.922px 331.078px",
+        "uploadHidden": true,
+        "uploadVisible": false,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      },
+      "light-1920": {
+        "viewport": {
+          "width": 1920,
+          "height": 860
+        },
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "theme": "light",
+        "boxes": {
+          "wrapper": {
+            "x": 284,
+            "y": 72,
+            "width": 1622,
+            "height": 776,
+            "right": 1906,
+            "bottom": 848,
+            "visible": true
+          },
+          "topbar": {
+            "x": 284,
+            "y": 148,
+            "width": 1622,
+            "height": 91,
+            "right": 1906,
+            "bottom": 239,
+            "visible": true
+          },
+          "ephemeral": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "engine": {
+            "x": 284,
+            "y": 212,
+            "width": 1622,
+            "height": 27,
+            "right": 1906,
+            "bottom": 239,
+            "visible": true
+          },
+          "grid": {
+            "x": 284,
+            "y": 249,
+            "width": 1622,
+            "height": 587,
+            "right": 1906,
+            "bottom": 836,
+            "visible": true
+          },
+          "chat": {
+            "x": 284,
+            "y": 249,
+            "width": 1196,
+            "height": 587,
+            "right": 1480,
+            "bottom": 836,
+            "visible": true
+          },
+          "form": {
+            "x": 285,
+            "y": 763,
+            "width": 1194,
+            "height": 72,
+            "right": 1479,
+            "bottom": 835,
+            "visible": true
+          },
+          "nav": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "doc": {
+            "x": 284,
+            "y": 148,
+            "width": 1622,
+            "height": 56,
+            "right": 1906,
+            "bottom": 204,
+            "visible": true
+          },
+          "metadata": {
+            "x": 1515,
+            "y": 402,
+            "width": 372,
+            "height": 47,
+            "right": 1887,
+            "bottom": 449,
+            "visible": true
+          },
+          "summary": {
+            "x": 1515,
+            "y": 677,
+            "width": 372,
+            "height": 140,
+            "right": 1887,
+            "bottom": 817,
+            "visible": true
+          },
+          "header": {
+            "x": 270,
+            "y": 0,
+            "width": 1650,
+            "height": 64,
+            "right": 1920,
+            "bottom": 64,
+            "visible": true
+          },
+          "account": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "right": 0,
+            "bottom": 0,
+            "visible": false
+          },
+          "badge": {
+            "x": 1809,
+            "y": 268,
+            "width": 78,
+            "height": 19,
+            "right": 1887,
+            "bottom": 287,
+            "visible": true
+          }
+        },
+        "gridColumns": "1196px 410px",
+        "uploadHidden": true,
+        "uploadVisible": false,
+        "badgeText": "Synthesis",
+        "formClearOfNav": true,
+        "horizontalOverflow": false
+      }
+    },
+    "syntheticBriefLayoutOnly": {
+      "dark-375": {
+        "beforeChat": {
+          "x": 12,
+          "y": 343,
+          "width": 351,
+          "height": 340,
+          "right": 363,
+          "bottom": 683,
+          "visible": true
+        },
+        "afterChat": {
+          "x": 12,
+          "y": 343,
+          "width": 351,
+          "height": 340,
+          "right": 363,
+          "bottom": 683,
+          "visible": true
+        },
+        "beforeMetadata": {
+          "x": 29,
+          "y": 860,
+          "width": 317,
+          "height": 48,
+          "right": 346,
+          "bottom": 908,
+          "visible": true
+        },
+        "afterMetadata": {
+          "x": 29,
+          "y": 860,
+          "width": 317,
+          "height": 48,
+          "right": 346,
+          "bottom": 908,
+          "visible": true
+        },
+        "beforeSummary": {
+          "x": 29,
+          "y": 1198,
+          "width": 317,
+          "height": 174,
+          "right": 346,
+          "bottom": 1372,
+          "visible": true
+        },
+        "afterSummary": {
+          "x": 29,
+          "y": 1198,
+          "width": 317,
+          "height": 174,
+          "right": 346,
+          "bottom": 1372,
+          "visible": true
+        },
+        "horizontalOverflow": false
+      },
+      "dark-768": {
+        "beforeChat": {
+          "x": 12,
+          "y": 331,
+          "width": 744,
+          "height": 388,
+          "right": 756,
+          "bottom": 719,
+          "visible": true
+        },
+        "afterChat": {
+          "x": 12,
+          "y": 331,
+          "width": 744,
+          "height": 388,
+          "right": 756,
+          "bottom": 719,
+          "visible": true
+        },
+        "beforeMetadata": {
+          "x": 29,
+          "y": 878,
+          "width": 710,
+          "height": 48,
+          "right": 739,
+          "bottom": 926,
+          "visible": true
+        },
+        "afterMetadata": {
+          "x": 29,
+          "y": 878,
+          "width": 710,
+          "height": 48,
+          "right": 739,
+          "bottom": 926,
+          "visible": true
+        },
+        "beforeSummary": {
+          "x": 29,
+          "y": 1265,
+          "width": 710,
+          "height": 240,
+          "right": 739,
+          "bottom": 1504,
+          "visible": true
+        },
+        "afterSummary": {
+          "x": 29,
+          "y": 1265,
+          "width": 710,
+          "height": 240,
+          "right": 739,
+          "bottom": 1504,
+          "visible": true
+        },
+        "horizontalOverflow": false
+      },
+      "dark-1104": {
+        "beforeChat": {
+          "x": 284,
+          "y": 289,
+          "width": 514,
+          "height": 547,
+          "right": 798,
+          "bottom": 836,
+          "visible": true
+        },
+        "afterChat": {
+          "x": 284,
+          "y": 289,
+          "width": 514,
+          "height": 547,
+          "right": 798,
+          "bottom": 836,
+          "visible": true
+        },
+        "beforeMetadata": {
+          "x": 829,
+          "y": 476,
+          "width": 242,
+          "height": 66,
+          "right": 1071,
+          "bottom": 542,
+          "visible": true
+        },
+        "afterMetadata": {
+          "x": 829,
+          "y": 476,
+          "width": 242,
+          "height": 66,
+          "right": 1071,
+          "bottom": 542,
+          "visible": true
+        },
+        "beforeSummary": {
+          "x": 829,
+          "y": 733,
+          "width": 242,
+          "height": 140,
+          "right": 1071,
+          "bottom": 873,
+          "visible": true
+        },
+        "afterSummary": {
+          "x": 829,
+          "y": 733,
+          "width": 242,
+          "height": 140,
+          "right": 1071,
+          "bottom": 873,
+          "visible": true
+        },
+        "horizontalOverflow": false
+      },
+      "dark-1280": {
+        "beforeChat": {
+          "x": 284,
+          "y": 278,
+          "width": 662,
+          "height": 558,
+          "right": 946,
+          "bottom": 836,
+          "visible": true
+        },
+        "afterChat": {
+          "x": 284,
+          "y": 278,
+          "width": 662,
+          "height": 558,
+          "right": 946,
+          "bottom": 836,
+          "visible": true
+        },
+        "beforeMetadata": {
+          "x": 981,
+          "y": 465,
+          "width": 266,
+          "height": 47,
+          "right": 1247,
+          "bottom": 512,
+          "visible": true
+        },
+        "afterMetadata": {
+          "x": 981,
+          "y": 465,
+          "width": 266,
+          "height": 47,
+          "right": 1247,
+          "bottom": 512,
+          "visible": true
+        },
+        "beforeSummary": {
+          "x": 981,
+          "y": 710,
+          "width": 266,
+          "height": 140,
+          "right": 1247,
+          "bottom": 850,
+          "visible": true
+        },
+        "afterSummary": {
+          "x": 981,
+          "y": 710,
+          "width": 266,
+          "height": 140,
+          "right": 1247,
+          "bottom": 850,
+          "visible": true
+        },
+        "horizontalOverflow": false
+      },
+      "dark-1366": {
+        "beforeChat": {
+          "x": 284,
+          "y": 278,
+          "width": 721,
+          "height": 558,
+          "right": 1005,
+          "bottom": 836,
+          "visible": true
+        },
+        "afterChat": {
+          "x": 284,
+          "y": 278,
+          "width": 721,
+          "height": 558,
+          "right": 1005,
+          "bottom": 836,
+          "visible": true
+        },
+        "beforeMetadata": {
+          "x": 1040,
+          "y": 448,
+          "width": 293,
+          "height": 47,
+          "right": 1333,
+          "bottom": 495,
+          "visible": true
+        },
+        "afterMetadata": {
+          "x": 1040,
+          "y": 448,
+          "width": 293,
+          "height": 47,
+          "right": 1333,
+          "bottom": 495,
+          "visible": true
+        },
+        "beforeSummary": {
+          "x": 1040,
+          "y": 710,
+          "width": 293,
+          "height": 140,
+          "right": 1333,
+          "bottom": 850,
+          "visible": true
+        },
+        "afterSummary": {
+          "x": 1040,
+          "y": 710,
+          "width": 293,
+          "height": 140,
+          "right": 1333,
+          "bottom": 850,
+          "visible": true
+        },
+        "horizontalOverflow": false
+      },
+      "dark-1920": {
+        "beforeChat": {
+          "x": 284,
+          "y": 249,
+          "width": 1196,
+          "height": 587,
+          "right": 1480,
+          "bottom": 836,
+          "visible": true
+        },
+        "afterChat": {
+          "x": 284,
+          "y": 249,
+          "width": 1196,
+          "height": 587,
+          "right": 1480,
+          "bottom": 836,
+          "visible": true
+        },
+        "beforeMetadata": {
+          "x": 1515,
+          "y": 402,
+          "width": 372,
+          "height": 47,
+          "right": 1887,
+          "bottom": 449,
+          "visible": true
+        },
+        "afterMetadata": {
+          "x": 1515,
+          "y": 402,
+          "width": 372,
+          "height": 47,
+          "right": 1887,
+          "bottom": 449,
+          "visible": true
+        },
+        "beforeSummary": {
+          "x": 1515,
+          "y": 677,
+          "width": 372,
+          "height": 140,
+          "right": 1887,
+          "bottom": 817,
+          "visible": true
+        },
+        "afterSummary": {
+          "x": 1515,
+          "y": 677,
+          "width": 372,
+          "height": 140,
+          "right": 1887,
+          "bottom": 817,
+          "visible": true
+        },
+        "horizontalOverflow": false
+      },
+      "light-375": {
+        "beforeChat": {
+          "x": 12,
+          "y": 343,
+          "width": 351,
+          "height": 340,
+          "right": 363,
+          "bottom": 683,
+          "visible": true
+        },
+        "afterChat": {
+          "x": 12,
+          "y": 343,
+          "width": 351,
+          "height": 340,
+          "right": 363,
+          "bottom": 683,
+          "visible": true
+        },
+        "beforeMetadata": {
+          "x": 29,
+          "y": 860,
+          "width": 317,
+          "height": 48,
+          "right": 346,
+          "bottom": 908,
+          "visible": true
+        },
+        "afterMetadata": {
+          "x": 29,
+          "y": 860,
+          "width": 317,
+          "height": 48,
+          "right": 346,
+          "bottom": 908,
+          "visible": true
+        },
+        "beforeSummary": {
+          "x": 29,
+          "y": 1198,
+          "width": 317,
+          "height": 174,
+          "right": 346,
+          "bottom": 1372,
+          "visible": true
+        },
+        "afterSummary": {
+          "x": 29,
+          "y": 1198,
+          "width": 317,
+          "height": 174,
+          "right": 346,
+          "bottom": 1372,
+          "visible": true
+        },
+        "horizontalOverflow": false
+      },
+      "light-768": {
+        "beforeChat": {
+          "x": 12,
+          "y": 331,
+          "width": 744,
+          "height": 388,
+          "right": 756,
+          "bottom": 719,
+          "visible": true
+        },
+        "afterChat": {
+          "x": 12,
+          "y": 331,
+          "width": 744,
+          "height": 388,
+          "right": 756,
+          "bottom": 719,
+          "visible": true
+        },
+        "beforeMetadata": {
+          "x": 29,
+          "y": 878,
+          "width": 710,
+          "height": 48,
+          "right": 739,
+          "bottom": 926,
+          "visible": true
+        },
+        "afterMetadata": {
+          "x": 29,
+          "y": 878,
+          "width": 710,
+          "height": 48,
+          "right": 739,
+          "bottom": 926,
+          "visible": true
+        },
+        "beforeSummary": {
+          "x": 29,
+          "y": 1265,
+          "width": 710,
+          "height": 240,
+          "right": 739,
+          "bottom": 1504,
+          "visible": true
+        },
+        "afterSummary": {
+          "x": 29,
+          "y": 1265,
+          "width": 710,
+          "height": 240,
+          "right": 739,
+          "bottom": 1504,
+          "visible": true
+        },
+        "horizontalOverflow": false
+      },
+      "light-1104": {
+        "beforeChat": {
+          "x": 284,
+          "y": 289,
+          "width": 514,
+          "height": 547,
+          "right": 798,
+          "bottom": 836,
+          "visible": true
+        },
+        "afterChat": {
+          "x": 284,
+          "y": 289,
+          "width": 514,
+          "height": 547,
+          "right": 798,
+          "bottom": 836,
+          "visible": true
+        },
+        "beforeMetadata": {
+          "x": 829,
+          "y": 476,
+          "width": 242,
+          "height": 66,
+          "right": 1071,
+          "bottom": 542,
+          "visible": true
+        },
+        "afterMetadata": {
+          "x": 829,
+          "y": 476,
+          "width": 242,
+          "height": 66,
+          "right": 1071,
+          "bottom": 542,
+          "visible": true
+        },
+        "beforeSummary": {
+          "x": 829,
+          "y": 733,
+          "width": 242,
+          "height": 140,
+          "right": 1071,
+          "bottom": 873,
+          "visible": true
+        },
+        "afterSummary": {
+          "x": 829,
+          "y": 733,
+          "width": 242,
+          "height": 140,
+          "right": 1071,
+          "bottom": 873,
+          "visible": true
+        },
+        "horizontalOverflow": false
+      },
+      "light-1280": {
+        "beforeChat": {
+          "x": 284,
+          "y": 278,
+          "width": 662,
+          "height": 558,
+          "right": 946,
+          "bottom": 836,
+          "visible": true
+        },
+        "afterChat": {
+          "x": 284,
+          "y": 278,
+          "width": 662,
+          "height": 558,
+          "right": 946,
+          "bottom": 836,
+          "visible": true
+        },
+        "beforeMetadata": {
+          "x": 981,
+          "y": 465,
+          "width": 266,
+          "height": 47,
+          "right": 1247,
+          "bottom": 512,
+          "visible": true
+        },
+        "afterMetadata": {
+          "x": 981,
+          "y": 465,
+          "width": 266,
+          "height": 47,
+          "right": 1247,
+          "bottom": 512,
+          "visible": true
+        },
+        "beforeSummary": {
+          "x": 981,
+          "y": 710,
+          "width": 266,
+          "height": 140,
+          "right": 1247,
+          "bottom": 850,
+          "visible": true
+        },
+        "afterSummary": {
+          "x": 981,
+          "y": 710,
+          "width": 266,
+          "height": 140,
+          "right": 1247,
+          "bottom": 850,
+          "visible": true
+        },
+        "horizontalOverflow": false
+      },
+      "light-1366": {
+        "beforeChat": {
+          "x": 284,
+          "y": 278,
+          "width": 721,
+          "height": 558,
+          "right": 1005,
+          "bottom": 836,
+          "visible": true
+        },
+        "afterChat": {
+          "x": 284,
+          "y": 278,
+          "width": 721,
+          "height": 558,
+          "right": 1005,
+          "bottom": 836,
+          "visible": true
+        },
+        "beforeMetadata": {
+          "x": 1040,
+          "y": 448,
+          "width": 293,
+          "height": 47,
+          "right": 1333,
+          "bottom": 495,
+          "visible": true
+        },
+        "afterMetadata": {
+          "x": 1040,
+          "y": 448,
+          "width": 293,
+          "height": 47,
+          "right": 1333,
+          "bottom": 495,
+          "visible": true
+        },
+        "beforeSummary": {
+          "x": 1040,
+          "y": 710,
+          "width": 293,
+          "height": 140,
+          "right": 1333,
+          "bottom": 850,
+          "visible": true
+        },
+        "afterSummary": {
+          "x": 1040,
+          "y": 710,
+          "width": 293,
+          "height": 140,
+          "right": 1333,
+          "bottom": 850,
+          "visible": true
+        },
+        "horizontalOverflow": false
+      },
+      "light-1920": {
+        "beforeChat": {
+          "x": 284,
+          "y": 249,
+          "width": 1196,
+          "height": 587,
+          "right": 1480,
+          "bottom": 836,
+          "visible": true
+        },
+        "afterChat": {
+          "x": 284,
+          "y": 249,
+          "width": 1196,
+          "height": 587,
+          "right": 1480,
+          "bottom": 836,
+          "visible": true
+        },
+        "beforeMetadata": {
+          "x": 1515,
+          "y": 402,
+          "width": 372,
+          "height": 47,
+          "right": 1887,
+          "bottom": 449,
+          "visible": true
+        },
+        "afterMetadata": {
+          "x": 1515,
+          "y": 402,
+          "width": 372,
+          "height": 47,
+          "right": 1887,
+          "bottom": 449,
+          "visible": true
+        },
+        "beforeSummary": {
+          "x": 1515,
+          "y": 677,
+          "width": 372,
+          "height": 140,
+          "right": 1887,
+          "bottom": 817,
+          "visible": true
+        },
+        "afterSummary": {
+          "x": 1515,
+          "y": 677,
+          "width": 372,
+          "height": 140,
+          "right": 1887,
+          "bottom": 817,
+          "visible": true
+        },
+        "horizontalOverflow": false
+      }
+    },
+    "documentQuestionWithoutPdf": {
+      "gateShown": true,
+      "message": "Paperplane AI:\n\nUpload PDF to chat and ask questions about a document. General questions work without a PDF."
+    }
+  },
+  "studio": {
+    "widths": {
+      "dark-360": {
+        "viewport": {
+          "width": 360,
+          "height": 812
+        },
+        "documentWidth": 360,
+        "bodyWidth": 360,
+        "pageCount": "69",
+        "canvasRendered": true,
+        "activePageRenderState": [
+          {
+            "page": "1",
+            "canvas": [
+              {
+                "id": "pdf-canvas",
+                "rendered": "true",
+                "width": 314,
+                "height": 445,
+                "rect": 312
+              },
+              {
+                "id": "pdf-draw-canvas",
+                "rendered": null,
+                "width": 314,
+                "height": 445,
+                "rect": 312
+              }
+            ]
+          }
+        ],
+        "toolbar": {
+          "x": 8,
+          "y": 136,
+          "right": 352,
+          "bottom": 242,
+          "width": 344,
+          "height": 106
+        },
+        "primary": {
+          "x": 9,
+          "y": 137,
+          "right": 351,
+          "bottom": 187,
+          "width": 342,
+          "height": 50
+        },
+        "secondary": {
+          "x": 9,
+          "y": 187,
+          "right": 351,
+          "bottom": 241,
+          "width": 342,
+          "height": 54
+        },
+        "dock": {
+          "x": 0,
+          "y": 638,
+          "right": 360,
+          "bottom": 746,
+          "width": 360,
+          "height": 108
+        },
+        "nav": {
+          "x": 0,
+          "y": 746,
+          "right": 360,
+          "bottom": 812,
+          "width": 360,
+          "height": 66
+        },
+        "notice": null,
+        "primaryScroll": {
+          "width": 528,
+          "clientWidth": 342
+        },
+        "secondaryScroll": {
+          "width": 1409,
+          "clientWidth": 342
+        },
+        "duplicateLabels": [],
+        "runButton": {
+          "x": 233,
+          "y": 646,
+          "right": 355,
+          "bottom": 690,
+          "width": 122,
+          "height": 44
+        }
+      },
+      "dark-375": {
+        "viewport": {
+          "width": 375,
+          "height": 812
+        },
+        "documentWidth": 375,
+        "bodyWidth": 375,
+        "pageCount": "69",
+        "canvasRendered": true,
+        "activePageRenderState": [
+          {
+            "page": "1",
+            "canvas": [
+              {
+                "id": "pdf-canvas",
+                "rendered": "true",
+                "width": 329,
+                "height": 466,
+                "rect": 327
+              },
+              {
+                "id": "pdf-draw-canvas",
+                "rendered": null,
+                "width": 329,
+                "height": 466,
+                "rect": 327
+              }
+            ]
+          }
+        ],
+        "toolbar": {
+          "x": 8,
+          "y": 136,
+          "right": 367,
+          "bottom": 242,
+          "width": 359,
+          "height": 106
+        },
+        "primary": {
+          "x": 9,
+          "y": 137,
+          "right": 366,
+          "bottom": 187,
+          "width": 357,
+          "height": 50
+        },
+        "secondary": {
+          "x": 9,
+          "y": 187,
+          "right": 366,
+          "bottom": 241,
+          "width": 357,
+          "height": 54
+        },
+        "dock": {
+          "x": 0,
+          "y": 638,
+          "right": 375,
+          "bottom": 746,
+          "width": 375,
+          "height": 108
+        },
+        "nav": {
+          "x": 0,
+          "y": 746,
+          "right": 375,
+          "bottom": 812,
+          "width": 375,
+          "height": 66
+        },
+        "notice": null,
+        "primaryScroll": {
+          "width": 528,
+          "clientWidth": 357
+        },
+        "secondaryScroll": {
+          "width": 1409,
+          "clientWidth": 357
+        },
+        "duplicateLabels": [],
+        "runButton": {
+          "x": 248,
+          "y": 646,
+          "right": 370,
+          "bottom": 690,
+          "width": 122,
+          "height": 44
+        }
+      },
+      "dark-414": {
+        "viewport": {
+          "width": 414,
+          "height": 812
+        },
+        "documentWidth": 414,
+        "bodyWidth": 414,
+        "pageCount": "69",
+        "canvasRendered": true,
+        "activePageRenderState": [
+          {
+            "page": "1",
+            "canvas": [
+              {
+                "id": "pdf-canvas",
+                "rendered": "true",
+                "width": 368,
+                "height": 521,
+                "rect": 366
+              },
+              {
+                "id": "pdf-draw-canvas",
+                "rendered": null,
+                "width": 368,
+                "height": 521,
+                "rect": 366
+              }
+            ]
+          }
+        ],
+        "toolbar": {
+          "x": 8,
+          "y": 136,
+          "right": 406,
+          "bottom": 242,
+          "width": 398,
+          "height": 106
+        },
+        "primary": {
+          "x": 9,
+          "y": 137,
+          "right": 405,
+          "bottom": 187,
+          "width": 396,
+          "height": 50
+        },
+        "secondary": {
+          "x": 9,
+          "y": 187,
+          "right": 405,
+          "bottom": 241,
+          "width": 396,
+          "height": 54
+        },
+        "dock": {
+          "x": 0,
+          "y": 638,
+          "right": 414,
+          "bottom": 746,
+          "width": 414,
+          "height": 108
+        },
+        "nav": {
+          "x": 0,
+          "y": 746,
+          "right": 414,
+          "bottom": 812,
+          "width": 414,
+          "height": 66
+        },
+        "notice": null,
+        "primaryScroll": {
+          "width": 528,
+          "clientWidth": 396
+        },
+        "secondaryScroll": {
+          "width": 1409,
+          "clientWidth": 396
+        },
+        "duplicateLabels": [],
+        "runButton": {
+          "x": 287,
+          "y": 646,
+          "right": 409,
+          "bottom": 690,
+          "width": 122,
+          "height": 44
+        }
+      },
+      "dark-768": {
+        "viewport": {
+          "width": 768,
+          "height": 860
+        },
+        "documentWidth": 768,
+        "bodyWidth": 768,
+        "pageCount": "69",
+        "canvasRendered": true,
+        "activePageRenderState": [
+          {
+            "page": "1",
+            "canvas": [
+              {
+                "id": "pdf-canvas",
+                "rendered": "true",
+                "width": 595,
+                "height": 842,
+                "rect": 595
+              },
+              {
+                "id": "pdf-draw-canvas",
+                "rendered": null,
+                "width": 595,
+                "height": 842,
+                "rect": 595
+              }
+            ]
+          }
+        ],
+        "toolbar": {
+          "x": 8,
+          "y": 136,
+          "right": 760,
+          "bottom": 242,
+          "width": 752,
+          "height": 106
+        },
+        "primary": {
+          "x": 9,
+          "y": 137,
+          "right": 759,
+          "bottom": 187,
+          "width": 750,
+          "height": 50
+        },
+        "secondary": {
+          "x": 9,
+          "y": 187,
+          "right": 759,
+          "bottom": 241,
+          "width": 750,
+          "height": 54
+        },
+        "dock": {
+          "x": 0,
+          "y": 686,
+          "right": 768,
+          "bottom": 794,
+          "width": 768,
+          "height": 108
+        },
+        "nav": {
+          "x": 0,
+          "y": 794,
+          "right": 768,
+          "bottom": 860,
+          "width": 768,
+          "height": 66
+        },
+        "notice": null,
+        "primaryScroll": {
+          "width": 750,
+          "clientWidth": 750
+        },
+        "secondaryScroll": {
+          "width": 1345,
+          "clientWidth": 750
+        },
+        "duplicateLabels": [],
+        "runButton": {
+          "x": 638,
+          "y": 694,
+          "right": 760,
+          "bottom": 738,
+          "width": 122,
+          "height": 44
+        }
+      },
+      "dark-1104": {
+        "viewport": {
+          "width": 1104,
+          "height": 860
+        },
+        "documentWidth": 1104,
+        "bodyWidth": 1104,
+        "pageCount": "69",
+        "canvasRendered": true,
+        "activePageRenderState": [
+          {
+            "page": "1",
+            "canvas": [
+              {
+                "id": "pdf-canvas",
+                "rendered": "true",
+                "width": 528,
+                "height": 748,
+                "rect": 528
+              },
+              {
+                "id": "pdf-draw-canvas",
+                "rendered": null,
+                "width": 528,
+                "height": 748,
+                "rect": 528
+              }
+            ]
+          }
+        ],
+        "toolbar": {
+          "x": 511,
+          "y": 166,
+          "right": 1103,
+          "bottom": 342,
+          "width": 592,
+          "height": 176
+        },
+        "primary": {
+          "x": 511,
+          "y": 166,
+          "right": 1103,
+          "bottom": 255,
+          "width": 592,
+          "height": 89
+        },
+        "secondary": {
+          "x": 511,
+          "y": 255,
+          "right": 1103,
+          "bottom": 341,
+          "width": 592,
+          "height": 86
+        },
+        "dock": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "nav": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "notice": null,
+        "primaryScroll": {
+          "width": 592,
+          "clientWidth": 592
+        },
+        "secondaryScroll": {
+          "width": 592,
+          "clientWidth": 592
+        },
+        "duplicateLabels": [],
+        "runButton": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      "dark-1280": {
+        "viewport": {
+          "width": 1280,
+          "height": 860
+        },
+        "documentWidth": 1280,
+        "bodyWidth": 1280,
+        "pageCount": "69",
+        "canvasRendered": true,
+        "activePageRenderState": [
+          {
+            "page": "1",
+            "canvas": [
+              {
+                "id": "pdf-canvas",
+                "rendered": "true",
+                "width": 595,
+                "height": 842,
+                "rect": 595
+              },
+              {
+                "id": "pdf-draw-canvas",
+                "rendered": null,
+                "width": 595,
+                "height": 842,
+                "rect": 595
+              }
+            ]
+          }
+        ],
+        "toolbar": {
+          "x": 511,
+          "y": 153,
+          "right": 1279,
+          "bottom": 241,
+          "width": 768,
+          "height": 88
+        },
+        "primary": {
+          "x": 511,
+          "y": 153,
+          "right": 1279,
+          "bottom": 198,
+          "width": 768,
+          "height": 45
+        },
+        "secondary": {
+          "x": 511,
+          "y": 198,
+          "right": 1279,
+          "bottom": 240,
+          "width": 768,
+          "height": 42
+        },
+        "dock": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "nav": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "notice": null,
+        "primaryScroll": {
+          "width": 768,
+          "clientWidth": 768
+        },
+        "secondaryScroll": {
+          "width": 768,
+          "clientWidth": 768
+        },
+        "duplicateLabels": [],
+        "runButton": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      "dark-1366": {
+        "viewport": {
+          "width": 1366,
+          "height": 860
+        },
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "pageCount": "69",
+        "canvasRendered": true,
+        "activePageRenderState": [
+          {
+            "page": "1",
+            "canvas": [
+              {
+                "id": "pdf-canvas",
+                "rendered": "true",
+                "width": 595,
+                "height": 842,
+                "rect": 595
+              },
+              {
+                "id": "pdf-draw-canvas",
+                "rendered": null,
+                "width": 595,
+                "height": 842,
+                "rect": 595
+              }
+            ]
+          }
+        ],
+        "toolbar": {
+          "x": 511,
+          "y": 153,
+          "right": 1365,
+          "bottom": 241,
+          "width": 854,
+          "height": 88
+        },
+        "primary": {
+          "x": 511,
+          "y": 153,
+          "right": 1365,
+          "bottom": 198,
+          "width": 854,
+          "height": 45
+        },
+        "secondary": {
+          "x": 511,
+          "y": 198,
+          "right": 1365,
+          "bottom": 240,
+          "width": 854,
+          "height": 42
+        },
+        "dock": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "nav": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "notice": null,
+        "primaryScroll": {
+          "width": 854,
+          "clientWidth": 854
+        },
+        "secondaryScroll": {
+          "width": 854,
+          "clientWidth": 854
+        },
+        "duplicateLabels": [],
+        "runButton": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      "dark-1920": {
+        "viewport": {
+          "width": 1920,
+          "height": 860
+        },
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "pageCount": "69",
+        "canvasRendered": true,
+        "activePageRenderState": [
+          {
+            "page": "1",
+            "canvas": [
+              {
+                "id": "pdf-canvas",
+                "rendered": "true",
+                "width": 595,
+                "height": 842,
+                "rect": 595
+              },
+              {
+                "id": "pdf-draw-canvas",
+                "rendered": null,
+                "width": 595,
+                "height": 842,
+                "rect": 595
+              }
+            ]
+          }
+        ],
+        "toolbar": {
+          "x": 511,
+          "y": 121,
+          "right": 1919,
+          "bottom": 253,
+          "width": 1408,
+          "height": 132
+        },
+        "primary": {
+          "x": 511,
+          "y": 121,
+          "right": 1919,
+          "bottom": 166,
+          "width": 1408,
+          "height": 45
+        },
+        "secondary": {
+          "x": 511,
+          "y": 166,
+          "right": 1919,
+          "bottom": 252,
+          "width": 1408,
+          "height": 86
+        },
+        "dock": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "nav": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "notice": null,
+        "primaryScroll": {
+          "width": 1408,
+          "clientWidth": 1408
+        },
+        "secondaryScroll": {
+          "width": 1408,
+          "clientWidth": 1408
+        },
+        "duplicateLabels": [],
+        "runButton": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      "light-360": {
+        "viewport": {
+          "width": 360,
+          "height": 812
+        },
+        "documentWidth": 360,
+        "bodyWidth": 360,
+        "pageCount": "69",
+        "canvasRendered": true,
+        "activePageRenderState": [
+          {
+            "page": "1",
+            "canvas": [
+              {
+                "id": "pdf-canvas",
+                "rendered": "true",
+                "width": 314,
+                "height": 445,
+                "rect": 312
+              },
+              {
+                "id": "pdf-draw-canvas",
+                "rendered": null,
+                "width": 314,
+                "height": 445,
+                "rect": 312
+              }
+            ]
+          }
+        ],
+        "toolbar": {
+          "x": 8,
+          "y": 136,
+          "right": 352,
+          "bottom": 242,
+          "width": 344,
+          "height": 106
+        },
+        "primary": {
+          "x": 9,
+          "y": 137,
+          "right": 351,
+          "bottom": 187,
+          "width": 342,
+          "height": 50
+        },
+        "secondary": {
+          "x": 9,
+          "y": 187,
+          "right": 351,
+          "bottom": 241,
+          "width": 342,
+          "height": 54
+        },
+        "dock": {
+          "x": 0,
+          "y": 638,
+          "right": 360,
+          "bottom": 746,
+          "width": 360,
+          "height": 108
+        },
+        "nav": {
+          "x": 0,
+          "y": 746,
+          "right": 360,
+          "bottom": 812,
+          "width": 360,
+          "height": 66
+        },
+        "notice": null,
+        "primaryScroll": {
+          "width": 528,
+          "clientWidth": 342
+        },
+        "secondaryScroll": {
+          "width": 1409,
+          "clientWidth": 342
+        },
+        "duplicateLabels": [],
+        "runButton": {
+          "x": 233,
+          "y": 646,
+          "right": 355,
+          "bottom": 690,
+          "width": 122,
+          "height": 44
+        }
+      },
+      "light-375": {
+        "viewport": {
+          "width": 375,
+          "height": 812
+        },
+        "documentWidth": 375,
+        "bodyWidth": 375,
+        "pageCount": "69",
+        "canvasRendered": true,
+        "activePageRenderState": [
+          {
+            "page": "1",
+            "canvas": [
+              {
+                "id": "pdf-canvas",
+                "rendered": "true",
+                "width": 329,
+                "height": 466,
+                "rect": 327
+              },
+              {
+                "id": "pdf-draw-canvas",
+                "rendered": null,
+                "width": 329,
+                "height": 466,
+                "rect": 327
+              }
+            ]
+          }
+        ],
+        "toolbar": {
+          "x": 8,
+          "y": 136,
+          "right": 367,
+          "bottom": 242,
+          "width": 359,
+          "height": 106
+        },
+        "primary": {
+          "x": 9,
+          "y": 137,
+          "right": 366,
+          "bottom": 187,
+          "width": 357,
+          "height": 50
+        },
+        "secondary": {
+          "x": 9,
+          "y": 187,
+          "right": 366,
+          "bottom": 241,
+          "width": 357,
+          "height": 54
+        },
+        "dock": {
+          "x": 0,
+          "y": 638,
+          "right": 375,
+          "bottom": 746,
+          "width": 375,
+          "height": 108
+        },
+        "nav": {
+          "x": 0,
+          "y": 746,
+          "right": 375,
+          "bottom": 812,
+          "width": 375,
+          "height": 66
+        },
+        "notice": null,
+        "primaryScroll": {
+          "width": 528,
+          "clientWidth": 357
+        },
+        "secondaryScroll": {
+          "width": 1409,
+          "clientWidth": 357
+        },
+        "duplicateLabels": [],
+        "runButton": {
+          "x": 248,
+          "y": 646,
+          "right": 370,
+          "bottom": 690,
+          "width": 122,
+          "height": 44
+        }
+      },
+      "light-414": {
+        "viewport": {
+          "width": 414,
+          "height": 812
+        },
+        "documentWidth": 414,
+        "bodyWidth": 414,
+        "pageCount": "69",
+        "canvasRendered": true,
+        "activePageRenderState": [
+          {
+            "page": "1",
+            "canvas": [
+              {
+                "id": "pdf-canvas",
+                "rendered": "true",
+                "width": 368,
+                "height": 521,
+                "rect": 366
+              },
+              {
+                "id": "pdf-draw-canvas",
+                "rendered": null,
+                "width": 368,
+                "height": 521,
+                "rect": 366
+              }
+            ]
+          }
+        ],
+        "toolbar": {
+          "x": 8,
+          "y": 136,
+          "right": 406,
+          "bottom": 242,
+          "width": 398,
+          "height": 106
+        },
+        "primary": {
+          "x": 9,
+          "y": 137,
+          "right": 405,
+          "bottom": 187,
+          "width": 396,
+          "height": 50
+        },
+        "secondary": {
+          "x": 9,
+          "y": 187,
+          "right": 405,
+          "bottom": 241,
+          "width": 396,
+          "height": 54
+        },
+        "dock": {
+          "x": 0,
+          "y": 638,
+          "right": 414,
+          "bottom": 746,
+          "width": 414,
+          "height": 108
+        },
+        "nav": {
+          "x": 0,
+          "y": 746,
+          "right": 414,
+          "bottom": 812,
+          "width": 414,
+          "height": 66
+        },
+        "notice": null,
+        "primaryScroll": {
+          "width": 528,
+          "clientWidth": 396
+        },
+        "secondaryScroll": {
+          "width": 1409,
+          "clientWidth": 396
+        },
+        "duplicateLabels": [],
+        "runButton": {
+          "x": 287,
+          "y": 646,
+          "right": 409,
+          "bottom": 690,
+          "width": 122,
+          "height": 44
+        }
+      },
+      "light-768": {
+        "viewport": {
+          "width": 768,
+          "height": 860
+        },
+        "documentWidth": 768,
+        "bodyWidth": 768,
+        "pageCount": "69",
+        "canvasRendered": true,
+        "activePageRenderState": [
+          {
+            "page": "1",
+            "canvas": [
+              {
+                "id": "pdf-canvas",
+                "rendered": "true",
+                "width": 595,
+                "height": 842,
+                "rect": 595
+              },
+              {
+                "id": "pdf-draw-canvas",
+                "rendered": null,
+                "width": 595,
+                "height": 842,
+                "rect": 595
+              }
+            ]
+          }
+        ],
+        "toolbar": {
+          "x": 8,
+          "y": 136,
+          "right": 760,
+          "bottom": 242,
+          "width": 752,
+          "height": 106
+        },
+        "primary": {
+          "x": 9,
+          "y": 137,
+          "right": 759,
+          "bottom": 187,
+          "width": 750,
+          "height": 50
+        },
+        "secondary": {
+          "x": 9,
+          "y": 187,
+          "right": 759,
+          "bottom": 241,
+          "width": 750,
+          "height": 54
+        },
+        "dock": {
+          "x": 0,
+          "y": 686,
+          "right": 768,
+          "bottom": 794,
+          "width": 768,
+          "height": 108
+        },
+        "nav": {
+          "x": 0,
+          "y": 794,
+          "right": 768,
+          "bottom": 860,
+          "width": 768,
+          "height": 66
+        },
+        "notice": null,
+        "primaryScroll": {
+          "width": 750,
+          "clientWidth": 750
+        },
+        "secondaryScroll": {
+          "width": 1345,
+          "clientWidth": 750
+        },
+        "duplicateLabels": [],
+        "runButton": {
+          "x": 638,
+          "y": 694,
+          "right": 760,
+          "bottom": 738,
+          "width": 122,
+          "height": 44
+        }
+      },
+      "light-1104": {
+        "viewport": {
+          "width": 1104,
+          "height": 860
+        },
+        "documentWidth": 1104,
+        "bodyWidth": 1104,
+        "pageCount": "69",
+        "canvasRendered": true,
+        "activePageRenderState": [
+          {
+            "page": "1",
+            "canvas": [
+              {
+                "id": "pdf-canvas",
+                "rendered": "true",
+                "width": 528,
+                "height": 748,
+                "rect": 528
+              },
+              {
+                "id": "pdf-draw-canvas",
+                "rendered": null,
+                "width": 528,
+                "height": 748,
+                "rect": 528
+              }
+            ]
+          }
+        ],
+        "toolbar": {
+          "x": 511,
+          "y": 166,
+          "right": 1103,
+          "bottom": 342,
+          "width": 592,
+          "height": 176
+        },
+        "primary": {
+          "x": 511,
+          "y": 166,
+          "right": 1103,
+          "bottom": 255,
+          "width": 592,
+          "height": 89
+        },
+        "secondary": {
+          "x": 511,
+          "y": 255,
+          "right": 1103,
+          "bottom": 341,
+          "width": 592,
+          "height": 86
+        },
+        "dock": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "nav": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "notice": null,
+        "primaryScroll": {
+          "width": 592,
+          "clientWidth": 592
+        },
+        "secondaryScroll": {
+          "width": 592,
+          "clientWidth": 592
+        },
+        "duplicateLabels": [],
+        "runButton": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      "light-1280": {
+        "viewport": {
+          "width": 1280,
+          "height": 860
+        },
+        "documentWidth": 1280,
+        "bodyWidth": 1280,
+        "pageCount": "69",
+        "canvasRendered": true,
+        "activePageRenderState": [
+          {
+            "page": "1",
+            "canvas": [
+              {
+                "id": "pdf-canvas",
+                "rendered": "true",
+                "width": 595,
+                "height": 842,
+                "rect": 595
+              },
+              {
+                "id": "pdf-draw-canvas",
+                "rendered": null,
+                "width": 595,
+                "height": 842,
+                "rect": 595
+              }
+            ]
+          }
+        ],
+        "toolbar": {
+          "x": 511,
+          "y": 153,
+          "right": 1279,
+          "bottom": 241,
+          "width": 768,
+          "height": 88
+        },
+        "primary": {
+          "x": 511,
+          "y": 153,
+          "right": 1279,
+          "bottom": 198,
+          "width": 768,
+          "height": 45
+        },
+        "secondary": {
+          "x": 511,
+          "y": 198,
+          "right": 1279,
+          "bottom": 240,
+          "width": 768,
+          "height": 42
+        },
+        "dock": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "nav": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "notice": null,
+        "primaryScroll": {
+          "width": 768,
+          "clientWidth": 768
+        },
+        "secondaryScroll": {
+          "width": 768,
+          "clientWidth": 768
+        },
+        "duplicateLabels": [],
+        "runButton": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      "light-1366": {
+        "viewport": {
+          "width": 1366,
+          "height": 860
+        },
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "pageCount": "69",
+        "canvasRendered": true,
+        "activePageRenderState": [
+          {
+            "page": "1",
+            "canvas": [
+              {
+                "id": "pdf-canvas",
+                "rendered": "true",
+                "width": 595,
+                "height": 842,
+                "rect": 595
+              },
+              {
+                "id": "pdf-draw-canvas",
+                "rendered": null,
+                "width": 595,
+                "height": 842,
+                "rect": 595
+              }
+            ]
+          }
+        ],
+        "toolbar": {
+          "x": 511,
+          "y": 153,
+          "right": 1365,
+          "bottom": 241,
+          "width": 854,
+          "height": 88
+        },
+        "primary": {
+          "x": 511,
+          "y": 153,
+          "right": 1365,
+          "bottom": 198,
+          "width": 854,
+          "height": 45
+        },
+        "secondary": {
+          "x": 511,
+          "y": 198,
+          "right": 1365,
+          "bottom": 240,
+          "width": 854,
+          "height": 42
+        },
+        "dock": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "nav": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "notice": null,
+        "primaryScroll": {
+          "width": 854,
+          "clientWidth": 854
+        },
+        "secondaryScroll": {
+          "width": 854,
+          "clientWidth": 854
+        },
+        "duplicateLabels": [],
+        "runButton": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        }
+      },
+      "light-1920": {
+        "viewport": {
+          "width": 1920,
+          "height": 860
+        },
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "pageCount": "69",
+        "canvasRendered": true,
+        "activePageRenderState": [
+          {
+            "page": "1",
+            "canvas": [
+              {
+                "id": "pdf-canvas",
+                "rendered": "true",
+                "width": 595,
+                "height": 842,
+                "rect": 595
+              },
+              {
+                "id": "pdf-draw-canvas",
+                "rendered": null,
+                "width": 595,
+                "height": 842,
+                "rect": 595
+              }
+            ]
+          }
+        ],
+        "toolbar": {
+          "x": 511,
+          "y": 121,
+          "right": 1919,
+          "bottom": 253,
+          "width": 1408,
+          "height": 132
+        },
+        "primary": {
+          "x": 511,
+          "y": 121,
+          "right": 1919,
+          "bottom": 166,
+          "width": 1408,
+          "height": 45
+        },
+        "secondary": {
+          "x": 511,
+          "y": 166,
+          "right": 1919,
+          "bottom": 252,
+          "width": 1408,
+          "height": 86
+        },
+        "dock": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "nav": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "notice": null,
+        "primaryScroll": {
+          "width": 1408,
+          "clientWidth": 1408
+        },
+        "secondaryScroll": {
+          "width": 1408,
+          "clientWidth": 1408
+        },
+        "duplicateLabels": [],
+        "runButton": {
+          "x": 0,
+          "y": 0,
+          "right": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        }
+      }
+    },
+    "pagesDrawer": {
+      "drawer": {
+        "x": 8,
+        "y": 252,
+        "right": 367,
+        "bottom": 638
+      },
+      "toolbarBottom": 242,
+      "dockTop": 638,
+      "renderedThumbnails": 30,
+      "sampledThumbnails": [
+        {
+          "page": 1,
+          "rendered": true
+        },
+        {
+          "page": 35,
+          "rendered": true
+        },
+        {
+          "page": 69,
+          "rendered": true
+        }
+      ]
+    },
+    "propertiesOpenClose": true,
+    "sidebarExport": {
+      "pages": 69,
+      "firstPageText": "Introduction to Machine Learning Class Notes · Page 1\nPage 1 discusses supervised learning, polynomial degrees, vector orthogonality, and\npositive semi-definite operators. This deterministic sample supports page navigation and\nlocal answer tests.\n",
+      "filename": "edited_notes_69pages_audit.pdf"
+    },
+    "pageJumps": [
+      {
+        "page": 69,
+        "renderSeconds": 0.111,
+        "counter": "69"
+      },
+      {
+        "page": 1,
+        "renderSeconds": 0.101,
+        "counter": "1"
+      },
+      {
+        "page": 35,
+        "renderSeconds": 0.074,
+        "counter": "35"
+      }
+    ],
+    "deleteRetention": [
+      {
+        "reload": 1,
+        "pageCount": "68",
+        "page": "35"
+      },
+      {
+        "reload": 2,
+        "pageCount": "68",
+        "page": "35"
+      }
+    ],
+    "positionAfterDelete": "35",
+    "deleteConfirmation": "Please confirm\n\nDelete page 69? You can undo this for 10 seconds after the deletion completes.\n\nCancel\nDelete pages"
+  },
+  "directory": {
+    "pathname": "/tool-desk",
+    "duplicateHomeTabCount": 0,
+    "toolCount": 41,
+    "sectionCount": 6,
+    "heading": "Tool Desk"
+  },
+  "page_errors": [],
+  "console_errors": []
+}

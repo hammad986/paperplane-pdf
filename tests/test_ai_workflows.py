@@ -168,6 +168,7 @@ def test_ai_chat_stream_reports_document_stages_and_page_citation(tmp_path, monk
     source = tmp_path / "stream-page.pdf"
     make_pdf(source)
     monkeypatch.setattr(ai_engine, "AI_KILL_SWITCH", False)
+    monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "test-key")
     monkeypatch.setattr(ai_engine, "stream_bluesminds", lambda system, user, timeout_seconds=50: iter(["October 25, 2026 is the deadline. [Page 1] " + ("More context follows. " * 20)]))
     with source.open("rb") as handle:
         response = TestClient(app).post(
@@ -190,12 +191,148 @@ def test_ai_chat_answers_general_question_without_pdf(monkeypatch):
     client = TestClient(app)
     response = client.post("/api/ai/chat", data={"question": "Hello, how are you?"})
     assert response.status_code == 200
-    assert "Hello!" in response.json()["answer"]
+    assert response.json()["answer"] == ai_engine._simple_greeting_reply("Hello, how are you?")
     assert response.json()["citations"] == []
 
     document_question = client.post("/api/ai/chat", data={"question": "What is the deadline in the PDF?"})
     assert document_question.status_code == 200
     assert "No PDF is open" in document_question.json()["answer"]
+
+
+def test_ai_greetings_bypass_document_retrieval_with_or_without_pdf(tmp_path, monkeypatch):
+    from fastapi.testclient import TestClient
+    from server import app
+
+    source = tmp_path / "greeting-document.pdf"
+    make_pdf(source)
+    monkeypatch.setattr(ai_engine, "AI_KILL_SWITCH", False)
+    monkeypatch.setattr(ai_engine, "call_llm", lambda *args, **kwargs: "A direct general answer.")
+    client = TestClient(app)
+
+    expected = {
+        "hey": "Hello! How can I help you today? You can ask a general question or ask about your PDF.",
+        "hello": "Hello! How can I help you today? You can ask a general question or ask about your PDF.",
+        "how are you": "I'm here and ready to help. What would you like to know or do with your PDF?",
+    }
+    for question, answer in expected.items():
+        no_document = client.post("/api/ai/chat", data={"question": question})
+        assert no_document.status_code == 200
+        assert no_document.json()["answer"] == answer
+        assert no_document.json()["citations"] == []
+
+        with source.open("rb") as handle:
+            with_document = client.post(
+                "/api/ai/chat",
+                data={"question": question},
+                files={"file": (source.name, handle, "application/pdf")},
+            )
+        assert with_document.status_code == 200
+        assert with_document.json()["answer"] == answer
+        assert with_document.json()["citations"] == []
+
+        stream_no_document = client.post("/api/ai/chat/stream", data={"question": question})
+        assert stream_no_document.status_code == 200
+        assert f'"text": "{answer}"' in stream_no_document.text
+        assert '"mode": "direct_conversation"' in stream_no_document.text
+
+        with source.open("rb") as handle:
+            stream_with_document = client.post(
+                "/api/ai/chat/stream",
+                data={"question": question},
+                files={"file": (source.name, handle, "application/pdf")},
+            )
+        assert stream_with_document.status_code == 200
+        assert f'"text": "{answer}"' in stream_with_document.text
+        assert '"mode": "direct_conversation"' in stream_with_document.text
+        assert '"stage": "Extracting' not in stream_with_document.text
+
+
+def test_ai_chat_with_pdf_keeps_document_questions_grounded_and_general_questions_direct(tmp_path, monkeypatch):
+    source = tmp_path / "direct-versus-document.pdf"
+    make_pdf(source)
+    prompts = []
+
+    def fake_call(system, user, timeout_seconds=None):
+        prompts.append(user)
+        if "DOCUMENT EXCERPTS" in user:
+            return "The page includes an important deadline. [Page 1]"
+        return "A direct general answer."
+
+    monkeypatch.setattr(ai_engine, "AI_KILL_SWITCH", False)
+    monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "test-key")
+    monkeypatch.setattr(ai_engine, "call_llm", fake_call)
+    direct = ai_engine.chat_with_pdf(source, "Can you help me with a general question?")
+    assert direct["answer"] == "A direct general answer."
+    assert direct["citations"] == []
+    assert "DOCUMENT EXCERPTS" not in prompts[-1]
+
+    grounded = ai_engine.chat_with_pdf(source, "What is on page 1?")
+    assert "important deadline" in grounded["answer"]
+    assert grounded["citations"] == [1]
+    assert "[Page 1]" in prompts[-1]
+
+
+def test_ai_summary_timeout_and_translation_failure_return_actionable_gateway_errors(tmp_path, monkeypatch):
+    import time
+    from fastapi.testclient import TestClient
+    import server
+
+    source = tmp_path / "bounded-ai.pdf"
+    make_pdf(source)
+    client = TestClient(server.app)
+
+    monkeypatch.setattr(server, "AI_SUMMARY_REQUEST_TIMEOUT_SECONDS", 0.02)
+    monkeypatch.setattr(ai_engine, "summarize_pdf", lambda _path: (time.sleep(0.15), "late response")[1])
+    with source.open("rb") as handle:
+        summary = client.post("/api/ai/summarize", files={"file": (source.name, handle, "application/pdf")})
+    assert summary.status_code == 504
+    assert summary.json()["detail"] == "Executive Brief timed out. Please retry with a shorter PDF."
+
+    monkeypatch.setattr(server, "translation_ai_available", lambda: True)
+    monkeypatch.setattr(ai_engine, "translate_pdf_layout", lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("provider failure details")))
+    with source.open("rb") as handle:
+        translated = client.post(
+            "/api/ai/translate",
+            data={"target_language": "es"},
+            files={"file": (source.name, handle, "application/pdf")},
+        )
+    assert translated.status_code == 502
+    assert translated.json()["detail"] == "Translation could not be completed. Please retry with a shorter PDF or try again later."
+
+
+def test_document_chat_uses_cited_local_answer_when_ai_provider_is_unconfigured(tmp_path, monkeypatch):
+    from fastapi.testclient import TestClient
+    from server import app
+
+    source = tmp_path / "local-answer.pdf"
+    make_pdf(source)
+    monkeypatch.setattr(ai_engine, "AI_KILL_SWITCH", False)
+    monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "")
+    monkeypatch.setenv("BLUESMINDS_API_KEY", "")
+    monkeypatch.setattr(ai_engine, "call_llm", lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("provider must not be called")))
+
+    direct = ai_engine.chat_with_pdf(source, "What is on page 1?")
+    assert "October 25, 2026" in direct["answer"]
+    assert direct["citations"] == [1]
+    assert direct["fallback_used"] is True
+
+    with source.open("rb") as handle:
+        response = TestClient(app).post(
+            "/api/ai/chat/stream",
+            data={"question": "What is on page 1?"},
+            files={"file": (source.name, handle, "application/pdf")},
+        )
+    assert response.status_code == 200
+    assert '"mode": "local_extraction"' in response.text
+    streamed_answer = ""
+    lines = response.text.splitlines()
+    for index, line in enumerate(lines[:-1]):
+        if line.strip() == "event: token" and lines[index + 1].startswith("data: "):
+            streamed_answer += json.loads(lines[index + 1][6:])["text"]
+    assert "October 25, 2026" in streamed_answer
+    assert "[Page 1]" in streamed_answer
+    assert "[[Page" not in streamed_answer
+    assert '"citations": [1]' in response.text
 
 
 def test_ai_first_attempt_general_identity_and_code_scope(monkeypatch):
@@ -206,7 +343,7 @@ def test_ai_first_attempt_general_identity_and_code_scope(monkeypatch):
     client = TestClient(app)
     response = client.post("/api/ai/chat", data={"question": "Hello, how are you?"})
     assert response.status_code == 200
-    assert response.json()["answer"] == "A direct answer on the first request."
+    assert response.json()["answer"] == ai_engine._simple_greeting_reply("Hello, how are you?")
 
     for question in ("Who are you?", "What model are you?", "Who trained you?", "Are you Nemotron?"):
         answer = client.post("/api/ai/chat", data={"question": question}).json()["answer"]
@@ -230,6 +367,7 @@ def test_broad_summary_covers_all_document_pages_and_page_one_retrieval(tmp_path
 
     captured = {}
     monkeypatch.setattr(ai_engine, "AI_KILL_SWITCH", False)
+    monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "test-key")
     monkeypatch.setattr(ai_engine, "call_llm", lambda system, user, timeout_seconds=None: captured.setdefault("prompt", user) or "ok")
     summary = ai_engine.summarize_pdf(source)
     assert "Page 20" in captured["prompt"]
@@ -299,7 +437,7 @@ def test_short_document_chat_uses_full_context_but_keeps_unsupported_queries_unc
     assert "TN-4202608046409" in result["answer"]
     assert "Priya Raman" in result["answer"]
 
-    unsupported = ai_engine.chat_with_pdf(source, "What is the atmospheric composition of Mars?")
+    unsupported = ai_engine.chat_with_pdf(source, "According to this PDF, what is the atmospheric composition of Mars?")
     assert unsupported["citations"] == []
     assert "no relevant information" in unsupported["answer"].lower()
 
@@ -343,14 +481,16 @@ def test_ai_chat_and_summarize_endpoints(tmp_path, monkeypatch):
     pdf_path = tmp_path / "test_doc.pdf"
     make_pdf(pdf_path)
 
-    # 1. When BLUESMINDS_API_KEY is missing -> HTTP 503 "AI provider is not configured"
+    # 1. Document questions remain useful without an AI key through cited local extraction.
     monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "")
     monkeypatch.setenv("BLUESMINDS_API_KEY", "")
 
     with open(pdf_path, "rb") as f:
         res = client.post("/api/ai/chat", data={"question": "What is the deadline?"}, files={"file": ("test.pdf", f, "application/pdf")})
-    assert res.status_code == 503
-    assert res.json()["detail"] == "AI provider is not configured"
+    assert res.status_code == 200
+    assert "October 25, 2026" in res.json()["answer"]
+    assert res.json()["citations"] == [1]
+    assert res.json()["fallback_used"] is True
 
     with open(pdf_path, "rb") as f:
         res = client.post("/api/ai/summarize", files={"file": ("test.pdf", f, "application/pdf")})

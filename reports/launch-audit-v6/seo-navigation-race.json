@@ -1,0 +1,333 @@
+{
+  "base": "http://127.0.0.1:8501",
+  "results": [
+    {
+      "run": 1,
+      "operations": [
+        "merge",
+        "split",
+        "compress",
+        "remove",
+        "rotate",
+        "organize",
+        "scan_pdf",
+        "ocr",
+        "jpg_to_pdf",
+        "word_to_pdf"
+      ],
+      "latest_content_render_seconds": 0.625,
+      "final_state_after_out_of_order_responses": {
+        "heading": "Convert Word documents to PDF",
+        "title": "Word to PDF Converter \u2014 Convert DOCX to PDF | Paperplane",
+        "busy": null,
+        "requests": [
+          "merge",
+          "split",
+          "compress",
+          "remove",
+          "rotate",
+          "organize",
+          "scan_pdf",
+          "ocr",
+          "jpg_to_pdf",
+          "word_to_pdf"
+        ],
+        "completionOrder": [
+          "word_to_pdf",
+          "jpg_to_pdf",
+          "ocr",
+          "scan_pdf",
+          "organize",
+          "rotate",
+          "remove",
+          "compress",
+          "split",
+          "merge"
+        ],
+        "operation": "word_to_pdf"
+      },
+      "first_landing_by_tool": [
+        {
+          "operation": "merge",
+          "heading": "Merge PDF files in your preferred order",
+          "title": "Merge PDF Files Online \u2014 Combine PDFs Free | Paperplane",
+          "howTo": [
+            "Upload PDFs in the desired order",
+            "Rearrange thumbnails before processing",
+            "Download the merged document"
+          ],
+          "seconds": 0.082
+        },
+        {
+          "operation": "split",
+          "heading": "Split a PDF by pages or ranges",
+          "title": "Split PDF Online \u2014 Extract Pages & Ranges Free | Paperplane",
+          "howTo": [
+            "Choose the source PDF",
+            "Enter page numbers or ranges",
+            "Download the extracted PDF files"
+          ],
+          "seconds": 0.077
+        },
+        {
+          "operation": "compress",
+          "heading": "Compress a PDF without guesswork",
+          "title": "Compress PDF Online \u2014 Reduce PDF File Size | Paperplane",
+          "howTo": [
+            "Upload a PDF and inspect its size",
+            "Choose lossless or quality-based compression",
+            "Download the smaller verified PDF"
+          ],
+          "seconds": 0.029
+        },
+        {
+          "operation": "remove",
+          "heading": "Remove unwanted pages from a PDF",
+          "title": "Remove Pages from PDF Online \u2014 Delete PDF Pages | Paperplane",
+          "howTo": [
+            "Open the PDF page organizer",
+            "Select pages to delete",
+            "Confirm and download the cleaned PDF"
+          ],
+          "seconds": 0.075
+        },
+        {
+          "operation": "rotate",
+          "heading": "Rotate PDF pages to the correct orientation",
+          "title": "Rotate PDF Pages Online \u2014 Turn Pages 90\u00b0 or 180\u00b0 | Paperplane",
+          "howTo": [
+            "Upload the PDF",
+            "Select pages and a rotation angle",
+            "Download the reoriented PDF"
+          ],
+          "seconds": 0.074
+        },
+        {
+          "operation": "organize",
+          "heading": "Organize PDF pages with a visual editor",
+          "title": "Organize PDF Pages Online \u2014 Reorder, Rotate & Delete | Paperplane",
+          "howTo": [
+            "Load the PDF into the page organizer",
+            "Drag pages or use touch controls to change order",
+            "Apply page actions and export"
+          ],
+          "seconds": 0.084
+        },
+        {
+          "operation": "scan_pdf",
+          "heading": "Turn photos and scans into a readable PDF",
+          "title": "Scan to PDF Online \u2014 Convert Photos & Scans | Paperplane",
+          "howTo": [
+            "Add scanned images or camera photos",
+            "Adjust enhancement and page order",
+            "Export the optimized PDF"
+          ],
+          "seconds": 0.076
+        },
+        {
+          "operation": "ocr",
+          "heading": "Make a scanned PDF searchable with OCR",
+          "title": "OCR PDF Online \u2014 Make Scanned PDFs Searchable | Paperplane",
+          "howTo": [
+            "Upload a scanned PDF",
+            "Select the OCR language and quality",
+            "Download the searchable PDF"
+          ],
+          "seconds": 0.078
+        },
+        {
+          "operation": "jpg_to_pdf",
+          "heading": "Convert images into one PDF",
+          "title": "JPG to PDF Converter \u2014 Convert Images to PDF Free | Paperplane",
+          "howTo": [
+            "Select JPG or other supported images",
+            "Arrange the image page order",
+            "Download the generated PDF"
+          ],
+          "seconds": 0.076
+        },
+        {
+          "operation": "word_to_pdf",
+          "heading": "Convert Word documents to PDF",
+          "title": "Word to PDF Converter \u2014 Convert DOCX to PDF | Paperplane",
+          "howTo": [
+            "Choose a DOC or DOCX file",
+            "Review conversion and page settings",
+            "Download the rendered PDF"
+          ],
+          "seconds": 0.088
+        }
+      ],
+      "current_request_failure_fallback": {
+        "text": "PDF to Word details could not load right now. The PDF tool is still available.",
+        "busy": null,
+        "title": "PDF to Word | Paperplane"
+      },
+      "page_errors": []
+    },
+    {
+      "run": 2,
+      "operations": [
+        "merge",
+        "split",
+        "compress",
+        "remove",
+        "rotate",
+        "organize",
+        "scan_pdf",
+        "ocr",
+        "jpg_to_pdf",
+        "word_to_pdf"
+      ],
+      "latest_content_render_seconds": 0.41,
+      "final_state_after_out_of_order_responses": {
+        "heading": "Convert Word documents to PDF",
+        "title": "Word to PDF Converter \u2014 Convert DOCX to PDF | Paperplane",
+        "busy": null,
+        "requests": [
+          "merge",
+          "split",
+          "compress",
+          "remove",
+          "rotate",
+          "organize",
+          "scan_pdf",
+          "ocr",
+          "jpg_to_pdf",
+          "word_to_pdf"
+        ],
+        "completionOrder": [
+          "word_to_pdf",
+          "jpg_to_pdf",
+          "ocr",
+          "scan_pdf",
+          "organize",
+          "rotate",
+          "remove",
+          "compress",
+          "split",
+          "merge"
+        ],
+        "operation": "word_to_pdf"
+      },
+      "first_landing_by_tool": [
+        {
+          "operation": "merge",
+          "heading": "Merge PDF files in your preferred order",
+          "title": "Merge PDF Files Online \u2014 Combine PDFs Free | Paperplane",
+          "howTo": [
+            "Upload PDFs in the desired order",
+            "Rearrange thumbnails before processing",
+            "Download the merged document"
+          ],
+          "seconds": 0.08
+        },
+        {
+          "operation": "split",
+          "heading": "Split a PDF by pages or ranges",
+          "title": "Split PDF Online \u2014 Extract Pages & Ranges Free | Paperplane",
+          "howTo": [
+            "Choose the source PDF",
+            "Enter page numbers or ranges",
+            "Download the extracted PDF files"
+          ],
+          "seconds": 0.075
+        },
+        {
+          "operation": "compress",
+          "heading": "Compress a PDF without guesswork",
+          "title": "Compress PDF Online \u2014 Reduce PDF File Size | Paperplane",
+          "howTo": [
+            "Upload a PDF and inspect its size",
+            "Choose lossless or quality-based compression",
+            "Download the smaller verified PDF"
+          ],
+          "seconds": 0.079
+        },
+        {
+          "operation": "remove",
+          "heading": "Remove unwanted pages from a PDF",
+          "title": "Remove Pages from PDF Online \u2014 Delete PDF Pages | Paperplane",
+          "howTo": [
+            "Open the PDF page organizer",
+            "Select pages to delete",
+            "Confirm and download the cleaned PDF"
+          ],
+          "seconds": 0.084
+        },
+        {
+          "operation": "rotate",
+          "heading": "Rotate PDF pages to the correct orientation",
+          "title": "Rotate PDF Pages Online \u2014 Turn Pages 90\u00b0 or 180\u00b0 | Paperplane",
+          "howTo": [
+            "Upload the PDF",
+            "Select pages and a rotation angle",
+            "Download the reoriented PDF"
+          ],
+          "seconds": 0.08
+        },
+        {
+          "operation": "organize",
+          "heading": "Organize PDF pages with a visual editor",
+          "title": "Organize PDF Pages Online \u2014 Reorder, Rotate & Delete | Paperplane",
+          "howTo": [
+            "Load the PDF into the page organizer",
+            "Drag pages or use touch controls to change order",
+            "Apply page actions and export"
+          ],
+          "seconds": 0.074
+        },
+        {
+          "operation": "scan_pdf",
+          "heading": "Turn photos and scans into a readable PDF",
+          "title": "Scan to PDF Online \u2014 Convert Photos & Scans | Paperplane",
+          "howTo": [
+            "Add scanned images or camera photos",
+            "Adjust enhancement and page order",
+            "Export the optimized PDF"
+          ],
+          "seconds": 0.087
+        },
+        {
+          "operation": "ocr",
+          "heading": "Make a scanned PDF searchable with OCR",
+          "title": "OCR PDF Online \u2014 Make Scanned PDFs Searchable | Paperplane",
+          "howTo": [
+            "Upload a scanned PDF",
+            "Select the OCR language and quality",
+            "Download the searchable PDF"
+          ],
+          "seconds": 0.081
+        },
+        {
+          "operation": "jpg_to_pdf",
+          "heading": "Convert images into one PDF",
+          "title": "JPG to PDF Converter \u2014 Convert Images to PDF Free | Paperplane",
+          "howTo": [
+            "Select JPG or other supported images",
+            "Arrange the image page order",
+            "Download the generated PDF"
+          ],
+          "seconds": 0.075
+        },
+        {
+          "operation": "word_to_pdf",
+          "heading": "Convert Word documents to PDF",
+          "title": "Word to PDF Converter \u2014 Convert DOCX to PDF | Paperplane",
+          "howTo": [
+            "Choose a DOC or DOCX file",
+            "Review conversion and page settings",
+            "Download the rendered PDF"
+          ],
+          "seconds": 0.085
+        }
+      ],
+      "current_request_failure_fallback": {
+        "text": "PDF to Word details could not load right now. The PDF tool is still available.",
+        "busy": null,
+        "title": "PDF to Word | Paperplane"
+      },
+      "page_errors": []
+    }
+  ]
+}

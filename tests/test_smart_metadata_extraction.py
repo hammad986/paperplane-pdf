@@ -1,5 +1,6 @@
 import csv
 import io
+import tempfile
 import unittest
 from unittest.mock import patch
 from pathlib import Path
@@ -16,8 +17,8 @@ class TestSmartMetadataExtraction(unittest.TestCase):
     def setUpClass(cls):
         init_db()
         cls.client = TestClient(app)
-        cls.test_dir = Path(__file__).parent / "fixtures"
-        cls.test_dir.mkdir(parents=True, exist_ok=True)
+        cls.test_temp_dir = tempfile.TemporaryDirectory(prefix="paperplane-smart-metadata-")
+        cls.test_dir = Path(cls.test_temp_dir.name)
 
         # 1. Build Ground-Truth Invoice PDF
         cls.invoice_pdf = cls.test_dir / "sample_invoice.pdf"
@@ -82,6 +83,10 @@ Bachelor of Science in Computer Science - University of California (2013 - 2017)
         page2.insert_text(fitz.Point(50, 60), resume_text, fontsize=10)
         doc2.save(str(cls.resume_pdf))
         doc2.close()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.test_temp_dir.cleanup()
 
     def test_01_extract_invoice_ground_truth(self):
         """Verifies canonical schema, invoice fields, line items, and contacts from ground-truth invoice."""
@@ -185,8 +190,9 @@ Bachelor of Science in Computer Science - University of California (2013 - 2017)
         self.assertEqual(reader[0][0], "DocumentTitle")
         self.assertIn("Paperplane Architecture", reader[1][0])
 
+    @patch("ai_engine._current_bluesminds_api_key", return_value="configured-test-key")
     @patch("ai_engine.call_llm", return_value="The invoice number is INV-2026-8891 and total amount is $550.00 [Page 1].")
-    def test_06_chat_supported_vs_unsupported_queries(self, mock_llm):
+    def test_06_chat_supported_vs_unsupported_queries(self, mock_llm, mock_api_key):
         """Verifies grounded answers and verified citations for supported questions, and honest zero citations for unsupported questions."""
         # 1. Supported question
         res_sup = ai_engine.chat_with_pdf(self.invoice_pdf, "What is the invoice number and total amount?")

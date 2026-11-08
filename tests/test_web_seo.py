@@ -22,17 +22,30 @@ def test_all_operation_slugs_render_crawlable_pages():
 def test_operation_shell_is_server_rendered_for_deep_links():
     response = client.get("/word-to-pdf")
     assert response.status_code == 200
-    assert '<div id="view-home" class="home-container" hidden>' in response.text
+    assert '<div id="view-tool-desk-directory" class="tool-desk-directory" hidden>' in response.text
     assert '<div id="view-tool-desk" class="tool-desk-container">' in response.text
     assert '<h1 id="tool-title">Word to PDF</h1>' in response.text
     assert 'id="tool-hero-cat">Convert to PDF</span>' in response.text
     assert 'id="desk-breadcrumb-label">Convert to PDF / Word to PDF</span>' in response.text
 
 
-def test_root_shell_keeps_home_view_visible():
+def test_common_guessed_tool_slugs_redirect_to_canonical_pages():
+    aliases = {
+        "exam-photo-signature-resizer": "ssc-photo-resizer",
+        "mask-aadhaar": "mask-aadhaar-card-online",
+        "flatten-pdf-forms": "flatten-pdf",
+        "ai-summarize": "summarize-pdf",
+    }
+    for alias, canonical in aliases.items():
+        response = client.get(f"/{alias}", follow_redirects=False)
+        assert response.status_code == 301
+        assert response.headers["location"] == f"/{canonical}"
+
+
+def test_root_shell_renders_tool_desk_directory_for_first_visit():
     response = client.get("/")
     assert response.status_code == 200
-    assert '<div id="view-home" class="home-container">' in response.text
+    assert '<div id="view-tool-desk-directory" class="tool-desk-directory">' in response.text
     assert '<div id="view-tool-desk" class="tool-desk-container" hidden>' in response.text
 
 

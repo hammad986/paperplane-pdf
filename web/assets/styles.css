@@ -522,6 +522,14 @@ button, input, select, textarea {
   font-size: 13px;
 }
 
+.privacy-mode-support {
+  display: block;
+  margin: 3px 8px 0;
+  color: #91a6a5;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
 .toggle-switch-sm {
   position: relative;
   display: inline-block;
@@ -554,6 +562,11 @@ button, input, select, textarea {
   background-color: white;
   transition: 0.2s;
   border-radius: 50%;
+}
+
+.toggle-switch-sm input:disabled + .toggle-slider-sm {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 input:checked + .toggle-slider-sm {
@@ -609,6 +622,10 @@ input:checked + .toggle-slider-sm:before {
 .app-shell.sidebar-collapsed .quota-container,
 .app-shell.sidebar-collapsed .sidebar-upgrade-btn,
 .app-shell.sidebar-collapsed .footer-privacy-label {
+  display: none !important;
+}
+
+.app-shell.sidebar-collapsed .privacy-mode-support {
   display: none !important;
 }
 
@@ -4086,13 +4103,14 @@ body.dark-mode .btn-secondary-action {
     position: fixed;
     left: -290px;
     top: 0;
-    bottom: 0;
+    bottom: calc(66px + env(safe-area-inset-bottom, 0px));
     width: 290px;
-    height: 100vh;
+    height: calc(100vh - 66px - env(safe-area-inset-bottom, 0px));
     transition: left 0.3s var(--ease-spring);
     z-index: 50;
     box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
   }
+  .sidebar-scroll-area { min-height: 0; }
   .sidebar.mobile-open {
     left: 0;
   }
@@ -6134,7 +6152,7 @@ body:not(.light-mode) .editor-select option {
 }
 
 /* ==========================================================================
-   Phase C  -  Simplified Home Page & iLovePDF-Style Tool Directory
+   Tool Desk directory styling
    ========================================================================== */
 
 .home-container {
@@ -8710,4 +8728,739 @@ section, h1, h2, h3 { scroll-margin-top: 104px; }
   }
   html.studio-active body .studio-page-sheet { max-width: calc(100vw - 40px) !important; }
   html.studio-active body .studio-page-sheet .pdf-page-canvas { display: block; max-width: 100% !important; height: auto !important; }
+}
+
+/* --------------------------------------------------------------------------
+   V6 workspace layout: fixed AI geometry and a mobile-first Studio shell.
+   These rules replace the accumulated per-breakpoint layouts above.
+   -------------------------------------------------------------------------- */
+.mobile-view-pill { display: none; }
+
+/* AI Docs keeps the same proportions while messages, summaries and files change. */
+#app-shell.ai-active .ai-studio-wrapper {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 14px;
+  min-height: 0;
+  align-content: start;
+  padding-bottom: 12px;
+}
+#app-shell.ai-active .ai-studio-topbar { min-width: 0; gap: 8px; }
+#app-shell.ai-active .ai-active-doc-strip { min-width: 0; flex-wrap: wrap; }
+#app-shell.ai-active .ai-doc-info-group { min-width: 0; flex: 1 1 360px; flex-wrap: wrap; }
+#app-shell.ai-active .ai-doc-details { min-width: 0; overflow-wrap: anywhere; }
+#app-shell.ai-active .ai-studio-container {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) clamp(300px, 31%, 410px) !important;
+  align-items: stretch;
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+  min-height: clamp(620px, calc(100dvh - 300px), 820px) !important;
+  height: clamp(620px, calc(100dvh - 300px), 820px);
+}
+#app-shell.ai-active .ai-chat-card { width: 100%; min-width: 0; min-height: 0; height: 100%; }
+#app-shell.ai-active .ai-chat-header { flex: 0 0 auto; min-width: 0; }
+#app-shell.ai-active .ai-chat-messages {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+#app-shell.ai-active .ai-chat-form { position: static; flex: 0 0 auto; margin-top: auto; }
+#app-shell.ai-active .ai-studio-container > div:last-child {
+  display: grid !important;
+  grid-template-rows: minmax(0, .92fr) minmax(0, 1.08fr);
+  gap: 14px !important;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+}
+#app-shell.ai-active .ai-studio-container > div:last-child > .ai-chat-card {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+#app-shell.ai-active .view-header-badge,
+#app-shell.ai-active .ai-doc-status-badge,
+#app-shell.ai-active .ai-engine-pill,
+#app-shell.ai-active .ai-citation-tag {
+  flex: 0 0 auto;
+  width: max-content;
+  max-width: 100%;
+  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+#app-shell.ai-active #summary-display {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  overflow: auto;
+  overflow-wrap: anywhere;
+  scrollbar-gutter: stable;
+}
+#app-shell.ai-active .ai-chat-card:has(#ai-empty-state:not([hidden])) .ai-chat-messages {
+  align-items: stretch;
+}
+#app-shell.ai-active .ai-empty-state {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+}
+#app-shell.ai-active .ai-upload-strip { width: min(100%, 680px); box-sizing: border-box; }
+#app-shell.ai-active .ai-upload-content { justify-content: center; flex-wrap: wrap; text-align: center; }
+#app-shell.ai-active .ai-upload-content > span { max-width: 520px; }
+
+/* The editor becomes a normal page on phones: only the app header stays pinned.
+   Its command and page controls sit in a compact dock above the app navigation. */
+.studio-mobile-dock,
+.studio-mobile-properties-panel,
+.studio-mobile-pages-close { display: none; }
+@media (max-width: 900px) {
+  .mobile-view-pill {
+    display: inline-flex;
+    align-items: center;
+    min-height: 30px;
+    max-width: 92px;
+    padding: 0 10px;
+    border: 1px solid var(--border-light);
+    border-radius: 999px;
+    background: var(--bg-panel-alt);
+    color: var(--text-main);
+    font-size: 12px;
+    font-weight: 650;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  #app-shell.ai-active { padding-bottom: calc(76px + env(safe-area-inset-bottom)) !important; }
+  #app-shell.ai-active .main-area {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: calc(100dvh - 56px) !important;
+    overflow: visible !important;
+    padding-top: 64px !important;
+  }
+  #app-shell.ai-active .dynamic-workspace {
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 10px 12px 22px !important;
+    overflow: visible !important;
+    box-sizing: border-box;
+  }
+  #app-shell.ai-active .ai-studio-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    padding-bottom: 8px;
+  }
+  #app-shell.ai-active .ai-studio-container {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto auto;
+    gap: 12px;
+    width: 100%;
+    min-width: 0;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: visible;
+  }
+  #app-shell.ai-active .ai-chat-card {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    height: min(68dvh, 640px) !important;
+    min-height: min(520px, calc(100dvh - 190px)) !important;
+    max-height: 680px;
+  }
+  #app-shell.ai-active .ai-chat-header { gap: 8px; padding: 12px 14px; }
+  #app-shell.ai-active .ai-chat-header > div { flex: 1 1 140px !important; min-width: 0; }
+  #app-shell.ai-active .ai-chat-header small { display: block !important; }
+  #app-shell.ai-active #ai-upload-inline-btn:not([hidden]),
+  #app-shell.ai-active #ai-chat-clear-btn { display: inline-flex !important; min-height: 40px; }
+  #app-shell.ai-active #ai-upload-inline-btn[hidden],
+  #app-shell.ai-active #ai-chat-clear-btn[hidden] { display: none !important; }
+  #app-shell.ai-active .ai-chat-messages {
+    flex: 1 1 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    padding: 14px 12px;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+  }
+  #app-shell.ai-active .ai-chat-form {
+    position: static !important;
+    bottom: auto !important;
+    z-index: auto;
+    flex: 0 0 auto !important;
+    gap: 8px;
+    padding: 10px;
+  }
+  #app-shell.ai-active .ai-chat-input { min-width: 0; min-height: 44px; padding: 10px 12px; }
+  #app-shell.ai-active .ai-chat-form .btn-primary-action { min-height: 44px; padding-inline: 14px !important; }
+  #app-shell.ai-active .ai-chat-card:has(#ai-empty-state:not([hidden])) .ai-chat-messages { display: flex; }
+  #app-shell.ai-active .ai-empty-state { min-height: 0 !important; gap: 16px; padding: 14px 4px; }
+  #app-shell.ai-active .ai-empty-copy strong { font-size: clamp(21px, 6vw, 28px); }
+  #app-shell.ai-active .ai-upload-content { flex-direction: column; gap: 8px; padding: 12px; }
+  #app-shell.ai-active .ai-upload-content > span { display: grid; gap: 4px; }
+  #app-shell.ai-active .ai-upload-content > span > span { max-width: 100%; }
+  #app-shell.ai-active .ai-upload-content .btn-primary-action { min-height: 44px; }
+  #app-shell.ai-active .ai-studio-container > div:last-child {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    width: 100%;
+    height: auto;
+    min-width: 0;
+    gap: 12px !important;
+  }
+  #app-shell.ai-active .ai-studio-container > div:last-child > .ai-chat-card {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none;
+    padding: 16px !important;
+  }
+  #app-shell.ai-active #summary-display { min-height: 140px; max-height: min(36dvh, 280px); }
+  #app-shell.ai-active .ai-active-doc-strip { align-items: flex-start; padding: 10px 12px; }
+  #app-shell.ai-active .ai-doc-info-group { flex-basis: 100%; gap: 8px; }
+  #app-shell.ai-active .ai-doc-actions { width: 100%; justify-content: flex-end; }
+  #app-shell.ai-active .ai-engine-notice-bar { flex-wrap: wrap; gap: 6px; padding: 4px 2px; }
+  #app-shell.ai-active .ephemeral-work-notice { max-width: 100%; }
+
+  html.studio-active,
+  html.studio-active body {
+    width: 100%;
+    height: auto !important;
+    min-height: 100%;
+    overflow-x: clip !important;
+    overflow-y: auto !important;
+  }
+  html.studio-active body #app-shell {
+    display: flex !important;
+    flex-direction: column;
+    width: 100%;
+    height: auto !important;
+    min-height: 100dvh !important;
+    overflow: visible !important;
+    padding-bottom: calc(174px + env(safe-area-inset-bottom)) !important;
+  }
+  html.studio-active body #app-shell .main-area {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: calc(100dvh - 64px) !important;
+    margin: 0 !important;
+    padding: 64px 0 0 !important;
+    overflow: visible !important;
+  }
+  html.studio-active body #app-shell .dynamic-workspace {
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 8px 12px !important;
+    overflow: visible !important;
+    box-sizing: border-box;
+  }
+  html.studio-active body #view-pdf-studio {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+  html.studio-active body .pdf-studio {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    height: auto !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+  html.studio-active body .studio-thumbnails-bar {
+    display: none !important;
+    position: fixed !important;
+    inset: calc(68px + env(safe-area-inset-top, 0px)) 8px auto !important;
+    z-index: 900 !important;
+    width: auto !important;
+    height: auto !important;
+    max-height: min(58dvh, 480px) !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    border: 1px solid var(--studio-border) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 18px 48px rgba(0, 0, 0, .38);
+  }
+  html.studio-active body #app-shell.studio-pages-open .studio-thumbnails-bar { display: flex !important; }
+  html.studio-active body .studio-thumbnails-header {
+    display: flex !important;
+    flex: 0 0 auto !important;
+    min-height: 50px !important;
+    padding: 8px 10px !important;
+    gap: 8px;
+  }
+  html.studio-active body .organizer-header-actions { gap: 6px; }
+  html.studio-active body .studio-mobile-pages-close { display: inline-flex !important; }
+  html.studio-active body .studio-mobile-batch-slot:empty { display: none !important; }
+  html.studio-active body .studio-mobile-batch-slot:not(:empty) {
+    display: block;
+    flex: 0 0 auto;
+    width: 100%;
+    max-height: 30dvh;
+    overflow: hidden;
+    border-bottom: 1px solid var(--studio-border);
+    background: var(--studio-bg);
+  }
+  html.studio-active body #studio-mobile-batch-slot .organizer-selection-panel {
+    position: static !important;
+    display: flex !important;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 8px;
+    width: 100%;
+    max-height: 30dvh;
+    padding: 8px;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: hidden !important;
+    animation: none;
+  }
+  html.studio-active body #studio-mobile-batch-slot .selection-panel-summary { justify-content: space-between; gap: 6px; }
+  html.studio-active body #studio-mobile-batch-slot .selection-action-clusters {
+    width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-wrap: nowrap !important;
+    padding-bottom: 4px;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+  }
+  html.studio-active body #studio-mobile-batch-slot .action-cluster { flex: 0 0 auto; flex-wrap: nowrap; }
+  html.studio-active body #studio-mobile-batch-slot .cluster-btn { white-space: nowrap; }
+  html.studio-active body .studio-thumbnails-scroll {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: calc(min(58dvh, 480px) - 54px) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    padding: 10px !important;
+    box-sizing: border-box;
+  }
+  html.studio-active body .organizer-grid.strip-mode,
+  html.studio-active body .organizer-grid.grid-mode {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    gap: 8px !important;
+    overflow: visible !important;
+  }
+  html.studio-active body .organizer-grid .organizer-thumb-card {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    min-height: 0 !important;
+  }
+  html.studio-active body .organizer-grid .organizer-thumb-card canvas,
+  html.studio-active body .organizer-grid .organizer-thumb-card img {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+  }
+  html.studio-active body .studio-main-viewport {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    height: auto !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    background: transparent;
+  }
+  html.studio-active body .studio-main-viewport > .ephemeral-work-notice {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    margin: 8px 0 !important;
+    padding: 7px 9px !important;
+    border-radius: 10px;
+    font-size: 11px !important;
+    line-height: 1.35;
+  }
+  html.studio-active body .studio-main-viewport > .ephemeral-work-notice > span {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  html.studio-active body .studio-main-viewport > .ephemeral-work-notice .work-clear-btn {
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 6px 9px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+  html.studio-active body .studio-toolbar {
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border: 1px solid var(--studio-border);
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+  }
+  html.studio-active body .studio-primary-ribbon {
+    display: flex !important;
+    flex-flow: row wrap !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 5px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    height: auto !important;
+    padding: 7px !important;
+    overflow: visible !important;
+    white-space: normal !important;
+    box-sizing: border-box !important;
+  }
+  html.studio-active body .studio-primary-ribbon > *,
+  html.studio-active body .studio-tool-group,
+  html.studio-active body .studio-mode-switcher,
+  html.studio-active body .studio-dropdown-wrapper {
+    flex: 0 0 auto !important;
+    min-width: 0 !important;
+  }
+  html.studio-active body .studio-primary-ribbon .studio-divider,
+  html.studio-active body .studio-sub-ribbon .studio-divider { display: none !important; }
+  html.studio-active body .studio-sub-ribbon {
+    display: flex !important;
+    flex-flow: row nowrap !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 6px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 56px !important;
+    max-height: none !important;
+    height: auto !important;
+    padding: 6px 8px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    white-space: nowrap !important;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+    box-sizing: border-box !important;
+  }
+  html.studio-active body .studio-sub-ribbon > *,
+  html.studio-active body .studio-sub-ribbon .studio-tool-group { flex: 0 0 auto !important; min-width: 0 !important; }
+  html.studio-active body .studio-toolbar button,
+  html.studio-active body .studio-mode-btn,
+  html.studio-active body .studio-dropdown-trigger,
+  html.studio-active body .studio-mobile-dock button {
+    min-height: 44px !important;
+    box-sizing: border-box;
+  }
+  html.studio-active body .studio-toolbar .tool-btn-text { white-space: nowrap; }
+  html.studio-active body .studio-mode-btn { padding-inline: 9px; }
+  html.studio-active body .studio-dropdown-menu { position: fixed; inset: auto 8px calc(178px + env(safe-area-inset-bottom)) 8px; width: auto; max-width: none; max-height: 55dvh; z-index: 920; overflow: auto; }
+  html.studio-active body .organizer-selection-panel { width: 100%; max-width: 100%; box-sizing: border-box; overflow: visible !important; }
+  html.studio-active body .selection-action-clusters,
+  html.studio-active body .action-cluster { min-width: 0; max-width: 100%; flex-wrap: wrap; }
+  html.studio-active body .studio-canvas-area {
+    display: block !important;
+    width: 100% !important;
+    height: min(66dvh, 820px) !important;
+    min-height: 430px !important;
+    max-height: none !important;
+    margin: 10px 0 0;
+    padding: 12px 8px 18px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    border: 1px solid var(--studio-border);
+    border-radius: 12px;
+    box-sizing: border-box !important;
+  }
+  html.studio-active body #studio-page-stack {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    overflow: visible !important;
+    gap: 12px !important;
+  }
+  html.studio-active body .studio-page-sheet { max-width: calc(100vw - 48px) !important; }
+  html.studio-active body .studio-page-sheet .pdf-page-canvas { display: block; max-width: 100% !important; height: auto !important; }
+  html.studio-active body .studio-mobile-dock {
+    display: flex !important;
+    position: fixed;
+    inset: auto 0 calc(62px + env(safe-area-inset-bottom, 0px)) 0;
+    z-index: 950;
+    flex-direction: column;
+    gap: 5px;
+    padding: 7px 8px;
+    border-top: 1px solid var(--border-light);
+    background: color-mix(in srgb, var(--bg-panel) 95%, transparent);
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, .16);
+    backdrop-filter: blur(16px);
+    box-sizing: border-box;
+  }
+  html.studio-active body .studio-mobile-command-row,
+  html.studio-active body .studio-mobile-status-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    width: 100%;
+    min-width: 0;
+  }
+  html.studio-active body .studio-mobile-command-row { min-height: 44px; }
+  html.studio-active body #studio-mobile-history-slot,
+  html.studio-active body #studio-mobile-export-slot,
+  html.studio-active body #studio-mobile-page-slot,
+  html.studio-active body #studio-mobile-zoom-slot { display: flex; align-items: center; min-width: 0; }
+  html.studio-active body #studio-mobile-history-slot .studio-tool-group,
+  html.studio-active body #studio-mobile-export-slot .studio-tool-group { display: flex; align-items: center; gap: 5px; }
+  html.studio-active body #studio-mobile-export-slot { flex: 1 1 auto; justify-content: flex-end; }
+  html.studio-active body #studio-mobile-export-slot .studio-export-group { margin-left: 0 !important; }
+  html.studio-active body #studio-mobile-export-slot #clear-canvas-btn { min-width: 44px !important; padding: 0 8px; }
+  html.studio-active body #studio-mobile-export-slot #clear-canvas-btn .tool-btn-text,
+  html.studio-active body #studio-mobile-history-slot .tool-btn-text { display: none !important; }
+  html.studio-active body #studio-mobile-export-slot #save-studio-btn { min-width: 112px; min-height: 44px; padding: 8px 12px; white-space: nowrap; }
+  html.studio-active body .studio-mobile-status-row { min-height: 44px; }
+  html.studio-active body .studio-mobile-dock-btn {
+    display: inline-flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 1px;
+    width: 52px;
+    min-width: 52px;
+    padding: 2px;
+    border: 1px solid var(--border-light);
+    border-radius: 9px;
+    background: var(--bg-panel-alt);
+    color: var(--text-main);
+    font-size: 9px;
+    line-height: 1.1;
+    white-space: nowrap;
+  }
+  html.studio-active body .studio-mobile-dock-btn > span:first-child { font-size: 15px; }
+  html.studio-active body #studio-mobile-page-slot { flex: 0 0 auto; }
+  html.studio-active body #studio-mobile-page-slot #page-indicator { display: inline-flex; align-items: center; gap: 3px; padding: 4px; }
+  html.studio-active body #studio-mobile-page-slot #page-jump-input { width: 36px; min-width: 36px; height: 34px; padding: 0 2px; font-size: 13px; text-align: center; }
+  html.studio-active body #studio-mobile-page-slot #page-total-indicator { min-width: 17px; text-align: center; font-size: 12px; }
+  html.studio-active body #studio-mobile-zoom-slot { flex: 1 1 auto; justify-content: center; }
+  html.studio-active body #studio-mobile-zoom-slot .studio-tool-group { display: flex; align-items: center; gap: 2px; }
+  html.studio-active body #studio-mobile-zoom-slot button { width: 38px; min-width: 38px !important; padding: 0; }
+  html.studio-active body #studio-mobile-zoom-slot .zoom-select { width: 54px; min-width: 54px; height: 40px; padding: 0 3px; font-size: 11px; }
+  html.studio-active body .studio-mobile-properties-panel {
+    display: block;
+    position: fixed;
+    inset: auto 8px calc(174px + env(safe-area-inset-bottom, 0px)) auto;
+    z-index: 960;
+    width: min(320px, calc(100vw - 16px));
+    max-height: min(48dvh, 420px);
+    overflow: auto;
+    padding: 12px;
+    border: 1px solid var(--border-light);
+    border-radius: 14px;
+    background: var(--bg-panel);
+    color: var(--text-main);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, .34);
+    box-sizing: border-box;
+  }
+  html.studio-active body .studio-mobile-properties-panel[hidden] { display: none !important; }
+  html.studio-active body .studio-mobile-properties-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+  html.studio-active body .studio-mobile-properties-header > div { display: grid; gap: 3px; }
+  html.studio-active body .studio-mobile-properties-header span { color: var(--text-muted); font-size: 12px; }
+  html.studio-active body #studio-mobile-properties-close { width: 40px; min-width: 40px !important; border: 1px solid var(--border-light); border-radius: 8px; background: var(--bg-panel-alt); color: var(--text-main); font-size: 22px; }
+  html.studio-active body #studio-mobile-properties-slot .editor-style-group { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 0; }
+  html.studio-active body #studio-mobile-properties-slot .editor-delete-obj-btn { flex: 1 1 100%; }
+  html.studio-active body .studio-mobile-pages-close { min-height: 40px !important; }
+
+  body:not(.studio-active) .main-area,
+  body:not(.studio-active) .dynamic-workspace { min-width: 0; }
+  body:not(.studio-active) .mobile-workspace-bar { z-index: 1000; }
+}
+
+@media (max-width: 420px) {
+  #app-shell.ai-active .ai-chat-header { flex-wrap: wrap; }
+  #app-shell.ai-active #ai-chat-clear-btn,
+  #app-shell.ai-active #ai-upload-inline-btn { flex: 0 0 auto; }
+  html.studio-active body .studio-mobile-dock { padding-inline: 5px; }
+  html.studio-active body .studio-mobile-dock-btn { width: 46px; min-width: 46px; }
+  html.studio-active body #studio-mobile-page-slot #page-jump-input { width: 32px; min-width: 32px; }
+  html.studio-active body #studio-mobile-zoom-slot button { width: 36px; min-width: 36px !important; }
+  html.studio-active body #studio-mobile-zoom-slot .zoom-select { width: 50px; min-width: 50px; }
+  html.studio-active body #studio-mobile-export-slot #save-studio-btn { min-width: 104px; }
+}
+
+/* Keep tool actions readable at narrow laptop widths and keep every grid inside its viewport. */
+@media (min-width: 901px) and (max-width: 1200px) {
+  #app-shell.ai-active .ai-studio-container { grid-template-columns: minmax(0, 1fr) minmax(280px, 32%) !important; gap: 12px; }
+  #app-shell.ai-active .ai-chat-header { padding-inline: 14px; }
+  #app-shell.ai-active .ai-chat-messages { padding: 16px; }
+  .action-bar { flex-wrap: wrap; }
+  #run-button { flex: 0 0 auto; max-width: 100%; white-space: nowrap; }
+}
+
+html, body { max-width: 100%; }
+#app-shell.ai-active,
+#app-shell.ai-active .main-area,
+#app-shell.ai-active .dynamic-workspace,
+#app-shell.ai-active #view-ai-studio,
+#app-shell.ai-active .ai-studio-container,
+#app-shell.ai-active .ai-chat-card,
+html.studio-active body,
+html.studio-active body #app-shell,
+html.studio-active body .main-area,
+html.studio-active body .dynamic-workspace,
+html.studio-active body #view-pdf-studio,
+html.studio-active body .pdf-studio,
+html.studio-active body .studio-main-viewport { min-width: 0; max-width: 100%; box-sizing: border-box; }
+
+/* V6 verification corrections: internal toolbar scrolling, isolated mobile
+   controls, and chat input clear of the fixed workspace navigation. */
+@media (max-width: 900px) {
+  #app-shell.ai-active .ai-chat-card {
+    height: min(56dvh, calc(100dvh - 330px), 640px) !important;
+    min-height: min(300px, calc(100dvh - 350px)) !important;
+  }
+
+  html.studio-active body .studio-primary-ribbon {
+    flex: 0 0 50px !important;
+    flex-flow: row nowrap !important;
+    min-height: 50px !important;
+    max-height: 50px !important;
+    height: 50px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    white-space: nowrap !important;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+  }
+  html.studio-active body .studio-toolbar {
+    position: relative !important;
+    z-index: 200 !important;
+  }
+  html.studio-active body .studio-sub-ribbon {
+    flex: 0 0 54px !important;
+    flex-flow: row nowrap !important;
+    min-height: 54px !important;
+    max-height: 54px !important;
+    height: 54px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    white-space: nowrap !important;
+    overscroll-behavior-inline: contain;
+  }
+  html.studio-active body .studio-primary-ribbon > *,
+  html.studio-active body .studio-sub-ribbon > *,
+  html.studio-active body .studio-tool-group,
+  html.studio-active body .studio-mode-switcher,
+  html.studio-active body .studio-dropdown-wrapper {
+    flex: 0 0 auto !important;
+    flex-wrap: nowrap !important;
+    min-width: max-content !important;
+  }
+  html.studio-active body .studio-mobile-dock {
+    bottom: calc(66px + env(safe-area-inset-bottom, 0px));
+  }
+  html.studio-active body .studio-thumbnails-bar {
+    inset: 252px 8px calc(174px + env(safe-area-inset-bottom, 0px)) 8px !important;
+    width: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+  }
+  html.studio-active body .studio-thumbnails-scroll {
+    max-height: none !important;
+  }
+  html.studio-active body .studio-mobile-properties-panel {
+    max-height: min(32dvh, 300px);
+  }
+  html.studio-active body .toast-notice {
+    bottom: calc(174px + env(safe-area-inset-bottom, 0px));
+    z-index: 940;
+  }
+  #app-shell.ai-active .ai-chat-card {
+    height: min(56dvh, calc(100dvh - 410px), 640px) !important;
+    min-height: min(280px, calc(100dvh - 430px)) !important;
+  }
+  #app-shell.ai-active .ai-studio-wrapper:has(#ai-active-doc-bar:not([hidden])) .ai-chat-card {
+    height: min(56dvh, calc(100dvh - 472px), 640px) !important;
+    min-height: min(260px, calc(100dvh - 492px)) !important;
+  }
+}
+
+@media (max-width: 420px) {
+  #app-shell.ai-active .ai-chat-card {
+    height: min(56dvh, calc(100dvh - 410px), 640px) !important;
+    min-height: min(280px, calc(100dvh - 430px)) !important;
+  }
+  #app-shell.ai-active .ai-studio-wrapper:has(#ai-active-doc-bar:not([hidden])) .ai-chat-card {
+    height: min(56dvh, calc(100dvh - 472px), 640px) !important;
+    min-height: min(260px, calc(100dvh - 492px)) !important;
+  }
+}
+
+/* On wide screens the AI workspace is a vertical flow: notice, document
+   context, then the fixed-column chat/insights grid. The earlier two-row grid
+   placed the hidden accessibility heading into a track and let these bands
+   collide at laptop widths. */
+@media (min-width: 901px) {
+  #app-shell.ai-active .ai-studio-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    box-sizing: border-box;
+  }
+  #app-shell.ai-active .ai-studio-topbar { flex: 0 0 auto; }
+  #app-shell.ai-active .ai-studio-container {
+    flex: 1 1 0;
+    height: auto !important;
+    min-height: min(520px, calc(100dvh - 330px)) !important;
+  }
 }

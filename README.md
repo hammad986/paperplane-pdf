@@ -54,6 +54,19 @@ python -m pip install -r requirements.txt
 python -m pip install -r requirements-dev.txt
 ```
 
+### Browser QA (optional)
+
+Install the bundled Chromium browser once, then run the repository's browser
+smoke scripts with the same Python environment as the app:
+
+```bash
+python -m playwright install chromium
+python -m playwright --version
+```
+
+PDF output inspection in the browser checks uses PyMuPDF (`fitz`), which is
+already included in `requirements.txt`.
+
 ### 2. Configure Environment
 ```bash
 cp .env.example .env

@@ -1,0 +1,39 @@
+{
+  "viewport": 375,
+  "states": {
+    "merge": {
+      "disabled": false,
+      "checked": true,
+      "label": "Local Processing",
+      "helper": "Available for Merge, Split, Remove, Rotate",
+      "sidebarWidth": 290,
+      "profileClearOfBottomNavigation": {
+        "profileTop": 680,
+        "profileBottom": 732,
+        "navigationTop": 746,
+        "clear": true
+      }
+    },
+    "translate": {
+      "disabled": true,
+      "checked": false,
+      "helper": "This tool runs on the server",
+      "forcedEnable": {
+        "enabled": false,
+        "checked": false,
+        "message": "• AI Translate uses server processing. Local Processing is available for Merge, Split / extract, Remove pages, and Rotate PDF."
+      },
+      "sidebarWidth": 290,
+      "profileClearOfBottomNavigation": {
+        "profileTop": 680,
+        "profileBottom": 732,
+        "navigationTop": 746,
+        "clear": true
+      }
+    }
+  },
+  "pageErrors": [],
+  "consoleErrors": [],
+  "documentWidth": 375,
+  "bodyWidth": 375
+}
