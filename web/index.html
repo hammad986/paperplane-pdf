@@ -13,7 +13,7 @@
   <!-- Cashfree PG v3 checkout SDK; app.js initializes it with the server-issued session. -->
   <script src="https://sdk.cashfree.com/js/v3/cashfree.js" defer></script>
 
-  <link rel="stylesheet" href="/assets/styles.css?v=3.6.6" />
+  <link rel="stylesheet" href="/assets/styles.css?v=3.6.7" />
 
 </head>
 <body class="light-mode auth-pending">
@@ -114,10 +114,10 @@
           </div>
         </div>
 
-        <!-- Upgrade to Pro Banner Button (Hidden if Pro) -->
+        <!-- Upgrade to Pro Power User Button (hidden for paid web plans) -->
         <button type="button" class="sidebar-upgrade-btn" id="sidebar-upgrade-btn">
           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          <span>Upgrade to Pro (₹250/mo)</span>
+          <span>Pro Power User · ₹250/mo</span>
         </button>
 
         <!-- Profile Card & Sleek Settings Gear Row -->
@@ -126,7 +126,7 @@
             <div class="profile-avatar status-online" id="user-avatar">G</div>
             <div class="profile-info">
               <span class="profile-name" id="user-name">Guest Explorer</span>
-              <span class="profile-badge" id="user-role-badge">Free / Sovereign Tier</span>
+              <span class="profile-badge" id="user-role-badge">Free</span>
             </div>
           </div>
           <button type="button" class="sidebar-settings-gear-btn" id="sidebar-settings-gear-btn" title="Open Settings (Preferences, Theme, Billing, API Keys)">
@@ -182,7 +182,7 @@
         <div class="topbar-right">
           <button type="button" class="topbar-upgrade-pill" id="topbar-upgrade-btn">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            <span>Pro Plan</span>
+            <span>Upgrade: Pro Power User</span>
           </button>
           <button type="button" class="topbar-action-btn" id="topbar-cloud-btn" title="Open Cloud Import" aria-label="Open Cloud Import">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
@@ -279,7 +279,7 @@
                 or <button type="button" class="browse-link" id="browse">browse files</button>
                 or <button type="button" class="browse-link" id="cloud-drop-btn">import from Google Drive / Dropbox</button>
               </p>
-              <small id="file-hint">Files up to %%FREE_MB%% MB on Free and %%PRO_MB%% MB on paid plans · batches up to %%BATCH_FILES%% files</small>
+              <small id="file-hint">PDF files up to %%FREE_MB%% MB each on Free and %%PRO_MB%% MB each on paid plans · one file per run for this tool</small>
             </div>
 
             <!-- Uploaded File Queue -->
@@ -307,6 +307,7 @@
             <div class="progress-header">
               <strong id="progress-status-title">Processing Document...</strong>
               <span id="progress-percent">0%</span>
+              <button type="button" id="job-cancel-btn" class="btn-secondary-action" hidden>Cancel</button>
             </div>
             <div class="progress-track">
               <div class="progress-bar-fill" id="progress-bar-fill"></div>
@@ -369,6 +370,10 @@
             </div>
 
             <div id="studio-mobile-batch-slot" class="studio-mobile-batch-slot" aria-live="polite"></div>
+            <div class="studio-mobile-page-actions" aria-label="Page actions">
+              <span class="studio-mobile-page-actions-label">Page actions</span>
+              <div id="studio-mobile-page-actions-slot"></div>
+            </div>
 
             <div class="studio-thumbnails-scroll" id="studio-thumbnails-container">
               <div class="organizer-empty-msg">
@@ -379,7 +384,6 @@
 
           <!-- Center Canvas Studio Viewport -->
           <div class="studio-main-viewport">
-            <div class="ephemeral-work-notice" role="note"><span>PDF and page edits save here. Export annotations to keep them.</span><button type="button" id="studio-clear-work-btn" class="work-clear-btn">Clear saved work</button></div>
             <div id="studio-undo-banner" class="studio-action-feedback" role="status" hidden></div>
             <!-- Studio Toolbar with 2-Tier Modern Professional Ribbon -->
             <div class="studio-toolbar" id="studio-toolbar">
@@ -740,7 +744,6 @@
              VIEW 3: AI Document Intelligence Studio
              ------------------------------------------------------------------ -->
         <div id="view-ai-studio" class="ai-studio-wrapper" hidden>
-          <div class="ephemeral-work-notice" role="note"><span>Your AI PDF and full chat history save in this browser. Clear them whenever you want.</span><button type="button" id="ai-clear-work-btn" class="work-clear-btn">Clear saved work</button></div>
           <h1 class="sr-only">AI Document Intelligence</h1>
           
           <!-- Top Document Context & Engine Banner -->
@@ -815,7 +818,7 @@
               
               <!-- Smart Metadata Extraction Card -->
               <div class="ai-chat-card" style="padding: 18px;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                <div class="ai-card-heading-row" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
                   <h4 style="font-size: 14px; display: flex; align-items: center; gap: 6px; margin: 0;">
                     <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                     Smart Metadata Extraction
@@ -833,14 +836,18 @@
                     <option value="general">General Document</option>
                   </select>
                 </div>
-                <button type="button" class="btn-primary-action" id="trigger-extract-btn" style="width: 100%; justify-content: center;">
+                <button type="button" class="btn-primary-action" id="trigger-extract-btn" style="width: 100%; min-height: 44px; justify-content: center; white-space: nowrap;">
                   Extract Structured Entities
                 </button>
+                <div class="extract-runtime-slot" role="status" aria-live="polite">
+                  <span id="extract-runtime-status" hidden></span>
+                  <button type="button" id="extract-cancel-btn" class="btn-demo-upgrade" hidden>Cancel</button>
+                </div>
               </div>
 
               <!-- Executive Summarizer Card -->
               <div class="ai-chat-card" style="padding: 18px; flex: 1; display: flex; flex-direction: column;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                <div class="ai-card-heading-row" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
                   <h4 style="font-size: 14px; display: flex; align-items: center; gap: 6px; margin: 0;">
                     <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                     Executive Summarizer
@@ -850,14 +857,23 @@
                 <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
                   Synthesizes documents into an executive overview, critical decisions, key numbers, and deadlines.
                 </p>
-                <button type="button" class="btn-primary-action" id="trigger-summary-btn" style="width: 100%; justify-content: center; margin-bottom: 12px;">
+                <button type="button" class="btn-primary-action" id="trigger-summary-btn" style="width: 100%; height: 46px; min-height: 46px; justify-content: center; margin-bottom: 12px; white-space: nowrap;">
                   Generate Executive Brief
                 </button>
+                <div class="summary-runtime-slot">
+                  <div id="summary-progress" class="summary-progress" role="status" aria-live="polite" hidden>
+                    <div class="summary-progress-track" aria-hidden="true"><span></span></div>
+                    <span id="summary-progress-text">Waiting for the AI service. Live percentage is not available.</span>
+                    <button type="button" id="summary-cancel-btn" class="btn-demo-upgrade" hidden>Cancel</button>
+                  </div>
+                </div>
                 <div id="summary-display" class="ai-markdown-output">Summary will appear here after generation...</div>
-                <div id="summary-actions-bar" style="display: flex; gap: 8px; margin-top: 10px;" hidden>
-                  <button type="button" class="btn-demo-upgrade" id="copy-summary-btn" style="flex: 1; font-size: 11.5px; padding: 5px;">Copy Summary</button>
-                  <button type="button" class="btn-demo-upgrade" id="download-summary-txt-btn" style="flex: 1; font-size: 11.5px; padding: 5px;">Download TXT</button>
-                  <button type="button" class="btn-demo-upgrade" id="download-summary-pdf-btn" style="flex: 1; font-size: 11.5px; padding: 5px;">Download PDF</button>
+                <div class="summary-actions-slot">
+                  <div id="summary-actions-bar" style="display: flex; gap: 8px;" hidden>
+                    <button type="button" class="btn-demo-upgrade" id="copy-summary-btn" style="flex: 1; font-size: 11.5px; padding: 5px;">Copy Summary</button>
+                    <button type="button" class="btn-demo-upgrade" id="download-summary-txt-btn" style="flex: 1; font-size: 11.5px; padding: 5px;">Download TXT</button>
+                    <button type="button" class="btn-demo-upgrade" id="download-summary-pdf-btn" style="flex: 1; font-size: 11.5px; padding: 5px;">Download PDF</button>
+                  </div>
                 </div>
               </div>
 
@@ -959,7 +975,7 @@
 
                 <section>
                   <h3>3. Processing Limitations & Availability</h3>
-                  <p>Free tier users may process up to %%FREE_DAILY%% operations per day with maximum file sizes of %%FREE_MB%% MB per document. Paid tiers allow files up to %%PRO_MB%% MB and batches up to %%BATCH_FILES%% files, subject to subscription terms. Services are provided on an "as is" and "as available" basis without express warranties of uninterrupted availability.</p>
+                  <p>Free users may run up to %%FREE_DAILY%% PDF operations per day and process files up to %%FREE_MB%% MB each. Paid plans have no daily operation cap and allow files up to %%PRO_MB%% MB each. Merge, JPG/PNG to PDF, and Scan to PDF accept up to %%BATCH_FILES%% files per run; Compare accepts 2 files; other tools accept 1 file per run. Service availability may vary.</p>
                 </section>
 
                 <section>
@@ -1583,7 +1599,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
               <div class="profile-avatar status-online" id="settings-user-avatar" style="width: 44px; height: 44px; font-size: 16px;">G</div>
               <div style="flex: 1; min-width: 0;">
                 <h4 id="settings-user-email" style="margin: 0 0 4px 0; font-size: 15px; color: var(--text-main);">Guest Explorer</h4>
-                <span class="profile-badge" id="settings-user-badge">Free Sovereign Tier · %%FREE_DAILY%% operations/day</span>
+                <span class="profile-badge" id="settings-user-badge">Free · %%FREE_DAILY%% operations/day</span>
               </div>
             </div>
           </div>
@@ -1663,13 +1679,13 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <div class="billing-status-summary">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
               <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">ACTIVE PLAN</span>
-              <span class="pro-tag" id="settings-tier-badge">FREE SOVEREIGN</span>
+              <span class="pro-tag" id="settings-tier-badge">FREE</span>
             </div>
             <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px;">
-              <strong style="font-size: 20px; color: var(--text-main);" id="settings-tier-name">Free Sovereign Tier</strong>
+              <strong style="font-size: 20px; color: var(--text-main);" id="settings-tier-name">Free</strong>
               <span style="font-size: 12.5px; color: var(--text-muted);" id="settings-daily-limit">(%%FREE_DAILY%% operations / day)</span>
             </div>
-            <p id="settings-quota-description" style="font-size: 12.5px; color: var(--text-muted); margin: 0 0 14px 0; line-height: 1.5;">Free: %%FREE_DAILY%% PDF operations per day and files up to %%FREE_MB%% MB each. Paid tiers: no daily operation cap, files up to %%PRO_MB%% MB, and batches up to %%BATCH_FILES%% files.</p>
+            <p id="settings-quota-description" style="font-size: 12.5px; color: var(--text-muted); margin: 0 0 14px 0; line-height: 1.5;">Free web tools: up to %%FREE_DAILY%% PDF operations per day and files up to %%FREE_MB%% MB each. Paid web tools: no daily operation cap and files up to %%PRO_MB%% MB each. Developer API quotas are separate. Merge, JPG/PNG to PDF, and Scan to PDF accept up to %%BATCH_FILES%% files per run; Compare accepts 2 files; other tools accept 1 file per run.</p>
             <div class="quota-container" style="margin-bottom: 16px;">
               <div class="quota-label-row">
                 <span>Operations Today</span>
@@ -1711,6 +1727,15 @@ async function convertFileInBrowser(file, operation = 'compress') {
 
          <!-- Tab 5: Ephemeral Storage & Privacy -->
          <div class="settings-pane" id="pane-privacy" hidden>
+           <div class="settings-card-item saved-work-controls">
+             <span class="settings-eyebrow">BROWSER DATA</span>
+             <h4>Clear saved workspace data</h4>
+             <p>PDFs, page position, and AI chat are saved in this browser. Download results and export annotations before clearing them.</p>
+             <div class="saved-work-actions">
+               <button type="button" id="ai-clear-work-btn" class="btn-demo-upgrade">Clear AI PDF and chat</button>
+               <button type="button" id="studio-clear-work-btn" class="btn-demo-upgrade">Clear Studio PDF and page position</button>
+             </div>
+           </div>
            <div class="settings-card-item privacy-settings-card">
              <span class="settings-eyebrow">DATA CONTROL</span>
              <h4>Ephemeral encrypted storage</h4>
@@ -1937,7 +1962,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
       <div class="pricing-tiers-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
         <!-- Free plan and limits are shown alongside paid offers. -->
         <div class="pricing-tier-card">
-          <div class="tier-card-header"><span style="font-size: 20px;">🆓</span><div><h4 class="tier-title">Free Sovereign</h4><span class="tier-subtitle">For everyday PDF tasks</span></div></div>
+          <div class="tier-card-header"><span style="font-size: 20px;">🆓</span><div><h4 class="tier-title">Free</h4><span class="tier-subtitle">For everyday PDF tasks</span></div></div>
           <div class="tier-price-box"><div class="tier-price-main"><span class="tier-price-val">₹0</span><span class="tier-price-period">/ always</span></div><span class="tier-price-alt">No payment required</span></div>
           <ul class="tier-features-list"><li><span>✓</span><strong>%%FREE_DAILY%% PDF operations per day</strong></li><li><span>✓</span>Files up to %%FREE_MB%% MB each</li><li><span>✓</span>Guest access for supported tools</li></ul>
           <div class="tier-actions"><span class="tier-price-alt">Included automatically</span></div>
@@ -1949,7 +1974,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <div class="tier-card-header">
             <span style="font-size: 20px;">⚡</span>
             <div>
-              <h4 class="tier-title">24-Hour Exam Pass</h4>
+              <h4 class="tier-title">Exam</h4>
               <span class="tier-subtitle">For SSC, UPSC & College applications</span>
             </div>
           </div>
@@ -1961,7 +1986,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
             <span class="tier-price-alt">One-time UPI payment · Instant activation</span>
           </div>
           <ul class="tier-features-list">
-            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Unlimited Form Resizing:</strong> Exact 100KB/200KB PDF & Photo resizer.</li>
+            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> Form resizing with the listed 100 KB / 200 KB presets.</li>
             <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Fast OCR &amp; Document Cleanup:</strong> Unlock searchable scanned marksheets and certificates.</li>
             <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>24-Hour Full Access:</strong> Zero subscriptions or auto-debits.</li>
           </ul>
@@ -1972,7 +1997,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
           </div>
         </div>
 
-        <!-- TIER 1: Student & Educator Pro (₹49/month) -->
+        <!-- TIER 1: Student & Educator (₹49/month or ₹399/year) -->
         <div class="pricing-tier-card">
           <div class="tier-popular-tag" style="background: #10b981;">STUDENT DISCOUNT</div>
           <div class="tier-card-header">
@@ -1992,7 +2017,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <ul class="tier-features-list">
             <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Full Pro Access:</strong> All 41 conversion, AI, and editing tools.</li>
             <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>AI Assignment Summary & Chat:</strong> Extract textbook citations instantly.</li>
-            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>500MB Batch Uploads:</strong> Merge and organize entire semesters.</li>
+            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> Files up to 500 MB each; Merge, JPG/PNG to PDF, and Scan to PDF support batches of up to 100 files.</li>
           </ul>
           <div class="tier-actions">
             <button type="button" class="btn-primary-action tier-subscribe-btn" id="student-cashfree-checkout-btn" style="background: #10b981;">
@@ -2001,7 +2026,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
           </div>
         </div>
 
-        <!-- TIER 2: Pro Power User Tier (₹250/month) -->
+        <!-- TIER 2: Pro Power User (₹250/month or ₹999/year) -->
         <div class="pricing-tier-card popular">
           <div class="tier-popular-tag">MOST POPULAR</div>
           <div class="tier-card-header">
@@ -2016,13 +2041,13 @@ async function convertFileInBrowser(file, operation = 'compress') {
               <span class="tier-price-val">₹250</span>
               <span class="tier-price-period">/month</span>
             </div>
-            <span class="tier-price-alt">or ₹999/year · Unlimited access</span>
+            <span class="tier-price-alt">or ₹999/year · No daily operation cap · up to 500 MB/file</span>
           </div>
           <ul class="tier-features-list">
             <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Access all 41 PDF tools:</strong> Convert, organize, edit, sign, protect, and analyze documents.</li>
-            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>500MB Batch Uploads:</strong> Process up to 100 files simultaneously.</li>
+            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> Files up to 500 MB each; Merge, JPG/PNG to PDF, and Scan to PDF support batches of up to 100 files.</li>
             <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>AI RAG Document Chat:</strong> Deep vector question-answering with page citations.</li>
-            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Priority Processing Queue:</strong> Dedicated worker pool with zero wait time.</li>
+            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> Priority queue access, subject to current service availability.</li>
           </ul>
           <div class="tier-actions">
             <button type="button" class="btn-primary-action tier-subscribe-btn" id="pro-cashfree-checkout-btn">
@@ -2037,7 +2062,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <div class="tier-card-header">
             <span style="font-size: 20px;">🏪</span>
             <div>
-              <h4 class="tier-title">Cyber Café Pack</h4>
+              <h4 class="tier-title">Cyber Café</h4>
               <span class="tier-subtitle">For CSC, cyber cafés & shops</span>
             </div>
           </div>
@@ -2049,9 +2074,9 @@ async function convertFileInBrowser(file, operation = 'compress') {
             <span class="tier-price-alt">High volume · Multi-form batching</span>
           </div>
           <ul class="tier-features-list">
-            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Bulk Candidate Processing:</strong> Process 50+ applicant forms in parallel.</li>
+            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> Batch up to 100 files in supported Merge, JPG/PNG to PDF, and Scan to PDF workflows.</li>
             <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Shop Watermark & Stamp:</strong> Add custom center branding and seals.</li>
-            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Top Speed Dedicated Workers:</strong> Instant turnaround for waiting customers.</li>
+            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> Higher-volume workflows for busy service counters, within the limits shown above.</li>
           </ul>
           <div class="tier-actions">
             <button type="button" class="btn-primary-action tier-subscribe-btn" id="cybercafe-cashfree-checkout-btn" style="background: #8b5cf6;">
@@ -2060,13 +2085,13 @@ async function convertFileInBrowser(file, operation = 'compress') {
           </div>
         </div>
 
-        <!-- TIER 4: Developer API Tier (₹750/month) -->
+        <!-- TIER 4: Developer (₹750/month) -->
         <div class="pricing-tier-card developer">
           <div class="tier-developer-tag">BUILDERS & TEAMS</div>
           <div class="tier-card-header">
             <span style="font-size: 24px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M21 2l-9.6 9.6M15.5 7.5l2.5 2.5"/></svg></span>
             <div>
-              <h4 class="tier-title">Developer API</h4>
+              <h4 class="tier-title">Developer</h4>
               <span class="tier-subtitle">Programmatic REST & SDK access</span>
             </div>
           </div>
@@ -2078,9 +2103,9 @@ async function convertFileInBrowser(file, operation = 'compress') {
             <span class="tier-price-alt">INR pricing · Developer API access</span>
           </div>
           <ul class="tier-features-list">
-            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Everything in Pro Tier:</strong> Unlimited Web UI access & 500MB batch processing.</li>
+            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> Web tools: no daily operation cap and up to 500 MB per file; supported batches accept up to 100 files.</li>
             <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Dedicated REST API Keys:</strong> Production <code>sk_live_...</code> keys for direct integration.</li>
-            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>High-Throughput Cluster:</strong> Unthrottled API rate limits & SLA guarantees.</li>
+            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> REST API access with quotas and availability described in the API documentation.</li>
           </ul>
           <div class="tier-actions">
             <button type="button" class="btn-primary-action tier-subscribe-btn dev-theme" id="dev-cashfree-checkout-btn">
@@ -3376,6 +3401,6 @@ async function convertFileInBrowser(file, operation = 'compress') {
   <!-- Phase 2 Professional Editor Engine -->
 <script src="/assets/editor.js?v=3.2.2" defer></script>
   <!-- Application Controller -->
-  <script src="/assets/app.js?v=3.6.6" defer></script>
+  <script src="/assets/app.js?v=3.6.7" defer></script>
 </body>
 </html>

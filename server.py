@@ -269,9 +269,9 @@ def _quota_identity_from_request(request: Request) -> str | None:
 
 def _quota_limit_response(usage: int, tier: str, authenticated: bool) -> JSONResponse:
     if authenticated:
-        message = f"Daily limit reached ({FREE_TIER_DAILY_LIMIT}/{FREE_TIER_DAILY_LIMIT} operations on Free Tier). Upgrade to Pro Power User (₹250/mo) or Developer Tier (₹750/mo) for unlimited operations."
+        message = f"Daily limit reached ({FREE_TIER_DAILY_LIMIT}/{FREE_TIER_DAILY_LIMIT} operations on Free Tier). Paid plans have no daily operation cap; upload and batch limits still apply."
     else:
-        message = f"Daily guest limit reached ({FREE_TIER_DAILY_LIMIT}/{FREE_TIER_DAILY_LIMIT} operations). Create a free account or upgrade to Pro Power User (₹250/mo) for unlimited operations."
+        message = f"Daily guest limit reached ({FREE_TIER_DAILY_LIMIT}/{FREE_TIER_DAILY_LIMIT} operations). Create a free account or choose a paid plan with no daily operation cap; upload and batch limits still apply."
     return JSONResponse(status_code=402, content={
         "detail": {"code": "TIER_LIMIT_REACHED", "message": message, "limit": FREE_TIER_DAILY_LIMIT, "usage": usage, "tier": tier}
     })
@@ -943,9 +943,9 @@ SEO_CATALOG = {
         "related": ("ocr", "pdf_to_text", "ai_chat", "summarize"),
     },
     "photo_resizer": {
-        "title": "SSC Photo & Signature Resizer Online Free (20KB - 50KB) | Paperplane",
+        "title": "Exam Photo & Signature Resizer for SSC & UPSC (20KB - 50KB) | Paperplane",
         "description": "Resize and compress photos and signatures for SSC CGL, CHSL, MTS, GD Constable forms to exact 20-50KB and 10-20KB limits.",
-        "heading": "SSC & UPSC Photo and Signature Resizer",
+        "heading": "Exam Photo & Signature Resizer for SSC & UPSC",
         "intro": "Quickly resize photos and signature images to the exact dimensions (3.5x4.5cm, 4x2cm) and file size requirements (20KB-50KB) of Indian recruitment portals.",
         "how_to": ("Upload candidate photo or signature image", "Choose the exam preset (SSC, UPSC, IBPS)", "Download the verified resized image or PDF"),
         "faqs": (
@@ -3121,7 +3121,7 @@ def get_current_user_profile(request: Request, user_id: str | None = Depends(cur
             "authenticated": False,
             "role": "guest",
             "tier": "free",
-            "tier_label": "Free Sovereign Tier",
+            "tier_label": "Free",
             "is_pro": False,
             "is_dev": False,
             "daily_limit": FREE_TIER_DAILY_LIMIT,
@@ -3137,7 +3137,7 @@ def get_current_user_profile(request: Request, user_id: str | None = Depends(cur
             "authenticated": False,
             "role": "guest",
             "tier": "free",
-            "tier_label": "Free Sovereign Tier",
+            "tier_label": "Free",
             "is_pro": False,
             "is_dev": False,
             "daily_limit": FREE_TIER_DAILY_LIMIT,
@@ -3152,14 +3152,14 @@ def get_current_user_profile(request: Request, user_id: str | None = Depends(cur
     is_dev = tier == "developer"
     usage = get_daily_usage(f"user:{user_id}")
     tier_labels = {
-        "developer": "Developer API Tier",
-        "pro": "Pro Power User Tier",
-        "student_pro": "Student & Educator Pro Tier",
-        "cyber_cafe": "Cyber Café Pack Tier",
-        "exam_pass": "24-Hour Exam Pass",
-        "free": "Free Sovereign Tier",
+        "developer": "Developer",
+        "pro": "Pro Power User",
+        "student_pro": "Student & Educator",
+        "cyber_cafe": "Cyber Café",
+        "exam_pass": "Exam",
+        "free": "Free",
     }
-    label = tier_labels.get(tier, "Free Sovereign Tier")
+    label = tier_labels.get(tier, "Free")
     return {
         "authenticated": True,
         "user_id": user["id"],
@@ -3253,14 +3253,14 @@ def billing_status(request: Request, user_id: str | None = Depends(current_user)
     is_pro = tier in paid_tiers
     is_dev = tier == "developer"
     tier_labels = {
-        "developer": "Developer API Tier",
-        "pro": "Pro Power User Tier",
-        "student_pro": "Student & Educator Pro Tier",
-        "cyber_cafe": "Cyber Café Pack Tier",
-        "exam_pass": "24-Hour Exam Pass",
-        "free": "Free Sovereign Tier",
+        "developer": "Developer",
+        "pro": "Pro Power User",
+        "student_pro": "Student & Educator",
+        "cyber_cafe": "Cyber Café",
+        "exam_pass": "Exam",
+        "free": "Free",
     }
-    label = tier_labels.get(tier, "Free Sovereign Tier")
+    label = tier_labels.get(tier, "Free")
     return {
         "tier": tier,
         "tier_label": label,
@@ -3444,7 +3444,7 @@ def simulate_pro(user_id: str = Depends(current_user)):
     if not user_id:
         raise HTTPException(401, "Sign in first to simulate Pro tier.")
     set_user_tier(user_id, tier="pro", status="active")
-    return {"status": "success", "tier": "pro", "message": "Upgraded to Pro Power User Tier (₹250/mo)!"}
+    return {"status": "success", "tier": "pro", "message": "Upgraded to Pro Power User (₹250/mo)!"}
 
 
 @app.post("/api/billing/simulate-dev", include_in_schema=False)
@@ -3455,7 +3455,7 @@ def simulate_dev(user_id: str = Depends(current_user)):
     if not user_id:
         raise HTTPException(401, "Sign in first to simulate Developer tier.")
     set_user_tier(user_id, tier="developer", status="active")
-    return {"status": "success", "tier": "developer", "message": "Upgraded to Developer API Tier (₹750/mo)!"}
+    return {"status": "success", "tier": "developer", "message": "Upgraded to Developer (₹750/mo)!"}
 
 
 @app.post("/api/billing/simulate-free", include_in_schema=False)
@@ -3466,7 +3466,7 @@ def simulate_free(user_id: str = Depends(current_user)):
     if not user_id:
         raise HTTPException(401, "Sign in first.")
     set_user_tier(user_id, tier="free", status="inactive")
-    return {"status": "success", "tier": "free", "message": "Reset to Free Sovereign Tier!"}
+    return {"status": "success", "tier": "free", "message": "Reset to Free!"}
 
 
 # ----------------------------------------------------------------------
@@ -3494,7 +3494,7 @@ def generate_key(name: str = Form("Default API Key"), user_id: str = Depends(cur
             status_code=402,
             detail={
                 "code": "DEV_REQUIRED_API_KEYS",
-                "message": "Generating multiple API keys and continuous CI/CD SDK pipelines requires the Developer API Tier (₹750/mo). Upgrade to unlock unlimited keys.",
+                "message": "Generating multiple API keys and continuous CI/CD SDK pipelines requires the Developer plan (₹750/mo).",
                 "tier": tier
             }
         )
@@ -3886,7 +3886,11 @@ def general_ai_test_connection():
     result = ai_engine.test_bluesminds_connectivity()
     status = result.get("status")
     if status in ("connected", "inference_succeeded"):
-        return {"status": "connected", "message": "AI Connected", "fallback_active": False}
+        return {
+            "status": "connected",
+            "message": "Short AI connection check passed. Full PDF workflows can still fail or time out.",
+            "fallback_active": False,
+        }
     if status == "configuration_missing":
         return {"status": status, "message": "AI provider is not configured", "fallback_active": False}
     http_status = result.get("http_status")
@@ -5543,25 +5547,31 @@ def cloud_sync(
     url = file_url.strip()
     if not url.startswith(("http://", "https://")):
         raise HTTPException(400, "Invalid URL: Must start with http:// or https://")
+    parsed_url = urllib.parse.urlsplit(url)
+    hostname = (parsed_url.hostname or "").lower().rstrip(".")
+    if parsed_url.username or parsed_url.password:
+        raise HTTPException(400, "Invalid URL: embedded credentials are not allowed")
 
     # Format Google Drive shareable link to direct export
-    if "drive.google.com" in url:
-        match = re.search(r"/d/([a-zA-Z0-9_-]+)", url) or re.search(r"id=([a-zA-Z0-9_-]+)", url)
+    if hostname == "drive.google.com":
+        match = re.search(r"/d/([a-zA-Z0-9_-]+)", parsed_url.path) or re.search(r"(?:^|&)id=([a-zA-Z0-9_-]+)(?:&|$)", parsed_url.query)
         if match:
             url = f"https://drive.google.com/uc?export=download&confirm=t&id={match.group(1)}"
             provider = "Google Drive"
-    elif "dropbox.com" in url:
+    elif hostname == "dropbox.com" or hostname.endswith(".dropbox.com"):
         url = re.sub(r"[?&]dl=0", "", url)
         url += ("&" if "?" in url else "?") + "dl=1"
         provider = "Dropbox"
-    elif "1drv.ms" in url or "onedrive.live.com" in url:
+    elif hostname == "1drv.ms" or hostname == "onedrive.live.com":
         provider = "OneDrive"
 
     try:
+        response_metadata: dict[str, str] = {}
         raw_bytes, content_type = converters.safe_fetch_url(
             url,
             max_size=upload_limit_bytes_for_user(user_id),
             timeout=30,
+            response_metadata=response_metadata,
         )
 
         # Reject HTML preview, login, or error pages
@@ -5578,7 +5588,24 @@ def cloud_sync(
             raise ValueError("The link returned a damaged or unreadable PDF. Choose a valid PDF and try again.") from invalid_pdf
         if page_count < 1:
             raise ValueError("The linked PDF has no pages to import.")
-        filename = "cloud_imported.pdf"
+        disposition = response_metadata.get("content_disposition", "")
+        filename_match = (
+            re.search(r"filename\*\s*=\s*UTF-8''([^;]+)", disposition, re.IGNORECASE)
+            or re.search(r'filename\s*=\s*"([^"\r\n]+)"', disposition, re.IGNORECASE)
+            or re.search(r"filename\s*=\s*([^;\s]+)", disposition, re.IGNORECASE)
+        )
+        filename = urllib.parse.unquote(filename_match.group(1)).strip() if filename_match else ""
+        if not filename:
+            final_path = urllib.parse.urlsplit(response_metadata.get("final_url", "")).path
+            path_name = urllib.parse.unquote(final_path.rsplit("/", 1)[-1])
+            filename = path_name if path_name.lower().endswith(".pdf") else "cloud_imported.pdf"
+        filename = filename.replace("\\", "/").rsplit("/", 1)[-1]
+        filename = re.sub(r'[\x00-\x1f\x7f<>:"/\\|?*]', "_", filename).strip(" .")
+        if not filename:
+            filename = "cloud_imported.pdf"
+        if not filename.lower().endswith(".pdf"):
+            filename = f"{Path(filename).stem or 'cloud_imported'}.pdf"
+        filename = filename[:180]
         content_type = "application/pdf"
 
         b64_data = base64.b64encode(raw_bytes).decode("utf-8")
@@ -5587,6 +5614,7 @@ def cloud_sync(
             "provider": provider,
             "filename": filename,
             "size": len(raw_bytes),
+            "page_count": page_count,
             "content_type": content_type or "application/pdf",
             "data_url": f"data:{content_type or 'application/pdf'};base64,{b64_data}"
         }
@@ -5684,9 +5712,9 @@ def create_job_endpoint(
     allowed, usage_count, user_tier = check_operation_quota(user_id, client_ip, FREE_TIER_DAILY_LIMIT)
     if not allowed:
         if user_id:
-            quota_msg = f"Daily limit reached ({FREE_TIER_DAILY_LIMIT}/{FREE_TIER_DAILY_LIMIT} operations on Free Tier). Upgrade to Pro Power User (₹250/mo) or Developer Tier (₹750/mo) for unlimited operations and priority worker speed."
+            quota_msg = f"Daily limit reached ({FREE_TIER_DAILY_LIMIT}/{FREE_TIER_DAILY_LIMIT} operations on Free Tier). Paid plans have no daily operation cap; upload and batch limits still apply."
         else:
-            quota_msg = f"Daily guest limit reached ({FREE_TIER_DAILY_LIMIT}/{FREE_TIER_DAILY_LIMIT} operations). Create a free account or upgrade to Pro Power User (₹250/mo) for unlimited operations."
+            quota_msg = f"Daily guest limit reached ({FREE_TIER_DAILY_LIMIT}/{FREE_TIER_DAILY_LIMIT} operations). Create a free account or choose a paid plan with no daily operation cap; upload and batch limits still apply."
         raise HTTPException(
             status_code=402,
             detail={

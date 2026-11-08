@@ -1,0 +1,5 @@
+Final-source consecutive suite runs
+Command: python -m pytest -q
+Run 1: 282 passed, 0 failed, 1 StarletteDeprecationWarning, 95.01 s (01:35).
+Run 2 immediately repeated on unchanged source: 282 passed, 0 failed, 1 StarletteDeprecationWarning, 82.55 s (01:22).
+Warning: Starlette TestClient currently uses httpx, deprecated by Starlette; install httpx2.

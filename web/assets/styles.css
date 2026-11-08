@@ -9464,3 +9464,161 @@ html.studio-active body .studio-main-viewport { min-width: 0; max-width: 100%; b
     min-height: min(520px, calc(100dvh - 330px)) !important;
   }
 }
+
+/* V7: reserved AI result areas keep the same panel geometry while a request
+   starts, completes, or fails. AI providers do not expose truthful progress,
+   so the bar is deliberately indeterminate and labelled as waiting. */
+.studio-mobile-page-actions { display: none !important; }
+#app-shell.ai-active .ai-card-heading-row { min-height: 36px; flex-wrap: nowrap; gap: 8px; }
+#app-shell.ai-active .ai-card-heading-row h4 { flex: 1 1 auto; min-width: 0; }
+#app-shell.ai-active .ai-card-heading-row .view-header-badge { flex: 0 0 auto; }
+#app-shell.ai-active .ai-studio-topbar { min-height: 82px; }
+#app-shell.ai-active .ai-active-doc-strip { min-height: 54px; box-sizing: border-box; }
+#app-shell.ai-active .ai-doc-details { overflow: hidden; }
+#app-shell.ai-active .ai-doc-details strong,
+#app-shell.ai-active .ai-doc-meta-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#app-shell.ai-active .summary-runtime-slot,
+#app-shell.ai-active .extract-runtime-slot {
+  display: flex;
+  flex: 0 0 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  min-height: 44px;
+  box-sizing: border-box;
+}
+#app-shell.ai-active .summary-progress:not([hidden]) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px 10px;
+  width: 100%;
+  min-width: 0;
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+#app-shell.ai-active .summary-progress-track {
+  grid-column: 1 / -1;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: var(--bg-panel-alt);
+}
+#app-shell.ai-active .summary-progress-track > span {
+  display: block;
+  width: 34%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  animation: aiIndeterminate 1.25s ease-in-out infinite alternate;
+}
+@keyframes aiIndeterminate { from { transform: translateX(-35%); } to { transform: translateX(200%); } }
+#app-shell.ai-active .summary-actions-slot {
+  display: flex;
+  flex: 0 0 38px;
+  align-items: center;
+  min-width: 0;
+  min-height: 38px;
+}
+#app-shell.ai-active #summary-actions-bar:not([hidden]) { display: flex !important; width: 100%; }
+#app-shell.ai-active #summary-display {
+  flex: 1 1 0;
+  min-height: 90px;
+  max-height: none;
+  box-sizing: border-box;
+}
+#app-shell.ai-active .extract-runtime-slot { color: var(--text-muted); font-size: 11px; line-height: 1.35; }
+#app-shell.ai-active .extract-runtime-slot #extract-runtime-status:not([hidden]) { display: block; min-width: 0; }
+#app-shell.ai-active .extract-runtime-slot #extract-cancel-btn:not([hidden]) { display: inline-flex; min-height: 36px; align-items: center; flex: 0 0 auto; }
+#app-shell.ai-active #trigger-extract-btn,
+#app-shell.ai-active #trigger-summary-btn { min-height: 46px; flex: 0 0 46px; }
+
+/* Studio becomes a true full-width workspace. The app footer remains after the
+   editor in the normal document flow, so it is reached by scrolling. */
+@media (min-width: 901px) {
+  #app-shell.ai-active .ai-studio-topbar { min-height: 91px; }
+  .main-area.studio-active { height: 100dvh !important; min-height: 0 !important; overflow-x: hidden !important; overflow-y: auto !important; }
+  .studio-active .dynamic-workspace { flex: 0 0 auto !important; width: 100% !important; height: auto !important; min-height: calc(100dvh - 64px) !important; overflow: visible !important; }
+  .studio-active #view-pdf-studio { height: calc(100dvh - 80px) !important; min-height: 580px !important; overflow: hidden !important; }
+  .studio-active .pdf-studio { width: 100% !important; height: 100% !important; min-height: 580px !important; max-height: none !important; grid-template-columns: clamp(190px, 20vw, 280px) minmax(0, 1fr) !important; }
+  .studio-active .app-global-footer { display: flex !important; margin-top: 12px; }
+  .studio-active .studio-primary-ribbon,
+  .studio-active .studio-sub-ribbon { flex-wrap: wrap !important; align-content: center; max-height: none !important; height: auto !important; overflow: visible !important; gap: 5px; padding: 5px 8px; }
+  .studio-active .studio-tool-btn { min-height: 34px !important; padding: 4px 7px !important; font-size: 11px; gap: 4px; }
+  .studio-active .studio-mode-btn { min-height: 32px; padding: 4px 8px; }
+}
+
+/* Four small touch rows replace the cramped sideways mobile ribbons. Page
+   insertion/extraction/deletion moves into the Pages panel; history, export,
+   zoom, and page navigation already live in the bottom dock. */
+@media (max-width: 900px) {
+  #app-shell.ai-active .ai-studio-topbar { min-height: 118px; justify-content: flex-start; }
+  #app-shell.ai-active .ai-active-doc-strip { min-height: 58px; align-items: center; padding: 8px 10px; }
+  #app-shell.ai-active .ai-doc-info-group { flex: 1 1 0; flex-wrap: nowrap; min-width: 0; }
+  #app-shell.ai-active .ai-doc-status-badge { display: none; }
+  #app-shell.ai-active .ai-doc-actions { flex: 0 0 auto; width: auto; }
+  #app-shell.ai-active .ai-doc-actions button { min-height: 38px; padding-inline: 9px !important; }
+  #app-shell.ai-active .ai-chat-card { height: min(52dvh, 460px) !important; min-height: min(360px, 52dvh) !important; max-height: 460px !important; }
+  #app-shell.ai-active .ai-studio-wrapper:has(#ai-active-doc-bar:not([hidden])) .ai-chat-card { height: min(52dvh, 460px) !important; min-height: min(360px, 52dvh) !important; }
+  #app-shell.ai-active .ai-studio-container > div:last-child > .ai-chat-card:first-child { height: 300px !important; min-height: 300px !important; max-height: 300px !important; }
+  #app-shell.ai-active .ai-studio-container > div:last-child > .ai-chat-card:last-child { height: 390px !important; min-height: 390px !important; max-height: 390px !important; }
+  #app-shell.ai-active .ai-studio-wrapper:has(#ai-active-doc-bar:not([hidden])) .ai-studio-container > div:last-child > .ai-chat-card:first-child { height: 300px !important; min-height: 300px !important; max-height: 300px !important; }
+  #app-shell.ai-active .ai-studio-wrapper:has(#ai-active-doc-bar:not([hidden])) .ai-studio-container > div:last-child > .ai-chat-card:last-child { height: 390px !important; min-height: 390px !important; max-height: 390px !important; }
+  #app-shell.ai-active #summary-display { min-height: 140px; max-height: 280px; }
+  #app-shell.ai-active .summary-runtime-slot,
+  #app-shell.ai-active .extract-runtime-slot { flex-basis: 48px; min-height: 48px; }
+  #app-shell.ai-active .summary-actions-slot { flex-basis: 40px; min-height: 40px; }
+
+  html.studio-active body { overflow-x: clip !important; overflow-y: auto !important; }
+  html.studio-active body #app-shell { min-height: 100dvh !important; height: auto !important; overflow: visible !important; padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important; }
+  html.studio-active body #app-shell .main-area { height: auto !important; min-height: 100dvh !important; overflow: visible !important; padding-bottom: 0 !important; }
+  html.studio-active body #app-shell .dynamic-workspace { height: auto !important; min-height: 0 !important; overflow: visible !important; padding-bottom: 12px !important; }
+  html.studio-active body #view-pdf-studio { height: auto !important; min-height: 0 !important; overflow: visible !important; }
+  html.studio-active body .pdf-studio { height: calc(100dvh - 150px) !important; min-height: 480px !important; max-height: none !important; overflow: hidden !important; }
+  html.studio-active body .app-global-footer { display: flex !important; margin: 12px 8px 0; padding: 14px 12px calc(90px + env(safe-area-inset-bottom, 0px)); }
+  html.studio-active body .studio-primary-ribbon,
+  html.studio-active body .studio-sub-ribbon { flex-flow: row wrap !important; align-content: center !important; justify-content: flex-start !important; flex: 0 0 auto !important; gap: 4px !important; height: auto !important; min-height: 0 !important; max-height: none !important; overflow: visible !important; padding: 4px 6px !important; }
+  html.studio-active body .studio-primary-ribbon { flex-flow: row wrap !important; align-content: center !important; justify-content: flex-start !important; flex: 0 0 auto !important; gap: 4px !important; height: auto !important; min-height: 0 !important; max-height: none !important; overflow: visible !important; padding: 4px 6px !important; }
+  html.studio-active body .studio-toolbar { height: auto !important; min-height: 0 !important; max-height: none !important; overflow: visible !important; }
+  html.studio-active body .studio-primary-ribbon > *,
+  html.studio-active body .studio-sub-ribbon > * { min-width: 0 !important; max-width: 100%; }
+  html.studio-active body .studio-primary-ribbon > .studio-tool-group,
+  html.studio-active body .studio-sub-ribbon > .studio-tool-group { flex: 0 0 auto !important; }
+  html.studio-active body .studio-sub-ribbon > .studio-tool-group[title="Annotation Tools"],
+  html.studio-active body .studio-sub-ribbon > .studio-tool-group[title="Shapes & Media"] { flex: 1 1 100% !important; width: 100%; max-width: 100%; flex-wrap: wrap !important; }
+  html.studio-active body .studio-primary-ribbon .studio-divider,
+  html.studio-active body .studio-sub-ribbon .studio-divider { display: none !important; }
+  html.studio-active body .studio-tool-group { gap: 4px !important; }
+  html.studio-active body .studio-tool-btn,
+  html.studio-active body .studio-mode-btn { width: 56px !important; min-width: 56px !important; height: 48px !important; min-height: 48px !important; padding: 4px 2px !important; flex-direction: column !important; justify-content: center; gap: 2px !important; border-radius: 8px !important; box-sizing: border-box; }
+  html.studio-active body .studio-tool-btn svg,
+  html.studio-active body .studio-mode-btn svg { width: 16px; height: 16px; flex: 0 0 auto; }
+  html.studio-active body .studio-tool-btn .tool-btn-text,
+  html.studio-active body .studio-mode-btn span { display: block !important; max-width: 100%; overflow: visible; text-overflow: clip; white-space: normal; text-align: center; font-size: 9px; line-height: 1.08; }
+  html.studio-active body .studio-mode-switcher { display: flex; flex: 0 0 auto !important; padding: 0; gap: 3px; }
+  html.studio-active body .studio-dropdown-trigger { min-width: 56px !important; }
+  html.studio-active body .studio-dropdown-trigger > svg:last-child { display: none; }
+  html.studio-active body .studio-export-group { margin-left: 0 !important; }
+  html.studio-active body .studio-save-btn { width: 92px !important; min-width: 92px !important; flex-direction: row !important; gap: 4px !important; }
+  html.studio-active body .studio-mobile-page-actions { display: none !important; padding: 8px 10px; border-bottom: 1px solid var(--studio-border); background: #172023; }
+  html.studio-active body #app-shell.studio-pages-open .studio-mobile-page-actions { display: block !important; }
+  html.studio-active body .studio-mobile-page-actions-label { display: block; margin-bottom: 6px; color: #a4b7b4; font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+  html.studio-active body #studio-mobile-page-actions-slot .studio-tool-group { display: flex; flex-wrap: wrap; gap: 5px; }
+  html.studio-active body #studio-mobile-page-actions-slot .studio-tool-btn { width: auto !important; min-width: 68px !important; height: 40px !important; min-height: 40px !important; flex-direction: row !important; padding-inline: 8px !important; }
+  html.studio-active body #studio-mobile-page-actions-slot .studio-tool-btn .tool-btn-text { font-size: 10px; }
+}
+
+@media (max-width: 900px) {
+  #app-shell.ai-active .ai-studio-topbar { min-height: 118px; }
+  html.studio-active body .studio-thumbnails-bar { max-height: min(40dvh, 300px) !important; }
+  html.studio-active body .studio-thumbnails-scroll { max-height: none !important; min-height: 0 !important; }
+}
+
+@media (max-width: 380px) {
+  html.studio-active body .studio-tool-btn,
+  html.studio-active body .studio-mode-btn { width: 52px !important; min-width: 52px !important; }
+  #app-shell.ai-active .ai-doc-actions { gap: 4px; }
+  #app-shell.ai-active .ai-doc-actions button { padding-inline: 7px !important; font-size: 11px !important; }
+}

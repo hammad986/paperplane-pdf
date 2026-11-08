@@ -1,0 +1,47 @@
+[
+  {
+    "source": "public_share_attempt_1",
+    "status": 200,
+    "elapsed_seconds": 4.702,
+    "filename": "SreeVarun_V.pdf",
+    "reported_size_bytes": 554620,
+    "actual_size_bytes": 554620,
+    "page_count": 1,
+    "opens_as_pdf": true,
+    "content_type": "application/pdf"
+  },
+  {
+    "source": "public_direct_download",
+    "status": 200,
+    "elapsed_seconds": 4.078,
+    "filename": "SreeVarun_V.pdf",
+    "reported_size_bytes": 554620,
+    "actual_size_bytes": 554620,
+    "page_count": 1,
+    "opens_as_pdf": true,
+    "content_type": "application/pdf"
+  },
+  {
+    "source": "public_share_attempt_2",
+    "status": 200,
+    "elapsed_seconds": 4.122,
+    "filename": "SreeVarun_V.pdf",
+    "reported_size_bytes": 554620,
+    "actual_size_bytes": 554620,
+    "page_count": 1,
+    "opens_as_pdf": true,
+    "content_type": "application/pdf"
+  },
+  {
+    "source": "restricted_share",
+    "status": 400,
+    "elapsed_seconds": 5.661,
+    "error": "SSRF Protection: The provided link returned an HTML webpage or login screen instead of a direct file. Please ensure the link is publicly accessible without login."
+  },
+  {
+    "source": "invalid_drive_id",
+    "status": 400,
+    "elapsed_seconds": 1.175,
+    "error": "Cloud file sync failed: HTTP Error 404: Not Found"
+  }
+]

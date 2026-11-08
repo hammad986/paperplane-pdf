@@ -256,13 +256,19 @@ class SSRFRedirectHandler(urllib.request.HTTPRedirectHandler):
         return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
-def safe_fetch_url(url: str, max_size: int = 50 * 1024 * 1024, timeout: int = 15) -> tuple[bytes, str]:
+def safe_fetch_url(
+    url: str,
+    max_size: int = 50 * 1024 * 1024,
+    timeout: int = 15,
+    response_metadata: dict[str, str] | None = None,
+) -> tuple[bytes, str]:
     """
     Safely fetches a remote HTTP/HTTPS URL with multi-layer SSRF protection:
     - Blocks private, loopback, link-local, cloud metadata IPs
     - Inspects and validates each redirect destination before following
     - Limits response size and enforces socket timeout
-    Returns: (content_bytes, content_type)
+    Returns: (content_bytes, content_type). Optional response metadata is limited
+    to headers needed by callers; it never bypasses URL or redirect validation.
     """
     safe, reason = is_safe_url(url)
     if not safe:
@@ -276,6 +282,12 @@ def safe_fetch_url(url: str, max_size: int = 50 * 1024 * 1024, timeout: int = 15
 
     with opener.open(req, timeout=timeout) as resp:
         content_type = resp.headers.get("Content-Type", "application/octet-stream")
+        if response_metadata is not None:
+            response_metadata.update({
+                "content_disposition": resp.headers.get("Content-Disposition", ""),
+                "content_length": resp.headers.get("Content-Length", ""),
+                "final_url": resp.geturl(),
+            })
         chunks = []
         total_size = 0
         while chunk := resp.read(64 * 1024):

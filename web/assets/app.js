@@ -28,6 +28,7 @@ const state = {
     isLoading: false,
     pageObserver: null,
     pageRenderTasks: new Map(),
+    pageRenderQueues: new Map(),
     activeTool: 'pan', // 'pan', 'draw', 'highlight', 'text', 'redact'
     isDrawing: false,
     annotations: [], // array of draw paths and stamps per page
@@ -698,6 +699,7 @@ async function safeFetch(url, options = {}) {
   try {
     response = await fetch(url, options);
   } catch (netErr) {
+    if (netErr?.name === 'AbortError' || netErr?.name === 'TimeoutError') throw netErr;
     throw new Error(`Connection error: Could not reach server. (${netErr.message})`);
   }
 
@@ -802,6 +804,7 @@ function syncStudioMobileLayout() {
   placeStudioControl('#page-indicator', 'studio-mobile-page-slot', mobile);
   placeStudioControl('.studio-primary-ribbon > .studio-tool-group[title="Zoom Controls"]', 'studio-mobile-zoom-slot', mobile);
   placeStudioControl('.studio-sub-ribbon .editor-style-group', 'studio-mobile-properties-slot', mobile);
+  placeStudioControl('.studio-sub-ribbon .studio-tool-group[title="Page Operations"]', 'studio-mobile-page-actions-slot', mobile);
 
   if (!mobile) {
     $('#studio-mobile-properties-panel')?.setAttribute('hidden', '');
@@ -1437,6 +1440,14 @@ async function syncSeoContent(operation) {
 }
 
 // Select an operation and update view
+function getOperationBatchGuidance(operation) {
+  const maximum = Number(state.planLimits.max_batch_files) || 100;
+  if (operation === 'merge') return `Merge supports up to ${maximum} PDF files per run`;
+  if (['jpg_to_pdf', 'scan_pdf'].includes(operation)) return `${state.operations[operation]?.label || 'This tool'} supports up to ${maximum} images per run`;
+  if (operation === 'compare') return 'Compare supports up to 2 PDF files per run';
+  return 'This tool processes 1 file per run';
+}
+
 function selectOperation(op, switchToDesk = true, preserveOpenCloudModal = false) {
   const previousOperation = state.operation;
   const opChanged = (previousOperation !== op);
@@ -1483,8 +1494,8 @@ function selectOperation(op, switchToDesk = true, preserveOpenCloudModal = false
       const accountTier = String(state.user.tier || '').toLowerCase();
       const paidAccount = Boolean(state.user.is_pro || state.user.is_dev || ['developer', 'student_pro', 'cyber_cafe', 'exam_pass'].includes(accountTier));
       if (paidAccount) {
-        const paidLabel = state.user.is_dev || accountTier === 'developer' ? 'Developer' : accountTier === 'student_pro' ? 'Student Pro' : accountTier === 'cyber_cafe' ? 'Cyber Café' : accountTier === 'exam_pass' ? 'Exam Pass' : 'Pro Power User';
-        tierBadge.textContent = `👑 ${paidLabel} · Unlimited · ${state.planLimits.pro_max_file_size_mb} MB · ${state.planLimits.max_batch_files} files`;
+        const paidLabel = state.user.is_dev || accountTier === 'developer' ? 'Developer' : accountTier === 'student_pro' ? 'Student & Educator' : accountTier === 'cyber_cafe' ? 'Cyber Café' : accountTier === 'exam_pass' ? 'Exam' : 'Pro Power User';
+        tierBadge.textContent = `${paidLabel} · no daily operation cap · up to ${state.planLimits.pro_max_file_size_mb} MB/file`;
         tierBadge.style.color = '#f59e0b';
         tierBadge.style.borderColor = 'rgba(245,158,11,0.3)';
         tierBadge.style.background = 'rgba(245,158,11,0.1)';
@@ -1524,7 +1535,8 @@ function selectOperation(op, switchToDesk = true, preserveOpenCloudModal = false
 
   const hint = $('#file-hint');
   if (hint) {
-    hint.textContent = `${item.accept === 'image' ? 'Images' : item.accept === 'office' ? 'Office documents' : 'PDF files'} up to ${state.planLimits.free_max_file_size_mb} MB on Free and ${state.planLimits.pro_max_file_size_mb} MB with Pro · batches up to ${state.planLimits.max_batch_files} files`;
+    const fileType = item.accept === 'image' ? 'Images' : item.accept === 'office' ? 'Office documents' : 'PDF files';
+    hint.textContent = `${fileType} up to ${state.planLimits.free_max_file_size_mb} MB each on Free and ${state.planLimits.pro_max_file_size_mb} MB each on paid plans · ${getOperationBatchGuidance(op)}`;
   }
 
   renderOptions();
@@ -1572,10 +1584,14 @@ function updateBillingUI(data) {
   state.dailyLimit = limit;
   state.dailyUsage = usage;
 
+  const batchLimits = `Up to ${maxBatchFiles} files for Merge, JPG/PNG to PDF, and Scan to PDF; Compare accepts 2 files; other tools accept 1 file per run.`;
   const quotaDescription = $('#settings-quota-description');
-  if (quotaDescription) quotaDescription.textContent = `Free: ${state.planLimits.free_operations_per_day} PDF operations per day and files up to ${freeFileMb} MB each. Pro: no daily operation cap, files up to ${proFileMb} MB, and batches up to ${maxBatchFiles} files.`;
+  if (quotaDescription) quotaDescription.textContent = `Free web tools: up to ${state.planLimits.free_operations_per_day} PDF operations per day and files up to ${freeFileMb} MB each. Paid web tools: no daily operation cap and files up to ${proFileMb} MB each. Developer API quotas are separate. Batch limits: ${batchLimits}`;
   const fileHint = $('#file-hint');
-  if (fileHint) fileHint.textContent = `Files up to ${freeFileMb} MB on Free and ${proFileMb} MB with Pro · batches up to ${maxBatchFiles} files`;
+  if (fileHint) {
+    const fileType = state.operations[state.operation]?.accept === 'image' ? 'Images' : state.operations[state.operation]?.accept === 'office' ? 'Office documents' : 'PDF files';
+    fileHint.textContent = `${fileType} up to ${freeFileMb} MB each on Free and ${proFileMb} MB each on paid plans · ${getOperationBatchGuidance(state.operation)}`;
+  }
 
   const quotaText = $('#quota-text');
   const quotaFill = $('#quota-fill');
@@ -1592,34 +1608,34 @@ function updateBillingUI(data) {
   if (settingsDailyLimit) settingsDailyLimit.textContent = isPaid ? '(No daily operation cap)' : `(${limit} operations / day)`;
 
   if (isPaid) {
-    let tierName = 'Pro Power User Tier';
-    let badgeText = 'ACTIVE PRO PASS';
+    let tierName = 'Pro Power User';
+    let badgeText = 'PRO POWER USER';
     let badgeColor = '#10b981';
-    let shortLabel = 'Pro';
+    let shortLabel = 'Pro Power User';
 
     if (tier === 'developer') {
-      tierName = 'Developer API Tier';
+      tierName = 'Developer';
       badgeText = 'ACTIVE DEVELOPER PASS';
       badgeColor = '#3b82f6';
       shortLabel = 'Developer';
     } else if (tier === 'student_pro') {
-      tierName = 'Student & Educator Pro Tier';
-      badgeText = 'ACTIVE STUDENT PRO';
+      tierName = 'Student & Educator';
+      badgeText = 'STUDENT & EDUCATOR';
       badgeColor = '#10b981';
-      shortLabel = 'Student';
+      shortLabel = 'Student & Educator';
     } else if (tier === 'cyber_cafe') {
-      tierName = 'Cyber Café Pack Tier';
-      badgeText = 'ACTIVE CSC PACK';
+      tierName = 'Cyber Café';
+      badgeText = 'CYBER CAFÉ';
       badgeColor = '#8b5cf6';
       shortLabel = 'Cyber Café';
     } else if (tier === 'exam_pass') {
-      tierName = '24-Hour Exam Pass';
-      badgeText = 'ACTIVE EXAM PASS';
+      tierName = 'Exam';
+      badgeText = 'EXAM';
       badgeColor = '#3b82f6';
-      shortLabel = 'Exam Pass';
+      shortLabel = 'Exam';
     }
 
-    if (quotaText) quotaText.textContent = `Unlimited · ${proFileMb} MB · ${maxBatchFiles} files`;
+    if (quotaText) quotaText.textContent = `No daily operation cap · up to ${proFileMb} MB/file`;
     if (quotaFill) {
       quotaFill.style.width = '100%';
       quotaFill.className = 'quota-progress-fill pro';
@@ -1637,7 +1653,7 @@ function updateBillingUI(data) {
       settingsTierBadge.style.background = `${badgeColor}26`;
       settingsTierBadge.style.color = badgeColor;
     }
-    if (settingsQuotaText) settingsQuotaText.textContent = 'Unlimited Operations';
+    if (settingsQuotaText) settingsQuotaText.textContent = 'No daily operation cap';
     if (settingsQuotaFill) {
       settingsQuotaFill.style.width = '100%';
       settingsQuotaFill.className = 'quota-progress-fill pro';
@@ -1652,13 +1668,13 @@ function updateBillingUI(data) {
     if (sidebarUpgradeBtn) sidebarUpgradeBtn.style.display = 'flex';
     if (topbarUpgradeBtn) topbarUpgradeBtn.style.display = 'inline-flex';
     if (roleBadge) {
-      roleBadge.textContent = 'Free Sovereign Tier';
+      roleBadge.textContent = 'Free';
       roleBadge.style.color = '';
       roleBadge.style.fontWeight = '';
     }
-    if (settingsTierName) settingsTierName.textContent = 'Free Sovereign Tier';
+    if (settingsTierName) settingsTierName.textContent = 'Free';
     if (settingsTierBadge) {
-      settingsTierBadge.textContent = 'FREE SOVEREIGN';
+      settingsTierBadge.textContent = 'FREE';
       settingsTierBadge.style.background = '';
       settingsTierBadge.style.color = '';
     }
@@ -1730,7 +1746,7 @@ async function checkAuthStatus() {
       if (sAvatar) sAvatar.textContent = initial;
       if (sEmail) sEmail.textContent = data.email;
       if (sBadge) {
-        sBadge.textContent = data.is_dev ? 'Developer API Tier' : data.is_pro ? 'Pro Power User Tier' : `Free Sovereign Tier · ${state.planLimits.free_operations_per_day} operations/day`;
+        sBadge.textContent = data.is_dev ? 'Developer' : data.is_pro ? 'Pro Power User' : `Free · ${state.planLimits.free_operations_per_day} operations/day`;
       }
       if ($('#settings-guest-actions')) $('#settings-guest-actions').hidden = true;
       if ($('#settings-user-actions')) $('#settings-user-actions').hidden = false;
@@ -1746,7 +1762,7 @@ async function checkAuthStatus() {
       if ($('#topbar-username')) $('#topbar-username').textContent = 'Guest Explorer';
       if ($('#settings-user-avatar')) $('#settings-user-avatar').textContent = 'G';
       if ($('#settings-user-email')) $('#settings-user-email').textContent = 'Guest Explorer';
-      if ($('#settings-user-badge')) $('#settings-user-badge').textContent = `Free Sovereign Tier · ${state.planLimits.free_operations_per_day} operations/day`;
+      if ($('#settings-user-badge')) $('#settings-user-badge').textContent = `Free · ${state.planLimits.free_operations_per_day} operations/day`;
       if ($('#settings-guest-actions')) $('#settings-guest-actions').hidden = false;
       if ($('#settings-user-actions')) $('#settings-user-actions').hidden = true;
     }
@@ -2358,7 +2374,17 @@ function setActiveStudioPage(pageNum, { scrollThumbnail = true } = {}) {
   saveStudioPagePosition();
 }
 
-async function renderStudioPage(pageNum, { priority = false, force = false } = {}) {
+function renderStudioPage(pageNum, options = {}) {
+  const queued = state.studio.pageRenderQueues;
+  const previous = queued.get(pageNum) || Promise.resolve();
+  const job = previous.catch(() => {}).then(() => renderStudioPageNow(pageNum, options));
+  queued.set(pageNum, job);
+  return job.finally(() => {
+    if (queued.get(pageNum) === job) queued.delete(pageNum);
+  });
+}
+
+async function renderStudioPageNow(pageNum, { priority = false, force = false } = {}) {
   if (!state.studio.pdfDoc) return false;
   const studioDoc = state.studio.pdfDoc;
   const target = Math.max(1, Math.min(state.studio.totalCount, Number(pageNum) || 1));
@@ -3545,6 +3571,21 @@ function updateProgress(step, percent, title) {
   });
 }
 
+let activeDeskAiController = null;
+let deskAiRequestTimedOut = false;
+
+function updateAiWorkflowProgress(message) {
+  const card = $('#progress-card');
+  if (!card) return;
+  card.hidden = false;
+  card.classList.add('ai-workflow-progress');
+  $('#progress-status-title').textContent = message;
+  $('#progress-percent').textContent = 'Waiting';
+  $('#progress-bar-fill').style.width = '34%';
+}
+
+$('#job-cancel-btn')?.addEventListener('click', () => activeDeskAiController?.abort());
+
 $('#job-form').onsubmit = async e => {
   e.preventDefault();
   const isHtml = state.operation === 'html_to_pdf';
@@ -3621,16 +3662,39 @@ $('#job-form').onsubmit = async e => {
   }
 
   if (['ai_chat', 'summarize', 'translate', 'ai_extract'].includes(state.operation)) {
+    const controller = new AbortController();
+    activeDeskAiController = controller;
+    deskAiRequestTimedOut = false;
+    const timeoutMs = state.operation === 'translate' ? 310000 : state.operation === 'summarize' ? 120000 : 75000;
+    const timeout = window.setTimeout(() => {
+      deskAiRequestTimedOut = true;
+      controller.abort();
+    }, timeoutMs);
+    const cancelButton = $('#job-cancel-btn');
+    if (cancelButton) cancelButton.hidden = false;
     try {
-      updateProgress(2, 40, 'Starting grounded AI workflow…');
-      await runDeskAiWorkflow(options);
+      updateAiWorkflowProgress(state.operation === 'translate'
+        ? 'Translating PDF with AI · waiting for the provider response…'
+        : state.operation === 'summarize'
+          ? 'Preparing the executive brief · waiting for the provider response…'
+          : 'AI request running · waiting for the provider response…');
+      await runDeskAiWorkflow(options, controller.signal);
       updateProgress(4, 100, 'AI workflow complete');
-      setTimeout(() => $('#progress-card').hidden = true, 800);
-    } catch (error) {
       $('#progress-card').hidden = true;
-      showResult(error.message, true);
-      showToast(error.message, 'error', 4500);
+    } catch (error) {
+      const message = controller.signal.aborted
+        ? deskAiRequestTimedOut
+          ? 'This AI request reached its time limit. No output was created; try a shorter PDF or retry later.'
+          : 'AI request cancelled. No output was created.'
+        : error.message;
+      showResult(message, true);
+      showToast(message, controller.signal.aborted && !deskAiRequestTimedOut ? 'info' : 'error', 6000);
     } finally {
+      window.clearTimeout(timeout);
+      if (activeDeskAiController === controller) activeDeskAiController = null;
+      if (cancelButton) cancelButton.hidden = true;
+      $('#progress-card')?.classList.remove('ai-workflow-progress');
+      $('#progress-card').hidden = true;
       btn.disabled = false;
       updateButton();
     }
@@ -3938,20 +4002,20 @@ async function fetchBinary(url, options = {}) {
   return { blob: await response.blob(), response };
 }
 
-async function runDeskAiWorkflow(options) {
+async function runDeskAiWorkflow(options, signal) {
   const operation = state.operation;
   if (operation === 'ai_chat') {
     const form = new FormData();
     form.append('file', state.files[0]);
     form.append('question', options.question || 'Summarize the key contents of this document.');
-    showAiChatDeskResult(await safeFetch('/api/ai/chat', { method: 'POST', body: form }));
+    showAiChatDeskResult(await safeFetch('/api/ai/chat', { method: 'POST', body: form, signal }));
     showToast('AI answer rendered with verified page citations.', 'success');
     return;
   }
   if (operation === 'summarize') {
     const form = new FormData();
     form.append('file', state.files[0]);
-    const data = await safeFetch('/api/ai/summarize', { method: 'POST', body: form });
+    const data = await safeFetch('/api/ai/summarize', { method: 'POST', body: form, signal });
     showSummaryDeskResult(data.summary, data.citations);
     showToast('Executive briefing rendered on-screen.', 'success');
     return;
@@ -3960,7 +4024,7 @@ async function runDeskAiWorkflow(options) {
     const form = new FormData();
     form.append('file', state.files[0]);
     form.append('doc_type', options.doc_type || 'auto');
-    const data = await safeFetch('/api/ai/extract', { method: 'POST', body: form });
+    const data = await safeFetch('/api/ai/extract', { method: 'POST', body: form, signal });
     renderExtractionResultsModal(data.data);
     showRichAiResult('Structured extraction ready', `${data.data.document_type || 'general'} · interactive viewer opened`, '<p>Review the structured fields, source pages, warnings, and export controls in the extraction viewer.</p>', { showStudio: false });
     $('#extraction-results-modal').hidden = false;
@@ -3971,7 +4035,7 @@ async function runDeskAiWorkflow(options) {
     const form = new FormData();
     form.append('file', state.files[0]);
     form.append('target_language', options.target_language || 'es');
-    const { blob, response } = await fetchBinary('/api/ai/translate', { method: 'POST', body: form });
+    const { blob, response } = await fetchBinary('/api/ai/translate', { method: 'POST', body: form, signal });
     const warningCount = response.headers.get('X-Paperplane-Translation-Warnings') || '0';
     const mode = response.headers.get('X-Paperplane-Translation-Mode') || 'translated';
     const name = `${(state.files[0]?.name || 'document').replace(/\.[^/.]+$/, '')}_translated.pdf`;
@@ -4087,6 +4151,10 @@ function downloadBlob(bytes, filename, mimeType) {
 
 let currentExtractionData = null;
 let executiveBriefAvailable = null;
+let summaryRequestController = null;
+let summaryRequestTimedOut = false;
+let extractionRequestController = null;
+let extractionRequestTimedOut = false;
 
 function setExecutiveBriefAvailability(available) {
   executiveBriefAvailable = typeof available === 'boolean' ? available : null;
@@ -4189,6 +4257,8 @@ if (aiChangeDocBtn) aiChangeDocBtn.onclick = () => aiFileInput?.click();
 
 if (aiClearDocBtn) {
   aiClearDocBtn.onclick = async () => {
+    summaryRequestController?.abort();
+    extractionRequestController?.abort();
     state.files = [];
     state.aiConversation = [];
     await removeLocalWork('ai-pdf', 'ai-conversation').catch(error => console.warn('Could not clear AI work locally:', error));
@@ -4210,6 +4280,8 @@ if (aiFileInput) {
         showToast('Please select a valid PDF file.', 'warning');
         return;
       }
+      summaryRequestController?.abort();
+      extractionRequestController?.abort();
       state.files = [file];
       writeLocalWork('ai-pdf', localPdfRecord(file)).catch(error => {
         console.warn('Paperplane could not save the AI PDF locally:', error);
@@ -4265,8 +4337,9 @@ if (testConnBtn) {
     try {
       const res = await safeFetch('/api/ai/test-connection');
       if (res.status === 'connected' || res.status === 'inference_succeeded') {
-        if (statusEl) { statusEl.className = 'ai-connection-status'; statusEl.textContent = 'AI Connected'; }
-        showToast('AI Connected', 'success');
+        const message = res.message || 'Short AI connection check passed. Full PDF workflows can still fail or time out.';
+        if (statusEl) { statusEl.className = 'ai-connection-status'; statusEl.textContent = message; }
+        showToast(message, 'success', 7000);
       } else if (res.status === 'configuration_missing') {
         if (statusEl) { statusEl.className = 'ai-connection-status error'; statusEl.textContent = 'AI provider is not configured'; }
         showToast('AI provider is not configured', 'warning', 6000);
@@ -4301,6 +4374,7 @@ if (chatClearBtn) {
 
 $('#ai-clear-work-btn')?.addEventListener('click', async () => {
   activeAIChatController?.abort();
+  summaryRequestController?.abort();
   state.files = [];
   state.aiConversation = [];
   await removeLocalWork('ai-pdf', 'ai-conversation').catch(error => console.warn('Could not clear AI work locally:', error));
@@ -4490,6 +4564,7 @@ $('#chat-form').onsubmit = async e => {
 
 // Executive Summarizer
 async function generateExecutiveBrief() {
+  if (summaryRequestController) return;
   if (executiveBriefAvailable === false) {
     setExecutiveBriefAvailability(false);
     return;
@@ -4502,33 +4577,58 @@ async function generateExecutiveBrief() {
   const btn = $('#trigger-summary-btn');
   const summaryBox = $('#summary-display');
   const actionsBar = $('#summary-actions-bar');
+  const progress = $('#summary-progress');
+  const progressText = $('#summary-progress-text');
+  const cancelButton = $('#summary-cancel-btn');
+  const requestFile = state.files[0];
+  const controller = new AbortController();
+  summaryRequestController = controller;
+  summaryRequestTimedOut = false;
+  const timeout = window.setTimeout(() => {
+    summaryRequestTimedOut = true;
+    controller.abort();
+  }, 115000);
   currentSummaryText = '';
   btn.disabled = true;
-  btn.textContent = 'Generating Executive Brief...';
-  summaryBox.textContent = 'Generating an executive brief from this PDF…';
+  btn.textContent = 'Generating brief…';
+  if (cancelButton) cancelButton.hidden = false;
+  summaryBox.textContent = 'The executive brief will appear here when processing finishes.';
+  if (progressText) progressText.textContent = 'Generating from this PDF · waiting for the AI service response. Live percentage is not available.';
+  if (progress) progress.hidden = false;
   if (actionsBar) actionsBar.hidden = true;
   const form = new FormData();
   form.append('file', state.files[0]);
 
   try {
-    const res = await safeFetch('/api/ai/summarize', { method: 'POST', body: form });
+    const res = await safeFetch('/api/ai/summarize', { method: 'POST', body: form, signal: controller.signal });
     currentSummaryText = res.summary || '';
     if (!currentSummaryText.trim()) throw new Error('Paperplane AI returned an empty executive brief. Please retry.');
     summaryBox.innerHTML = `${renderMarkdown(currentSummaryText)}${summaryCitationHtml(res.citations)}`;
     if (actionsBar) actionsBar.hidden = false;
     showToast('Executive brief generated successfully!', 'success');
   } catch (err) {
-    const errMsg = safeAiErrorMessage(err);
+    if (controller.signal.aborted && state.files[0] !== requestFile) return;
+    const errMsg = controller.signal.aborted
+      ? summaryRequestTimedOut
+        ? 'Executive brief timed out. No output was created; try again with a shorter PDF.'
+        : 'Executive brief cancelled. No output was created.'
+      : safeAiErrorMessage(err);
     summaryBox.innerHTML = `<div class="ai-summary-error" role="alert">${escapeHtml(errMsg)} <button type="button" id="summary-retry-btn" class="btn-secondary-action">Retry</button></div>`;
     $('#summary-retry-btn')?.addEventListener('click', generateExecutiveBrief, { once: true });
     if (actionsBar) actionsBar.hidden = true;
+    if (controller.signal.aborted && !summaryRequestTimedOut) showToast(errMsg, 'info', 5000);
   } finally {
+    window.clearTimeout(timeout);
+    if (summaryRequestController === controller) summaryRequestController = null;
+    if (progress) progress.hidden = true;
+    if (cancelButton) cancelButton.hidden = true;
     btn.disabled = false;
     btn.textContent = 'Generate Executive Brief';
   }
 }
 
 $('#trigger-summary-btn').onclick = generateExecutiveBrief;
+$('#summary-cancel-btn')?.addEventListener('click', () => summaryRequestController?.abort());
 
 const copySummaryBtn = $('#copy-summary-btn');
 if (copySummaryBtn) {
@@ -4768,9 +4868,25 @@ $('#trigger-extract-btn').onclick = async () => {
     aiFileInput?.click();
     return;
   }
+  if (extractionRequestController) return;
   const btn = $('#trigger-extract-btn');
+  const status = $('#extract-runtime-status');
+  const cancelButton = $('#extract-cancel-btn');
+  const requestFile = state.files[0];
+  const controller = new AbortController();
+  extractionRequestController = controller;
+  extractionRequestTimedOut = false;
+  const timeout = window.setTimeout(() => {
+    extractionRequestTimedOut = true;
+    controller.abort();
+  }, 115000);
   btn.disabled = true;
-  btn.textContent = 'Extracting Entities...';
+  btn.textContent = 'Extracting…';
+  if (status) {
+    status.hidden = false;
+    status.textContent = 'Extracting fields from this PDF · waiting for the AI service response. Live percentage is not available.';
+  }
+  if (cancelButton) cancelButton.hidden = false;
 
   const form = new FormData();
   form.append('file', state.files[0]);
@@ -4778,16 +4894,33 @@ $('#trigger-extract-btn').onclick = async () => {
   form.append('doc_type', docTypeVal);
 
   try {
-    const res = await safeFetch('/api/ai/extract', { method: 'POST', body: form });
+    const res = await safeFetch('/api/ai/extract', { method: 'POST', body: form, signal: controller.signal });
+    if (state.files[0] !== requestFile) return;
     renderExtractionResultsModal(res.data);
+    if (status) status.textContent = 'Extraction complete. Review the fields, source pages, and JSON view in the results window.';
     showToast('Structured extraction completed successfully!', 'success');
   } catch (err) {
-    showToast(err.message, 'error');
+    if (controller.signal.aborted && state.files[0] !== requestFile) return;
+    const message = controller.signal.aborted
+      ? extractionRequestTimedOut
+        ? 'Extraction timed out. No result was created; try a shorter PDF or retry later.'
+        : 'Extraction cancelled. No result was created.'
+      : safeAiErrorMessage(err);
+    if (status) {
+      status.hidden = false;
+      status.textContent = message;
+    }
+    showToast(message, controller.signal.aborted && !extractionRequestTimedOut ? 'info' : 'error');
   } finally {
+    window.clearTimeout(timeout);
+    if (extractionRequestController === controller) extractionRequestController = null;
+    if (cancelButton) cancelButton.hidden = true;
     btn.disabled = false;
     btn.textContent = 'Extract Structured Entities';
   }
 };
+
+$('#extract-cancel-btn')?.addEventListener('click', () => extractionRequestController?.abort());
 
 // Extraction Modal Controls & Tab Switching
 const extModal = $('#extraction-results-modal');
@@ -5744,13 +5877,13 @@ async function initiateCheckout(tier, btnEl) {
 
     if (res.mode === 'demo_activated') {
       const tierDisplayNames = {
-        exam_pass: '24-Hour Exam Pass (₹19)',
-        student_pro: 'Student & Educator Pro (₹49/mo)',
-        pro: 'Pro Power User (₹250/mo)',
-        cyber_cafe: 'Cyber Café Pack (₹299/mo)',
-        developer: 'Developer API (₹750/mo)'
+        exam_pass: 'Exam (₹19 · 24 hours)',
+        student_pro: 'Student & Educator (₹49/mo or ₹399/year)',
+        pro: 'Pro Power User (₹250/mo or ₹999/year)',
+        cyber_cafe: 'Cyber Café (₹299/mo)',
+        developer: 'Developer (₹750/mo)'
       };
-      showToast(`${tierDisplayNames[tier] || 'Pro'} Plan Activated!`, 'success', 5000);
+      showToast(`${tierDisplayNames[tier] || 'Pro Power User'} Plan Activated!`, 'success', 5000);
       closeUpgradeModal();
       await checkAuthStatus();
     } else if (res.payment_session_id) {
@@ -5846,9 +5979,16 @@ async function handleCashfreeReturn() {
     if (result.status === 'paid') {
       triggerConfetti();
       showToast('Cashfree payment verified. Your new tier is active!', 'success', 5500);
+      const planNames = {
+        exam_pass: 'Exam',
+        student_pro: 'Student & Educator',
+        pro: 'Pro Power User',
+        cyber_cafe: 'Cyber Café',
+        developer: 'Developer'
+      };
       showUserErrorModal(
         'Payment Succeeded!',
-        `Welcome to the ${result.tier === 'developer' ? 'Developer API' : 'Pro'} tier. Your Cashfree payment is verified and your account is active.`,
+        `Welcome to the ${planNames[result.tier] || 'paid'} plan. Your Cashfree payment is verified and your account is active.`,
         { icon: 'Success' }
       );
       await checkAuthStatus();

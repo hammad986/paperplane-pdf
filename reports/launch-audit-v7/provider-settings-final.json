@@ -1,0 +1,26 @@
+{
+  "base": "http://127.0.0.1:8502",
+  "model_inference_calls": 0,
+  "page_errors": [],
+  "console_errors": [],
+  "capabilities": {
+    "http_status": 200,
+    "body": {
+      "executive_brief_available": false,
+      "reason": "ai_service_not_configured"
+    }
+  },
+  "connection_check": {
+    "http_status": 200,
+    "body": {
+      "status": "configuration_missing",
+      "message": "AI provider is not configured",
+      "fallback_active": false
+    }
+  },
+  "summary_button_disabled_without_provider": true,
+  "clear_work_controls_available_in_privacy_settings": {
+    "ai": true,
+    "studio": true
+  }
+}
