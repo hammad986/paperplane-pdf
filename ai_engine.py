@@ -980,16 +980,16 @@ def _guard_ai_output(answer: str) -> str:
 def summarize_pdf(pdf_path: Path, max_pages: int | None = None) -> str:
     """Summarizes document into executive overview and bulleted key takeaways."""
     doc = fitz.open(str(pdf_path))
-    texts = []
-    page_limit = max_pages or doc.page_count
+    page_limit = min(doc.page_count, max_pages) if max_pages and max_pages > 0 else doc.page_count
     page_budget = max(300, min(1500, 22000 // max(1, page_limit)))
+    page_texts: list[tuple[int, str]] = []
     for page in list(doc)[:page_limit]:
         t = page.get_text("text").strip()
         if t:
-            texts.append(f"--- Page {page.number + 1} ---\n{t[:page_budget]}")
+            page_texts.append((page.number + 1, t[:page_budget]))
+    doc.close()
 
-    full_text = "\n\n".join(texts)
-    if not full_text:
+    if not page_texts:
         return "The document contains no extractable text."
 
     system_prompt = (
@@ -997,8 +997,36 @@ def summarize_pdf(pdf_path: Path, max_pages: int | None = None) -> str:
         "bullet points of key details, decisions, numbers, and deadlines. Ground every document fact in the "
         "provided text and append a page citation in the exact form [Page N] or [Pages N-M]. Do not invent citations."
     )
-    summary = _guard_ai_output(call_llm(system_prompt, f"DOCUMENT CONTENT:\n\n{full_text}", timeout_seconds=50))
-    eligible_pages = {chunk.page_number for chunk in extract_chunks_from_pdf(pdf_path) if chunk.text.strip()}
+    if len(page_texts) <= 24:
+        full_text = "\n\n".join(f"--- Page {number} ---\n{text}" for number, text in page_texts)
+        summary = call_llm(system_prompt, f"DOCUMENT CONTENT:\n\n{full_text}", timeout_seconds=50)
+    else:
+        # Long documents are summarized in bounded, page-labelled sections so
+        # one provider request does not have to fit the whole source at once.
+        chunk_notes: list[str] = []
+        chunk_size = 24
+        for start in range(0, len(page_texts), chunk_size):
+            chunk = page_texts[start:start + chunk_size]
+            chunk_text = "\n\n".join(f"--- Page {number} ---\n{text}" for number, text in chunk)
+            first_page, last_page = chunk[0][0], chunk[-1][0]
+            chunk_prompt = (
+                f"DOCUMENT SECTION, pages {first_page}-{last_page}:\n\n{chunk_text}\n\n"
+                "Return concise key facts, decisions, dates, amounts, and themes from this section. "
+                "Ground each item in the supplied text and preserve its [Page N] citation. Do not invent facts."
+            )
+            note = call_llm(system_prompt, chunk_prompt, timeout_seconds=35).strip()
+            if not note:
+                raise RuntimeError(f"AI service returned an empty summary for pages {first_page}-{last_page}.")
+            chunk_notes.append(note)
+        final_prompt = (
+            "Synthesize these page-grounded section notes into one concise executive summary followed by "
+            "the most useful key takeaways. Preserve source citations from the notes exactly and do not "
+            "introduce facts that the notes do not support.\n\n" + "\n\n".join(chunk_notes)
+        )
+        summary = call_llm(system_prompt, final_prompt, timeout_seconds=35)
+
+    summary = _guard_ai_output(summary)
+    eligible_pages = {page_number for page_number, _ in page_texts}
     return align_answer_citations(summary, eligible_pages)[0]
 
 
@@ -1478,7 +1506,7 @@ def _translate_text_batch(
     blocks: list[tuple[int, str]],
     target_language: str,
 ) -> dict[int, str]:
-    """Translate a bounded page batch, returning no entries on fallback/failure."""
+    """Translate a bounded page batch or raise a safe provider failure class."""
     if not blocks or AI_KILL_SWITCH or not _current_bluesminds_api_key():
         return {}
 
@@ -1494,9 +1522,22 @@ def _translate_text_batch(
             json.dumps(payload, ensure_ascii=False),
             timeout_seconds=TRANSLATION_CALL_TIMEOUT_SECONDS,
         )
-        return _parse_translation_batch(response, [block_id for block_id, _ in blocks])
-    except Exception:
-        return {}
+    except Exception as error:
+        # call_bluesminds performs one bounded retry with backoff for transient
+        # upstream failures. Preserve only the safe failure class/status here.
+        status_match = re.search(r"\bHTTP\s+(\d{3})\b", str(error), re.IGNORECASE)
+        if status_match:
+            failure_class = f"upstream HTTP {status_match.group(1)}"
+        elif re.search(r"timeout|timed out|could not be reached", str(error), re.IGNORECASE):
+            failure_class = "network timeout or connection error"
+        else:
+            failure_class = type(error).__name__
+        raise RuntimeError(f"Translation provider failed ({failure_class}).") from error
+
+    translations = _parse_translation_batch(response, [block_id for block_id, _ in blocks])
+    if not translations:
+        raise RuntimeError("Translation provider returned an invalid structured response.")
+    return translations
 
 
 def translate_pdf_layout(
@@ -1554,10 +1595,17 @@ def translate_pdf_layout(
             batch = text_blocks[batch_start:batch_start + TRANSLATION_BATCH_SIZE]
             remaining = TRANSLATION_MAX_BLOCKS - translated_block_count
             batch = batch[:remaining]
-            translated = _translate_text_batch(
-                [(block_id, text) for block_id, _, text in batch],
-                target_language,
-            )
+            try:
+                translated = _translate_text_batch(
+                    [(block_id, text) for block_id, _, text in batch],
+                    target_language,
+                )
+            except Exception as error:
+                report_data["fallback_used"] = True
+                report_data["warnings"].append(str(error))
+                out_doc.close()
+                doc.close()
+                raise
             if translated:
                 page_translations.update(translated)
                 translated_block_count += len(translated)

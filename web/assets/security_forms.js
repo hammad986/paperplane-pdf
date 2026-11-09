@@ -130,6 +130,10 @@
         if (tabBtn) tabBtn.classList.toggle('active', t === tabId);
         if (pane) pane.style.display = (t === tabId) ? 'block' : 'none';
       });
+      const fillBtn = document.getElementById('btn-apply-form-fill');
+      const addFieldBtn = document.getElementById('btn-apply-add-field');
+      if (fillBtn) fillBtn.hidden = tabId !== 'inspect';
+      if (addFieldBtn) addFieldBtn.hidden = tabId !== 'add';
     }
 
     async refreshFormsAnalysis() {
@@ -203,6 +207,7 @@
     }
 
     async applyFormFill() {
+      if (document.getElementById('forms-pane-inspect')?.style.display === 'none') return;
       const target = this._getActiveFile();
       if (!target) return;
 

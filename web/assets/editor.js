@@ -397,6 +397,7 @@ class SignaturePad {
     this._canvas = canvasEl;
     this._ctx = canvasEl.getContext('2d');
     this._drawing = false;
+    this._activePointerId = null;
     this._paths = [];
     this._currentPath = [];
     this._mode = 'draw';  // 'draw' | 'type'
@@ -478,42 +479,53 @@ class SignaturePad {
 
   _getPos(e) {
     const rect = this._canvas.getBoundingClientRect();
-    const src = e.touches ? e.touches[0] : e;
-    return { x: src.clientX - rect.left, y: src.clientY - rect.top };
+    const logicalWidth = this._canvas.width / this._dpr;
+    const logicalHeight = this._canvas.height / this._dpr;
+    const scaleX = rect.width ? logicalWidth / rect.width : 1;
+    const scaleY = rect.height ? logicalHeight / rect.height : 1;
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY
+    };
   }
 
   _attachEvents() {
     const el = this._canvas;
     const onStart = e => {
-      if (this._mode !== 'draw') return;
+      if (this._mode !== 'draw' || e.isPrimary === false || (e.button !== undefined && e.button !== 0)) return;
       e.preventDefault();
       this._drawing = true;
+      this._activePointerId = e.pointerId;
+      try { el.setPointerCapture(e.pointerId); } catch { /* pointer can end before capture on older browsers */ }
       const pt = this._getPos(e);
       this._currentPath = [pt];
     };
     const onMove = e => {
-      if (!this._drawing) return;
+      if (!this._drawing || e.pointerId !== this._activePointerId) return;
       e.preventDefault();
       const pt = this._getPos(e);
       this._currentPath.push(pt);
       this._redraw();
     };
     const onEnd = e => {
-      if (!this._drawing) return;
+      if (!this._drawing || (e.pointerId !== undefined && e.pointerId !== this._activePointerId)) return;
       this._drawing = false;
+      const pointerId = this._activePointerId;
+      this._activePointerId = null;
       if (this._currentPath.length > 1) {
         this._paths.push([...this._currentPath]);
       }
       this._currentPath = [];
       this._redraw();
+      if (pointerId !== null && el.hasPointerCapture?.(pointerId)) {
+        try { el.releasePointerCapture(pointerId); } catch { /* capture may already be released */ }
+      }
     };
-    el.addEventListener('mousedown', onStart);
-    el.addEventListener('mousemove', onMove);
-    el.addEventListener('mouseup', onEnd);
-    el.addEventListener('mouseleave', onEnd);
-    el.addEventListener('touchstart', onStart, { passive: false });
-    el.addEventListener('touchmove', onMove, { passive: false });
-    el.addEventListener('touchend', onEnd);
+    el.style.touchAction = 'none';
+    el.addEventListener('pointerdown', onStart);
+    el.addEventListener('pointermove', onMove);
+    el.addEventListener('pointerup', onEnd);
+    el.addEventListener('pointercancel', onEnd);
   }
 
   setMode(mode) {

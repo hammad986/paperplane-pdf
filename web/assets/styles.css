@@ -1487,6 +1487,18 @@ textarea::placeholder {
   background: var(--error-bg);
   border-color: rgba(239, 68, 68, 0.25);
 }
+.result-card.result-neutral {
+  border-color: var(--border-light);
+  background: var(--bg-panel-alt);
+  color: var(--text-muted);
+}
+.option-required-hint {
+  display: block;
+  margin-top: 5px;
+  color: var(--text-muted);
+  font-size: 11.5px;
+  line-height: 1.4;
+}
 
 .result-info strong {
   font-size: 17px;
@@ -5416,11 +5428,17 @@ body:not(.light-mode) .editor-select option {
 
 .thumb-grip,
 .organizer-drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
   color: #64748b;
   font-size: 13px;
   cursor: grab;
   padding: 0 2px;
   transition: color 0.15s;
+  touch-action: none;
 }
 
 .thumb-grip:hover,
@@ -8180,7 +8198,12 @@ body.dark-mode .dropzone:hover, body.dark-mode .dropzone.over { background: #202
   }
 
   .studio-active .thumb-grip {
-    display: none;
+    display: inline-flex;
+    width: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    touch-action: none;
   }
 
   .studio-active #org-strip-view-btn,
@@ -8772,7 +8795,7 @@ section, h1, h2, h3 { scroll-margin-top: 104px; }
 #app-shell.ai-active .ai-chat-form { position: static; flex: 0 0 auto; margin-top: auto; }
 #app-shell.ai-active .ai-studio-container > div:last-child {
   display: grid !important;
-  grid-template-rows: minmax(0, .92fr) minmax(0, 1.08fr);
+  grid-template-rows: minmax(260px, .78fr) minmax(344px, 1.22fr);
   gap: 14px !important;
   min-width: 0;
   min-height: 0;
@@ -9472,6 +9495,8 @@ html.studio-active body .studio-main-viewport { min-width: 0; max-width: 100%; b
 #app-shell.ai-active .ai-card-heading-row { min-height: 36px; flex-wrap: nowrap; gap: 8px; }
 #app-shell.ai-active .ai-card-heading-row h4 { flex: 1 1 auto; min-width: 0; }
 #app-shell.ai-active .ai-card-heading-row .view-header-badge { flex: 0 0 auto; }
+#app-shell.ai-active .chat-markdown .ai-citation-tag { margin-inline: 2px; vertical-align: middle; }
+#app-shell.ai-active .ai-chat-messages:has(#ai-empty-state:not([hidden])) { padding-block-start: 20px; }
 #app-shell.ai-active .ai-studio-topbar { min-height: 82px; }
 #app-shell.ai-active .ai-active-doc-strip { min-height: 54px; box-sizing: border-box; }
 #app-shell.ai-active .ai-doc-details { overflow: hidden; }
@@ -9539,10 +9564,16 @@ html.studio-active body .studio-main-viewport { min-width: 0; max-width: 100%; b
    editor in the normal document flow, so it is reached by scrolling. */
 @media (min-width: 901px) {
   #app-shell.ai-active .ai-studio-topbar { min-height: 91px; }
-  .main-area.studio-active { height: 100dvh !important; min-height: 0 !important; overflow-x: hidden !important; overflow-y: auto !important; }
+  .main-area.studio-active { height: 100dvh !important; min-height: 0 !important; overflow-x: hidden !important; overflow-y: auto !important; scroll-padding-top: 76px; }
   .studio-active .dynamic-workspace { flex: 0 0 auto !important; width: 100% !important; height: auto !important; min-height: calc(100dvh - 64px) !important; overflow: visible !important; }
-  .studio-active #view-pdf-studio { height: calc(100dvh - 80px) !important; min-height: 580px !important; overflow: hidden !important; }
-  .studio-active .pdf-studio { width: 100% !important; height: 100% !important; min-height: 580px !important; max-height: none !important; grid-template-columns: clamp(190px, 20vw, 280px) minmax(0, 1fr) !important; }
+  .studio-active #view-pdf-studio { height: calc(100dvh - 80px) !important; min-height: 480px !important; overflow: visible !important; }
+  .studio-active .pdf-studio { width: 100% !important; height: 100% !important; min-height: 480px !important; max-height: none !important; overflow: visible !important; grid-template-columns: clamp(190px, 20vw, 280px) minmax(0, 1fr) !important; }
+  .studio-active .studio-main-viewport { overflow: visible !important; }
+  .studio-active .studio-toolbar { position: sticky !important; top: 76px !important; z-index: 110 !important; }
+  .studio-active .studio-thumbnails-bar { position: sticky; top: 76px; align-self: start; height: calc(100dvh - 76px) !important; }
+  .studio-pages-collapsed #view-pdf-studio { grid-template-columns: minmax(0, 1fr) !important; }
+  .studio-pages-collapsed #studio-thumbnails-bar { display: none !important; }
+  .studio-pages-toggle-btn { display: inline-flex; }
   .studio-active .app-global-footer { display: flex !important; margin-top: 12px; }
   .studio-active .studio-primary-ribbon,
   .studio-active .studio-sub-ribbon { flex-wrap: wrap !important; align-content: center; max-height: none !important; height: auto !important; overflow: visible !important; gap: 5px; padding: 5px 8px; }
@@ -9554,6 +9585,7 @@ html.studio-active body .studio-main-viewport { min-width: 0; max-width: 100%; b
    insertion/extraction/deletion moves into the Pages panel; history, export,
    zoom, and page navigation already live in the bottom dock. */
 @media (max-width: 900px) {
+  .studio-pages-toggle-btn { display: none !important; }
   #app-shell.ai-active .ai-studio-topbar { min-height: 118px; justify-content: flex-start; }
   #app-shell.ai-active .ai-active-doc-strip { min-height: 58px; align-items: center; padding: 8px 10px; }
   #app-shell.ai-active .ai-doc-info-group { flex: 1 1 0; flex-wrap: nowrap; min-width: 0; }
@@ -9621,4 +9653,165 @@ html.studio-active body .studio-main-viewport { min-width: 0; max-width: 100%; b
   html.studio-active body .studio-mode-btn { width: 52px !important; min-width: 52px !important; }
   #app-shell.ai-active .ai-doc-actions { gap: 4px; }
   #app-shell.ai-active .ai-doc-actions button { padding-inline: 7px !important; font-size: 11px !important; }
+}
+
+/* Keep the workspace footer below the first viewport until the user scrolls. */
+.app-global-footer { visibility: hidden; opacity: 0; pointer-events: none; transition: opacity .18s ease; }
+html.footer-revealed .app-global-footer { visibility: visible; opacity: 1; pointer-events: auto; }
+
+/* Switching between the AI empty and uploaded-document states must not trigger
+   browser scroll anchoring that shifts the whole workspace under its header. */
+#app-shell.ai-active #view-ai-studio,
+#app-shell.ai-active .ai-studio-wrapper { overflow-anchor: none; }
+
+/* Sticky navigation uses a solid surface and a matching scroll offset so page
+   headings and tool controls do not appear through the bar or land underneath it. */
+.main-area { scroll-padding-top: 76px; }
+.main-area > .dynamic-workspace { scroll-margin-top: 76px; }
+.topbar { background-color: var(--bg-panel) !important; }
+.view-header-bar, .tool-desk-container, .api-endpoints-section { scroll-margin-top: 84px; }
+
+@media (min-width: 901px) and (max-width: 1180px) {
+  .sidebar-sticky-footer #quota-container { padding: 8px 7px; }
+  .sidebar-sticky-footer #quota-container .quota-label-row { gap: 4px; font-size: 10px; white-space: nowrap; }
+  .sidebar-sticky-footer #quota-container .quota-label-row > * { min-width: 0; white-space: nowrap; }
+}
+
+/* Tablets retain the two-column workspace and narrow desktop navigation. */
+@media (min-width: 768px) and (max-width: 900px) {
+  #app-shell, #app-shell.sidebar-collapsed, #app-shell.studio-active, #app-shell.ai-active {
+    display: grid !important;
+    grid-template-columns: minmax(210px, 220px) minmax(0, 1fr) !important;
+    width: 100% !important;
+    height: 100dvh !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+  }
+  #app-shell.sidebar-collapsed { grid-template-columns: 76px minmax(0, 1fr) !important; }
+  #sidebar, #app-shell .sidebar {
+    display: flex !important;
+    position: sticky !important;
+    inset: 0 auto auto 0 !important;
+    width: auto !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    transform: none !important;
+    transition: none !important;
+    z-index: 40 !important;
+  }
+  #app-shell .sidebar.mobile-open { left: auto !important; }
+  #app-shell .main-area, #app-shell .main-area.studio-active, #app-shell.ai-active .main-area {
+    display: flex !important;
+    flex-direction: column !important;
+    width: auto !important;
+    max-width: none !important;
+    height: 100dvh !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+  #app-shell .mobile-menu-btn { display: none !important; }
+  .mobile-workspace-bar { display: none !important; }
+  #app-shell .topbar { position: sticky !important; top: 0 !important; flex: 0 0 64px !important; min-width: 0; padding-inline: 12px !important; }
+  #app-shell .topbar-left, #app-shell .topbar-right { min-width: 0; gap: 8px; }
+  #app-shell .dynamic-workspace, #app-shell .studio-active .dynamic-workspace {
+    flex: 1 0 auto !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 18px 14px 32px !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+  }
+  #app-shell .app-global-footer { display: flex !important; margin: 24px 14px 0 !important; }
+  #app-shell.studio-active .main-area { overflow-y: auto !important; }
+}
+
+@media (max-width: 767px) {
+  .mobile-nav-btn { font-size: 11px !important; line-height: 1.15; }
+  .result-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .result-actions > * { flex: 1 1 140px; min-width: 0; max-width: 100%; box-sizing: border-box; justify-content: center; white-space: normal; text-align: center; }
+  .toast-notice { bottom: calc(86px + env(safe-area-inset-bottom, 0px)) !important; z-index: 1101 !important; }
+  .settings-modal-card {
+    width: min(96vw, 620px) !important;
+    max-width: 96vw !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: min(88dvh, 760px) !important;
+    box-sizing: border-box !important;
+    padding: 14px !important;
+    overflow: hidden;
+  }
+  .settings-modal-card .settings-layout { min-width: 0; min-height: 0; overflow: auto; }
+  .settings-modal-card .settings-tabs {
+    width: 100%;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    overflow: visible;
+    padding: 8px;
+    gap: 6px;
+    box-sizing: border-box;
+  }
+  .settings-modal-card .settings-tab-btn {
+    flex: 1 1 130px;
+    min-width: 0 !important;
+    min-height: 46px !important;
+    padding: 7px !important;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .settings-modal-card .settings-tab-btn > span:last-child { min-width: 0; }
+  .settings-modal-card .settings-tab-btn strong,
+  .settings-modal-card .settings-tab-btn small { overflow-wrap: anywhere; }
+  .settings-modal-card .settings-content,
+  .settings-modal-card .settings-pane { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; }
+  .settings-modal-card .settings-content { padding: 12px 8px !important; overflow-x: hidden; overflow-y: auto; }
+  .settings-modal-card .settings-card-item,
+  .settings-modal-card .billing-status-summary,
+  .settings-modal-card .api-info-callout { min-width: 0; max-width: 100%; box-sizing: border-box; padding: 14px; }
+  .settings-modal-card .settings-card-item p,
+  .settings-modal-card .settings-card-item h4 { overflow-wrap: anywhere; }
+
+  .endpoints-table-wrapper { position: relative; overflow: hidden; }
+  .endpoints-table, .endpoints-table tbody { display: block; width: 100%; min-width: 0; }
+  .endpoints-table thead { display: none; }
+  .endpoints-table tr { display: block; margin: 8px; border: 1px solid var(--border-light); border-radius: 8px; overflow: hidden; background: var(--bg-panel); }
+  .endpoints-table td { display: grid; grid-template-columns: minmax(76px, 30%) minmax(0, 1fr); gap: 8px; padding: 8px 10px; border-bottom: 1px solid var(--border-light); overflow-wrap: anywhere; }
+  .endpoints-table td::before { content: attr(data-label); color: var(--text-muted); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .03em; }
+  .endpoints-table td code { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
+  .api-docs-full-content pre, .api-docs-full-content .api-code-block { max-width: 100%; overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere; border: 1px solid var(--border-light); box-sizing: border-box; }
+}
+
+@media (max-width: 480px) {
+  html.studio-active body .studio-toolbar { height: auto !important; min-height: 0 !important; overflow: visible !important; }
+  html.studio-active body .studio-primary-ribbon,
+  html.studio-active body .studio-sub-ribbon {
+    display: flex !important;
+    flex-flow: row wrap !important;
+    align-content: flex-start !important;
+    justify-content: flex-start !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    white-space: normal !important;
+  }
+  html.studio-active body .studio-primary-ribbon > *,
+  html.studio-active body .studio-sub-ribbon > *,
+  html.studio-active body .studio-tool-group,
+  html.studio-active body .studio-mode-switcher { min-width: 0 !important; max-width: 100%; }
+  html.studio-active body .studio-sub-ribbon > .studio-tool-group[title="Page Operations"] { flex: 1 1 100% !important; flex-wrap: wrap !important; }
+  html.studio-active body .studio-sub-ribbon > .studio-tool-group[title="Page Operations"] .studio-tool-btn { flex: 0 0 auto !important; }
+  html.studio-active body #studio-mobile-zoom-slot .zoom-select,
+  html.studio-active body .studio-primary-ribbon .zoom-select { width: 76px !important; min-width: 76px !important; }
+  html.studio-active body .studio-tool-btn .tool-btn-text,
+  html.studio-active body .studio-mode-btn span { font-size: 10px !important; }
+  #app-shell.ai-active .ai-chat-messages:has(#ai-empty-state:not([hidden])) { min-height: 220px !important; max-height: 280px !important; overflow-y: auto !important; }
+  #app-shell.ai-active .ai-empty-state { min-height: 0 !important; justify-content: flex-start !important; padding-block: 12px !important; }
+  #app-shell.ai-active .ai-stage-line { flex-wrap: wrap; white-space: normal; }
 }

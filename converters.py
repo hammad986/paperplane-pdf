@@ -2301,29 +2301,38 @@ def annotate_pdf(source: Path, output: Path | list[dict], annotations: list[dict
 
     doc = fitz.open(str(source))
     for ann in actual_annotations:
-        page_num = max(0, int(ann.get("page", 1)) - 1)
-        if page_num >= len(doc):
-            continue
+        try:
+            # The public API accepts one-based page numbers; preserve the
+            # original page-zero alias used by legacy converter callers.
+            page_num = max(0, int(ann.get("page", 1)) - 1)
+        except (TypeError, ValueError) as error:
+            raise ValueError("Annotation page must be a valid page number.") from error
+        if page_num < 0 or page_num >= len(doc):
+            raise ValueError(f"Annotation page {page_num + 1} is outside this document.")
         page = doc[page_num]
         atype = ann.get("type", "").lower()
+        if atype == "note":
+            atype = "sticky_note"
         color = ann.get("color", [1, 0.8, 0])
         color_tuple = tuple(color[:3]) if isinstance(color, list) else (1, 0.8, 0)
 
-        if atype == "highlight":
-            rect = fitz.Rect(*ann.get("rect", [72, 72, 200, 90]))
-            annot = page.add_highlight_annot(rect)
-            annot.set_colors(stroke=color_tuple)
-            annot.update()
-        elif atype == "underline":
-            rect = fitz.Rect(*ann.get("rect", [72, 72, 200, 90]))
-            annot = page.add_underline_annot(rect)
-            annot.set_colors(stroke=color_tuple)
-            annot.update()
-        elif atype == "strikeout":
-            rect = fitz.Rect(*ann.get("rect", [72, 72, 200, 90]))
-            annot = page.add_strikeout_annot(rect)
-            annot.set_colors(stroke=color_tuple)
-            annot.update()
+        if atype in {"highlight", "underline", "strikeout"}:
+            search_text = str(ann.get("text", "")).strip()
+            if search_text:
+                rectangles = page.search_for(search_text)
+                if not rectangles:
+                    raise ValueError(f'The text "{search_text}" was not found on page {page_num + 1}.')
+            else:
+                rectangles = [fitz.Rect(*ann.get("rect", [72, 72, 200, 90]))]
+            for rect in rectangles:
+                if atype == "highlight":
+                    annot = page.add_highlight_annot(rect)
+                elif atype == "underline":
+                    annot = page.add_underline_annot(rect)
+                else:
+                    annot = page.add_strikeout_annot(rect)
+                annot.set_colors(stroke=color_tuple)
+                annot.update()
         elif atype in {"rect", "rectangle"}:
             rect = fitz.Rect(*ann.get("rect", [72, 72, 200, 150]))
             fill = ann.get("fill")
@@ -2335,14 +2344,20 @@ def annotate_pdf(source: Path, output: Path | list[dict], annotations: list[dict
         elif atype == "text":
             pt = ann.get("point", [72, 72])
             text = str(ann.get("text", "")).strip()
+            if not text:
+                raise ValueError("Text annotations need content.")
             fontsize = float(ann.get("fontsize", 12))
             page.insert_text(fitz.Point(pt[0], pt[1]), text, fontsize=fontsize, color=color_tuple)
         elif atype in {"sticky_note", "comment"}:
             pt = ann.get("point", [72, 72])
-            text = str(ann.get("text", "")).strip()
+            text = str(ann.get("content", ann.get("text", ""))).strip()
+            if not text:
+                raise ValueError("Sticky note annotations need comment text.")
             annot = page.add_text_annot(fitz.Point(pt[0], pt[1]), text)
             annot.set_info(title=str(ann.get("author", "User")), content=text)
             annot.update()
+        else:
+            raise ValueError(f"Unsupported annotation type: {atype or 'empty'}.")
 
     doc.save(str(actual_output), garbage=4, deflate=True)
     return actual_output

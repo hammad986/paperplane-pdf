@@ -97,7 +97,7 @@ def _send_smtp(to_email: str, subject: str, html_body: str, text_body: str) -> b
         return False
 
 
-def _dispatch_email(to_email: str, subject: str, html_body: str, text_body: str) -> bool:
+def _dispatch_email(to_email: str, subject: str, html_body: str, text_body: str, *, allow_simulated: bool = True) -> bool:
     """Unified email dispatcher: supports standard SMTP with TLS, Resend REST API, and development preview logging."""
     if SMTP_ENABLED and SMTP_HOST:
         smtp_ok = _send_smtp(to_email, subject, html_body, text_body)
@@ -111,11 +111,14 @@ def _dispatch_email(to_email: str, subject: str, html_body: str, text_body: str)
             return True
         logger.warning("Resend API failed, checking SMTP fallback...")
 
-    logger.info(
-        "Email dispatch simulated for %s (Subject: %s)\n[DISPATCH PREVIEW]:\n%s",
-        to_email, subject, text_body
-    )
-    return True
+    if allow_simulated:
+        logger.info(
+            "Email dispatch simulated for %s (Subject: %s)\n[DISPATCH PREVIEW]:\n%s",
+            to_email, subject, text_body
+        )
+        return True
+    logger.error("OTP email was not delivered because no configured provider accepted the message for %s.", to_email)
+    return False
 
 
 def send_otp_email(to_email: str, otp_code: str, purpose: str = "login") -> bool:
@@ -171,7 +174,7 @@ def send_otp_email(to_email: str, otp_code: str, purpose: str = "login") -> bool
   </div>
 </body>
 </html>"""
-    return _dispatch_email(to_email, subject, html_body, text_body)
+    return _dispatch_email(to_email, subject, html_body, text_body, allow_simulated=False)
 
 
 def send_login_notification(to_email: str, client_ip: str = "Unknown", user_agent: str = "") -> bool:

@@ -13,7 +13,7 @@
   <!-- Cashfree PG v3 checkout SDK; app.js initializes it with the server-issued session. -->
   <script src="https://sdk.cashfree.com/js/v3/cashfree.js" defer></script>
 
-  <link rel="stylesheet" href="/assets/styles.css?v=3.6.7" />
+  <link rel="stylesheet" href="/assets/styles.css?v=3.6.8" />
 
 </head>
 <body class="light-mode auth-pending">
@@ -390,6 +390,10 @@
               
               <!-- Tier 1: Global Document Ribbon (Nav, Zoom, History, Mode, Secondary Tools, Export) -->
               <div class="studio-primary-ribbon">
+                <button type="button" class="studio-tool-btn studio-pages-toggle-btn" id="studio-pages-toggle-btn" aria-expanded="true" aria-controls="studio-thumbnails-bar" title="Collapse or expand the Pages panel">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="7" height="16" rx="1"/><path d="M14 8h7M14 12h7M14 16h7"/></svg>
+                  <span class="tool-btn-text">Pages</span>
+                </button>
                 <!-- Document Upload & Open / New Document -->
                 <div class="studio-tool-group" title="Open Document">
                   <button type="button" class="studio-tool-btn" id="studio-upload-btn" title="Open PDF from device" aria-label="Open PDF from device">
@@ -770,7 +774,7 @@
                 <span class="ai-engine-pill">Retrieval: BM25 Lexical Keyword Search</span>
               </div>
               <div class="ai-connection-test-group">
-                <button type="button" class="ai-test-conn-btn" id="ai-test-connection-btn">Test AI Connection</button>
+                <button type="button" class="ai-test-conn-btn" id="ai-test-connection-btn" hidden>Test AI Connection</button>
                 <span id="ai-connection-status" class="ai-connection-status" role="status" aria-live="polite" hidden></span>
               </div>
             </div>
@@ -980,7 +984,7 @@
 
                 <section>
                   <h3>4. Subscriptions and Cancellation</h3>
-                  <p>Paid subscriptions renew on a monthly basis through Cashfree Payment Gateway. You may cancel your subscription at any time through the billing controls in Settings without cancellation fees.</p>
+                  <p>Paid plans are purchased through Cashfree payment orders. This version does not provide automatic renewals or an in-app subscription cancellation control. For payment, refund, or account billing questions, contact <a href="mailto:support@paperplane.qd.je">support@paperplane.qd.je</a> and include your order ID. Payment disputes remain subject to Cashfree and applicable consumer rules.</p>
                 </section>
 
                 <section>
@@ -1066,7 +1070,7 @@
                   <button type="button" class="full-api-tab" data-lang="js">JavaScript (Browser)</button>
                 </div>
                 <button type="button" class="btn-copy-code" id="btn-copy-full-api-code">
-                  <span>Copy</span> Copy Snippet
+                  <span aria-hidden="true">▢</span> Copy Snippet
                 </button>
               </div>
 
@@ -1733,7 +1737,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
              <p>PDFs, page position, and AI chat are saved in this browser. Download results and export annotations before clearing them.</p>
              <div class="saved-work-actions">
                <button type="button" id="ai-clear-work-btn" class="btn-demo-upgrade">Clear AI PDF and chat</button>
-               <button type="button" id="studio-clear-work-btn" class="btn-demo-upgrade">Clear Studio PDF and page position</button>
+               <button type="button" id="studio-clear-work-btn" class="btn-demo-upgrade">Clear saved PDFs, AI chat, and page position</button>
              </div>
            </div>
            <div class="settings-card-item privacy-settings-card">
@@ -1856,7 +1860,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         </div>
         <p id="auth-otp-desc" style="font-size: 13px; color: var(--text-muted); text-align: center; margin-bottom: 16px; line-height: 1.5;">
-          We sent a 6-digit verification code to <strong id="auth-otp-email-display" style="color: var(--text-main);">you@company.com</strong>. Enter it below to proceed:
+          We sent a 6-digit verification code to <strong id="auth-otp-email-display" style="color: var(--text-main);">you@company.com</strong>. Enter the latest code below. If it is not in your inbox, check your spam folder.
         </p>
         <form id="auth-otp-form">
           <div class="option-field" style="margin-bottom: 14px;">
@@ -3165,7 +3169,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
       <div class="modal-footer">
         <button type="button" class="btn-cancel" id="btn-cancel-forms">Close</button>
         <button type="button" class="btn-primary-action" id="btn-apply-form-fill">Save & Fill Form →</button>
-        <button type="button" class="btn-primary-action" id="btn-apply-add-field" style="display: none;">Add Field to Page →</button>
+        <button type="button" class="btn-primary-action" id="btn-apply-add-field" hidden>Add Field to Page →</button>
       </div>
     </div>
   </div>
@@ -3391,16 +3395,16 @@ async function convertFileInBrowser(file, operation = 'compress') {
   <script src="/assets/pdf-lib.min.js" defer></script>
 
   <!-- Phase 6 PDF Forms, Signing & Security Engine -->
-  <script src="/assets/security_forms.js?v=6.2.0" defer></script>
+  <script src="/assets/security_forms.js?v=6.2.1" defer></script>
   <!-- Phase 5 Professional PDF Conversion Engine -->
   <script src="/assets/conversion_engine.js?v=5.2.0" defer></script>
   <!-- Phase 4 Compression, Repair & OCR Engine -->
   <script src="/assets/optimization_engine.js?v=4.2.0" defer></script>
   <!-- Phase 3 Professional Page Management Engine -->
-  <script src="/assets/page_organizer.js?v=3.2.4" defer></script>
+  <script src="/assets/page_organizer.js?v=3.2.5" defer></script>
   <!-- Phase 2 Professional Editor Engine -->
-<script src="/assets/editor.js?v=3.2.2" defer></script>
+<script src="/assets/editor.js?v=3.2.3" defer></script>
   <!-- Application Controller -->
-  <script src="/assets/app.js?v=3.6.7" defer></script>
+  <script src="/assets/app.js?v=3.6.8" defer></script>
 </body>
 </html>

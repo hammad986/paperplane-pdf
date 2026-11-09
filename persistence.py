@@ -130,6 +130,22 @@ def init_db() -> None:
                 created_at REAL NOT NULL
             );
             CREATE INDEX IF NOT EXISTS idx_email_otps_lookup ON email_otps(email, purpose);
+            CREATE TABLE IF NOT EXISTS email_otp_attempt_limits (
+                email TEXT NOT NULL,
+                purpose TEXT NOT NULL,
+                window_started REAL NOT NULL,
+                attempts INTEGER NOT NULL DEFAULT 0,
+                locked_until REAL NOT NULL DEFAULT 0,
+                PRIMARY KEY (email, purpose)
+            );
+            CREATE TABLE IF NOT EXISTS email_otp_resend_state (
+                email TEXT NOT NULL,
+                purpose TEXT NOT NULL,
+                window_started REAL NOT NULL,
+                send_count INTEGER NOT NULL DEFAULT 0,
+                last_sent_at REAL NOT NULL,
+                PRIMARY KEY (email, purpose)
+            );
             CREATE TABLE IF NOT EXISTS audit_logs (
                 id TEXT PRIMARY KEY,
                 event_type TEXT NOT NULL,
@@ -519,15 +535,41 @@ def create_email_otp(email: str, purpose: str, payload_dict: dict | None = None,
             "VALUES (?, ?, ?, ?, ?, 0, ?, ?)",
             (record_id, cleaned_email, otp_hash, clean_purpose, payload_str, expires_at, now)
         )
+        resend_state = connection.execute(
+            "SELECT window_started, send_count FROM email_otp_resend_state WHERE email = ? AND purpose = ?",
+            (cleaned_email, clean_purpose)
+        ).fetchone()
+        if not resend_state or now - resend_state["window_started"] >= 86400:
+            connection.execute(
+                "INSERT OR REPLACE INTO email_otp_resend_state (email, purpose, window_started, send_count, last_sent_at) "
+                "VALUES (?, ?, ?, 1, ?)",
+                (cleaned_email, clean_purpose, now, now)
+            )
+        else:
+            connection.execute(
+                "UPDATE email_otp_resend_state SET send_count = send_count + 1, last_sent_at = ? "
+                "WHERE email = ? AND purpose = ?",
+                (now, cleaned_email, clean_purpose)
+            )
         connection.commit()
 
     return otp
 
 
+def delete_email_otp(email: str, purpose: str) -> None:
+    """Remove a newly-created OTP when its delivery cannot be confirmed."""
+    with closing(connect()) as connection:
+        connection.execute(
+            "DELETE FROM email_otps WHERE email = ? AND purpose = ?",
+            (email.lower().strip(), purpose.lower().strip())
+        )
+        connection.commit()
+
+
 def verify_email_otp(email: str, purpose: str, code: str) -> dict | None:
     """
     Validates a 6-digit OTP code against the database.
-    Enforces maximum 5 attempts and expiry time.
+    Enforces maximum 5 code checks and expiry time.
     On success: consumes (deletes) the OTP record and returns the payload dict.
     On failure: increments attempts count and returns None.
     """
@@ -565,13 +607,66 @@ def verify_email_otp(email: str, purpose: str, code: str) -> dict | None:
                 return json.loads(row["payload_json"] or "{}")
             except Exception:
                 return {}
+        connection.execute(
+            "UPDATE email_otps SET attempts = attempts + 1 WHERE id = ?",
+            (row["id"],)
+        )
+        connection.commit()
+        return None
+
+
+def otp_account_lock_remaining(email: str, purpose: str) -> int:
+    """Return the active per-account OTP lock time in seconds, or zero."""
+    cleaned_email = email.lower().strip()
+    clean_purpose = purpose.lower().strip()
+    now = time.time()
+    with closing(connect()) as connection:
+        row = connection.execute(
+            "SELECT locked_until FROM email_otp_attempt_limits WHERE email = ? AND purpose = ?",
+            (cleaned_email, clean_purpose)
+        ).fetchone()
+    return max(0, int(row["locked_until"] - now + 0.999)) if row and row["locked_until"] > now else 0
+
+
+def record_otp_failure(email: str, purpose: str, max_attempts: int = 6, window_seconds: int = 600, lock_seconds: int = 900) -> int:
+    """Record a failed OTP attempt and return active lock seconds when the limit is reached."""
+    cleaned_email = email.lower().strip()
+    clean_purpose = purpose.lower().strip()
+    now = time.time()
+    with closing(connect()) as connection:
+        connection.execute("BEGIN IMMEDIATE")
+        row = connection.execute(
+            "SELECT window_started, attempts, locked_until FROM email_otp_attempt_limits WHERE email = ? AND purpose = ?",
+            (cleaned_email, clean_purpose)
+        ).fetchone()
+        if row and row["locked_until"] > now:
+            connection.rollback()
+            return max(1, int(row["locked_until"] - now + 0.999))
+        if not row or now - row["window_started"] >= window_seconds:
+            window_started = now
+            attempts = 1
         else:
-            connection.execute(
-                "UPDATE email_otps SET attempts = attempts + 1 WHERE id = ?",
-                (row["id"],)
-            )
-            connection.commit()
-            return None
+            window_started = row["window_started"]
+            attempts = int(row["attempts"]) + 1
+        locked_until = now + lock_seconds if attempts >= max_attempts else 0
+        connection.execute(
+            "INSERT OR REPLACE INTO email_otp_attempt_limits (email, purpose, window_started, attempts, locked_until) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (cleaned_email, clean_purpose, window_started, attempts, locked_until)
+        )
+        connection.commit()
+    return max(1, int(locked_until - now + 0.999)) if locked_until else 0
+
+
+def clear_otp_failures(email: str, purpose: str) -> None:
+    cleaned_email = email.lower().strip()
+    clean_purpose = purpose.lower().strip()
+    with closing(connect()) as connection:
+        connection.execute(
+            "DELETE FROM email_otp_attempt_limits WHERE email = ? AND purpose = ?",
+            (cleaned_email, clean_purpose)
+        )
+        connection.commit()
 
 
 def can_resend_otp(email: str, purpose: str, cooldown: int = 60) -> tuple[bool, int]:
@@ -585,19 +680,27 @@ def can_resend_otp(email: str, purpose: str, cooldown: int = 60) -> tuple[bool, 
 
     with closing(connect()) as connection:
         row = connection.execute(
-            "SELECT created_at FROM email_otps WHERE email = ? AND purpose = ? "
-            "ORDER BY created_at DESC LIMIT 1",
+            "SELECT window_started, send_count, last_sent_at FROM email_otp_resend_state "
+            "WHERE email = ? AND purpose = ?",
             (cleaned_email, clean_purpose)
         ).fetchone()
-
         if not row:
+            latest = connection.execute(
+                "SELECT created_at FROM email_otps WHERE email = ? AND purpose = ? "
+                "ORDER BY created_at DESC LIMIT 1",
+                (cleaned_email, clean_purpose)
+            ).fetchone()
+            if not latest:
+                return True, 0
+            elapsed = now - latest["created_at"]
+            return (False, max(1, int(cooldown - elapsed + 0.999))) if elapsed < cooldown else (True, 0)
+
+        if now - row["window_started"] >= 86400:
             return True, 0
-
-        elapsed = now - row["created_at"]
-        if elapsed < cooldown:
-            remaining = int(cooldown - elapsed)
-            return False, max(1, remaining)
-
+        effective_cooldown = min(900, max(cooldown, cooldown * (2 ** max(0, int(row["send_count"]) - 1))))
+        elapsed = now - row["last_sent_at"]
+        if elapsed < effective_cooldown:
+            return False, max(1, int(effective_cooldown - elapsed + 0.999))
         return True, 0
 
 
@@ -796,10 +899,12 @@ def authenticate(token: str | None) -> str | None:
         return row["user_id"]
 
 
-def create_job(operation: str, user_id: str | None, ttl: int, guest_token: str | None = None) -> tuple[str, str]:
+def create_job(operation: str, user_id: str | None, ttl: int, guest_token: str | None = None) -> tuple[str, str | None]:
     job_id = uuid.uuid4().hex
-    if not guest_token:
+    if not user_id and not guest_token:
         guest_token = secrets.token_urlsafe(32)
+    elif user_id:
+        guest_token = None
     with closing(connect()) as connection:
         connection.execute(
             "INSERT INTO jobs (id, user_id, guest_token, operation, status, created_at, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
@@ -826,18 +931,16 @@ def update_job(job_id: str, **values) -> None:
 def get_job(job_id: str, user_id: str | None = None, guest_token: str | None = None):
     """
     Retrieves a job enforcing tenant isolation:
-    - User-owned jobs match authenticated user_id OR job's capability token.
-    - Guest jobs require matching guest capability token.
+    - User-owned jobs match only the authenticated user_id.
+    - Guest jobs require the matching guest capability token.
     """
     with closing(connect()) as connection:
         job = connection.execute("SELECT * FROM jobs WHERE id = ?", (job_id,)).fetchone()
         if not job:
             return None
-        # User-owned job: matching authenticated user_id OR matching job capability token
+        # User-owned jobs are accessible only to the matching authenticated user.
         if job["user_id"]:
             if user_id and job["user_id"] == user_id:
-                return job
-            if guest_token and job["guest_token"] and secrets.compare_digest(job["guest_token"], guest_token):
                 return job
             return None
         # Guest job: strictly require matching capability token
@@ -845,8 +948,29 @@ def get_job(job_id: str, user_id: str | None = None, guest_token: str | None = N
             if guest_token and secrets.compare_digest(job["guest_token"], guest_token):
                 return job
             return None
-        # Legacy job without user_id or guest_token
-        return job
+        # Ownerless legacy rows have no valid principal and must remain inaccessible.
+        return None
+
+
+def consume_guest_job_token(job_id: str, guest_token: str) -> bool:
+    """Atomically consume a guest job capability after its single permitted download."""
+    if not guest_token:
+        return False
+    with closing(connect()) as connection:
+        connection.execute("BEGIN IMMEDIATE")
+        row = connection.execute(
+            "SELECT user_id, guest_token FROM jobs WHERE id = ?",
+            (job_id,)
+        ).fetchone()
+        if not row or row["user_id"] is not None or not row["guest_token"] or not secrets.compare_digest(row["guest_token"], guest_token):
+            connection.rollback()
+            return False
+        cursor = connection.execute(
+            "UPDATE jobs SET guest_token = NULL WHERE id = ? AND user_id IS NULL AND guest_token = ?",
+            (job_id, row["guest_token"])
+        )
+        connection.commit()
+        return cursor.rowcount == 1
 
 
 def delete_job_record(job_id: str) -> bool:
@@ -907,12 +1031,13 @@ def compact_database(max_pages: int | None = None) -> dict[str, int | str]:
         }
 
 
-def consume_rate_limit(subject: str, limit: int) -> bool:
+def consume_rate_limit(subject: str, limit: int, window_seconds: int = 60) -> bool:
     now = time.time()
+    window_seconds = max(1, int(window_seconds))
     with closing(connect()) as connection:
         connection.execute("BEGIN IMMEDIATE")
         row = connection.execute("SELECT window_started, request_count FROM rate_limits WHERE subject = ?", (subject,)).fetchone()
-        if not row or now - row["window_started"] >= 60:
+        if not row or now - row["window_started"] >= window_seconds:
             connection.execute("INSERT OR REPLACE INTO rate_limits VALUES (?, ?, 1)", (subject, now))
             connection.commit()
             return True

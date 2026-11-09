@@ -69,7 +69,9 @@ def test_spa_seo_refresh_guards_stale_responses_and_updates_the_page_title():
     assert "requestVersion === seoContentRequestVersion && state.operation === operation" in app_js
     assert "document.title = `${operationLabel} | Paperplane`;" in app_js
     assert "if (!isCurrentRequest()) return;" in app_js
-    assert "details could not load right now. The PDF tool is still available." in app_js
+    assert "section.innerHTML = `" in app_js
+    assert "section.removeAttribute('aria-busy');" in app_js
+    assert "Could not refresh SEO content for operation:" in app_js
 
 
 def test_studio_page_jump_scrolls_to_target_before_render_and_shows_accurate_status():

@@ -11,16 +11,13 @@ from fastapi.testclient import TestClient
 
 import persistence
 import server
+from tests.auth_helpers import register_verified
 
 
 def _registered_client() -> tuple[TestClient, str, str]:
     client = TestClient(server.app)
     email = f"cashfree_{os.urandom(6).hex()}@paperplane.test"
-    response = client.post(
-        "/api/auth/register",
-        data={"email": email, "password": "CashfreeSecure123!"},
-    )
-    assert response.status_code == 200
+    response = register_verified(client, email, "CashfreeSecure123!")
     payload = response.json()
     client.headers["Authorization"] = f"Bearer {payload['token']}"
     return client, payload["user_id"], payload["token"]

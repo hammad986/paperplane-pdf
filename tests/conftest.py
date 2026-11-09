@@ -12,3 +12,14 @@ os.environ["TESTING"] = "True"
 os.environ["PAPERPLANE_DATA_DIR"] = str(
     Path(tempfile.gettempdir()) / f"paperplane-pytest-{os.getpid()}"
 )
+
+
+@pytest.fixture(autouse=True)
+def clear_ai_request_limit_bucket():
+    """Keep per-test AI throttling isolated while preserving in-test limit checks."""
+    import persistence
+
+    persistence.init_db()
+    with persistence.connect() as connection:
+        connection.execute("DELETE FROM rate_limits WHERE subject LIKE 'ai-account:%'")
+        connection.commit()

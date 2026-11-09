@@ -6,11 +6,10 @@ from unittest.mock import patch
 from urllib.error import URLError
 
 import fitz
+import pytest
 from PIL import Image, ImageDraw, ImageFont
 
 import ai_engine
-
-
 def make_pdf(path: Path) -> None:
     doc = fitz.open()
     page = doc.new_page()
@@ -141,6 +140,19 @@ def test_ai_test_connection_returns_specific_visible_http_failure(monkeypatch):
     assert response.json()["status"] == "connection_error"
     assert "HTTP 401" in response.json()["message"]
     assert "model" not in response.json()
+
+
+def test_ai_routes_apply_guest_request_limit_with_retry_after():
+    from fastapi.testclient import TestClient
+    from server import app
+
+    client = TestClient(app)
+    headers = {"X-Forwarded-For": "198.51.100.42"}
+    for _ in range(12):
+        assert client.get("/api/ai/capabilities", headers=headers).status_code == 200
+    limited = client.get("/api/ai/capabilities", headers=headers)
+    assert limited.status_code == 429
+    assert limited.headers["Retry-After"] == "60"
 
 
 def test_ai_chat_stream_emits_real_stage_events_and_progressive_deltas(monkeypatch):
@@ -286,7 +298,7 @@ def test_ai_summary_timeout_and_translation_failure_return_actionable_gateway_er
     with source.open("rb") as handle:
         summary = client.post("/api/ai/summarize", files={"file": (source.name, handle, "application/pdf")})
     assert summary.status_code == 504
-    assert summary.json()["detail"] == "Executive Brief timed out. Please retry with a shorter PDF."
+    assert summary.json()["detail"] == "The AI provider did not return an executive brief before the request deadline. No output was created; retry later."
 
     monkeypatch.setattr(server, "translation_ai_available", lambda: True)
     monkeypatch.setattr(ai_engine, "translate_pdf_layout", lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("provider failure details")))
@@ -297,7 +309,7 @@ def test_ai_summary_timeout_and_translation_failure_return_actionable_gateway_er
             files={"file": (source.name, handle, "application/pdf")},
         )
     assert translated.status_code == 502
-    assert translated.json()["detail"] == "Translation could not be completed. Please retry with a shorter PDF or try again later."
+    assert translated.json()["detail"] == "Translation provider failed during document processing. Please retry later."
 
 
 def test_document_chat_uses_cited_local_answer_when_ai_provider_is_unconfigured(tmp_path, monkeypatch):
@@ -383,6 +395,63 @@ def test_broad_summary_covers_all_document_pages_and_page_one_retrieval(tmp_path
     assert "Page 20:" not in captured["page_prompt"]
 
 
+def test_large_summary_chunks_all_pages_and_preserves_supported_citations(tmp_path, monkeypatch):
+    source = tmp_path / "summary-69-pages.pdf"
+    doc = fitz.open()
+    for page_num in range(1, 70):
+        page = doc.new_page()
+        page.insert_text((72, 72), f"Page {page_num} of 69. Topic marker {page_num}. Supporting facts for the document summary.")
+    doc.save(str(source))
+    doc.close()
+
+    calls = []
+    def summarize_chunk(system, prompt, timeout_seconds=None):
+        calls.append((prompt, timeout_seconds))
+        if prompt.startswith("Synthesize these page-grounded"):
+            return "The document covers its opening topic [Page 1] and final topic [Page 69]."
+        pages = [int(value) for value in __import__("re").findall(r"--- Page (\d+) ---", prompt)]
+        return f"Section summary spans [Page {pages[0]}] through [Page {pages[-1]}]."
+
+    monkeypatch.setattr(ai_engine, "call_llm", summarize_chunk)
+    summary = ai_engine.summarize_pdf(source)
+
+    assert len(calls) == 4
+    included_pages = {
+        int(value)
+        for prompt, _ in calls[:3]
+        for value in __import__("re").findall(r"--- Page (\d+) ---", prompt)
+    }
+    assert included_pages == set(range(1, 70))
+    assert all(timeout == 35 for _, timeout in calls)
+    assert "[Page 1]" in summary and "[Page 69]" in summary
+
+
+def test_translation_provider_failure_reports_safe_upstream_class(monkeypatch):
+    import pytest
+
+    monkeypatch.setattr(ai_engine, "_current_bluesminds_api_key", lambda: "configured")
+    monkeypatch.setattr(
+        ai_engine,
+        "call_llm",
+        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("AI service returned HTTP 429. Please try again.")),
+    )
+
+    with pytest.raises(RuntimeError, match="upstream HTTP 429"):
+        ai_engine._translate_text_batch([(0, "source text")], "Spanish")
+
+
+def test_translation_provider_failure_http_mapping_is_actionable():
+    import server
+
+    assert server.translation_failure_response(RuntimeError("Translation provider failed (upstream HTTP 429).")) == (
+        429,
+        "The translation provider is rate limited (upstream HTTP 429). Please retry shortly.",
+        {"Retry-After": "30"},
+    )
+    assert server.translation_failure_response(RuntimeError("Translation provider failed (network timeout or connection error)."))[0] == 504
+    assert server.translation_failure_response(RuntimeError("Translation provider failed (upstream HTTP 401)."))[0] == 503
+
+
 def test_translation_batch_requires_structured_json(monkeypatch):
     monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "test-key")
     captured = {}
@@ -410,14 +479,14 @@ def test_translation_zero_result_fails_without_emitting_source_disguised_as_tran
     monkeypatch.setattr(ai_engine, "call_llm", lambda *args, **kwargs: "provider timed out")
 
     report = {}
-    with pytest.raises(RuntimeError, match="No text was translated"):
+    with pytest.raises(RuntimeError, match="invalid structured response"):
         ai_engine.translate_pdf_layout(source, output, target_lang="es", report=report)
 
     assert not output.exists()
     assert report["fallback_used"] is True
     assert report["blocks_translated"] == 0
-    assert report["blocks_preserved"] >= 1
-    assert "No text blocks were translated" in report["warnings"][-1]
+    assert report["blocks_seen"] >= 1
+    assert "invalid structured response" in report["warnings"][-1]
 
 
 def test_short_document_chat_uses_full_context_but_keeps_unsupported_queries_uncited(tmp_path, monkeypatch):

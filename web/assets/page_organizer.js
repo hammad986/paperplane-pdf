@@ -114,6 +114,7 @@
       this.sourceName = 'document.pdf';
       this.observer = null;
       this.draggedPage = null;
+      this.pointerDrag = null;
       this.isCropping = false;
       this.cropBox = { x: 72, y: 72, width: 400, height: 500 };
       this.cropActiveHandle = null;
@@ -593,7 +594,7 @@
         const header = document.createElement('div');
         header.className = 'thumb-header';
         header.innerHTML = `
-          <div class="thumb-grip" title="Drag to reorder page">⠿</div>
+          <button type="button" class="thumb-grip" title="Drag to reorder page ${pageNum}" aria-label="Drag page ${pageNum} to reorder">⠿</button>
           <label class="thumb-checkbox-label" title="Select page">
             <input type="checkbox" class="thumb-checkbox" ${this.state.isSelected(pageNum) ? 'checked' : ''} />
             <span class="thumb-checkbox-custom"></span>
@@ -795,6 +796,70 @@
         const isAfter = (e.clientY > rect.top + rect.height / 2) || (e.clientX > rect.left + rect.width / 2);
         this._executeDropReorder(targetPage, isAfter);
       });
+
+      // Pointer-captured drag handle works with touch and pen input even where
+      // native HTML drag-and-drop is unavailable.
+      const dragHandle = card.querySelector('.thumb-grip');
+      if (dragHandle) {
+        dragHandle.addEventListener('click', e => {
+          e.preventDefault();
+          e.stopPropagation();
+        });
+        dragHandle.addEventListener('pointerdown', e => {
+          if (e.button !== undefined && e.button !== 0) return;
+          e.preventDefault();
+          e.stopPropagation();
+          if (!this.state.isSelected(pageNum)) {
+            this.state.select(pageNum, false, false);
+            this._updateCardStates();
+            this._updateBatchToolbar();
+          }
+          this.draggedPage = pageNum;
+          this.pointerDrag = {
+            pointerId: e.pointerId,
+            sourcePage: pageNum,
+            targetPage: pageNum,
+            isAfter: false,
+            startX: e.clientX,
+            startY: e.clientY,
+            moved: false,
+            handle: dragHandle,
+            sourceCard: card
+          };
+          card.classList.add('dragging');
+          try { dragHandle.setPointerCapture(e.pointerId); } catch { /* capture may be unavailable in older browsers */ }
+        });
+        dragHandle.addEventListener('pointermove', e => {
+          const drag = this.pointerDrag;
+          if (!drag || e.pointerId !== drag.pointerId) return;
+          if (!drag.moved && Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) >= 5) drag.moved = true;
+          if (!drag.moved) return;
+          e.preventDefault();
+          const targetCard = document.elementFromPoint(e.clientX, e.clientY)?.closest('.organizer-thumb-card');
+          if (!targetCard) return;
+          const rect = targetCard.getBoundingClientRect();
+          drag.targetPage = parseInt(targetCard.dataset.page, 10);
+          drag.isAfter = (e.clientY > rect.top + rect.height / 2) || (e.clientX > rect.left + rect.width / 2);
+          this._updateDropIndicator(targetCard, e);
+        });
+        const finishPointerDrag = (e, cancelled = false) => {
+          const drag = this.pointerDrag;
+          if (!drag || e.pointerId !== drag.pointerId) return;
+          this.pointerDrag = null;
+          drag.sourceCard?.classList.remove('dragging');
+          this._hideDropIndicator();
+          if (!cancelled && drag.moved && drag.targetPage && drag.targetPage !== drag.sourcePage) {
+            this.draggedPage = drag.sourcePage;
+            this._executeDropReorder(drag.targetPage, drag.isAfter);
+          }
+          this.draggedPage = null;
+          if (drag.handle?.hasPointerCapture?.(e.pointerId)) {
+            try { drag.handle.releasePointerCapture(e.pointerId); } catch { /* capture may already be released */ }
+          }
+        };
+        dragHandle.addEventListener('pointerup', e => finishPointerDrag(e));
+        dragHandle.addEventListener('pointercancel', e => finishPointerDrag(e, true));
+      }
     }
 
     _updateDropIndicator(targetCard, e) {
@@ -1264,8 +1329,8 @@
       const oldPage = Math.max(1, Number(document.getElementById('page-jump-input')?.value) || this.state.activePage || 1);
 
       const msg = pages.length === 1
-        ? `Delete page ${pages[0]}? You can undo this for 10 seconds after the deletion completes.`
-        : `Delete ${pages.length} pages? You can undo this for 10 seconds after the deletion completes.`;
+        ? `Delete page ${pages[0]}? You can undo this for 30 seconds after the deletion completes.`
+        : `Delete ${pages.length} pages? You can undo this for 30 seconds after the deletion completes.`;
       const confirmed = await (window.confirmAction ? window.confirmAction(msg, { confirmLabel: 'Delete pages', danger: true }) : Promise.resolve(window.confirm(msg)));
       if (!confirmed) return;
 

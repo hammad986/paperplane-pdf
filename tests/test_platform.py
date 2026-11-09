@@ -26,6 +26,7 @@ from persistence import init_db
 from server import app
 import converters
 import ai_engine
+from tests.auth_helpers import register_verified
 
 
 class TestPaperplanePlatform(unittest.TestCase):
@@ -67,7 +68,7 @@ class TestPaperplanePlatform(unittest.TestCase):
         password = "SecurePassword123!"
 
         # Register
-        reg_res = self.client.post("/api/auth/register", data={"email": test_email, "password": password})
+        reg_res = register_verified(self.client, test_email, password)
         self.assertEqual(reg_res.status_code, 200)
         token = reg_res.json()["token"]
         self.assertTrue(token)
@@ -266,7 +267,7 @@ class TestPaperplanePlatform(unittest.TestCase):
             # 3. PDF Annotations (Highlight, Underline, Sticky Note, Rect)
             annot_out = temp_dir / "annotated.pdf"
             annots = [
-                {"type": "highlight", "page": 0, "text": "Computer", "content": "Important Term"},
+                {"type": "highlight", "page": 0, "text": "Paperplane Test Document", "content": "Important Term"},
                 {"type": "note", "page": 0, "rect": [100, 100, 200, 200], "content": "Review this chapter"},
                 {"type": "rect", "page": 0, "rect": [50, 50, 150, 150], "color": [0, 0.5, 1]}
             ]

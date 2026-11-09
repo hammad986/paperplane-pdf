@@ -1,8 +1,10 @@
 import os
+import secrets
 import uuid
 import pytest
 from fastapi.testclient import TestClient
 
+import server
 from server import app
 import persistence
 from persistence import init_db, get_user_by_email, verify_email_otp, create_email_otp, can_resend_otp
@@ -165,22 +167,62 @@ def test_resend_otp_cooldown():
 def test_direct_auth_backward_compatibility():
     email = f"direct_{uuid.uuid4().hex[:6]}@example.com"
     pw = "DirectPassword123!"
+    client.cookies.clear()
 
-    # Direct register
+    # Registration without a code creates only a pending verification challenge.
     reg = client.post("/api/auth/register", data={"email": email, "password": pw})
     assert reg.status_code == 200
-    assert "token" in reg.json()
+    assert reg.json()["status"] == "otp_required"
+    assert "token" not in reg.json()
+    assert "paperplane_token" not in reg.cookies
+    assert get_user_by_email(email) is None
+    assert client.get("/api/auth/me").status_code == 401
 
-    # Direct login
+    verified = client.post("/api/auth/verify-signup-otp", json={
+        "email": email,
+        "otp": reg.json()["dev_otp"],
+    })
+    assert verified.status_code == 200
+    assert "token" in verified.json()
+
+    # Direct password login remains supported after the account is verified.
     log = client.post("/api/auth/login", data={"email": email, "password": pw})
     assert log.status_code == 200
     assert "token" in log.json()
 
 
+def test_otp_account_lock_returns_retry_after():
+    email = f"otp_lock_{uuid.uuid4().hex[:8]}@example.com"
+    password = secrets.token_urlsafe(24)
+    persistence.create_user(email, password)
+    challenge = client.post("/api/auth/login", data={
+        "email": email,
+        "password": password,
+        "require_otp": "1",
+    })
+    assert challenge.status_code == 200
+    actual_code = challenge.json()["dev_otp"]
+    wrong_code = f"{(int(actual_code) + 1) % 1_000_000:06d}"
+
+    for _ in range(5):
+        rejected = client.post("/api/auth/verify-login-otp", json={"email": email, "otp": wrong_code})
+        assert rejected.status_code == 400
+
+    locked = client.post("/api/auth/verify-login-otp", json={"email": email, "otp": wrong_code})
+    assert locked.status_code == 429
+    assert int(locked.headers["Retry-After"]) > 0
+    assert "lock expires" in locked.json()["detail"]
+
+    still_locked = client.post("/api/auth/verify-login-otp", json={"email": email, "otp": actual_code})
+    assert still_locked.status_code == 429
+    assert int(still_locked.headers["Retry-After"]) > 0
+
+
 def test_dev_otp_never_leaked_in_production(monkeypatch):
     monkeypatch.delenv("TESTING", raising=False)
+    monkeypatch.setattr(server, "send_otp_email", lambda *_args, **_kwargs: True)
     email = f"prod_{uuid.uuid4().hex[:6]}@example.com"
-    pw = "SuperSecurePass123!"
+    pw = f"TestOnly-{secrets.token_urlsafe(18)}"
 
     # Registration
     reg = client.post("/api/auth/register", data={
@@ -193,6 +235,8 @@ def test_dev_otp_never_leaked_in_production(monkeypatch):
     reg_json = reg.json()
     assert reg_json["status"] == "otp_required"
     assert "dev_otp" not in reg_json
+    assert "set-cookie" not in reg.headers
+    assert all("otp" not in name.lower() for name in reg.headers)
 
     # Pre-create user for login test
     persistence.create_user(email, pw)
@@ -205,3 +249,4 @@ def test_dev_otp_never_leaked_in_production(monkeypatch):
     log_json = log.json()
     assert log_json["status"] == "otp_required"
     assert "dev_otp" not in log_json
+    assert all("otp" not in name.lower() for name in log.headers)

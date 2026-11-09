@@ -73,7 +73,9 @@ from persistence import (
     get_developer_api_usage, check_and_consume_developer_quota, refund_developer_quota,
     get_idempotent_job, record_idempotent_job, compact_database,
     add_waitlist_entry, get_waitlist_count,
-    create_email_otp, verify_email_otp, can_resend_otp,
+    create_email_otp, delete_email_otp, verify_email_otp, can_resend_otp,
+    otp_account_lock_remaining, record_otp_failure, clear_otp_failures,
+    consume_guest_job_token,
     verify_user_credentials, create_session_for_user,
     record_audit_event, get_recent_audit_logs, delete_job_record, _password_hash
 )
@@ -104,7 +106,7 @@ COMPRESS_TIMEOUT_SECONDS = 60.0    # multi-pass downsampling & stream compressio
 OCR_TIMEOUT_SECONDS = 90.0         # page-by-page C++ Tesseract OCR execution
 GRAYSCALE_TIMEOUT_SECONDS = 45.0   # 150-DPI monochrome rasterization per page
 MERGE_TIMEOUT_SECONDS = 120.0       # bounded multi-file page copy; proxy allows 900s
-AI_SUMMARY_REQUEST_TIMEOUT_SECONDS = 110.0  # two bounded 50s provider attempts plus local PDF work
+AI_SUMMARY_REQUEST_TIMEOUT_SECONDS = 300.0  # up to four chunked large-document requests with one bounded retry each
 AI_TRANSLATION_REQUEST_TIMEOUT_SECONDS = 300.0  # bounded batches for documents up to the current text-block cap
 
 _CONVERTER_POOL = ThreadPoolExecutor(
@@ -281,6 +283,14 @@ def _quota_limit_response(usage: int, tier: str, authenticated: bool) -> JSONRes
 async def count_ai_and_studio_operations(request: Request, call_next):
     """Apply the same free daily operation quota to billable AI and Studio POST workflows."""
     path = request.url.path
+    if path.startswith("/api/ai/"):
+        identity = _quota_identity_from_request(request) or get_client_ip(request)
+        if not consume_rate_limit(f"ai-account:{identity}", 12, window_seconds=60):
+            return JSONResponse(
+                status_code=429,
+                content={"detail": "AI request limit exceeded. Try again in a minute."},
+                headers={"Retry-After": "60"},
+            )
     billable = request.method == "POST" and (
         path in _BILLABLE_AI_ENDPOINTS or path.startswith("/api/studio/")
     )
@@ -395,7 +405,7 @@ OPERATIONS = {
     "sign": {"label": "Sign PDF", "category": "Security", "accept": "pdf", "implemented": True, "description": "Embed digital signatures or hand-drawn signature stamps."},
 
     # 7. Advanced & AI Tools
-    "compare": {"label": "Compare PDF", "category": "Advanced", "accept": "pdf", "implemented": True, "description": "Highlight differences between two versions of a document."},
+    "compare": {"label": "Compare PDF", "category": "Advanced", "accept": "pdf", "implemented": True, "description": "Result: a text file listing the differences between two versions."},
     "forms": {"label": "Fill PDF Form", "category": "Advanced", "accept": "pdf", "implemented": True, "description": "Populate interactive PDF form fields from JSON data."},
     "metadata": {"label": "PDF Metadata", "category": "Advanced", "accept": "pdf", "implemented": True, "description": "View and modify document metadata (Title, Author, Subject)."},
     "ai_chat": {"label": "AI PDF Chat", "category": "AI tools", "accept": "pdf", "implemented": True, "description": "Ask questions to your document with RAG and exact page citations."},
@@ -819,7 +829,7 @@ SEO_CATALOG = {
         "intro": "Add document-open and owner controls before sharing a PDF that contains private, regulated, or commercially sensitive information.",
         "how_to": ("Upload the PDF to the security tool", "Set user and owner passwords plus permissions", "Encrypt and download the protected PDF"),
         "faqs": (
-            ("What encryption does Protect PDF use?", "The security workflow targets AES-256 PDF encryption through the native PDF security engine when the required capability is available. Passwords are not written to job history."),
+            ("What encryption does Protect PDF use?", "The security workflow targets AES-256 PDF encryption through the native PDF security engine when the required capability is available. Passwords are not stored after processing."),
             ("What is the difference between a user and owner password?", "The user password controls opening the document. The owner password controls permission changes and administrative operations supported by the PDF security handler."),
             ("Can I prevent copying or printing?", "Yes. Permission flags can restrict printing, copying, editing, annotations, or form filling, although PDF permissions should be treated as policy signals rather than absolute DRM."),
         ),
@@ -1205,7 +1215,9 @@ def render_seo_content(context: dict) -> str:
             f'<a class="seo-related-link" href="/{related_slug}">{html_escape(related_info["label"])}</a>'
         )
 
-    faq_questions = context["faqs"]
+    faq_questions = tuple(context["faqs"]) + (
+        ("Does Paperplane keep a job history?", "No. This version does not provide a recent-files or job-history page. Download the result when processing finishes; temporary server job files are removed by the retention cleanup."),
+    )
 
     faq_html = "".join(
         f'<details class="seo-faq-item"><summary>{html_escape(question)}</summary><p>{html_escape(answer)}</p></details>'
@@ -1510,7 +1522,49 @@ def require_developer_key(
 def enforce_rate_limit(request_key: str, limit: int | None = None) -> None:
     max_reqs = limit if limit is not None else RATE_LIMIT_PER_MINUTE
     if not consume_rate_limit(request_key, max_reqs):
-        raise HTTPException(status_code=429, detail="Rate limit exceeded. Try again in a minute.")
+        raise HTTPException(status_code=429, detail="Rate limit exceeded. Try again in a minute.", headers={"Retry-After": "60"})
+
+
+def enforce_account_rate_limit(request_key: str, limit: int, window_seconds: int = 60) -> None:
+    if not consume_rate_limit(request_key, limit, window_seconds=window_seconds):
+        raise HTTPException(
+            status_code=429,
+            detail="Rate limit exceeded. Try again later.",
+            headers={"Retry-After": str(max(1, int(window_seconds)))},
+        )
+
+
+def enforce_otp_account_lock(email: str, purpose: str) -> None:
+    remaining = otp_account_lock_remaining(email, purpose)
+    if remaining:
+        raise HTTPException(
+            status_code=429,
+            detail="Too many incorrect verification codes. Request a new code after the lock expires.",
+            headers={"Retry-After": str(remaining)},
+        )
+
+
+def raise_invalid_otp(email: str, purpose: str) -> None:
+    remaining = record_otp_failure(email, purpose)
+    if remaining:
+        raise HTTPException(
+            status_code=429,
+            detail="Too many incorrect verification codes. Request a new code after the lock expires.",
+            headers={"Retry-After": str(remaining)},
+        )
+    raise HTTPException(400, "Invalid or expired verification code.")
+
+
+def deliver_otp_or_raise(background_tasks: BackgroundTasks, email: str, code: str, purpose: str) -> None:
+    # The automated test harness captures an OTP through its explicitly gated
+    # dev_otp response. Outside that harness, never say a code was sent unless
+    # a configured mail provider confirms delivery.
+    if os.getenv("TESTING") == "True":
+        background_tasks.add_task(send_otp_email, email, code, purpose)
+        return
+    if not send_otp_email(email, code, purpose):
+        delete_email_otp(email, purpose)
+        raise HTTPException(503, "Email delivery is unavailable. Please try again later or contact support.")
 
 
 def parse_options(raw: str) -> dict:
@@ -1923,6 +1977,8 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
     source = inputs[0] if inputs else None
     stem = source.stem.split("_", 1)[-1] if source else "document"
     output = output_dir / f"{stem}_{operation}.pdf"
+    if operation == "merge":
+        output = output_dir / "merged-PDF.pdf"
 
     # 1. Office to PDF Conversions
     if operation == "word_to_pdf":
@@ -2036,19 +2092,37 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
     if operation == "organize":
         page_specs = options.get("pages", [])
         doc = fitz.open(str(source))
-        if not page_specs:
-            doc.save(str(output), garbage=4, deflate=True)
-            return output
-        new_doc = fitz.open()
+        if isinstance(page_specs, str):
+            raw_items = [part.strip() for part in page_specs.split(",")]
+            if not raw_items or any(not item for item in raw_items):
+                raise ValueError("Enter the page order, for example 3,1,2.")
+            try:
+                page_specs = [int(item) for item in raw_items]
+            except ValueError as error:
+                raise ValueError("Page order must be comma-separated page numbers, for example 3,1,2.") from error
+        if not isinstance(page_specs, list) or not page_specs:
+            raise ValueError("Enter the complete page order, for example 3,1,2.")
+        normalized_specs = []
         for item in page_specs:
-            if isinstance(item, int):
-                p_num = item - 1
-                rot = 0
+            if isinstance(item, int) and not isinstance(item, bool):
+                page_num, rotation = item, 0
             elif isinstance(item, dict):
-                p_num = int(item.get("page", 1)) - 1
-                rot = int(item.get("rotation", 0))
+                try:
+                    page_num = int(item.get("page", 0))
+                    rotation = int(item.get("rotation", 0))
+                except (TypeError, ValueError) as error:
+                    raise ValueError("Each ordered page must have a valid page number and rotation.") from error
             else:
-                continue
+                raise ValueError("Each ordered page must be a page number or page object.")
+            if page_num < 1 or page_num > len(doc):
+                raise ValueError(f"Page order includes page {page_num}, but this PDF has {len(doc)} pages.")
+            normalized_specs.append((page_num, rotation))
+        page_numbers = [page_num for page_num, _ in normalized_specs]
+        if len(page_numbers) != len(doc) or sorted(page_numbers) != list(range(1, len(doc) + 1)):
+            raise ValueError("Page order must include every page exactly once.")
+        new_doc = fitz.open()
+        for page_num, rot in normalized_specs:
+            p_num = page_num - 1
             if 0 <= p_num < len(doc):
                 new_doc.insert_pdf(doc, from_page=p_num, to_page=p_num)
                 if rot:
@@ -2063,12 +2137,22 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
     if operation == "annotate":
         annots = options.get("annotations", [])
         if not annots:
+            annot_type = str(options.get("annot_type", "")).strip().lower()
+            annotation_text = str(options.get("text", "")).strip()
+            comment_text = str(options.get("content", "")).strip()
+            if not annot_type:
+                raise ValueError("Choose an annotation type and enter its content before running Annotate PDF.")
+            if annot_type in {"note", "sticky_note", "comment"} and not (comment_text or annotation_text):
+                raise ValueError("Enter comment text for the sticky note.")
+            if annot_type in {"highlight", "underline", "strikeout"} and not annotation_text:
+                raise ValueError("Enter the text to find and annotate.")
             annots = [{
-                "type": options.get("annot_type", "highlight"),
-                "page": max(0, int(options.get("page", 1)) - 1),
-                "text": options.get("text", ""),
-                "content": options.get("content", options.get("text", "")),
-                "rect": [float(x) for x in str(options.get("rect", "72,72,250,120")).split(",")]
+                "type": "sticky_note" if annot_type == "note" else annot_type,
+                "page": max(1, int(options.get("page", 1))),
+                "text": annotation_text,
+                "content": comment_text or annotation_text,
+                "rect": [float(x) for x in str(options.get("rect", "72,72,250,120")).split(",")],
+                "point": [float(options.get("x", 72)), float(options.get("y", 72))],
             }]
         return converters.annotate_pdf(source, output, annotations=annots)
 
@@ -2148,7 +2232,10 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
             raise ValueError("Compare requires exactly two PDF files.")
         left = "\n".join(page.get_text() for page in fitz.open(str(inputs[0])))
         right = "\n".join(page.get_text() for page in fitz.open(str(inputs[1])))
-        report = "\n".join(difflib.unified_diff(left.splitlines(), right.splitlines(), fromfile=inputs[0].name, tofile=inputs[1].name, lineterm=""))
+        original_names = options.get("_original_filenames", [])
+        from_name = original_names[0] if len(original_names) > 0 else inputs[0].name
+        to_name = original_names[1] if len(original_names) > 1 else inputs[1].name
+        report = "\n".join(difflib.unified_diff(left.splitlines(), right.splitlines(), fromfile=from_name, tofile=to_name, lineterm=""))
         result = output.with_suffix(".txt")
         result.write_text(report or "No text differences found.\n", encoding="utf-8")
         return result
@@ -2336,6 +2423,34 @@ def translation_ai_available() -> bool:
     return not ai_engine.AI_KILL_SWITCH and bool(ai_engine._current_bluesminds_api_key())
 
 
+def translation_failure_response(error: RuntimeError) -> tuple[int, str, dict[str, str]]:
+    """Map safe translation provider failure classes to an actionable HTTP result."""
+    message = str(error)
+    status_match = re.search(r"upstream HTTP (\d{3})", message, re.IGNORECASE)
+    if status_match:
+        upstream_status = int(status_match.group(1))
+        if upstream_status in (401, 403, 404):
+            return (
+                503,
+                f"The translation provider rejected its authentication, model, or endpoint configuration (upstream HTTP {upstream_status}).",
+                {},
+            )
+        if upstream_status == 429:
+            return 429, "The translation provider is rate limited (upstream HTTP 429). Please retry shortly.", {"Retry-After": "30"}
+        if upstream_status in (408, 504):
+            return 504, f"The translation provider timed out (upstream HTTP {upstream_status}). Please retry later.", {"Retry-After": "5"}
+        if 500 <= upstream_status <= 599:
+            return 502, f"The translation provider is unavailable (upstream HTTP {upstream_status}). Please retry later.", {"Retry-After": "5"}
+        return 502, f"The translation provider rejected the request (upstream HTTP {upstream_status}).", {}
+    if "network timeout" in message.lower():
+        return 504, "The translation provider timed out or could not be reached. Please retry later.", {"Retry-After": "5"}
+    if "invalid structured response" in message.lower():
+        return 502, "The translation provider returned an invalid response. Please retry later.", {"Retry-After": "5"}
+    if "no text was translated" in message.lower():
+        return 422, "No text was translated. No translated PDF was produced.", {}
+    return 502, "Translation provider failed during document processing. Please retry later.", {"Retry-After": "5"}
+
+
 @app.get("/api/operations")
 def get_operations():
     chrome_ok = bool(converters.find_chrome_executable())
@@ -2378,7 +2493,11 @@ def get_seo_operation(operation: str):
     """Return the crawlable content model used when the SPA changes tools."""
     if operation not in OPERATIONS:
         raise HTTPException(status_code=404, detail="Unknown operation")
-    return seo_page_context(operation)
+    context = seo_page_context(operation)
+    context["faqs"] = tuple(context.get("faqs", ())) + (
+        ("Does Paperplane keep a job history?", "No. This version does not provide a recent-files or job-history page. Download the result when processing finishes; temporary server job files are removed by the retention cleanup."),
+    )
+    return context
 
 
 @app.get("/api/integrations")
@@ -2450,16 +2569,30 @@ def _auth_response_data(session: dict, user_id: str | None = None, extra: dict |
 
 
 @app.post("/api/auth/register")
-def register(
+async def register(
     response: Response,
     request: Request,
     background_tasks: BackgroundTasks,
-    email: str = Form(...),
-    password: str = Form(...),
+    email: str | None = Form(None),
+    password: str | None = Form(None),
     confirm_password: str | None = Form(None),
     otp: str | None = Form(None),
     require_otp: str | None = Form(None)
 ):
+    if "application/json" in request.headers.get("content-type", ""):
+        try:
+            payload = await request.json()
+        except Exception as exc:
+            raise HTTPException(400, "Registration JSON must be a valid object.") from exc
+        if not isinstance(payload, dict):
+            raise HTTPException(400, "Registration JSON must be an object.")
+        email = payload.get("email", email)
+        password = payload.get("password", password)
+        confirm_password = payload.get("confirm_password", confirm_password)
+        otp = payload.get("otp", otp)
+
+    if not isinstance(email, str) or not isinstance(password, str) or not email or not password:
+        raise HTTPException(400, "Email and password are required.")
     client_ip = get_client_ip(request)
     user_agent = request.headers.get("user-agent", "")
     enforce_rate_limit(f"reg:{client_ip}", limit=15)
@@ -2467,6 +2600,7 @@ def register(
     clean_email = email.lower().strip()
     if "@" not in clean_email or "." not in clean_email:
         raise HTTPException(400, "Please provide a valid email address.")
+    enforce_account_rate_limit(f"reg-account:{clean_email}", limit=5, window_seconds=3600)
 
     if confirm_password is not None and confirm_password != password:
         raise HTTPException(400, "Passwords do not match.")
@@ -2480,10 +2614,13 @@ def register(
 
     # Case 1: OTP was submitted to complete registration
     if otp:
+        enforce_otp_account_lock(clean_email, "signup")
         clean_otp = str(otp).strip()
         payload = verify_email_otp(clean_email, "signup", clean_otp)
         if payload is None:
-            raise HTTPException(400, "Invalid or expired verification code.")
+            record_audit_event("signup_otp_failed", email=clean_email, ip_address=client_ip, user_agent=user_agent)
+            raise_invalid_otp(clean_email, "signup")
+        clear_otp_failures(clean_email, "signup")
         
         user_id = create_user(clean_email, password)
         session = create_session(clean_email, password)
@@ -2499,43 +2636,20 @@ def register(
         background_tasks.add_task(send_login_notification, session["email"], client_ip, user_agent)
         return _auth_response_data(session, user_id=user_id)
 
-    # Case 2: User requested OTP verification (e.g. from the website registration page)
-    if require_otp and str(require_otp).lower() in ("1", "true", "yes"):
-        salt = secrets.token_hex(16)
-        pw_hash = _password_hash(password, salt)
-        otp_code = create_email_otp(clean_email, "signup", {"password_hash": pw_hash, "salt": salt})
-        background_tasks.add_task(send_otp_email, clean_email, otp_code, "signup")
-        res = {
-            "status": "otp_required",
-            "email": clean_email,
-            "purpose": "signup",
-            "message": f"A 6-digit confirmation code has been dispatched to {clean_email}."
-        }
-        if os.getenv("TESTING") == "True":
-            res["dev_otp"] = otp_code
-        return res
-
-    # Case 3: Direct registration (backward compatibility for automated test suite and CLI)
-    try:
-        user_id = create_user(clean_email, password)
-        session = create_session(clean_email, password)
-        response.set_cookie(
-            key="paperplane_token",
-            value=session["token"],
-            max_age=14 * 86400,
-            httponly=True,
-            secure=SECURE_COOKIES,
-            samesite=COOKIE_SAMESITE,
-            path="/"
-        )
-        background_tasks.add_task(send_login_notification, session["email"], client_ip, user_agent)
-        return _auth_response_data(session, user_id=user_id)
-    except ValueError as error:
-        raise HTTPException(400, str(error)) from error
-    except Exception as error:
-        if "UNIQUE constraint" in str(error):
-            raise HTTPException(409, "An account with that email already exists.") from error
-        raise HTTPException(500, "Registration failed.") from error
+    # Every registration requires email verification, regardless of client flags.
+    salt = secrets.token_hex(16)
+    pw_hash = _password_hash(password, salt)
+    otp_code = create_email_otp(clean_email, "signup", {"password_hash": pw_hash, "salt": salt})
+    deliver_otp_or_raise(background_tasks, clean_email, otp_code, "signup")
+    res = {
+        "status": "otp_required",
+        "email": clean_email,
+        "purpose": "signup",
+        "message": f"A 6-digit confirmation code has been dispatched to {clean_email}."
+    }
+    if os.getenv("TESTING") == "True":
+        res["dev_otp"] = otp_code
+    return res
 
 
 @app.post("/api/auth/login")
@@ -2556,10 +2670,13 @@ def login(
 
     # Case 1: OTP was submitted to complete 2FA login
     if otp:
+        enforce_otp_account_lock(clean_email, "login")
         clean_otp = str(otp).strip()
         payload = verify_email_otp(clean_email, "login", clean_otp)
         if payload is None:
-            raise HTTPException(400, "Invalid or expired verification code.")
+            record_audit_event("login_otp_failed", email=clean_email, ip_address=client_ip, user_agent=user_agent)
+            raise_invalid_otp(clean_email, "login")
+        clear_otp_failures(clean_email, "login")
         
         user = get_user_by_email(clean_email)
         if not user:
@@ -2586,7 +2703,7 @@ def login(
     # Case 2: Two-factor OTP requested (e.g. from the website login page)
     if require_otp and str(require_otp).lower() in ("1", "true", "yes"):
         otp_code = create_email_otp(clean_email, "login", {"user_id": user["id"]})
-        background_tasks.add_task(send_otp_email, clean_email, otp_code, "login")
+        deliver_otp_or_raise(background_tasks, clean_email, otp_code, "login")
         res = {
             "status": "otp_required",
             "email": clean_email,
@@ -2645,10 +2762,12 @@ async def verify_signup_otp(response: Response, request: Request, background_tas
     if not clean_email or not clean_otp:
         raise HTTPException(400, "Email and OTP code are required.")
 
+    enforce_otp_account_lock(clean_email, "signup")
     payload = verify_email_otp(clean_email, "signup", clean_otp)
     if payload is None:
         record_audit_event("signup_otp_failed", email=clean_email, ip_address=client_ip, user_agent=user_agent)
-        raise HTTPException(400, "Invalid or expired verification code.")
+        raise_invalid_otp(clean_email, "signup")
+    clear_otp_failures(clean_email, "signup")
 
     pw_hash = payload.get("password_hash")
     salt = payload.get("salt")
@@ -2719,10 +2838,12 @@ async def verify_login_otp(response: Response, request: Request, background_task
     if not clean_email or not clean_otp:
         raise HTTPException(400, "Email and OTP code are required.")
 
+    enforce_otp_account_lock(clean_email, "login")
     payload = verify_email_otp(clean_email, "login", clean_otp)
     if payload is None:
         record_audit_event("login_otp_failed", email=clean_email, ip_address=client_ip, user_agent=user_agent)
-        raise HTTPException(400, "Invalid or expired verification code.")
+        raise_invalid_otp(clean_email, "login")
+    clear_otp_failures(clean_email, "login")
 
     user = get_user_by_email(clean_email)
     if not user:
@@ -2790,7 +2911,7 @@ async def resend_otp(request: Request, background_tasks: BackgroundTasks):
     else:
         otp_code = create_email_otp(clean_email, clean_purpose, None)
 
-    background_tasks.add_task(send_otp_email, clean_email, otp_code, clean_purpose)
+    deliver_otp_or_raise(background_tasks, clean_email, otp_code, clean_purpose)
 
     res = {
         "status": "success",
@@ -3106,6 +3227,8 @@ async def join_waitlist(request: Request):
 
 @app.get("/api/auth/me")
 def get_current_user_profile(request: Request, user_id: str | None = Depends(current_user)):
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Authentication is required.")
     client_ip = get_client_ip(request)
     all_pricing = {
         "exam_pass": {"inr": EXAM_PASS_PRICE_INR},
@@ -3132,20 +3255,7 @@ def get_current_user_profile(request: Request, user_id: str | None = Depends(cur
         }
     user = get_user(user_id)
     if not user:
-        usage = get_daily_usage(f"ip:{client_ip}")
-        return {
-            "authenticated": False,
-            "role": "guest",
-            "tier": "free",
-            "tier_label": "Free",
-            "is_pro": False,
-            "is_dev": False,
-            "daily_limit": FREE_TIER_DAILY_LIMIT,
-            "usage_today": usage,
-            "remaining_today": max(0, FREE_TIER_DAILY_LIMIT - usage),
-            "pricing": all_pricing,
-            "plan_limits": plan_limits,
-        }
+        raise HTTPException(status_code=401, detail="Authentication is required.")
     tier = (user.get("tier") or "free").lower()
     paid_tiers = ("pro", "developer", "student_pro", "cyber_cafe", "exam_pass")
     is_pro = tier in paid_tiers
@@ -3747,7 +3857,8 @@ async def ai_summarize(
             summary_task.add_done_callback(lambda _task: shutil.rmtree(temp_dir, ignore_errors=True))
             raise HTTPException(
                 status_code=504,
-                detail="Executive Brief timed out. Please retry with a shorter PDF.",
+                detail="The AI provider did not return an executive brief before the request deadline. No output was created; retry later.",
+                headers={"Retry-After": "5"},
             ) from exc
         except asyncio.CancelledError:
             defer_temp_cleanup = True
@@ -3831,7 +3942,7 @@ async def ai_translate_endpoint(
         except asyncio.TimeoutError as exc:
             defer_temp_cleanup = True
             translation_task.add_done_callback(lambda _task: shutil.rmtree(temp_dir, ignore_errors=True))
-            raise HTTPException(status_code=504, detail="Translation timed out. Please retry with a shorter PDF.") from exc
+            raise HTTPException(status_code=504, detail="The translation provider did not return a result before the request deadline. No translated PDF was created; retry later.", headers={"Retry-After": "5"}) from exc
         except asyncio.CancelledError:
             defer_temp_cleanup = True
             translation_task.add_done_callback(lambda _task: shutil.rmtree(temp_dir, ignore_errors=True))
@@ -3851,11 +3962,12 @@ async def ai_translate_endpoint(
     except ValueError as exc:
         raise HTTPException(status_code=503, detail="AI translation is not configured for this workspace.") from exc
     except RuntimeError as exc:
-        logging.getLogger("paperplane").warning("AI translation failed: %s", exc)
-        raise HTTPException(status_code=502, detail="Translation could not be completed. Please retry with a shorter PDF or try again later.") from exc
+        status_code, detail, headers = translation_failure_response(exc)
+        logging.getLogger("paperplane").warning("AI translation failed: %s", detail)
+        raise HTTPException(status_code=status_code, detail=detail, headers=headers) from exc
     except Exception as exc:
-        logging.getLogger("paperplane").error("AI translation failed unexpectedly: %s", exc)
-        raise HTTPException(status_code=502, detail="Translation could not be completed. Please try again later.") from exc
+        logging.getLogger("paperplane").error("AI translation failed unexpectedly (%s)", type(exc).__name__)
+        raise HTTPException(status_code=502, detail="Translation provider failed during document processing. Please retry later.", headers={"Retry-After": "5"}) from exc
     finally:
         if not defer_temp_cleanup:
             shutil.rmtree(temp_dir, ignore_errors=True)
@@ -4079,7 +4191,11 @@ async def studio_page_delete(
             doc.delete_page(p - 1)
 
         out_path = temp_dir / "deleted_page.pdf"
-        doc.save(str(out_path), garbage=4, deflate=True)
+        # A one-page delete already rewrites the page tree. Deep garbage
+        # collection (level 4) scans and deduplicates every object, which made
+        # large Studio deletes unnecessarily slow. Level 1 drops unreferenced
+        # objects while keeping the mutation bounded and the output valid.
+        doc.save(str(out_path), garbage=1, deflate=True)
         doc.close()
 
         return StreamingResponse(
@@ -5682,10 +5798,9 @@ def run_job(job_id: str, operation: str, paths: list[Path], options: dict, user_
 def job_status(
     job_id: str,
     request: Request,
-    user_id: str | None = Depends(current_user),
-    token: str | None = None
+    user_id: str | None = Depends(current_user)
 ):
-    effective_token = token or request.query_params.get("token") or request.cookies.get(f"guest_job_{job_id}") or request.headers.get("X-Guest-Token")
+    effective_token = request.cookies.get(f"guest_job_{job_id}") or request.headers.get("X-Guest-Token")
     row = get_job(job_id, user_id=user_id, guest_token=effective_token)
     if not row:
         raise HTTPException(404, "Job not found.")
@@ -5705,10 +5820,9 @@ def create_job_endpoint(
     files: list[UploadFile] = File(default=[]),
     user_id: str | None = Depends(current_user)
 ):
-    enforce_rate_limit(user_id or "anonymous")
-
     # Freemium Tier & Daily Quota Check
     client_ip = get_client_ip(request)
+    enforce_account_rate_limit(f"job-account:{user_id or client_ip}", limit=20, window_seconds=60)
     allowed, usage_count, user_tier = check_operation_quota(user_id, client_ip, FREE_TIER_DAILY_LIMIT)
     if not allowed:
         if user_id:
@@ -5747,6 +5861,13 @@ def create_job_endpoint(
     if len(files) > max_files:
         raise HTTPException(400, f"This operation accepts at most {max_files} files.")
 
+    if operation == "compare":
+        parsed_options["_original_filenames"] = [
+            "".join(char for char in str(file.filename or "document.pdf").replace("\\", "/").rsplit("/", 1)[-1] if char.isprintable())[:180]
+            or "document.pdf"
+            for file in files
+        ]
+
     expected = OPERATIONS[operation]["accept"]
     job_id, guest_token = persist_job(operation, user_id, JOB_TTL_SECONDS)
     if guest_token:
@@ -5776,13 +5897,11 @@ def create_job_endpoint(
         usage_today = increment_daily_usage(subject)
         response.headers["X-Paperplane-Operations-Today"] = str(usage_today)
         executor.submit(run_job, job_id, operation, paths, parsed_options, user_id)
-        download_suffix = f"?token={guest_token}" if guest_token else ""
         return {
             "job_id": job_id,
-            "guest_token": guest_token,
             "status": "queued",
-            "status_url": f"/api/jobs/{job_id}{download_suffix}",
-            "download_url": f"/api/jobs/{job_id}/download{download_suffix}"
+            "status_url": f"/api/jobs/{job_id}",
+            "download_url": f"/api/jobs/{job_id}/download"
         }
     except HTTPException as error:
         update_job(job_id, status="failed", error=str(error.detail))
@@ -5798,22 +5917,36 @@ def create_job_endpoint(
 def download(
     job_id: str,
     request: Request,
-    user_id: str | None = Depends(current_user),
-    token: str | None = None
+    user_id: str | None = Depends(current_user)
 ):
     directory = JOBS / job_id
-    effective_token = token or request.query_params.get("token") or request.cookies.get(f"guest_job_{job_id}") or request.headers.get("X-Guest-Token")
+    cookie_key = f"guest_job_{job_id}"
+    effective_token = request.cookies.get(cookie_key) or request.headers.get("X-Guest-Token")
     row = get_job(job_id, user_id=user_id, guest_token=effective_token)
     if not row:
         raise HTTPException(404, "Job not found.")
     if row["status"] != "completed":
         raise HTTPException(409, f"Job is {row['status']}.")
 
+    def owner_scoped_file(path: Path, filename: str) -> FileResponse:
+        file_response = FileResponse(path, filename=filename, media_type="application/octet-stream")
+        if not row["user_id"]:
+            if not consume_guest_job_token(job_id, effective_token or ""):
+                raise HTTPException(404, "Job not found.")
+            file_response.delete_cookie(
+                cookie_key,
+                path="/",
+                httponly=True,
+                secure=SECURE_COOKIES,
+                samesite=COOKIE_SAMESITE,
+            )
+        return file_response
+
     out_name = row["output_name"] or "document.pdf"
     if row["output_name"]:
         target = (directory / row["output_name"]).resolve()
         if target.is_relative_to(directory.resolve()) and target.exists():
-            return FileResponse(target, filename=out_name, media_type="application/octet-stream")
+            return owner_scoped_file(target, out_name)
 
     # Fallback to any non-upload file
     if directory.exists():
@@ -5821,9 +5954,7 @@ def download(
         if candidates:
             cand = candidates[-1].resolve()
             if cand.is_relative_to(directory.resolve()) and cand.exists():
-                return FileResponse(cand, filename=cand.name, media_type="application/octet-stream")
-
-    raise HTTPException(404, "Job output not found or expired.")
+                return owner_scoped_file(cand, cand.name)
 
     raise HTTPException(404, "Job output not found or expired.")
 
@@ -5832,10 +5963,9 @@ def download(
 def delete_job(
     job_id: str,
     request: Request,
-    user_id: str | None = Depends(current_user),
-    token: str | None = None
+    user_id: str | None = Depends(current_user)
 ):
-    effective_token = token or request.query_params.get("token") or request.cookies.get(f"guest_job_{job_id}") or request.headers.get("X-Guest-Token")
+    effective_token = request.cookies.get(f"guest_job_{job_id}") or request.headers.get("X-Guest-Token")
     row = get_job(job_id, user_id=user_id, guest_token=effective_token)
     if not row:
         raise HTTPException(404, "Job not found.")
@@ -6027,6 +6157,7 @@ def get_v1_job(job_id: str, user_id: str = Depends(require_developer_key)):
         raise HTTPException(404, "Job not found or access denied.")
     usage = get_developer_api_usage(user_id)
     job_data = dict(row)
+    job_data.pop("guest_token", None)
     job_data["status_url"] = f"/api/v1/jobs/{job_id}"
     job_data["download_url"] = f"/api/v1/jobs/{job_id}/download"
     return JSONResponse(job_data, headers=_dev_rate_limit_headers(usage))
@@ -6239,6 +6370,11 @@ def tool_desk_page(request: Request):
 @app.get("/studio", response_class=HTMLResponse, include_in_schema=False)
 def studio_workspace_page(request: Request):
     return render_web_page(request, landing_slug="studio")
+
+
+@app.get("/settings", response_class=HTMLResponse, include_in_schema=False)
+def settings_page(request: Request):
+    return render_web_page(request, landing_slug="tool-desk")
 
 
 @app.get("/privacy", response_class=HTMLResponse)

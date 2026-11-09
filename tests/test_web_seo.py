@@ -81,7 +81,9 @@ def test_spa_seo_endpoint_returns_the_same_route_content_model():
     assert payload["operation"] == "word_to_pdf"
     assert payload["slug"] == "word-to-pdf"
     assert len(payload["how_to"]) == 3
-    assert len(payload["faqs"]) == 3
+    assert len(payload["faqs"]) == 4
+    assert payload["faqs"][-1][0] == "Does Paperplane keep a job history?"
+    assert "does not provide a recent-files or job-history page" in payload["faqs"][-1][1]
 
 
 def test_sitemap_contains_every_operation_and_landing_pages():

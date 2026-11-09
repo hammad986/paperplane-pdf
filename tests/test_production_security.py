@@ -1,4 +1,5 @@
 import os
+import secrets
 import base64
 import hashlib
 import hmac
@@ -10,6 +11,7 @@ from fastapi.testclient import TestClient
 from server import app
 import persistence
 import converters
+from tests.auth_helpers import register_verified
 
 client = TestClient(app)
 
@@ -85,8 +87,7 @@ def test_job_tenant_isolation():
     """Verify that user-owned jobs cannot be enumerated or downloaded by unauthorized guests or other users."""
     # 1. Create a user
     email = f"isolation_test_{os.urandom(4).hex()}@paperplane.test"
-    reg = client.post("/api/auth/register", data={"email": email, "password": "Password123!"})
-    assert reg.status_code == 200
+    reg = register_verified(client, email, "Password123!")
     token_a = reg.json()["token"]
     user_a = reg.json()["user_id"]
 
@@ -100,7 +101,8 @@ def test_job_tenant_isolation():
 
     # 4. Another user attempts to access User A's job -> 404
     email_b = f"isolation_user_b_{os.urandom(4).hex()}@paperplane.test"
-    reg_b = client.post("/api/auth/register", data={"email": email_b, "password": "Password123!"})
+    reg_b = register_verified(client, email_b, "Password123!")
+    assert reg_b.status_code == 200
     token_b = reg_b.json()["token"]
 
     user_b_client = TestClient(app)
@@ -284,7 +286,7 @@ def test_google_auth_valid_session_and_logout_lifecycle(monkeypatch):
 
     # 4. Previously valid session token is now completely revoked
     revoked_res = auth_client.get("/api/auth/me")
-    assert revoked_res.json()["authenticated"] is False
+    assert revoked_res.status_code == 401
 
 
 def test_favicon_and_legal_routes():
@@ -313,8 +315,7 @@ def test_password_reset_lifecycle():
     pw_new = "NewPassword456!"
 
     # 1. Register user
-    reg = client.post("/api/auth/register", data={"email": email, "password": pw_initial})
-    assert reg.status_code == 200
+    reg = register_verified(client, email, pw_initial)
     initial_token = reg.json()["token"]
 
     # 2. Request password reset
@@ -364,8 +365,7 @@ def test_user_change_password_endpoint():
     pw_old = "CurrentSecret123!"
     pw_new = "UpdatedSecret456!"
 
-    reg = client.post("/api/auth/register", data={"email": email, "password": pw_old})
-    assert reg.status_code == 200
+    reg = register_verified(client, email, pw_old)
     user_token = reg.json()["token"]
 
     auth_client = TestClient(app)
@@ -462,7 +462,10 @@ def test_plan_limits_match_server_upload_limits():
 def test_auth_profile_exposes_the_authoritative_plan_limits():
     from server import plan_limits_payload
 
-    response = client.get("/api/auth/me")
+    anonymous_response = TestClient(app).get("/api/auth/me")
+    assert anonymous_response.status_code == 401
+    authenticated = register_verified(client, f"profile_{os.urandom(4).hex()}@paperplane.test", secrets.token_urlsafe(24))
+    response = client.get("/api/auth/me", headers={"Authorization": f"Bearer {authenticated.json()['token']}"})
     assert response.status_code == 200
     assert response.json()["plan_limits"] == plan_limits_payload()
 

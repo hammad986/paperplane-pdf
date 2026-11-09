@@ -125,6 +125,17 @@ async function removeLocalWork(...keys) {
   });
 }
 
+async function clearLocalWorkStore() {
+  const db = await openLocalWorkDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('work', 'readwrite');
+    tx.objectStore('work').clear();
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject(tx.error || new Error('Could not clear saved browser workspace data.'));
+    tx.onabort = () => reject(tx.error || new Error('Clearing saved browser workspace data was interrupted.'));
+  });
+}
+
 function localPdfRecord(file) {
   return {
     blob: file,
@@ -266,8 +277,9 @@ async function restoreStudioWorkspace() {
 
 async function clearStudioWorkspace() {
   clearTimeout(studioPositionSaveTimer);
-  await removeLocalWork('studio-pdf', 'studio-position').catch(error => console.warn('Could not clear Studio work locally:', error));
+  await clearLocalWorkStore();
   try { sessionStorage.removeItem('paperplane-studio-position'); } catch { /* storage may be disabled */ }
+  try { sessionStorage.removeItem('paperplane-last-local-document'); } catch { /* storage may be disabled */ }
   if (state.studio.pageObserver) state.studio.pageObserver.disconnect();
   state.studio.pageRenderTasks.forEach(task => { try { task.cancel(); } catch { /* already complete */ } });
   state.studio.pageRenderTasks.clear();
@@ -291,8 +303,6 @@ async function clearStudioWorkspace() {
     window.PaperplanePageOrganizer._updateBatchToolbar();
   }
   showStudioEmptyState();
-  await removeLocalWork('studio-pdf', 'studio-position').catch(error => console.warn('Could not finalize clearing Studio work:', error));
-  try { sessionStorage.removeItem('paperplane-studio-position'); } catch { /* storage may be disabled */ }
 }
 
 let studioUndoTimer = null;
@@ -327,15 +337,21 @@ window.showStudioUndoMutation = (previousFile, page, description, expectedCurren
   }, { once: true });
   banner.append(copy, undo);
   banner.hidden = false;
-  studioUndoTimer = setTimeout(() => { banner.hidden = true; }, 10000);
+  studioUndoTimer = setTimeout(() => { banner.hidden = true; }, 30000);
 };
 
 document.getElementById('studio-clear-work-btn')?.addEventListener('click', async () => {
-  const confirmed = await window.confirmAction('Clear the saved PDF and page position from this browser? Export any annotations you want to keep first.', { confirmLabel: 'Clear saved work', danger: true });
+  const confirmed = await window.confirmAction('Clear all saved PDFs, AI chat, and page position from this browser? Download results and export annotations you want to keep first.', { confirmLabel: 'Clear saved work', danger: true });
   if (!confirmed) return;
-  await clearStudioWorkspace();
+  try {
+    await clearStudioWorkspace();
+  } catch (error) {
+    showToast('Saved browser data could not be cleared. Close other Paperplane tabs and try again.', 'error', 7000);
+    console.warn('Could not clear saved browser workspace data:', error);
+    return;
+  }
   clearLocalWorkMarkerIfEmpty();
-  showToast('Saved PDF and page position cleared from this browser', 'success');
+  showToast('Saved browser PDFs, AI chat, and page position cleared', 'success');
 });
 
 function renderAiConversation(messages = []) {
@@ -720,7 +736,12 @@ async function safeFetch(url, options = {}) {
 
   if (!response.ok) {
     if (response.status === 401) {
-      openAuthModal('Authentication required. Sign in or create an account to proceed.');
+      const requestPath = (() => {
+        try { return new URL(url, window.location.href).pathname; } catch { return String(url || ''); }
+      })();
+      if (requestPath !== '/api/auth/me') {
+        openAuthModal('Authentication required. Sign in or create an account to proceed.');
+      }
       throw new Error(data.detail || 'Authentication required.');
     }
 
@@ -826,6 +847,13 @@ $('#studio-mobile-pages-btn')?.addEventListener('click', () => {
   syncStudioBatchPanelLocation();
 });
 
+$('#studio-pages-toggle-btn')?.addEventListener('click', event => {
+  const shell = $('#app-shell');
+  if (!shell) return;
+  const collapsed = shell.classList.toggle('studio-pages-collapsed');
+  event.currentTarget.setAttribute('aria-expanded', String(!collapsed));
+});
+
 $('#studio-mobile-pages-close')?.addEventListener('click', () => {
   $('#app-shell')?.classList.remove('studio-pages-open');
   $('#studio-mobile-pages-btn')?.setAttribute('aria-expanded', 'false');
@@ -850,7 +878,36 @@ $('#studio-mobile-properties-close')?.addEventListener('click', () => {
   $('#studio-mobile-properties-btn')?.setAttribute('aria-expanded', 'false');
 });
 
-window.addEventListener('resize', syncStudioMobileLayout, { passive: true });
+let studioLayoutSyncFrame = 0;
+let studioResizeRenderTimer = null;
+function scheduleStudioLayoutSync() {
+  if (studioLayoutSyncFrame) cancelAnimationFrame(studioLayoutSyncFrame);
+  studioLayoutSyncFrame = requestAnimationFrame(() => {
+    studioLayoutSyncFrame = 0;
+    syncStudioMobileLayout();
+    // Reparented controls can be measured before flex/grid styles settle during
+    // a breakpoint transition. A second frame restores their desktop sizing.
+    requestAnimationFrame(syncStudioMobileLayout);
+    clearTimeout(studioResizeRenderTimer);
+    studioResizeRenderTimer = setTimeout(() => {
+      if (state.activeView === 'studio' && state.studio.pdfDoc) {
+        refreshVisibleStudioPages().catch(error => console.warn('Studio could not refresh pages after resize:', error));
+      }
+    }, 180);
+  });
+}
+window.addEventListener('resize', scheduleStudioLayoutSync, { passive: true });
+window.matchMedia('(max-width: 900px)').addEventListener?.('change', scheduleStudioLayoutSync);
+let studioObservedViewportWidth = document.documentElement.clientWidth;
+if ('ResizeObserver' in window) {
+  const studioViewportObserver = new ResizeObserver(() => {
+    const nextWidth = document.documentElement.clientWidth;
+    if (nextWidth === studioObservedViewportWidth) return;
+    studioObservedViewportWidth = nextWidth;
+    scheduleStudioLayoutSync();
+  });
+  studioViewportObserver.observe(document.documentElement);
+}
 syncStudioMobileLayout();
 const studioPageSummaryObserver = new MutationObserver(updateStudioMobilePageSummary);
 ['#page-jump-input', '#page-total-indicator', '#studio-page-count'].forEach(selector => {
@@ -866,6 +923,9 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true, pres
   workspaceNavigationVersion += 1;
   if (!preserveOpenCloudModal && view !== 'cloud' && $('#cloud-modal')) $('#cloud-modal').hidden = true;
   if ($('#sidebar')?.classList.contains('mobile-open')) closeMobileSidebar();
+  $('.main-area')?.scrollTo({ top: 0, behavior: 'auto' });
+  window.scrollTo({ top: 0, behavior: 'auto' });
+  document.documentElement.classList.remove('footer-revealed');
   try { sessionStorage.setItem('paperplane-active-view', view); } catch { /* storage may be disabled */ }
   state.activeView = view;
   const mobileViewLabels = { 'tool-desk': 'Tool Desk', desk: 'PDF Tool', studio: 'Studio', ai: 'AI', download: 'Waitlist' };
@@ -889,6 +949,9 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true, pres
   $('#app-shell')?.classList.toggle('ai-active', view === 'ai');
   document.documentElement.classList.toggle('studio-active', view === 'studio');
   document.body.classList.toggle('studio-active', view === 'studio');
+  if (view === 'studio' && window.matchMedia('(max-width: 900px)').matches) {
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
   if (view === 'studio' && !state.studio.pdfDoc) restoreStudioWorkspace();
   if (view === 'ai' && !aiWorkspaceRestored) restoreAiWorkspace();
   if (view === 'studio') syncStudioMobileLayout();
@@ -1403,7 +1466,6 @@ async function syncSeoContent(operation) {
   );
   document.title = `${operationLabel} | Paperplane`;
   section.setAttribute('aria-busy', 'true');
-  section.innerHTML = `<div class="seo-content-inner"><p class="seo-lede" role="status">Loading ${escapeHtml(operationLabel)} details…</p></div>`;
 
   try {
     const context = await safeFetch(`/api/seo/${encodeURIComponent(operation)}`);
@@ -1434,9 +1496,17 @@ async function syncSeoContent(operation) {
   } catch (error) {
     if (!isCurrentRequest()) return;
     section.removeAttribute('aria-busy');
-    section.innerHTML = `<div class="seo-content-inner"><p class="seo-lede" role="status">${escapeHtml(operationLabel)} details could not load right now. The PDF tool is still available.</p></div>`;
     console.warn('Could not refresh SEO content for operation:', operation, error);
   }
+}
+
+function addEndpointTableMobileLabels() {
+  document.querySelectorAll('.endpoints-table').forEach(table => {
+    const headers = [...table.querySelectorAll('thead th')].map(cell => cell.textContent.trim());
+    table.querySelectorAll('tbody tr').forEach(row => {
+      [...row.cells].forEach((cell, index) => cell.setAttribute('data-label', headers[index] || 'Details'));
+    });
+  });
 }
 
 // Select an operation and update view
@@ -2433,8 +2503,17 @@ async function renderStudioPageNow(pageNum, { priority = false, force = false } 
   const transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
   const renderTask = basePage.render({ canvasContext: context, transform, viewport });
   state.studio.pageRenderTasks.set(target, renderTask);
+  let renderTimeout;
   try {
-    await renderTask.promise;
+    await Promise.race([
+      renderTask.promise,
+      new Promise((_, reject) => {
+        renderTimeout = setTimeout(() => {
+          try { renderTask.cancel(); } catch { /* render may already be done */ }
+          reject(new Error(`Page ${target} took too long to render.`));
+        }, 15000);
+      })
+    ]);
   } catch (err) {
     if (slot.dataset.renderId !== renderId || state.studio.pdfDoc !== studioDoc) return false;
     if (err?.name === 'RenderingCancelledException') {
@@ -2448,6 +2527,7 @@ async function renderStudioPageNow(pageNum, { priority = false, force = false } 
     console.error(`Studio render failed for page ${target}:`, err);
     return false;
   } finally {
+    clearTimeout(renderTimeout);
     if (state.studio.pageRenderTasks.get(target) === renderTask) state.studio.pageRenderTasks.delete(target);
   }
   if (slot.dataset.renderId !== renderId) return false;
@@ -3120,6 +3200,9 @@ function renderOptions() {
     }
   } else if (state.operation === 'rotate') {
     fields += selectField('degrees', 'Rotation Angle', [90, 180, 270]);
+  } else if (state.operation === 'organize') {
+    fields += field('pages', 'Page order (list every page once)', 'text', '3,1,2');
+    fields += '<p class="option-help option-field-wide">Enter the output order as comma-separated page numbers, for example 3,1,2. Include each page exactly once.</p>';
   } else if (state.operation === 'compress') {
     fields += selectField('preset', 'Target Compression Preset', [
       { value: '100kb', label: '🎯 Under 100 KB (Govt / SSC Exam Form)' },
@@ -3161,7 +3244,7 @@ function renderOptions() {
   } else if (state.operation === 'flatten') {
     fields += '<div class="option-field option-field-wide" style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; padding: 12px;"><strong style="color: #f59e0b;">📑 Permanent Form Flattening</strong><p style="margin: 4px 0 0; font-size: 12px; color: var(--text-muted);">Permanently bakes interactive AcroForm field values directly into the page content, preventing further modification in final submissions.</p></div>';
   } else if (state.operation === 'watermark') {
-    fields += field('text', 'Watermark text (leave empty if image selected)', 'text', 'CONFIDENTIAL');
+    fields += field('text', 'Watermark text (or choose an image below)', 'text', 'Type watermark text');
     fields += field('opacity', 'Opacity (0.05 to 0.8)', 'number', '0.2', '0.05', '0.8', '0.01');
     fields += '<div class="option-field"><label for="watermark_image_file">Or Select Watermark Image</label><input id="watermark_image_file" type="file" accept="image/*"></div>';
   } else if (state.operation === 'page_numbers') {
@@ -3197,8 +3280,9 @@ function renderOptions() {
   } else if (state.operation === 'annotate') {
     fields += selectField('annot_type', 'Annotation Type', ['highlight', 'underline', 'strikeout', 'note', 'rect']);
     fields += field('page', 'Target Page Number', 'number', '1', '1', '999', '1');
-    fields += field('text', 'Text to find & annotate', 'text', 'Important');
-    fields += field('content', 'Comment / Sticky Note Text', 'text', 'Review this section');
+    fields += field('text', 'Text to find & annotate', 'text', 'Enter exact text from the selected page');
+    fields += field('content', 'Comment / Sticky Note Text', 'text', 'Enter your note');
+    fields += '<p class="option-help option-field-wide">For a sticky note, enter its comment above. For a highlight, underline, or strikeout, enter exact text from the selected page.</p>';
   } else if (state.operation === 'summarize') {
     fields += '<div class="option-field" style="grid-column: span 2;"><label>Executive Document Summary</label><p style="color: var(--text-muted); font-size: 13px;">Generates executive briefing and key bullet points using deep NLP summarization.</p></div>';
   } else if (state.operation === 'sign') {
@@ -3244,6 +3328,12 @@ function renderOptions() {
       pwdEl.addEventListener('input', () => updateButton());
     }
   }
+
+  o.querySelectorAll('input, select, textarea').forEach(input => {
+    input.addEventListener('input', updateButton);
+    input.addEventListener('change', updateButton);
+  });
+  syncRequiredFieldFeedback();
 }
 
 function field(id, label, type, placeholder, min = '', max = '', step = '') {
@@ -3356,6 +3446,8 @@ function updateButton() {
 
   const hasFiles = state.files.length > 0;
   const activeToolLabel = currentOperation?.label || 'Run Tool';
+  const requiredField = getToolRequiredFieldState();
+  syncRequiredFieldFeedback(requiredField);
 
   const isSecurity = ['protect', 'unlock'].includes(state.operation) || (state.operation || '').includes('protect') || (state.operation || '').includes('unlock');
   if (isSecurity) {
@@ -3384,10 +3476,58 @@ function updateButton() {
     return;
   }
 
+  if (requiredField && !requiredField.valid) {
+    btn.disabled = true;
+    btn.innerHTML = `${escapeHtml(requiredField.runLabel || 'Complete the required field')} <span>→</span>`;
+    return;
+  }
+
   btn.disabled = !hasFiles;
   btn.innerHTML = hasFiles
     ? `${activeToolLabel} Now <span>→</span>`
     : 'Select files to continue <span>→</span>';
+}
+
+function getToolRequiredFieldState() {
+  const requirement = {
+    remove: { selector: '#pages', message: 'Enter one or more pages to remove, for example 2, 4-6.', runLabel: 'Enter pages to remove' },
+    redact: { selector: '#terms', message: 'Enter a word or phrase to redact.', runLabel: 'Enter text to redact' },
+    ai_chat: { selector: '#question', message: 'Enter a question about this PDF.', runLabel: 'Enter a question' },
+    watermark: { selector: '#text', message: 'Enter watermark text or choose a watermark image.', runLabel: 'Enter watermark text or choose an image' },
+    annotate: { selector: null, message: 'Enter the text to mark, or the sticky note comment.', runLabel: 'Enter annotation content' }
+  }[state.operation];
+  if (!requirement) return null;
+
+  let input = requirement.selector ? $(requirement.selector) : null;
+  let valid = false;
+  if (state.operation === 'watermark') {
+    valid = Boolean(input?.value.trim() || $('#watermark_image_file')?.files?.length);
+  } else if (state.operation === 'annotate') {
+    const type = ($('#annot_type')?.value || 'highlight').toLowerCase();
+    input = type === 'note' ? $('#content') : $('#text');
+    valid = Boolean(input?.value.trim());
+    requirement.message = type === 'note' ? 'Enter the sticky note comment.' : 'Enter exact text from the page to mark.';
+  } else {
+    valid = Boolean(input?.value.trim());
+  }
+  return { ...requirement, input, valid };
+}
+
+function syncRequiredFieldFeedback(requirement = getToolRequiredFieldState()) {
+  document.querySelectorAll('#options .option-required-hint').forEach(node => node.remove());
+  if (!requirement || !requirement.input) return;
+  if (requirement.valid) {
+    requirement.input.removeAttribute('aria-invalid');
+    if (requirement.input.getAttribute('aria-describedby') === 'required-field-hint') requirement.input.removeAttribute('aria-describedby');
+    return;
+  }
+  const hint = document.createElement('small');
+  hint.className = 'option-required-hint';
+  hint.id = 'required-field-hint';
+  hint.textContent = requirement.message;
+  requirement.input.setAttribute('aria-invalid', 'true');
+  requirement.input.setAttribute('aria-describedby', hint.id);
+  requirement.input.closest('.option-field')?.appendChild(hint);
 }
 
 const HEAVY_TOOLS = new Set([
@@ -3591,6 +3731,14 @@ $('#job-form').onsubmit = async e => {
   const isHtml = state.operation === 'html_to_pdf';
   if (!state.files.length && !isHtml) return;
 
+  const requiredField = getToolRequiredFieldState();
+  if (requiredField && !requiredField.valid) {
+    syncRequiredFieldFeedback(requiredField);
+    requiredField.input?.focus();
+    showToast(requiredField.message, 'info', 4500);
+    return;
+  }
+
   const btn = $('#run-button');
 
   if (isHtml) {
@@ -3665,7 +3813,7 @@ $('#job-form').onsubmit = async e => {
     const controller = new AbortController();
     activeDeskAiController = controller;
     deskAiRequestTimedOut = false;
-    const timeoutMs = state.operation === 'translate' ? 310000 : state.operation === 'summarize' ? 120000 : 75000;
+    const timeoutMs = state.operation === 'translate' ? 310000 : state.operation === 'summarize' ? 305000 : 75000;
     const timeout = window.setTimeout(() => {
       deskAiRequestTimedOut = true;
       controller.abort();
@@ -3684,7 +3832,7 @@ $('#job-form').onsubmit = async e => {
     } catch (error) {
       const message = controller.signal.aborted
         ? deskAiRequestTimedOut
-          ? 'This AI request reached its time limit. No output was created; try a shorter PDF or retry later.'
+          ? 'The AI provider did not return a result before the time limit. No output was created; retry later.'
           : 'AI request cancelled. No output was created.'
         : error.message;
       showResult(message, true);
@@ -3719,6 +3867,13 @@ $('#job-form').onsubmit = async e => {
     await checkAuthStatus();
   } catch (error) {
     $('#progress-card').hidden = true;
+    if (state.operation === 'mask_aadhaar' && /no 12-digit aadhaar number pattern was detected/i.test(error.message || '')) {
+      showNeutralResult('No Aadhaar number was found, so nothing was changed.');
+      showToast('No Aadhaar number was found, so nothing was changed.', 'info', 5000);
+      btn.disabled = false;
+      updateButton();
+      return;
+    }
     const isSecurityOp = ['protect', 'unlock'].includes(state.operation) || (state.operation || '').includes('protect') || (state.operation || '').includes('unlock');
     const isRequiredErr = error.message.toLowerCase().includes('required') || error.message.toLowerCase().includes('please enter') || error.message.toLowerCase().includes('please provide');
     if (error.message.includes('TIER_LIMIT') || error.message.includes('limit reached')) {
@@ -3866,6 +4021,22 @@ function showResult(message, isError = false) {
   result.hidden = false;
 }
 
+function showNeutralResult(message) {
+  state.activeToolResult = null;
+  const result = $('#result');
+  if (!result) return;
+  result.className = 'result-card result-neutral';
+  $('#result-title').textContent = 'No change made';
+  $('#result-meta').textContent = message;
+  if ($('#result-content')) {
+    $('#result-content').hidden = true;
+    $('#result-content').replaceChildren();
+  }
+  if ($('#result-download-link')) $('#result-download-link').hidden = true;
+  if ($('#result-view-studio-btn')) $('#result-view-studio-btn').hidden = true;
+  result.hidden = false;
+}
+
 function renderMarkdown(markdown) {
   const lines = String(markdown || '').replace(/\r/g, '').split('\n');
   let html = '';
@@ -3885,7 +4056,10 @@ function renderMarkdown(markdown) {
       return;
     }
     closeList();
-    const safe = escapeHtml(trimmed).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/`(.+?)`/g, '<code>$1</code>');
+    const safe = escapeHtml(trimmed)
+      .replace(/\[Page\s+(\d+)\]/gi, '<span class="ai-citation-tag">Page $1</span>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/`(.+?)`/g, '<code>$1</code>');
     html += `<p>${safe}</p>`;
   });
   closeList();
@@ -4083,7 +4257,7 @@ async function processClientSide() {
       copiedPages.forEach(page => mergedPdf.addPage(page));
     }
     const pdfBytes = await mergedPdf.save();
-    downloadBlob(pdfBytes, 'merged_private.pdf', 'application/pdf');
+    downloadBlob(pdfBytes, 'merged-PDF.pdf', 'application/pdf');
     return;
   }
 
@@ -4189,6 +4363,27 @@ function getAiChatPlaceholder() {
   return file ? `Ask a question about ${file.name}...` : 'Ask a general question or about your PDF...';
 }
 
+function captureAiWorkspaceScroll() {
+  return {
+    windowTop: window.scrollY || document.documentElement.scrollTop || 0,
+    mainTop: document.querySelector('.main-area')?.scrollTop || 0
+  };
+}
+
+function restoreAiWorkspaceScroll(position) {
+  if (!position) return;
+  const restore = () => {
+    const main = document.querySelector('.main-area');
+    if (main && main.scrollTop !== position.mainTop) main.scrollTo({ top: position.mainTop, behavior: 'auto' });
+    const windowTop = window.scrollY || document.documentElement.scrollTop || 0;
+    if (windowTop !== position.windowTop) window.scrollTo({ top: position.windowTop, behavior: 'auto' });
+  };
+  requestAnimationFrame(() => requestAnimationFrame(restore));
+  // Native file pickers and async PDF metadata can trigger scroll anchoring
+  // after the first layout frame. Reapply once the browser has settled.
+  window.setTimeout(restore, 120);
+}
+
 window.addEventListener('resize', () => {
   const input = $('#chat-input');
   if (input) input.placeholder = getAiChatPlaceholder();
@@ -4257,6 +4452,7 @@ if (aiChangeDocBtn) aiChangeDocBtn.onclick = () => aiFileInput?.click();
 
 if (aiClearDocBtn) {
   aiClearDocBtn.onclick = async () => {
+    const scrollPosition = captureAiWorkspaceScroll();
     summaryRequestController?.abort();
     extractionRequestController?.abort();
     state.files = [];
@@ -4268,6 +4464,7 @@ if (aiClearDocBtn) {
     $('#summary-display').textContent = 'Summary will appear here after generation...';
     const sumActions = $('#summary-actions-bar');
     if (sumActions) sumActions.hidden = true;
+    restoreAiWorkspaceScroll(scrollPosition);
     showToast('Document cleared from AI workspace', 'info');
   };
 }
@@ -4275,6 +4472,7 @@ if (aiClearDocBtn) {
 if (aiFileInput) {
   aiFileInput.onchange = async (e) => {
     if (e.target.files?.length) {
+      const scrollPosition = captureAiWorkspaceScroll();
       const file = e.target.files[0];
       if (!file.name.toLowerCase().endsWith('.pdf')) {
         showToast('Please select a valid PDF file.', 'warning');
@@ -4289,6 +4487,7 @@ if (aiFileInput) {
       });
       rememberLocalWork(file.name);
       updateAiDocBar();
+      restoreAiWorkspaceScroll(scrollPosition);
       aiFileInput.value = '';
     }
   };
@@ -4306,6 +4505,7 @@ if (aiUploadZone) {
     e.preventDefault();
     aiUploadZone.style.borderColor = '';
     if (e.dataTransfer?.files?.length) {
+      const scrollPosition = captureAiWorkspaceScroll();
       const file = e.dataTransfer.files[0];
       if (!file.name.toLowerCase().endsWith('.pdf')) {
         showToast('Please drop a valid PDF file.', 'warning');
@@ -4318,12 +4518,14 @@ if (aiUploadZone) {
       });
       rememberLocalWork(file.name);
       updateAiDocBar();
+      restoreAiWorkspaceScroll(scrollPosition);
     }
   };
 }
 
 // AI Test Connection
 const testConnBtn = $('#ai-test-connection-btn');
+if (testConnBtn) testConnBtn.hidden = new URLSearchParams(window.location.search).get('debug') !== '1';
 if (testConnBtn) {
   testConnBtn.onclick = async () => {
     const statusEl = $('#ai-connection-status');
@@ -4587,7 +4789,7 @@ async function generateExecutiveBrief() {
   const timeout = window.setTimeout(() => {
     summaryRequestTimedOut = true;
     controller.abort();
-  }, 115000);
+    }, 305000);
   currentSummaryText = '';
   btn.disabled = true;
   btn.textContent = 'Generating brief…';
@@ -4610,7 +4812,7 @@ async function generateExecutiveBrief() {
     if (controller.signal.aborted && state.files[0] !== requestFile) return;
     const errMsg = controller.signal.aborted
       ? summaryRequestTimedOut
-        ? 'Executive brief timed out. No output was created; try again with a shorter PDF.'
+        ? 'The AI provider timed out. No executive brief was created; retry later.'
         : 'Executive brief cancelled. No output was created.'
       : safeAiErrorMessage(err);
     summaryBox.innerHTML = `<div class="ai-summary-error" role="alert">${escapeHtml(errMsg)} <button type="button" id="summary-retry-btn" class="btn-secondary-action">Retry</button></div>`;
@@ -5520,7 +5722,10 @@ if (authOtpForm) {
         showToast(pendingAuth.purpose === 'signup' ? 'Account verified and activated!' : 'Signed in successfully!', 'success');
       }
     } catch (err) {
-      $('#auth-otp-error').textContent = err.message || 'Invalid or expired verification code.';
+      const message = err.message || 'Invalid or expired verification code.';
+      $('#auth-otp-error').textContent = pendingAuth.purpose === 'signup' && /invalid or expired/i.test(message)
+        ? 'This code may have been replaced by a newer one. Use the latest email, or wait for the resend timer and request another code.'
+        : message;
       $('#auth-otp-error').hidden = false;
     } finally {
       btn.disabled = false;
@@ -5826,9 +6031,78 @@ function initMobileNav() {
       closeMobileSidebar();
     }
   }, { passive: true });
-  document.addEventListener('keydown', event => {
-    if (event.key === 'Escape') closeMobileSidebar();
+}
+
+const openOverlayStack = [];
+function syncOpenOverlayStack() {
+  const visible = [...document.querySelectorAll('.modal-backdrop:not([hidden]), dialog[open], #sidebar.mobile-open, .studio-mobile-properties-panel:not([hidden])')]
+    .filter(overlay => {
+      const style = getComputedStyle(overlay);
+      return style.display !== 'none' && style.visibility !== 'hidden';
+    });
+  for (let index = openOverlayStack.length - 1; index >= 0; index -= 1) {
+    if (!visible.includes(openOverlayStack[index])) openOverlayStack.splice(index, 1);
+  }
+  visible.forEach(overlay => {
+    if (!openOverlayStack.includes(overlay)) openOverlayStack.push(overlay);
   });
+  return visible;
+}
+
+function closeTopmostOverlay(overlay) {
+  if (!overlay) return false;
+  if (overlay.tagName === 'DIALOG') {
+    const cancelButton = overlay.querySelector('button[type="button"], button');
+    if (cancelButton) cancelButton.click();
+    else overlay.close();
+    return true;
+  }
+  if (overlay.id === 'sidebar') {
+    closeMobileSidebar();
+    return true;
+  }
+  if (overlay.matches('.studio-mobile-properties-panel')) {
+    $('#studio-mobile-properties-close')?.click();
+    return true;
+  }
+  const closeButton = [...overlay.querySelectorAll('button, [role="button"]')].find(button => {
+    const label = `${button.id} ${button.getAttribute('aria-label') || ''} ${button.title || ''} ${button.textContent || ''}`;
+    return /close|cancel|back/i.test(label);
+  });
+  if (closeButton) closeButton.click();
+  else overlay.hidden = true;
+  return true;
+}
+
+function installOverlayEscapeStack() {
+  const observer = new MutationObserver(syncOpenOverlayStack);
+  observer.observe(document.body, { attributes: true, attributeFilter: ['hidden', 'class', 'open'], childList: true, subtree: true });
+  syncOpenOverlayStack();
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Escape') return;
+    const visible = syncOpenOverlayStack();
+    const ordered = visible.map((overlay, domOrder) => {
+      const zIndex = Number.parseInt(getComputedStyle(overlay).zIndex, 10);
+      return { overlay, domOrder, zIndex: Number.isFinite(zIndex) ? zIndex : 0, isDialog: overlay.tagName === 'DIALOG' };
+    }).sort((a, b) => Number(a.isDialog) - Number(b.isDialog) || a.zIndex - b.zIndex || a.domOrder - b.domOrder);
+    const top = ordered.at(-1)?.overlay;
+    if (!top) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    closeTopmostOverlay(top);
+    syncOpenOverlayStack();
+  }, true);
+}
+
+function initFooterReveal() {
+  const refresh = () => {
+    const mainScroll = document.querySelector('.main-area')?.scrollTop || 0;
+    const pageScroll = window.scrollY || document.documentElement.scrollTop || 0;
+    document.documentElement.classList.toggle('footer-revealed', Math.max(mainScroll, pageScroll) > 12);
+  };
+  window.addEventListener('scroll', refresh, { passive: true, capture: true });
+  document.querySelector('.main-area')?.addEventListener('scroll', refresh, { passive: true });
+  refresh();
 }
 
 // ----------------------------------------------------------------------
@@ -5927,6 +6201,9 @@ async function init() {
 
   initBillingHandlers();
   initMobileNav();
+  installOverlayEscapeStack();
+  initFooterReveal();
+  addEndpointTableMobileLabels();
   initHomeSearchAndFilter();
   initToolDeskDirectory();
   await checkAuthStatus();
@@ -6201,6 +6478,9 @@ function handleInitialRouting() {
     setInitialView('api-docs');
   } else if (path.includes('download') || path.includes('apps') || urlParams.get('view') === 'download') {
     setInitialView('download');
+  } else if (pathSlug === 'settings') {
+    setInitialView('tool-desk');
+    openSettingsModal('account');
   } else if (pathSlug === 'tool-desk') {
     setInitialView('tool-desk');
   } else if (pathSlug === 'studio' || urlParams.get('view') === 'studio') {
@@ -6238,6 +6518,9 @@ window.addEventListener('popstate', e => {
     switchWorkspaceView('api-docs', null, false);
   } else if (path.includes('download') || path.includes('apps')) {
     switchWorkspaceView('download', null, false);
+  } else if (pathSlug === 'settings') {
+    switchWorkspaceView('tool-desk', null, false);
+    openSettingsModal('account');
   } else if (pathSlug === 'tool-desk') {
     switchWorkspaceView('tool-desk', null, false);
   } else if (pathSlug === 'studio') {
