@@ -77,13 +77,15 @@ from persistence import (
     otp_account_lock_remaining, record_otp_failure, clear_otp_failures,
     consume_guest_job_token,
     verify_user_credentials, create_session_for_user,
-    record_audit_event, get_recent_audit_logs, delete_job_record, _password_hash
+    record_audit_event, get_recent_audit_logs, delete_job_record, _password_hash,
+    admin_get_analytics, admin_get_all_users, admin_get_waitlist
 )
 from email_service import (
     send_login_notification,
     send_password_reset_email,
     send_password_changed_notification,
-    send_otp_email
+    send_otp_email,
+    send_waitlist_alert
 )
 try:
     from google.oauth2 import id_token as google_id_token
@@ -100,6 +102,17 @@ ROOT = Path(__file__).parent
 JOBS = JOBS_DIR
 logger = logging.getLogger(__name__)
 executor = ThreadPoolExecutor(max_workers=max(4, int(os.getenv("PAPERPLANE_WORKERS", "4"))))
+
+# Admin authentication — single owner key, never stored in DB
+ADMIN_SECRET_KEY: str = os.getenv("PAPERPLANE_ADMIN_KEY", "").strip()
+
+
+def _require_admin(x_admin_key: str = Header(default="", alias="X-Admin-Key")) -> None:
+    """FastAPI dependency: validates the admin secret key header."""
+    if not ADMIN_SECRET_KEY:
+        raise HTTPException(status_code=503, detail="Admin access is not configured on this server.")
+    if not hmac.compare_digest(x_admin_key, ADMIN_SECRET_KEY):
+        raise HTTPException(status_code=401, detail="Invalid or missing admin key.")
 
 # Workload-based execution timeouts (in seconds)
 COMPRESS_TIMEOUT_SECONDS = 60.0    # multi-pass downsampling & stream compression
@@ -3187,7 +3200,7 @@ async def change_password(
 
 
 @app.post("/api/waitlist")
-async def join_waitlist(request: Request):
+async def join_waitlist(request: Request, background_tasks: BackgroundTasks):
     """
     Early-access waiting list registration for native desktop and mobile clients.
     """
@@ -3218,6 +3231,14 @@ async def join_waitlist(request: Request):
 
     try:
         result = add_waitlist_entry(email, platform, client_ip)
+        # Fire-and-forget admin alert email
+        background_tasks.add_task(
+            send_waitlist_alert,
+            signup_email=email,
+            platform=platform,
+            waitlist_position=result.get("waitlist_position", 0),
+            ip_address=client_ip,
+        )
         return result
     except ValueError as err:
         raise HTTPException(400, str(err)) from err
@@ -6515,6 +6536,65 @@ def get_admin_audit_summary(
         "total_records": len(logs),
         "recent_activity": logs
     }
+
+
+# ---------------------------------------------------------------------------
+# Owner-only Admin Dashboard endpoints (protected by X-Admin-Key header)
+# ---------------------------------------------------------------------------
+
+@app.get("/api/admin/dashboard", include_in_schema=False)
+def admin_dashboard(_: None = Depends(_require_admin)):
+    """Full analytics snapshot for the owner dashboard."""
+    analytics = admin_get_analytics()
+    return {"status": "ok", **analytics}
+
+
+@app.get("/api/admin/users", include_in_schema=False)
+def admin_list_users(_: None = Depends(_require_admin)):
+    """List all registered users with tier, signup date, and last active date."""
+    users = admin_get_all_users()
+    return {"status": "ok", "count": len(users), "users": users}
+
+
+@app.get("/api/admin/waitlist", include_in_schema=False)
+def admin_list_waitlist(_: None = Depends(_require_admin)):
+    """List all waitlist entries."""
+    entries = admin_get_waitlist()
+    return {"status": "ok", "count": len(entries), "entries": entries}
+
+
+@app.get("/api/admin/users/export.csv", include_in_schema=False)
+def admin_export_users_csv(_: None = Depends(_require_admin)):
+    """Download all registered users as a CSV file."""
+    users = admin_get_all_users()
+    output = io.StringIO()
+    writer = csv.DictWriter(output, fieldnames=["id", "email", "tier", "created_at", "subscription_status", "last_active_date"])
+    writer.writeheader()
+    for u in users:
+        writer.writerow({k: u.get(k, "") for k in writer.fieldnames})
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=paperplane_users.csv"}
+    )
+
+
+@app.get("/api/admin/waitlist/export.csv", include_in_schema=False)
+def admin_export_waitlist_csv(_: None = Depends(_require_admin)):
+    """Download all waitlist emails as a CSV file."""
+    entries = admin_get_waitlist()
+    output = io.StringIO()
+    writer = csv.DictWriter(output, fieldnames=["id", "email", "platform", "created_at", "ip_address"])
+    writer.writeheader()
+    for e in entries:
+        writer.writerow({k: e.get(k, "") for k in writer.fieldnames})
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=paperplane_waitlist.csv"}
+    )
 
 
 @app.exception_handler(404)

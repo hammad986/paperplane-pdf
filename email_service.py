@@ -225,6 +225,49 @@ def send_login_notification(to_email: str, client_ip: str = "Unknown", user_agen
     return _dispatch_email(to_email, subject, html_body, text_body)
 
 
+def send_waitlist_alert(signup_email: str, platform: str = "all", waitlist_position: int = 0, ip_address: str = "") -> bool:
+    """Notify the admin when a new user joins the waitlist."""
+    admin_email = os.getenv("ADMIN_ALERT_EMAIL", "mdhammad2906@gmail.com")
+    now_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    subject = f"🎉 New Waitlist Signup — {signup_email}"
+
+    text_body = (
+        f"New Paperplane PDF waitlist signup!\n\n"
+        f"Email:    {signup_email}\n"
+        f"Platform: {platform}\n"
+        f"Position: #{waitlist_position}\n"
+        f"Time:     {now_utc}\n"
+        f"IP:       {ip_address or 'unknown'}\n\n"
+        f"View dashboard: {PAPERPLANE_PUBLIC_URL}/admin\n\n"
+        f"— Paperplane PDF Notifications"
+    )
+
+    html_body = f"""<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0d1416; color: #f0f5f4; margin: 0; padding: 32px 16px;">
+  <div style="max-width: 540px; margin: 0 auto; background-color: #141e21; border: 1px solid #28393d; border-radius: 12px; padding: 28px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+      <div style="background-color: #ff4b26; width: 32px; height: 32px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; color: #ffffff; text-align: center; line-height: 32px;">P</div>
+      <span style="font-size: 18px; font-weight: 700; color: #f0f5f4; margin-left: 8px;">Paperplane PDF</span>
+    </div>
+    <h2 style="font-size: 20px; color: #ff4b26; margin-top: 0; margin-bottom: 12px;">🎉 New Waitlist Signup!</h2>
+    <div style="background-color: #1a2528; border: 1px solid #33484c; border-radius: 8px; padding: 14px; margin-bottom: 24px; font-size: 14px;">
+      <div style="margin-bottom: 8px;"><strong style="color: #a3b8b6;">Email:</strong> <span style="color: #f0f5f4;">{signup_email}</span></div>
+      <div style="margin-bottom: 8px;"><strong style="color: #a3b8b6;">Platform:</strong> <span style="color: #f0f5f4;">{platform}</span></div>
+      <div style="margin-bottom: 8px;"><strong style="color: #a3b8b6;">Position:</strong> <span style="color: #ff4b26; font-weight: 700;">#{waitlist_position}</span></div>
+      <div style="margin-bottom: 8px;"><strong style="color: #a3b8b6;">Signed up at:</strong> <span style="color: #f0f5f4;">{now_utc}</span></div>
+      <div><strong style="color: #a3b8b6;">IP Address:</strong> <span style="color: #f0f5f4;">{ip_address or 'unknown'}</span></div>
+    </div>
+    <div style="border-top: 1px solid #28393d; padding-top: 18px; font-size: 12px; color: #708684; text-align: center;">
+      Paperplane PDF &middot; Admin Notification System
+    </div>
+  </div>
+</body>
+</html>"""
+    return _dispatch_email(admin_email, subject, html_body, text_body)
+
+
 def send_password_reset_email(to_email: str, reset_token: str, base_url: str | None = None) -> bool:
     """Sends a cryptographically secure 1-hour password reset link."""
     domain = (base_url or PAPERPLANE_PUBLIC_URL).rstrip("/")
@@ -316,3 +359,5 @@ def send_password_changed_notification(to_email: str, client_ip: str = "Unknown"
 </body>
 </html>"""
     return _dispatch_email(to_email, subject, html_body, text_body)
+
+

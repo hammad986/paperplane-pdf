@@ -1168,3 +1168,75 @@ def record_idempotent_job(key: str, user_id: str, job_id: str, ttl: int = 86400)
             (key.strip(), user_id, job_id, time.time(), time.time() + ttl)
         )
         connection.commit()
+
+
+# ---------------------------------------------------------------------------
+# Admin-only analytics functions
+# ---------------------------------------------------------------------------
+
+def admin_get_analytics() -> dict:
+    """Return aggregate statistics for the admin dashboard."""
+    today_str = __import__("datetime").date.today().isoformat()
+    with closing(connect()) as connection:
+        total_users = connection.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+        tier_rows = connection.execute(
+            "SELECT tier, COUNT(*) AS cnt FROM users GROUP BY tier"
+        ).fetchall()
+        tier_counts: dict[str, int] = {r["tier"]: r["cnt"] for r in tier_rows}
+
+        today_active = connection.execute(
+            "SELECT COUNT(DISTINCT subject) FROM user_usage WHERE usage_date = ?",
+            (today_str,)
+        ).fetchone()[0]
+
+        new_7d = connection.execute(
+            "SELECT COUNT(*) FROM users WHERE created_at >= ?",
+            (time.time() - 7 * 86400,)
+        ).fetchone()[0]
+
+        total_jobs = connection.execute("SELECT COUNT(*) FROM jobs").fetchone()[0]
+        jobs_today = connection.execute(
+            "SELECT COUNT(*) FROM jobs WHERE created_at >= ?",
+            (time.time() - 86400,)
+        ).fetchone()[0]
+
+        total_waitlist = connection.execute("SELECT COUNT(*) FROM app_waitlist").fetchone()[0]
+
+    return {
+        "total_users": total_users,
+        "tier_breakdown": tier_counts,
+        "pro_users": tier_counts.get("pro", 0) + tier_counts.get("student_pro", 0),
+        "dev_users": tier_counts.get("developer", 0) + tier_counts.get("dev", 0),
+        "free_users": tier_counts.get("free", 0),
+        "today_active": today_active,
+        "new_signups_7d": new_7d,
+        "total_jobs": total_jobs,
+        "jobs_today": jobs_today,
+        "total_waitlist": total_waitlist,
+    }
+
+
+def admin_get_all_users(limit: int = 500) -> list[dict]:
+    """Return all registered users with basic profile data."""
+    with closing(connect()) as connection:
+        rows = connection.execute(
+            """SELECT u.id, u.email, u.tier, u.created_at, u.subscription_status,
+                      MAX(uu.usage_date) AS last_active_date
+               FROM users u
+               LEFT JOIN user_usage uu ON uu.subject = u.id
+               GROUP BY u.id
+               ORDER BY u.created_at DESC
+               LIMIT ?""",
+            (limit,)
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def admin_get_waitlist(limit: int = 1000) -> list[dict]:
+    """Return all waitlist entries ordered by signup time."""
+    with closing(connect()) as connection:
+        rows = connection.execute(
+            "SELECT id, email, platform, created_at, ip_address FROM app_waitlist ORDER BY created_at ASC LIMIT ?",
+            (limit,)
+        ).fetchall()
+    return [dict(r) for r in rows]
