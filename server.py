@@ -81,7 +81,10 @@ from persistence import (
     admin_get_analytics, admin_get_all_users, admin_get_waitlist,
     get_admin_lockout_remaining, record_admin_failed_attempt, reset_admin_failed_attempts,
     set_admin_pending_otp, verify_admin_otp, create_admin_session, verify_admin_session,
-    revoke_admin_session, admin_get_extended_analytics
+    revoke_admin_session, admin_get_extended_analytics,
+    admin_delete_user, admin_cleanup_probe_accounts,
+    add_user_feedback, admin_get_feedbacks, admin_delete_feedback,
+    admin_get_revenue_analytics, admin_get_ai_config, admin_set_ai_config
 )
 from email_service import (
     send_login_notification,
@@ -6968,6 +6971,81 @@ def admin_portal_page():
       color: var(--text-muted);
     }
     .pill.active { background: #26373b; color: #fff; border-color: #3d555c; }
+
+    /* Revenue & Financial Analytics */
+    .revenue-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .revenue-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .revenue-card.highlight {
+      border-color: #10b981;
+      background: #0d221c;
+    }
+    .revenue-card .title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .revenue-card .value {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .revenue-card .sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Form Panels for AI & Config */
+    .form-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 760px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    .form-select, .form-input {
+      width: 100%;
+      padding: 10px 14px;
+      background: #0f1618;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      box-sizing: border-box;
+    }
+    .form-select:focus, .form-input:focus {
+      border-color: var(--accent);
+    }
+    .form-help {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+    .btn-xs {
+      padding: 4px 8px;
+      font-size: 11px;
+      border-radius: 6px;
+    }
+    .star-gold { color: #fbbf24; }
+    .star-gray { color: #475569; }
   </style>
 </head>
 <body>
@@ -7150,10 +7228,14 @@ def admin_portal_page():
       <div class="toolbar">
         <div class="tabs">
           <button class="tab-btn active" id="tab-users-btn">Registered Users (<span id="count-users">0</span>)</button>
+          <button class="tab-btn" id="tab-revenue-btn">💰 Revenue &amp; Payouts</button>
+          <button class="tab-btn" id="tab-feedback-btn">💬 User Feedback (<span id="count-feedback">0</span>)</button>
+          <button class="tab-btn" id="tab-ai-btn">🤖 AI Settings</button>
           <button class="tab-btn" id="tab-waitlist-btn">App Waitlist (<span id="count-waitlist">0</span>)</button>
           <button class="tab-btn" id="tab-audit-btn">Security Audits (<span id="count-audit">0</span>)</button>
         </div>
         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <button id="btn-clean-probes" class="btn btn-danger" title="Clean all dummy and test probe accounts">🧹 Clean Test Probes</button>
           <input type="text" id="search-input" class="search-box" placeholder="Filter by email or query..." />
           <button id="btn-export-users" class="btn">📥 Export Users CSV</button>
           <button id="btn-export-waitlist" class="btn">📥 Export Waitlist CSV</button>
@@ -7179,12 +7261,146 @@ def admin_portal_page():
               <th>Registered At</th>
               <th>Last Active</th>
               <th>Status</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody id="users-tbody">
-            <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">Loading live user directory...</td></tr>
+            <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">Loading live user directory...</td></tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Revenue & Payouts Panel -->
+      <div id="panel-revenue" style="display: none;">
+        <div class="revenue-grid">
+          <div class="revenue-card">
+            <div class="title">Paying Customers</div>
+            <div class="value" id="rev-paying-count" style="color: var(--pro-color);">-</div>
+            <div class="sub">Active Pro &amp; Developer Subscribers</div>
+          </div>
+          <div class="revenue-card">
+            <div class="title">Gross Revenue Generated</div>
+            <div class="value" id="rev-gross-revenue">-</div>
+            <div class="sub">Total payments collected (INR)</div>
+          </div>
+          <div class="revenue-card">
+            <div class="title">Cashfree Gateway Fees (2.36%)</div>
+            <div class="value" id="rev-gateway-fees" style="color: #f87171;">-</div>
+            <div class="sub">2% Processing Fee + 18% GST</div>
+          </div>
+          <div class="revenue-card highlight">
+            <div class="title">Net Bank Payout</div>
+            <div class="value" id="rev-net-payout" style="color: var(--green);">-</div>
+            <div class="sub">Total amount deposited in bank</div>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <div style="padding: 14px 18px; background: #111a1d; border-bottom: 1px solid var(--card-border); font-weight: 700; font-size: 14px;">
+            💳 Paying Customers &amp; Recent Transactions
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Customer Email</th>
+                <th>Subscribed Tier</th>
+                <th>Order / Transaction ID</th>
+                <th>Amount (INR)</th>
+                <th>Created Date</th>
+                <th>Payment Status</th>
+              </tr>
+            </thead>
+            <tbody id="revenue-tbody">
+              <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">Loading financial ledger...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- User Feedback Panel -->
+      <div id="panel-feedback" style="display: none;">
+        <div class="table-container">
+          <div style="padding: 12px 16px; background: #111a1d; border-bottom: 1px solid var(--card-border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 12px; color: var(--text-muted);">Feedback Filter:</span>
+              <div class="filter-pills feedback-pills">
+                <span class="pill active" data-fb-filter="all">All</span>
+                <span class="pill" data-fb-filter="bug">Bug Reports</span>
+                <span class="pill" data-fb-filter="suggestion">Feature Requests</span>
+                <span class="pill" data-fb-filter="general">General / Praise</span>
+              </div>
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted);" id="feedback-summary-count">0 total reviews</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 120px;">Rating</th>
+                <th style="width: 130px;">Category</th>
+                <th>Feedback Message</th>
+                <th>User / Email</th>
+                <th>Submitted</th>
+                <th>IP Address</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="feedback-tbody">
+              <tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">Loading customer feedback...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- AI Settings Panel -->
+      <div id="panel-ai" style="display: none;">
+        <div class="form-panel">
+          <h2 style="font-size: 18px; margin-bottom: 6px;">🤖 Platform AI Configuration</h2>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 24px;">
+            Configure AI provider endpoint, models, and API credentials dynamically. Keys are encrypted in DB and securely masked to prevent leaks.
+          </p>
+
+          <div id="ai-save-msg" class="error-msg" style="display: none;"></div>
+
+          <div class="form-group">
+            <label class="field-label" for="ai-provider-select">AI Provider Architecture</label>
+            <select id="ai-provider-select" class="form-select">
+              <option value="openai_compatible">OpenAI-Compatible / Universal Gateway</option>
+              <option value="bluesminds">Bluesminds Gateway</option>
+              <option value="openrouter">OpenRouter AI</option>
+              <option value="anthropic">Anthropic (Claude Direct / Proxy)</option>
+              <option value="gemini">Google Gemini / AI Studio</option>
+              <option value="deepseek">DeepSeek AI</option>
+            </select>
+            <div class="form-help">Universal endpoint compatible with standard /chat/completions REST protocol.</div>
+          </div>
+
+          <div class="form-group">
+            <label class="field-label" for="ai-baseurl-input">API Base URL</label>
+            <input type="text" id="ai-baseurl-input" class="form-input" placeholder="https://api.bluesminds.com/v1" />
+            <div class="form-help">Base URL for chat completions (e.g., https://api.bluesminds.com/v1, https://openrouter.ai/api/v1).</div>
+          </div>
+
+          <div class="form-group">
+            <label class="field-label" for="ai-model-input">Model Name / Identifier</label>
+            <input type="text" id="ai-model-input" class="form-input" placeholder="openai/gpt-oss-20b" />
+            <div class="form-help">Target model ID (e.g. openai/gpt-oss-20b, gpt-4o-mini, anthropic/claude-3-5-sonnet, deepseek-chat).</div>
+          </div>
+
+          <div class="form-group">
+            <label class="field-label" for="ai-apikey-input">API Secret Key</label>
+            <div class="input-wrapper">
+              <input type="password" id="ai-apikey-input" class="input-field" placeholder="sk-••••••••••••" autocomplete="off" />
+              <button type="button" class="toggle-eye" id="toggle-ai-key-eye" title="Toggle visibility">👁️</button>
+            </div>
+            <div class="form-help">Securely masked (sk-••••••••1234). Enter a new key to update, or leave unchanged.</div>
+          </div>
+
+          <div style="display: flex; gap: 12px; align-items: center; margin-top: 24px;">
+            <button class="btn btn-primary" id="btn-save-ai">💾 Save AI Configuration</button>
+            <button class="btn" id="btn-test-ai">⚡ Test Connection</button>
+            <span id="ai-test-status" style="font-size: 13px; margin-left: 10px;"></span>
+          </div>
+        </div>
       </div>
 
       <!-- Waitlist Table Panel -->
@@ -7225,7 +7441,7 @@ def admin_portal_page():
     </div>
   </main>
 
-  <script src="/assets/admin.js?v=2.0.0" defer></script>
+  <script src="/assets/admin.js?v=2.1.0" defer></script>
 </body>
 </html>""")
 
@@ -7452,6 +7668,130 @@ def admin_export_waitlist_csv(_: None = Depends(_require_admin)):
         media_type="text/csv",
         headers={"Content-Disposition": "attachment; filename=paperplane_waitlist.csv"}
     )
+
+
+# ---------------------------------------------------------------------------
+# Feedback & Extended Admin Management Endpoints
+# ---------------------------------------------------------------------------
+
+@app.post("/api/feedback")
+async def submit_user_feedback(request: Request):
+    """Public customer feedback submission widget endpoint."""
+    client_ip = get_client_ip(request)
+    enforce_rate_limit(f"feedback:{client_ip}", limit=20)
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    email = str(body.get("email", "")).strip()
+    rating = int(body.get("rating", 5))
+    category = str(body.get("category", "general")).strip()
+    message = str(body.get("message", "")).strip()
+
+    if not message:
+        raise HTTPException(status_code=400, detail="Feedback message is required.")
+
+    # Optional active user resolution
+    user_id = None
+    token = None
+    auth = request.headers.get("authorization", "")
+    if auth.lower().startswith("bearer "):
+        token = auth[7:].strip()
+    elif request.cookies.get("paperplane_token"):
+        token = request.cookies.get("paperplane_token").strip()
+    if token:
+        try:
+            user_id = authenticate(token)
+        except Exception:
+            user_id = None
+
+    saved = add_user_feedback(
+        email=email,
+        rating=rating,
+        category=category,
+        message=message,
+        user_id=user_id,
+        ip_address=client_ip
+    )
+    return {"status": "ok", "message": "Thank you for your valuable feedback!", "feedback_id": saved["id"]}
+
+
+@app.get("/api/admin/feedback", include_in_schema=False)
+def admin_list_feedback(_: None = Depends(_require_admin)):
+    """List all user feedback entries."""
+    feedbacks = admin_get_feedbacks()
+    return {"status": "ok", "count": len(feedbacks), "feedbacks": feedbacks}
+
+
+@app.delete("/api/admin/feedback/{feedback_id}", include_in_schema=False)
+def admin_remove_feedback(feedback_id: str, _: None = Depends(_require_admin)):
+    """Delete a user feedback entry."""
+    ok = admin_delete_feedback(feedback_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Feedback entry not found.")
+    return {"status": "ok", "deleted": feedback_id}
+
+
+@app.get("/api/admin/revenue", include_in_schema=False)
+def admin_revenue_data(_: None = Depends(_require_admin)):
+    """Revenue analytics with gateway fee calculations and net bank payout."""
+    rev = admin_get_revenue_analytics()
+    return {"status": "ok", **rev}
+
+
+@app.post("/api/admin/users/delete", include_in_schema=False)
+async def admin_remove_user(request: Request, _: None = Depends(_require_admin)):
+    """Permanently delete a single user account."""
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    user_id = str(body.get("user_id", "")).strip()
+    if not user_id:
+        raise HTTPException(status_code=400, detail="user_id is required.")
+
+    ok = admin_delete_user(user_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="User not found.")
+    return {"status": "ok", "deleted_user_id": user_id}
+
+
+@app.post("/api/admin/users/cleanup-probes", include_in_schema=False)
+def admin_cleanup_probes(_: None = Depends(_require_admin)):
+    """Purge all dummy, test, and automated audit probe accounts."""
+    result = admin_cleanup_probe_accounts()
+    return {"status": "ok", **result}
+
+
+@app.get("/api/admin/ai-config", include_in_schema=False)
+def admin_fetch_ai_config(_: None = Depends(_require_admin)):
+    """Get active AI provider, model, base URL, and masked API key."""
+    return {"status": "ok", "config": admin_get_ai_config()}
+
+
+@app.post("/api/admin/ai-config", include_in_schema=False)
+async def admin_update_ai_config(request: Request, _: None = Depends(_require_admin)):
+    """Update AI model, base URL, provider, or API key dynamically."""
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    provider = str(body.get("provider", "")).strip()
+    model = str(body.get("model", "")).strip()
+    base_url = str(body.get("base_url", "")).strip()
+    api_key = str(body.get("api_key", "")).strip() or None
+
+    updated = admin_set_ai_config(provider=provider, model=model, base_url=base_url, api_key=api_key)
+    return {"status": "ok", "config": updated}
+
+
+@app.post("/api/admin/ai-test", include_in_schema=False)
+def admin_test_ai(_: None = Depends(_require_admin)):
+    """Test AI connectivity with current active configuration."""
+    from ai_engine import test_bluesminds_connectivity
+    res = test_bluesminds_connectivity()
+    return {"status": "ok", "result": res}
 
 
 

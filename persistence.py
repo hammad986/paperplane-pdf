@@ -170,6 +170,23 @@ def init_db() -> None:
                 session_expires_at REAL
             );
             INSERT OR IGNORE INTO admin_auth_state (id, failed_attempts, locked_until) VALUES ('current', 0, 0);
+            CREATE TABLE IF NOT EXISTS user_feedbacks (
+                id TEXT PRIMARY KEY,
+                user_id TEXT,
+                email TEXT,
+                rating INTEGER NOT NULL DEFAULT 5,
+                category TEXT NOT NULL DEFAULT 'general',
+                message TEXT NOT NULL,
+                ip_address TEXT,
+                created_at REAL NOT NULL,
+                resolved INTEGER NOT NULL DEFAULT 0
+            );
+            CREATE INDEX IF NOT EXISTS idx_feedbacks_created_at ON user_feedbacks(created_at);
+            CREATE TABLE IF NOT EXISTS admin_system_settings (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL,
+                updated_at REAL NOT NULL
+            );
             """
         )
         # Migrate existing users and jobs tables if columns don't exist yet
@@ -1470,5 +1487,244 @@ def admin_get_extended_analytics() -> dict:
         "waitlist_platforms": waitlist_platforms,
         "top_operations": top_operations,
         "recent_audits": recent_audits,
+    }
+
+
+def admin_delete_user(user_id: str) -> bool:
+    """Permanently deletes a user and associated sessions, jobs, keys, and usage."""
+    clean_id = user_id.strip()
+    with closing(connect()) as connection:
+        user = connection.execute("SELECT id, email FROM users WHERE id = ?", (clean_id,)).fetchone()
+        if not user:
+            return False
+        user_email = user["email"]
+        connection.execute("DELETE FROM sessions WHERE user_id = ?", (clean_id,))
+        connection.execute("DELETE FROM api_keys WHERE user_id = ?", (clean_id,))
+        connection.execute("DELETE FROM jobs WHERE user_id = ?", (clean_id,))
+        connection.execute("DELETE FROM user_usage WHERE subject = ? OR subject LIKE ?", (clean_id, f"%:{clean_id}"))
+        connection.execute("DELETE FROM email_otps WHERE email = ?", (user_email,))
+        connection.execute("DELETE FROM password_resets WHERE user_id = ?", (clean_id,))
+        connection.execute("DELETE FROM idempotency_keys WHERE user_id = ?", (clean_id,))
+        connection.execute("DELETE FROM users WHERE id = ?", (clean_id,))
+        connection.commit()
+    return True
+
+
+def admin_cleanup_probe_accounts() -> dict:
+    """Removes all test probe and dummy development accounts from database."""
+    probe_patterns = [
+        "%probe%",
+        "%example.com",
+        "%@mail.tab.bot",
+        "%@mail.instinct.com",
+        "%@sharklasers.com",
+        "test_%@%"
+    ]
+    with closing(connect()) as connection:
+        query_parts = " OR ".join(["email LIKE ?"] * len(probe_patterns))
+        matching = connection.execute(
+            f"SELECT id, email FROM users WHERE {query_parts}",
+            tuple(probe_patterns)
+        ).fetchall()
+        deleted_emails = [r["email"] for r in matching]
+        for r in matching:
+            uid = r["id"]
+            uemail = r["email"]
+            connection.execute("DELETE FROM sessions WHERE user_id = ?", (uid,))
+            connection.execute("DELETE FROM api_keys WHERE user_id = ?", (uid,))
+            connection.execute("DELETE FROM jobs WHERE user_id = ?", (uid,))
+            connection.execute("DELETE FROM user_usage WHERE subject = ? OR subject LIKE ?", (uid, f"%:{uid}"))
+            connection.execute("DELETE FROM email_otps WHERE email = ?", (uemail,))
+            connection.execute("DELETE FROM password_resets WHERE user_id = ?", (uid,))
+            connection.execute("DELETE FROM idempotency_keys WHERE user_id = ?", (uid,))
+            connection.execute("DELETE FROM users WHERE id = ?", (uid,))
+        connection.commit()
+    return {"deleted_count": len(deleted_emails), "deleted_emails": deleted_emails}
+
+
+def add_user_feedback(email: str, rating: int, category: str, message: str, user_id: str | None = None, ip_address: str = "") -> dict:
+    """Records user feedback from the website feedback widget."""
+    feed_id = uuid.uuid4().hex
+    clean_email = email.strip().lower()
+    clean_cat = category.strip().lower() if category else "general"
+    clean_msg = message.strip()
+    clean_rating = max(1, min(5, int(rating or 5)))
+    now = time.time()
+
+    with closing(connect()) as connection:
+        connection.execute(
+            """INSERT INTO user_feedbacks (id, user_id, email, rating, category, message, ip_address, created_at, resolved)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)""",
+            (feed_id, user_id, clean_email, clean_rating, clean_cat, clean_msg, ip_address, now)
+        )
+        connection.commit()
+    return {"id": feed_id, "status": "recorded"}
+
+
+def admin_get_feedbacks(limit: int = 100) -> list[dict]:
+    """Retrieves user feedbacks ordered by newest first."""
+    with closing(connect()) as connection:
+        rows = connection.execute(
+            "SELECT id, user_id, email, rating, category, message, ip_address, created_at, resolved FROM user_feedbacks ORDER BY created_at DESC LIMIT ?",
+            (limit,)
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def admin_delete_feedback(feedback_id: str) -> bool:
+    """Deletes or dismisses a user feedback item."""
+    with closing(connect()) as connection:
+        res = connection.execute("DELETE FROM user_feedbacks WHERE id = ?", (feedback_id.strip(),))
+        connection.commit()
+        return res.rowcount > 0
+
+
+def admin_get_revenue_analytics() -> dict:
+    """Calculates gross revenue, gateway deductions, and net bank payout estimates."""
+    tier_prices_inr = {
+        "pro": 250.0,
+        "developer": 750.0,
+        "dev": 750.0,
+        "student_pro": 99.0,
+        "cyber_cafe": 499.0,
+        "exam_pass": 49.0,
+    }
+    with closing(connect()) as connection:
+        # Paid users
+        paid_users_rows = connection.execute(
+            """SELECT id, email, tier, cashfree_order_id, subscription_status, created_at
+               FROM users WHERE tier != 'free' ORDER BY created_at DESC"""
+        ).fetchall()
+        
+        # Check billing_events for verified payments
+        event_rows = connection.execute(
+            """SELECT customer_id, payload, created_at FROM billing_events
+               WHERE event_type IN ('cashfree.order_verified', 'payment_success', 'payment.success')
+               ORDER BY created_at DESC"""
+        ).fetchall()
+
+        gross_revenue = 0.0
+        calculated_orders = []
+
+        if event_rows:
+            for er in event_rows:
+                payload = json.loads(er["payload"]) if er["payload"] else {}
+                amt = float(payload.get("order_amount") or payload.get("amount") or payload.get("order", {}).get("order_amount") or 0.0)
+                if amt > 0:
+                    gross_revenue += amt
+                    calculated_orders.append({
+                        "customer_id": er["customer_id"],
+                        "amount": amt,
+                        "created_at": er["created_at"],
+                        "currency": "INR"
+                    })
+        
+        # If billing events don't have explicit amounts, estimate from active subscriptions
+        if gross_revenue == 0 and paid_users_rows:
+            for pu in paid_users_rows:
+                t = pu["tier"].lower()
+                price = tier_prices_inr.get(t, 250.0)
+                gross_revenue += price
+                calculated_orders.append({
+                    "customer_id": pu["id"],
+                    "email": pu["email"],
+                    "tier": pu["tier"],
+                    "order_id": pu["cashfree_order_id"],
+                    "amount": price,
+                    "created_at": pu["created_at"],
+                    "currency": "INR"
+                })
+
+        # Cashfree Gateway standard fees: 2% + 18% GST on fee = 2.36% total deduction
+        gateway_fee_rate = 0.0236
+        estimated_gateway_fees = round(gross_revenue * gateway_fee_rate, 2)
+        net_bank_payout = round(gross_revenue - estimated_gateway_fees, 2)
+
+    return {
+        "paying_users_count": len(paid_users_rows),
+        "gross_revenue_inr": gross_revenue,
+        "gateway_fee_rate_percent": 2.36,
+        "estimated_gateway_fees_inr": estimated_gateway_fees,
+        "net_bank_payout_inr": net_bank_payout,
+        "paying_users": [dict(r) for r in paid_users_rows],
+        "recent_transactions": calculated_orders[:20]
+    }
+
+
+def admin_get_ai_config() -> dict:
+    """Returns the active AI configuration with API key safely masked."""
+    from config import BLUESMINDS_API_KEY, BLUESMINDS_BASE_URL, BLUESMINDS_MODEL, AI_PROVIDER
+    with closing(connect()) as connection:
+        settings = dict(connection.execute("SELECT key, value FROM admin_system_settings").fetchall())
+
+    provider = settings.get("AI_PROVIDER") or AI_PROVIDER or "openai_compatible"
+    model = settings.get("AI_MODEL") or BLUESMINDS_MODEL or "openai/gpt-oss-20b"
+    base_url = settings.get("AI_BASE_URL") or BLUESMINDS_BASE_URL or "https://api.bluesminds.com/v1"
+    raw_key = settings.get("AI_API_KEY") or BLUESMINDS_API_KEY or ""
+
+    # Mask key for frontend safety: sk-abc...1234
+    if raw_key and len(raw_key) > 8:
+        masked_key = f"{raw_key[:4]}••••••••{raw_key[-4:]}"
+    elif raw_key:
+        masked_key = "••••••••"
+    else:
+        masked_key = ""
+
+    return {
+        "provider": provider,
+        "model": model,
+        "base_url": base_url,
+        "api_key_masked": masked_key,
+        "has_key": bool(raw_key)
+    }
+
+
+def admin_set_ai_config(provider: str, model: str, base_url: str, api_key: str | None = None) -> dict:
+    """Updates AI model, base URL, provider, and optionally a new unmasked API key."""
+    now = time.time()
+    with closing(connect()) as connection:
+        if provider:
+            connection.execute(
+                "INSERT INTO admin_system_settings (key, value, updated_at) VALUES ('AI_PROVIDER', ?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
+                (provider.strip().lower(), now)
+            )
+        if model:
+            connection.execute(
+                "INSERT INTO admin_system_settings (key, value, updated_at) VALUES ('AI_MODEL', ?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
+                (model.strip(), now)
+            )
+        if base_url:
+            connection.execute(
+                "INSERT INTO admin_system_settings (key, value, updated_at) VALUES ('AI_BASE_URL', ?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
+                (base_url.strip().rstrip("/"), now)
+            )
+        if api_key and not api_key.startswith("••"):
+            connection.execute(
+                "INSERT INTO admin_system_settings (key, value, updated_at) VALUES ('AI_API_KEY', ?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
+                (api_key.strip(), now)
+            )
+        connection.commit()
+    return admin_get_ai_config()
+
+
+def get_runtime_ai_credentials() -> dict:
+    """Retrieves unmasked AI credentials for inference execution."""
+    from config import BLUESMINDS_API_KEY, BLUESMINDS_BASE_URL, BLUESMINDS_MODEL, AI_PROVIDER
+    try:
+        with closing(connect()) as connection:
+            settings = dict(connection.execute("SELECT key, value FROM admin_system_settings").fetchall())
+    except Exception:
+        settings = {}
+
+    provider = settings.get("AI_PROVIDER") or AI_PROVIDER or "openai_compatible"
+    model = settings.get("AI_MODEL") or BLUESMINDS_MODEL or "openai/gpt-oss-20b"
+    base_url = settings.get("AI_BASE_URL") or BLUESMINDS_BASE_URL or "https://api.bluesminds.com/v1"
+    api_key = settings.get("AI_API_KEY") or BLUESMINDS_API_KEY or ""
+
+    return {
+        "provider": provider,
+        "model": model,
+        "base_url": base_url,
+        "api_key": api_key
     }
 

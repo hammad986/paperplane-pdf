@@ -1,14 +1,25 @@
-// Paperplane PDF — Owner Admin Dashboard Script v2.0
+// Paperplane PDF — Owner Admin Dashboard Script v2.1
 // 3-Factor Authentication (Key + Secret Code + Email OTP)
-// Multi-segment Visual Analytics, Lockout Countdown, CSP-compliant
+// Multi-segment Visual Analytics, Revenue & Bank Payouts, Feedback & AI Configuration
+// Strict Content Security Policy (CSP) compliant — No inline event handlers
 
 (function () {
-  let sessionToken = sessionStorage.getItem("pp_admin_session") || "";
+  const urlParams = new URLSearchParams(window.location.search);
+  let sessionToken = urlParams.get("session") || sessionStorage.getItem("pp_admin_session") || "";
+  if (urlParams.has("session") && sessionToken) {
+    sessionStorage.setItem("pp_admin_session", sessionToken);
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
   let usersData = [];
   let waitlistData = [];
   let auditData = [];
+  let revenueData = null;
+  let feedbackData = [];
+  let aiConfigData = null;
+
   let currentTab = "users";
   let activeTierFilter = "all";
+  let activeFeedbackFilter = "all";
   let lockoutTimer = null;
 
   document.addEventListener("DOMContentLoaded", () => {
@@ -21,6 +32,7 @@
   function initEyeToggles() {
     setupToggle("toggle-key-eye", "admin-key-input");
     setupToggle("toggle-code-eye", "admin-code-input");
+    setupToggle("toggle-ai-key-eye", "ai-apikey-input");
   }
 
   function setupToggle(btnId, inputId) {
@@ -48,6 +60,9 @@
     const btnRefresh = document.getElementById("btn-refresh");
     const btnLogout = document.getElementById("btn-logout");
     const searchInput = document.getElementById("search-input");
+    const btnCleanProbes = document.getElementById("btn-clean-probes");
+    const btnSaveAi = document.getElementById("btn-save-ai");
+    const btnTestAi = document.getElementById("btn-test-ai");
 
     if (btnSubmit1) btnSubmit1.addEventListener("click", handleStep1Submit);
     if (btnSubmit2) btnSubmit2.addEventListener("click", handleStep2Submit);
@@ -55,6 +70,9 @@
     if (btnCheckLock) btnCheckLock.addEventListener("click", checkInitialState);
     if (btnRefresh) btnRefresh.addEventListener("click", fetchDashboardData);
     if (btnLogout) btnLogout.addEventListener("click", handleLogout);
+    if (btnCleanProbes) btnCleanProbes.addEventListener("click", handleCleanProbes);
+    if (btnSaveAi) btnSaveAi.addEventListener("click", handleSaveAiConfig);
+    if (btnTestAi) btnTestAi.addEventListener("click", handleTestAiConnection);
 
     // Enter key shortcuts
     const keyInput = document.getElementById("admin-key-input");
@@ -67,19 +85,35 @@
 
     // Tabs
     const tabUsersBtn = document.getElementById("tab-users-btn");
+    const tabRevenueBtn = document.getElementById("tab-revenue-btn");
+    const tabFeedbackBtn = document.getElementById("tab-feedback-btn");
+    const tabAiBtn = document.getElementById("tab-ai-btn");
     const tabWaitlistBtn = document.getElementById("tab-waitlist-btn");
     const tabAuditBtn = document.getElementById("tab-audit-btn");
 
     if (tabUsersBtn) tabUsersBtn.addEventListener("click", () => switchTab("users"));
+    if (tabRevenueBtn) tabRevenueBtn.addEventListener("click", () => switchTab("revenue"));
+    if (tabFeedbackBtn) tabFeedbackBtn.addEventListener("click", () => switchTab("feedback"));
+    if (tabAiBtn) tabAiBtn.addEventListener("click", () => switchTab("ai"));
     if (tabWaitlistBtn) tabWaitlistBtn.addEventListener("click", () => switchTab("waitlist"));
     if (tabAuditBtn) tabAuditBtn.addEventListener("click", () => switchTab("audit"));
 
-    // Quick filter pills
-    document.querySelectorAll(".filter-pills .pill").forEach(pill => {
+    // Quick filter pills for Users
+    document.querySelectorAll(".filter-pills:not(.feedback-pills) .pill").forEach(pill => {
       pill.addEventListener("click", () => {
-        document.querySelectorAll(".filter-pills .pill").forEach(p => p.classList.remove("active"));
+        document.querySelectorAll(".filter-pills:not(.feedback-pills) .pill").forEach(p => p.classList.remove("active"));
         pill.classList.add("active");
         activeTierFilter = pill.getAttribute("data-filter") || "all";
+        applyFilters();
+      });
+    });
+
+    // Quick filter pills for Feedback
+    document.querySelectorAll(".feedback-pills .pill").forEach(pill => {
+      pill.addEventListener("click", () => {
+        document.querySelectorAll(".feedback-pills .pill").forEach(p => p.classList.remove("active"));
+        pill.classList.add("active");
+        activeFeedbackFilter = pill.getAttribute("data-fb-filter") || "all";
         applyFilters();
       });
     });
@@ -92,6 +126,24 @@
 
     if (btnExportUsers) btnExportUsers.addEventListener("click", () => downloadCsv("/api/admin/users/export.csv", "paperplane_users.csv"));
     if (btnExportWaitlist) btnExportWaitlist.addEventListener("click", () => downloadCsv("/api/admin/waitlist/export.csv", "paperplane_waitlist.csv"));
+
+    // Event delegation for dynamically rendered table buttons
+    document.addEventListener("click", (e) => {
+      const deleteUserBtn = e.target.closest(".btn-delete-user");
+      if (deleteUserBtn) {
+        const userId = deleteUserBtn.getAttribute("data-user-id");
+        const userEmail = deleteUserBtn.getAttribute("data-user-email");
+        handleDeleteUser(userId, userEmail);
+        return;
+      }
+
+      const deleteFeedbackBtn = e.target.closest(".btn-delete-feedback");
+      if (deleteFeedbackBtn) {
+        const feedbackId = deleteFeedbackBtn.getAttribute("data-feedback-id");
+        handleDeleteFeedback(feedbackId);
+        return;
+      }
+    });
   }
 
   // --- Initial State Checking ---
@@ -109,7 +161,6 @@
     }
 
     if (sessionToken) {
-      // Validate existing session
       validateSession();
     } else {
       switchScreen("step1");
@@ -298,10 +349,13 @@
   // --- Dashboard Data Fetching ---
   async function fetchDashboardData() {
     try {
-      const [dashResp, usersResp, waitlistResp] = await Promise.all([
+      const [dashResp, usersResp, waitlistResp, revResp, feedbackResp, aiResp] = await Promise.all([
         fetch("/api/admin/dashboard", { headers: { "X-Admin-Session": sessionToken } }),
         fetch("/api/admin/users", { headers: { "X-Admin-Session": sessionToken } }),
-        fetch("/api/admin/waitlist", { headers: { "X-Admin-Session": sessionToken } })
+        fetch("/api/admin/waitlist", { headers: { "X-Admin-Session": sessionToken } }),
+        fetch("/api/admin/revenue", { headers: { "X-Admin-Session": sessionToken } }),
+        fetch("/api/admin/feedback", { headers: { "X-Admin-Session": sessionToken } }),
+        fetch("/api/admin/ai-config", { headers: { "X-Admin-Session": sessionToken } })
       ]);
 
       if (dashResp.status === 401 || dashResp.status === 403) {
@@ -312,6 +366,9 @@
       const metrics = await dashResp.json();
       const usersObj = await usersResp.json();
       const waitlistObj = await waitlistResp.json();
+      revenueData = await revResp.json().catch(() => null);
+      const feedbackObj = await feedbackResp.json().catch(() => ({ feedbacks: [] }));
+      aiConfigData = await aiResp.json().catch(() => null);
 
       // Top Metric Cards
       setElText("m-total-users", metrics.total_users ?? 0);
@@ -330,21 +387,25 @@
       const headerEnv = document.getElementById("header-env");
       if (headerEnv) headerEnv.textContent = `${(metrics.environment || "Production").toUpperCase()} LIVE`;
 
-      // Render Charts
+      // Render Visual Charts
       renderTierMeter(metrics);
       renderBarChart(metrics.days_trend || []);
 
       usersData = usersObj.users || [];
       waitlistData = waitlistObj.entries || [];
       auditData = metrics.recent_audits || [];
+      feedbackData = feedbackObj.feedbacks || [];
 
       setElText("count-users", usersData.length);
       setElText("count-waitlist", waitlistData.length);
       setElText("count-audit", auditData.length);
+      setElText("count-feedback", feedbackData.length);
 
       applyFilters();
       renderWaitlist(waitlistData);
       renderAudits(auditData);
+      renderRevenue(revenueData);
+      renderAiConfig(aiConfigData);
     } catch (err) {
       console.error("Dashboard refresh error:", err);
     }
@@ -401,21 +462,14 @@
   // --- Tab Switcher ---
   function switchTab(tab) {
     currentTab = tab;
-    const btnUsers = document.getElementById("tab-users-btn");
-    const btnWait = document.getElementById("tab-waitlist-btn");
-    const btnAudit = document.getElementById("tab-audit-btn");
+    const tabs = ["users", "revenue", "feedback", "ai", "waitlist", "audit"];
 
-    const pUsers = document.getElementById("panel-users");
-    const pWait = document.getElementById("panel-waitlist");
-    const pAudit = document.getElementById("panel-audit");
-
-    if (btnUsers) btnUsers.classList.toggle("active", tab === "users");
-    if (btnWait) btnWait.classList.toggle("active", tab === "waitlist");
-    if (btnAudit) btnAudit.classList.toggle("active", tab === "audit");
-
-    if (pUsers) pUsers.style.display = tab === "users" ? "block" : "none";
-    if (pWait) pWait.style.display = tab === "waitlist" ? "block" : "none";
-    if (pAudit) pAudit.style.display = tab === "audit" ? "block" : "none";
+    tabs.forEach(t => {
+      const btn = document.getElementById(`tab-${t}-btn`);
+      const panel = document.getElementById(`panel-${t}`);
+      if (btn) btn.classList.toggle("active", t === tab);
+      if (panel) panel.style.display = t === tab ? "block" : "none";
+    });
 
     applyFilters();
   }
@@ -447,6 +501,15 @@
         return (a.email || "").toLowerCase().includes(q) || (a.event_type || "").toLowerCase().includes(q);
       });
       renderAudits(filtered);
+    } else if (currentTab === "feedback") {
+      let filtered = feedbackData.filter(f => {
+        const matchesQuery = (f.email || "").toLowerCase().includes(q) || (f.message || "").toLowerCase().includes(q);
+        if (!matchesQuery) return false;
+        if (activeFeedbackFilter === "all") return true;
+        const cat = (f.category || "general").toLowerCase();
+        return cat.includes(activeFeedbackFilter);
+      });
+      renderFeedback(filtered);
     }
   }
 
@@ -455,7 +518,7 @@
     const tbody = document.getElementById("users-tbody");
     if (!tbody) return;
     if (!list.length) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">No matching users found.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">No matching users found.</td></tr>';
       return;
     }
     tbody.innerHTML = list.map(u => {
@@ -474,6 +537,11 @@
         <td>${created}</td>
         <td>${lastActive}</td>
         <td style="color: var(--text-muted);">${escapeHtml(status)}</td>
+        <td>
+          <button type="button" class="btn btn-danger btn-xs btn-delete-user" data-user-id="${escapeHtml(u.id)}" data-user-email="${escapeHtml(u.email)}" title="Delete account">
+            🗑️ Delete
+          </button>
+        </td>
       </tr>`;
     }).join("");
   }
@@ -514,6 +582,277 @@
         <td style="color: var(--text-muted);">${escapeHtml(a.details || "—")}</td>
       </tr>`;
     }).join("");
+  }
+
+  // --- Render Revenue & Bank Payouts ---
+  function renderRevenue(rev) {
+    if (!rev) return;
+
+    setElText("rev-paying-count", rev.paying_users_count ?? 0);
+    setElText("rev-gross-revenue", `₹${(rev.gross_revenue_inr ?? 0).toLocaleString("en-IN")}`);
+    setElText("rev-gateway-fees", `₹${(rev.estimated_gateway_fees_inr ?? 0).toLocaleString("en-IN")}`);
+    setElText("rev-net-payout", `₹${(rev.net_bank_payout_inr ?? 0).toLocaleString("en-IN")}`);
+
+    const tbody = document.getElementById("revenue-tbody");
+    if (!tbody) return;
+
+    const orders = rev.recent_transactions || [];
+    if (!orders.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">No payment transactions recorded yet.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = orders.map(ord => {
+      const dateStr = ord.created_at ? new Date(ord.created_at * 1000).toLocaleString() : "—";
+      return `<tr>
+        <td><strong>${escapeHtml(ord.email || ord.customer_id)}</strong></td>
+        <td><span class="badge badge-pro">${escapeHtml((ord.tier || "PRO").toUpperCase())}</span></td>
+        <td><code style="color: var(--text-muted);">${escapeHtml(ord.order_id || ord.customer_id)}</code></td>
+        <td><strong style="color: var(--green);">₹${(ord.amount || 0).toLocaleString("en-IN")}</strong></td>
+        <td>${dateStr}</td>
+        <td><span style="color: var(--green); font-weight: 600;">● Settled</span></td>
+      </tr>`;
+    }).join("");
+  }
+
+  // --- Render User Feedback ---
+  function renderFeedback(list) {
+    const tbody = document.getElementById("feedback-tbody");
+    const countEl = document.getElementById("feedback-summary-count");
+    if (countEl) countEl.textContent = `${list.length} reviews`;
+    if (!tbody) return;
+
+    if (!list.length) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">No user feedbacks submitted yet.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = list.map(f => {
+      const dateStr = f.created_at ? new Date(f.created_at * 1000).toLocaleString() : "—";
+      const rating = Math.max(1, Math.min(5, f.rating || 5));
+      const stars = "★".repeat(rating) + "☆".repeat(5 - rating);
+
+      let catBadge = "badge-free";
+      if (f.category === "bug") catBadge = "badge-dev";
+      if (f.category === "suggestion") catBadge = "badge-pro";
+
+      return `<tr>
+        <td><span class="star-gold" style="font-size: 15px; letter-spacing: 2px;">${stars}</span></td>
+        <td><span class="badge ${catBadge}">${escapeHtml((f.category || "general").toUpperCase())}</span></td>
+        <td style="max-width: 320px; line-height: 1.4;">${escapeHtml(f.message)}</td>
+        <td>${escapeHtml(f.email || "Anonymous")}</td>
+        <td>${dateStr}</td>
+        <td style="font-family: monospace; color: var(--text-muted); font-size: 11px;">${escapeHtml(f.ip_address || "—")}</td>
+        <td>
+          <button type="button" class="btn btn-danger btn-xs btn-delete-feedback" data-feedback-id="${escapeHtml(f.id)}" title="Delete feedback">
+            🗑️
+          </button>
+        </td>
+      </tr>`;
+    }).join("");
+  }
+
+  // --- Render AI Settings Form ---
+  function renderAiConfig(data) {
+    if (!data || !data.config) return;
+    const cfg = data.config;
+
+    const providerSel = document.getElementById("ai-provider-select");
+    const baseUrlInput = document.getElementById("ai-baseurl-input");
+    const modelInput = document.getElementById("ai-model-input");
+    const apiKeyInput = document.getElementById("ai-apikey-input");
+
+    if (providerSel && cfg.provider) providerSel.value = cfg.provider;
+    if (baseUrlInput && cfg.base_url) baseUrlInput.value = cfg.base_url;
+    if (modelInput && cfg.model) modelInput.value = cfg.model;
+    if (apiKeyInput && cfg.api_key_masked) apiKeyInput.value = cfg.api_key_masked;
+  }
+
+  // --- Handle AI Config Save ---
+  async function handleSaveAiConfig() {
+    const providerSel = document.getElementById("ai-provider-select");
+    const baseUrlInput = document.getElementById("ai-baseurl-input");
+    const modelInput = document.getElementById("ai-model-input");
+    const apiKeyInput = document.getElementById("ai-apikey-input");
+    const msgBox = document.getElementById("ai-save-msg");
+    const btn = document.getElementById("btn-save-ai");
+
+    const provider = (providerSel ? providerSel.value : "").trim();
+    const baseUrl = (baseUrlInput ? baseUrlInput.value : "").trim();
+    const model = (modelInput ? modelInput.value : "").trim();
+    const apiKey = (apiKeyInput ? apiKeyInput.value : "").trim();
+
+    btn.disabled = true;
+    btn.textContent = "Saving...";
+    if (msgBox) msgBox.style.display = "none";
+
+    try {
+      const resp = await fetch("/api/admin/ai-config", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Admin-Session": sessionToken
+        },
+        body: JSON.stringify({
+          provider: provider,
+          base_url: baseUrl,
+          model: model,
+          api_key: apiKey
+        })
+      });
+
+      const res = await resp.json();
+      if (resp.ok) {
+        if (msgBox) {
+          msgBox.textContent = "✅ AI Configuration successfully saved and activated live!";
+          msgBox.style.background = "#0d221c";
+          msgBox.style.borderColor = "#10b981";
+          msgBox.style.color = "#10b981";
+          msgBox.style.display = "block";
+        }
+        renderAiConfig(res);
+      } else {
+        if (msgBox) {
+          msgBox.textContent = res.detail || "Failed to save AI configuration.";
+          msgBox.style.background = "#3b1414";
+          msgBox.style.borderColor = "#7f1d1d";
+          msgBox.style.color = "#f87171";
+          msgBox.style.display = "block";
+        }
+      }
+    } catch (e) {
+      if (msgBox) {
+        msgBox.textContent = "Network error: Unable to save AI settings.";
+        msgBox.style.display = "block";
+      }
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "💾 Save AI Configuration";
+    }
+  }
+
+  // --- Handle AI Test Connection ---
+  async function handleTestAiConnection() {
+    const btn = document.getElementById("btn-test-ai");
+    const statusEl = document.getElementById("ai-test-status");
+
+    btn.disabled = true;
+    btn.textContent = "Testing...";
+    if (statusEl) {
+      statusEl.textContent = "⚡ Pinging AI gateway...";
+      statusEl.style.color = "var(--text-muted)";
+    }
+
+    const t0 = performance.now();
+    try {
+      const resp = await fetch("/api/admin/ai-test", {
+        method: "POST",
+        headers: { "X-Admin-Session": sessionToken }
+      });
+      const data = await resp.json();
+      const latency = Math.round(performance.now() - t0);
+
+      if (resp.ok && data.result && data.result.status === "ok") {
+        if (statusEl) {
+          statusEl.textContent = `✅ Connected (${latency}ms) — Model: ${data.result.model || "Active"}`;
+          statusEl.style.color = "var(--green)";
+        }
+      } else {
+        const msg = (data.result && data.result.message) || data.detail || "Connection failed";
+        if (statusEl) {
+          statusEl.textContent = `❌ ${msg} (${latency}ms)`;
+          statusEl.style.color = "#f87171";
+        }
+      }
+    } catch (err) {
+      if (statusEl) {
+        statusEl.textContent = "❌ Network error testing AI connection.";
+        statusEl.style.color = "#f87171";
+      }
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "⚡ Test Connection";
+    }
+  }
+
+  // --- Handle Clean Probe Accounts ---
+  async function handleCleanProbes() {
+    const confirmClean = confirm(
+      "Are you sure you want to clean all test probe accounts (example.com, tab.bot, sharklasers, etc.)?\n\nReal user accounts (mdhammad2906@gmail.com, etc.) will be 100% safe."
+    );
+    if (!confirmClean) return;
+
+    const btn = document.getElementById("btn-clean-probes");
+    btn.disabled = true;
+    btn.textContent = "Cleaning...";
+
+    try {
+      const resp = await fetch("/api/admin/users/cleanup-probes", {
+        method: "POST",
+        headers: { "X-Admin-Session": sessionToken }
+      });
+      const data = await resp.json();
+      if (resp.ok) {
+        alert(`Cleaned ${data.deleted_count} test probe accounts successfully!`);
+        fetchDashboardData();
+      } else {
+        alert(data.detail || "Failed to cleanup probe accounts.");
+      }
+    } catch (e) {
+      alert("Network error cleaning probe accounts.");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "🧹 Clean Test Probes";
+    }
+  }
+
+  // --- Handle Single User Delete ---
+  async function handleDeleteUser(userId, userEmail) {
+    if (!userId) return;
+    const confirmDel = confirm(`Are you sure you want to permanently delete user account: ${userEmail}? This will delete all jobs, API keys, and sessions.`);
+    if (!confirmDel) return;
+
+    try {
+      const resp = await fetch("/api/admin/users/delete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Admin-Session": sessionToken
+        },
+        body: JSON.stringify({ user_id: userId })
+      });
+      const data = await resp.json();
+      if (resp.ok) {
+        alert(`User ${userEmail} was permanently deleted.`);
+        fetchDashboardData();
+      } else {
+        alert(data.detail || "Failed to delete user.");
+      }
+    } catch (e) {
+      alert("Network error deleting user.");
+    }
+  }
+
+  // --- Handle Feedback Delete ---
+  async function handleDeleteFeedback(feedbackId) {
+    if (!feedbackId) return;
+    if (!confirm("Delete this feedback entry?")) return;
+
+    try {
+      const resp = await fetch(`/api/admin/feedback/${feedbackId}`, {
+        method: "DELETE",
+        headers: { "X-Admin-Session": sessionToken }
+      });
+      if (resp.ok) {
+        feedbackData = feedbackData.filter(f => f.id !== feedbackId);
+        setElText("count-feedback", feedbackData.length);
+        applyFilters();
+      } else {
+        alert("Failed to delete feedback entry.");
+      }
+    } catch (e) {
+      alert("Network error deleting feedback.");
+    }
   }
 
   // --- Secure CSV Downloads (No Secrets in URL) ---

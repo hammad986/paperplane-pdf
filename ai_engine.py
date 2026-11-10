@@ -46,6 +46,13 @@ CHAT_STOPWORDS = {
 
 
 def _current_bluesminds_api_key() -> str:
+    try:
+        import persistence
+        creds = persistence.get_runtime_ai_credentials()
+        if creds.get("api_key"):
+            return creds["api_key"]
+    except Exception:
+        pass
     module_key = (BLUESMINDS_API_KEY or "").strip()
     if module_key != (_INITIAL_BLUESMINDS_API_KEY or "").strip():
         return module_key
@@ -457,12 +464,18 @@ def call_bluesminds(
     if AI_KILL_SWITCH:
         raise RuntimeError("AI request failed, please try again")
 
-    api_key = _current_bluesminds_api_key()
+    try:
+        import persistence
+        runtime_creds = persistence.get_runtime_ai_credentials()
+    except Exception:
+        runtime_creds = {}
+
+    api_key = runtime_creds.get("api_key") or _current_bluesminds_api_key()
     if not api_key:
         raise ValueError("AI provider is not configured")
 
-    primary_model = model or BLUESMINDS_MODEL or "openai/gpt-oss-20b"
-    base_url = (BLUESMINDS_BASE_URL or "https://api.bluesminds.com/v1").rstrip("/")
+    primary_model = model or runtime_creds.get("model") or BLUESMINDS_MODEL or "openai/gpt-oss-20b"
+    base_url = (runtime_creds.get("base_url") or BLUESMINDS_BASE_URL or "https://api.bluesminds.com/v1").rstrip("/")
     if not base_url.endswith("/v1"):
         endpoint = f"{base_url}/v1/chat/completions"
     else:
@@ -538,13 +551,19 @@ def stream_bluesminds(system_prompt: str, user_prompt: str, timeout_seconds: flo
     """Yield genuine content deltas from the configured OpenAI-compatible stream."""
     if AI_KILL_SWITCH:
         raise RuntimeError("AI request failed, please try again")
-    api_key = _current_bluesminds_api_key()
+    try:
+        import persistence
+        runtime_creds = persistence.get_runtime_ai_credentials()
+    except Exception:
+        runtime_creds = {}
+
+    api_key = runtime_creds.get("api_key") or _current_bluesminds_api_key()
     if not api_key:
         raise ValueError("AI provider is not configured")
-    base = (BLUESMINDS_BASE_URL or "https://api.bluesminds.com/v1").rstrip("/")
+    base = (runtime_creds.get("base_url") or BLUESMINDS_BASE_URL or "https://api.bluesminds.com/v1").rstrip("/")
     endpoint = f"{base}/chat/completions" if base.endswith("/v1") else f"{base}/v1/chat/completions"
     payload = {
-        "model": BLUESMINDS_MODEL or "openai/gpt-oss-20b",
+        "model": runtime_creds.get("model") or BLUESMINDS_MODEL or "openai/gpt-oss-20b",
         "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
         "temperature": 0.2,
         "max_tokens": BLUESMINDS_MAX_OUTPUT_TOKENS or 4096,
@@ -603,9 +622,15 @@ def call_agentrouter(
 
 def test_bluesminds_connectivity() -> dict:
     """Test the configured Paperplane AI connection without exposing upstream identity."""
-    api_key = _current_bluesminds_api_key()
-    target_model = BLUESMINDS_MODEL or "openai/gpt-oss-20b"
-    base_url = (BLUESMINDS_BASE_URL or "https://api.bluesminds.com/v1").rstrip("/")
+    try:
+        import persistence
+        runtime_creds = persistence.get_runtime_ai_credentials()
+    except Exception:
+        runtime_creds = {}
+
+    api_key = runtime_creds.get("api_key") or _current_bluesminds_api_key()
+    target_model = runtime_creds.get("model") or BLUESMINDS_MODEL or "openai/gpt-oss-20b"
+    base_url = (runtime_creds.get("base_url") or BLUESMINDS_BASE_URL or "https://api.bluesminds.com/v1").rstrip("/")
     if not base_url.endswith("/v1"):
         endpoint = f"{base_url}/v1/chat/completions"
     else:
