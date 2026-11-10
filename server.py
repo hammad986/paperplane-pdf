@@ -15,6 +15,7 @@ import re
 import shutil
 import secrets
 import socket
+import sqlite3
 import subprocess
 import sys
 import tempfile
@@ -28,10 +29,12 @@ import uuid
 import zipfile
 import concurrent.futures
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import closing
 from typing import Any, Callable
 from pathlib import Path
 
 import config
+import persistence
 import fitz  # PyMuPDF
 import uvicorn
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
@@ -80,7 +83,7 @@ from persistence import (
     record_audit_event, get_recent_audit_logs, delete_job_record, _password_hash,
     admin_get_analytics, admin_get_all_users, admin_get_waitlist,
     get_admin_lockout_remaining, record_admin_failed_attempt, reset_admin_failed_attempts,
-    set_admin_pending_otp, verify_admin_otp, create_admin_session, verify_admin_session,
+    set_admin_pending_otp, clear_admin_pending_otp, verify_admin_otp, create_admin_session, verify_admin_session,
     revoke_admin_session, admin_get_extended_analytics,
     admin_delete_user, admin_cleanup_probe_accounts,
     add_user_feedback, admin_get_feedbacks, admin_delete_feedback,
@@ -111,6 +114,71 @@ JOBS = JOBS_DIR
 logger = logging.getLogger(__name__)
 executor = ThreadPoolExecutor(max_workers=max(4, int(os.getenv("PAPERPLANE_WORKERS", "4"))))
 
+
+def _mounted_volume_for(path: Path) -> tuple[bool, str | None]:
+    """Return whether path is covered by a non-root mount inside the container."""
+    resolved = path.resolve()
+    mount_points: list[Path] = []
+    try:
+        for line in Path("/proc/self/mountinfo").read_text(encoding="utf-8").splitlines():
+            fields = line.split()
+            if len(fields) < 5:
+                continue
+            raw_mount = fields[4]
+            mount_text = re.sub(r"\\([0-7]{3})", lambda match: chr(int(match.group(1), 8)), raw_mount)
+            mount_path = Path(mount_text).resolve()
+            if mount_path == Path("/"):
+                continue
+            try:
+                resolved.relative_to(mount_path)
+                mount_points.append(mount_path)
+            except ValueError:
+                continue
+    except OSError:
+        if os.path.ismount(path):
+            return True, str(resolved)
+        return False, None
+
+    if not mount_points:
+        return False, None
+    mount_path = max(mount_points, key=lambda candidate: len(candidate.parts))
+    return True, str(mount_path)
+
+
+def _persistence_snapshot() -> dict[str, Any]:
+    db_path = Path(persistence.DATABASE).resolve()
+    data_dir = Path(config.DATA_DIR).resolve()
+    try:
+        stat = db_path.stat()
+        db_size = stat.st_size
+        db_mtime = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(stat.st_mtime))
+    except OSError:
+        db_size = None
+        db_mtime = None
+
+    row_counts: dict[str, int | None] = {}
+    try:
+        with closing(sqlite3.connect(f"{db_path.as_uri()}?mode=ro", uri=True, timeout=5)) as connection:
+            for table in ("users", "jobs", "api_keys", "app_waitlist"):
+                try:
+                    row_counts[table] = int(connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0])
+                except sqlite3.Error:
+                    row_counts[table] = None
+    except sqlite3.Error:
+        row_counts = {table: None for table in ("users", "jobs", "api_keys", "app_waitlist")}
+
+    mounted, mount_path = _mounted_volume_for(db_path)
+    return {
+        "data_dir": str(data_dir),
+        "database_path": str(db_path),
+        "database_size_bytes": db_size,
+        "database_mtime_utc": db_mtime,
+        "row_counts": row_counts,
+        "database_on_mounted_volume": mounted,
+        "mount_path": mount_path,
+    }
+
+
 # Admin authentication — 3-factor owner security
 ADMIN_SECRET_KEY: str = os.getenv("PAPERPLANE_ADMIN_KEY", "").strip()
 ADMIN_SECRET_CODE: str = os.getenv("PAPERPLANE_ADMIN_CODE", "nimrakulsum").strip()
@@ -119,28 +187,10 @@ ADMIN_ALERT_EMAIL: str = os.getenv("ADMIN_ALERT_EMAIL", "mdhammad2906@gmail.com"
 
 def _require_admin(
     x_admin_session: str = Header(default="", alias="X-Admin-Session"),
-    x_admin_key: str = Header(default="", alias="X-Admin-Key"),
-    session: str = "",
-    key: str = "",
 ) -> None:
-    """FastAPI dependency: validates active admin session token or programmatic admin secret key."""
-    # 1. Check for active session token first (preferred browser flow)
-    active_session = x_admin_session or session
-    if active_session:
-        if verify_admin_session(active_session):
-            return
-        raise HTTPException(status_code=401, detail="Admin session expired or invalid. Please re-authenticate.")
-
-    # 2. Check for direct programmatic admin secret key (legacy/script access)
-    active_key = x_admin_key or key
-    if active_key:
-        if not ADMIN_SECRET_KEY:
-            raise HTTPException(status_code=503, detail="Admin access is not configured on this server.")
-        if hmac.compare_digest(active_key, ADMIN_SECRET_KEY):
-            return
-        raise HTTPException(status_code=401, detail="Invalid admin key.")
-
-    raise HTTPException(status_code=401, detail="Authentication required. Please provide a valid admin session.")
+    """Require a session created only after the full owner MFA flow."""
+    if not x_admin_session or not verify_admin_session(x_admin_session):
+        raise HTTPException(status_code=401, detail="Authentication required. Please complete owner verification.")
 
 # Workload-based execution timeouts (in seconds)
 COMPRESS_TIMEOUT_SECONDS = 60.0    # multi-pass downsampling & stream compression
@@ -223,6 +273,7 @@ app = FastAPI(
     servers=[{"url": PAPERPLANE_PUBLIC_URL or "/", "description": "Primary Server"}] if PAPERPLANE_PUBLIC_URL else None,
 )
 init_db()
+logger.info("Persistence startup snapshot: %s", json.dumps(_persistence_snapshot(), sort_keys=True))
 
 # Restore the public scheme/host from the reverse proxy before downstream
 # middleware and route handlers inspect the request URL.  The proxy is the
@@ -277,15 +328,7 @@ app.add_middleware(SecurityHeadersMiddleware)
 
 
 def get_client_ip(request: Request) -> str:
-    """Extracts the real client IP address considering reverse proxies."""
-    xff = request.headers.get("x-forwarded-for")
-    if xff:
-        candidate = xff.split(",")[0].strip()
-        if candidate:
-            return candidate
-    x_real_ip = request.headers.get("x-real-ip")
-    if x_real_ip and x_real_ip.strip():
-        return x_real_ip.strip()
+    """Use the client address resolved by the trusted proxy middleware."""
     if request.client and request.client.host:
         return request.client.host
     return "127.0.0.1"
@@ -408,7 +451,7 @@ OPERATIONS = {
     "split": {"label": "Split / extract", "category": "Organize PDF", "accept": "pdf", "implemented": True, "description": "Extract specific pages or page ranges into a clean new PDF."},
     "remove": {"label": "Remove pages", "category": "Organize PDF", "accept": "pdf", "implemented": True, "description": "Delete unwanted pages from any PDF document."},
     "rotate": {"label": "Rotate PDF", "category": "Organize PDF", "accept": "pdf", "implemented": True, "description": "Rotate pages 90, 180, or 270 degrees clockwise."},
-    "organize": {"label": "Page Organizer", "category": "Organize PDF", "accept": "pdf", "implemented": True, "description": "Visual drag-and-drop page sorting, rotation, and deletion."},
+    "organize": {"label": "Page Organizer", "category": "Organize PDF", "accept": "pdf", "implemented": True, "description": "Reorder pages by entering their page numbers in the desired output order."},
     "scan_pdf": {"label": "Scan to PDF", "category": "Organize PDF", "accept": "image", "implemented": True, "description": "Enhance photos or scans with deskewing and contrast optimization."},
 
     # 2. Optimize PDF
@@ -566,14 +609,14 @@ SEO_CATALOG = {
     },
     "organize": {
         "title": "Organize PDF Pages Online — Reorder, Rotate & Delete | Paperplane",
-        "description": "Reorder, rotate, duplicate, delete, and preview PDF pages in a visual organizer before exporting the finished document.",
-        "heading": "Organize PDF pages with a visual editor",
-        "intro": "Use thumbnails instead of guessing page numbers when you need to rearrange a report, scan, legal packet, or presentation.",
-        "how_to": ("Load the PDF into the page organizer", "Drag pages or use touch controls to change order", "Apply page actions and export"),
+        "description": "Reorder PDF pages by entering each page number once in the output order, then download the organized file.",
+        "heading": "Reorder PDF pages by page number",
+        "intro": "Enter every page number exactly once in the order you want, such as 3,1,2, and download the organized PDF.",
+        "how_to": ("Load the PDF into Page Organizer", "Enter the complete output order as comma-separated page numbers", "Download and review the organized PDF"),
         "faqs": (
-            ("Can I reorder PDF pages on a phone?", "Yes. The responsive organizer supports touch-friendly move controls for devices where HTML5 drag-and-drop is unavailable."),
-            ("Can the organizer rotate and delete pages too?", "Yes. Page cards expose quick rotate, duplicate, delete, and move actions, with batch controls for selected pages."),
-            ("Are thumbnails generated locally?", "Page previews are rendered in your browser. Server-powered operations still return a verified PDF result."),
+            ("Can I reorder PDF pages on a phone?", "Yes. Enter the desired page numbers in order, separated by commas, and include every page exactly once."),
+            ("Can I rotate or delete pages here?", "Use Rotate PDF or Remove pages for those actions; Page Organizer changes page order."),
+            ("How can I check the new page order?", "Open the downloaded PDF and review its pages before sharing it."),
         ),
         "related": ("merge", "remove", "rotate", "page_numbers"),
     },
@@ -1604,7 +1647,7 @@ def deliver_otp_or_raise(background_tasks: BackgroundTasks, email: str, code: st
         background_tasks.add_task(send_otp_email, email, code, purpose)
         return
     if not send_otp_email(email, code, purpose):
-        delete_email_otp(email, purpose)
+        delete_email_otp(email, purpose, code)
         raise HTTPException(503, "Email delivery is unavailable. Please try again later or contact support.")
 
 
@@ -3110,7 +3153,7 @@ async def forgot_password(request: Request, background_tasks: BackgroundTasks):
     dev_url = None
     if res:
         token, uid = res
-        base_url = str(request.base_url).rstrip("/")
+        base_url = (PAPERPLANE_PUBLIC_URL or str(request.base_url)).rstrip("/")
         reset_link = f"{base_url}/?reset_token={token}"
 
         # Dispatch async branded transactional email
@@ -3122,7 +3165,7 @@ async def forgot_password(request: Request, background_tasks: BackgroundTasks):
 
     resp = {
         "status": "success",
-        "message": "If an account exists with this email address, a password reset link has been dispatched."
+        "message": "If an account exists, reset instructions will be sent when the email service accepts the request. If no email arrives, check spam or contact support."
     }
     if dev_url:
         resp["dev_reset_url"] = dev_url
@@ -3253,9 +3296,16 @@ async def join_waitlist(request: Request, background_tasks: BackgroundTasks):
         except Exception:
             pass
 
-    email = str(email).strip().lower()
-    if not email or "@" not in email or "." not in email:
-        raise HTTPException(400, "Please provide a valid email address.")
+    if not isinstance(email, str) or not email.strip() or len(email.strip()) > 254:
+        raise HTTPException(422, "Please provide a valid email address of at most 254 characters.")
+    email = email.strip().lower()
+    if not re.fullmatch(r"[^@\s<>]+@[^@\s<>]+\.[^@\s<>]+", email):
+        raise HTTPException(422, "Please provide a valid email address.")
+    if not isinstance(platform, str) or len(platform.strip()) > 32 or any(ord(char) < 32 for char in platform):
+        raise HTTPException(422, "Platform must be a supported text value.")
+    platform = platform.strip().lower()
+    if platform not in {"all", "windows", "macos", "linux", "android", "ios"}:
+        raise HTTPException(422, "Platform is not supported.")
 
     try:
         result = add_waitlist_entry(email, platform, client_ip)
@@ -3462,6 +3512,11 @@ def create_checkout_session(
     currency = str(payload.get("currency", "INR")).upper()
     if currency != "INR":
         raise HTTPException(400, "Paperplane checkout currently supports INR only.")
+    if ENVIRONMENT == "production" and CASHFREE_ENV != "PROD":
+        raise HTTPException(
+            503,
+            "Live payments are disabled because Cashfree is not configured for PROD in this production environment.",
+        )
     if target_tier == "exam_pass":
         amount = EXAM_PASS_PRICE_INR
     elif target_tier == "student_pro":
@@ -3756,7 +3811,7 @@ async def ai_chat_stream(
             system_prompt = ai_engine._PAPERPLANE_SYSTEM_PROMPT
             user_prompt = question
             document_question = ai_engine._is_document_question(question)
-            if file is not None and document_question:
+            if file is not None:
                 temp_pdf = temp_dir / "chat_stream.pdf"
                 await save_upload_spooled_async(file, temp_pdf, max_bytes=upload_limit_bytes_for_user(user_id))
                 yield frame("stage", stage="Extracting…")
@@ -3804,7 +3859,7 @@ async def ai_chat_stream(
             # With the external provider deliberately disabled, PDF chat still
             # returns a clearly labelled local extractive answer. It never
             # represents that answer as model-generated.
-            if file is not None and document_question and (
+            if file is not None and (
                 ai_engine.AI_KILL_SWITCH or not ai_engine._current_bluesminds_api_key()
             ):
                 local_answer = ai_engine._offline_rag_fallback(system_prompt, user_prompt)
@@ -6452,18 +6507,19 @@ def api_docs_help_fallback():
 
 
 @app.get("/health")
-@app.get("/api/health")
 def health_check():
     return {
         "status": "healthy",
         "service": "Paperplane PDF Platform",
         "version": "2.0.0",
         "timestamp": time.time(),
-        "daily_free_limit": FREE_TIER_DAILY_LIMIT,
-        "max_file_size_bytes": MAX_FILE_SIZE,
-        "jobs_directory": str(JOBS),
-        "total_operations": len(OPERATIONS),
     }
+
+
+@app.get("/api/health/persistence", include_in_schema=False)
+def persistence_health(_: None = Depends(_require_admin)):
+    """Expose resolved persistence diagnostics only to an MFA-authenticated owner."""
+    return _persistence_snapshot()
 
 
 @app.get("/favicon.ico")
@@ -6531,6 +6587,10 @@ LEGACY_SLUG_REDIRECTS = {
     "protect": "protect-pdf",
     "unlock": "unlock-pdf",
     "sign": "sign-pdf",
+    "extract-pages": "split-pdf",
+    "grayscale-pdf": "convert-pdf-to-grayscale",
+    "pdf-to-ppt": "pdf-to-powerpoint",
+    "ppt-to-pdf": "powerpoint-to-pdf",
 }
 
 
@@ -7071,7 +7131,7 @@ def admin_portal_page():
         3 consecutive incorrect attempts were detected. As an automated intrusion defense against brute-force attacks, administrative access has been suspended for 24 hours.
       </p>
       <div style="background: #271414; border: 1px solid #7f1d1d; border-radius: 8px; padding: 14px; text-align: left; font-size: 13px; margin-bottom: 20px;">
-        <div style="margin-bottom: 6px;"><strong style="color: #fca5a5;">Notification:</strong> <span style="color: #fff;">Sent to mdhammad2906@gmail.com</span></div>
+        <div style="margin-bottom: 6px;"><strong style="color: #fca5a5;">Notification:</strong> <span style="color: #fff;">Sent to the configured owner email</span></div>
         <div style="margin-bottom: 6px;"><strong style="color: #fca5a5;">Lock Duration:</strong> <span style="color: #ef4444; font-weight: 700;">24 Hours</span></div>
         <div><strong style="color: #fca5a5;">Time Remaining:</strong> <span id="lockout-countdown" style="color: #fff; font-family: monospace;">Calculating...</span></div>
       </div>
@@ -7083,7 +7143,7 @@ def admin_portal_page():
       <div class="logo-icon" style="width:48px;height:48px;font-size:24px;margin:0 auto 16px;">P</div>
       <h1>Owner Authentication</h1>
       <p>Enter your Admin Secret Key and Secret Code to initiate 2-factor email verification.</p>
-      
+
       <div id="auth-error" class="error-msg"></div>
 
       <div class="field-group">
@@ -7103,7 +7163,7 @@ def admin_portal_page():
       </div>
 
       <div class="info-note">
-        🛡️ <strong>Security Sentinel:</strong> 3 consecutive incorrect attempts will automatically lock this console for 24 hours and dispatch a critical alert to mdhammad2906@gmail.com.
+        🛡️ <strong>Security Sentinel:</strong> 3 consecutive incorrect attempts will lock this console for 24 hours and send a critical alert to the configured owner email.
       </div>
 
       <button class="btn btn-primary" id="btn-submit-step1" style="width: 100%; justify-content: center; padding: 12px;">Verify & Send Email OTP &rarr;</button>
@@ -7113,8 +7173,8 @@ def admin_portal_page():
     <div id="step2-screen" class="auth-card" style="display: none;">
       <div style="font-size: 42px; margin-bottom: 12px;">📬</div>
       <h1>Two-Factor Verification</h1>
-      <p>A 6-digit one-time code was sent to <strong id="otp-target-email" style="color: #fff;">mdhammad2906@gmail.com</strong>.</p>
-      
+      <p>A 6-digit one-time code was sent to the configured owner email address.</p>
+
       <div id="otp-error" class="error-msg"></div>
 
       <div class="field-group" style="text-align: center;">
@@ -7279,21 +7339,23 @@ def admin_portal_page():
             <div class="sub">Active Pro &amp; Developer Subscribers</div>
           </div>
           <div class="revenue-card">
-            <div class="title">Gross Revenue Generated</div>
+            <div class="title">Verified Gross Payments</div>
             <div class="value" id="rev-gross-revenue">-</div>
-            <div class="sub">Total payments collected (INR)</div>
+            <div class="sub">Unique paid INR orders recorded</div>
           </div>
           <div class="revenue-card">
-            <div class="title">Cashfree Gateway Fees (2.36%)</div>
+            <div class="title">Estimated Gateway Fees (<span id="rev-fee-rate">—</span>)</div>
             <div class="value" id="rev-gateway-fees" style="color: #f87171;">-</div>
-            <div class="sub">2% Processing Fee + 18% GST</div>
+            <div class="sub">Configured fee plus GST on that fee</div>
           </div>
           <div class="revenue-card highlight">
-            <div class="title">Net Bank Payout</div>
+            <div class="title">Estimated Net Payout</div>
             <div class="value" id="rev-net-payout" style="color: var(--green);">-</div>
-            <div class="sub">Total amount deposited in bank</div>
+            <div class="sub">Before refunds, disputes, and settlement adjustments</div>
           </div>
         </div>
+
+        <p class="text-muted" id="rev-revenue-basis" style="padding: 0 4px; font-size: 12px;"></p>
 
         <div class="table-container">
           <div style="padding: 14px 18px; background: #111a1d; border-bottom: 1px solid var(--card-border); font-weight: 700; font-size: 14px;">
@@ -7462,16 +7524,10 @@ def tool_landing_page(tool_slug: str, request: Request):
 
 @app.get("/api/admin/audit-summary", include_in_schema=False)
 def get_admin_audit_summary(
-    user_id: str | None = Depends(current_user),
+    _: None = Depends(_require_admin),
     limit: int = 50
 ):
-    """Admin endpoint to view recent logins, user registrations, and platform traffic."""
-    if not user_id:
-        raise HTTPException(401, "Authentication is required.")
-    user = get_user(user_id)
-    if not user or user.get("tier") not in ("pro", "dev", "admin"):
-        raise HTTPException(403, "Administrative privileges required.")
-    
+    """Owner-only view of recent logins, registrations, and platform activity."""
     logs = get_recent_audit_logs(limit=limit)
     return {
         "status": "success",
@@ -7484,14 +7540,34 @@ def get_admin_audit_summary(
 # Owner-only Admin Dashboard & Multi-Factor Auth endpoints
 # ---------------------------------------------------------------------------
 
+async def _read_limited_admin_json(request: Request, max_bytes: int = 8192) -> dict[str, Any]:
+    """Read bounded JSON even when the caller omits Content-Length."""
+    declared_length = request.headers.get("content-length", "")
+    if declared_length.isdigit() and int(declared_length) > max_bytes:
+        raise HTTPException(status_code=413, detail="Admin request is too large.")
+    chunks: list[bytes] = []
+    total = 0
+    async for chunk in request.stream():
+        total += len(chunk)
+        if total > max_bytes:
+            raise HTTPException(status_code=413, detail="Admin request is too large.")
+        chunks.append(chunk)
+    try:
+        body = json.loads(b"".join(chunks))
+    except (json.JSONDecodeError, UnicodeDecodeError, TypeError) as error:
+        raise HTTPException(status_code=400, detail="Request must contain valid JSON.") from error
+    if not isinstance(body, dict):
+        raise HTTPException(status_code=400, detail="Request must be a JSON object.")
+    return body
+
+
 @app.get("/api/admin/auth/status", include_in_schema=False)
-def admin_auth_status():
-    """Returns current intrusion lockout status."""
-    remaining = get_admin_lockout_remaining()
+def admin_auth_status(request: Request):
+    """Return the requesting source address's lockout status without owner PII."""
+    remaining = get_admin_lockout_remaining(get_client_ip(request))
     return {
         "locked": remaining > 0,
         "remaining_seconds": remaining,
-        "alert_email": ADMIN_ALERT_EMAIL
     }
 
 
@@ -7501,25 +7577,31 @@ async def admin_auth_step1(request: Request, background_tasks: BackgroundTasks):
     client_ip = get_client_ip(request)
     enforce_rate_limit(f"admin_step1:{client_ip}", limit=12)
 
-    remaining = get_admin_lockout_remaining()
+    if len(ADMIN_SECRET_KEY) < 64 or len(ADMIN_SECRET_CODE) < 8 or not ADMIN_ALERT_EMAIL:
+        raise HTTPException(status_code=503, detail="Owner authentication is not configured on this server.")
+
+    remaining = get_admin_lockout_remaining(client_ip)
     if remaining > 0:
         hrs = int(remaining // 3600)
         mins = int((remaining % 3600) // 60)
         raise HTTPException(status_code=423, detail=f"Admin console is locked. {hrs}h {mins}m remaining. Try after 24 hours.")
 
-    try:
-        body = await request.json()
-    except Exception:
-        body = {}
+    body = await _read_limited_admin_json(request)
 
     admin_key = str(body.get("admin_key", "")).strip()
     admin_code = str(body.get("admin_code", "")).strip()
 
-    key_ok = bool(ADMIN_SECRET_KEY and hmac.compare_digest(admin_key, ADMIN_SECRET_KEY))
-    code_ok = bool(ADMIN_SECRET_CODE and hmac.compare_digest(admin_code, ADMIN_SECRET_CODE))
+    key_ok = bool(
+        ADMIN_SECRET_KEY
+        and hmac.compare_digest(admin_key.encode("utf-8"), ADMIN_SECRET_KEY.encode("utf-8"))
+    )
+    code_ok = bool(
+        ADMIN_SECRET_CODE
+        and hmac.compare_digest(admin_code.encode("utf-8"), ADMIN_SECRET_CODE.encode("utf-8"))
+    )
 
     if not (key_ok and code_ok):
-        attempts, is_locked = record_admin_failed_attempt()
+        attempts, is_locked = record_admin_failed_attempt(client_ip)
         record_audit_event("admin_auth_failed", email=ADMIN_ALERT_EMAIL, ip_address=client_ip, details=f"Failed attempt {attempts}/3")
         if is_locked:
             background_tasks.add_task(
@@ -7542,14 +7624,26 @@ async def admin_auth_step1(request: Request, background_tasks: BackgroundTasks):
     otp = f"{secrets.randbelow(1_000_000):06d}"
     set_admin_pending_otp(otp, expires_in=600)
 
-    background_tasks.add_task(
+    delivered = await asyncio.to_thread(
         send_admin_login_otp,
         to_email=ADMIN_ALERT_EMAIL,
         otp_code=otp,
-        client_ip=client_ip
+        client_ip=client_ip,
     )
+    if not delivered:
+        clear_admin_pending_otp()
+        record_audit_event(
+            "admin_otp_delivery_failed",
+            email=ADMIN_ALERT_EMAIL,
+            ip_address=client_ip,
+            details="Configured email provider did not accept the admin OTP.",
+        )
+        raise HTTPException(
+            status_code=503,
+            detail="Owner verification email could not be delivered. Please try again later.",
+        )
     record_audit_event("admin_otp_dispatched", email=ADMIN_ALERT_EMAIL, ip_address=client_ip, details="Admin OTP dispatched to owner")
-    return {"status": "otp_sent", "email": ADMIN_ALERT_EMAIL}
+    return {"status": "otp_sent"}
 
 
 @app.post("/api/admin/auth/step2", include_in_schema=False)
@@ -7558,21 +7652,18 @@ async def admin_auth_step2(request: Request, background_tasks: BackgroundTasks):
     client_ip = get_client_ip(request)
     enforce_rate_limit(f"admin_step2:{client_ip}", limit=12)
 
-    remaining = get_admin_lockout_remaining()
+    remaining = get_admin_lockout_remaining(client_ip)
     if remaining > 0:
         hrs = int(remaining // 3600)
         raise HTTPException(status_code=423, detail=f"Admin console is locked. {hrs}h remaining. Try after 24 hours.")
 
-    try:
-        body = await request.json()
-    except Exception:
-        body = {}
+    body = await _read_limited_admin_json(request)
 
     otp = str(body.get("otp", "")).strip()
     otp_ok = verify_admin_otp(otp)
 
     if not otp_ok:
-        attempts, is_locked = record_admin_failed_attempt()
+        attempts, is_locked = record_admin_failed_attempt(client_ip)
         record_audit_event("admin_otp_failed", email=ADMIN_ALERT_EMAIL, ip_address=client_ip, details=f"Invalid OTP attempt {attempts}/3")
         if is_locked:
             background_tasks.add_task(
@@ -7592,7 +7683,7 @@ async def admin_auth_step2(request: Request, background_tasks: BackgroundTasks):
         )
 
     # Full 3-factor authentication verified -> issue 4-hour session
-    reset_admin_failed_attempts()
+    reset_admin_failed_attempts(client_ip)
     session_token = create_admin_session(ttl_seconds=14400)
     record_audit_event("admin_login_success", email=ADMIN_ALERT_EMAIL, ip_address=client_ip, details="Owner authenticated via 3-factor verification")
 
@@ -7629,6 +7720,14 @@ def admin_list_users(_: None = Depends(_require_admin)):
     return {"status": "ok", "count": len(users), "users": users}
 
 
+def _safe_csv_cell(value: Any) -> str:
+    """Neutralize spreadsheet formulas after leading whitespace/control characters."""
+    text = "" if value is None else str(value)
+    if re.match(r"^[\x00-\x20\uFEFF]*[=+\-@]", text):
+        return "'" + text
+    return text
+
+
 @app.get("/api/admin/waitlist", include_in_schema=False)
 def admin_list_waitlist(_: None = Depends(_require_admin)):
     """List all waitlist entries."""
@@ -7644,7 +7743,7 @@ def admin_export_users_csv(_: None = Depends(_require_admin)):
     writer = csv.DictWriter(output, fieldnames=["id", "email", "tier", "created_at", "subscription_status", "last_active_date"])
     writer.writeheader()
     for u in users:
-        writer.writerow({k: u.get(k, "") for k in writer.fieldnames})
+        writer.writerow({k: _safe_csv_cell(u.get(k, "")) for k in writer.fieldnames})
     output.seek(0)
     return StreamingResponse(
         iter([output.getvalue()]),
@@ -7661,7 +7760,7 @@ def admin_export_waitlist_csv(_: None = Depends(_require_admin)):
     writer = csv.DictWriter(output, fieldnames=["id", "email", "platform", "created_at", "ip_address"])
     writer.writeheader()
     for e in entries:
-        writer.writerow({k: e.get(k, "") for k in writer.fieldnames})
+        writer.writerow({k: _safe_csv_cell(e.get(k, "")) for k in writer.fieldnames})
     output.seek(0)
     return StreamingResponse(
         iter([output.getvalue()]),
@@ -7679,18 +7778,45 @@ async def submit_user_feedback(request: Request):
     """Public customer feedback submission widget endpoint."""
     client_ip = get_client_ip(request)
     enforce_rate_limit(f"feedback:{client_ip}", limit=20)
+    content_length = request.headers.get("content-length", "")
+    if content_length.isdigit() and int(content_length) > 8192:
+        raise HTTPException(status_code=413, detail="Feedback request exceeds the 8 KB limit.")
+    body_chunks: list[bytes] = []
+    body_size = 0
+    async for chunk in request.stream():
+        body_size += len(chunk)
+        if body_size > 8192:
+            raise HTTPException(status_code=413, detail="Feedback request exceeds the 8 KB limit.")
+        body_chunks.append(chunk)
     try:
-        body = await request.json()
-    except Exception:
-        body = {}
+        body = json.loads(b"".join(body_chunks).decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise HTTPException(status_code=400, detail="Feedback request must be valid JSON.") from error
+    if not isinstance(body, dict):
+        raise HTTPException(status_code=400, detail="Feedback request must be a JSON object.")
 
-    email = str(body.get("email", "")).strip()
-    rating = int(body.get("rating", 5))
-    category = str(body.get("category", "general")).strip()
-    message = str(body.get("message", "")).strip()
-
+    raw_email = body.get("email", "")
+    raw_rating = body.get("rating", 5)
+    raw_category = body.get("category", "general")
+    raw_message = body.get("message", "")
+    if not isinstance(raw_email, str) or len(raw_email.strip()) > 254:
+        raise HTTPException(status_code=422, detail="Feedback email must be a valid address of at most 254 characters.")
+    email = raw_email.strip().lower()
+    if email and not re.fullmatch(r"[^@\s<>]+@[^@\s<>]+\.[^@\s<>]+", email):
+        raise HTTPException(status_code=422, detail="Feedback email must be a valid email address.")
+    if not isinstance(raw_rating, int) or isinstance(raw_rating, bool) or not 1 <= raw_rating <= 5:
+        raise HTTPException(status_code=422, detail="Feedback rating must be an integer from 1 to 5.")
+    if not isinstance(raw_category, str) or raw_category.strip().lower() not in {"general", "suggestion", "bug"}:
+        raise HTTPException(status_code=422, detail="Feedback category is not supported.")
+    if not isinstance(raw_message, str):
+        raise HTTPException(status_code=422, detail="Feedback message must be text.")
+    message = raw_message.strip()
     if not message:
-        raise HTTPException(status_code=400, detail="Feedback message is required.")
+        raise HTTPException(status_code=422, detail="Feedback message is required.")
+    if len(message) > 1000:
+        raise HTTPException(status_code=422, detail="Feedback message cannot exceed 1000 characters.")
+    rating = raw_rating
+    category = raw_category.strip().lower()
 
     # Optional active user resolution
     user_id = None
@@ -7706,14 +7832,17 @@ async def submit_user_feedback(request: Request):
         except Exception:
             user_id = None
 
-    saved = add_user_feedback(
-        email=email,
-        rating=rating,
-        category=category,
-        message=message,
-        user_id=user_id,
-        ip_address=client_ip
-    )
+    try:
+        saved = add_user_feedback(
+            email=email,
+            rating=rating,
+            category=category,
+            message=message,
+            user_id=user_id,
+            ip_address=client_ip
+        )
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
     return {"status": "ok", "message": "Thank you for your valuable feedback!", "feedback_id": saved["id"]}
 
 
@@ -7740,27 +7869,85 @@ def admin_revenue_data(_: None = Depends(_require_admin)):
     return {"status": "ok", **rev}
 
 
+def _protected_admin_emails() -> set[str]:
+    protected = {ADMIN_ALERT_EMAIL.strip().lower()} if ADMIN_ALERT_EMAIL.strip() else set()
+    protected.update(
+        item.strip().lower()
+        for item in os.getenv("PAPERPLANE_PROTECTED_USER_EMAILS", "").split(",")
+        if item.strip()
+    )
+    return protected
+
+
+def _purge_admin_job_artifacts(job_ids: list[str]) -> tuple[int, list[str]]:
+    root = Path(JOBS).resolve()
+    removed = 0
+    pending: list[str] = []
+    for job_id in job_ids:
+        target = (root / str(job_id)).resolve()
+        if target == root or not target.is_relative_to(root):
+            pending.append(str(job_id))
+            continue
+        try:
+            if target.exists():
+                shutil.rmtree(target)
+            removed += 1
+        except OSError:
+            pending.append(str(job_id))
+    return removed, pending
+
+
 @app.post("/api/admin/users/delete", include_in_schema=False)
 async def admin_remove_user(request: Request, _: None = Depends(_require_admin)):
     """Permanently delete a single user account."""
-    try:
-        body = await request.json()
-    except Exception:
-        body = {}
+    body = await _read_limited_admin_json(request)
     user_id = str(body.get("user_id", "")).strip()
     if not user_id:
         raise HTTPException(status_code=400, detail="user_id is required.")
 
-    ok = admin_delete_user(user_id)
+    job_ids: list[str] = []
+    try:
+        ok = admin_delete_user(
+            user_id,
+            protected_emails=_protected_admin_emails(),
+            job_ids_out=job_ids,
+        )
+    except ValueError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
     if not ok:
         raise HTTPException(status_code=404, detail="User not found.")
-    return {"status": "ok", "deleted_user_id": user_id}
+    purged, pending = _purge_admin_job_artifacts(job_ids)
+    return {
+        "status": "ok",
+        "deleted_user_id": user_id,
+        "job_artifacts_removed": purged,
+        "job_artifacts_pending": pending,
+        "financial_ledger_anonymized": True,
+    }
 
 
 @app.post("/api/admin/users/cleanup-probes", include_in_schema=False)
-def admin_cleanup_probes(_: None = Depends(_require_admin)):
-    """Purge all dummy, test, and automated audit probe accounts."""
-    result = admin_cleanup_probe_accounts()
+async def admin_cleanup_probes(request: Request, _: None = Depends(_require_admin)):
+    """Preview probe matches; delete only the exact reviewed candidate IDs."""
+    body = await _read_limited_admin_json(request)
+    confirm = body.get("confirm", False)
+    candidate_ids = body.get("candidate_ids", [])
+    if not isinstance(confirm, bool) or not isinstance(candidate_ids, list) or len(candidate_ids) > 500:
+        raise HTTPException(status_code=400, detail="Invalid cleanup confirmation.")
+    if any(not isinstance(item, str) or not item.strip() for item in candidate_ids):
+        raise HTTPException(status_code=400, detail="Candidate IDs must be non-empty strings.")
+    try:
+        result = admin_cleanup_probe_accounts(
+            confirm=confirm,
+            candidate_ids=candidate_ids,
+            protected_emails=_protected_admin_emails(),
+        )
+    except ValueError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
+    if confirm:
+        purged, pending = _purge_admin_job_artifacts(result.pop("job_ids", []))
+        result["job_artifacts_removed"] = purged
+        result["job_artifacts_pending"] = pending
     return {"status": "ok", **result}
 
 
@@ -7773,16 +7960,18 @@ def admin_fetch_ai_config(_: None = Depends(_require_admin)):
 @app.post("/api/admin/ai-config", include_in_schema=False)
 async def admin_update_ai_config(request: Request, _: None = Depends(_require_admin)):
     """Update AI model, base URL, provider, or API key dynamically."""
-    try:
-        body = await request.json()
-    except Exception:
-        body = {}
+    body = await _read_limited_admin_json(request)
     provider = str(body.get("provider", "")).strip()
     model = str(body.get("model", "")).strip()
     base_url = str(body.get("base_url", "")).strip()
     api_key = str(body.get("api_key", "")).strip() or None
 
-    updated = admin_set_ai_config(provider=provider, model=model, base_url=base_url, api_key=api_key)
+    try:
+        updated = admin_set_ai_config(provider=provider, model=model, base_url=base_url, api_key=api_key)
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
+    except RuntimeError as error:
+        raise HTTPException(status_code=503, detail=str(error)) from error
     return {"status": "ok", "config": updated}
 
 
@@ -7810,7 +7999,7 @@ async def custom_404_handler(request: Request, exc: HTTPException):
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>404 Page Not Found — Paperplane PDF</title>
   <style>
-    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: #0d1416; color: #f0f5f4; font-family: system-ui, -apple-system, sans-serif; margin: 0; text-align: center; }
+    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; min-height: 100dvh; background: #0d1416; color: #f0f5f4; font-family: system-ui, -apple-system, sans-serif; margin: 0; text-align: center; }
     .box { max-width: 480px; padding: 40px 24px; background: #141e21; border: 1px solid #28393d; border-radius: 16px; box-shadow: 0 20px 48px rgba(0,0,0,0.4); margin: 20px; }
     h1 { font-size: 72px; margin: 0; color: #ff4b26; font-weight: 800; line-height: 1; }
     h2 { font-size: 22px; margin: 16px 0 12px; }

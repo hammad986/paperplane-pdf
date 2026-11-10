@@ -30,6 +30,7 @@ def test_cashfree_checkout_creates_inr_order_and_persists_order_id(monkeypatch):
     monkeypatch.setattr(server, "CASHFREE_APP_ID", "sandbox-app")
     monkeypatch.setattr(server, "CASHFREE_SECRET_KEY", "sandbox-secret")
     monkeypatch.setattr(server, "CASHFREE_ENV", "TEST")
+    monkeypatch.setattr(server, "ENVIRONMENT", "development")
     monkeypatch.setattr(server, "PAPERPLANE_PUBLIC_URL", "https://paperplane.example")
 
     def fake_request(method: str, path: str, body: dict | None = None) -> dict:

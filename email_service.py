@@ -3,10 +3,12 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 import smtplib
 import urllib.error
 import urllib.request
 from datetime import datetime, timezone
+from html import escape
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formataddr
@@ -117,7 +119,7 @@ def _dispatch_email(to_email: str, subject: str, html_body: str, text_body: str,
             to_email, subject, text_body
         )
         return True
-    logger.error("OTP email was not delivered because no configured provider accepted the message for %s.", to_email)
+    logger.error("Transactional email was not delivered because no configured provider accepted the message.")
     return False
 
 
@@ -125,14 +127,15 @@ def send_otp_email(to_email: str, otp_code: str, purpose: str = "login") -> bool
     """Sends a 6-digit one-time password (OTP) verification email for signup or login."""
     is_signup = purpose.lower().strip() == "signup"
     action_name = "Confirm Your Account" if is_signup else "Sign-In Verification"
-    subject = f"Your Paperplane PDF One-Time Code: {otp_code} ({action_name})"
+    safe_to_email = escape(str(to_email), quote=True)
+    subject = f"Paperplane PDF {action_name} verification"
 
     headline = "Confirm Your Paperplane PDF Account" if is_signup else "Two-Factor Sign-In Verification"
     explanation = (
-        f"Thank you for creating an account with <strong style='color: #ffffff;'>{to_email}</strong>. "
+        f"Thank you for creating an account with <strong style='color: #ffffff;'>{safe_to_email}</strong>. "
         f"Please enter the 6-digit one-time code below to verify your email and activate your account:"
         if is_signup
-        else f"A sign-in request was initiated for your Paperplane PDF account (<strong style='color: #ffffff;'>{to_email}</strong>). "
+        else f"A sign-in request was initiated for your Paperplane PDF account (<strong style='color: #ffffff;'>{safe_to_email}</strong>). "
         f"Enter the 6-digit one-time verification code below to complete your login:"
     )
 
@@ -174,13 +177,16 @@ def send_otp_email(to_email: str, otp_code: str, purpose: str = "login") -> bool
   </div>
 </body>
 </html>"""
-    return _dispatch_email(to_email, subject, html_body, text_body)
+    return _dispatch_email(to_email, subject, html_body, text_body, allow_simulated=False)
 
 
 def send_login_notification(to_email: str, client_ip: str = "Unknown", user_agent: str = "") -> bool:
     """Sends a security notification when a user logs in."""
     now_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     subject = "Security Alert: Your Paperplane PDF account was logged in"
+    safe_to_email = escape(str(to_email), quote=True)
+    safe_client_ip = escape(str(client_ip), quote=True)
+    safe_user_agent = escape(str(user_agent[:60]), quote=True)
     
     agent_info = f"\nBrowser / Device: {user_agent}" if user_agent else ""
     text_body = (
@@ -193,7 +199,7 @@ def send_login_notification(to_email: str, client_ip: str = "Unknown", user_agen
         f"The Paperplane PDF Security Team\n{PAPERPLANE_PUBLIC_URL}"
     )
 
-    ua_row = f'<div><strong style="color: #a3b8b6;">Device:</strong> <span style="color: #f0f5f4;">{user_agent[:60]}</span></div>' if user_agent else ""
+    ua_row = f'<div><strong style="color: #a3b8b6;">Device:</strong> <span style="color: #f0f5f4;">{safe_user_agent}</span></div>' if user_agent else ""
 
     html_body = f"""<!DOCTYPE html>
 <html>
@@ -206,11 +212,11 @@ def send_login_notification(to_email: str, client_ip: str = "Unknown", user_agen
     </div>
     <h2 style="font-size: 20px; color: #f0f5f4; margin-top: 0; margin-bottom: 12px;">Your Account Was Logged In</h2>
     <p style="color: #a3b8b6; font-size: 14px; line-height: 1.5; margin-bottom: 20px;">
-      Your Paperplane PDF account (<strong style="color: #ffffff;">{to_email}</strong>) was successfully logged in.
+      Your Paperplane PDF account (<strong style="color: #ffffff;">{safe_to_email}</strong>) was successfully logged in.
     </p>
     <div style="background-color: #1a2528; border: 1px solid #33484c; border-radius: 8px; padding: 14px; margin-bottom: 24px; font-size: 13px;">
       <div style="margin-bottom: 6px;"><strong style="color: #a3b8b6;">Timestamp:</strong> <span style="color: #f0f5f4;">{now_utc}</span></div>
-      <div style="margin-bottom: 6px;"><strong style="color: #a3b8b6;">Client IP:</strong> <span style="color: #f0f5f4;">{client_ip}</span></div>
+      <div style="margin-bottom: 6px;"><strong style="color: #a3b8b6;">Client IP:</strong> <span style="color: #f0f5f4;">{safe_client_ip}</span></div>
       {ua_row}
     </div>
     <p style="color: #a3b8b6; font-size: 13px; line-height: 1.5; margin-bottom: 24px;">
@@ -222,13 +228,14 @@ def send_login_notification(to_email: str, client_ip: str = "Unknown", user_agen
   </div>
 </body>
 </html>"""
-    return _dispatch_email(to_email, subject, html_body, text_body)
+    return _dispatch_email(to_email, subject, html_body, text_body, allow_simulated=False)
 
 
 def send_admin_login_otp(to_email: str, otp_code: str, client_ip: str = "Unknown") -> bool:
     """Dispatches a high-priority 6-digit OTP for owner admin authentication."""
     now_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
-    subject = f"🔐 Admin Login OTP: {otp_code} — Paperplane PDF"
+    safe_client_ip = escape(str(client_ip), quote=True)
+    subject = "Paperplane PDF admin sign-in verification"
 
     text_body = (
         f"Admin Sign-In Verification\n\n"
@@ -252,7 +259,7 @@ def send_admin_login_otp(to_email: str, otp_code: str, client_ip: str = "Unknown
     </div>
     <h2 style="font-size: 20px; color: #f0f5f4; margin-top: 0; margin-bottom: 12px;">Admin Authentication OTP</h2>
     <p style="color: #8ca3a2; font-size: 14px; line-height: 1.5; margin-bottom: 20px;">
-      A sign-in request was initiated for the Paperplane Owner Console from IP: <strong style="color: #ffffff;">{client_ip}</strong>.
+      A sign-in request was initiated for the Paperplane Owner Console from IP: <strong style="color: #ffffff;">{safe_client_ip}</strong>.
       Enter the one-time code below to unlock the dashboard:
     </p>
     <div style="font-size: 38px; font-weight: 900; letter-spacing: 12px; color: #ff4b26; background: #0f181a; border: 2px dashed #ff4b26; padding: 18px 24px; text-align: center; border-radius: 10px; margin: 24px 0; font-family: monospace;">
@@ -269,13 +276,15 @@ def send_admin_login_otp(to_email: str, otp_code: str, client_ip: str = "Unknown
   </div>
 </body>
 </html>"""
-    return _dispatch_email(to_email, subject, html_body, text_body)
+    return _dispatch_email(to_email, subject, html_body, text_body, allow_simulated=False)
 
 
 def send_admin_lockout_alert(to_email: str, client_ip: str = "Unknown", failure_reason: str = "") -> bool:
     """Dispatches a critical security lockout notification after 3 failed admin login attempts."""
     now_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     subject = "🚨 CRITICAL: Admin Console Locked (3 Failed Attempts) — Paperplane PDF"
+    safe_client_ip = escape(str(client_ip), quote=True)
+    safe_failure_reason = escape(str(failure_reason or "3 consecutive failed attempts on admin secret key/code"), quote=True)
 
     text_body = (
         f"CRITICAL SECURITY ALERT: ADMIN CONSOLE LOCKED\n\n"
@@ -307,8 +316,8 @@ def send_admin_lockout_alert(to_email: str, client_ip: str = "Unknown", failure_
     <div style="background-color: #271414; border: 1px solid #7f1d1d; border-radius: 8px; padding: 16px; margin-bottom: 24px; font-size: 13px;">
       <div style="margin-bottom: 8px;"><strong style="color: #fca5a5;">Lock Duration:</strong> <span style="color: #ef4444; font-weight: 700;">24 Hours (No logins accepted)</span></div>
       <div style="margin-bottom: 8px;"><strong style="color: #fca5a5;">Detection Time:</strong> <span style="color: #ffffff;">{now_utc}</span></div>
-      <div style="margin-bottom: 8px;"><strong style="color: #fca5a5;">Source IP:</strong> <span style="font-family: monospace; color: #ffffff;">{client_ip}</span></div>
-      <div><strong style="color: #fca5a5;">Cause:</strong> <span style="color: #ffffff;">{failure_reason or '3 consecutive failed attempts on admin secret key/code'}</span></div>
+      <div style="margin-bottom: 8px;"><strong style="color: #fca5a5;">Source IP:</strong> <span style="font-family: monospace; color: #ffffff;">{safe_client_ip}</span></div>
+      <div><strong style="color: #fca5a5;">Cause:</strong> <span style="color: #ffffff;">{safe_failure_reason}</span></div>
     </div>
     <p style="color: #991b1b; font-size: 13px; line-height: 1.5; margin-bottom: 20px;">
       If you did not initiate these attempts, your server is actively resisting an unauthorized intrusion. The audit trail has captured all incoming network telemetry.
@@ -319,14 +328,21 @@ def send_admin_lockout_alert(to_email: str, client_ip: str = "Unknown", failure_
   </div>
 </body>
 </html>"""
-    return _dispatch_email(to_email, subject, html_body, text_body)
+    return _dispatch_email(to_email, subject, html_body, text_body, allow_simulated=False)
 
 
 def send_waitlist_alert(signup_email: str, platform: str = "all", waitlist_position: int = 0, ip_address: str = "") -> bool:
     """Notify the admin when a new user joins the waitlist."""
-    admin_email = os.getenv("ADMIN_ALERT_EMAIL", "mdhammad2906@gmail.com")
+    admin_email = os.getenv("ADMIN_ALERT_EMAIL", "").strip()
+    if not admin_email:
+        logger.warning("Waitlist notification skipped because ADMIN_ALERT_EMAIL is not configured.")
+        return False
     now_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
-    subject = f"🎉 New Waitlist Signup — {signup_email}"
+    safe_subject_email = re.sub(r"[\r\n\x00-\x1f\x7f]", "", str(signup_email))[:254]
+    subject = f"🎉 New Waitlist Signup — {safe_subject_email}"
+    safe_signup_email = escape(str(signup_email), quote=True)
+    safe_platform = escape(str(platform), quote=True)
+    safe_ip_address = escape(str(ip_address or "unknown"), quote=True)
 
     text_body = (
         f"New Paperplane PDF waitlist signup!\n\n"
@@ -350,11 +366,11 @@ def send_waitlist_alert(signup_email: str, platform: str = "all", waitlist_posit
     </div>
     <h2 style="font-size: 20px; color: #ff4b26; margin-top: 0; margin-bottom: 12px;">🎉 New Waitlist Signup!</h2>
     <div style="background-color: #1a2528; border: 1px solid #33484c; border-radius: 8px; padding: 14px; margin-bottom: 24px; font-size: 14px;">
-      <div style="margin-bottom: 8px;"><strong style="color: #a3b8b6;">Email:</strong> <span style="color: #f0f5f4;">{signup_email}</span></div>
-      <div style="margin-bottom: 8px;"><strong style="color: #a3b8b6;">Platform:</strong> <span style="color: #f0f5f4;">{platform}</span></div>
+      <div style="margin-bottom: 8px;"><strong style="color: #a3b8b6;">Email:</strong> <span style="color: #f0f5f4;">{safe_signup_email}</span></div>
+      <div style="margin-bottom: 8px;"><strong style="color: #a3b8b6;">Platform:</strong> <span style="color: #f0f5f4;">{safe_platform}</span></div>
       <div style="margin-bottom: 8px;"><strong style="color: #a3b8b6;">Position:</strong> <span style="color: #ff4b26; font-weight: 700;">#{waitlist_position}</span></div>
       <div style="margin-bottom: 8px;"><strong style="color: #a3b8b6;">Signed up at:</strong> <span style="color: #f0f5f4;">{now_utc}</span></div>
-      <div><strong style="color: #a3b8b6;">IP Address:</strong> <span style="color: #f0f5f4;">{ip_address or 'unknown'}</span></div>
+      <div><strong style="color: #a3b8b6;">IP Address:</strong> <span style="color: #f0f5f4;">{safe_ip_address}</span></div>
     </div>
     <div style="border-top: 1px solid #28393d; padding-top: 18px; font-size: 12px; color: #708684; text-align: center;">
       Paperplane PDF &middot; Admin Notification System
@@ -369,6 +385,8 @@ def send_password_reset_email(to_email: str, reset_token: str, base_url: str | N
     """Sends a cryptographically secure 1-hour password reset link."""
     domain = (base_url or PAPERPLANE_PUBLIC_URL).rstrip("/")
     reset_url = f"{domain}/?reset_token={reset_token}"
+    safe_to_email = escape(str(to_email), quote=True)
+    safe_reset_url = escape(reset_url, quote=True)
     subject = "Reset Your Paperplane PDF Password"
 
     text_body = (
@@ -391,16 +409,16 @@ def send_password_reset_email(to_email: str, reset_token: str, base_url: str | N
     </div>
     <h2 style="font-size: 20px; color: #f0f5f4; margin-top: 0; margin-bottom: 12px;">Reset Your Password</h2>
     <p style="color: #a3b8b6; font-size: 14px; line-height: 1.5; margin-bottom: 24px;">
-      We received a request to reset the password for <strong style="color: #ffffff;">{to_email}</strong>. Click the button below to choose a new password. This link expires in 60 minutes.
+      We received a request to reset the password for <strong style="color: #ffffff;">{safe_to_email}</strong>. Click the button below to choose a new password. This link expires in 60 minutes.
     </p>
     <div style="text-align: center; margin-bottom: 28px;">
-      <a href="{reset_url}" style="background-color: #ff4b26; color: #ffffff; padding: 12px 28px; font-size: 14px; font-weight: 600; text-decoration: none; border-radius: 8px; display: inline-block;">
+      <a href="{safe_reset_url}" style="background-color: #ff4b26; color: #ffffff; padding: 12px 28px; font-size: 14px; font-weight: 600; text-decoration: none; border-radius: 8px; display: inline-block;">
         Reset Password &rarr;
       </a>
     </div>
     <p style="color: #708684; font-size: 12px; line-height: 1.4; margin-bottom: 20px;">
       Or copy and paste this URL into your browser:<br>
-      <a href="{reset_url}" style="color: #ff4b26; word-break: break-all;">{reset_url}</a>
+      <a href="{safe_reset_url}" style="color: #ff4b26; word-break: break-all;">{safe_reset_url}</a>
     </p>
     <p style="color: #a3b8b6; font-size: 12px; line-height: 1.4;">
       If you did not request this password reset, no action is needed and your account remains secure.
@@ -411,13 +429,15 @@ def send_password_reset_email(to_email: str, reset_token: str, base_url: str | N
   </div>
 </body>
 </html>"""
-    return _dispatch_email(to_email, subject, html_body, text_body)
+    return _dispatch_email(to_email, subject, html_body, text_body, allow_simulated=False)
 
 
 def send_password_changed_notification(to_email: str, client_ip: str = "Unknown") -> bool:
     """Sends a security confirmation when the password has been modified."""
     now_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     subject = "Security Alert: Your Paperplane PDF Password Was Changed"
+    safe_to_email = escape(str(to_email), quote=True)
+    safe_client_ip = escape(str(client_ip), quote=True)
 
     text_body = (
         f"Hello,\n\n"
@@ -440,11 +460,11 @@ def send_password_changed_notification(to_email: str, client_ip: str = "Unknown"
     </div>
     <h2 style="font-size: 20px; color: #f0f5f4; margin-top: 0; margin-bottom: 12px;">Password Changed Successfully</h2>
     <p style="color: #a3b8b6; font-size: 14px; line-height: 1.5; margin-bottom: 20px;">
-      The password for your Paperplane PDF account (<strong style="color: #ffffff;">{to_email}</strong>) was recently updated.
+      The password for your Paperplane PDF account (<strong style="color: #ffffff;">{safe_to_email}</strong>) was recently updated.
     </p>
     <div style="background-color: #1a2528; border: 1px solid #33484c; border-radius: 8px; padding: 14px; margin-bottom: 24px; font-size: 13px;">
       <div style="margin-bottom: 6px;"><strong style="color: #a3b8b6;">Changed At:</strong> <span style="color: #f0f5f4;">{now_utc}</span></div>
-      <div><strong style="color: #a3b8b6;">Request IP:</strong> <span style="color: #f0f5f4;">{client_ip}</span></div>
+      <div><strong style="color: #a3b8b6;">Request IP:</strong> <span style="color: #f0f5f4;">{safe_client_ip}</span></div>
     </div>
     <p style="color: #a3b8b6; font-size: 13px; line-height: 1.5;">
       If you performed this action, you can safely disregard this message. If you did not authorize this change, please recover your account immediately.
@@ -455,6 +475,4 @@ def send_password_changed_notification(to_email: str, client_ip: str = "Unknown"
   </div>
 </body>
 </html>"""
-    return _dispatch_email(to_email, subject, html_body, text_body)
-
-
+    return _dispatch_email(to_email, subject, html_body, text_body, allow_simulated=False)

@@ -122,6 +122,7 @@ button, input, select, textarea {
   display: grid;
   grid-template-columns: var(--sidebar-width) 1fr;
   min-height: 100vh;
+  min-height: 100dvh;
   transition: grid-template-columns 0.3s var(--ease-spring);
 }
 
@@ -138,6 +139,7 @@ button, input, select, textarea {
   color: var(--sidebar-text);
   border-right: 1px solid var(--sidebar-border);
   height: 100vh;
+  height: 100dvh;
   position: sticky;
   top: 0;
   display: flex;
@@ -678,6 +680,7 @@ input:checked + .toggle-slider-sm:before {
   flex-direction: column;
   min-width: 0;
   height: 100vh;
+  height: 100dvh;
   overflow-y: auto;
 }
 
@@ -1620,6 +1623,7 @@ textarea::placeholder {
   box-shadow: var(--shadow-lg);
   border: 1px solid var(--studio-border);
   height: calc(100vh - 100px);
+  height: calc(100dvh - 100px);
   min-height: 520px;
   position: relative;
 }
@@ -2263,6 +2267,7 @@ textarea::placeholder {
   flex-direction: column;
   gap: 14px;
   min-height: calc(100vh - 130px);
+  min-height: calc(100dvh - 130px);
   position: relative;
 }
 
@@ -4118,6 +4123,7 @@ body.dark-mode .btn-secondary-action {
     bottom: calc(66px + env(safe-area-inset-bottom, 0px));
     width: 290px;
     height: calc(100vh - 66px - env(safe-area-inset-bottom, 0px));
+    height: calc(100dvh - 66px - env(safe-area-inset-bottom, 0px));
     transition: left 0.3s var(--ease-spring);
     z-index: 50;
     box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
@@ -4252,6 +4258,7 @@ body.dark-mode .btn-secondary-action {
   box-shadow: var(--shadow-sm);
   padding: 32px 40px;
   min-height: calc(100vh - 160px);
+  min-height: calc(100dvh - 160px);
   animation: fadeIn 0.22s var(--ease-spring);
   margin-bottom: 24px;
 }

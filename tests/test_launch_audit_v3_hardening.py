@@ -43,7 +43,7 @@ def test_false_premises_are_corrected_from_local_facts_and_pdf_metadata(tmp_path
 
     questions = [
         ("Paris Germany ki capital kyun hai?", "Paris is the capital of France; Berlin is the capital of Germany."),
-        ("The author is John Doe, right?", "the PDF metadata lists Huy Nguyen as the author, not John Doe."),
+        ("The author is John Doe, right?", "the PDF identifies Huy Nguyen as the author, not John Doe."),
         ("This document was written in 2025, right?", "PDF creation metadata records 2026, not 2025."),
         ("This 68-page document was written in 2026, right?", "contains 3 pages, not 68."),
     ]
@@ -343,7 +343,12 @@ def test_connectivity_check_retries_transient_failure_once(monkeypatch):
     from urllib.error import HTTPError
 
     monkeypatch.setattr(ai_engine, "AI_KILL_SWITCH", False)
-    monkeypatch.setattr(ai_engine, "_current_bluesminds_api_key", lambda: "local-test-key")
+    monkeypatch.setattr(ai_engine, "_runtime_ai_config", lambda: {
+        "provider": "bluesminds",
+        "model": "local-test-model",
+        "base_url": "https://api.bluesminds.com/v1",
+        "api_key": "local-test-key",
+    })
 
     class FakeResponse:
         status = 200
@@ -351,8 +356,8 @@ def test_connectivity_check_retries_transient_failure_once(monkeypatch):
         def __exit__(self, exc_type, exc_value, traceback): return False
         def read(self): return b'{"choices":[{"message":{"content":"ok"}}]}'
 
-    with patch("ai_engine.urllib.request.urlopen", side_effect=[
-        HTTPError("http://local.invalid", 503, "busy", {}, None), FakeResponse()
+    with patch("ai_engine._open_ai_request", side_effect=[
+        HTTPError("https://api.bluesminds.com/v1/chat/completions", 503, "busy", {}, None), FakeResponse()
     ]) as open_url, patch("ai_engine.time.sleep"):
         result = ai_engine.test_bluesminds_connectivity()
 

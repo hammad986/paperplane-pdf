@@ -3,17 +3,27 @@ from __future__ import annotations
 import datetime
 import hashlib
 import hmac
+import ipaddress
 import json
+import os
+import re
 import secrets
+import socket
 import sqlite3
 import time
 import uuid
 from contextlib import closing
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from config import (
     DATABASE, FREE_API_CALLS_PER_DAY, FREE_AI_CALLS_PER_DAY,
-    FREE_MAX_FILE_SIZE_MB, FREE_CONCURRENT_JOBS
+    FREE_MAX_FILE_SIZE_MB, FREE_CONCURRENT_JOBS, AI_SETTINGS_ENCRYPTION_KEY,
+    PAYMENT_GATEWAY_FEE_PERCENT, PAYMENT_GATEWAY_FEE_GST_PERCENT, BLUESMINDS_API_KEY,
+    BLUESMINDS_BASE_URL, BLUESMINDS_MODEL, GEMINI_API_KEY, GEMINI_MODEL,
+    SESSION_SECRET_KEY,
+    OPENAI_API_KEY, AI_PROVIDER
 )
 
 
@@ -170,6 +180,12 @@ def init_db() -> None:
                 session_expires_at REAL
             );
             INSERT OR IGNORE INTO admin_auth_state (id, failed_attempts, locked_until) VALUES ('current', 0, 0);
+            CREATE TABLE IF NOT EXISTS admin_auth_attempts (
+                client_ip TEXT PRIMARY KEY,
+                failed_attempts INTEGER NOT NULL DEFAULT 0,
+                locked_until REAL NOT NULL DEFAULT 0,
+                last_attempt_at REAL NOT NULL
+            );
             CREATE TABLE IF NOT EXISTS user_feedbacks (
                 id TEXT PRIMARY KEY,
                 user_id TEXT,
@@ -505,11 +521,17 @@ def update_user_password(user_id: str, old_password: str, new_password: str) -> 
 
 
 def add_waitlist_entry(email: str, platform: str = "all", ip_address: str = "") -> dict:
+    if not isinstance(email, str):
+        raise ValueError("Please provide a valid email address.")
     cleaned_email = email.lower().strip()
-    if "@" not in cleaned_email or "." not in cleaned_email:
+    if len(cleaned_email) > 254 or not re.fullmatch(r"[^@\s<>]+@[^@\s<>]+\.[^@\s<>]+", cleaned_email):
         raise ValueError("Please provide a valid email address.")
     valid_platforms = {"all", "windows", "macos", "linux", "android", "ios"}
-    clean_platform = platform.lower().strip() if platform.lower().strip() in valid_platforms else "all"
+    if not isinstance(platform, str) or len(platform.strip()) > 32 or any(ord(char) < 32 for char in platform):
+        raise ValueError("Please provide a supported platform name.")
+    clean_platform = platform.lower().strip()
+    if clean_platform not in valid_platforms:
+        raise ValueError("Please provide a supported platform name.")
     entry_id = uuid.uuid4().hex
     now = time.time()
     with closing(connect()) as connection:
@@ -550,14 +572,16 @@ def create_email_otp(email: str, purpose: str, payload_dict: dict | None = None,
     with closing(connect()) as connection:
         if payload_dict is None:
             prev = connection.execute(
-                "SELECT payload_json FROM email_otps WHERE email = ? AND purpose = ?",
+                "SELECT payload_json FROM email_otps WHERE email = ? AND purpose = ? "
+                "ORDER BY created_at DESC LIMIT 1",
                 (cleaned_email, clean_purpose)
             ).fetchone()
             if prev and prev["payload_json"]:
                 payload_str = prev["payload_json"]
+        # Keep earlier, unexpired codes valid during the resend overlap window.
         connection.execute(
-            "DELETE FROM email_otps WHERE email = ? AND purpose = ?",
-            (cleaned_email, clean_purpose)
+            "DELETE FROM email_otps WHERE email = ? AND purpose = ? AND expires_at < ?",
+            (cleaned_email, clean_purpose, now)
         )
         connection.execute(
             "INSERT INTO email_otps (id, email, otp_hash, purpose, payload_json, attempts, expires_at, created_at) "
@@ -585,13 +609,20 @@ def create_email_otp(email: str, purpose: str, payload_dict: dict | None = None,
     return otp
 
 
-def delete_email_otp(email: str, purpose: str) -> None:
-    """Remove a newly-created OTP when its delivery cannot be confirmed."""
+def delete_email_otp(email: str, purpose: str, otp_code: str | None = None) -> None:
+    """Remove an undelivered OTP without invalidating earlier overlapping codes."""
     with closing(connect()) as connection:
-        connection.execute(
-            "DELETE FROM email_otps WHERE email = ? AND purpose = ?",
-            (email.lower().strip(), purpose.lower().strip())
-        )
+        if otp_code is None:
+            connection.execute(
+                "DELETE FROM email_otps WHERE email = ? AND purpose = ?",
+                (email.lower().strip(), purpose.lower().strip())
+            )
+        else:
+            otp_hash = hashlib.sha256(str(otp_code).strip().encode()).hexdigest()
+            connection.execute(
+                "DELETE FROM email_otps WHERE email = ? AND purpose = ? AND otp_hash = ?",
+                (email.lower().strip(), purpose.lower().strip(), otp_hash)
+            )
         connection.commit()
 
 
@@ -608,37 +639,41 @@ def verify_email_otp(email: str, purpose: str, code: str) -> dict | None:
     now = time.time()
 
     with closing(connect()) as connection:
-        row = connection.execute(
+        rows = connection.execute(
             "SELECT id, otp_hash, payload_json, attempts, expires_at "
             "FROM email_otps WHERE email = ? AND purpose = ? "
-            "ORDER BY created_at DESC LIMIT 1",
+            "ORDER BY created_at DESC",
             (cleaned_email, clean_purpose)
-        ).fetchone()
+        ).fetchall()
 
-        if not row:
+        if not rows:
             return None
 
-        if row["expires_at"] < now:
-            connection.execute("DELETE FROM email_otps WHERE id = ?", (row["id"],))
-            connection.commit()
-            return None
-
-        if row["attempts"] >= 5:
-            connection.execute("DELETE FROM email_otps WHERE id = ?", (row["id"],))
+        active_rows = []
+        for row in rows:
+            if row["expires_at"] < now or row["attempts"] >= 5:
+                connection.execute("DELETE FROM email_otps WHERE id = ?", (row["id"],))
+            else:
+                active_rows.append(row)
+        if not active_rows:
             connection.commit()
             return None
 
         candidate_hash = hashlib.sha256(clean_code.encode()).hexdigest()
-        if secrets.compare_digest(candidate_hash, row["otp_hash"]):
-            connection.execute("DELETE FROM email_otps WHERE id = ?", (row["id"],))
+        matched = next(
+            (row for row in active_rows if secrets.compare_digest(candidate_hash, row["otp_hash"])),
+            None,
+        )
+        if matched:
+            connection.execute("DELETE FROM email_otps WHERE id = ?", (matched["id"],))
             connection.commit()
             try:
-                return json.loads(row["payload_json"] or "{}")
+                return json.loads(matched["payload_json"] or "{}")
             except Exception:
                 return {}
-        connection.execute(
+        connection.executemany(
             "UPDATE email_otps SET attempts = attempts + 1 WHERE id = ?",
-            (row["id"],)
+            [(row["id"],) for row in active_rows],
         )
         connection.commit()
         return None
@@ -808,7 +843,7 @@ def increment_daily_usage(subject: str, date_str: str | None = None) -> int:
         return int(row["count"]) if row else 1
 
 
-EDU_EMAIL_PATTERNS = (".edu", ".ac.in", ".edu.in", ".ac.uk", ".res.in", ".ernet.in", ".univ", ".college", ".school")
+EDU_EMAIL_PATTERNS = (".edu", ".ac.in", ".edu.in", ".ac.uk", ".ernet.in")
 
 
 def is_educational_email(email: str | None) -> bool:
@@ -1275,60 +1310,87 @@ def admin_get_waitlist(limit: int = 1000) -> list[dict]:
 # Admin Multi-Factor & Intrusion Lockout Functions
 # ---------------------------------------------------------------------------
 
-def get_admin_lockout_remaining() -> float:
-    """Returns remaining seconds if admin console is in a 24-hour lockout state, else 0."""
+def _admin_ip_key(client_ip: str | None) -> str:
+    """Canonicalize the proxy-verified client address for an admin lockout bucket."""
+    try:
+        return ipaddress.ip_address((client_ip or "").strip()).compressed
+    except ValueError:
+        return "unknown"
+
+
+def get_admin_lockout_remaining(client_ip: str = "unknown") -> float:
+    """Returns the remaining per-address 24-hour lockout, or zero."""
     now = time.time()
     with closing(connect()) as connection:
         row = connection.execute(
-            "SELECT locked_until FROM admin_auth_state WHERE id = 'current'"
+            "SELECT locked_until FROM admin_auth_attempts WHERE client_ip = ?",
+            (_admin_ip_key(client_ip),),
         ).fetchone()
-        if row and row["locked_until"] and row["locked_until"] > now:
-            return round(row["locked_until"] - now, 1)
+    if row and row["locked_until"] and row["locked_until"] > now:
+        return round(row["locked_until"] - now, 1)
     return 0.0
 
 
-def record_admin_failed_attempt() -> tuple[int, bool]:
-    """Records a failed attempt. If failed_attempts >= 3, enforces a 24-hour lockout.
-    Returns (attempts_count, is_locked_now).
-    """
+def record_admin_failed_attempt(client_ip: str = "unknown") -> tuple[int, bool]:
+    """Atomically record a failed attempt and lock only its source address for 24h."""
     now = time.time()
+    ip_key = _admin_ip_key(client_ip)
     with closing(connect()) as connection:
-        row = connection.execute(
-            "SELECT failed_attempts, locked_until FROM admin_auth_state WHERE id = 'current'"
-        ).fetchone()
-        current_attempts = (row["failed_attempts"] if row else 0) + 1
-        is_locked = False
-        locked_until = 0.0
-        if current_attempts >= 3:
-            locked_until = now + 86400  # 24-hour lockout
-            is_locked = True
-        
+        connection.execute("BEGIN IMMEDIATE")
         connection.execute(
-            """INSERT INTO admin_auth_state (id, failed_attempts, locked_until, last_attempt_at)
-               VALUES ('current', ?, ?, ?)
-               ON CONFLICT(id) DO UPDATE SET
+            "DELETE FROM admin_auth_attempts WHERE locked_until <= ? AND last_attempt_at < ?",
+            (now, now - 86400),
+        )
+        row = connection.execute(
+            "SELECT failed_attempts, locked_until, last_attempt_at FROM admin_auth_attempts WHERE client_ip = ?",
+            (ip_key,),
+        ).fetchone()
+        if row and row["last_attempt_at"] >= now - 86400:
+            current_attempts = int(row["failed_attempts"]) + 1
+            locked_until = float(row["locked_until"] or 0)
+        else:
+            current_attempts = 1
+            locked_until = 0.0
+        is_locked = current_attempts >= 3
+        if is_locked:
+            locked_until = max(locked_until, now + 86400)
+        connection.execute(
+            """INSERT INTO admin_auth_attempts (client_ip, failed_attempts, locked_until, last_attempt_at)
+               VALUES (?, ?, ?, ?)
+               ON CONFLICT(client_ip) DO UPDATE SET
                    failed_attempts = excluded.failed_attempts,
-                   locked_until = CASE WHEN excluded.locked_until > 0 THEN excluded.locked_until ELSE admin_auth_state.locked_until END,
+                   locked_until = excluded.locked_until,
                    last_attempt_at = excluded.last_attempt_at""",
-            (current_attempts, locked_until, now)
+            (ip_key, current_attempts, locked_until, now),
         )
         connection.commit()
     return current_attempts, is_locked
 
 
-def reset_admin_failed_attempts() -> None:
-    """Clears failed attempts counter after a successful full multi-factor login."""
+def reset_admin_failed_attempts(client_ip: str = "unknown") -> None:
+    """Clear the source address's failure counter after full MFA succeeds."""
     with closing(connect()) as connection:
         connection.execute(
-            "UPDATE admin_auth_state SET failed_attempts = 0, locked_until = 0 WHERE id = 'current'"
+            "DELETE FROM admin_auth_attempts WHERE client_ip = ?",
+            (_admin_ip_key(client_ip),),
         )
         connection.commit()
 
 
+def _admin_otp_digest(otp_code: str) -> str:
+    """Key the low-entropy OTP digest so a DB-only copy cannot be brute-forced offline."""
+    pepper = os.getenv("PAPERPLANE_ADMIN_KEY", "").strip() or SESSION_SECRET_KEY
+    return hmac.new(
+        pepper.encode("utf-8"),
+        str(otp_code).strip().encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
+
+
 def set_admin_pending_otp(otp_code: str, expires_in: int = 600) -> None:
-    """Stores a cryptographically hashed OTP with expiration (default 10 minutes)."""
+    """Stores a keyed OTP digest with expiration (default 10 minutes)."""
     now = time.time()
-    otp_hash = hashlib.sha256(otp_code.encode()).hexdigest()
+    otp_hash = _admin_otp_digest(otp_code)
     with closing(connect()) as connection:
         connection.execute(
             """INSERT INTO admin_auth_state (id, pending_otp_hash, otp_expires_at)
@@ -1341,22 +1403,35 @@ def set_admin_pending_otp(otp_code: str, expires_in: int = 600) -> None:
         connection.commit()
 
 
+def clear_admin_pending_otp() -> None:
+    """Clear any outstanding owner OTP when delivery fails or authentication is reset."""
+    with closing(connect()) as connection:
+        connection.execute(
+            "UPDATE admin_auth_state SET pending_otp_hash = NULL, otp_expires_at = 0 WHERE id = 'current'"
+        )
+        connection.commit()
+
+
 def verify_admin_otp(otp_code: str) -> bool:
     """Validates the pending OTP using constant-time comparison and single-use consumption."""
     now = time.time()
     clean_code = str(otp_code).strip()
     if not clean_code:
         return False
-    otp_hash = hashlib.sha256(clean_code.encode()).hexdigest()
+    otp_hash = _admin_otp_digest(clean_code)
     with closing(connect()) as connection:
+        connection.execute("BEGIN IMMEDIATE")
         row = connection.execute(
             "SELECT pending_otp_hash, otp_expires_at FROM admin_auth_state WHERE id = 'current'"
         ).fetchone()
         if not row or not row["pending_otp_hash"]:
+            connection.rollback()
             return False
         if row["otp_expires_at"] < now:
+            connection.rollback()
             return False
         if not hmac.compare_digest(row["pending_otp_hash"], otp_hash):
+            connection.rollback()
             return False
         # Invalidate OTP on successful use
         connection.execute(
@@ -1490,56 +1565,155 @@ def admin_get_extended_analytics() -> dict:
     }
 
 
-def admin_delete_user(user_id: str) -> bool:
-    """Permanently deletes a user and associated sessions, jobs, keys, and usage."""
-    clean_id = user_id.strip()
+def admin_get_user_job_ids(user_id: str) -> list[str]:
     with closing(connect()) as connection:
-        user = connection.execute("SELECT id, email FROM users WHERE id = ?", (clean_id,)).fetchone()
+        rows = connection.execute("SELECT id FROM jobs WHERE user_id = ?", (user_id.strip(),)).fetchall()
+    return [str(row["id"]) for row in rows]
+
+
+def _redact_billing_payload(raw_payload: str | None) -> str:
+    """Keep amounts/order references for accounting while removing user PII."""
+    try:
+        value = json.loads(raw_payload or "{}")
+    except (TypeError, ValueError):
+        return json.dumps({"redacted": True}, separators=(",", ":"))
+    private_keys = {
+        "email", "customer_email", "customer_name", "customer_id", "user_id",
+        "name", "phone", "customer_phone", "customer_details", "billing_address",
+    }
+
+    def scrub(item):
+        if isinstance(item, dict):
+            return {
+                key: scrub(child)
+                for key, child in item.items()
+                if key.lower() not in private_keys and not key.lower().endswith("_email")
+            }
+        if isinstance(item, list):
+            return [scrub(child) for child in item]
+        return item
+
+    return json.dumps(scrub(value), separators=(",", ":"), ensure_ascii=False)
+
+
+def _delete_user_rows(connection: sqlite3.Connection, user_id: str, email: str, payment_customer_id: str | None) -> list[str]:
+    job_ids = [str(row["id"]) for row in connection.execute("SELECT id FROM jobs WHERE user_id = ?", (user_id,))]
+    active_jobs = connection.execute(
+        "SELECT COUNT(*) FROM jobs WHERE user_id = ? AND lower(status) IN ('queued', 'processing')",
+        (user_id,),
+    ).fetchone()[0]
+    if active_jobs:
+        raise ValueError("This account has active jobs. Retry deletion after processing finishes.")
+    customer_ids = {user_id}
+    if payment_customer_id:
+        customer_ids.add(str(payment_customer_id))
+
+    connection.execute("DELETE FROM sessions WHERE user_id = ?", (user_id,))
+    connection.execute("DELETE FROM api_keys WHERE user_id = ?", (user_id,))
+    connection.execute("DELETE FROM jobs WHERE user_id = ?", (user_id,))
+    connection.execute("DELETE FROM user_usage WHERE subject = ? OR subject LIKE ?", (user_id, f"%:{user_id}"))
+    connection.execute("DELETE FROM email_otps WHERE lower(email) = lower(?)", (email,))
+    connection.execute("DELETE FROM email_otp_attempt_limits WHERE lower(email) = lower(?)", (email,))
+    connection.execute("DELETE FROM email_otp_resend_state WHERE lower(email) = lower(?)", (email,))
+    connection.execute("DELETE FROM password_resets WHERE user_id = ?", (user_id,))
+    connection.execute("DELETE FROM idempotency_keys WHERE user_id = ?", (user_id,))
+    connection.execute("DELETE FROM app_waitlist WHERE lower(email) = lower(?)", (email,))
+    connection.execute(
+        "DELETE FROM user_feedbacks WHERE user_id = ? OR lower(email) = lower(?)",
+        (user_id, email),
+    )
+    connection.execute(
+        """UPDATE audit_logs SET user_id = NULL, email = NULL, ip_address = NULL,
+                  user_agent = NULL, details = 'Associated account removed'
+           WHERE user_id = ? OR lower(email) = lower(?)""",
+        (user_id, email),
+    )
+
+    event_rows = connection.execute(
+        "SELECT id, customer_id, payload FROM billing_events WHERE customer_id IN (?, ?) OR payload LIKE ? OR payload LIKE ?",
+        (user_id, payment_customer_id or "", f"%{user_id}%", f"%{email}%"),
+    ).fetchall()
+    for event in event_rows:
+        customer_id = event["customer_id"]
+        if customer_id in customer_ids:
+            customer_id = None
+        connection.execute(
+            "UPDATE billing_events SET customer_id = ?, payload = ? WHERE id = ?",
+            (customer_id, _redact_billing_payload(event["payload"]), event["id"]),
+        )
+
+    connection.execute("DELETE FROM users WHERE id = ?", (user_id,))
+    return job_ids
+
+
+def admin_delete_user(
+    user_id: str,
+    protected_emails: set[str] | None = None,
+    job_ids_out: list[str] | None = None,
+) -> bool:
+    """Delete a user transactionally while anonymizing retained financial/audit records."""
+    clean_id = user_id.strip()
+    protected = {email.strip().lower() for email in (protected_emails or set()) if email.strip()}
+    with closing(connect()) as connection:
+        connection.execute("BEGIN IMMEDIATE")
+        user = connection.execute(
+            "SELECT id, email, payment_customer_id FROM users WHERE id = ?",
+            (clean_id,),
+        ).fetchone()
         if not user:
+            connection.rollback()
             return False
-        user_email = user["email"]
-        connection.execute("DELETE FROM sessions WHERE user_id = ?", (clean_id,))
-        connection.execute("DELETE FROM api_keys WHERE user_id = ?", (clean_id,))
-        connection.execute("DELETE FROM jobs WHERE user_id = ?", (clean_id,))
-        connection.execute("DELETE FROM user_usage WHERE subject = ? OR subject LIKE ?", (clean_id, f"%:{clean_id}"))
-        connection.execute("DELETE FROM email_otps WHERE email = ?", (user_email,))
-        connection.execute("DELETE FROM password_resets WHERE user_id = ?", (clean_id,))
-        connection.execute("DELETE FROM idempotency_keys WHERE user_id = ?", (clean_id,))
-        connection.execute("DELETE FROM users WHERE id = ?", (clean_id,))
+        if user["email"].strip().lower() in protected:
+            connection.rollback()
+            raise ValueError("This protected owner account cannot be deleted.")
+        job_ids = _delete_user_rows(connection, clean_id, user["email"], user["payment_customer_id"])
         connection.commit()
+    if job_ids_out is not None:
+        job_ids_out.extend(job_ids)
     return True
 
 
-def admin_cleanup_probe_accounts() -> dict:
-    """Removes all test probe and dummy development accounts from database."""
-    probe_patterns = [
-        "%probe%",
-        "%example.com",
-        "%@mail.tab.bot",
-        "%@mail.instinct.com",
-        "%@sharklasers.com",
-        "test_%@%"
+def _admin_probe_candidates(connection: sqlite3.Connection, protected_emails: set[str]) -> list[dict]:
+    probe_patterns = (
+        "%probe%", "%example.com", "%@mail.tab.bot", "%@mail.instinct.com",
+        "%@sharklasers.com", "test_%@%",
+    )
+    query = " OR ".join(["email LIKE ?"] * len(probe_patterns))
+    rows = connection.execute(
+        f"SELECT id, email FROM users WHERE {query} ORDER BY email COLLATE NOCASE",
+        probe_patterns,
+    ).fetchall()
+    return [
+        {"id": str(row["id"]), "email": str(row["email"])}
+        for row in rows
+        if str(row["email"]).strip().lower() not in protected_emails
     ]
+
+
+def admin_cleanup_probe_accounts(
+    *, confirm: bool = False, candidate_ids: list[str] | None = None,
+    protected_emails: set[str] | None = None,
+) -> dict:
+    """Preview broad probe matches; delete only explicitly confirmed candidate IDs."""
+    protected = {email.strip().lower() for email in (protected_emails or set()) if email.strip()}
     with closing(connect()) as connection:
-        query_parts = " OR ".join(["email LIKE ?"] * len(probe_patterns))
-        matching = connection.execute(
-            f"SELECT id, email FROM users WHERE {query_parts}",
-            tuple(probe_patterns)
-        ).fetchall()
-        deleted_emails = [r["email"] for r in matching]
-        for r in matching:
-            uid = r["id"]
-            uemail = r["email"]
-            connection.execute("DELETE FROM sessions WHERE user_id = ?", (uid,))
-            connection.execute("DELETE FROM api_keys WHERE user_id = ?", (uid,))
-            connection.execute("DELETE FROM jobs WHERE user_id = ?", (uid,))
-            connection.execute("DELETE FROM user_usage WHERE subject = ? OR subject LIKE ?", (uid, f"%:{uid}"))
-            connection.execute("DELETE FROM email_otps WHERE email = ?", (uemail,))
-            connection.execute("DELETE FROM password_resets WHERE user_id = ?", (uid,))
-            connection.execute("DELETE FROM idempotency_keys WHERE user_id = ?", (uid,))
-            connection.execute("DELETE FROM users WHERE id = ?", (uid,))
+        connection.execute("BEGIN IMMEDIATE")
+        candidates = _admin_probe_candidates(connection, protected)
+        if not confirm:
+            connection.rollback()
+            return {"preview": True, "deleted_count": 0, "candidates": candidates}
+
+        requested = {str(item).strip() for item in (candidate_ids or []) if str(item).strip()}
+        eligible = {item["id"]: item["email"] for item in candidates}
+        selected = [item for item in requested if item in eligible]
+        if len(selected) != len(requested):
+            connection.rollback()
+            raise ValueError("The candidate list changed. Review the latest preview before confirming cleanup.")
+        deleted_jobs: list[str] = []
+        for uid in selected:
+            deleted_jobs.extend(_delete_user_rows(connection, uid, eligible[uid], None))
         connection.commit()
-    return {"deleted_count": len(deleted_emails), "deleted_emails": deleted_emails}
+    return {"preview": False, "deleted_count": len(selected), "deleted_ids": selected, "job_ids": deleted_jobs}
 
 
 def add_user_feedback(email: str, rating: int, category: str, message: str, user_id: str | None = None, ip_address: str = "") -> dict:
@@ -1548,7 +1722,15 @@ def add_user_feedback(email: str, rating: int, category: str, message: str, user
     clean_email = email.strip().lower()
     clean_cat = category.strip().lower() if category else "general"
     clean_msg = message.strip()
-    clean_rating = max(1, min(5, int(rating or 5)))
+    if not isinstance(rating, int) or isinstance(rating, bool) or not 1 <= rating <= 5:
+        raise ValueError("Rating must be an integer from 1 to 5.")
+    if clean_cat not in {"general", "suggestion", "bug"}:
+        raise ValueError("Feedback category is not supported.")
+    if not clean_msg or len(clean_msg) > 1000:
+        raise ValueError("Feedback message must contain 1 to 1000 characters.")
+    if len(clean_email) > 254:
+        raise ValueError("Feedback email is too long.")
+    clean_rating = rating
     now = time.time()
 
     with closing(connect()) as connection:
@@ -1580,151 +1762,340 @@ def admin_delete_feedback(feedback_id: str) -> bool:
 
 
 def admin_get_revenue_analytics() -> dict:
-    """Calculates gross revenue, gateway deductions, and net bank payout estimates."""
-    tier_prices_inr = {
-        "pro": 250.0,
-        "developer": 750.0,
-        "dev": 750.0,
-        "student_pro": 99.0,
-        "cyber_cafe": 499.0,
-        "exam_pass": 49.0,
-    }
+    """Report deduplicated verified INR payments and a configurable fee estimate."""
     with closing(connect()) as connection:
-        # Paid users
         paid_users_rows = connection.execute(
             """SELECT id, email, tier, cashfree_order_id, subscription_status, created_at
-               FROM users WHERE tier != 'free' ORDER BY created_at DESC"""
-        ).fetchall()
-        
-        # Check billing_events for verified payments
-        event_rows = connection.execute(
-            """SELECT customer_id, payload, created_at FROM billing_events
-               WHERE event_type IN ('cashfree.order_verified', 'payment_success', 'payment.success')
+               FROM users WHERE lower(tier) != 'free' AND lower(subscription_status) = 'active'
                ORDER BY created_at DESC"""
         ).fetchall()
+        event_rows = connection.execute(
+            """SELECT id, event_type, customer_id, payload, created_at FROM billing_events
+               ORDER BY created_at DESC"""
+        ).fetchall()
+        user_rows = connection.execute(
+            "SELECT id, email, tier, cashfree_order_id, payment_customer_id FROM users"
+        ).fetchall()
 
-        gross_revenue = 0.0
-        calculated_orders = []
+    user_by_order = {str(row["cashfree_order_id"]): dict(row) for row in user_rows if row["cashfree_order_id"]}
+    user_by_id = {str(row["id"]): dict(row) for row in user_rows}
+    user_by_customer = {str(row["payment_customer_id"]): dict(row) for row in user_rows if row["payment_customer_id"]}
+    verified_orders: dict[str, dict] = {}
+    accepted_types = {
+        "cashfree.order_verified", "payment_success_webhook", "cashfree.payment_success_webhook",
+    }
+    for event in event_rows:  # Query is newest first, so the latest verified event wins.
+        event_type = str(event["event_type"] or "").strip().lower()
+        if event_type not in accepted_types:
+            continue
+        try:
+            payload = json.loads(event["payload"] or "{}")
+        except (TypeError, ValueError):
+            continue
+        if not isinstance(payload, dict):
+            continue
+        data = payload.get("data") if isinstance(payload.get("data"), dict) else {}
+        order = data.get("order") if isinstance(data.get("order"), dict) else payload.get("order", {})
+        payment = data.get("payment") if isinstance(data.get("payment"), dict) else payload.get("payment", {})
+        if not isinstance(order, dict):
+            order = {}
+        if not isinstance(payment, dict):
+            payment = {}
+        status = str(
+            payment.get("payment_status") or order.get("order_status")
+            or payload.get("payment_status") or payload.get("order_status") or ""
+        ).strip().lower()
+        if status and status not in {"paid", "success", "successful", "payment_success"}:
+            continue
 
-        if event_rows:
-            for er in event_rows:
-                payload = json.loads(er["payload"]) if er["payload"] else {}
-                amt = float(payload.get("order_amount") or payload.get("amount") or payload.get("order", {}).get("order_amount") or 0.0)
-                if amt > 0:
-                    gross_revenue += amt
-                    calculated_orders.append({
-                        "customer_id": er["customer_id"],
-                        "amount": amt,
-                        "created_at": er["created_at"],
-                        "currency": "INR"
-                    })
-        
-        # If billing events don't have explicit amounts, estimate from active subscriptions
-        if gross_revenue == 0 and paid_users_rows:
-            for pu in paid_users_rows:
-                t = pu["tier"].lower()
-                price = tier_prices_inr.get(t, 250.0)
-                gross_revenue += price
-                calculated_orders.append({
-                    "customer_id": pu["id"],
-                    "email": pu["email"],
-                    "tier": pu["tier"],
-                    "order_id": pu["cashfree_order_id"],
-                    "amount": price,
-                    "created_at": pu["created_at"],
-                    "currency": "INR"
-                })
+        order_id = str(
+            order.get("order_id") or payment.get("order_id")
+            or payload.get("order_id") or ""
+        ).strip()
+        if not order_id:
+            continue
+        amount_raw = (
+            order.get("order_amount") or payment.get("payment_amount")
+            or payload.get("order_amount") or payload.get("amount")
+        )
+        try:
+            amount = Decimal(str(amount_raw))
+        except (InvalidOperation, TypeError, ValueError):
+            continue
+        currency_raw = order.get("order_currency") or payload.get("currency")
+        if not currency_raw:
+            continue
+        currency = str(currency_raw).upper()
+        if amount <= 0 or currency != "INR":
+            continue
+        associated_user = user_by_order.get(order_id)
+        customer_id = str(event["customer_id"] or "")
+        associated_user = associated_user or user_by_id.get(customer_id) or user_by_customer.get(customer_id)
+        associated_user_id = associated_user["id"] if associated_user else None
+        verified_orders.setdefault(order_id, {
+            "customer_id": customer_id or (associated_user["id"] if associated_user else None),
+            "user_id": associated_user_id,
+            "email": associated_user["email"] if associated_user else None,
+            "tier": associated_user["tier"] if associated_user else None,
+            "order_id": order_id,
+            "amount": amount,
+            "created_at": float(event["created_at"] or 0),
+            "currency": "INR",
+            "status": "Paid",
+        })
 
-        # Cashfree Gateway standard fees: 2% + 18% GST on fee = 2.36% total deduction
-        gateway_fee_rate = 0.0236
-        estimated_gateway_fees = round(gross_revenue * gateway_fee_rate, 2)
-        net_bank_payout = round(gross_revenue - estimated_gateway_fees, 2)
+    gross = sum((row["amount"] for row in verified_orders.values()), Decimal("0.00"))
+    fee_percent = Decimal(str(PAYMENT_GATEWAY_FEE_PERCENT))
+    gst_percent = Decimal(str(PAYMENT_GATEWAY_FEE_GST_PERCENT))
+    fee_rate = (fee_percent / Decimal(100)) * (Decimal(1) + gst_percent / Decimal(100))
+    estimated_fee = (gross * fee_rate).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    estimated_net = gross - estimated_fee
+    transactions = [
+        {key: (float(value) if key == "amount" else value) for key, value in row.items() if key != "user_id"}
+        for row in sorted(verified_orders.values(), key=lambda item: item["created_at"], reverse=True)[:20]
+    ]
+    verified_user_ids = {str(row["user_id"]) for row in verified_orders.values() if row["user_id"]}
+    paying_users = [dict(row) for row in paid_users_rows if str(row["id"]) in verified_user_ids]
 
     return {
-        "paying_users_count": len(paid_users_rows),
-        "gross_revenue_inr": gross_revenue,
-        "gateway_fee_rate_percent": 2.36,
-        "estimated_gateway_fees_inr": estimated_gateway_fees,
-        "net_bank_payout_inr": net_bank_payout,
-        "paying_users": [dict(r) for r in paid_users_rows],
-        "recent_transactions": calculated_orders[:20]
+        "paying_users_count": len(paying_users),
+        "gross_revenue_inr": float(gross),
+        "gateway_fee_percent": float(fee_percent),
+        "gateway_fee_gst_percent": float(gst_percent),
+        "gateway_fee_rate_percent": round(float(fee_rate * Decimal(100)), 4),
+        "estimated_gateway_fees_inr": float(estimated_fee),
+        "net_bank_payout_inr": float(estimated_net),
+        "revenue_basis": "Verified paid INR orders, deduplicated by order ID; refunds and settlement timing are not included.",
+        "paying_users": paying_users,
+        "recent_transactions": transactions,
     }
+
+
+AI_PROVIDER_DEFAULTS = {
+    "openai_compatible": "https://api.openai.com/v1",
+    "bluesminds": BLUESMINDS_BASE_URL or "https://api.bluesminds.com/v1",
+    "openrouter": "https://openrouter.ai/api/v1",
+    "anthropic": "https://api.anthropic.com",
+    "gemini": "https://generativelanguage.googleapis.com",
+    "deepseek": "https://api.deepseek.com/v1",
+}
+AI_PROVIDER_HOSTS = {
+    "bluesminds": {"api.bluesminds.com"},
+    "openrouter": {"openrouter.ai", "www.openrouter.ai"},
+    "anthropic": {"api.anthropic.com"},
+    "gemini": {"generativelanguage.googleapis.com"},
+    "deepseek": {"api.deepseek.com"},
+}
+
+
+def _validate_ai_base_url(provider: str, base_url: str) -> str:
+    if provider not in AI_PROVIDER_DEFAULTS:
+        raise ValueError("Unsupported AI provider.")
+    if len(base_url) > 2048:
+        raise ValueError("AI base URL is too long.")
+    parsed = urlsplit(base_url.strip())
+    if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password:
+        raise ValueError("AI endpoint must be an HTTPS URL without embedded credentials.")
+    if parsed.query or parsed.fragment or parsed.port not in (None, 443):
+        raise ValueError("AI endpoint cannot include a query, fragment, or nonstandard port.")
+    host = parsed.hostname.rstrip(".").lower()
+    expected_hosts = AI_PROVIDER_HOSTS.get(provider)
+    if expected_hosts and host not in expected_hosts:
+        raise ValueError("This provider must use its official HTTPS API host.")
+    if not expected_hosts:
+        try:
+            address = ipaddress.ip_address(host)
+        except ValueError:
+            address = None
+        if address and (not address.is_global or address.is_multicast or address.is_unspecified):
+            raise ValueError("AI endpoint cannot target a private or reserved IP address.")
+        if not address:
+            try:
+                resolved = {
+                    ipaddress.ip_address(item[4][0].split("%", 1)[0])
+                    for item in socket.getaddrinfo(host, parsed.port or 443, type=socket.SOCK_STREAM)
+                }
+            except (OSError, ValueError) as error:
+                raise ValueError("AI endpoint host did not resolve to a public address.") from error
+            if not resolved or any(not address.is_global or address.is_multicast or address.is_unspecified for address in resolved):
+                raise ValueError("AI endpoint cannot resolve to a private or reserved address.")
+    return base_url.strip().rstrip("/")
+
+
+def _ai_settings_fernet():
+    from cryptography.fernet import Fernet, InvalidToken
+
+    key = (os.getenv("PAPERPLANE_AI_SETTINGS_ENCRYPTION_KEY", "").strip() or AI_SETTINGS_ENCRYPTION_KEY)
+    if not key:
+        raise RuntimeError("PAPERPLANE_AI_SETTINGS_ENCRYPTION_KEY is required to store AI credentials.")
+    try:
+        return Fernet(key.encode("ascii")), InvalidToken
+    except (ValueError, UnicodeEncodeError) as error:
+        raise RuntimeError("PAPERPLANE_AI_SETTINGS_ENCRYPTION_KEY is invalid.") from error
+
+
+def _default_ai_provider() -> str:
+    if BLUESMINDS_API_KEY:
+        return "bluesminds"
+    if GEMINI_API_KEY:
+        return "gemini"
+    if OPENAI_API_KEY:
+        return "openai_compatible"
+    return AI_PROVIDER if AI_PROVIDER in AI_PROVIDER_DEFAULTS else "bluesminds"
+
+
+def _environment_ai_key(provider: str) -> str:
+    if provider == "gemini":
+        return GEMINI_API_KEY or os.getenv("GEMINI_API_KEY", "").strip()
+    if provider == "bluesminds":
+        return BLUESMINDS_API_KEY or os.getenv("BLUESMINDS_API_KEY", "").strip()
+    if provider == "openai_compatible":
+        return OPENAI_API_KEY or os.getenv("OPENAI_API_KEY", "").strip()
+    return ""
+
+
+def _ai_provider_key_setting(provider: str) -> str:
+    return f"AI_API_KEY__{provider}"
+
+
+def _read_ai_settings(connection: sqlite3.Connection) -> tuple[dict[str, str], str, bool]:
+    settings = dict(connection.execute("SELECT key, value FROM admin_system_settings").fetchall())
+    provider = settings.get("AI_PROVIDER") or _default_ai_provider()
+    provider_key_name = _ai_provider_key_setting(provider)
+    stored_key = settings.get(provider_key_name, "")
+    source_key_name = provider_key_name
+    legacy_key = settings.get("AI_API_KEY", "")
+    legacy_provider = settings.get("AI_API_KEY_PROVIDER") or provider
+    if not stored_key and legacy_key and legacy_provider == provider:
+        stored_key = legacy_key
+        source_key_name = "AI_API_KEY"
+    needs_encryption = bool(stored_key and not stored_key.startswith("fernet:v1:"))
+    if stored_key.startswith("fernet:v1:"):
+        fernet, invalid_token = _ai_settings_fernet()
+        try:
+            raw_key = fernet.decrypt(stored_key.removeprefix("fernet:v1:").encode("ascii")).decode("utf-8")
+        except (invalid_token, UnicodeDecodeError) as error:
+            raise RuntimeError("Saved AI credentials cannot be decrypted with the configured encryption key.") from error
+        if source_key_name == "AI_API_KEY":
+            connection.execute(
+                "INSERT INTO admin_system_settings (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
+                (provider_key_name, stored_key, time.time()),
+            )
+            connection.execute("DELETE FROM admin_system_settings WHERE key IN ('AI_API_KEY', 'AI_API_KEY_PROVIDER')")
+            connection.commit()
+        if legacy_key and source_key_name != "AI_API_KEY":
+            connection.execute("DELETE FROM admin_system_settings WHERE key IN ('AI_API_KEY', 'AI_API_KEY_PROVIDER')")
+            connection.commit()
+        return settings, raw_key, False
+    if needs_encryption:
+        try:
+            fernet, _ = _ai_settings_fernet()
+        except RuntimeError:
+            return settings, "", True
+        encrypted = "fernet:v1:" + fernet.encrypt(stored_key.encode("utf-8")).decode("ascii")
+        connection.execute(
+            "INSERT INTO admin_system_settings (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
+            (provider_key_name, encrypted, time.time()),
+        )
+        if source_key_name == "AI_API_KEY":
+            connection.execute("DELETE FROM admin_system_settings WHERE key IN ('AI_API_KEY', 'AI_API_KEY_PROVIDER')")
+        connection.commit()
+        return settings, stored_key, False
+    if legacy_key and source_key_name != "AI_API_KEY":
+        # A provider-specific key already exists; remove any unused legacy copy.
+        connection.execute("DELETE FROM admin_system_settings WHERE key IN ('AI_API_KEY', 'AI_API_KEY_PROVIDER')")
+        connection.commit()
+    return settings, "", False
 
 
 def admin_get_ai_config() -> dict:
-    """Returns the active AI configuration with API key safely masked."""
-    from config import BLUESMINDS_API_KEY, BLUESMINDS_BASE_URL, BLUESMINDS_MODEL, AI_PROVIDER
-    with closing(connect()) as connection:
-        settings = dict(connection.execute("SELECT key, value FROM admin_system_settings").fetchall())
-
-    provider = settings.get("AI_PROVIDER") or AI_PROVIDER or "openai_compatible"
-    model = settings.get("AI_MODEL") or BLUESMINDS_MODEL or "openai/gpt-oss-20b"
-    base_url = settings.get("AI_BASE_URL") or BLUESMINDS_BASE_URL or "https://api.bluesminds.com/v1"
-    raw_key = settings.get("AI_API_KEY") or BLUESMINDS_API_KEY or ""
-
-    # Mask key for frontend safety: sk-abc...1234
-    if raw_key and len(raw_key) > 8:
-        masked_key = f"{raw_key[:4]}••••••••{raw_key[-4:]}"
-    elif raw_key:
-        masked_key = "••••••••"
-    else:
-        masked_key = ""
-
+    """Return runtime selection with the credential masked; never return stored plaintext."""
+    try:
+        with closing(connect()) as connection:
+            settings, saved_key, needs_encryption = _read_ai_settings(connection)
+    except RuntimeError:
+        with closing(connect()) as connection:
+            settings = dict(connection.execute(
+                "SELECT key, value FROM admin_system_settings WHERE key != 'AI_API_KEY' AND key != 'AI_API_KEY_PROVIDER' AND key NOT LIKE 'AI_API_KEY__%'"
+            ).fetchall())
+        saved_key, needs_encryption = "", True
+    provider = settings.get("AI_PROVIDER") or _default_ai_provider()
+    model = settings.get("AI_MODEL") or (GEMINI_MODEL if provider == "gemini" else BLUESMINDS_MODEL if provider == "bluesminds" else "")
+    base_url = settings.get("AI_BASE_URL") or AI_PROVIDER_DEFAULTS.get(provider, AI_PROVIDER_DEFAULTS["bluesminds"])
+    raw_key = saved_key or _environment_ai_key(provider)
+    masked_key = f"{raw_key[:4]}••••••••{raw_key[-4:]}" if len(raw_key) > 8 else ("••••••••" if raw_key else "")
     return {
         "provider": provider,
         "model": model,
         "base_url": base_url,
         "api_key_masked": masked_key,
-        "has_key": bool(raw_key)
+        "has_key": bool(raw_key),
+        "key_needs_encryption": needs_encryption,
     }
 
 
 def admin_set_ai_config(provider: str, model: str, base_url: str, api_key: str | None = None) -> dict:
-    """Updates AI model, base URL, provider, and optionally a new unmasked API key."""
+    """Validate the provider endpoint and encrypt any newly supplied API key at rest."""
+    clean_provider = (provider or "").strip().lower()
+    if clean_provider not in AI_PROVIDER_DEFAULTS:
+        raise ValueError("Unsupported AI provider.")
+    clean_model = (model or "").strip()
+    if not clean_model or len(clean_model) > 200 or any(ord(ch) < 32 for ch in clean_model):
+        raise ValueError("Enter a valid AI model identifier (1–200 characters).")
+    clean_base_url = _validate_ai_base_url(clean_provider, (base_url or AI_PROVIDER_DEFAULTS[clean_provider]).strip())
+    clean_key = (api_key or "").strip()
+    encrypted_key = None
+    if clean_key and "••" not in clean_key:
+        if len(clean_key) > 4096:
+            raise ValueError("AI API key is too long.")
+        fernet, _ = _ai_settings_fernet()
+        encrypted_key = "fernet:v1:" + fernet.encrypt(clean_key.encode("utf-8")).decode("ascii")
+
     now = time.time()
     with closing(connect()) as connection:
-        if provider:
-            connection.execute(
-                "INSERT INTO admin_system_settings (key, value, updated_at) VALUES ('AI_PROVIDER', ?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
-                (provider.strip().lower(), now)
+        connection.execute("BEGIN IMMEDIATE")
+        settings, _, needs_encryption = _read_ai_settings(connection)
+        current_provider = settings.get("AI_PROVIDER") or _default_ai_provider()
+        if needs_encryption and current_provider != clean_provider and not encrypted_key:
+            raise RuntimeError(
+                "Configure the AI settings encryption key and re-enter the current provider key before switching providers."
             )
-        if model:
+        for key, value in (
+            ("AI_PROVIDER", clean_provider),
+            ("AI_MODEL", clean_model),
+            ("AI_BASE_URL", clean_base_url),
+        ):
             connection.execute(
-                "INSERT INTO admin_system_settings (key, value, updated_at) VALUES ('AI_MODEL', ?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
-                (model.strip(), now)
+                "INSERT INTO admin_system_settings (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
+                (key, value, now),
             )
-        if base_url:
+        if encrypted_key:
             connection.execute(
-                "INSERT INTO admin_system_settings (key, value, updated_at) VALUES ('AI_BASE_URL', ?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
-                (base_url.strip().rstrip("/"), now)
-            )
-        if api_key and not api_key.startswith("••"):
-            connection.execute(
-                "INSERT INTO admin_system_settings (key, value, updated_at) VALUES ('AI_API_KEY', ?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
-                (api_key.strip(), now)
+                "INSERT INTO admin_system_settings (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
+                (_ai_provider_key_setting(clean_provider), encrypted_key, now),
             )
         connection.commit()
     return admin_get_ai_config()
 
 
 def get_runtime_ai_credentials() -> dict:
-    """Retrieves unmasked AI credentials for inference execution."""
-    from config import BLUESMINDS_API_KEY, BLUESMINDS_BASE_URL, BLUESMINDS_MODEL, AI_PROVIDER
+    """Read the selected AI provider and decrypt its key only for server-side inference."""
     try:
         with closing(connect()) as connection:
-            settings = dict(connection.execute("SELECT key, value FROM admin_system_settings").fetchall())
-    except Exception:
-        settings = {}
-
-    provider = settings.get("AI_PROVIDER") or AI_PROVIDER or "openai_compatible"
-    model = settings.get("AI_MODEL") or BLUESMINDS_MODEL or "openai/gpt-oss-20b"
-    base_url = settings.get("AI_BASE_URL") or BLUESMINDS_BASE_URL or "https://api.bluesminds.com/v1"
-    api_key = settings.get("AI_API_KEY") or BLUESMINDS_API_KEY or ""
-
+            settings, saved_key, needs_encryption = _read_ai_settings(connection)
+    except sqlite3.Error:
+        settings, saved_key, needs_encryption = {}, "", False
+    if needs_encryption:
+        raise RuntimeError("Stored AI credentials are plaintext; configure encryption and save the key again.")
+    provider = settings.get("AI_PROVIDER") or _default_ai_provider()
+    if provider not in AI_PROVIDER_DEFAULTS:
+        raise RuntimeError("The configured AI provider is not supported.")
+    model = settings.get("AI_MODEL") or (GEMINI_MODEL if provider == "gemini" else BLUESMINDS_MODEL if provider == "bluesminds" else "")
+    base_url = settings.get("AI_BASE_URL") or AI_PROVIDER_DEFAULTS[provider]
+    base_url = _validate_ai_base_url(provider, base_url)
     return {
         "provider": provider,
         "model": model,
         "base_url": base_url,
-        "api_key": api_key
+        "api_key": saved_key or _environment_ai_key(provider),
     }
-

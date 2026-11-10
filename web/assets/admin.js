@@ -5,11 +5,13 @@
 
 (function () {
   const urlParams = new URLSearchParams(window.location.search);
-  let sessionToken = urlParams.get("session") || sessionStorage.getItem("pp_admin_session") || "";
-  if (urlParams.has("session") && sessionToken) {
-    sessionStorage.setItem("pp_admin_session", sessionToken);
-    window.history.replaceState({}, document.title, window.location.pathname);
+  if (urlParams.has("session") || urlParams.has("key")) {
+    urlParams.delete("session");
+    urlParams.delete("key");
+    const query = urlParams.toString();
+    window.history.replaceState({}, document.title, `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`);
   }
+  let sessionToken = sessionStorage.getItem("pp_admin_session") || "";
   let usersData = [];
   let waitlistData = [];
   let auditData = [];
@@ -592,6 +594,8 @@
     setElText("rev-gross-revenue", `₹${(rev.gross_revenue_inr ?? 0).toLocaleString("en-IN")}`);
     setElText("rev-gateway-fees", `₹${(rev.estimated_gateway_fees_inr ?? 0).toLocaleString("en-IN")}`);
     setElText("rev-net-payout", `₹${(rev.net_bank_payout_inr ?? 0).toLocaleString("en-IN")}`);
+    setElText("rev-fee-rate", `${Number(rev.gateway_fee_rate_percent ?? 0).toFixed(2)}%`);
+    setElText("rev-revenue-basis", rev.revenue_basis || "Estimated totals must be reconciled against the gateway settlement report.");
 
     const tbody = document.getElementById("revenue-tbody");
     if (!tbody) return;
@@ -610,7 +614,7 @@
         <td><code style="color: var(--text-muted);">${escapeHtml(ord.order_id || ord.customer_id)}</code></td>
         <td><strong style="color: var(--green);">₹${(ord.amount || 0).toLocaleString("en-IN")}</strong></td>
         <td>${dateStr}</td>
-        <td><span style="color: var(--green); font-weight: 600;">● Settled</span></td>
+        <td><span style="color: var(--green); font-weight: 600;">● ${escapeHtml(ord.status || "Paid")}</span></td>
       </tr>`;
     }).join("");
   }
@@ -665,7 +669,23 @@
     if (providerSel && cfg.provider) providerSel.value = cfg.provider;
     if (baseUrlInput && cfg.base_url) baseUrlInput.value = cfg.base_url;
     if (modelInput && cfg.model) modelInput.value = cfg.model;
-    if (apiKeyInput && cfg.api_key_masked) apiKeyInput.value = cfg.api_key_masked;
+    if (apiKeyInput) {
+      // Show a non-reusable mask as a placeholder. Never round-trip a partial
+      // credential as though it were the real key.
+      apiKeyInput.value = "";
+      apiKeyInput.placeholder = cfg.has_key
+        ? `Saved: ${cfg.api_key_masked || "configured"} · leave blank to keep`
+        : "Enter provider API key";
+      apiKeyInput.autocomplete = "new-password";
+    }
+    const saveMsg = document.getElementById("ai-save-msg");
+    if (saveMsg && cfg.key_needs_encryption) {
+      saveMsg.textContent = "Existing saved AI credential needs the server encryption key configured before it can be used. Re-enter it after deployment setup.";
+      saveMsg.style.background = "#3b1414";
+      saveMsg.style.borderColor = "#7f1d1d";
+      saveMsg.style.color = "#f87171";
+      saveMsg.style.display = "block";
+    }
   }
 
   // --- Handle AI Config Save ---
@@ -752,7 +772,7 @@
       const data = await resp.json();
       const latency = Math.round(performance.now() - t0);
 
-      if (resp.ok && data.result && data.result.status === "ok") {
+      if (resp.ok && data.result && ["ok", "inference_succeeded"].includes(data.result.status)) {
         if (statusEl) {
           statusEl.textContent = `✅ Connected (${latency}ms) — Model: ${data.result.model || "Active"}`;
           statusEl.style.color = "var(--green)";
@@ -777,29 +797,45 @@
 
   // --- Handle Clean Probe Accounts ---
   async function handleCleanProbes() {
-    const confirmClean = confirm(
-      "Are you sure you want to clean all test probe accounts (example.com, tab.bot, sharklasers, etc.)?\n\nReal user accounts (mdhammad2906@gmail.com, etc.) will be 100% safe."
-    );
-    if (!confirmClean) return;
-
     const btn = document.getElementById("btn-clean-probes");
     btn.disabled = true;
-    btn.textContent = "Cleaning...";
+    btn.textContent = "Reviewing...";
 
     try {
+      const previewResp = await fetch("/api/admin/users/cleanup-probes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Admin-Session": sessionToken },
+        body: JSON.stringify({})
+      });
+      const preview = await previewResp.json();
+      if (!previewResp.ok) {
+        alert(preview.detail || "Unable to preview matching accounts.");
+        return;
+      }
+      const candidates = preview.candidates || [];
+      if (!candidates.length) {
+        alert("No matching probe accounts were found.");
+        return;
+      }
+      const review = candidates.map(item => `• ${item.email}`).join("\n");
+      if (!confirm(`Review these ${candidates.length} matching accounts before deletion:\n\n${review}\n\nDelete only these listed accounts?`)) return;
+
+      btn.textContent = "Cleaning...";
       const resp = await fetch("/api/admin/users/cleanup-probes", {
         method: "POST",
-        headers: { "X-Admin-Session": sessionToken }
+        headers: { "Content-Type": "application/json", "X-Admin-Session": sessionToken },
+        body: JSON.stringify({ confirm: true, candidate_ids: candidates.map(item => item.id) })
       });
       const data = await resp.json();
-      if (resp.ok) {
-        alert(`Cleaned ${data.deleted_count} test probe accounts successfully!`);
-        fetchDashboardData();
-      } else {
-        alert(data.detail || "Failed to cleanup probe accounts.");
+      if (!resp.ok) {
+        alert(data.detail || "Failed to cleanup probe accounts. Review the latest preview and try again.");
+        return;
       }
+      const pending = data.job_artifacts_pending || [];
+      alert(`Deleted ${data.deleted_count} reviewed accounts. ${pending.length ? `${pending.length} job artifact folder(s) need manual cleanup.` : "Associated job files were removed."}`);
+      fetchDashboardData();
     } catch (e) {
-      alert("Network error cleaning probe accounts.");
+      alert("Network error reviewing or cleaning probe accounts.");
     } finally {
       btn.disabled = false;
       btn.textContent = "🧹 Clean Test Probes";
@@ -896,6 +932,11 @@
 
   function escapeHtml(str) {
     if (!str) return "";
-    return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
 })();

@@ -35,6 +35,10 @@ def test_common_guessed_tool_slugs_redirect_to_canonical_pages():
         "mask-aadhaar": "mask-aadhaar-card-online",
         "flatten-pdf-forms": "flatten-pdf",
         "ai-summarize": "summarize-pdf",
+        "extract-pages": "split-pdf",
+        "grayscale-pdf": "convert-pdf-to-grayscale",
+        "pdf-to-ppt": "pdf-to-powerpoint",
+        "ppt-to-pdf": "powerpoint-to-pdf",
     }
     for alias, canonical in aliases.items():
         response = client.get(f"/{alias}", follow_redirects=False)
@@ -84,6 +88,16 @@ def test_spa_seo_endpoint_returns_the_same_route_content_model():
     assert len(payload["faqs"]) == 4
     assert payload["faqs"][-1][0] == "Does Paperplane keep a job history?"
     assert "does not provide a recent-files or job-history page" in payload["faqs"][-1][1]
+
+
+def test_page_organizer_copy_matches_its_page_number_order_control():
+    response = client.get("/api/seo/organize")
+    assert response.status_code == 200
+    payload = response.json()
+    description = " ".join([payload["description"], payload["heading"], payload["intro"], *payload["how_to"]])
+    assert "comma-separated page numbers" in description
+    assert "every page number exactly once" in description
+    assert not any(term in description.lower() for term in ("drag-and-drop", "visual organizer", "thumbnails"))
 
 
 def test_sitemap_contains_every_operation_and_landing_pages():

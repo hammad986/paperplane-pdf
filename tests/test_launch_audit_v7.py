@@ -127,7 +127,7 @@ def test_plan_limits_and_photo_resizer_names_are_explicit_and_consistent():
 
     assert "Free web tools:" in html
     assert "Paid web tools: no daily operation cap" in html
-    assert "Developer API quotas are separate." in javascript
+    assert "Developer API quotas are separate." not in javascript
     assert "Compare accepts 2 files; other tools accept 1 file per run." in html
     assert '"label": "Exam Photo & Signature Resizer"' in backend
     assert '"heading": "Exam Photo & Signature Resizer for SSC & UPSC"' in backend

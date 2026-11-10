@@ -312,8 +312,23 @@ def correct_false_premise(pdf_path: Path | None, question: str) -> str | None:
         return None
 
     metadata: dict[str, str] = {}
+    document_author = ""
     if pdf_path is not None:
         page_count, metadata = _pdf_metadata_facts(pdf_path)
+        try:
+            document = fitz.open(str(pdf_path))
+            try:
+                front_matter = "\n".join(page.get_text("text") for page in list(document)[:3])
+            finally:
+                document.close()
+            author_line = re.search(
+                r"(?im)^\s*(?:author|written\s+by|by)\s*[:\-]?\s*([A-Z][\w.'-]*(?:\s+[A-Z][\w.'-]*){0,4})\s*$",
+                front_matter,
+            )
+            if author_line:
+                document_author = author_line.group(1).strip()
+        except Exception:
+            document_author = ""
         page_count_claim = re.search(r"\b(\d{1,5})\s*[- ]?pages?\b", question, re.IGNORECASE)
         if page_count_claim:
             claimed = int(page_count_claim.group(1))
@@ -346,17 +361,19 @@ def correct_false_premise(pdf_path: Path | None, question: str) -> str | None:
                 "it is not a fact inferred from the uploaded PDF."
             )
 
-    author = metadata.get("author", "").strip()
-    if author and re.search(r"\b(author|authored|wrote|written by)\b", question, re.IGNORECASE):
+    author = metadata.get("author", "").strip() or document_author
+    if re.search(r"\b(author|authored|wrote|written by)\b", question, re.IGNORECASE):
         claimed_author = re.search(
             r"\b(?:author(?:ed)?(?:\s+is|\s+was|\s+by)?|written\s+by|wrote)\s+[\"“]?([A-Z][\w.'-]+(?:\s+[A-Z][\w.'-]+){0,3})",
             question,
         )
-        if claimed_author and claimed_author.group(1).casefold() != author.casefold():
+        if claimed_author and author and claimed_author.group(1).casefold() != author.casefold():
             return (
-                f"Correction: the PDF metadata lists {author} as the author, not "
-                f"{claimed_author.group(1)}. Embedded metadata is not independent proof of authorship."
+                f"Correction: the PDF identifies {author} as the author, not "
+                f"{claimed_author.group(1)}. This is based on the document text or embedded metadata."
             )
+        if claimed_author and not author:
+            return "I can't verify that authorship claim: the PDF's metadata and opening text do not identify an author."
 
     creation_year = _metadata_year(metadata.get("creationDate", ""))
     if creation_year and re.search(r"\b(date|year|published|publication|created|written)\b", question, re.IGNORECASE):
@@ -409,8 +426,14 @@ def align_answer_citations(answer: str, eligible_pages: list[int] | set[int]) ->
     text = answer or ""
     # Remove literal prompt templates before normalizing real page references.
     text = re.sub(r"\[(?:pages?|p\.?)\s*[xX](?:\s*[-–]\s*[xX])?\]", "", text, flags=re.IGNORECASE)
+    text = re.sub(r"\[{2,}\s*([^\[\]]+?)\s*\]{2,}", r"[\1]", text)
     for citation_pattern in citation_patterns:
         text = citation_pattern.sub(keep_supported, text)
+    text = re.sub(
+        r"(?P<citation>\[(?:Page|Pages) \d+(?:, \d+)*\])(?:\s*\1)+",
+        r"\g<citation>",
+        text,
+    )
     text = re.sub(r"[ \t]{2,}", " ", text)
     text = re.sub(r"\s+([,.;:!?])", r"\1", text)
     return text.strip(), sorted(cited_pages)
@@ -460,110 +483,39 @@ def call_bluesminds(
     model: str | None = None,
     timeout_seconds: float | None = None,
 ) -> str:
-    """Calls Bluesminds OpenAI-compatible chat completions API with primary and active model failover."""
-    if AI_KILL_SWITCH:
-        raise RuntimeError("AI request failed, please try again")
+    """Backward-compatible entry point that honors the selected provider."""
+    return _call_selected_provider(system_prompt, user_prompt, model=model, timeout_seconds=timeout_seconds)
 
-    try:
-        import persistence
-        runtime_creds = persistence.get_runtime_ai_credentials()
-    except Exception:
-        runtime_creds = {}
 
-    api_key = runtime_creds.get("api_key") or _current_bluesminds_api_key()
-    if not api_key:
-        raise ValueError("AI provider is not configured")
+class _NoRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Do not forward provider credentials to a redirect target."""
 
-    primary_model = model or runtime_creds.get("model") or BLUESMINDS_MODEL or "openai/gpt-oss-20b"
-    base_url = (runtime_creds.get("base_url") or BLUESMINDS_BASE_URL or "https://api.bluesminds.com/v1").rstrip("/")
-    if not base_url.endswith("/v1"):
-        endpoint = f"{base_url}/v1/chat/completions"
-    else:
-        endpoint = f"{base_url}/chat/completions"
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
 
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-        "User-Agent": "Paperplane-PDF/1.0"
-    }
 
-    timeout = max(5, min(120, float(timeout_seconds or BLUESMINDS_TIMEOUT_SECONDS)))
-
-    # Candidate models on Bluesminds gateway: primary first, followed by active fallbacks if primary 504s/times out
-    # Honor the configured model exactly. Silent fallback made diagnostics and
-    # production inference disagree with the owner's configured environment.
-    models_to_try = [primary_model]
-
-    last_error: Exception | None = None
-    attempts = 2
-    for attempt_idx in range(attempts):
-      for candidate_model in models_to_try:
-        payload = {
-            "model": candidate_model,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ],
-            "temperature": 0.2,
-            "max_tokens": BLUESMINDS_MAX_OUTPUT_TOKENS or 4096
-        }
-        body = json.dumps(payload).encode("utf-8")
-
-        attempt_timeout = timeout
-
-        try:
-            req = urllib.request.Request(endpoint, data=body, headers=headers)
-            with urllib.request.urlopen(req, timeout=attempt_timeout) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
-                choices = data.get("choices", [])
-                if choices and "message" in choices[0]:
-                    content = choices[0]["message"].get("content", "").strip()
-                    if content:
-                        return content
-                raise RuntimeError("AI service returned an empty response. Please try again.")
-        except urllib.error.HTTPError as e:
-            logger.warning("AI provider returned HTTP %s", e.code)
-            last_error = e
-            if attempt_idx + 1 < attempts and e.code in (408, 429, 500, 502, 503, 504):
-                time.sleep(0.4)
-                continue
-            raise RuntimeError(f"AI service returned HTTP {e.code}. Please try again.") from e
-        except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as e:
-            logger.warning("AI provider connection error: %s", e)
-            last_error = e
-            if attempt_idx + 1 < attempts:
-                time.sleep(0.4)
-                continue
-            raise RuntimeError("AI service could not be reached or timed out. Please try again.") from e
-        except Exception as e:
-            if isinstance(e, (ValueError, RuntimeError)):
-                raise
-            logger.error("Bluesminds unexpected error: %s", e)
-            last_error = e
-            if attempt_idx < len(models_to_try) - 1:
-                continue
-            raise RuntimeError("AI request failed due to an unexpected service error. Please try again.") from e
-
-    raise RuntimeError("AI service could not complete the request. Please try again.") from last_error
+def _open_ai_request(request: urllib.request.Request, timeout: float):
+    opener = urllib.request.build_opener(_NoRedirectHandler())
+    return opener.open(request, timeout=timeout)
 
 
 def stream_bluesminds(system_prompt: str, user_prompt: str, timeout_seconds: float = 50) -> Iterator[str]:
     """Yield genuine content deltas from the configured OpenAI-compatible stream."""
     if AI_KILL_SWITCH:
         raise RuntimeError("AI request failed, please try again")
-    try:
-        import persistence
-        runtime_creds = persistence.get_runtime_ai_credentials()
-    except Exception:
-        runtime_creds = {}
-
-    api_key = runtime_creds.get("api_key") or _current_bluesminds_api_key()
+    active_credentials = _runtime_ai_config()
+    if active_credentials.get("configuration_error"):
+        raise RuntimeError(active_credentials["configuration_error"])
+    if active_credentials.get("provider") in {"anthropic", "gemini"}:
+        yield _provider_request(system_prompt, user_prompt, active_credentials, timeout_seconds=timeout_seconds)
+        return
+    api_key = active_credentials.get("api_key") or ""
     if not api_key:
         raise ValueError("AI provider is not configured")
-    base = (runtime_creds.get("base_url") or BLUESMINDS_BASE_URL or "https://api.bluesminds.com/v1").rstrip("/")
+    base = (active_credentials.get("base_url") or BLUESMINDS_BASE_URL or "https://api.bluesminds.com/v1").rstrip("/")
     endpoint = f"{base}/chat/completions" if base.endswith("/v1") else f"{base}/v1/chat/completions"
     payload = {
-        "model": runtime_creds.get("model") or BLUESMINDS_MODEL or "openai/gpt-oss-20b",
+        "model": active_credentials.get("model") or BLUESMINDS_MODEL or "openai/gpt-oss-20b",
         "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
         "temperature": 0.2,
         "max_tokens": BLUESMINDS_MAX_OUTPUT_TOKENS or 4096,
@@ -578,7 +530,7 @@ def stream_bluesminds(system_prompt: str, user_prompt: str, timeout_seconds: flo
     for attempt in range(attempts):
         received_content = False
         try:
-            with urllib.request.urlopen(req, timeout=max(5, min(60, timeout_seconds))) as response:
+            with _open_ai_request(req, timeout=max(5, min(60, timeout_seconds))) as response:
                 for raw_line in response:
                     line = raw_line.decode("utf-8", errors="replace").strip()
                     if not line.startswith("data:"):
@@ -616,92 +568,175 @@ def call_agentrouter(
     model: str | None = None,
     timeout_seconds: float | None = None,
 ) -> str:
-    """Backward compatibility wrapper delegating to Bluesminds."""
-    return call_bluesminds(system_prompt, user_prompt, model=model, timeout_seconds=timeout_seconds)
+    """Backward-compatible name for the selected provider dispatcher."""
+    return _call_selected_provider(system_prompt, user_prompt, model=model, timeout_seconds=timeout_seconds)
+
+
+def _runtime_ai_config() -> dict[str, str]:
+    try:
+        import persistence
+        config = persistence.get_runtime_ai_credentials()
+    except RuntimeError as error:
+        logger.error("Dynamic AI credentials are unavailable: %s", str(error))
+        return {"provider": "unavailable", "api_key": "", "configuration_error": str(error)}
+    except Exception:
+        config = {}
+    if (
+        not config.get("api_key")
+        and not config.get("configuration_error")
+        and config.get("provider") == "bluesminds"
+    ):
+        fallback_key = _current_bluesminds_api_key()
+        if fallback_key:
+            try:
+                import persistence
+                safe_base_url = persistence._validate_ai_base_url("bluesminds", BLUESMINDS_BASE_URL)
+            except Exception:
+                return {
+                    "provider": "unavailable",
+                    "api_key": "",
+                    "configuration_error": "The Bluesminds endpoint failed security validation.",
+                }
+            config = {
+                "provider": "bluesminds",
+                "model": BLUESMINDS_MODEL,
+                "base_url": safe_base_url,
+                "api_key": fallback_key,
+            }
+    return config
+
+
+def _provider_request(system_prompt: str, user_prompt: str, credentials: dict[str, str], timeout_seconds: float | None = None) -> str:
+    """Make one non-streaming request using the selected provider's native wire format."""
+    provider = str(credentials.get("provider") or "bluesminds").lower()
+    model = str(credentials.get("model") or BLUESMINDS_MODEL or "").strip()
+    api_key = str(credentials.get("api_key") or "").strip()
+    base_url = str(credentials.get("base_url") or "").rstrip("/")
+    if not api_key:
+        raise ValueError("AI provider is not configured")
+    if not model:
+        raise ValueError("AI model is not configured")
+    if not base_url.startswith("https://"):
+        raise ValueError("AI provider requires a validated HTTPS endpoint.")
+
+    timeout = max(5, min(120, float(timeout_seconds or BLUESMINDS_TIMEOUT_SECONDS)))
+    headers = {"Content-Type": "application/json", "User-Agent": "Paperplane-PDF/1.0"}
+    if provider in {"bluesminds", "openrouter", "deepseek", "openai_compatible"}:
+        endpoint = f"{base_url}/chat/completions" if base_url.endswith("/v1") else f"{base_url}/v1/chat/completions"
+        headers["Authorization"] = f"Bearer {api_key}"
+        if provider == "openrouter":
+            headers["HTTP-Referer"] = "https://paperplane.qd.je"
+            headers["X-Title"] = "Paperplane PDF"
+        payload = {
+            "model": model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+            "temperature": 0.2,
+            "max_tokens": BLUESMINDS_MAX_OUTPUT_TOKENS or 4096,
+        }
+    elif provider == "anthropic":
+        endpoint = f"{base_url}/messages" if base_url.endswith("/v1") else f"{base_url}/v1/messages"
+        headers["x-api-key"] = api_key
+        headers["anthropic-version"] = "2023-06-01"
+        payload = {
+            "model": model,
+            "system": system_prompt,
+            "messages": [{"role": "user", "content": user_prompt}],
+            "max_tokens": BLUESMINDS_MAX_OUTPUT_TOKENS or 4096,
+            "temperature": 0.2,
+        }
+    elif provider == "gemini":
+        endpoint = f"{base_url}/models/{urllib.parse.quote(model, safe='')}:generateContent" if base_url.endswith("/v1beta") else f"{base_url}/v1beta/models/{urllib.parse.quote(model, safe='')}:generateContent"
+        headers["x-goog-api-key"] = api_key
+        payload = {
+            "systemInstruction": {"parts": [{"text": system_prompt}]},
+            "contents": [{"role": "user", "parts": [{"text": user_prompt}]}],
+            "generationConfig": {"temperature": 0.2, "maxOutputTokens": BLUESMINDS_MAX_OUTPUT_TOKENS or 4096},
+        }
+    else:
+        raise ValueError("Unsupported AI provider.")
+
+    body = json.dumps(payload).encode("utf-8")
+    data = None
+    for attempt in range(2):
+        request = urllib.request.Request(endpoint, data=body, headers=headers)
+        try:
+            with _open_ai_request(request, timeout=timeout) as response:
+                data = json.loads(response.read().decode("utf-8"))
+            break
+        except urllib.error.HTTPError as error:
+            logger.warning("AI provider returned HTTP %s", error.code)
+            if attempt == 0 and error.code in (408, 429, 500, 502, 503, 504):
+                time.sleep(0.4)
+                continue
+            raise RuntimeError(f"AI service returned HTTP {error.code}. Please try again.") from error
+        except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as error:
+            logger.warning("AI provider connection failed: %s", type(error).__name__)
+            if attempt == 0:
+                time.sleep(0.4)
+                continue
+            raise RuntimeError("AI service could not be reached or timed out. Please try again.") from error
+    if data is None:
+        raise RuntimeError("AI service could not complete the request. Please try again.")
+
+    if provider == "anthropic":
+        content = data.get("content", [])
+        answer = "".join(item.get("text", "") for item in content if isinstance(item, dict) and item.get("type") == "text")
+    elif provider == "gemini":
+        candidates = data.get("candidates", [])
+        parts = candidates[0].get("content", {}).get("parts", []) if candidates else []
+        answer = "".join(item.get("text", "") for item in parts if isinstance(item, dict))
+    else:
+        choices = data.get("choices", [])
+        answer = choices[0].get("message", {}).get("content", "") if choices else ""
+    if not isinstance(answer, str) or not answer.strip():
+        raise RuntimeError("AI service returned an empty response. Please try again.")
+    return answer.strip()
 
 
 def test_bluesminds_connectivity() -> dict:
-    """Test the configured Paperplane AI connection without exposing upstream identity."""
-    try:
-        import persistence
-        runtime_creds = persistence.get_runtime_ai_credentials()
-    except Exception:
-        runtime_creds = {}
-
-    api_key = runtime_creds.get("api_key") or _current_bluesminds_api_key()
-    target_model = runtime_creds.get("model") or BLUESMINDS_MODEL or "openai/gpt-oss-20b"
-    base_url = (runtime_creds.get("base_url") or BLUESMINDS_BASE_URL or "https://api.bluesminds.com/v1").rstrip("/")
-    if not base_url.endswith("/v1"):
-        endpoint = f"{base_url}/v1/chat/completions"
-    else:
-        endpoint = f"{base_url}/chat/completions"
-
+    """Test the selected AI provider without exposing its key, model, or upstream body."""
     if AI_KILL_SWITCH:
         return {
             "status": "disabled",
             "message": "AI is disabled by configuration.",
             "fallback_active": False
         }
-    if not api_key:
+    credentials = _runtime_ai_config()
+    if credentials.get("configuration_error"):
+        return {
+            "status": "configuration_error",
+            "message": credentials["configuration_error"],
+            "fallback_active": False,
+        }
+    if not credentials.get("api_key") or not credentials.get("model"):
         return {
             "status": "configuration_missing",
-            "message": "AI provider is not configured",
-            "advice": "Ask the site administrator to configure Paperplane AI.",
+            "message": "AI provider key or model is not configured",
+            "advice": "Ask the site administrator to configure the AI provider, model, and API key.",
             "fallback_active": False
         }
 
-    last_error_code: int | None = None
-    last_error_advice = "AI service could not be reached or timed out."
-    payload = {
-        "model": target_model,
-        "messages": [{"role": "user", "content": "ping"}],
-        "max_tokens": 5
-    }
-    body = json.dumps(payload).encode("utf-8")
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-        "User-Agent": "Paperplane-PDF/1.0"
-    }
-
-    # Retry only transient failures, once, before this diagnostic returns.
-    # The bounded total is at most two 12-second requests plus a short pause.
-    for attempt in range(2):
-        try:
-            req = urllib.request.Request(endpoint, data=body, headers=headers)
-            with urllib.request.urlopen(req, timeout=12) as resp:
-                json.loads(resp.read().decode("utf-8", errors="ignore"))
-                return {
-                    "status": "inference_succeeded",
-                    "http_status": resp.status,
-                    "message": "AI connected successfully.",
-                    "fallback_active": False
-                }
-        except urllib.error.HTTPError as exc:
-            last_error_code = exc.code
-            last_error_advice = f"AI service returned HTTP {exc.code}."
-            retryable = exc.code in (408, 429, 500, 502, 503, 504)
-        except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as exc:
-            last_error_code = None
-            last_error_advice = "AI service could not be reached or timed out."
-            retryable = True
-        except Exception:
-            last_error_code = None
-            last_error_advice = "AI service returned an invalid diagnostic response."
-            retryable = False
-
-        if not retryable or attempt == 1:
-            break
-        logger.warning("AI connectivity check failed transiently; retrying once before reporting status.")
-        time.sleep(0.4)
-
-    return {
-        "status": "connection_error",
-        "http_status": last_error_code or 502,
-        "message": last_error_advice,
-        "advice": last_error_advice or "AI service timed out.",
-        "fallback_active": False
-    }
+    try:
+        answer = _provider_request("Reply with the word connected.", "ping", credentials, timeout_seconds=12)
+        return {
+            "status": "inference_succeeded",
+            "http_status": 200,
+            "message": "AI connected successfully.",
+            "fallback_active": False,
+        }
+    except RuntimeError as error:
+        match = re.search(r"HTTP (\d{3})", str(error))
+        status_code = int(match.group(1)) if match else 502
+        return {
+            "status": "connection_error",
+            "http_status": status_code,
+            "message": str(error),
+            "advice": str(error),
+            "fallback_active": False,
+        }
 
 
 def test_agentrouter_connectivity() -> dict:
@@ -713,11 +748,29 @@ def call_llm(
     system_prompt: str,
     user_prompt: str,
     timeout_seconds: float | None = None,
+    model: str | None = None,
 ) -> str:
-    """Use Bluesminds as the document AI provider without silent fallback."""
+    """Dispatch inference using the selected provider's native API contract."""
+    return _call_selected_provider(system_prompt, user_prompt, model=model, timeout_seconds=timeout_seconds)
+
+
+def _call_selected_provider(
+    system_prompt: str,
+    user_prompt: str,
+    model: str | None = None,
+    timeout_seconds: float | None = None,
+) -> str:
     if AI_KILL_SWITCH:
         return _offline_rag_fallback(system_prompt, user_prompt)
-    return call_bluesminds(system_prompt, user_prompt, timeout_seconds=timeout_seconds)
+    credentials = _runtime_ai_config()
+    if credentials.get("configuration_error"):
+        raise RuntimeError(credentials["configuration_error"])
+    if not credentials.get("api_key"):
+        raise ValueError("AI provider is not configured")
+    if model:
+        credentials = dict(credentials)
+        credentials["model"] = model
+    return _provider_request(system_prompt, user_prompt, credentials, timeout_seconds=timeout_seconds)
 
 
 def _offline_rag_fallback(system_prompt: str, user_prompt: str) -> str:
@@ -835,16 +888,6 @@ def chat_with_pdf(pdf_path: Path, question: str) -> dict:
             "fallback_used": False,
             "relevant_passages": [],
         }
-    if not _is_document_question(question):
-        if AI_KILL_SWITCH or not _current_bluesminds_api_key():
-            return {
-                "answer": "General chat is unavailable because the AI service is not configured. I can still help with questions about this PDF.",
-                "citations": [],
-                "retrieval_method": None,
-                "fallback_used": True,
-            }
-        answer = _guard_ai_output(call_llm(_PAPERPLANE_SYSTEM_PROMPT, question, timeout_seconds=35))
-        return {"answer": answer, "citations": [], "retrieval_method": None, "fallback_used": False}
     if not chunks:
         return {
             "answer": "No readable text was found in this document to answer your question.",
@@ -854,10 +897,19 @@ def chat_with_pdf(pdf_path: Path, question: str) -> dict:
         }
 
     rag = LightweightRAG(chunks)
-    page_match = re.search(r"\bpage\s+(\d+)\b", question, re.IGNORECASE)
+    page_match = re.search(
+        r"\bpage\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten)\b",
+        question,
+        re.IGNORECASE,
+    )
     broad_summary = bool(re.search(r"\b(summar(?:y|ize|ise)|overview|key points|important information)\b", question, re.IGNORECASE))
     if page_match:
-        requested_page = int(page_match.group(1))
+        page_value = page_match.group(1).lower()
+        page_words = {
+            "one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
+            "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
+        }
+        requested_page = int(page_value) if page_value.isdigit() else page_words[page_value]
         retrieved_chunks = [chunk for chunk in chunks if chunk.page_number == requested_page]
         scored_chunks = [(1.0, chunk) for chunk in retrieved_chunks]
     elif broad_summary:

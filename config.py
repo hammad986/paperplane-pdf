@@ -3,18 +3,21 @@ from __future__ import annotations
 import os
 import sys
 from pathlib import Path
+from urllib.parse import urlsplit
 
 ROOT = Path(__file__).parent
-try:
-    from dotenv import load_dotenv
-    load_dotenv(ROOT / ".env")
-except ImportError:
-    pass
+if not os.getenv("PAPERPLANE_SKIP_DOTENV"):
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(ROOT / ".env")
+    except ImportError:
+        pass
 
 PAPERPLANE_PUBLIC_URL = os.getenv("PAPERPLANE_PUBLIC_URL", "").strip().rstrip("/")
 
 DATA_DIR = Path(os.getenv("PAPERPLANE_DATA_DIR", ROOT / "runtime_data"))
 DATA_DIR.mkdir(parents=True, exist_ok=True)
+BACKUP_DIR = Path(os.getenv("PAPERPLANE_BACKUP_DIR", DATA_DIR / "backups"))
 JOBS_DIR = DATA_DIR / "jobs"
 JOBS_DIR.mkdir(exist_ok=True)
 DATABASE = DATA_DIR / "paperplane.sqlite3"
@@ -41,7 +44,7 @@ RATE_LIMIT_PER_MINUTE = int(os.getenv("PAPERPLANE_RATE_LIMIT_PER_MINUTE", "120")
 ENVIRONMENT = os.getenv("PAPERPLANE_ENV", "development").lower()
 ALLOW_BILLING_SIMULATION = os.getenv(
     "PAPERPLANE_ALLOW_BILLING_SIMULATION",
-    "true" if ENVIRONMENT != "production" else "false"
+    "false"
 ).lower() in ("true", "1", "yes")
 
 # Google OAuth2 Credential Verification
@@ -100,6 +103,30 @@ _configured_session_secret = (
     or os.getenv("JWT_SECRET", "").strip()
 )
 _configured_jwt_secret = os.getenv("JWT_SECRET", "").strip() or _configured_session_secret
+if ENVIRONMENT == "production":
+    public_origin = urlsplit(PAPERPLANE_PUBLIC_URL)
+    public_host = (public_origin.hostname or "").lower().rstrip(".")
+    if (
+        public_origin.scheme != "https"
+        or not public_host
+        or public_origin.username
+        or public_origin.password
+        or public_host == "localhost"
+        or public_host.endswith(".localhost")
+        or public_host.endswith(".local")
+    ):
+        raise RuntimeError(
+            "Production requires PAPERPLANE_PUBLIC_URL to be an absolute HTTPS origin on a public host."
+        )
+if (
+    ENVIRONMENT == "production"
+    and "pytest" not in sys.modules
+    and not os.getenv("TESTING")
+    and len(_configured_session_secret) < 32
+):
+    raise RuntimeError(
+        "Production requires PAPERPLANE_SESSION_SECRET (or a supported alias) with at least 32 characters."
+    )
 SESSION_SECRET_KEY = _configured_session_secret or f"paperplane-sec-{secrets.token_hex(32)}"
 JWT_SECRET = _configured_jwt_secret or SESSION_SECRET_KEY
 
@@ -118,7 +145,7 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 # the browser receives a short-lived payment_session_id, never the secret key.
 CASHFREE_APP_ID = os.getenv("CASHFREE_APP_ID", "").strip()
 CASHFREE_SECRET_KEY = os.getenv("CASHFREE_SECRET_KEY", "").strip()
-CASHFREE_ENV = os.getenv("CASHFREE_ENV", "TEST").upper()
+CASHFREE_ENV = os.getenv("CASHFREE_ENV", "PROD" if ENVIRONMENT == "production" else "TEST").upper()
 if CASHFREE_ENV not in {"TEST", "PROD"}:
     CASHFREE_ENV = "TEST"
 CASHFREE_API_VERSION = "2023-08-01"
@@ -149,6 +176,9 @@ BLUESMINDS_BASE_URL = os.getenv("BLUESMINDS_BASE_URL", "https://api.bluesminds.c
 BLUESMINDS_MODEL = os.getenv("BLUESMINDS_MODEL", "openai/gpt-oss-20b")
 BLUESMINDS_TIMEOUT_SECONDS = min(120, max(5, int(os.getenv("BLUESMINDS_TIMEOUT_SECONDS", "60"))))
 BLUESMINDS_MAX_OUTPUT_TOKENS = int(os.getenv("BLUESMINDS_MAX_OUTPUT_TOKENS", "4096"))
+AI_SETTINGS_ENCRYPTION_KEY = os.getenv("PAPERPLANE_AI_SETTINGS_ENCRYPTION_KEY", "").strip()
+PAYMENT_GATEWAY_FEE_PERCENT = float(os.getenv("PAPERPLANE_GATEWAY_FEE_PERCENT", "1.95"))
+PAYMENT_GATEWAY_FEE_GST_PERCENT = float(os.getenv("PAPERPLANE_GATEWAY_FEE_GST_PERCENT", "18"))
 # Legacy alias for test backwards compatibility
 AGENTROUTER_API_KEY = BLUESMINDS_API_KEY
 AGENTROUTER_BASE_URL = BLUESMINDS_BASE_URL

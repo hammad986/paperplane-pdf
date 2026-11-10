@@ -1,0 +1,2308 @@
+[
+  {
+    "round": 1,
+    "operation": "merge",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      },
+      {
+        "name": "labeled-qa-3page.pdf",
+        "bytes": 1629
+      }
+    ],
+    "started_at": "2026-11-10T09:49:24.552591+00:00",
+    "status": "OPENED",
+    "output_name": "merged-PDF.pdf",
+    "output_bytes": 4982965,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 4982965,
+      "pages": 72,
+      "encrypted": false,
+      "first_text": "Page 1 of 69 Section 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machi",
+      "last_text": "AUDIT_PAGE_THREE closing QA page ",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7",
+        "producer": "pypdf"
+      }
+    },
+    "expected_page_count": 72,
+    "page_count_matches": true,
+    "duration_seconds": 0.101
+  },
+  {
+    "round": 1,
+    "operation": "split",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:49:24.655316+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_split.pdf",
+    "output_bytes": 2258,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 2258,
+      "pages": 2,
+      "encrypted": false,
+      "first_text": "Page 1 of 69 Section 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machi",
+      "last_text": "Page 2 of 69 Section 2. Machine learning is the study of computer algorithms that improve automatica",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7",
+        "producer": "pypdf"
+      }
+    },
+    "duration_seconds": 0.027
+  },
+  {
+    "round": 1,
+    "operation": "remove",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:49:24.683755+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_remove.pdf",
+    "output_bytes": 4980702,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 4980702,
+      "pages": 68,
+      "encrypted": false,
+      "first_text": "Page 2 of 69 Section 2. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machi",
+      "last_text": "Page 69 of 69 Section 69. Machine learning is the study of computer algorithms that improve automati",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7",
+        "producer": "pypdf"
+      }
+    },
+    "expected_page_count": 68,
+    "page_count_matches": true,
+    "duration_seconds": 0.063
+  },
+  {
+    "round": 1,
+    "operation": "rotate",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:49:24.747933+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_rotate.pdf",
+    "output_bytes": 4981662,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 4981662,
+      "pages": 69,
+      "encrypted": false,
+      "first_text": "Page 1 of 69 Section 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machi",
+      "last_text": "Page 69 of 69 Section 69. Machine learning is the study of computer algorithms that improve automati",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7",
+        "producer": "pypdf"
+      }
+    },
+    "duration_seconds": 0.063
+  },
+  {
+    "round": 1,
+    "operation": "organize",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:49:24.812336+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_organize.pdf",
+    "output_bytes": 4980286,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 4980286,
+      "pages": 69,
+      "encrypted": false,
+      "first_text": "Page 2 of 69 Section 2. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machi",
+      "last_text": "Page 69 of 69 Section 69. Machine learning is the study of computer algorithms that improve automati",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7"
+      }
+    },
+    "content_assertion": [
+      "Page 2 of 69 Section 2. Machine learning",
+      "Page 1 of 69 Section 1. Machine learning",
+      "Page 3 of 69 Section 3. Machine learning"
+    ],
+    "duration_seconds": 0.054
+  },
+  {
+    "round": 1,
+    "operation": "scan_pdf",
+    "input_files": [
+      {
+        "name": "qa-image.png",
+        "bytes": 3831
+      }
+    ],
+    "started_at": "2026-11-10T09:49:24.868168+00:00",
+    "status": "OPENED",
+    "output_name": "qa-image_scan_pdf.pdf",
+    "output_bytes": 13244,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 13244,
+      "pages": 1,
+      "encrypted": false,
+      "first_text": "",
+      "last_text": "",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.4",
+        "title": "qa-image_scan_pdf",
+        "creationDate": "D:20261110094925Z",
+        "modDate": "D:20261110094925Z"
+      }
+    },
+    "duration_seconds": 0.563
+  },
+  {
+    "round": 1,
+    "operation": "compress",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:49:25.434049+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_compress.pdf",
+    "output_bytes": 988654,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 988654,
+      "pages": 69,
+      "encrypted": false,
+      "first_text": "Page 1 of 69 Section 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machi",
+      "last_text": "Page 69 of 69 Section 69. Machine learning is the study of computer algorithms that improve automati",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7"
+      }
+    },
+    "duration_seconds": 0.302
+  },
+  {
+    "round": 1,
+    "operation": "repair",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:49:25.737605+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_repair.pdf",
+    "output_bytes": 4967264,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 4967264,
+      "pages": 69,
+      "encrypted": false,
+      "first_text": "Page 1 of 69 Section 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machi",
+      "last_text": "Page 69 of 69 Section 69. Machine learning is the study of computer algorithms that improve automati",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7"
+      }
+    },
+    "duration_seconds": 0.11
+  },
+  {
+    "round": 1,
+    "operation": "ocr",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:49:25.848948+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_ocr.pdf",
+    "output_bytes": 8750403,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 8750403,
+      "pages": 69,
+      "encrypted": false,
+      "first_text": "Page 1 of 69 Section 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machi",
+      "last_text": "Page 69 of 69 Section 69. Machine learning is the study of computer algorithms that improve automati",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7"
+      }
+    },
+    "duration_seconds": 57.294
+  },
+  {
+    "round": 1,
+    "operation": "jpg_to_pdf",
+    "input_files": [
+      {
+        "name": "qa-image.png",
+        "bytes": 3831
+      }
+    ],
+    "started_at": "2026-11-10T09:50:23.144574+00:00",
+    "status": "OPENED",
+    "output_name": "qa-image_jpg_to_pdf.pdf",
+    "output_bytes": 18083,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 18083,
+      "pages": 1,
+      "encrypted": false,
+      "first_text": "",
+      "last_text": "",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7"
+      }
+    },
+    "duration_seconds": 0.023
+  },
+  {
+    "round": 1,
+    "operation": "word_to_pdf",
+    "input_files": [
+      {
+        "name": "qa-document.docx",
+        "bytes": 35327
+      }
+    ],
+    "started_at": "2026-11-10T09:50:23.168898+00:00",
+    "status": "OPENED",
+    "output_name": "qa-document_word_to_pdf.pdf",
+    "output_bytes": 26545,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 26545,
+      "pages": 1,
+      "encrypted": false,
+      "first_text": "Paperplane QA DOCX_TO_PDF_CONTENT ",
+      "last_text": "Paperplane QA DOCX_TO_PDF_CONTENT ",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7",
+        "author": "python-docx",
+        "creator": "Writer",
+        "producer": "LibreOffice 26.8.1.1 (X86_64)",
+        "creationDate": "D:20261110152038+05'30'"
+      }
+    },
+    "duration_seconds": 16.066
+  },
+  {
+    "round": 1,
+    "operation": "excel_to_pdf",
+    "input_files": [
+      {
+        "name": "qa-spreadsheet.xlsx",
+        "bytes": 4889
+      }
+    ],
+    "started_at": "2026-11-10T09:50:39.236192+00:00",
+    "status": "OPENED",
+    "output_name": "qa-spreadsheet_excel_to_pdf.pdf",
+    "output_bytes": 1831,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 1831,
+      "pages": 1,
+      "encrypted": false,
+      "first_text": "Sheet: QA Item Value Audit XLSX_TO_PDF_CONTENT ",
+      "last_text": "Sheet: QA Item Value Audit XLSX_TO_PDF_CONTENT ",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.4",
+        "title": "(anonymous)",
+        "author": "(anonymous)",
+        "subject": "(unspecified)",
+        "creator": "(unspecified)",
+        "producer": "ReportLab PDF Library - (opensource)",
+        "creationDate": "D:20261110152039+05'00'",
+        "modDate": "D:20261110152039+05'00'"
+      }
+    },
+    "duration_seconds": 0.046
+  },
+  {
+    "round": 1,
+    "operation": "powerpoint_to_pdf",
+    "input_files": [
+      {
+        "name": "qa-presentation.pptx",
+        "bytes": 28487
+      }
+    ],
+    "started_at": "2026-11-10T09:50:39.284098+00:00",
+    "status": "OPENED",
+    "output_name": "qa-presentation_powerpoint_to_pdf.pdf",
+    "output_bytes": 26870,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 26870,
+      "pages": 1,
+      "encrypted": false,
+      "first_text": "Paperplane QA PPTX_TO_PDF_CONTENT ",
+      "last_text": "Paperplane QA PPTX_TO_PDF_CONTENT ",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7",
+        "creator": "Impress",
+        "producer": "LibreOffice 26.8.1.1 (X86_64)",
+        "creationDate": "D:20261110152045+05'30'"
+      }
+    },
+    "duration_seconds": 6.703
+  },
+  {
+    "round": 1,
+    "operation": "html_to_pdf",
+    "input_files": [],
+    "started_at": "2026-11-10T09:50:45.988830+00:00",
+    "status": "BLOCKED_OR_FAILED",
+    "error": "Security Guard: Access to host '127.0.0.1' is forbidden.",
+    "duration_seconds": 0.036
+  },
+  {
+    "round": 1,
+    "operation": "pdf_to_jpg",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:50:46.026316+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_pdf_to_jpg.zip",
+    "output_bytes": 400865,
+    "output_details": {
+      "opened": true,
+      "kind": ".zip",
+      "bytes": 400865,
+      "entries": 2,
+      "sample_names": [
+        "page_001.jpg",
+        "page_002.jpg"
+      ],
+      "nested_pdf": []
+    },
+    "duration_seconds": 0.228
+  },
+  {
+    "round": 1,
+    "operation": "pdf_to_word",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:50:46.255849+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_pdf_to_word.docx",
+    "output_bytes": 4960304,
+    "output_details": {
+      "opened": true,
+      "kind": ".docx",
+      "bytes": 4960304,
+      "paragraphs": 483,
+      "contains_marker": false,
+      "prefix": "\nPage 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Mach"
+    },
+    "duration_seconds": 5.086
+  },
+  {
+    "round": 1,
+    "operation": "pdf_to_excel",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:50:51.343529+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_pdf_to_excel.xlsx",
+    "output_bytes": 14474,
+    "output_details": {
+      "opened": true,
+      "kind": ".xlsx",
+      "bytes": 14474,
+      "sheets": [
+        "Extracted Data"
+      ],
+      "sample": [
+        "Page 1 of 69",
+        "Section 1. Machine learning is the study of computer algorithms that improve automatically",
+        "through experience. It is seen as a subset of artificial intelligence. Machine learning is the",
+        "study of computer algorithms that improve automatically through experience. It is seen as a",
+        "subset of artificial intelligence. Machine learning is the study of computer algorithms that"
+      ],
+      "contains_marker": false
+    },
+    "duration_seconds": 3.316
+  },
+  {
+    "round": 1,
+    "operation": "pdf_to_powerpoint",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:50:54.660148+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_pdf_to_powerpoint.pptx",
+    "output_bytes": 13809861,
+    "output_details": {
+      "opened": true,
+      "kind": ".pptx",
+      "bytes": 13809861,
+      "slides": 69,
+      "texts": [],
+      "contains_marker": false
+    },
+    "duration_seconds": 6.639
+  },
+  {
+    "round": 1,
+    "operation": "pdf_to_pdfa",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:51:01.301201+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_pdf_to_pdfa.pdf",
+    "output_bytes": 4967498,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 4967498,
+      "pages": 69,
+      "encrypted": false,
+      "first_text": "Page 1 of 69 Section 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machi",
+      "last_text": "Page 69 of 69 Section 69. Machine learning is the study of computer algorithms that improve automati",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7",
+        "subject": "PDF/A-1b Archival Document",
+        "keywords": "PDF/A-1b",
+        "producer": "Paperplane PDF/A Archival Engine"
+      }
+    },
+    "duration_seconds": 0.112
+  },
+  {
+    "round": 1,
+    "operation": "pdf_to_text",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:51:01.413989+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_pdf_to_text.txt",
+    "output_bytes": 129553,
+    "output_details": {
+      "opened": true,
+      "kind": ".txt",
+      "bytes": 129553,
+      "characters": 127967,
+      "prefix": "--- Page 1 --- Page 1 of 69 Section 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machine learning is the study of computer algorithms that improve auto",
+      "contains_page_marker": true,
+      "contains_audit_marker": false,
+      "contains_clean_filename": false
+    },
+    "duration_seconds": 0.077
+  },
+  {
+    "round": 1,
+    "operation": "pdf_to_markdown",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:51:01.492261+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_pdf_to_markdown.md",
+    "output_bytes": 130323,
+    "output_details": {
+      "opened": true,
+      "kind": ".md",
+      "bytes": 130323,
+      "characters": 128392,
+      "prefix": "# notes-69page  ## Page 1   ## Page 1 of 69  Section 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machine learning is the study of computer algorithms ",
+      "contains_page_marker": true,
+      "contains_audit_marker": false,
+      "contains_clean_filename": false
+    },
+    "duration_seconds": 3.466
+  },
+  {
+    "round": 1,
+    "operation": "edit",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:51:04.959343+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_edit.pdf",
+    "output_bytes": 4980475,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 4980475,
+      "pages": 69,
+      "encrypted": false,
+      "first_text": "Page 1 of 69 Section 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machi",
+      "last_text": "Page 69 of 69 Section 69. Machine learning is the study of computer algorithms that improve automati",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7"
+      }
+    },
+    "duration_seconds": 0.068
+  },
+  {
+    "round": 1,
+    "operation": "annotate",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:51:05.028757+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_annotate.pdf",
+    "output_bytes": 4980835,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 4980835,
+      "pages": 69,
+      "encrypted": false,
+      "first_text": "Page 1 of 69 Section 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machi",
+      "last_text": "Page 69 of 69 Section 69. Machine learning is the study of computer algorithms that improve automati",
+      "widgets": 0,
+      "annotations": 1,
+      "metadata": {
+        "format": "PDF 1.7"
+      }
+    },
+    "duration_seconds": 0.082
+  },
+  {
+    "round": 1,
+    "operation": "crop",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:51:05.112159+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_crop.pdf",
+    "output_bytes": 4981735,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 4981735,
+      "pages": 69,
+      "encrypted": false,
+      "first_text": "Page 1 of 69 Section 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machi",
+      "last_text": "Page 69 of 69 Section 69. Machine learning is the study of computer algorithms that improve automati",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7"
+      }
+    },
+    "duration_seconds": 0.079
+  },
+  {
+    "round": 1,
+    "operation": "redact",
+    "input_files": [
+      {
+        "name": "labeled-qa-3page.pdf",
+        "bytes": 1629
+      }
+    ],
+    "started_at": "2026-11-10T09:51:05.192625+00:00",
+    "status": "OPENED",
+    "output_name": "labeled-qa-3page_redact.pdf",
+    "output_bytes": 1675,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 1675,
+      "pages": 3,
+      "encrypted": false,
+      "first_text": "AUDIT_PAGE_ONE   QA ",
+      "last_text": "AUDIT_PAGE_THREE closing QA page ",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7"
+      }
+    },
+    "redaction_applied": true,
+    "duration_seconds": 0.023
+  },
+  {
+    "round": 1,
+    "operation": "watermark",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:51:05.216718+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_watermark.pdf",
+    "output_bytes": 5292698,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 5292698,
+      "pages": 69,
+      "encrypted": false,
+      "first_text": "Page 1 of 69 Section 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machi",
+      "last_text": "Page 69 of 69 Section 69. Machine learning is the study of computer algorithms that improve automati",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7",
+        "producer": "pypdf"
+      }
+    },
+    "duration_seconds": 0.205
+  },
+  {
+    "round": 1,
+    "operation": "page_numbers",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:51:05.423174+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_page_numbers.pdf",
+    "output_bytes": 5274059,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 5274059,
+      "pages": 69,
+      "encrypted": false,
+      "first_text": "Page 1 of 69 Section 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machi",
+      "last_text": "Page 69 of 69 Section 69. Machine learning is the study of computer algorithms that improve automati",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7",
+        "producer": "pypdf"
+      }
+    },
+    "duration_seconds": 0.169
+  },
+  {
+    "round": 1,
+    "operation": "protect",
+    "input_files": [
+      {
+        "name": "labeled-qa-3page.pdf",
+        "bytes": 1629
+      }
+    ],
+    "started_at": "2026-11-10T09:51:05.593271+00:00",
+    "status": "OPENED",
+    "output_name": "labeled-qa-3page_protect.pdf",
+    "output_bytes": 2294,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 2294,
+      "pages": 3,
+      "encrypted": false,
+      "first_text": "AUDIT_PAGE_ONE Important QA ",
+      "last_text": "AUDIT_PAGE_THREE closing QA page ",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7",
+        "encryption": "Standard V5 R6 256-bit AES"
+      },
+      "password_authentication_succeeded": true,
+      "pages_after_authentication": 3
+    },
+    "duration_seconds": 0.12
+  },
+  {
+    "round": 1,
+    "operation": "unlock",
+    "input_files": [
+      {
+        "name": "protected-labeled-qa.pdf",
+        "bytes": 2294
+      }
+    ],
+    "started_at": "2026-11-10T09:51:05.714837+00:00",
+    "status": "OPENED",
+    "output_name": "protected-labeled-qa_unlock.pdf",
+    "output_bytes": 1428,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 1428,
+      "pages": 3,
+      "encrypted": false,
+      "first_text": "AUDIT_PAGE_ONE Important QA ",
+      "last_text": "AUDIT_PAGE_THREE closing QA page ",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7"
+      }
+    },
+    "duration_seconds": 0.075
+  },
+  {
+    "round": 1,
+    "operation": "sign",
+    "input_files": [
+      {
+        "name": "labeled-qa-3page.pdf",
+        "bytes": 1629
+      }
+    ],
+    "started_at": "2026-11-10T09:51:05.791266+00:00",
+    "status": "OPENED",
+    "output_name": "labeled-qa-3page_sign.pdf",
+    "output_bytes": 2181,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 2181,
+      "pages": 3,
+      "encrypted": false,
+      "first_text": "AUDIT_PAGE_ONE Important QA Audit QA Audit QA | 2026-11-10 15:21 ",
+      "last_text": "AUDIT_PAGE_THREE closing QA page ",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7"
+      }
+    },
+    "duration_seconds": 0.022
+  },
+  {
+    "round": 1,
+    "operation": "compare",
+    "input_files": [
+      {
+        "name": "labeled-qa-3page.pdf",
+        "bytes": 1629
+      },
+      {
+        "name": "changed-labeled-qa-3page.pdf",
+        "bytes": 1812
+      }
+    ],
+    "started_at": "2026-11-10T09:51:05.815130+00:00",
+    "status": "OPENED",
+    "output_name": "labeled-qa-3page_compare.txt",
+    "output_bytes": 150,
+    "output_details": {
+      "opened": true,
+      "kind": ".txt",
+      "bytes": 150,
+      "characters": 143,
+      "prefix": "--- reference.pdf +++ candidate.pdf @@ -1,4 +1,5 @@  AUDIT_PAGE_ONE Important QA +AUDIT_CANDIDATE_CHANGE    AUDIT_PAGE_TWO beta follows alpha  ",
+      "contains_page_marker": false,
+      "contains_audit_marker": true,
+      "contains_clean_filename": true
+    },
+    "diff_uses_original_filenames": true,
+    "duration_seconds": 0.027
+  },
+  {
+    "round": 1,
+    "operation": "forms",
+    "input_files": [
+      {
+        "name": "form-Name-Email-City.pdf",
+        "bytes": 2253
+      }
+    ],
+    "started_at": "2026-11-10T09:51:05.843319+00:00",
+    "status": "OPENED",
+    "output_name": "form-Name-Email-City_forms.pdf",
+    "output_bytes": 2339,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 2339,
+      "pages": 1,
+      "encrypted": false,
+      "first_text": "Form test document Audit Name audit@example.test Audit City ",
+      "last_text": "Form test document Audit Name audit@example.test Audit City ",
+      "widgets": 3,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7"
+      }
+    },
+    "filled_values_present": null,
+    "duration_seconds": 0.034
+  },
+  {
+    "round": 1,
+    "operation": "metadata",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:51:05.878619+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_metadata.pdf",
+    "output_bytes": 4981680,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 4981680,
+      "pages": 69,
+      "encrypted": false,
+      "first_text": "Page 1 of 69 Section 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machi",
+      "last_text": "Page 69 of 69 Section 69. Machine learning is the study of computer algorithms that improve automati",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7",
+        "title": "Paperplane Audit Output",
+        "author": "Local Audit",
+        "subject": "Content verification",
+        "producer": "pypdf"
+      }
+    },
+    "duration_seconds": 0.064
+  },
+  {
+    "round": 1,
+    "operation": "ai_chat",
+    "input_files": [
+      {
+        "name": "labeled-qa-3page.pdf",
+        "bytes": 1629
+      }
+    ],
+    "started_at": "2026-11-10T09:51:05.943747+00:00",
+    "status": "OPENED",
+    "output_name": "labeled-qa-3page_ai_chat.json",
+    "output_bytes": 366,
+    "output_details": {
+      "opened": true,
+      "kind": ".json",
+      "bytes": 366,
+      "keys": [
+        "answer",
+        "citations",
+        "retrieval_method",
+        "fallback_used",
+        "relevant_passages"
+      ],
+      "contains_beta": true,
+      "contains_citations": true,
+      "prefix": "{\"answer\": \"AUDIT_PAGE_TWO beta follows alpha [Page 2]\\n\\n*(Extracted via deterministic local BM25 keyword matching)*\", \"citations\": [2], \"retrieval_method\": \"Deterministic Local Document Extraction\", \"fallback_used\": true, \"relevant_passages\": [{\"page\": 2, \"t"
+    },
+    "answer_contains_beta": true,
+    "duration_seconds": 0.025
+  },
+  {
+    "round": 1,
+    "operation": "ai_extract",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:51:05.970464+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_ai_extract.json",
+    "output_bytes": 468,
+    "output_details": {
+      "opened": true,
+      "kind": ".json",
+      "bytes": 468,
+      "keys": [
+        "document_type",
+        "total_pages",
+        "contact",
+        "source_pages",
+        "warnings",
+        "retrieval_method",
+        "general_data",
+        "csv_export"
+      ],
+      "contains_beta": false,
+      "contains_citations": false,
+      "prefix": "{\"document_type\": \"general\", \"total_pages\": 69, \"contact\": {\"emails\": [], \"phones\": []}, \"source_pages\": [1], \"warnings\": [], \"retrieval_method\": \"Page-bounded structural extraction\", \"general_data\": {\"title\": \"Page 1 of 69\", \"document_date\": null, \"detected_t"
+    },
+    "duration_seconds": 0.117
+  },
+  {
+    "round": 1,
+    "operation": "summarize",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:51:06.089727+00:00",
+    "status": "BLOCKED_OR_FAILED",
+    "error": "AI provider is not configured",
+    "duration_seconds": 0.068
+  },
+  {
+    "round": 1,
+    "operation": "translate",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:51:06.159425+00:00",
+    "status": "BLOCKED_OR_FAILED",
+    "error": "No text was translated. The translation service did not produce a translated PDF; please retry later.",
+    "duration_seconds": 0.144
+  },
+  {
+    "round": 1,
+    "operation": "photo_resizer",
+    "input_files": [
+      {
+        "name": "qa-image.png",
+        "bytes": 3831
+      }
+    ],
+    "started_at": "2026-11-10T09:51:06.305664+00:00",
+    "status": "OPENED",
+    "output_name": "qa-image_photo_resizer.jpg",
+    "output_bytes": 35840,
+    "output_details": {
+      "opened": true,
+      "kind": ".jpg",
+      "bytes": 35840,
+      "format": "JPEG",
+      "width": 350,
+      "height": 450,
+      "mode": "RGB"
+    },
+    "duration_seconds": 0.029
+  },
+  {
+    "round": 1,
+    "operation": "mask_aadhaar",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:51:06.336288+00:00",
+    "status": "BLOCKED_OR_FAILED",
+    "error": "No 12-digit Aadhaar number pattern was detected in the document. Nothing was masked.",
+    "duration_seconds": 0.079
+  },
+  {
+    "round": 1,
+    "operation": "grayscale",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:51:06.417344+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_grayscale.pdf",
+    "output_bytes": 7162310,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 7162310,
+      "pages": 69,
+      "encrypted": false,
+      "first_text": "",
+      "last_text": "",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7"
+      }
+    },
+    "duration_seconds": 9.332
+  },
+  {
+    "round": 1,
+    "operation": "flatten",
+    "input_files": [
+      {
+        "name": "form-Name-Email-City.pdf",
+        "bytes": 2253
+      }
+    ],
+    "started_at": "2026-11-10T09:51:15.751605+00:00",
+    "status": "OPENED",
+    "output_name": "form-Name-Email-City_flatten.pdf",
+    "output_bytes": 1086,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 1086,
+      "pages": 1,
+      "encrypted": false,
+      "first_text": "Form test document ",
+      "last_text": "Form test document ",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7"
+      }
+    },
+    "duration_seconds": 0.021
+  },
+  {
+    "round": 2,
+    "operation": "merge",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      },
+      {
+        "name": "labeled-qa-3page.pdf",
+        "bytes": 1629
+      }
+    ],
+    "started_at": "2026-11-10T09:51:15.774697+00:00",
+    "status": "OPENED",
+    "output_name": "merged-PDF.pdf",
+    "output_bytes": 4982965,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 4982965,
+      "pages": 72,
+      "encrypted": false,
+      "first_text": "Page 1 of 69 Section 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machi",
+      "last_text": "AUDIT_PAGE_THREE closing QA page ",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7",
+        "producer": "pypdf"
+      }
+    },
+    "expected_page_count": 72,
+    "page_count_matches": true,
+    "duration_seconds": 0.054
+  },
+  {
+    "round": 2,
+    "operation": "split",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:51:15.830567+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_split.pdf",
+    "output_bytes": 2258,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 2258,
+      "pages": 2,
+      "encrypted": false,
+      "first_text": "Page 1 of 69 Section 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machi",
+      "last_text": "Page 2 of 69 Section 2. Machine learning is the study of computer algorithms that improve automatica",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7",
+        "producer": "pypdf"
+      }
+    },
+    "duration_seconds": 0.017
+  },
+  {
+    "round": 2,
+    "operation": "remove",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:51:15.853099+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_remove.pdf",
+    "output_bytes": 4980702,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 4980702,
+      "pages": 68,
+      "encrypted": false,
+      "first_text": "Page 2 of 69 Section 2. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machi",
+      "last_text": "Page 69 of 69 Section 69. Machine learning is the study of computer algorithms that improve automati",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7",
+        "producer": "pypdf"
+      }
+    },
+    "expected_page_count": 68,
+    "page_count_matches": true,
+    "duration_seconds": 0.057
+  },
+  {
+    "round": 2,
+    "operation": "rotate",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:51:15.912383+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_rotate.pdf",
+    "output_bytes": 4981662,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 4981662,
+      "pages": 69,
+      "encrypted": false,
+      "first_text": "Page 1 of 69 Section 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machi",
+      "last_text": "Page 69 of 69 Section 69. Machine learning is the study of computer algorithms that improve automati",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7",
+        "producer": "pypdf"
+      }
+    },
+    "duration_seconds": 0.061
+  },
+  {
+    "round": 2,
+    "operation": "organize",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:51:15.974999+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_organize.pdf",
+    "output_bytes": 4980286,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 4980286,
+      "pages": 69,
+      "encrypted": false,
+      "first_text": "Page 2 of 69 Section 2. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machi",
+      "last_text": "Page 69 of 69 Section 69. Machine learning is the study of computer algorithms that improve automati",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7"
+      }
+    },
+    "content_assertion": [
+      "Page 2 of 69 Section 2. Machine learning",
+      "Page 1 of 69 Section 1. Machine learning",
+      "Page 3 of 69 Section 3. Machine learning"
+    ],
+    "duration_seconds": 0.055
+  },
+  {
+    "round": 2,
+    "operation": "scan_pdf",
+    "input_files": [
+      {
+        "name": "qa-image.png",
+        "bytes": 3831
+      }
+    ],
+    "started_at": "2026-11-10T09:51:16.032674+00:00",
+    "status": "OPENED",
+    "output_name": "qa-image_scan_pdf.pdf",
+    "output_bytes": 13244,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 13244,
+      "pages": 1,
+      "encrypted": false,
+      "first_text": "",
+      "last_text": "",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.4",
+        "title": "qa-image_scan_pdf",
+        "creationDate": "D:20261110095116Z",
+        "modDate": "D:20261110095116Z"
+      }
+    },
+    "duration_seconds": 0.03
+  },
+  {
+    "round": 2,
+    "operation": "compress",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:51:16.064398+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_compress.pdf",
+    "output_bytes": 988654,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 988654,
+      "pages": 69,
+      "encrypted": false,
+      "first_text": "Page 1 of 69 Section 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machi",
+      "last_text": "Page 69 of 69 Section 69. Machine learning is the study of computer algorithms that improve automati",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7"
+      }
+    },
+    "duration_seconds": 0.236
+  },
+  {
+    "round": 2,
+    "operation": "repair",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:51:16.302420+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_repair.pdf",
+    "output_bytes": 4967264,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 4967264,
+      "pages": 69,
+      "encrypted": false,
+      "first_text": "Page 1 of 69 Section 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machi",
+      "last_text": "Page 69 of 69 Section 69. Machine learning is the study of computer algorithms that improve automati",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7"
+      }
+    },
+    "duration_seconds": 0.09
+  },
+  {
+    "round": 2,
+    "operation": "ocr",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:51:16.394968+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_ocr.pdf",
+    "output_bytes": 8750403,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 8750403,
+      "pages": 69,
+      "encrypted": false,
+      "first_text": "Page 1 of 69 Section 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machi",
+      "last_text": "Page 69 of 69 Section 69. Machine learning is the study of computer algorithms that improve automati",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7"
+      }
+    },
+    "duration_seconds": 56.5
+  },
+  {
+    "round": 2,
+    "operation": "jpg_to_pdf",
+    "input_files": [
+      {
+        "name": "qa-image.png",
+        "bytes": 3831
+      }
+    ],
+    "started_at": "2026-11-10T09:52:12.896685+00:00",
+    "status": "OPENED",
+    "output_name": "qa-image_jpg_to_pdf.pdf",
+    "output_bytes": 18083,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 18083,
+      "pages": 1,
+      "encrypted": false,
+      "first_text": "",
+      "last_text": "",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7"
+      }
+    },
+    "duration_seconds": 0.016
+  },
+  {
+    "round": 2,
+    "operation": "word_to_pdf",
+    "input_files": [
+      {
+        "name": "qa-document.docx",
+        "bytes": 35327
+      }
+    ],
+    "started_at": "2026-11-10T09:52:12.914372+00:00",
+    "status": "OPENED",
+    "output_name": "qa-document_word_to_pdf.pdf",
+    "output_bytes": 26545,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 26545,
+      "pages": 1,
+      "encrypted": false,
+      "first_text": "Paperplane QA DOCX_TO_PDF_CONTENT ",
+      "last_text": "Paperplane QA DOCX_TO_PDF_CONTENT ",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7",
+        "author": "python-docx",
+        "creator": "Writer",
+        "producer": "LibreOffice 26.8.1.1 (X86_64)",
+        "creationDate": "D:20261110152219+05'30'"
+      }
+    },
+    "duration_seconds": 7.572
+  },
+  {
+    "round": 2,
+    "operation": "excel_to_pdf",
+    "input_files": [
+      {
+        "name": "qa-spreadsheet.xlsx",
+        "bytes": 4889
+      }
+    ],
+    "started_at": "2026-11-10T09:52:20.488369+00:00",
+    "status": "OPENED",
+    "output_name": "qa-spreadsheet_excel_to_pdf.pdf",
+    "output_bytes": 1831,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 1831,
+      "pages": 1,
+      "encrypted": false,
+      "first_text": "Sheet: QA Item Value Audit XLSX_TO_PDF_CONTENT ",
+      "last_text": "Sheet: QA Item Value Audit XLSX_TO_PDF_CONTENT ",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.4",
+        "title": "(anonymous)",
+        "author": "(anonymous)",
+        "subject": "(unspecified)",
+        "creator": "(unspecified)",
+        "producer": "ReportLab PDF Library - (opensource)",
+        "creationDate": "D:20261110152220+05'00'",
+        "modDate": "D:20261110152220+05'00'"
+      }
+    },
+    "duration_seconds": 0.024
+  },
+  {
+    "round": 2,
+    "operation": "powerpoint_to_pdf",
+    "input_files": [
+      {
+        "name": "qa-presentation.pptx",
+        "bytes": 28487
+      }
+    ],
+    "started_at": "2026-11-10T09:52:20.513802+00:00",
+    "status": "OPENED",
+    "output_name": "qa-presentation_powerpoint_to_pdf.pdf",
+    "output_bytes": 26870,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 26870,
+      "pages": 1,
+      "encrypted": false,
+      "first_text": "Paperplane QA PPTX_TO_PDF_CONTENT ",
+      "last_text": "Paperplane QA PPTX_TO_PDF_CONTENT ",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7",
+        "creator": "Impress",
+        "producer": "LibreOffice 26.8.1.1 (X86_64)",
+        "creationDate": "D:20261110152227+05'30'"
+      }
+    },
+    "duration_seconds": 7.033
+  },
+  {
+    "round": 2,
+    "operation": "html_to_pdf",
+    "input_files": [],
+    "started_at": "2026-11-10T09:52:27.548641+00:00",
+    "status": "BLOCKED_OR_FAILED",
+    "error": "Security Guard: Access to host '127.0.0.1' is forbidden.",
+    "duration_seconds": 0.036
+  },
+  {
+    "round": 2,
+    "operation": "pdf_to_jpg",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:52:27.585860+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_pdf_to_jpg.zip",
+    "output_bytes": 400865,
+    "output_details": {
+      "opened": true,
+      "kind": ".zip",
+      "bytes": 400865,
+      "entries": 2,
+      "sample_names": [
+        "page_001.jpg",
+        "page_002.jpg"
+      ],
+      "nested_pdf": []
+    },
+    "duration_seconds": 0.231
+  },
+  {
+    "round": 2,
+    "operation": "pdf_to_word",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:52:27.818922+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_pdf_to_word.docx",
+    "output_bytes": 4960304,
+    "output_details": {
+      "opened": true,
+      "kind": ".docx",
+      "bytes": 4960304,
+      "paragraphs": 483,
+      "contains_marker": false,
+      "prefix": "\nPage 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Mach"
+    },
+    "duration_seconds": 4.502
+  },
+  {
+    "round": 2,
+    "operation": "pdf_to_excel",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:52:32.322717+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_pdf_to_excel.xlsx",
+    "output_bytes": 14474,
+    "output_details": {
+      "opened": true,
+      "kind": ".xlsx",
+      "bytes": 14474,
+      "sheets": [
+        "Extracted Data"
+      ],
+      "sample": [
+        "Page 1 of 69",
+        "Section 1. Machine learning is the study of computer algorithms that improve automatically",
+        "through experience. It is seen as a subset of artificial intelligence. Machine learning is the",
+        "study of computer algorithms that improve automatically through experience. It is seen as a",
+        "subset of artificial intelligence. Machine learning is the study of computer algorithms that"
+      ],
+      "contains_marker": false
+    },
+    "duration_seconds": 3.268
+  },
+  {
+    "round": 2,
+    "operation": "pdf_to_powerpoint",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:52:35.592738+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_pdf_to_powerpoint.pptx",
+    "output_bytes": 13809861,
+    "output_details": {
+      "opened": true,
+      "kind": ".pptx",
+      "bytes": 13809861,
+      "slides": 69,
+      "texts": [],
+      "contains_marker": false
+    },
+    "duration_seconds": 6.564
+  },
+  {
+    "round": 2,
+    "operation": "pdf_to_pdfa",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:52:42.158812+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_pdf_to_pdfa.pdf",
+    "output_bytes": 4967498,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 4967498,
+      "pages": 69,
+      "encrypted": false,
+      "first_text": "Page 1 of 69 Section 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machi",
+      "last_text": "Page 69 of 69 Section 69. Machine learning is the study of computer algorithms that improve automati",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7",
+        "subject": "PDF/A-1b Archival Document",
+        "keywords": "PDF/A-1b",
+        "producer": "Paperplane PDF/A Archival Engine"
+      }
+    },
+    "duration_seconds": 0.082
+  },
+  {
+    "round": 2,
+    "operation": "pdf_to_text",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:52:42.242508+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_pdf_to_text.txt",
+    "output_bytes": 129553,
+    "output_details": {
+      "opened": true,
+      "kind": ".txt",
+      "bytes": 129553,
+      "characters": 127967,
+      "prefix": "--- Page 1 --- Page 1 of 69 Section 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machine learning is the study of computer algorithms that improve auto",
+      "contains_page_marker": true,
+      "contains_audit_marker": false,
+      "contains_clean_filename": false
+    },
+    "duration_seconds": 0.077
+  },
+  {
+    "round": 2,
+    "operation": "pdf_to_markdown",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:52:42.321660+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_pdf_to_markdown.md",
+    "output_bytes": 130323,
+    "output_details": {
+      "opened": true,
+      "kind": ".md",
+      "bytes": 130323,
+      "characters": 128392,
+      "prefix": "# notes-69page  ## Page 1   ## Page 1 of 69  Section 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machine learning is the study of computer algorithms ",
+      "contains_page_marker": true,
+      "contains_audit_marker": false,
+      "contains_clean_filename": false
+    },
+    "duration_seconds": 3.41
+  },
+  {
+    "round": 2,
+    "operation": "edit",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:52:45.733752+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_edit.pdf",
+    "output_bytes": 4980475,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 4980475,
+      "pages": 69,
+      "encrypted": false,
+      "first_text": "Page 1 of 69 Section 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machi",
+      "last_text": "Page 69 of 69 Section 69. Machine learning is the study of computer algorithms that improve automati",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7"
+      }
+    },
+    "duration_seconds": 0.079
+  },
+  {
+    "round": 2,
+    "operation": "annotate",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:52:45.814565+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_annotate.pdf",
+    "output_bytes": 4980835,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 4980835,
+      "pages": 69,
+      "encrypted": false,
+      "first_text": "Page 1 of 69 Section 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machi",
+      "last_text": "Page 69 of 69 Section 69. Machine learning is the study of computer algorithms that improve automati",
+      "widgets": 0,
+      "annotations": 1,
+      "metadata": {
+        "format": "PDF 1.7"
+      }
+    },
+    "duration_seconds": 0.064
+  },
+  {
+    "round": 2,
+    "operation": "crop",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:52:45.880967+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_crop.pdf",
+    "output_bytes": 4981735,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 4981735,
+      "pages": 69,
+      "encrypted": false,
+      "first_text": "Page 1 of 69 Section 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machi",
+      "last_text": "Page 69 of 69 Section 69. Machine learning is the study of computer algorithms that improve automati",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7"
+      }
+    },
+    "duration_seconds": 0.073
+  },
+  {
+    "round": 2,
+    "operation": "redact",
+    "input_files": [
+      {
+        "name": "labeled-qa-3page.pdf",
+        "bytes": 1629
+      }
+    ],
+    "started_at": "2026-11-10T09:52:45.956612+00:00",
+    "status": "OPENED",
+    "output_name": "labeled-qa-3page_redact.pdf",
+    "output_bytes": 1675,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 1675,
+      "pages": 3,
+      "encrypted": false,
+      "first_text": "AUDIT_PAGE_ONE   QA ",
+      "last_text": "AUDIT_PAGE_THREE closing QA page ",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7"
+      }
+    },
+    "redaction_applied": true,
+    "duration_seconds": 0.022
+  },
+  {
+    "round": 2,
+    "operation": "watermark",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:52:45.980920+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_watermark.pdf",
+    "output_bytes": 5292698,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 5292698,
+      "pages": 69,
+      "encrypted": false,
+      "first_text": "Page 1 of 69 Section 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machi",
+      "last_text": "Page 69 of 69 Section 69. Machine learning is the study of computer algorithms that improve automati",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7",
+        "producer": "pypdf"
+      }
+    },
+    "duration_seconds": 0.189
+  },
+  {
+    "round": 2,
+    "operation": "page_numbers",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:52:46.171484+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_page_numbers.pdf",
+    "output_bytes": 5274059,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 5274059,
+      "pages": 69,
+      "encrypted": false,
+      "first_text": "Page 1 of 69 Section 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machi",
+      "last_text": "Page 69 of 69 Section 69. Machine learning is the study of computer algorithms that improve automati",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7",
+        "producer": "pypdf"
+      }
+    },
+    "duration_seconds": 0.202
+  },
+  {
+    "round": 2,
+    "operation": "protect",
+    "input_files": [
+      {
+        "name": "labeled-qa-3page.pdf",
+        "bytes": 1629
+      }
+    ],
+    "started_at": "2026-11-10T09:52:46.376063+00:00",
+    "status": "OPENED",
+    "output_name": "labeled-qa-3page_protect.pdf",
+    "output_bytes": 2294,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 2294,
+      "pages": 3,
+      "encrypted": false,
+      "first_text": "AUDIT_PAGE_ONE Important QA ",
+      "last_text": "AUDIT_PAGE_THREE closing QA page ",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7",
+        "encryption": "Standard V5 R6 256-bit AES"
+      },
+      "password_authentication_succeeded": true,
+      "pages_after_authentication": 3
+    },
+    "duration_seconds": 0.125
+  },
+  {
+    "round": 2,
+    "operation": "unlock",
+    "input_files": [
+      {
+        "name": "protected-labeled-qa.pdf",
+        "bytes": 2294
+      }
+    ],
+    "started_at": "2026-11-10T09:52:46.502807+00:00",
+    "status": "OPENED",
+    "output_name": "protected-labeled-qa_unlock.pdf",
+    "output_bytes": 1428,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 1428,
+      "pages": 3,
+      "encrypted": false,
+      "first_text": "AUDIT_PAGE_ONE Important QA ",
+      "last_text": "AUDIT_PAGE_THREE closing QA page ",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7"
+      }
+    },
+    "duration_seconds": 0.054
+  },
+  {
+    "round": 2,
+    "operation": "sign",
+    "input_files": [
+      {
+        "name": "labeled-qa-3page.pdf",
+        "bytes": 1629
+      }
+    ],
+    "started_at": "2026-11-10T09:52:46.559486+00:00",
+    "status": "OPENED",
+    "output_name": "labeled-qa-3page_sign.pdf",
+    "output_bytes": 2181,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 2181,
+      "pages": 3,
+      "encrypted": false,
+      "first_text": "AUDIT_PAGE_ONE Important QA Audit QA Audit QA | 2026-11-10 15:22 ",
+      "last_text": "AUDIT_PAGE_THREE closing QA page ",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7"
+      }
+    },
+    "duration_seconds": 0.02
+  },
+  {
+    "round": 2,
+    "operation": "compare",
+    "input_files": [
+      {
+        "name": "labeled-qa-3page.pdf",
+        "bytes": 1629
+      },
+      {
+        "name": "changed-labeled-qa-3page.pdf",
+        "bytes": 1812
+      }
+    ],
+    "started_at": "2026-11-10T09:52:46.581604+00:00",
+    "status": "OPENED",
+    "output_name": "labeled-qa-3page_compare.txt",
+    "output_bytes": 150,
+    "output_details": {
+      "opened": true,
+      "kind": ".txt",
+      "bytes": 150,
+      "characters": 143,
+      "prefix": "--- reference.pdf +++ candidate.pdf @@ -1,4 +1,5 @@  AUDIT_PAGE_ONE Important QA +AUDIT_CANDIDATE_CHANGE    AUDIT_PAGE_TWO beta follows alpha  ",
+      "contains_page_marker": false,
+      "contains_audit_marker": true,
+      "contains_clean_filename": true
+    },
+    "diff_uses_original_filenames": true,
+    "duration_seconds": 0.009
+  },
+  {
+    "round": 2,
+    "operation": "forms",
+    "input_files": [
+      {
+        "name": "form-Name-Email-City.pdf",
+        "bytes": 2253
+      }
+    ],
+    "started_at": "2026-11-10T09:52:46.591909+00:00",
+    "status": "OPENED",
+    "output_name": "form-Name-Email-City_forms.pdf",
+    "output_bytes": 2339,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 2339,
+      "pages": 1,
+      "encrypted": false,
+      "first_text": "Form test document Audit Name audit@example.test Audit City ",
+      "last_text": "Form test document Audit Name audit@example.test Audit City ",
+      "widgets": 3,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7"
+      }
+    },
+    "filled_values_present": null,
+    "duration_seconds": 0.028
+  },
+  {
+    "round": 2,
+    "operation": "metadata",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:52:46.621764+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_metadata.pdf",
+    "output_bytes": 4981680,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 4981680,
+      "pages": 69,
+      "encrypted": false,
+      "first_text": "Page 1 of 69 Section 1. Machine learning is the study of computer algorithms that improve automatically through experience. It is seen as a subset of artificial intelligence. Machi",
+      "last_text": "Page 69 of 69 Section 69. Machine learning is the study of computer algorithms that improve automati",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7",
+        "title": "Paperplane Audit Output",
+        "author": "Local Audit",
+        "subject": "Content verification",
+        "producer": "pypdf"
+      }
+    },
+    "duration_seconds": 0.075
+  },
+  {
+    "round": 2,
+    "operation": "ai_chat",
+    "input_files": [
+      {
+        "name": "labeled-qa-3page.pdf",
+        "bytes": 1629
+      }
+    ],
+    "started_at": "2026-11-10T09:52:46.698678+00:00",
+    "status": "OPENED",
+    "output_name": "labeled-qa-3page_ai_chat.json",
+    "output_bytes": 366,
+    "output_details": {
+      "opened": true,
+      "kind": ".json",
+      "bytes": 366,
+      "keys": [
+        "answer",
+        "citations",
+        "retrieval_method",
+        "fallback_used",
+        "relevant_passages"
+      ],
+      "contains_beta": true,
+      "contains_citations": true,
+      "prefix": "{\"answer\": \"AUDIT_PAGE_TWO beta follows alpha [Page 2]\\n\\n*(Extracted via deterministic local BM25 keyword matching)*\", \"citations\": [2], \"retrieval_method\": \"Deterministic Local Document Extraction\", \"fallback_used\": true, \"relevant_passages\": [{\"page\": 2, \"t"
+    },
+    "answer_contains_beta": true,
+    "duration_seconds": 0.012
+  },
+  {
+    "round": 2,
+    "operation": "ai_extract",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:52:46.712930+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_ai_extract.json",
+    "output_bytes": 468,
+    "output_details": {
+      "opened": true,
+      "kind": ".json",
+      "bytes": 468,
+      "keys": [
+        "document_type",
+        "total_pages",
+        "contact",
+        "source_pages",
+        "warnings",
+        "retrieval_method",
+        "general_data",
+        "csv_export"
+      ],
+      "contains_beta": false,
+      "contains_citations": false,
+      "prefix": "{\"document_type\": \"general\", \"total_pages\": 69, \"contact\": {\"emails\": [], \"phones\": []}, \"source_pages\": [1], \"warnings\": [], \"retrieval_method\": \"Page-bounded structural extraction\", \"general_data\": {\"title\": \"Page 1 of 69\", \"document_date\": null, \"detected_t"
+    },
+    "duration_seconds": 0.111
+  },
+  {
+    "round": 2,
+    "operation": "summarize",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:52:46.826997+00:00",
+    "status": "BLOCKED_OR_FAILED",
+    "error": "AI provider is not configured",
+    "duration_seconds": 0.082
+  },
+  {
+    "round": 2,
+    "operation": "translate",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:52:46.911947+00:00",
+    "status": "BLOCKED_OR_FAILED",
+    "error": "No text was translated. The translation service did not produce a translated PDF; please retry later.",
+    "duration_seconds": 0.178
+  },
+  {
+    "round": 2,
+    "operation": "photo_resizer",
+    "input_files": [
+      {
+        "name": "qa-image.png",
+        "bytes": 3831
+      }
+    ],
+    "started_at": "2026-11-10T09:52:47.092337+00:00",
+    "status": "OPENED",
+    "output_name": "qa-image_photo_resizer.jpg",
+    "output_bytes": 35840,
+    "output_details": {
+      "opened": true,
+      "kind": ".jpg",
+      "bytes": 35840,
+      "format": "JPEG",
+      "width": 350,
+      "height": 450,
+      "mode": "RGB"
+    },
+    "duration_seconds": 0.025
+  },
+  {
+    "round": 2,
+    "operation": "mask_aadhaar",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:52:47.119254+00:00",
+    "status": "BLOCKED_OR_FAILED",
+    "error": "No 12-digit Aadhaar number pattern was detected in the document. Nothing was masked.",
+    "duration_seconds": 0.079
+  },
+  {
+    "round": 2,
+    "operation": "grayscale",
+    "input_files": [
+      {
+        "name": "notes-69page.pdf",
+        "bytes": 4980286
+      }
+    ],
+    "started_at": "2026-11-10T09:52:47.200584+00:00",
+    "status": "OPENED",
+    "output_name": "notes-69page_grayscale.pdf",
+    "output_bytes": 7162310,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 7162310,
+      "pages": 69,
+      "encrypted": false,
+      "first_text": "",
+      "last_text": "",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7"
+      }
+    },
+    "duration_seconds": 10.279
+  },
+  {
+    "round": 2,
+    "operation": "flatten",
+    "input_files": [
+      {
+        "name": "form-Name-Email-City.pdf",
+        "bytes": 2253
+      }
+    ],
+    "started_at": "2026-11-10T09:52:57.482890+00:00",
+    "status": "OPENED",
+    "output_name": "form-Name-Email-City_flatten.pdf",
+    "output_bytes": 1086,
+    "output_details": {
+      "opened": true,
+      "kind": ".pdf",
+      "bytes": 1086,
+      "pages": 1,
+      "encrypted": false,
+      "first_text": "Form test document ",
+      "last_text": "Form test document ",
+      "widgets": 0,
+      "annotations": 0,
+      "metadata": {
+        "format": "PDF 1.7"
+      }
+    },
+    "duration_seconds": 0.032
+  }
+]

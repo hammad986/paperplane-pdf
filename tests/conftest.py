@@ -6,6 +6,7 @@ import pytest
 
 # Ensure testing flag is active for test suite assertions
 os.environ["TESTING"] = "True"
+os.environ["PAPERPLANE_ENV"] = "development"
 # Keep persistent app state from one pytest invocation out of another. Billable
 # local requests update the same daily usage store as the app, so reusing the
 # developer's runtime_data database can make later suite runs fail at quota 100.

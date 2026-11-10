@@ -42,10 +42,14 @@ services:
     environment:
       PAPERPLANE_ENV: production
       PAPERPLANE_DATA_DIR: /data
+      PAPERPLANE_BACKUP_DIR: /backups
       PAPERPLANE_BACKUP_INTERVAL_SECONDS: "86400"
       PAPERPLANE_BACKUP_RETENTION_DAYS: "14"
     volumes:
       - paperplane_data:/data
+      # Keep database backups on the host filesystem outside the application
+      # volume so losing paperplane_data does not also remove its backups.
+      - "${PAPERPLANE_BACKUP_HOST_DIR:-../paperplane-backups}:/backups"
     command: ["python", "scripts/backup_db.py", "--daemon"]
     restart: always
     tmpfs:
@@ -68,3 +72,7 @@ services:
 
 volumes:
   paperplane_data:
+    # Stable across compose project directory/name changes. Before deploying,
+    # inspect any existing project-prefixed volume and set the override to its
+    # exact name or migrate its contents into this volume.
+    name: ${PAPERPLANE_DATA_VOLUME_NAME:-paperplane_data}

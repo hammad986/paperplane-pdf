@@ -199,10 +199,11 @@ Bachelor of Science in Computer Science - University of California (2013 - 2017)
         self.assertEqual(res_sup["citations"], [1])
         self.assertTrue("INV-2026-8891" in res_sup["answer"] or "550" in res_sup["answer"])
 
-        # 2. General knowledge question bypasses document retrieval and cites nothing.
+        # 2. Unsupported question searches the attached document and reports no match.
         res_unsup = ai_engine.chat_with_pdf(self.invoice_pdf, "What is the atmospheric composition of Mars and Saturn?")
         self.assertEqual(res_unsup["citations"], [])
-        self.assertIn("invoice number", res_unsup["answer"].lower())
+        self.assertIn("no relevant information found", res_unsup["answer"].lower())
+        self.assertIn("active document does not contain", res_unsup["answer"].lower())
 
     @patch("ai_engine.call_llm", return_value="### Executive Summary\n- Invoice number INV-2026-8891\n- Total amount $550.00")
     def test_07_executive_summarizer_structured(self, mock_llm):

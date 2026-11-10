@@ -10,6 +10,22 @@ import pytest
 from PIL import Image, ImageDraw, ImageFont
 
 import ai_engine
+
+
+def use_bluesminds_test_config(monkeypatch):
+    """Keep legacy Bluesminds adapter tests isolated from host AI_PROVIDER settings."""
+    monkeypatch.setattr(
+        ai_engine,
+        "_runtime_ai_config",
+        lambda: {
+            "provider": "bluesminds",
+            "model": ai_engine.BLUESMINDS_MODEL,
+            "base_url": ai_engine.BLUESMINDS_BASE_URL or "https://api.bluesminds.com/v1",
+            "api_key": ai_engine._current_bluesminds_api_key(),
+        },
+    )
+
+
 def make_pdf(path: Path) -> None:
     doc = fitz.open()
     page = doc.new_page()
@@ -22,6 +38,7 @@ def make_pdf(path: Path) -> None:
 def test_bluesminds_missing_key_raises_clear_error(monkeypatch):
     monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "")
     monkeypatch.setenv("BLUESMINDS_API_KEY", "")
+    use_bluesminds_test_config(monkeypatch)
     import pytest
     with pytest.raises(ValueError, match="AI provider is not configured"):
         ai_engine.call_bluesminds("system", "user")
@@ -29,9 +46,10 @@ def test_bluesminds_missing_key_raises_clear_error(monkeypatch):
 
 def test_bluesminds_network_failure_raises_clear_error(monkeypatch):
     monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "test-key")
+    use_bluesminds_test_config(monkeypatch)
 
     import pytest
-    with patch("ai_engine.urllib.request.urlopen", side_effect=URLError("offline")):
+    with patch("ai_engine._open_ai_request", side_effect=URLError("offline")), patch("ai_engine.time.sleep"):
         with pytest.raises(RuntimeError, match="AI service could not be reached or timed out"):
             ai_engine.call_bluesminds("system", "user")
 
@@ -40,6 +58,7 @@ def test_bluesminds_uses_fresh_environment_key(monkeypatch):
     monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", ai_engine._INITIAL_BLUESMINDS_API_KEY)
     monkeypatch.setenv("BLUESMINDS_API_KEY", "fresh-bluesminds-key-from-environment")
     monkeypatch.setattr(ai_engine, "BLUESMINDS_MODEL", "owner/configured-model")
+    use_bluesminds_test_config(monkeypatch)
 
     class FakeResponse:
         status = 200
@@ -53,7 +72,7 @@ def test_bluesminds_uses_fresh_environment_key(monkeypatch):
         def read(self):
             return b'{"choices":[{"message":{"content":"upstream response"}}]}'
 
-    with patch("ai_engine.urllib.request.urlopen", return_value=FakeResponse()) as open_url:
+    with patch("ai_engine._open_ai_request", return_value=FakeResponse()) as open_url:
         assert ai_engine.call_bluesminds("system", "user") == "upstream response"
 
     request = open_url.call_args.args[0]
@@ -66,18 +85,20 @@ def test_bluesminds_retries_transient_first_attempt(monkeypatch):
     from urllib.error import HTTPError
 
     monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "test-key")
+    use_bluesminds_test_config(monkeypatch)
     class FakeResponse:
         def __enter__(self): return self
         def __exit__(self, exc_type, exc_value, traceback): return False
         def read(self): return b'{"choices":[{"message":{"content":"first successful response"}}]}'
 
-    with patch("ai_engine.urllib.request.urlopen", side_effect=[HTTPError("https://provider.invalid", 503, "busy", {}, None), FakeResponse()]) as open_url, patch("ai_engine.time.sleep"):
+    with patch("ai_engine._open_ai_request", side_effect=[HTTPError("https://provider.invalid", 503, "busy", {}, None), FakeResponse()]) as open_url, patch("ai_engine.time.sleep"):
         assert ai_engine.call_bluesminds("system", "user", timeout_seconds=8) == "first successful response"
     assert open_url.call_count == 2
 
 
 def test_bluesminds_stream_parses_provider_deltas(monkeypatch):
     monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "test-key")
+    use_bluesminds_test_config(monkeypatch)
 
     class FakeResponse:
         def __enter__(self): return self
@@ -87,7 +108,7 @@ def test_bluesminds_stream_parses_provider_deltas(monkeypatch):
             yield b'data: {"choices":[{"delta":{"content":"there."}}]}\n'
             yield b'data: [DONE]\n'
 
-    with patch("ai_engine.urllib.request.urlopen", return_value=FakeResponse()) as open_url:
+    with patch("ai_engine._open_ai_request", return_value=FakeResponse()) as open_url:
         assert list(ai_engine.stream_bluesminds("system", "user")) == ["Hello ", "there."]
     request = open_url.call_args.args[0]
     assert json.loads(request.data)["stream"] is True
@@ -97,6 +118,7 @@ def test_bluesminds_stream_retries_transient_failure_before_first_token(monkeypa
     from urllib.error import HTTPError
 
     monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "test-key")
+    use_bluesminds_test_config(monkeypatch)
 
     class FakeResponse:
         def __enter__(self): return self
@@ -105,7 +127,7 @@ def test_bluesminds_stream_retries_transient_failure_before_first_token(monkeypa
             yield b'data: {"choices":[{"delta":{"content":"recovered"}}]}\n'
             yield b'data: [DONE]\n'
 
-    with patch("ai_engine.urllib.request.urlopen", side_effect=[HTTPError("https://provider.invalid", 503, "busy", {}, None), FakeResponse()]) as open_url, patch("ai_engine.time.sleep"):
+    with patch("ai_engine._open_ai_request", side_effect=[HTTPError("https://provider.invalid", 503, "busy", {}, None), FakeResponse()]) as open_url, patch("ai_engine.time.sleep"):
         assert list(ai_engine.stream_bluesminds("system", "user")) == ["recovered"]
     assert open_url.call_count == 2
 
@@ -114,6 +136,7 @@ def test_bluesminds_stream_does_not_restart_after_partial_output(monkeypatch):
     import pytest
 
     monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "test-key")
+    use_bluesminds_test_config(monkeypatch)
 
     class PartialResponse:
         def __enter__(self): return self
@@ -122,7 +145,7 @@ def test_bluesminds_stream_does_not_restart_after_partial_output(monkeypatch):
             yield b'data: {"choices":[{"delta":{"content":"partial"}}]}\n'
             raise URLError("connection dropped")
 
-    with patch("ai_engine.urllib.request.urlopen", return_value=PartialResponse()) as open_url:
+    with patch("ai_engine._open_ai_request", return_value=PartialResponse()) as open_url:
         stream = ai_engine.stream_bluesminds("system", "user")
         assert next(stream) == "partial"
         with pytest.raises(RuntimeError, match="AI service could not be reached or timed out"):
@@ -259,7 +282,7 @@ def test_ai_greetings_bypass_document_retrieval_with_or_without_pdf(tmp_path, mo
         assert '"stage": "Extracting' not in stream_with_document.text
 
 
-def test_ai_chat_with_pdf_keeps_document_questions_grounded_and_general_questions_direct(tmp_path, monkeypatch):
+def test_ai_chat_with_pdf_uses_attached_document_for_non_greeting_questions(tmp_path, monkeypatch):
     source = tmp_path / "direct-versus-document.pdf"
     make_pdf(source)
     prompts = []
@@ -273,10 +296,9 @@ def test_ai_chat_with_pdf_keeps_document_questions_grounded_and_general_question
     monkeypatch.setattr(ai_engine, "AI_KILL_SWITCH", False)
     monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "test-key")
     monkeypatch.setattr(ai_engine, "call_llm", fake_call)
-    direct = ai_engine.chat_with_pdf(source, "Can you help me with a general question?")
-    assert direct["answer"] == "A direct general answer."
-    assert direct["citations"] == []
-    assert "DOCUMENT EXCERPTS" not in prompts[-1]
+    document_context_answer = ai_engine.chat_with_pdf(source, "Can you help me with a general question?")
+    assert document_context_answer["answer"] != "A direct general answer."
+    assert "DOCUMENT EXCERPTS" in prompts[-1]
 
     grounded = ai_engine.chat_with_pdf(source, "What is on page 1?")
     assert "important deadline" in grounded["answer"]

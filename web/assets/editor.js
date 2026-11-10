@@ -1447,6 +1447,7 @@ class EditCanvasManager {
     if (!modal) return;
     modal.dataset.pendingDoc = JSON.stringify(doc);
     modal.hidden = false;
+    modal.dispatchEvent(new Event('paperplane:signature-open'));
   }
 
   _showStampPicker(doc) {

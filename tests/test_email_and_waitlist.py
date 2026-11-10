@@ -5,12 +5,12 @@ from persistence import init_db, add_waitlist_entry, get_waitlist_count
 from email_service import send_login_notification, send_password_reset_email, send_password_changed_notification
 
 def test_email_service_fallback(monkeypatch):
-    """Ensure email notifications execute safely even when SMTP credentials are not configured."""
+    """No transactional notification claims delivery without a configured provider."""
     monkeypatch.setenv("SMTP_HOST", "")
     monkeypatch.setattr("email_service.RESEND_API_KEY", "")
-    assert send_login_notification("test@paperplane.local", client_ip="127.0.0.1", user_agent="Mozilla/5.0") is True
-    assert send_password_reset_email("test@paperplane.local", reset_token="mock123", base_url="http://localhost:8000") is True
-    assert send_password_changed_notification("test@paperplane.local", client_ip="127.0.0.1") is True
+    assert send_login_notification("test@paperplane.local", client_ip="127.0.0.1", user_agent="Mozilla/5.0") is False
+    assert send_password_reset_email("test@paperplane.local", reset_token="mock123", base_url="http://localhost:8000") is False
+    assert send_password_changed_notification("test@paperplane.local", client_ip="127.0.0.1") is False
 
 
 def test_resend_api_dispatch(monkeypatch):
@@ -19,6 +19,10 @@ def test_resend_api_dispatch(monkeypatch):
 
     class MockResponse:
         status = 200
+        def __enter__(self):
+            return self
+        def __exit__(self, exc_type, exc_value, traceback):
+            return False
         def read(self):
             return b'{"id": "re_12345"}'
 
