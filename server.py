@@ -78,14 +78,19 @@ from persistence import (
     consume_guest_job_token,
     verify_user_credentials, create_session_for_user,
     record_audit_event, get_recent_audit_logs, delete_job_record, _password_hash,
-    admin_get_analytics, admin_get_all_users, admin_get_waitlist
+    admin_get_analytics, admin_get_all_users, admin_get_waitlist,
+    get_admin_lockout_remaining, record_admin_failed_attempt, reset_admin_failed_attempts,
+    set_admin_pending_otp, verify_admin_otp, create_admin_session, verify_admin_session,
+    revoke_admin_session, admin_get_extended_analytics
 )
 from email_service import (
     send_login_notification,
     send_password_reset_email,
     send_password_changed_notification,
     send_otp_email,
-    send_waitlist_alert
+    send_waitlist_alert,
+    send_admin_login_otp,
+    send_admin_lockout_alert
 )
 try:
     from google.oauth2 import id_token as google_id_token
@@ -103,20 +108,36 @@ JOBS = JOBS_DIR
 logger = logging.getLogger(__name__)
 executor = ThreadPoolExecutor(max_workers=max(4, int(os.getenv("PAPERPLANE_WORKERS", "4"))))
 
-# Admin authentication — single owner key, never stored in DB
+# Admin authentication — 3-factor owner security
 ADMIN_SECRET_KEY: str = os.getenv("PAPERPLANE_ADMIN_KEY", "").strip()
+ADMIN_SECRET_CODE: str = os.getenv("PAPERPLANE_ADMIN_CODE", "nimrakulsum").strip()
+ADMIN_ALERT_EMAIL: str = os.getenv("ADMIN_ALERT_EMAIL", "mdhammad2906@gmail.com").strip()
 
 
 def _require_admin(
+    x_admin_session: str = Header(default="", alias="X-Admin-Session"),
     x_admin_key: str = Header(default="", alias="X-Admin-Key"),
+    session: str = "",
     key: str = "",
 ) -> None:
-    """FastAPI dependency: validates the admin secret key via header or query param."""
-    token = x_admin_key or key
-    if not ADMIN_SECRET_KEY:
-        raise HTTPException(status_code=503, detail="Admin access is not configured on this server.")
-    if not hmac.compare_digest(token, ADMIN_SECRET_KEY):
-        raise HTTPException(status_code=401, detail="Invalid or missing admin key.")
+    """FastAPI dependency: validates active admin session token or programmatic admin secret key."""
+    # 1. Check for active session token first (preferred browser flow)
+    active_session = x_admin_session or session
+    if active_session:
+        if verify_admin_session(active_session):
+            return
+        raise HTTPException(status_code=401, detail="Admin session expired or invalid. Please re-authenticate.")
+
+    # 2. Check for direct programmatic admin secret key (legacy/script access)
+    active_key = x_admin_key or key
+    if active_key:
+        if not ADMIN_SECRET_KEY:
+            raise HTTPException(status_code=503, detail="Admin access is not configured on this server.")
+        if hmac.compare_digest(active_key, ADMIN_SECRET_KEY):
+            return
+        raise HTTPException(status_code=401, detail="Invalid admin key.")
+
+    raise HTTPException(status_code=401, detail="Authentication required. Please provide a valid admin session.")
 
 # Workload-based execution timeouts (in seconds)
 COMPRESS_TIMEOUT_SECONDS = 60.0    # multi-pass downsampling & stream compression
@@ -6512,7 +6533,7 @@ LEGACY_SLUG_REDIRECTS = {
 
 @app.get("/admin", response_class=HTMLResponse, include_in_schema=False)
 def admin_portal_page():
-    """Visual admin portal for the platform owner."""
+    """Visual admin portal for the platform owner with 3-factor authentication and visual analytics."""
     return HTMLResponse(content="""<!doctype html>
 <html lang="en">
 <head>
@@ -6528,10 +6549,11 @@ def admin_portal_page():
       --text-muted: #8ca3a2;
       --accent: #ff4b26;
       --accent-hover: #e03e1b;
-      --pro-color: #ff9800;
-      --dev-color: #a855f7;
-      --free-color: #64748b;
+      --pro-color: #fbbf24;
+      --dev-color: #c084fc;
+      --free-color: #94a3b8;
       --green: #10b981;
+      --red: #ef4444;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -6545,7 +6567,7 @@ def admin_portal_page():
     header {
       background: #111a1d;
       border-bottom: 1px solid var(--card-border);
-      padding: 16px 24px;
+      padding: 14px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -6553,13 +6575,13 @@ def admin_portal_page():
     .logo-badge {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       font-size: 18px;
       font-weight: 700;
     }
     .logo-icon {
-      width: 32px;
-      height: 32px;
+      width: 34px;
+      height: 34px;
       background: var(--accent);
       border-radius: 8px;
       display: inline-flex;
@@ -6568,10 +6590,21 @@ def admin_portal_page():
       font-weight: 900;
       color: #fff;
     }
+    .env-tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: #1c2b2f;
+      color: var(--green);
+      border: 1px solid #23483f;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
     .header-actions {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
     .btn {
       background: var(--card-bg);
@@ -6596,16 +6629,16 @@ def admin_portal_page():
 
     main {
       flex: 1;
-      max-width: 1280px;
+      max-width: 1340px;
       width: 100%;
       margin: 0 auto;
-      padding: 32px 24px;
+      padding: 28px 24px;
     }
 
-    /* Auth Screen */
-    #auth-screen {
-      max-width: 440px;
-      margin: 80px auto;
+    /* Auth Screens Container */
+    .auth-card {
+      max-width: 480px;
+      margin: 60px auto;
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 16px;
@@ -6613,28 +6646,106 @@ def admin_portal_page():
       text-align: center;
       box-shadow: 0 16px 40px rgba(0,0,0,0.5);
     }
-    #auth-screen h1 { font-size: 22px; margin-bottom: 8px; }
-    #auth-screen p { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; }
+    .auth-card h1 { font-size: 22px; margin-bottom: 8px; }
+    .auth-card p { color: var(--text-muted); font-size: 13.5px; margin-bottom: 24px; line-height: 1.5; }
+
+    /* Input with Eye toggle */
+    .field-group {
+      text-align: left;
+      margin-bottom: 16px;
+    }
+    .field-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      display: block;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
     .input-field {
       width: 100%;
-      padding: 12px 16px;
+      padding: 12px 42px 12px 14px;
       background: #0f1618;
       border: 1px solid var(--card-border);
       border-radius: 8px;
       color: var(--text);
       font-size: 14px;
-      margin-bottom: 16px;
       outline: none;
+      transition: border-color 0.15s;
     }
     .input-field:focus { border-color: var(--accent); }
-    .error-msg { color: #f87171; font-size: 13px; margin-bottom: 12px; display: none; }
+    .toggle-eye {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 16px;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .toggle-eye:hover { color: #fff; }
 
-    /* Dashboard Grid */
+    .error-msg {
+      color: #f87171;
+      background: #3b1414;
+      border: 1px solid #7f1d1d;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+      text-align: left;
+    }
+    .info-note {
+      font-size: 12px;
+      color: var(--text-muted);
+      background: #0f181a;
+      border: 1px dashed var(--card-border);
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      text-align: left;
+      line-height: 1.4;
+    }
+
+    /* Lockout Screen */
+    #lockout-screen {
+      border-color: #ef4444;
+      background: #1c0f0f;
+    }
+
+    /* Environment Live Banner */
+    .system-banner {
+      background: #101c1e;
+      border: 1px solid #1e3a3f;
+      border-radius: 10px;
+      padding: 12px 18px;
+      margin-bottom: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      font-size: 13px;
+    }
+    .system-banner strong { color: var(--green); }
+
+    /* Dashboard Metrics Grid */
     .metric-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
       gap: 16px;
-      margin-bottom: 32px;
+      margin-bottom: 28px;
     }
     .metric-card {
       background: var(--card-bg);
@@ -6644,11 +6755,11 @@ def admin_portal_page():
       position: relative;
     }
     .metric-card .title {
-      font-size: 12px;
+      font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       color: var(--text-muted);
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
     .metric-card .value {
       font-size: 28px;
@@ -6661,14 +6772,110 @@ def admin_portal_page():
       margin-top: 4px;
     }
 
-    /* Actions bar */
+    /* Visual Analytics Section */
+    .analytics-section {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+    @media (max-width: 900px) {
+      .analytics-section { grid-template-columns: 1fr; }
+    }
+    .chart-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .chart-card h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .bar-chart-container {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      height: 160px;
+      padding-top: 20px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .bar-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100%;
+      justify-content: flex-end;
+      gap: 6px;
+    }
+    .bar-fill {
+      width: 100%;
+      max-width: 28px;
+      background: var(--accent);
+      border-radius: 4px 4px 0 0;
+      min-height: 4px;
+      transition: height 0.3s ease;
+      cursor: pointer;
+    }
+    .bar-fill:hover { background: #ff6b4d; }
+    .bar-label {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-align: center;
+      white-space: nowrap;
+    }
+    .bar-value {
+      font-size: 10px;
+      color: #fff;
+      font-weight: 700;
+    }
+
+    /* Tier Meter Bar */
+    .meter-bar {
+      height: 16px;
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      background: #111a1d;
+      margin-bottom: 16px;
+      border: 1px solid var(--card-border);
+    }
+    .meter-seg-free { background: var(--free-color); height: 100%; }
+    .meter-seg-pro { background: var(--pro-color); height: 100%; }
+    .meter-seg-dev { background: var(--dev-color); height: 100%; }
+    .legend-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 12.5px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 8px;
+    }
+
+    /* Toolbar & Tabs */
     .toolbar {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
       gap: 16px;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
     .tabs {
       display: flex;
@@ -6704,12 +6911,12 @@ def admin_portal_page():
       min-width: 240px;
     }
 
-    /* Data Table */
+    /* Data Tables */
     .table-container {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 12px;
-      overflow: hidden;
+      overflow-x: auto;
     }
     table {
       width: 100%;
@@ -6743,33 +6950,122 @@ def admin_portal_page():
     .badge-pro { background: #3b280c; color: #fbbf24; border: 1px solid #78350f; }
     .badge-dev { background: #2e1065; color: #c084fc; border: 1px solid #581c87; }
     .badge-platform { background: #162a26; color: #34d399; }
+
+    /* Filter pills */
+    .filter-pills {
+      display: flex;
+      gap: 6px;
+      margin-left: 8px;
+    }
+    .pill {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      border: 1px solid var(--card-border);
+      background: #0f1618;
+      color: var(--text-muted);
+    }
+    .pill.active { background: #26373b; color: #fff; border-color: #3d555c; }
   </style>
 </head>
 <body>
   <header>
     <div class="logo-badge">
       <div class="logo-icon">P</div>
-      <span>Paperplane Admin</span>
+      <span>Paperplane Admin Console</span>
+      <span class="env-tag" id="header-env">Live System</span>
     </div>
     <div class="header-actions" id="header-actions" style="display: none;">
+      <span style="font-size: 12px; color: var(--green); display: flex; align-items: center; gap: 4px;">● Session Active</span>
       <button class="btn" id="btn-refresh">🔄 Refresh</button>
       <button class="btn btn-danger" id="btn-logout">Logout</button>
     </div>
   </header>
 
   <main>
-    <!-- Authentication Prompt -->
-    <div id="auth-screen">
-      <div class="logo-icon" style="width:48px;height:48px;font-size:24px;margin:0 auto 16px;">P</div>
-      <h1>Owner Authentication</h1>
-      <p>Enter your Paperplane Admin Secret Key to access real-time metrics and customer data.</p>
-      <div id="auth-error" class="error-msg">Invalid or unauthorized Admin Key.</div>
-      <input type="password" id="admin-key-input" class="input-field" placeholder="Paste your PAPERPLANE_ADMIN_KEY..." />
-      <button class="btn btn-primary" id="btn-unlock" style="width: 100%; justify-content: center; padding: 12px;">Unlock Dashboard &rarr;</button>
+    <!-- Screen 0: Lockout Alert Screen (if 3 wrong attempts were entered) -->
+    <div id="lockout-screen" class="auth-card" style="display: none;">
+      <div style="font-size: 48px; margin-bottom: 12px;">🚨</div>
+      <h1 style="color: #ef4444;">Admin Console Locked</h1>
+      <p style="color: #fca5a5;">
+        3 consecutive incorrect attempts were detected. As an automated intrusion defense against brute-force attacks, administrative access has been suspended for 24 hours.
+      </p>
+      <div style="background: #271414; border: 1px solid #7f1d1d; border-radius: 8px; padding: 14px; text-align: left; font-size: 13px; margin-bottom: 20px;">
+        <div style="margin-bottom: 6px;"><strong style="color: #fca5a5;">Notification:</strong> <span style="color: #fff;">Sent to mdhammad2906@gmail.com</span></div>
+        <div style="margin-bottom: 6px;"><strong style="color: #fca5a5;">Lock Duration:</strong> <span style="color: #ef4444; font-weight: 700;">24 Hours</span></div>
+        <div><strong style="color: #fca5a5;">Time Remaining:</strong> <span id="lockout-countdown" style="color: #fff; font-family: monospace;">Calculating...</span></div>
+      </div>
+      <button class="btn" style="width: 100%; justify-content: center;" id="btn-check-lockout">🔄 Check Lockout Status</button>
     </div>
 
-    <!-- Dashboard Main View -->
+    <!-- Screen 1: Step 1 Auth (Key + Secret Code + Eye Toggle) -->
+    <div id="step1-screen" class="auth-card">
+      <div class="logo-icon" style="width:48px;height:48px;font-size:24px;margin:0 auto 16px;">P</div>
+      <h1>Owner Authentication</h1>
+      <p>Enter your Admin Secret Key and Secret Code to initiate 2-factor email verification.</p>
+      
+      <div id="auth-error" class="error-msg"></div>
+
+      <div class="field-group">
+        <label class="field-label" for="admin-key-input">Admin Secret Key</label>
+        <div class="input-wrapper">
+          <input type="password" id="admin-key-input" class="input-field" placeholder="Paste your 64-character admin key..." autocomplete="off" />
+          <button type="button" class="toggle-eye" id="toggle-key-eye" title="Toggle visibility">👁️</button>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label" for="admin-code-input">Admin Secret Code</label>
+        <div class="input-wrapper">
+          <input type="password" id="admin-code-input" class="input-field" placeholder="Enter owner secret code..." autocomplete="off" />
+          <button type="button" class="toggle-eye" id="toggle-code-eye" title="Toggle visibility">👁️</button>
+        </div>
+      </div>
+
+      <div class="info-note">
+        🛡️ <strong>Security Sentinel:</strong> 3 consecutive incorrect attempts will automatically lock this console for 24 hours and dispatch a critical alert to mdhammad2906@gmail.com.
+      </div>
+
+      <button class="btn btn-primary" id="btn-submit-step1" style="width: 100%; justify-content: center; padding: 12px;">Verify & Send Email OTP &rarr;</button>
+    </div>
+
+    <!-- Screen 2: Step 2 Auth (6-Digit Email OTP) -->
+    <div id="step2-screen" class="auth-card" style="display: none;">
+      <div style="font-size: 42px; margin-bottom: 12px;">📬</div>
+      <h1>Two-Factor Verification</h1>
+      <p>A 6-digit one-time code was sent to <strong id="otp-target-email" style="color: #fff;">mdhammad2906@gmail.com</strong>.</p>
+      
+      <div id="otp-error" class="error-msg"></div>
+
+      <div class="field-group" style="text-align: center;">
+        <label class="field-label" style="text-align: center;">Enter 6-Digit Code</label>
+        <input type="text" id="admin-otp-input" class="input-field" maxlength="6" style="font-size: 26px; font-weight: 800; letter-spacing: 10px; text-align: center; font-family: monospace; padding: 14px;" placeholder="000000" autocomplete="off" />
+      </div>
+
+      <div class="info-note" style="text-align: center;">
+        ⏱️ Code is valid for 10 minutes. Check your spam/junk folder if not received.
+      </div>
+
+      <button class="btn btn-primary" id="btn-submit-step2" style="width: 100%; justify-content: center; padding: 12px; margin-bottom: 12px;">Verify Code & Unlock Console &rarr;</button>
+      <button class="btn" id="btn-back-step1" style="width: 100%; justify-content: center;">&larr; Back to Step 1</button>
+    </div>
+
+    <!-- Screen 3: Unlocked Dashboard (Full Power & Visuals) -->
     <div id="dashboard-view" style="display: none;">
+      <!-- System Connection Banner -->
+      <div class="system-banner">
+        <div>
+          <span>Database: <strong id="live-db-path">SQLite (Loading...)</strong></span>
+          <span style="margin: 0 10px; color: var(--card-border);">|</span>
+          <span>Environment: <strong id="live-env-name">Production</strong></span>
+          <span style="margin: 0 10px; color: var(--card-border);">|</span>
+          <span>Security: <strong style="color: var(--green);">3-Factor Verified (Session Valid)</strong></span>
+        </div>
+        <div style="color: var(--text-muted); font-size: 12px;" id="live-time-now"></div>
+      </div>
+
       <!-- Top Metrics Grid -->
       <div class="metric-grid">
         <div class="metric-card">
@@ -6779,22 +7075,22 @@ def admin_portal_page():
         </div>
         <div class="metric-card">
           <div class="title">Pro Users</div>
-          <div class="value" style="color: #fbbf24;" id="m-pro-users">-</div>
+          <div class="value" style="color: var(--pro-color);" id="m-pro-users">-</div>
           <div class="sub">Paid subscribers</div>
         </div>
         <div class="metric-card">
           <div class="title">Developer API</div>
-          <div class="value" style="color: #c084fc;" id="m-dev-users">-</div>
+          <div class="value" style="color: var(--dev-color);" id="m-dev-users">-</div>
           <div class="sub">API & Webhook users</div>
         </div>
         <div class="metric-card">
           <div class="title">Free Tier</div>
-          <div class="value" style="color: #94a3b8;" id="m-free-users">-</div>
+          <div class="value" style="color: var(--free-color);" id="m-free-users">-</div>
           <div class="sub">Standard accounts</div>
         </div>
         <div class="metric-card">
           <div class="title">Active Today</div>
-          <div class="value" style="color: #34d399;" id="m-today-active">-</div>
+          <div class="value" style="color: var(--green);" id="m-today-active">-</div>
           <div class="sub">Active processing users</div>
         </div>
         <div class="metric-card">
@@ -6809,43 +7105,94 @@ def admin_portal_page():
         </div>
       </div>
 
+      <!-- Visual Analytics Section -->
+      <div class="analytics-section">
+        <!-- 14-Day Signup Trend Bar Chart -->
+        <div class="chart-card">
+          <h3>
+            <span>📈 14-Day User Signups Trend</span>
+            <span style="font-size: 11px; font-weight: normal; color: var(--text-muted);">Daily Registrations</span>
+          </h3>
+          <div class="bar-chart-container" id="bar-chart-container">
+            <!-- Dynamically rendered bars -->
+          </div>
+        </div>
+
+        <!-- Tier Breakdown Distribution Meter -->
+        <div class="chart-card">
+          <h3>
+            <span>🎯 Plan Breakdown</span>
+            <span style="font-size: 11px; font-weight: normal; color: var(--text-muted);" id="tier-ratio-label">Ratio</span>
+          </h3>
+          <div class="meter-bar">
+            <div id="meter-free" class="meter-seg-free" style="width: 70%;" title="Free"></div>
+            <div id="meter-pro" class="meter-seg-pro" style="width: 20%;" title="Pro"></div>
+            <div id="meter-dev" class="meter-seg-dev" style="width: 10%;" title="Dev"></div>
+          </div>
+          <div class="legend-list">
+            <div class="legend-item">
+              <span><span class="legend-dot" style="background: var(--free-color);"></span>Free Accounts</span>
+              <strong id="legend-free-val">0 (0%)</strong>
+            </div>
+            <div class="legend-item">
+              <span><span class="legend-dot" style="background: var(--pro-color);"></span>Pro Subscribers</span>
+              <strong id="legend-pro-val" style="color: var(--pro-color);">0 (0%)</strong>
+            </div>
+            <div class="legend-item">
+              <span><span class="legend-dot" style="background: var(--dev-color);"></span>Developer Users</span>
+              <strong id="legend-dev-val" style="color: var(--dev-color);">0 (0%)</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Action Toolbar -->
       <div class="toolbar">
         <div class="tabs">
           <button class="tab-btn active" id="tab-users-btn">Registered Users (<span id="count-users">0</span>)</button>
           <button class="tab-btn" id="tab-waitlist-btn">App Waitlist (<span id="count-waitlist">0</span>)</button>
+          <button class="tab-btn" id="tab-audit-btn">Security Audits (<span id="count-audit">0</span>)</button>
         </div>
-        <div style="display: flex; gap: 12px; align-items: center;">
-          <input type="text" id="search-input" class="search-box" placeholder="Filter by email..." />
-          <a id="btn-export-users" class="btn" href="#">📥 Export Users CSV</a>
-          <a id="btn-export-waitlist" class="btn" href="#">📥 Export Waitlist CSV</a>
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+          <input type="text" id="search-input" class="search-box" placeholder="Filter by email or query..." />
+          <button id="btn-export-users" class="btn">📥 Export Users CSV</button>
+          <button id="btn-export-waitlist" class="btn">📥 Export Waitlist CSV</button>
         </div>
       </div>
 
-      <!-- Users Table -->
+      <!-- Users Table Panel -->
       <div class="table-container" id="panel-users">
+        <div style="padding: 12px 16px; background: #111a1d; border-bottom: 1px solid var(--card-border); display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 12px; color: var(--text-muted);">Quick Filter:</span>
+          <div class="filter-pills">
+            <span class="pill active" data-filter="all">All</span>
+            <span class="pill" data-filter="pro">Pro Only</span>
+            <span class="pill" data-filter="developer">Developer Only</span>
+            <span class="pill" data-filter="free">Free Only</span>
+          </div>
+        </div>
         <table>
           <thead>
             <tr>
-              <th>Email</th>
+              <th>User Email</th>
               <th>Tier</th>
-              <th>Created Date</th>
+              <th>Registered At</th>
               <th>Last Active</th>
               <th>Status</th>
             </tr>
           </thead>
           <tbody id="users-tbody">
-            <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Loading users...</td></tr>
+            <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">Loading live user directory...</td></tr>
           </tbody>
         </table>
       </div>
 
-      <!-- Waitlist Table -->
+      <!-- Waitlist Table Panel -->
       <div class="table-container" id="panel-waitlist" style="display: none;">
         <table>
           <thead>
             <tr>
-              <th>#</th>
+              <th># Position</th>
               <th>Email</th>
               <th>Platform</th>
               <th>Signup Time</th>
@@ -6853,14 +7200,32 @@ def admin_portal_page():
             </tr>
           </thead>
           <tbody id="waitlist-tbody">
-            <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Loading waitlist...</td></tr>
+            <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">Loading waitlist directory...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Security Audit Trail Panel -->
+      <div class="table-container" id="panel-audit" style="display: none;">
+        <table>
+          <thead>
+            <tr>
+              <th>Event Type</th>
+              <th>Target Email</th>
+              <th>IP Address</th>
+              <th>Timestamp</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody id="audit-tbody">
+            <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">Loading security audit logs...</td></tr>
           </tbody>
         </table>
       </div>
     </div>
   </main>
 
-  <script src="/assets/admin.js?v=1.0.0" defer></script>
+  <script src="/assets/admin.js?v=2.0.0" defer></script>
 </body>
 </html>""")
 
@@ -6900,14 +7265,145 @@ def get_admin_audit_summary(
 
 
 # ---------------------------------------------------------------------------
-# Owner-only Admin Dashboard endpoints (protected by X-Admin-Key header)
+# Owner-only Admin Dashboard & Multi-Factor Auth endpoints
 # ---------------------------------------------------------------------------
+
+@app.get("/api/admin/auth/status", include_in_schema=False)
+def admin_auth_status():
+    """Returns current intrusion lockout status."""
+    remaining = get_admin_lockout_remaining()
+    return {
+        "locked": remaining > 0,
+        "remaining_seconds": remaining,
+        "alert_email": ADMIN_ALERT_EMAIL
+    }
+
+
+@app.post("/api/admin/auth/step1", include_in_schema=False)
+async def admin_auth_step1(request: Request, background_tasks: BackgroundTasks):
+    """Step 1: Validate Admin Secret Key and Secret Code; generate and email 6-digit OTP."""
+    client_ip = get_client_ip(request)
+    enforce_rate_limit(f"admin_step1:{client_ip}", limit=12)
+
+    remaining = get_admin_lockout_remaining()
+    if remaining > 0:
+        hrs = int(remaining // 3600)
+        mins = int((remaining % 3600) // 60)
+        raise HTTPException(status_code=423, detail=f"Admin console is locked. {hrs}h {mins}m remaining. Try after 24 hours.")
+
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    admin_key = str(body.get("admin_key", "")).strip()
+    admin_code = str(body.get("admin_code", "")).strip()
+
+    key_ok = bool(ADMIN_SECRET_KEY and hmac.compare_digest(admin_key, ADMIN_SECRET_KEY))
+    code_ok = bool(ADMIN_SECRET_CODE and hmac.compare_digest(admin_code, ADMIN_SECRET_CODE))
+
+    if not (key_ok and code_ok):
+        attempts, is_locked = record_admin_failed_attempt()
+        record_audit_event("admin_auth_failed", email=ADMIN_ALERT_EMAIL, ip_address=client_ip, details=f"Failed attempt {attempts}/3")
+        if is_locked:
+            background_tasks.add_task(
+                send_admin_lockout_alert,
+                to_email=ADMIN_ALERT_EMAIL,
+                client_ip=client_ip,
+                failure_reason="3 consecutive failed attempts on admin secret key/code"
+            )
+            raise HTTPException(
+                status_code=423,
+                detail="3 failed attempts. Admin console is locked for 24 hours. Security alert dispatched."
+            )
+        remaining_attempts = max(0, 3 - attempts)
+        raise HTTPException(
+            status_code=401,
+            detail=f"Invalid key or secret code. Warning: {remaining_attempts} attempt(s) remaining before 24h lockout."
+        )
+
+    # Key and Secret Code validated -> generate 6-digit OTP
+    otp = f"{secrets.randbelow(1_000_000):06d}"
+    set_admin_pending_otp(otp, expires_in=600)
+
+    background_tasks.add_task(
+        send_admin_login_otp,
+        to_email=ADMIN_ALERT_EMAIL,
+        otp_code=otp,
+        client_ip=client_ip
+    )
+    record_audit_event("admin_otp_dispatched", email=ADMIN_ALERT_EMAIL, ip_address=client_ip, details="Admin OTP dispatched to owner")
+    return {"status": "otp_sent", "email": ADMIN_ALERT_EMAIL}
+
+
+@app.post("/api/admin/auth/step2", include_in_schema=False)
+async def admin_auth_step2(request: Request, background_tasks: BackgroundTasks):
+    """Step 2: Validate 6-digit OTP code and issue a cryptographically signed admin session token."""
+    client_ip = get_client_ip(request)
+    enforce_rate_limit(f"admin_step2:{client_ip}", limit=12)
+
+    remaining = get_admin_lockout_remaining()
+    if remaining > 0:
+        hrs = int(remaining // 3600)
+        raise HTTPException(status_code=423, detail=f"Admin console is locked. {hrs}h remaining. Try after 24 hours.")
+
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    otp = str(body.get("otp", "")).strip()
+    otp_ok = verify_admin_otp(otp)
+
+    if not otp_ok:
+        attempts, is_locked = record_admin_failed_attempt()
+        record_audit_event("admin_otp_failed", email=ADMIN_ALERT_EMAIL, ip_address=client_ip, details=f"Invalid OTP attempt {attempts}/3")
+        if is_locked:
+            background_tasks.add_task(
+                send_admin_lockout_alert,
+                to_email=ADMIN_ALERT_EMAIL,
+                client_ip=client_ip,
+                failure_reason="3 consecutive failed attempts on admin OTP"
+            )
+            raise HTTPException(
+                status_code=423,
+                detail="3 failed attempts. Admin console is locked for 24 hours. Security alert dispatched."
+            )
+        remaining_attempts = max(0, 3 - attempts)
+        raise HTTPException(
+            status_code=401,
+            detail=f"Invalid or expired OTP code. Warning: {remaining_attempts} attempt(s) remaining."
+        )
+
+    # Full 3-factor authentication verified -> issue 4-hour session
+    reset_admin_failed_attempts()
+    session_token = create_admin_session(ttl_seconds=14400)
+    record_audit_event("admin_login_success", email=ADMIN_ALERT_EMAIL, ip_address=client_ip, details="Owner authenticated via 3-factor verification")
+
+    return {
+        "status": "authenticated",
+        "session_token": session_token,
+        "expires_in": 14400
+    }
+
+
+@app.post("/api/admin/auth/logout", include_in_schema=False)
+def admin_auth_logout(_: None = Depends(_require_admin)):
+    """Revokes active admin session."""
+    revoke_admin_session()
+    return {"status": "logged_out"}
+
 
 @app.get("/api/admin/dashboard", include_in_schema=False)
 def admin_dashboard(_: None = Depends(_require_admin)):
-    """Full analytics snapshot for the owner dashboard."""
-    analytics = admin_get_analytics()
-    return {"status": "ok", **analytics}
+    """Full visual analytics and telemetry snapshot for the owner dashboard."""
+    analytics = admin_get_extended_analytics()
+    return {
+        "status": "ok",
+        "environment": os.getenv("PAPERPLANE_ENV", "production"),
+        "db_location": os.getenv("PAPERPLANE_DATA_DIR", "/data"),
+        **analytics
+    }
 
 
 @app.get("/api/admin/users", include_in_schema=False)

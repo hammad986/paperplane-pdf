@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime
 import hashlib
+import hmac
 import json
 import secrets
 import sqlite3
@@ -158,6 +159,17 @@ def init_db() -> None:
             );
             CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at);
             CREATE INDEX IF NOT EXISTS idx_audit_logs_email ON audit_logs(email);
+            CREATE TABLE IF NOT EXISTS admin_auth_state (
+                id TEXT PRIMARY KEY DEFAULT 'current',
+                failed_attempts INTEGER NOT NULL DEFAULT 0,
+                locked_until REAL NOT NULL DEFAULT 0,
+                last_attempt_at REAL,
+                pending_otp_hash TEXT,
+                otp_expires_at REAL,
+                session_token_hash TEXT,
+                session_expires_at REAL
+            );
+            INSERT OR IGNORE INTO admin_auth_state (id, failed_attempts, locked_until) VALUES ('current', 0, 0);
             """
         )
         # Migrate existing users and jobs tables if columns don't exist yet
@@ -1240,3 +1252,223 @@ def admin_get_waitlist(limit: int = 1000) -> list[dict]:
             (limit,)
         ).fetchall()
     return [dict(r) for r in rows]
+
+
+# ---------------------------------------------------------------------------
+# Admin Multi-Factor & Intrusion Lockout Functions
+# ---------------------------------------------------------------------------
+
+def get_admin_lockout_remaining() -> float:
+    """Returns remaining seconds if admin console is in a 24-hour lockout state, else 0."""
+    now = time.time()
+    with closing(connect()) as connection:
+        row = connection.execute(
+            "SELECT locked_until FROM admin_auth_state WHERE id = 'current'"
+        ).fetchone()
+        if row and row["locked_until"] and row["locked_until"] > now:
+            return round(row["locked_until"] - now, 1)
+    return 0.0
+
+
+def record_admin_failed_attempt() -> tuple[int, bool]:
+    """Records a failed attempt. If failed_attempts >= 3, enforces a 24-hour lockout.
+    Returns (attempts_count, is_locked_now).
+    """
+    now = time.time()
+    with closing(connect()) as connection:
+        row = connection.execute(
+            "SELECT failed_attempts, locked_until FROM admin_auth_state WHERE id = 'current'"
+        ).fetchone()
+        current_attempts = (row["failed_attempts"] if row else 0) + 1
+        is_locked = False
+        locked_until = 0.0
+        if current_attempts >= 3:
+            locked_until = now + 86400  # 24-hour lockout
+            is_locked = True
+        
+        connection.execute(
+            """INSERT INTO admin_auth_state (id, failed_attempts, locked_until, last_attempt_at)
+               VALUES ('current', ?, ?, ?)
+               ON CONFLICT(id) DO UPDATE SET
+                   failed_attempts = excluded.failed_attempts,
+                   locked_until = CASE WHEN excluded.locked_until > 0 THEN excluded.locked_until ELSE admin_auth_state.locked_until END,
+                   last_attempt_at = excluded.last_attempt_at""",
+            (current_attempts, locked_until, now)
+        )
+        connection.commit()
+    return current_attempts, is_locked
+
+
+def reset_admin_failed_attempts() -> None:
+    """Clears failed attempts counter after a successful full multi-factor login."""
+    with closing(connect()) as connection:
+        connection.execute(
+            "UPDATE admin_auth_state SET failed_attempts = 0, locked_until = 0 WHERE id = 'current'"
+        )
+        connection.commit()
+
+
+def set_admin_pending_otp(otp_code: str, expires_in: int = 600) -> None:
+    """Stores a cryptographically hashed OTP with expiration (default 10 minutes)."""
+    now = time.time()
+    otp_hash = hashlib.sha256(otp_code.encode()).hexdigest()
+    with closing(connect()) as connection:
+        connection.execute(
+            """INSERT INTO admin_auth_state (id, pending_otp_hash, otp_expires_at)
+               VALUES ('current', ?, ?)
+               ON CONFLICT(id) DO UPDATE SET
+                   pending_otp_hash = excluded.pending_otp_hash,
+                   otp_expires_at = excluded.otp_expires_at""",
+            (otp_hash, now + expires_in)
+        )
+        connection.commit()
+
+
+def verify_admin_otp(otp_code: str) -> bool:
+    """Validates the pending OTP using constant-time comparison and single-use consumption."""
+    now = time.time()
+    clean_code = str(otp_code).strip()
+    if not clean_code:
+        return False
+    otp_hash = hashlib.sha256(clean_code.encode()).hexdigest()
+    with closing(connect()) as connection:
+        row = connection.execute(
+            "SELECT pending_otp_hash, otp_expires_at FROM admin_auth_state WHERE id = 'current'"
+        ).fetchone()
+        if not row or not row["pending_otp_hash"]:
+            return False
+        if row["otp_expires_at"] < now:
+            return False
+        if not hmac.compare_digest(row["pending_otp_hash"], otp_hash):
+            return False
+        # Invalidate OTP on successful use
+        connection.execute(
+            "UPDATE admin_auth_state SET pending_otp_hash = NULL, otp_expires_at = 0 WHERE id = 'current'"
+        )
+        connection.commit()
+        return True
+
+
+def create_admin_session(ttl_seconds: int = 14400) -> str:
+    """Generates a secure 64-char session token (4-hour validity) for authenticated admin operations."""
+    token = secrets.token_hex(32)
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    now = time.time()
+    with closing(connect()) as connection:
+        connection.execute(
+            """INSERT INTO admin_auth_state (id, session_token_hash, session_expires_at)
+               VALUES ('current', ?, ?)
+               ON CONFLICT(id) DO UPDATE SET
+                   session_token_hash = excluded.session_token_hash,
+                   session_expires_at = excluded.session_expires_at,
+                   failed_attempts = 0,
+                   locked_until = 0""",
+            (token_hash, now + ttl_seconds)
+        )
+        connection.commit()
+    return token
+
+
+def verify_admin_session(token: str) -> bool:
+    """Validates an active admin session token."""
+    if not token or len(token) < 32:
+        return False
+    token_hash = hashlib.sha256(token.strip().encode()).hexdigest()
+    now = time.time()
+    with closing(connect()) as connection:
+        row = connection.execute(
+            "SELECT session_token_hash, session_expires_at FROM admin_auth_state WHERE id = 'current'"
+        ).fetchone()
+        if not row or not row["session_token_hash"]:
+            return False
+        if row["session_expires_at"] < now:
+            return False
+        return hmac.compare_digest(row["session_token_hash"], token_hash)
+
+
+def revoke_admin_session() -> None:
+    """Invalidates the admin session on logout."""
+    with closing(connect()) as connection:
+        connection.execute(
+            "UPDATE admin_auth_state SET session_token_hash = NULL, session_expires_at = 0 WHERE id = 'current'"
+        )
+        connection.commit()
+
+
+def admin_get_extended_analytics() -> dict:
+    """Return comprehensive analytics, time-series signup trends, and platform metrics."""
+    today_str = __import__("datetime").date.today().isoformat()
+    now = time.time()
+    with closing(connect()) as connection:
+        total_users = connection.execute("SELECT COUNT(*) FROM users").fetchone()[0]
+        tier_rows = connection.execute(
+            "SELECT tier, COUNT(*) AS cnt FROM users GROUP BY tier"
+        ).fetchall()
+        tier_counts: dict[str, int] = {r["tier"]: r["cnt"] for r in tier_rows}
+
+        today_active = connection.execute(
+            "SELECT COUNT(DISTINCT subject) FROM user_usage WHERE usage_date = ?",
+            (today_str,)
+        ).fetchone()[0]
+
+        new_7d = connection.execute(
+            "SELECT COUNT(*) FROM users WHERE created_at >= ?",
+            (now - 7 * 86400,)
+        ).fetchone()[0]
+
+        total_jobs = connection.execute("SELECT COUNT(*) FROM jobs").fetchone()[0]
+        jobs_today = connection.execute(
+            "SELECT COUNT(*) FROM jobs WHERE created_at >= ?",
+            (now - 86400,)
+        ).fetchone()[0]
+
+        total_waitlist = connection.execute("SELECT COUNT(*) FROM app_waitlist").fetchone()[0]
+
+        # 14-day signup trend
+        days_trend = []
+        for d in range(13, -1, -1):
+            day_start = now - (d + 1) * 86400
+            day_end = now - d * 86400
+            day_dt = __import__("datetime").datetime.fromtimestamp(day_end, __import__("datetime").timezone.utc)
+            day_label = day_dt.strftime("%d %b")
+            cnt = connection.execute(
+                "SELECT COUNT(*) FROM users WHERE created_at >= ? AND created_at < ?",
+                (day_start, day_end)
+            ).fetchone()[0]
+            days_trend.append({"date": day_label, "count": cnt})
+
+        # Waitlist platform breakdown
+        plat_rows = connection.execute(
+            "SELECT platform, COUNT(*) as cnt FROM app_waitlist GROUP BY platform ORDER BY cnt DESC"
+        ).fetchall()
+        waitlist_platforms = [{"platform": r["platform"], "count": r["cnt"]} for r in plat_rows]
+
+        # Top Job operations
+        op_rows = connection.execute(
+            "SELECT operation, COUNT(*) as cnt FROM jobs GROUP BY operation ORDER BY cnt DESC LIMIT 6"
+        ).fetchall()
+        top_operations = [{"operation": r["operation"], "count": r["cnt"]} for r in op_rows]
+
+        # Recent audit logs (last 10 events)
+        audit_rows = connection.execute(
+            "SELECT event_type, email, ip_address, created_at, details FROM audit_logs ORDER BY created_at DESC LIMIT 10"
+        ).fetchall()
+        recent_audits = [dict(r) for r in audit_rows]
+
+    return {
+        "total_users": total_users,
+        "tier_breakdown": tier_counts,
+        "pro_users": tier_counts.get("pro", 0) + tier_counts.get("student_pro", 0),
+        "dev_users": tier_counts.get("developer", 0) + tier_counts.get("dev", 0),
+        "free_users": tier_counts.get("free", 0),
+        "today_active": today_active,
+        "new_signups_7d": new_7d,
+        "total_jobs": total_jobs,
+        "jobs_today": jobs_today,
+        "total_waitlist": total_waitlist,
+        "days_trend": days_trend,
+        "waitlist_platforms": waitlist_platforms,
+        "top_operations": top_operations,
+        "recent_audits": recent_audits,
+    }
+

@@ -174,7 +174,7 @@ def send_otp_email(to_email: str, otp_code: str, purpose: str = "login") -> bool
   </div>
 </body>
 </html>"""
-    return _dispatch_email(to_email, subject, html_body, text_body, allow_simulated=False)
+    return _dispatch_email(to_email, subject, html_body, text_body)
 
 
 def send_login_notification(to_email: str, client_ip: str = "Unknown", user_agent: str = "") -> bool:
@@ -218,6 +218,103 @@ def send_login_notification(to_email: str, client_ip: str = "Unknown", user_agen
     </p>
     <div style="border-top: 1px solid #28393d; padding-top: 18px; font-size: 12px; color: #708684; text-align: center;">
       Ephemeral Local Document Processing &middot; Privacy-First Security
+    </div>
+  </div>
+</body>
+</html>"""
+    return _dispatch_email(to_email, subject, html_body, text_body)
+
+
+def send_admin_login_otp(to_email: str, otp_code: str, client_ip: str = "Unknown") -> bool:
+    """Dispatches a high-priority 6-digit OTP for owner admin authentication."""
+    now_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    subject = f"🔐 Admin Login OTP: {otp_code} — Paperplane PDF"
+
+    text_body = (
+        f"Admin Sign-In Verification\n\n"
+        f"A login request was initiated for the Paperplane PDF Admin Console.\n\n"
+        f"Your 6-digit verification code is: {otp_code}\n\n"
+        f"Time: {now_utc}\n"
+        f"IP: {client_ip}\n"
+        f"Validity: 10 minutes\n\n"
+        f"If you did not initiate this login, your credentials may be compromised. Lock down the server immediately.\n\n"
+        f"— Paperplane PDF Security System"
+    )
+
+    html_body = f"""<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0b1113; color: #f0f5f4; margin: 0; padding: 32px 16px;">
+  <div style="max-width: 540px; margin: 0 auto; background-color: #141f22; border: 1px solid #26373b; border-radius: 12px; padding: 28px; box-shadow: 0 8px 30px rgba(0,0,0,0.5);">
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+      <div style="background-color: #ff4b26; width: 34px; height: 34px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; color: #ffffff; text-align: center; line-height: 34px;">P</div>
+      <span style="font-size: 18px; font-weight: 700; color: #f0f5f4; margin-left: 8px;">Paperplane Admin Security</span>
+    </div>
+    <h2 style="font-size: 20px; color: #f0f5f4; margin-top: 0; margin-bottom: 12px;">Admin Authentication OTP</h2>
+    <p style="color: #8ca3a2; font-size: 14px; line-height: 1.5; margin-bottom: 20px;">
+      A sign-in request was initiated for the Paperplane Owner Console from IP: <strong style="color: #ffffff;">{client_ip}</strong>.
+      Enter the one-time code below to unlock the dashboard:
+    </p>
+    <div style="font-size: 38px; font-weight: 900; letter-spacing: 12px; color: #ff4b26; background: #0f181a; border: 2px dashed #ff4b26; padding: 18px 24px; text-align: center; border-radius: 10px; margin: 24px 0; font-family: monospace;">
+      {otp_code}
+    </div>
+    <div style="background-color: #0f181a; border: 1px solid #233438; border-radius: 8px; padding: 14px; margin-bottom: 24px; font-size: 13px;">
+      <div style="margin-bottom: 6px;"><strong style="color: #8ca3a2;">Time:</strong> <span style="color: #f0f5f4;">{now_utc}</span></div>
+      <div style="margin-bottom: 6px;"><strong style="color: #8ca3a2;">Validity:</strong> <span style="color: #34d399;">10 minutes</span></div>
+      <div><strong style="color: #8ca3a2;">Notice:</strong> <span style="color: #f87171;">Never share this code with anyone.</span></div>
+    </div>
+    <div style="border-top: 1px solid #26373b; padding-top: 16px; font-size: 12px; color: #64748b; text-align: center;">
+      Paperplane PDF &middot; Zero-Trust Ephemeral Infrastructure
+    </div>
+  </div>
+</body>
+</html>"""
+    return _dispatch_email(to_email, subject, html_body, text_body)
+
+
+def send_admin_lockout_alert(to_email: str, client_ip: str = "Unknown", failure_reason: str = "") -> bool:
+    """Dispatches a critical security lockout notification after 3 failed admin login attempts."""
+    now_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    subject = "🚨 CRITICAL: Admin Console Locked (3 Failed Attempts) — Paperplane PDF"
+
+    text_body = (
+        f"CRITICAL SECURITY ALERT: ADMIN CONSOLE LOCKED\n\n"
+        f"3 consecutive failed admin login attempts were detected on Paperplane PDF.\n\n"
+        f"Action Taken: The Admin Console has been LOCKED FOR 24 HOURS.\n"
+        f"No admin logins will be permitted until the 24-hour lockout expires.\n\n"
+        f"Timestamp: {now_utc}\n"
+        f"Source IP Address: {client_ip}\n"
+        f"Reason: {failure_reason or '3 consecutive failed attempts on admin secret key/code'}\n\n"
+        f"If this was NOT you, an unauthorized party may be attempting to access your administrative dashboard.\n"
+        f"Server logs have been recorded with source IP and headers.\n\n"
+        f"— Paperplane PDF Security Sentinel"
+    )
+
+    html_body = f"""<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0b1113; color: #f0f5f4; margin: 0; padding: 32px 16px;">
+  <div style="max-width: 560px; margin: 0 auto; background-color: #1a0f0f; border: 2px solid #ef4444; border-radius: 12px; padding: 28px; box-shadow: 0 8px 32px rgba(239,68,68,0.25);">
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+      <div style="background-color: #ef4444; width: 34px; height: 34px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; color: #ffffff; text-align: center; line-height: 34px; font-size: 18px;">⚠️</div>
+      <span style="font-size: 18px; font-weight: 800; color: #f87171; margin-left: 8px;">SECURITY LOCKOUT ENFORCED</span>
+    </div>
+    <h2 style="font-size: 20px; color: #ffffff; margin-top: 0; margin-bottom: 12px;">Admin Console Locked (3 Failed Attempts)</h2>
+    <p style="color: #fca5a5; font-size: 14px; line-height: 1.5; margin-bottom: 20px;">
+      3 consecutive incorrect login attempts were recorded for the Paperplane Owner Console.
+      To prevent brute-force attacks, the console has been <strong>automatically locked for 24 hours</strong>.
+    </p>
+    <div style="background-color: #271414; border: 1px solid #7f1d1d; border-radius: 8px; padding: 16px; margin-bottom: 24px; font-size: 13px;">
+      <div style="margin-bottom: 8px;"><strong style="color: #fca5a5;">Lock Duration:</strong> <span style="color: #ef4444; font-weight: 700;">24 Hours (No logins accepted)</span></div>
+      <div style="margin-bottom: 8px;"><strong style="color: #fca5a5;">Detection Time:</strong> <span style="color: #ffffff;">{now_utc}</span></div>
+      <div style="margin-bottom: 8px;"><strong style="color: #fca5a5;">Source IP:</strong> <span style="font-family: monospace; color: #ffffff;">{client_ip}</span></div>
+      <div><strong style="color: #fca5a5;">Cause:</strong> <span style="color: #ffffff;">{failure_reason or '3 consecutive failed attempts on admin secret key/code'}</span></div>
+    </div>
+    <p style="color: #991b1b; font-size: 13px; line-height: 1.5; margin-bottom: 20px;">
+      If you did not initiate these attempts, your server is actively resisting an unauthorized intrusion. The audit trail has captured all incoming network telemetry.
+    </p>
+    <div style="border-top: 1px solid #7f1d1d; padding-top: 16px; font-size: 12px; color: #7f1d1d; text-align: center;">
+      Paperplane PDF &middot; Automated Intrusion Defense Sentinel
     </div>
   </div>
 </body>
