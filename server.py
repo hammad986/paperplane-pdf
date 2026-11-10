@@ -107,11 +107,15 @@ executor = ThreadPoolExecutor(max_workers=max(4, int(os.getenv("PAPERPLANE_WORKE
 ADMIN_SECRET_KEY: str = os.getenv("PAPERPLANE_ADMIN_KEY", "").strip()
 
 
-def _require_admin(x_admin_key: str = Header(default="", alias="X-Admin-Key")) -> None:
-    """FastAPI dependency: validates the admin secret key header."""
+def _require_admin(
+    x_admin_key: str = Header(default="", alias="X-Admin-Key"),
+    key: str = "",
+) -> None:
+    """FastAPI dependency: validates the admin secret key via header or query param."""
+    token = x_admin_key or key
     if not ADMIN_SECRET_KEY:
         raise HTTPException(status_code=503, detail="Admin access is not configured on this server.")
-    if not hmac.compare_digest(x_admin_key, ADMIN_SECRET_KEY):
+    if not hmac.compare_digest(token, ADMIN_SECRET_KEY):
         raise HTTPException(status_code=401, detail="Invalid or missing admin key.")
 
 # Workload-based execution timeouts (in seconds)
@@ -6506,8 +6510,365 @@ LEGACY_SLUG_REDIRECTS = {
 }
 
 
+@app.get("/admin", response_class=HTMLResponse, include_in_schema=False)
+def admin_portal_page():
+    """Visual admin portal for the platform owner."""
+    return HTMLResponse(content="""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Console — Paperplane PDF</title>
+  <style>
+    :root {
+      --bg: #0b1113;
+      --card-bg: #141f22;
+      --card-border: #26373b;
+      --text: #f0f5f4;
+      --text-muted: #8ca3a2;
+      --accent: #ff4b26;
+      --accent-hover: #e03e1b;
+      --pro-color: #ff9800;
+      --dev-color: #a855f7;
+      --free-color: #64748b;
+      --green: #10b981;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: #111a1d;
+      border-bottom: 1px solid var(--card-border);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      color: #fff;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .btn {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .btn:hover { background: #1c2b2f; border-color: #385055; }
+    .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-danger { background: #3b1414; border-color: #632323; color: #ff8585; }
+    .btn-danger:hover { background: #4a1919; }
+
+    main {
+      flex: 1;
+      max-width: 1280px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    /* Auth Screen */
+    #auth-screen {
+      max-width: 440px;
+      margin: 80px auto;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 36px;
+      text-align: center;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+    }
+    #auth-screen h1 { font-size: 22px; margin-bottom: 8px; }
+    #auth-screen p { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; }
+    .input-field {
+      width: 100%;
+      padding: 12px 16px;
+      background: #0f1618;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 14px;
+      margin-bottom: 16px;
+      outline: none;
+    }
+    .input-field:focus { border-color: var(--accent); }
+    .error-msg { color: #f87171; font-size: 13px; margin-bottom: 12px; display: none; }
+
+    /* Dashboard Grid */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .metric-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 20px;
+      position: relative;
+    }
+    .metric-card .title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .metric-card .value {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .metric-card .sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Actions bar */
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .tabs {
+      display: flex;
+      background: #10191c;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 4px;
+      gap: 4px;
+    }
+    .tab-btn {
+      padding: 8px 18px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .tab-btn.active {
+      background: var(--card-bg);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .search-box {
+      background: #0f1618;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 8px 14px;
+      color: #fff;
+      font-size: 13px;
+      min-width: 240px;
+    }
+
+    /* Data Table */
+    .table-container {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: left;
+    }
+    th {
+      background: #111a1d;
+      padding: 12px 16px;
+      color: var(--text-muted);
+      font-weight: 600;
+      border-bottom: 1px solid var(--card-border);
+    }
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #1a282c;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .badge-free { background: #1e293b; color: #94a3b8; }
+    .badge-pro { background: #3b280c; color: #fbbf24; border: 1px solid #78350f; }
+    .badge-dev { background: #2e1065; color: #c084fc; border: 1px solid #581c87; }
+    .badge-platform { background: #162a26; color: #34d399; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo-badge">
+      <div class="logo-icon">P</div>
+      <span>Paperplane Admin</span>
+    </div>
+    <div class="header-actions" id="header-actions" style="display: none;">
+      <button class="btn" id="btn-refresh">🔄 Refresh</button>
+      <button class="btn btn-danger" id="btn-logout">Logout</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Authentication Prompt -->
+    <div id="auth-screen">
+      <div class="logo-icon" style="width:48px;height:48px;font-size:24px;margin:0 auto 16px;">P</div>
+      <h1>Owner Authentication</h1>
+      <p>Enter your Paperplane Admin Secret Key to access real-time metrics and customer data.</p>
+      <div id="auth-error" class="error-msg">Invalid or unauthorized Admin Key.</div>
+      <input type="password" id="admin-key-input" class="input-field" placeholder="Paste your PAPERPLANE_ADMIN_KEY..." />
+      <button class="btn btn-primary" id="btn-unlock" style="width: 100%; justify-content: center; padding: 12px;">Unlock Dashboard &rarr;</button>
+    </div>
+
+    <!-- Dashboard Main View -->
+    <div id="dashboard-view" style="display: none;">
+      <!-- Top Metrics Grid -->
+      <div class="metric-grid">
+        <div class="metric-card">
+          <div class="title">Total Registered</div>
+          <div class="value" id="m-total-users">-</div>
+          <div class="sub" id="m-new-7d">0 new last 7 days</div>
+        </div>
+        <div class="metric-card">
+          <div class="title">Pro Users</div>
+          <div class="value" style="color: #fbbf24;" id="m-pro-users">-</div>
+          <div class="sub">Paid subscribers</div>
+        </div>
+        <div class="metric-card">
+          <div class="title">Developer API</div>
+          <div class="value" style="color: #c084fc;" id="m-dev-users">-</div>
+          <div class="sub">API & Webhook users</div>
+        </div>
+        <div class="metric-card">
+          <div class="title">Free Tier</div>
+          <div class="value" style="color: #94a3b8;" id="m-free-users">-</div>
+          <div class="sub">Standard accounts</div>
+        </div>
+        <div class="metric-card">
+          <div class="title">Active Today</div>
+          <div class="value" style="color: #34d399;" id="m-today-active">-</div>
+          <div class="sub">Active processing users</div>
+        </div>
+        <div class="metric-card">
+          <div class="title">Waitlist Signups</div>
+          <div class="value" style="color: var(--accent);" id="m-total-waitlist">-</div>
+          <div class="sub">Native apps waitlist</div>
+        </div>
+        <div class="metric-card">
+          <div class="title">Total Jobs Run</div>
+          <div class="value" id="m-total-jobs">-</div>
+          <div class="sub" id="m-jobs-today">0 processed today</div>
+        </div>
+      </div>
+
+      <!-- Action Toolbar -->
+      <div class="toolbar">
+        <div class="tabs">
+          <button class="tab-btn active" id="tab-users-btn">Registered Users (<span id="count-users">0</span>)</button>
+          <button class="tab-btn" id="tab-waitlist-btn">App Waitlist (<span id="count-waitlist">0</span>)</button>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <input type="text" id="search-input" class="search-box" placeholder="Filter by email..." />
+          <a id="btn-export-users" class="btn" href="#">📥 Export Users CSV</a>
+          <a id="btn-export-waitlist" class="btn" href="#">📥 Export Waitlist CSV</a>
+        </div>
+      </div>
+
+      <!-- Users Table -->
+      <div class="table-container" id="panel-users">
+        <table>
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Tier</th>
+              <th>Created Date</th>
+              <th>Last Active</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="users-tbody">
+            <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Loading users...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Waitlist Table -->
+      <div class="table-container" id="panel-waitlist" style="display: none;">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Email</th>
+              <th>Platform</th>
+              <th>Signup Time</th>
+              <th>IP Address</th>
+            </tr>
+          </thead>
+          <tbody id="waitlist-tbody">
+            <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Loading waitlist...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script src="/assets/admin.js?v=1.0.0" defer></script>
+</body>
+</html>""")
+
+
 @app.get("/{tool_slug}", response_class=HTMLResponse, include_in_schema=False)
 def tool_landing_page(tool_slug: str, request: Request):
+    if tool_slug == "admin":
+        return admin_portal_page()
     if tool_slug in LEGACY_SLUG_REDIRECTS:
         return RedirectResponse(url=f"/{LEGACY_SLUG_REDIRECTS[tool_slug]}", status_code=301)
     operation = SLUG_TO_OPERATION.get(tool_slug)
@@ -6595,6 +6956,9 @@ def admin_export_waitlist_csv(_: None = Depends(_require_admin)):
         media_type="text/csv",
         headers={"Content-Disposition": "attachment; filename=paperplane_waitlist.csv"}
     )
+
+
+
 
 
 @app.exception_handler(404)
