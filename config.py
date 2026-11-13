@@ -47,6 +47,10 @@ ALLOW_BILLING_SIMULATION = os.getenv(
     "PAPERPLANE_ALLOW_BILLING_SIMULATION",
     "false"
 ).lower() in ("true", "1", "yes")
+ALLOW_TEST_PAYMENTS = os.getenv(
+    "PAPERPLANE_ALLOW_TEST_PAYMENTS",
+    "false"
+).lower() in ("true", "1", "yes")
 
 # Google OAuth2 Credential Verification
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")

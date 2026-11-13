@@ -55,7 +55,7 @@ from config import (
     DEV_TIER_PRICE_INR,
     EXAM_PASS_PRICE_INR, STUDENT_PRO_PRICE_INR, STUDENT_ANNUAL_PRICE_INR, CYBER_CAFE_PRICE_INR,
     TRUSTED_HOSTS,
-    ALLOW_BILLING_SIMULATION, ENVIRONMENT, GOOGLE_CLIENT_ID, SECURE_COOKIES, COOKIE_SAMESITE,
+    ALLOW_BILLING_SIMULATION, ALLOW_TEST_PAYMENTS, ENVIRONMENT, GOOGLE_CLIENT_ID, SECURE_COOKIES, COOKIE_SAMESITE,
     SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, SMTP_FROM, SMTP_USE_TLS,
     AGENTROUTER_API_KEY, AGENTROUTER_BASE_URL, AGENTROUTER_MODEL,
     FREE_API_CALLS_PER_DAY, FREE_AI_CALLS_PER_DAY, FREE_MAX_FILE_SIZE_MB, FREE_CONCURRENT_JOBS,
@@ -3548,7 +3548,7 @@ def create_checkout_session(
             503,
             "Payments are temporarily unavailable. Please try again later.",
         )
-    if ENVIRONMENT == "production" and CASHFREE_ENV != "PROD":
+    if ENVIRONMENT == "production" and CASHFREE_ENV != "PROD" and not ALLOW_TEST_PAYMENTS:
         logger.warning("Cashfree checkout blocked in production because PROD mode is not configured.")
         raise HTTPException(
             503,

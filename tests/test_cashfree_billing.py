@@ -189,3 +189,45 @@ def test_cashfree_webhook_signature_audits_payload_and_activates_tier(monkeypatc
         ).fetchone()
     assert audited is not None
     assert json.loads(audited["payload"]) == event
+
+
+def test_cashfree_production_allows_test_gateway_when_opted_in(monkeypatch):
+    client, user_id, _ = _registered_client()
+    captured: dict = {}
+
+    monkeypatch.setattr(server, "CASHFREE_APP_ID", "TEST11326815b7cddb0a71bc95141d1451862311")
+    monkeypatch.setattr(server, "CASHFREE_SECRET_KEY", "cfsk_test_secret")
+    monkeypatch.setattr(server, "CASHFREE_ENV", "TEST")
+    monkeypatch.setattr(server, "ENVIRONMENT", "production")
+    monkeypatch.setattr(server, "ALLOW_TEST_PAYMENTS", True)
+    monkeypatch.setattr(server, "PAPERPLANE_PUBLIC_URL", "https://paperplane.example")
+
+    def fake_request(method: str, path: str, body: dict | None = None) -> dict:
+        captured.update({"method": method, "path": path, "body": body})
+        return {"payment_session_id": "session_test_allowed_in_prod"}
+
+    monkeypatch.setattr(server, "_cashfree_request", fake_request)
+
+    response = client.post("/api/billing/checkout-session", json={"tier": "exam_pass"})
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "success"
+    assert payload["payment_session_id"] == "session_test_allowed_in_prod"
+    assert payload["environment"] == "TEST"
+    assert captured["body"]["order_amount"] == 19
+
+
+def test_cashfree_production_blocks_test_gateway_when_not_opted_in(monkeypatch):
+    client, user_id, _ = _registered_client()
+
+    monkeypatch.setattr(server, "CASHFREE_APP_ID", "TEST11326815b7cddb0a71bc95141d1451862311")
+    monkeypatch.setattr(server, "CASHFREE_SECRET_KEY", "cfsk_test_secret")
+    monkeypatch.setattr(server, "CASHFREE_ENV", "TEST")
+    monkeypatch.setattr(server, "ENVIRONMENT", "production")
+    monkeypatch.setattr(server, "ALLOW_TEST_PAYMENTS", False)
+
+    response = client.post("/api/billing/checkout-session", json={"tier": "exam_pass"})
+
+    assert response.status_code == 503
+    assert "Payments are temporarily unavailable" in response.json()["detail"]
