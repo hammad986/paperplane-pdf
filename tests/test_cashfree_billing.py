@@ -226,6 +226,7 @@ def test_cashfree_production_blocks_test_gateway_when_not_opted_in(monkeypatch):
     monkeypatch.setattr(server, "CASHFREE_ENV", "TEST")
     monkeypatch.setattr(server, "ENVIRONMENT", "production")
     monkeypatch.setattr(server, "ALLOW_TEST_PAYMENTS", False)
+    monkeypatch.setenv("PAPERPLANE_ALLOW_TEST_PAYMENTS", "false")
 
     response = client.post("/api/billing/checkout-session", json={"tier": "exam_pass"})
 

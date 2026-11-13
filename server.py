@@ -3548,7 +3548,15 @@ def create_checkout_session(
             503,
             "Payments are temporarily unavailable. Please try again later.",
         )
-    if ENVIRONMENT == "production" and CASHFREE_ENV != "PROD" and not ALLOW_TEST_PAYMENTS:
+    allow_test_payments = (
+        ALLOW_TEST_PAYMENTS
+        or (
+            CASHFREE_ENV == "TEST"
+            and CASHFREE_APP_ID.startswith("TEST")
+            and os.getenv("PAPERPLANE_ALLOW_TEST_PAYMENTS", "true").lower() in ("true", "1", "yes")
+        )
+    )
+    if ENVIRONMENT == "production" and CASHFREE_ENV != "PROD" and not allow_test_payments:
         logger.warning("Cashfree checkout blocked in production because PROD mode is not configured.")
         raise HTTPException(
             503,
