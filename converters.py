@@ -2250,6 +2250,138 @@ def resize_exam_image(
             return out_file
 
 
+def compress_photo(
+    source: Path,
+    output: Path,
+    target_kb: int | None = None,
+    quality: int = 75,
+) -> Path:
+    """Compresses an image file (JPG, PNG, WebP) to target KB or quality percentage."""
+    out_p = Path(output)
+    with Image.open(str(source)) as img:
+        rgb_img = img.convert("RGB")
+        out_file = out_p.with_suffix(".jpg")
+        
+        if target_kb and int(target_kb) > 0:
+            target_bytes = int(target_kb) * 1024
+            low_q, high_q = 10, 95
+            best_data = None
+            while low_q <= high_q:
+                mid_q = (low_q + high_q) // 2
+                buf = io.BytesIO()
+                rgb_img.save(buf, format="JPEG", quality=mid_q, optimize=True)
+                data = buf.getvalue()
+                if len(data) > target_bytes:
+                    high_q = mid_q - 1
+                else:
+                    best_data = data
+                    low_q = mid_q + 1
+            if best_data is None:
+                buf = io.BytesIO()
+                rgb_img.save(buf, format="JPEG", quality=10, optimize=True)
+                best_data = buf.getvalue()
+            out_file.write_bytes(best_data)
+        else:
+            q = max(10, min(100, int(quality or 75)))
+            rgb_img.save(str(out_file), format="JPEG", quality=q, optimize=True)
+        return out_file
+
+
+def resize_photo(
+    source: Path,
+    output: Path,
+    width: int | None = None,
+    height: int | None = None,
+    scale_percent: int | None = None,
+) -> Path:
+    """Resizes photo dimensions (width x height) or scale percentage."""
+    out_p = Path(output)
+    with Image.open(str(source)) as img:
+        orig_w, orig_h = img.size
+        
+        if scale_percent and int(scale_percent) > 0:
+            new_w = max(1, int(orig_w * (int(scale_percent) / 100.0)))
+            new_h = max(1, int(orig_h * (int(scale_percent) / 100.0)))
+        elif width and height:
+            new_w = max(1, int(width))
+            new_h = max(1, int(height))
+        elif width:
+            new_w = max(1, int(width))
+            new_h = max(1, int(orig_h * (new_w / orig_w)))
+        elif height:
+            new_h = max(1, int(height))
+            new_w = max(1, int(orig_w * (new_h / orig_h)))
+        else:
+            new_w, new_h = orig_w, orig_h
+
+        fmt = img.format if img.format in ("PNG", "WEBP") else "JPEG"
+        suffix = f".{fmt.lower()}"
+        out_file = out_p.with_suffix(suffix)
+
+        if fmt == "JPEG" and img.mode in ("RGBA", "P"):
+            rgb_img = img.convert("RGB")
+        else:
+            rgb_img = img
+
+        resized = rgb_img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+        resized.save(str(out_file), format=fmt, quality=90, optimize=True)
+        return out_file
+
+
+def merge_photos(
+    sources: list[Path],
+    output: Path,
+    layout: str = "vertical",
+) -> Path:
+    """Combines multiple photos into a single merged image (vertical, horizontal, or 2x2 grid)."""
+    if not sources:
+        raise ValueError("No images provided for photo merge.")
+    
+    images = []
+    for s in sources:
+        try:
+            im = Image.open(str(s)).convert("RGB")
+            images.append(im)
+        except Exception as e:
+            logger.warning(f"Failed to open image {s}: {e}")
+            
+    if not images:
+        raise ValueError("Could not read any valid images to merge.")
+
+    out_p = Path(output)
+    out_file = out_p.with_suffix(".jpg")
+
+    if layout == "horizontal":
+        total_w = sum(im.width for im in images)
+        max_h = max(im.height for im in images)
+        merged = Image.new("RGB", (total_w, max_h), (255, 255, 255))
+        cur_x = 0
+        for im in images:
+            merged.paste(im, (cur_x, 0))
+            cur_x += im.width
+    elif layout == "grid" and len(images) >= 4:
+        w1 = max(images[0].width, images[2].width)
+        w2 = max(images[1].width, images[3].width)
+        h1 = max(images[0].height, images[1].height)
+        h2 = max(images[2].height, images[3].height)
+        merged = Image.new("RGB", (w1 + w2, h1 + h2), (255, 255, 255))
+        merged.paste(images[0], (0, 0))
+        merged.paste(images[1], (w1, 0))
+        merged.paste(images[2], (0, h1))
+        merged.paste(images[3], (w1, h1))
+    else:
+        max_w = max(im.width for im in images)
+        total_h = sum(im.height for im in images)
+        merged = Image.new("RGB", (max_w, total_h), (255, 255, 255))
+        cur_y = 0
+        for im in images:
+            merged.paste(im, (0, cur_y))
+            cur_y += im.height
+
+    merged.save(str(out_file), format="JPEG", quality=90, optimize=True)
+    return out_file
+
+
 def apply_image_watermark(source: Path, output: Path, watermark_img_path: Path | None = None, opacity: float = 0.25, scale: float = 0.5) -> Path:
     """Stamps a transparent image watermark (logo/seal) centered on every page of the PDF."""
     if watermark_img_path and str(output).lower().endswith((".png", ".jpg", ".jpeg", ".webp")):

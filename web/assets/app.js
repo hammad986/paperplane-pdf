@@ -40,6 +40,7 @@ const state = {
 
 const CLIENT_SIDE_SUPPORTED_OPERATIONS = new Set(['merge', 'split', 'remove', 'rotate']);
 const CLIENT_SIDE_SUPPORTED_LABEL = 'Merge, Split / extract, Remove pages, and Rotate PDF';
+const CLIENT_SIDE_IMAGE_OPERATIONS = new Set(['photo_compress', 'photo_resize', 'photo_merge', 'organize']);
 
 let generatedControlId = 0;
 function addMissingControlLabels(root) {
@@ -604,10 +605,11 @@ const CATEGORY_MAP = {
   'Convert': [
     'word_to_pdf', 'excel_to_pdf', 'powerpoint_to_pdf', 'jpg_to_pdf', 'html_to_pdf',
     'pdf_to_word', 'pdf_to_excel', 'pdf_to_powerpoint', 'pdf_to_jpg', 'pdf_to_pdfa',
-    'pdf_to_text', 'pdf_to_markdown', 'photo_resizer'
+    'pdf_to_text', 'pdf_to_markdown'
   ],
   'Edit': ['edit', 'annotate', 'sign', 'watermark', 'page_numbers', 'redact', 'crop', 'flatten'],
   'AI': ['ai_chat', 'ai_extract', 'summarize', 'translate', 'protect', 'unlock', 'compress', 'repair', 'ocr', 'compare', 'forms', 'metadata', 'mask_aadhaar'],
+  'Photo': ['photo_resizer', 'photo_compress', 'photo_resize', 'photo_merge'],
   'All': [] // Dynamically holds every operation returned by the server catalog.
 };
 
@@ -652,6 +654,9 @@ const TOOL_SLUGS = {
   summarize: 'summarize-pdf',
   translate: 'translate-pdf',
   photo_resizer: 'ssc-photo-resizer',
+  photo_compress: 'compress-image-online',
+  photo_resize: 'resize-image-dimensions',
+  photo_merge: 'merge-photos-online',
   mask_aadhaar: 'mask-aadhaar-card-online',
   grayscale: 'convert-pdf-to-grayscale',
   flatten: 'flatten-pdf'
@@ -1336,12 +1341,12 @@ const HOME_CATEGORIES = [
   {
     id: 'convert',
     title: 'Convert PDF',
-    badge: '13 Tools',
+    badge: '12 Tools',
     iconColor: '#3b82f6',
     ops: [
       'pdf_to_word', 'word_to_pdf', 'pdf_to_excel', 'excel_to_pdf',
       'pdf_to_powerpoint', 'powerpoint_to_pdf', 'pdf_to_jpg', 'jpg_to_pdf',
-      'html_to_pdf', 'pdf_to_pdfa', 'pdf_to_text', 'pdf_to_markdown', 'photo_resizer'
+      'html_to_pdf', 'pdf_to_pdfa', 'pdf_to_text', 'pdf_to_markdown'
     ]
   },
   {
@@ -1364,6 +1369,13 @@ const HOME_CATEGORIES = [
     badge: '4 Tools',
     iconColor: '#ec4899',
     ops: ['ai_chat', 'summarize', 'ai_extract', 'translate']
+  },
+  {
+    id: 'photo',
+    title: 'Photo & Exam Tools',
+    badge: '4 Tools',
+    iconColor: '#06b6d4',
+    ops: ['photo_resizer', 'photo_compress', 'photo_resize', 'photo_merge']
   }
 ];
 
@@ -1388,6 +1400,9 @@ function getToolIconSvg(opId) {
     summarize: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>`,
     translate: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"></path><path d="m4 14 6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="m22 22-5-10-5 10"></path><path d="M14 18h6"></path></svg>`,
     photo_resizer: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`,
+    photo_compress: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path><path d="M12 12v9"></path><path d="m8 17 4 4 4-4"></path></svg>`,
+    photo_resize: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>`,
+    photo_merge: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="9" height="18" rx="2"></rect><rect x="13" y="3" width="9" height="18" rx="2"></rect><path d="M11 12h2"></path></svg>`,
     mask_aadhaar: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>`,
     grayscale: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a10 10 0 0 1 0 20z" fill="currentColor"></path></svg>`,
     flatten: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="9" y1="9" x2="15" y2="15"></line><line x1="15" y1="9" x2="9" y2="15"></line></svg>`,
@@ -1795,6 +1810,11 @@ function updateBillingUI(data) {
     card.classList.toggle('is-current-plan', isCurrent);
   });
 
+  // Automatically hide AdSense sponsorship banners for paid plans
+  document.querySelectorAll('.adsense-banner-container').forEach(el => {
+    el.style.display = isPaid ? 'none' : 'block';
+  });
+
   const batchLimits = `Up to ${maxBatchFiles} files for Merge, JPG/PNG to PDF, and Scan to PDF; Compare accepts 2 files; other tools accept 1 file per run.`;
   const quotaDescription = $('#settings-quota-description');
   if (quotaDescription) quotaDescription.textContent = `Free web tools: up to ${state.planLimits.free_operations_per_day} PDF operations per day and files up to ${freeFileMb} MB each. Paid web tools: no daily operation cap and files up to ${proFileMb} MB each. Batch limits: ${batchLimits}`;
@@ -2153,10 +2173,14 @@ if ($('#settings-create-key-form')) {
 
 function syncClientSideControls() {
   const supported = CLIENT_SIDE_SUPPORTED_OPERATIONS.has(state.operation);
-  if (!supported) state.clientSideMode = false;
+  if (supported) {
+    state.clientSideMode = true;
+  } else {
+    state.clientSideMode = false;
+  }
   const operationLabel = state.operations[state.operation]?.label || state.operation;
   const helpText = supported
-    ? `Local processing is available for ${CLIENT_SIDE_SUPPORTED_LABEL}.`
+    ? `Local browser processing is active for ${CLIENT_SIDE_SUPPORTED_LABEL}.`
     : `${operationLabel} uses temporary server processing. Local processing is available for ${CLIENT_SIDE_SUPPORTED_LABEL}.`;
 
   ['client-privacy-toggle', 'settings-client-privacy-toggle'].forEach(id => {
@@ -2174,8 +2198,8 @@ function syncClientSideControls() {
   if (label) label.textContent = state.clientSideMode ? 'Local Processing' : 'Server Mode';
   const sidebarHelp = $('#privacy-mode-support');
   if (sidebarHelp) sidebarHelp.textContent = supported
-    ? 'Available for Merge, Split, Remove, Rotate'
-    : 'This tool runs on the server';
+    ? '100% Private (Browser-Side)'
+    : 'Cloud Engine with auto-delete';
   const settingsHelp = $('#settings-client-privacy-support');
   if (settingsHelp) settingsHelp.textContent = helpText;
   const pill = $('#engine-status-pill');
@@ -3423,6 +3447,31 @@ function renderOptions() {
       { value: 'jpg', label: 'JPG Image (Standard for portals)' },
       { value: 'pdf', label: 'PDF Document (Single-page)' }
     ]);
+  } else if (state.operation === 'photo_compress') {
+    fields += field('target_kb', 'Target File Size (KB)', 'number', '100', '10', '10000', '5');
+    fields += selectField('quality', 'Image Quality', [
+      { value: '75', label: '75% (Balanced - Recommended)' },
+      { value: '60', label: '60% (High Compression)' },
+      { value: '85', label: '85% (Low Compression, High Detail)' },
+      { value: '95', label: '95% (Maximum Quality)' }
+    ]);
+  } else if (state.operation === 'photo_resize') {
+    fields += selectField('preset', 'Preset Dimensions', [
+      { value: 'custom', label: 'Custom Width & Height' },
+      { value: 'passport', label: '📸 Passport Size (3.5 × 4.5 cm / 350 × 450 px)' },
+      { value: 'signature', label: '✍️ Signature Box (4.0 × 2.0 cm / 400 × 200 px)' },
+      { value: 'fhd', label: '🖥️ Full HD (1920 × 1080 px)' },
+      { value: 'square', label: '📱 Square (1080 × 1080 px)' }
+    ]);
+    fields += field('width', 'Width (px)', 'number', '', '1', '10000', '1');
+    fields += field('height', 'Height (px)', 'number', '', '1', '10000', '1');
+    fields += field('scale_percent', 'Or Scale Percentage (%)', 'number', '100', '1', '500', '5');
+  } else if (state.operation === 'photo_merge') {
+    fields += selectField('layout', 'Merge Layout', [
+      { value: 'vertical', label: '↕️ Stack Vertically (Top to Bottom)' },
+      { value: 'horizontal', label: '↔️ Side by Side (Horizontal)' },
+      { value: 'grid', label: '🔲 2×2 Grid (Requires 4+ photos)' }
+    ]);
   } else if (state.operation === 'mask_aadhaar') {
     fields += '<div class="option-field option-field-wide" style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; padding: 12px;"><strong style="color: #10b981;">🛡️ UIDAI Compliant 1-Click Masking</strong><p style="margin: 4px 0 0; font-size: 12px; color: var(--text-muted);">Paperplane automatically searches for 12-digit Aadhaar numbers and permanently black-boxes or redacts the first 8 digits (XXXX-XXXX-1234) in memory.</p></div>';
   } else if (state.operation === 'grayscale') {
@@ -4190,21 +4239,21 @@ $('#job-form').onsubmit = async e => {
 
   updateProgress(1, 15, 'Preparing document streams…');
 
-  // Client-Side WASM Mode
-  if (state.clientSideMode) {
+  // Client-Side WASM / Canvas Mode with Automatic Cloud Fallback
+  if (state.clientSideMode || CLIENT_SIDE_SUPPORTED_OPERATIONS.has(state.operation) || CLIENT_SIDE_IMAGE_OPERATIONS.has(state.operation)) {
     try {
-      updateProgress(2, 60, 'Processing locally in browser RAM…');
+      updateProgress(2, 60, 'Processing 100% privately in browser…');
       await processClientSide();
       updateProgress(4, 100, 'Complete!');
-      setTimeout(() => $('#progress-card').hidden = true, 1200);
-      return;
-    } catch (clientErr) {
-      console.warn('Browser-local processing failed:', clientErr);
-      showResult('This PDF could not be processed in your browser. Turn off Local Processing and retry with server processing.', true);
-      return;
-    } finally {
+      setTimeout(() => $('#progress-card').hidden = true, 1000);
       btn.disabled = false;
       updateButton();
+      return;
+    } catch (clientErr) {
+      console.warn('Browser-local processing failed, falling back to secure cloud worker:', clientErr);
+      showToast('Switching to high-performance cloud engine for this document…', 'info', 3500);
+      updateProgress(2, 35, 'Routing to cloud worker pool…');
+      // Continues smoothly into server execution below!
     }
   }
 
@@ -4679,16 +4728,177 @@ async function runDeskAiWorkflow(options, signal) {
 }
 
 // ----------------------------------------------------------------------
-// Client-Side WASM / JS Processing via PDF-Lib
+// Client-Side WASM / Canvas / JS Processing
 // ----------------------------------------------------------------------
 
-async function processClientSide() {
-  const PDFLib = await window.PaperplanePdfRuntime.ensurePdfLib();
+function loadImageFromFile(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(img);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Failed to load image file.'));
+    };
+    img.src = url;
+  });
+}
 
+async function processClientSide() {
   if (!CLIENT_SIDE_SUPPORTED_OPERATIONS.has(state.operation)) {
-    throw new Error('This tool uses temporary server processing. Turn off Local Processing and retry.');
+    if (!CLIENT_SIDE_IMAGE_OPERATIONS.has(state.operation)) {
+      throw new Error('This tool uses temporary server processing. Turn off Local Processing and retry.');
+    }
   }
 
+  // Handle Photo Tools via Browser Canvas
+  if (state.operation === 'photo_compress') {
+    if (!state.files.length) throw new Error('Please select an image to compress.');
+    const file = state.files[0];
+    const targetKb = Number($('#target_kb')?.value || 100);
+    const qualityVal = Number($('#quality')?.value || 75);
+    const img = await loadImageFromFile(file);
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+
+    let blob;
+    if (targetKb > 0) {
+      const targetBytes = targetKb * 1024;
+      let low = 0.1, high = 0.95;
+      let bestBlob = null;
+      for (let i = 0; i < 6; i++) {
+        const mid = (low + high) / 2;
+        const b = await new Promise(r => canvas.toBlob(r, 'image/jpeg', mid));
+        if (!b) break;
+        if (b.size > targetBytes) {
+          high = mid;
+        } else {
+          bestBlob = b;
+          low = mid;
+        }
+      }
+      blob = bestBlob || await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.1));
+    } else {
+      blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', qualityVal / 100));
+    }
+    const downloadUrl = URL.createObjectURL(blob);
+    showDownloadResult({
+      output_name: (file.name.replace(/\.[^.]+$/, '') || 'photo') + '-compressed.jpg',
+      output_size: blob.size,
+      status: 'completed',
+      local_processing: true
+    }, downloadUrl);
+    return;
+  }
+
+  if (state.operation === 'photo_resize') {
+    if (!state.files.length) throw new Error('Please select an image to resize.');
+    const file = state.files[0];
+    const preset = $('#preset')?.value || 'custom';
+    let targetW = Number($('#width')?.value || 0);
+    let targetH = Number($('#height')?.value || 0);
+    const scalePct = Number($('#scale_percent')?.value || 100);
+    const img = await loadImageFromFile(file);
+
+    if (preset === 'passport') {
+      targetW = 350; targetH = 450;
+    } else if (preset === 'signature') {
+      targetW = 400; targetH = 200;
+    } else if (preset === 'fhd') {
+      targetW = 1920; targetH = 1080;
+    } else if (preset === 'square') {
+      targetW = 1080; targetH = 1080;
+    }
+
+    let finalW = img.width, finalH = img.height;
+    if (targetW && targetH) {
+      finalW = targetW; finalH = targetH;
+    } else if (targetW) {
+      finalW = targetW; finalH = Math.max(1, Math.round(img.height * (targetW / img.width)));
+    } else if (targetH) {
+      finalH = targetH; finalW = Math.max(1, Math.round(img.width * (targetH / img.height)));
+    } else if (scalePct && scalePct !== 100) {
+      finalW = Math.max(1, Math.round(img.width * (scalePct / 100)));
+      finalH = Math.max(1, Math.round(img.height * (scalePct / 100)));
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = finalW;
+    canvas.height = finalH;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, finalW, finalH);
+    const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.92));
+    const downloadUrl = URL.createObjectURL(blob);
+    showDownloadResult({
+      output_name: (file.name.replace(/\.[^.]+$/, '') || 'photo') + '-resized.jpg',
+      output_size: blob.size,
+      status: 'completed',
+      local_processing: true
+    }, downloadUrl);
+    return;
+  }
+
+  if (state.operation === 'photo_merge') {
+    if (!state.files.length) throw new Error('Please select at least 2 photos to merge.');
+    const images = await Promise.all(state.files.map(f => loadImageFromFile(f)));
+    const layout = $('#layout')?.value || 'vertical';
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    if (layout === 'horizontal') {
+      canvas.width = images.reduce((sum, img) => sum + img.width, 0);
+      canvas.height = Math.max(...images.map(img => img.height));
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      let curX = 0;
+      images.forEach(img => {
+        ctx.drawImage(img, curX, 0);
+        curX += img.width;
+      });
+    } else if (layout === 'grid' && images.length >= 4) {
+      const w1 = Math.max(images[0].width, images[2].width);
+      const w2 = Math.max(images[1].width, images[3].width);
+      const h1 = Math.max(images[0].height, images[1].height);
+      const h2 = Math.max(images[2].height, images[3].height);
+      canvas.width = w1 + w2;
+      canvas.height = h1 + h2;
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(images[0], 0, 0);
+      ctx.drawImage(images[1], w1, 0);
+      ctx.drawImage(images[2], 0, h1);
+      ctx.drawImage(images[3], w1, h1);
+    } else {
+      canvas.width = Math.max(...images.map(img => img.width));
+      canvas.height = images.reduce((sum, img) => sum + img.height, 0);
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      let curY = 0;
+      images.forEach(img => {
+        ctx.drawImage(img, 0, curY);
+        curY += img.height;
+      });
+    }
+
+    const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.9));
+    const downloadUrl = URL.createObjectURL(blob);
+    showDownloadResult({
+      output_name: 'merged-photos.jpg',
+      output_size: blob.size,
+      status: 'completed',
+      local_processing: true
+    }, downloadUrl);
+    return;
+  }
+
+  // Handle PDF Tools via PDFLib
+  const PDFLib = await window.PaperplanePdfRuntime.ensurePdfLib();
   const { PDFDocument, degrees, rgb } = PDFLib;
 
   if (state.operation === 'merge') {
@@ -4743,6 +4953,24 @@ async function processClientSide() {
     });
     const pdfBytes = await pdf.save();
     showClientSidePdfResult(pdfBytes, 'rotated_private.pdf');
+    return;
+  }
+
+  if (state.operation === 'organize') {
+    const bytes = await state.files[0].arrayBuffer();
+    const pdf = await PDFDocument.load(bytes);
+    const newPdf = await PDFDocument.create();
+    const total = pdf.getPageCount();
+    const pagesStr = $('#pages')?.value || '';
+    let indices = [];
+    if (pagesStr) {
+      indices = pagesStr.split(',').map(s => Number(s.trim()) - 1).filter(i => i >= 0 && i < total);
+    }
+    if (!indices.length) indices = pdf.getPageIndices();
+    const copied = await newPdf.copyPages(pdf, indices);
+    copied.forEach(page => newPdf.addPage(page));
+    const pdfBytes = await newPdf.save();
+    showClientSidePdfResult(pdfBytes, 'organized_private.pdf');
     return;
   }
 
@@ -6652,6 +6880,10 @@ function initBillingHandlers() {
   if ($('#topbar-upgrade-btn')) $('#topbar-upgrade-btn').onclick = () => openUpgradeModal();
   if ($('#sidebar-upgrade-btn')) $('#sidebar-upgrade-btn').onclick = () => openUpgradeModal();
   if ($('#close-upgrade-modal')) $('#close-upgrade-modal').onclick = closeUpgradeModal;
+  if ($('#ad-banner-upgrade-link')) $('#ad-banner-upgrade-link').onclick = (e) => {
+    e.preventDefault();
+    openUpgradeModal();
+  };
 
   const examBtn = $('#exam-cashfree-checkout-btn');
   if (examBtn) examBtn.onclick = () => initiateCheckout('exam_pass', examBtn);

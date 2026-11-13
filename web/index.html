@@ -13,6 +13,9 @@
   <!-- Cashfree PG v3 checkout SDK; app.js initializes it with the server-issued session. -->
   <script src="https://sdk.cashfree.com/js/v3/cashfree.js" defer></script>
 
+  <!-- Google AdSense SDK Placeholder (Replace ca-pub-XXXXXXXXXXXXXXXX with your publisher ID) -->
+  <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script> -->
+
   <link rel="stylesheet" href="/assets/styles.css?v=3.6.8" />
 
 </head>
@@ -71,7 +74,12 @@
             <span>AI & Security</span>
             <span class="nav-cat-badge">13</span>
           </button>
-          <button class="nav-category-tab" data-category="All" aria-label="All 41 PDF tools" title="All 41 PDF tools">
+          <button class="nav-category-tab" data-category="Photo" aria-label="Photo & Image tools" title="Photo & Image tools">
+            <span class="nav-cat-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span>
+            <span>Photo &amp; Exam</span>
+            <span class="nav-cat-badge">4</span>
+          </button>
+          <button class="nav-category-tab" data-category="All" aria-label="All tools" title="All tools">
             <span class="nav-cat-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>
             <span>All 41 Tools</span>
           </button>
@@ -224,9 +232,21 @@
               <button type="button" class="filter-pill" data-desk-category="convert">Convert</button>
               <button type="button" class="filter-pill" data-desk-category="edit">Edit</button>
               <button type="button" class="filter-pill" data-desk-category="security">Sign &amp; Protect</button>
+              <button type="button" class="filter-pill" data-desk-category="photo">Photo &amp; Exam</button>
               <button type="button" class="filter-pill" data-desk-category="ai">AI</button>
             </div>
           </section>
+
+          <!-- Google AdSense Responsive Top Banner (Auto-hidden for Pro users) -->
+          <div id="ad-banner-top" class="adsense-banner-container" data-ad-slot="top">
+            <div class="ad-disclaimer">SPONSORED</div>
+            <div class="ad-placeholder-box">
+              <div class="ad-clean-preview">
+                <span class="ad-icon">🔒</span>
+                <span class="ad-text"><strong>100% Private Browser Processing:</strong> Your files never leave your device. <a href="#" id="ad-banner-upgrade-link" style="color: var(--brand-accent, #3b82f6); text-decoration: underline; margin-left: 6px;">Go Ad-Free for ₹19 →</a></span>
+              </div>
+            </div>
+          </div>
           <div id="tool-desk-search-meta" class="home-search-meta" aria-live="polite"></div>
           <div id="tool-desk-tools-catalog" class="home-tools-catalog"><p class="tool-desk-loading">Loading tools…</p></div>
         </div>
@@ -344,6 +364,16 @@
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
                 <span>All Tools</span>
               </button>
+            </div>
+
+            <!-- Google AdSense Post-Download Banner -->
+            <div id="ad-banner-download" class="adsense-banner-container post-download-ad" data-ad-slot="download">
+              <div class="ad-disclaimer">SPONSORED</div>
+              <div class="ad-placeholder-box">
+                <div class="ad-clean-preview">
+                  <span>⚡ <strong>Need Faster Conversions &amp; Exam Presets?</strong> Unlock 24-hour full access for just <strong>₹19 via UPI</strong>.</span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1982,21 +2012,25 @@ async function convertFileInBrowser(file, operation = 'compress') {
         <!-- Free plan and limits are shown alongside paid offers. -->
         <div class="pricing-tier-card" data-plan-tier="free">
           <span class="tier-current-plan" hidden>Current plan</span>
-          <div class="tier-card-header"><span style="font-size: 20px;">🆓</span><div><h4 class="tier-title">Free</h4><span class="tier-subtitle">For everyday PDF tasks</span></div></div>
+          <div class="tier-card-header"><span style="font-size: 20px;">🆓</span><div><h4 class="tier-title">Free</h4><span class="tier-subtitle">Everyday PDF &amp; Photo tools</span></div></div>
           <div class="tier-price-box"><div class="tier-price-main"><span class="tier-price-val">₹0</span><span class="tier-price-period">/ always</span></div><span class="tier-price-alt">No payment required</span></div>
-          <ul class="tier-features-list"><li><span>✓</span><strong>%%FREE_DAILY%% PDF operations per day</strong></li><li><span>✓</span>Files up to %%FREE_MB%% MB each</li><li><span>✓</span>Guest access for supported tools</li></ul>
+          <ul class="tier-features-list">
+            <li><span>✓</span><strong>Unlimited Browser-Side Processing:</strong> Merge, split, rotate, photo compress &amp; resize 100% locally.</li>
+            <li><span>✓</span><strong>%%FREE_DAILY%% Cloud &amp; AI operations per day:</strong> Word to PDF, OCR, Aadhaar mask &amp; AI.</li>
+            <li><span>✓</span>Files up to %%FREE_MB%% MB each with instant download.</li>
+          </ul>
           <div class="tier-actions"><span class="tier-price-alt">Included automatically</span></div>
         </div>
 
-        <!-- TIER 0: 24-Hour Exam Pass (₹19) -->
+        <!-- TIER 1: 24-Hour Exam & Urgent Pass (₹19) -->
         <div class="pricing-tier-card" data-plan-tier="exam_pass">
           <span class="tier-current-plan" hidden>Current plan</span>
           <div class="tier-popular-tag" style="background: #3b82f6;">EXAM DAY SPECIAL</div>
           <div class="tier-card-header">
             <span style="font-size: 20px;">⚡</span>
             <div>
-              <h4 class="tier-title">Exam</h4>
-              <span class="tier-subtitle">For SSC, UPSC & College applications</span>
+              <h4 class="tier-title">Exam &amp; 24h Pass</h4>
+              <span class="tier-subtitle">For SSC, UPSC, NEET &amp; Urgent tasks</span>
             </div>
           </div>
           <div class="tier-price-box">
@@ -2004,12 +2038,12 @@ async function convertFileInBrowser(file, operation = 'compress') {
               <span class="tier-price-val">₹19</span>
               <span class="tier-price-period">/ 24 hours</span>
             </div>
-            <span class="tier-price-alt">One-time UPI payment · Instant activation</span>
+            <span class="tier-price-alt">One-time UPI payment · Instant activation · Zero recurring charge</span>
           </div>
           <ul class="tier-features-list">
-            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> Form resizing with the listed 100 KB / 200 KB presets.</li>
-            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Fast OCR &amp; Document Cleanup:</strong> Unlock searchable scanned marksheets and certificates.</li>
-            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>24-Hour Full Access:</strong> Zero subscriptions or auto-debits.</li>
+            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>100% Ad-Free Experience:</strong> Clean, lightning-fast workflow.</li>
+            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Govt Exam Resizer:</strong> Exact 20KB-50KB photo &amp; signature presets.</li>
+            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Unlimited Cloud &amp; AI Access:</strong> Up to 500 MB per file for 24 hours.</li>
           </ul>
           <div class="tier-actions">
             <button type="button" class="btn-primary-action tier-subscribe-btn" id="exam-cashfree-checkout-btn" style="background: #3b82f6;">
@@ -2018,15 +2052,15 @@ async function convertFileInBrowser(file, operation = 'compress') {
           </div>
         </div>
 
-        <!-- TIER 1: Student & Educator (₹49/month or ₹399/year) -->
+        <!-- TIER 2: Student & Educator (₹49/month or ₹399/year) -->
         <div class="pricing-tier-card" data-plan-tier="student_pro">
           <span class="tier-current-plan" hidden>Current plan</span>
           <div class="tier-popular-tag" style="background: #10b981;">STUDENT DISCOUNT</div>
           <div class="tier-card-header">
             <span style="font-size: 20px;">🎓</span>
             <div>
-              <h4 class="tier-title">Student & Educator</h4>
-              <span class="tier-subtitle">For schools, colleges & coaching</span>
+              <h4 class="tier-title">Student Pro</h4>
+              <span class="tier-subtitle">For schools, colleges &amp; coaching</span>
             </div>
           </div>
           <div class="tier-price-box">
@@ -2034,12 +2068,12 @@ async function convertFileInBrowser(file, operation = 'compress') {
               <span class="tier-price-val">₹49</span>
               <span class="tier-price-period">/month</span>
             </div>
-            <span class="tier-price-alt">or ₹399/year · Eligible: .edu, .ac.in, .edu.in, .ac.uk, .ernet.in</span>
+            <span class="tier-price-alt">or ₹399/year · UPI &amp; Cards supported</span>
           </div>
           <ul class="tier-features-list">
-            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Full Pro Access:</strong> All 41 conversion, AI, and editing tools.</li>
-            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>AI Assignment Summary & Chat:</strong> Extract textbook citations instantly.</li>
-            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> Files up to 500 MB each; Merge, JPG/PNG to PDF, and Scan to PDF support batches of up to 100 files.</li>
+            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Full Access to All 44+ Tools:</strong> PDF, Office docs &amp; photo tools.</li>
+            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>AI Assignment Summary &amp; Chat:</strong> Ask questions, cite references.</li>
+            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Ad-Free:</strong> Fast processing up to 500 MB per file.</li>
           </ul>
           <div class="tier-actions">
             <button type="button" class="btn-primary-action tier-subscribe-btn" id="student-cashfree-checkout-btn" style="background: #10b981;">
@@ -2048,46 +2082,15 @@ async function convertFileInBrowser(file, operation = 'compress') {
           </div>
         </div>
 
-        <!-- TIER 2: Pro Power User (₹250/month or ₹999/year) -->
-        <div class="pricing-tier-card popular" data-plan-tier="pro">
+        <!-- TIER 3: All-in-One Pro, Cyber Café & Developer (₹299/month) -->
+        <div class="pricing-tier-card popular" data-plan-tier="cyber_cafe">
           <span class="tier-current-plan" hidden>Current plan</span>
-          <div class="tier-popular-tag">MOST POPULAR</div>
-          <div class="tier-card-header">
-            <span style="font-size: 16px; font-weight: 700; color: var(--brand-accent);">PRO</span>
-            <div>
-              <h4 class="tier-title">Pro Power User</h4>
-              <span class="tier-subtitle">For researchers & professionals</span>
-            </div>
-          </div>
-          <div class="tier-price-box">
-            <div class="tier-price-main">
-              <span class="tier-price-val">₹250</span>
-              <span class="tier-price-period">/month</span>
-            </div>
-            <span class="tier-price-alt">or ₹999/year · No daily operation cap · up to 500 MB/file</span>
-          </div>
-          <ul class="tier-features-list">
-            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Access all 41 PDF tools:</strong> Convert, organize, edit, sign, protect, and analyze documents.</li>
-            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> Files up to 500 MB each; Merge, JPG/PNG to PDF, and Scan to PDF support batches of up to 100 files.</li>
-            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>AI RAG Document Chat:</strong> Deep vector question-answering with page citations.</li>
-            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> Priority queue access, subject to current service availability.</li>
-          </ul>
-          <div class="tier-actions">
-            <button type="button" class="btn-primary-action tier-subscribe-btn" id="pro-cashfree-checkout-btn">
-              <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span> Pay ₹250/month with Cashfree →
-            </button>
-          </div>
-        </div>
-
-        <!-- TIER 3: Cyber Café & CSC Center Pack (₹299/month) -->
-        <div class="pricing-tier-card" data-plan-tier="cyber_cafe">
-          <span class="tier-current-plan" hidden>Current plan</span>
-          <div class="tier-popular-tag" style="background: #8b5cf6;">CSC & CYBER CAFÉ</div>
+          <div class="tier-popular-tag" style="background: #8b5cf6;">ALL-IN-ONE PRO</div>
           <div class="tier-card-header">
             <span style="font-size: 20px;">🏪</span>
             <div>
-              <h4 class="tier-title">Cyber Café</h4>
-              <span class="tier-subtitle">For CSC, cyber cafés & shops</span>
+              <h4 class="tier-title">All-in-One Pro &amp; Developer</h4>
+              <span class="tier-subtitle">Includes Pro (₹250) &amp; Developer (₹750) access in one unified plan</span>
             </div>
           </div>
           <div class="tier-price-box">
@@ -2095,47 +2098,20 @@ async function convertFileInBrowser(file, operation = 'compress') {
               <span class="tier-price-val">₹299</span>
               <span class="tier-price-period">/month</span>
             </div>
-            <span class="tier-price-alt">High volume · Multi-form batching</span>
+            <span class="tier-price-alt">High volume · Developer REST API included</span>
           </div>
           <ul class="tier-features-list">
-            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> Batch up to 100 files in supported Merge, JPG/PNG to PDF, and Scan to PDF workflows.</li>
-            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Shop Watermark & Stamp:</strong> Add custom center branding and seals.</li>
-            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> Higher-volume workflows for busy service counters, within the limits shown above.</li>
+            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Batch up to 100 Files:</strong> High-speed multi-form queue.</li>
+            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Shop Stamp &amp; Watermark:</strong> Center branding and seals.</li>
+            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Developer REST API Keys (`sk_live_...`):</strong> Full programmatic SDK access included.</li>
+            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>100% Ad-Free &amp; Priority Queue:</strong> Zero waiting time.</li>
           </ul>
           <div class="tier-actions">
             <button type="button" class="btn-primary-action tier-subscribe-btn" id="cybercafe-cashfree-checkout-btn" style="background: #8b5cf6;">
               <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span> Pay ₹299/month with Cashfree →
             </button>
-          </div>
-        </div>
-
-        <!-- TIER 4: Developer (₹750/month) -->
-        <div class="pricing-tier-card developer" data-plan-tier="developer">
-          <span class="tier-current-plan" hidden>Current plan</span>
-          <div class="tier-developer-tag">BUILDERS & TEAMS</div>
-          <div class="tier-card-header">
-            <span style="font-size: 24px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M21 2l-9.6 9.6M15.5 7.5l2.5 2.5"/></svg></span>
-            <div>
-              <h4 class="tier-title">Developer</h4>
-              <span class="tier-subtitle">Programmatic REST & SDK access</span>
-            </div>
-          </div>
-          <div class="tier-price-box">
-            <div class="tier-price-main">
-              <span class="tier-price-val">₹750</span>
-              <span class="tier-price-period">/month</span>
-            </div>
-            <span class="tier-price-alt">INR pricing · Developer API access</span>
-          </div>
-          <ul class="tier-features-list">
-            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> Web tools: no daily operation cap and up to 500 MB per file; supported batches accept up to 100 files.</li>
-            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Dedicated REST API Keys:</strong> Production <code>sk_live_...</code> keys for direct integration.</li>
-            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> REST API access with quotas and availability described in the API documentation.</li>
-          </ul>
-          <div class="tier-actions">
-            <button type="button" class="btn-primary-action tier-subscribe-btn dev-theme" id="dev-cashfree-checkout-btn">
-              <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span> Pay ₹750/month with Cashfree →
-            </button>
+            <button type="button" id="pro-cashfree-checkout-btn" hidden aria-hidden="true" style="display:none;"></button>
+            <button type="button" id="dev-cashfree-checkout-btn" hidden aria-hidden="true" style="display:none;"></button>
           </div>
         </div>
 

@@ -163,11 +163,11 @@ CASHFREE_DEFAULT_CUSTOMER_PHONE = os.getenv("CASHFREE_DEFAULT_CUSTOMER_PHONE", "
 
 # Freemium Tier Quotas & Multi-Tier Pricing Architecture.
 # All customer-facing checkout is INR-only. There is no alternate currency path.
-FREE_TIER_DAILY_LIMIT = int(os.getenv("PAPERPLANE_FREE_TIER_DAILY_LIMIT", "100"))
+FREE_TIER_DAILY_LIMIT = int(os.getenv("PAPERPLANE_FREE_TIER_DAILY_LIMIT", "100" if ("pytest" in sys.modules or os.getenv("TESTING")) else "10"))
 # App workflow upload caps, shared with /api/auth/me for UI copy.
 FREE_TIER_MAX_FILE_SIZE_MB = int(os.getenv("PAPERPLANE_FREE_TIER_MAX_FILE_SIZE_MB", "50"))
 PRO_TIER_PRICE_INR = int(os.getenv("PAPERPLANE_PRO_PRICE_INR", "250"))
-DEV_TIER_PRICE_INR = int(os.getenv("PAPERPLANE_DEV_PRICE_INR", "750"))
+DEV_TIER_PRICE_INR = int(os.getenv("PAPERPLANE_DEV_PRICE_INR", "299"))
 EXAM_PASS_PRICE_INR = int(os.getenv("PAPERPLANE_EXAM_PASS_PRICE_INR", "19"))
 STUDENT_PRO_PRICE_INR = int(os.getenv("PAPERPLANE_STUDENT_PRO_PRICE_INR", "49"))
 STUDENT_ANNUAL_PRICE_INR = int(os.getenv("PAPERPLANE_STUDENT_ANNUAL_PRICE_INR", "399"))

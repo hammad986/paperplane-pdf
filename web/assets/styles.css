@@ -9905,3 +9905,54 @@ html.footer-revealed .app-global-footer { visibility: visible; opacity: 1; point
   #app-shell.ai-active .ai-empty-state { min-height: 0 !important; justify-content: flex-start !important; padding-block: 12px !important; }
   #app-shell.ai-active .ai-stage-line { flex-wrap: wrap; white-space: normal; }
 }
+
+/* ==========================================================================
+   Google AdSense & Responsive Sponsorship Placement Containers
+   ========================================================================== */
+.adsense-banner-container {
+  width: 100%;
+  max-width: 960px;
+  margin: 14px auto;
+  padding: 6px 12px;
+  background: var(--bg-surface, #ffffff);
+  border: 1px dashed var(--border-subtle, rgba(0, 0, 0, 0.12));
+  border-radius: 10px;
+  box-sizing: border-box;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+body.dark-mode .adsense-banner-container {
+  background: rgba(255, 255, 255, 0.02);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.adsense-banner-container .ad-disclaimer {
+  font-size: 9px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--text-muted, #888888);
+  margin-bottom: 4px;
+}
+
+.adsense-banner-container .ad-placeholder-box {
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.adsense-banner-container .ad-clean-preview {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-normal, #333333);
+}
+
+.adsense-banner-container.post-download-ad {
+  margin-top: 16px;
+  background: rgba(59, 130, 246, 0.03);
+  border-style: solid;
+  border-color: rgba(59, 130, 246, 0.2);
+}

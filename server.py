@@ -464,7 +464,10 @@ OPERATIONS = {
     "ai_extract": {"label": "Smart Metadata", "category": "AI tools", "accept": "pdf", "implemented": True, "description": "Extract invoices and resumes into structured JSON & CSV."},
     "summarize": {"label": "AI Summarize", "category": "AI tools", "accept": "pdf", "implemented": True, "description": "Generate executive overview and key bullet points."},
     "translate": {"label": "AI Translate", "category": "AI tools", "accept": "pdf", "implemented": True, "description": "Translate document content while preserving formatting."},
-    "photo_resizer": {"label": "Exam Photo & Signature Resizer", "category": "Convert to PDF", "accept": "image", "implemented": True, "description": "Resize photos and signatures to exact dimensions and KB limits for SSC, UPSC, and state exams."},
+    "photo_resizer": {"label": "Exam Photo & Signature Resizer", "category": "Photo Tools", "accept": "image", "implemented": True, "description": "Resize photos and signatures to exact dimensions and KB limits for SSC, UPSC, and state exams."},
+    "photo_compress": {"label": "Compress Photo / Image", "category": "Photo Tools", "accept": "image", "implemented": True, "description": "Compress JPG, PNG, or WebP photos to exact target KB or quality percentage."},
+    "photo_resize": {"label": "Resize Photo Dimensions", "category": "Photo Tools", "accept": "image", "implemented": True, "description": "Resize photo width, height, passport format (3.5x4.5cm), or custom percentage."},
+    "photo_merge": {"label": "Merge Photos into One", "category": "Photo Tools", "accept": "image", "implemented": True, "description": "Combine multiple photos side-by-side, stacked vertically, or in a photo collage."},
     "mask_aadhaar": {"label": "Mask Aadhaar Card", "category": "Security", "accept": "pdf", "implemented": True, "description": "Automatically redact first 8 digits of Aadhaar numbers per UIDAI guidelines."},
     "grayscale": {"label": "Convert to Grayscale", "category": "Organize PDF", "accept": "pdf", "implemented": True, "description": "Convert colored PDF pages to monochrome for printing. Output size varies, and colored pages may become image-based."},
     "flatten": {"label": "Flatten PDF Forms", "category": "Edit & Sign", "accept": "pdf", "implemented": True, "description": "Bake all interactive form fields into the page content, creating a non-editable submission copy."},
@@ -512,6 +515,9 @@ OPERATION_SLUGS = {
     "summarize": "summarize-pdf",
     "translate": "translate-pdf",
     "photo_resizer": "ssc-photo-resizer",
+    "photo_compress": "compress-image-online",
+    "photo_resize": "resize-image-dimensions",
+    "photo_merge": "merge-photos-online",
     "mask_aadhaar": "mask-aadhaar-card-online",
     "grayscale": "convert-pdf-to-grayscale",
     "flatten": "flatten-pdf",
@@ -1056,6 +1062,45 @@ SEO_CATALOG = {
             ("Does flattening reduce file size?", "Usually yes, as interactive form metadata and widget streams are removed."),
         ),
         "related": ("forms", "protect", "compress", "sign"),
+    },
+    "photo_compress": {
+        "title": "Compress Photo & Image Online Free (Target KB) | Paperplane",
+        "description": "Compress JPG, PNG, and WebP images to exact target KB size online for free.",
+        "heading": "Compress Photos & Images Online",
+        "intro": "Reduce image file size to exact target KB or quality percentage quickly and privately.",
+        "how_to": ("Upload your image file", "Choose target file size (KB) or quality", "Download your optimized image"),
+        "faqs": (
+            ("Can I compress to exact KB limits?", "Yes, Paperplane uses intelligent binary search optimization to reach your desired file size."),
+            ("Does photo compression affect image clarity?", "Our algorithm balances visual fidelity and file compression to preserve details."),
+            ("Which image formats are supported?", "JPG, JPEG, PNG, and WebP are supported."),
+        ),
+        "related": ("photo_resizer", "photo_resize", "jpg_to_pdf", "compress"),
+    },
+    "photo_resize": {
+        "title": "Resize Photo Dimensions Online Free | Paperplane",
+        "description": "Resize image dimensions (width, height, passport photo) online for free.",
+        "heading": "Resize Photo & Image Dimensions",
+        "intro": "Easily resize image dimensions, passport presets (3.5x4.5cm), or scale percentages.",
+        "how_to": ("Upload photo or image", "Set custom dimensions or pick a preset", "Download your resized image"),
+        "faqs": (
+            ("Can I resize for passport photos?", "Yes, standard 3.5x4.5 cm and 350x450 px presets are built-in."),
+            ("Is aspect ratio preserved?", "Yes, specifying width or height automatically calculates the proportional aspect ratio."),
+            ("Is processing private?", "Yes, image resizing runs directly in your browser or through secure isolated processing."),
+        ),
+        "related": ("photo_resizer", "photo_compress", "crop", "scan_pdf"),
+    },
+    "photo_merge": {
+        "title": "Merge Photos into One Online Free | Paperplane",
+        "description": "Combine multiple photos side-by-side or stacked vertically online for free.",
+        "heading": "Merge Multiple Photos into One Image",
+        "intro": "Combine multiple photos into a single horizontal, vertical, or grid collage image.",
+        "how_to": ("Select 2 or more photos", "Choose layout (vertical, horizontal, grid)", "Download your merged image"),
+        "faqs": (
+            ("How many photos can I combine?", "You can combine 2 to 20 photos into a single image."),
+            ("What layout styles are available?", "Vertical stacking, horizontal side-by-side, and 2x2 grid are available."),
+            ("Can I export to PDF as well?", "Yes, use our JPG to PDF tool to compile images into a multi-page PDF."),
+        ),
+        "related": ("photo_resizer", "jpg_to_pdf", "merge", "scan_pdf"),
     },
 }
 
@@ -2090,6 +2135,21 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
         target_kb = _safe_int(options.get("target_kb"), 50)
         as_pdf = str(options.get("format", "jpg")).lower() == "pdf"
         return converters.resize_exam_image(source, output, preset=preset, target_kb=target_kb, as_pdf=as_pdf)
+
+    if operation == "photo_compress":
+        target_kb = _safe_int(options.get("target_kb"), 100)
+        quality = _safe_int(options.get("quality"), 75)
+        return converters.compress_photo(source, output, target_kb=target_kb, quality=quality)
+
+    if operation == "photo_resize":
+        width = _safe_int(options.get("width"), 0) or None
+        height = _safe_int(options.get("height"), 0) or None
+        scale_percent = _safe_int(options.get("scale_percent"), 0) or None
+        return converters.resize_photo(source, output, width=width, height=height, scale_percent=scale_percent)
+
+    if operation == "photo_merge":
+        layout = str(options.get("layout", "vertical")).lower()
+        return converters.merge_photos(inputs, output, layout=layout)
 
     if operation == "mask_aadhaar":
         return security_forms_engine.mask_aadhaar_pdf(source, output)
@@ -3679,13 +3739,13 @@ def generate_key(name: str = Form("Default API Key"), user_id: str = Depends(cur
     tier = (user.get("tier") if user else "free").lower()
     existing_keys = list_api_keys(user_id)
 
-    # Free tier gets 1 evaluation key, Pro & Developer tiers get unlimited keys
-    if tier not in ("pro", "developer") and len(existing_keys) >= 1:
+    # Free tier gets 1 evaluation key, Pro, Cyber Café & Developer tiers get unlimited keys
+    if tier not in ("pro", "developer", "cyber_cafe") and len(existing_keys) >= 1:
         raise HTTPException(
             status_code=402,
             detail={
                 "code": "DEV_REQUIRED_API_KEYS",
-                "message": "Generating multiple API keys and continuous CI/CD SDK pipelines requires the Developer plan (₹750/mo).",
+                "message": "Generating multiple API keys and continuous CI/CD SDK pipelines requires the Cyber Café & Developer plan (₹299/mo).",
                 "tier": tier
             }
         )
