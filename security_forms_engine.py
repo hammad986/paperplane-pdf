@@ -554,132 +554,155 @@ def sign_pdf_digitally(
     return output
 
 
-def verify_pdf_signatures(source: Path) -> dict[str, Any]:
-    """Inspects and cryptographically verifies all digital signatures in a PDF document."""
+def verify_pdf_signatures(source: Path, password: str = "") -> dict[str, Any]:
+    """Verify only signature dictionaries reachable from real AcroForm /Sig fields.
+
+    Raw-byte matches are not evidence of a signature: PDF comments, streams, or
+    ordinary text can contain arbitrary /ByteRange and /Contents tokens.
+    """
     if not source.exists():
         raise ValueError(f"File '{source.name}' does not exist.")
 
     pdf_bytes = source.read_bytes()
-    br_matches = list(re.finditer(rb"/ByteRange\s*\[\s*(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s*\]", pdf_bytes))
-    c_matches = list(re.finditer(rb"/Contents\s*<([0-9A-Fa-f]+)>", pdf_bytes))
-
-    if not br_matches or not c_matches:
-        return {
-            "is_signed": False,
-            "signature_count": 0,
-            "signatures": []
-        }
-
     signatures_report: list[dict[str, Any]] = []
-
-    for idx, br_m in enumerate(br_matches):
-        r0 = int(br_m.group(1))
-        r1 = int(br_m.group(2))
-        r2 = int(br_m.group(3))
-        r3 = int(br_m.group(4))
-
-        if idx < len(c_matches):
-            raw_hex = c_matches[idx].group(1)
+    issues: list[str] = []
+    doc = None
+    try:
+        doc = fitz.open(str(source))
+        if doc.is_encrypted and (not password or not doc.authenticate(password)):
+            issues.append("The encrypted PDF must be unlocked before its signature fields can be inspected.")
         else:
-            raw_hex = c_matches[0].group(1)
+            signature_fields = []
+            for page in doc:
+                for widget in page.widgets() or ():
+                    if widget.field_type == fitz.PDF_WIDGET_TYPE_SIGNATURE:
+                        signature_fields.append(widget)
 
-        sig_info: dict[str, Any] = {
-            "index": idx + 1,
-            "status": "UNKNOWN",
-            "byte_range": [r0, r1, r2, r3],
-            "tamper_detected": False,
-            "certificate": {}
-        }
+            for widget in signature_fields:
+                value_kind, value_ref = doc.xref_get_key(widget.xref, "V")
+                ref_match = re.fullmatch(r"\s*(\d+)\s+\d+\s+R\s*", value_ref or "") if value_kind == "xref" else None
+                if not ref_match:
+                    # An empty signature field has no /V dictionary and is not signed.
+                    continue
 
-        # Validate range boundary integrity
-        total_len = len(pdf_bytes)
-        if r0 != 0 or (r0 + r1) > total_len or r2 > total_len or (r2 + r3) > total_len:
-            sig_info["status"] = "TAMPERED"
-            sig_info["tamper_detected"] = True
-            sig_info["error"] = "Signature ByteRange coordinates fall outside file boundaries."
-            signatures_report.append(sig_info)
-            continue
+                signature_xref = int(ref_match.group(1))
+                type_kind, type_value = doc.xref_get_key(signature_xref, "Type")
+                if type_kind != "name" or type_value != "/Sig":
+                    issues.append("A signature field points to an object that is not a /Sig dictionary.")
+                    continue
 
-        signed_content = pdf_bytes[r0 : r0 + r1] + pdf_bytes[r2 : r2 + r3]
-        actual_digest = hashlib.sha256(signed_content).digest()
+                byte_range_kind, byte_range_value = doc.xref_get_key(signature_xref, "ByteRange")
+                range_match = (
+                    re.fullmatch(r"\s*\[\s*(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s*\]\s*", byte_range_value or "")
+                    if byte_range_kind == "array" else None
+                )
+                signature_object = doc.xref_object(signature_xref, compressed=False)
+                contents_match = re.search(r"/Contents\s*<([0-9A-Fa-f\s]+)>", signature_object)
+                if not range_match or not contents_match:
+                    issues.append("A /Sig field has no parseable ByteRange or hexadecimal Contents value.")
+                    continue
 
-        # Decode DER
-        try:
-            padded_der = bytes.fromhex(raw_hex.decode("ascii"))
-            content_info, remainder = decoder.decode(padded_der, asn1Spec=rfc2315.ContentInfo())
-            exact_der = padded_der[: len(padded_der) - len(remainder)]
+                r0, r1, r2, r3 = (int(value) for value in range_match.groups())
+                raw_hex = re.sub(r"\s+", "", contents_match.group(1))
+                total_len = len(pdf_bytes)
+                range_is_valid = (
+                    r0 == 0 and r1 > 0 and r2 > r1 and r3 >= 0
+                    and r2 + r3 <= total_len and r2 <= total_len
+                )
+                if range_is_valid:
+                    excluded = pdf_bytes[r1:r2].strip()
+                    range_contents = re.fullmatch(rb"<([0-9A-Fa-f\s]+)>", excluded)
+                    range_is_valid = bool(
+                        range_contents
+                        and re.sub(rb"\s+", b"", range_contents.group(1)).decode("ascii").upper() == raw_hex.upper()
+                    )
+                if not range_is_valid:
+                    issues.append("A /Sig field has a corrupt or out-of-bounds ByteRange and was excluded.")
+                    continue
 
-            # Extract certificate
-            certs = pkcs7.load_der_pkcs7_certificates(exact_der)
-            if not certs:
-                sig_info["status"] = "INVALID"
-                sig_info["error"] = "No embedded X.509 certificate found in PKCS#7 block."
+                sig_info: dict[str, Any] = {
+                    "index": len(signatures_report) + 1,
+                    "field_name": widget.field_name or "Signature field",
+                    "status": "UNKNOWN",
+                    "byte_range": [r0, r1, r2, r3],
+                    "tamper_detected": False,
+                    "certificate": {},
+                }
+                signed_content = pdf_bytes[r0:r0 + r1] + pdf_bytes[r2:r2 + r3]
+                actual_digest = hashlib.sha256(signed_content).digest()
+
+                try:
+                    padded_der = bytes.fromhex(raw_hex)
+                    content_info, remainder = decoder.decode(padded_der, asn1Spec=rfc2315.ContentInfo())
+                    exact_der = padded_der[: len(padded_der) - len(remainder)]
+                    certs = pkcs7.load_der_pkcs7_certificates(exact_der)
+                    if not certs:
+                        sig_info["status"] = "INVALID"
+                        sig_info["error"] = "No embedded X.509 certificate found in PKCS#7 block."
+                        signatures_report.append(sig_info)
+                        continue
+
+                    cert = certs[0]
+                    sig_info["certificate"] = {
+                        "subject": cert.subject.rfc4514_string(),
+                        "issuer": cert.issuer.rfc4514_string(),
+                        "serial_number": str(cert.serial_number),
+                        "not_before": cert.not_valid_before_utc.isoformat(),
+                        "not_after": cert.not_valid_after_utc.isoformat(),
+                        "self_signed": cert.subject == cert.issuer,
+                    }
+                    now_utc = datetime.datetime.now(datetime.timezone.utc)
+                    if now_utc < cert.not_valid_before_utc:
+                        sig_info["status"] = "CERTIFICATE_NOT_YET_VALID"
+                    elif now_utc > cert.not_valid_after_utc:
+                        sig_info["status"] = "CERTIFICATE_EXPIRED"
+
+                    signed_data_obj, _ = decoder.decode(bytes(content_info["content"]), asn1Spec=rfc2315.SignedData())
+                    signer_info = signed_data_obj["signerInfos"][0]
+                    auth_attrs = signer_info["authenticatedAttributes"]
+                    claimed_digest = None
+                    for attr in auth_attrs:
+                        if str(attr["type"]) == "1.2.840.113549.1.9.4":
+                            value, _ = decoder.decode(bytes(attr["values"][0]))
+                            claimed_digest = bytes(value)
+                            break
+
+                    if claimed_digest != actual_digest:
+                        sig_info["status"] = "TAMPERED"
+                        sig_info["tamper_detected"] = True
+                        sig_info["error"] = "Signed document byte stream was altered after signature generation."
+                    else:
+                        raw_attrs = bytes(encoder.encode(auth_attrs))
+                        attrs_for_sig = b"\x31" + raw_attrs[1:]
+                        enc_sig = bytes(signer_info["encryptedDigest"])
+                        cert.public_key().verify(enc_sig, attrs_for_sig, padding.PKCS1v15(), hashes.SHA256())
+                        if sig_info["status"] == "UNKNOWN":
+                            sig_info["status"] = "VALID"
+                            sig_info["intact"] = True
+                except Exception:
+                    sig_info["status"] = "INVALID"
+                    sig_info["error"] = "The PKCS#7 signature could not be cryptographically verified."
                 signatures_report.append(sig_info)
-                continue
-
-            cert = certs[0]
-            sig_info["certificate"] = {
-                "subject": cert.subject.rfc4514_string(),
-                "issuer": cert.issuer.rfc4514_string(),
-                "serial_number": str(cert.serial_number),
-                "not_before": cert.not_valid_before_utc.isoformat(),
-                "not_after": cert.not_valid_after_utc.isoformat()
-            }
-
-            # Check validity dates
-            now_utc = datetime.datetime.now(datetime.timezone.utc)
-            if now_utc < cert.not_valid_before_utc:
-                sig_info["status"] = "CERTIFICATE_NOT_YET_VALID"
-            elif now_utc > cert.not_valid_after_utc:
-                sig_info["status"] = "CERTIFICATE_EXPIRED"
-
-            # Parse SignerInfo
-            signed_data_obj, _ = decoder.decode(bytes(content_info["content"]), asn1Spec=rfc2315.SignedData())
-            signer_info = signed_data_obj["signerInfos"][0]
-
-            # Verify message digest
-            auth_attrs = signer_info["authenticatedAttributes"]
-            claimed_digest = None
-            for attr in auth_attrs:
-                if str(attr["type"]) == "1.2.840.113549.1.9.4":  # messageDigest
-                    val, _ = decoder.decode(bytes(attr["values"][0]))
-                    claimed_digest = bytes(val)
-                    break
-
-            if claimed_digest != actual_digest:
-                sig_info["status"] = "TAMPERED"
-                sig_info["tamper_detected"] = True
-                sig_info["error"] = "Signed document byte stream was altered after signature generation."
-                signatures_report.append(sig_info)
-                continue
-
-            # Verify RSA cryptographic signature over authenticated attributes
-            raw_attrs = bytes(encoder.encode(auth_attrs))
-            attrs_for_sig = b"\x31" + raw_attrs[1:]
-            enc_sig = bytes(signer_info["encryptedDigest"])
-            public_key = cert.public_key()
-            public_key.verify(enc_sig, attrs_for_sig, padding.PKCS1v15(), hashes.SHA256())
-
-            if sig_info["status"] == "UNKNOWN":
-                sig_info["status"] = "VALID"
-                sig_info["intact"] = True
-
-        except Exception as e:
-            sig_info["status"] = "INVALID"
-            sig_info["error"] = f"Cryptographic verification error: {str(e)}"
-
-        signatures_report.append(sig_info)
+    except Exception:
+        issues.append("PDF structure could not be fully parsed during signature discovery.")
+    finally:
+        if doc is not None:
+            doc.close()
 
     all_valid = all(s.get("status") == "VALID" for s in signatures_report)
     any_tampered = any(s.get("tamper_detected") for s in signatures_report)
 
-    overall_status = "VALID" if all_valid else ("TAMPERED" if any_tampered else "INVALID")
+    if not signatures_report:
+        overall_status = "NO_SIGNATURES" if not issues else "UNPARSEABLE"
+    else:
+        overall_status = "VALID" if all_valid else ("TAMPERED" if any_tampered else "INVALID")
 
     return {
-        "is_signed": True,
+        "is_signed": bool(signatures_report),
         "signature_count": len(signatures_report),
         "overall_status": overall_status,
-        "signatures": signatures_report
+        "signatures": signatures_report,
+        "issues": issues,
     }
 
 
@@ -806,7 +829,7 @@ def inspect_pdf_security(source: Path, password: str = "") -> dict[str, Any]:
         emb_names = doc.embfile_names() if hasattr(doc, "embfile_names") else []
 
         # Check signatures
-        sig_ver = verify_pdf_signatures(source)
+        sig_ver = verify_pdf_signatures(source, password=password)
 
         # Check JavaScript / active content
         js_detected = False
@@ -864,7 +887,13 @@ def inspect_pdf_security(source: Path, password: str = "") -> dict[str, Any]:
         doc.close()
 
 
-def sanitize_pdf(source: Path, output: Path, targets: dict[str, bool] | None = None) -> Path:
+def sanitize_pdf(
+    source: Path,
+    output: Path,
+    targets: dict[str, bool] | None = None,
+    *,
+    report: dict[str, Any] | None = None,
+) -> Path:
     """Removes private metadata, active JavaScript, embedded file attachments, and user comments."""
     if not source.exists():
         raise ValueError(f"File '{source.name}' does not exist.")
@@ -878,32 +907,89 @@ def sanitize_pdf(source: Path, output: Path, targets: dict[str, bool] | None = N
 
     doc = fitz.open(str(source))
     try:
+        current_report = {
+            "metadata_keys_removed": [],
+            "attachments_removed": 0,
+            "annotations_removed": 0,
+            "javascript_actions_neutralized": False,
+            "javascript_detected_before": False,
+            "javascript_actions_detected": 0,
+        }
         # 1. Sanitize Metadata
         if cfg.get("remove_metadata", True):
+            current_report["metadata_keys_removed"] = sorted(
+                key for key, value in (doc.metadata or {}).items()
+                if key not in ("format", "encryption") and bool(value)
+            )
             doc.set_metadata({})
             if hasattr(doc, "set_xml_metadata"):
                 doc.set_xml_metadata("")
 
         # 2. Sanitize Attachments
         if cfg.get("remove_attachments", True) and hasattr(doc, "embfile_names"):
-            for name in list(doc.embfile_names()):
+            attachment_names = list(doc.embfile_names())
+            current_report["attachments_removed"] = len(attachment_names)
+            for name in attachment_names:
                 doc.embfile_del(name)
 
-        # 3. Sanitize User Annotations / Comments
+        # 3. Remove active JavaScript/action entries from every indirect object.
+        # This includes catalog-level actions, field/page actions, name-tree
+        # entries and referenced JavaScript action dictionaries.
+        if cfg.get("remove_javascript", True):
+            javascript_action_count = 0
+            javascript_markers = re.compile(r"/(?:JS|JavaScript)\b|/S\s*/JavaScript\b")
+            for xref in range(1, doc.xref_length()):
+                try:
+                    keys = set(doc.xref_get_keys(xref))
+                except Exception:
+                    continue
+                if not keys:
+                    continue
+                try:
+                    subtype_kind, subtype_value = doc.xref_get_key(xref, "S")
+                except Exception:
+                    subtype_kind, subtype_value = "", ""
+                if subtype_kind == "name" and subtype_value == "/JavaScript":
+                    javascript_action_count += 1
+                    doc.update_object(xref, "null")
+                    continue
+
+                for action_key in ("JS", "JavaScript"):
+                    if action_key in keys:
+                        javascript_action_count += 1
+                        doc.xref_set_key(xref, action_key, "null")
+
+                for action_key in ("AA", "OpenAction", "A"):
+                    if action_key not in keys:
+                        continue
+                    try:
+                        action_kind, action_value = doc.xref_get_key(xref, action_key)
+                    except Exception:
+                        action_kind, action_value = "", ""
+                    if javascript_markers.search(action_value or ""):
+                        javascript_action_count += 1
+                    # Additional/open actions are removed wholesale. A normal
+                    # primary action is removed only when it is JavaScript.
+                    if action_key in {"AA", "OpenAction"} or javascript_markers.search(action_value or ""):
+                        doc.xref_set_key(xref, action_key, "null")
+
+            current_report["javascript_actions_detected"] = javascript_action_count
+            current_report["javascript_detected_before"] = javascript_action_count > 0
+            current_report["javascript_actions_neutralized"] = True
+            doc.xref_set_key(doc.pdf_catalog(), "Names", "null")
+
+        # 4. Sanitize User Annotations / Comments
         if cfg.get("remove_annotations", True):
             for page in doc:
-                for annot in list(page.annots()):
+                annotations = list(page.annots())
+                current_report["annotations_removed"] += len(annotations)
+                for annot in annotations:
                     page.delete_annot(annot)
 
-        # 4. Sanitize JavaScript / Actions
-        if cfg.get("remove_javascript", True):
-            cat_xref = doc.pdf_catalog()
-            doc.xref_set_key(cat_xref, "JavaScript", "null")
-            doc.xref_set_key(cat_xref, "OpenAction", "null")
-            doc.xref_set_key(cat_xref, "AA", "null")
-            doc.xref_set_key(cat_xref, "Names", "null")
-
         out_bytes = doc.tobytes(garbage=4, clean=True, deflate=True)
+        if report is not None:
+            report.clear()
+            report.update(current_report)
     finally:
         doc.close()
 

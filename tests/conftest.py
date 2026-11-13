@@ -7,6 +7,19 @@ import pytest
 # Ensure testing flag is active for test suite assertions
 os.environ["TESTING"] = "True"
 os.environ["PAPERPLANE_ENV"] = "development"
+os.environ["PAPERPLANE_SKIP_DOTENV"] = "1"
+os.environ["PAPERPLANE_ENABLE_DOCS"] = "false"
+os.environ["CASHFREE_ENV"] = "TEST"
+# Keep the local suite fully offline and independent of any owner credentials
+# inherited from the desktop session or present in a developer .env file.
+for _credential_env in (
+    "CASHFREE_APP_ID", "CASHFREE_SECRET_KEY", "RESEND_API_KEY", "SMTP_PASSWORD",
+    "GEMINI_API_KEY", "GOOGLE_API_KEY", "OPENAI_API_KEY", "BLUESMINDS_API_KEY",
+    "PAPERPLANE_AI_API_KEY", "PAPERPLANE_AI_SETTINGS_KEY", "PAPERPLANE_ADMIN_KEY",
+    "PAPERPLANE_ADMIN_SECRET_KEY", "PAPERPLANE_ADMIN_CODE", "PAPERPLANE_ADMIN_SECRET_CODE",
+    "ADMIN_SECRET_KEY", "ADMIN_SECRET_CODE", "PAPERPLANE_SESSION_SECRET", "SESSION_SECRET_KEY",
+):
+    os.environ.pop(_credential_env, None)
 # Keep persistent app state from one pytest invocation out of another. Billable
 # local requests update the same daily usage store as the app, so reusing the
 # developer's runtime_data database can make later suite runs fail at quota 100.

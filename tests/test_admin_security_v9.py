@@ -271,15 +271,19 @@ def test_admin_lockout_is_per_ip_and_proxy_header_is_overwritten(admin_audit_db)
     nginx = (Path(__file__).resolve().parents[1] / "deploy" / "nginx.conf.template").read_text(encoding="utf-8")
     assert "proxy_set_header X-Forwarded-For $remote_addr;" in nginx
     assert "$proxy_add_x_forwarded_for" not in nginx
-    for header in ("X-Content-Type-Options", "X-Frame-Options", "Referrer-Policy", "Permissions-Policy"):
-        assert f"proxy_hide_header {header};" in nginx
+    assert "proxy_hide_header" not in nginx
+    for header in ("X-Content-Type-Options", "X-Frame-Options", "Referrer-Policy", "Permissions-Policy", "Content-Security-Policy"):
+        assert f"add_header {header} " in nginx
 
 
-def test_nonproxied_app_emits_each_security_header_once(admin_audit_db):
+def test_application_does_not_duplicate_edge_security_headers(admin_audit_db):
     response = TestClient(server.app).get("/")
     for header in ("x-content-type-options", "x-frame-options", "referrer-policy", "permissions-policy"):
-        assert len(response.headers.get_list(header)) == 1
-    assert len(response.headers.get_list("content-security-policy")) == 1
+        assert response.headers.get_list(header) == []
+    assert response.headers.get_list("content-security-policy") == []
+
+    server_source = (Path(__file__).resolve().parents[1] / "server.py").read_text(encoding="utf-8")
+    assert "SecurityHeadersMiddleware" not in server_source
 
 
 def test_admin_audit_summary_is_owner_only(admin_audit_db):
@@ -330,6 +334,22 @@ def test_feedback_validation_rejects_bad_fields_and_oversized_body(admin_audit_d
     assert valid.status_code == 200
 
 
+def test_feedback_submissions_are_visible_to_admin_after_each_write(admin_audit_db):
+    client = TestClient(server.app)
+    headers = _admin_headers()
+
+    for index in range(3):
+        response = client.post(
+            "/api/feedback",
+            json={"rating": 5, "category": "general", "message": f"Synthetic persistence check {index + 1}."},
+        )
+        assert response.status_code == 200
+        feedback_id = response.json()["feedback_id"]
+        visible = client.get("/api/admin/feedback", headers=headers)
+        assert visible.status_code == 200
+        assert feedback_id in {item["id"] for item in visible.json()["feedbacks"]}
+
+
 def test_probe_cleanup_requires_review_and_protects_configured_owner(admin_audit_db):
     owner_email = "owner@example.com"
     probe_id = persistence.create_user("support-probe@customer.invalid", _password())
@@ -349,6 +369,28 @@ def test_probe_cleanup_requires_review_and_protects_configured_owner(admin_audit
     assert result["deleted_count"] == 1
     assert persistence.get_user(probe_id) is None
     assert persistence.get_user(owner_id) is not None
+
+
+def test_probe_cleanup_only_matches_explicit_test_markers(admin_audit_db):
+    expected = {
+        persistence.create_user("support-probe@customer.invalid", _password()),
+        persistence.create_user("qa+test@example.com", _password()),
+    }
+    legitimate_domains = {
+        persistence.create_user("member@mail.tab.bot", _password()),
+        persistence.create_user("reviewer@mail.instinct.com", _password()),
+        persistence.create_user("customer@sharklasers.com", _password()),
+        persistence.create_user("customer@example.com", _password()),
+    }
+
+    preview = persistence.admin_cleanup_probe_accounts()
+    candidate_ids = {item["id"] for item in preview["candidates"]}
+    candidate_emails = {item["email"] for item in preview["candidates"]}
+
+    assert candidate_ids == expected
+    assert candidate_emails == {"support-probe@customer.invalid", "qa+test@example.com"}
+    assert candidate_ids.isdisjoint(legitimate_domains)
+    assert all(persistence.get_user(user_id) is not None for user_id in expected | legitimate_domains)
 
 
 def test_user_delete_removes_files_and_anonymizes_retained_financial_records(admin_audit_db, monkeypatch):

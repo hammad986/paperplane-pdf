@@ -2797,6 +2797,33 @@ textarea::placeholder {
   border-bottom-left-radius: 3px;
 }
 
+.ai-question-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.ai-question-suggestion {
+  max-width: 100%;
+  padding: 6px 9px;
+  border: 1px solid var(--border-light);
+  border-radius: 999px;
+  background: var(--bg-panel);
+  color: var(--text-main);
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ai-question-suggestion:hover,
+.ai-question-suggestion:focus-visible {
+  border-color: var(--accent);
+  outline-color: var(--accent);
+}
+
 .chat-citation-tag {
   display: inline-block;
   font-size: 11px;
@@ -4493,6 +4520,57 @@ body.dark-mode .btn-secondary-action {
   .api-docs-meta-grid {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* Compact desktop ribbon density requested for the 1920px Studio toolbar. */
+@media (min-width: 901px) {
+  html.studio-active body .studio-toolbar .studio-primary-ribbon,
+  html.studio-active body .studio-toolbar .studio-sub-ribbon {
+    gap: 4px !important;
+    min-height: 0 !important;
+    padding: 3px 8px !important;
+  }
+  html.studio-active body .studio-toolbar .studio-tool-btn {
+    min-width: 0 !important;
+    min-height: 28px !important;
+    padding: 3px 6px !important;
+    gap: 3px !important;
+    font-size: 10px !important;
+    line-height: 1.1 !important;
+  }
+  html.studio-active body .studio-toolbar .studio-mode-btn {
+    min-height: 27px !important;
+    padding: 3px 7px !important;
+    font-size: 10px !important;
+  }
+  html.studio-active body .studio-toolbar .studio-divider { margin-inline: 2px !important; }
+  html.studio-active body .studio-toolbar .studio-page-badge { min-height: 26px !important; }
+  html.studio-active body .studio-toolbar .zoom-select { min-height: 27px !important; padding-block: 2px !important; }
+}
+
+@media (max-width: 900px) {
+  html.studio-active body .studio-toolbar .studio-tool-btn,
+  html.studio-active body .studio-toolbar .studio-mode-btn { min-height: 40px; }
+}
+
+.organizer-order-status { min-height: 20px; margin: 4px 0 8px; color: var(--text-muted); font-size: 12px; line-height: 1.4; }
+.organizer-order-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 10px; max-height: min(52vh, 520px); overflow: auto; padding: 2px 4px 8px 2px; overscroll-behavior: contain; }
+.organizer-order-card { display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto; align-items: center; gap: 6px 8px; min-width: 0; padding: 7px; border: 1px solid var(--border-light); border-radius: 10px; background: var(--bg-panel); cursor: grab; touch-action: pan-y; }
+.organizer-order-card.dragging { opacity: .45; }
+.organizer-order-card.drop-target { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 20%, transparent); }
+.organizer-order-thumbnail { display: block; grid-column: 1 / -1; width: 100%; height: 118px; object-fit: contain; border: 1px solid var(--border-light); border-radius: 5px; background: white; }
+.organizer-order-card strong { min-width: 0; color: var(--text-main); font-size: 12px; }
+.organizer-order-move-controls { display: flex; gap: 4px; }
+.organizer-order-move-controls button { width: 36px; min-height: 36px; border: 1px solid var(--border-light); border-radius: 7px; color: var(--text-main); background: var(--bg-panel-alt); font-size: 17px; cursor: pointer; }
+.organizer-order-move-controls button:disabled { opacity: .4; cursor: not-allowed; }
+.organizer-order-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tier-current-plan { display: inline-flex; width: fit-content; margin: 0 0 8px; padding: 4px 8px; border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); border-radius: 999px; color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); font-size: 10px; font-weight: 750; letter-spacing: .04em; text-transform: uppercase; }
+.tier-current-plan[hidden] { display: none !important; }
+.pricing-tier-card.is-current-plan { border-color: color-mix(in srgb, var(--accent) 55%, var(--border-light)); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 12%, transparent); }
+@media (max-width: 480px) {
+  .organizer-order-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; max-height: 44dvh; }
+  .organizer-order-thumbnail { height: 104px; }
+  .organizer-order-move-controls button { width: 40px; min-height: 40px; }
 }
 
 .api-meta-item {
@@ -6399,6 +6477,8 @@ body:not(.light-mode) .editor-select option {
 }
 
 .home-tool-card {
+  color: inherit;
+  text-decoration: none;
   background: var(--bg-panel);
   border: 1px solid var(--border-light);
   border-radius: 16px;
@@ -8238,6 +8318,9 @@ body.dark-mode .dropzone:hover, body.dark-mode .dropzone.over { background: #202
   font-size: 12px;
   line-height: 1.45;
 }
+.security-sanitize-report { margin: 10px 0; padding: 10px 12px; border: 1px solid var(--border-light); border-radius: 8px; background: var(--bg-panel-alt); color: var(--text-main); font-size: 12px; line-height: 1.5; }
+.security-sanitize-report ul { margin: 8px 0 10px; padding-left: 18px; }
+.security-sanitize-report[hidden] { display: none !important; }
 
 /* Accessible local-work controls. */
 .ephemeral-work-notice { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
@@ -9038,7 +9121,7 @@ section, h1, h2, h3 { scroll-margin-top: 104px; }
   html.studio-active body .studio-thumbnails-bar {
     display: none !important;
     position: fixed !important;
-    inset: calc(68px + env(safe-area-inset-top, 0px)) 8px auto !important;
+    inset: var(--studio-mobile-pages-top, calc(68px + env(safe-area-inset-top, 0px))) 8px auto !important;
     z-index: 900 !important;
     width: auto !important;
     height: auto !important;
@@ -9437,7 +9520,7 @@ html.studio-active body .studio-main-viewport { min-width: 0; max-width: 100%; b
     bottom: calc(66px + env(safe-area-inset-bottom, 0px));
   }
   html.studio-active body .studio-thumbnails-bar {
-    inset: 252px 8px calc(174px + env(safe-area-inset-bottom, 0px)) 8px !important;
+    inset: var(--studio-mobile-pages-top, 252px) 8px calc(174px + env(safe-area-inset-bottom, 0px)) 8px !important;
     width: auto !important;
     max-height: none !important;
     min-height: 0 !important;

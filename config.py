@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import logging
 import sys
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -145,14 +146,18 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 # the browser receives a short-lived payment_session_id, never the secret key.
 CASHFREE_APP_ID = os.getenv("CASHFREE_APP_ID", "").strip()
 CASHFREE_SECRET_KEY = os.getenv("CASHFREE_SECRET_KEY", "").strip()
-CASHFREE_ENV = os.getenv("CASHFREE_ENV", "PROD" if ENVIRONMENT == "production" else "TEST").upper()
-if CASHFREE_ENV not in {"TEST", "PROD"}:
-    CASHFREE_ENV = "TEST"
+CASHFREE_ENV_RAW = os.getenv("CASHFREE_ENV", "PROD" if ENVIRONMENT == "production" else "TEST").strip().upper()
+CASHFREE_ENV_CONFIG_ERROR = CASHFREE_ENV_RAW not in {"TEST", "SANDBOX", "PROD"}
+CASHFREE_ENV = ("TEST" if CASHFREE_ENV_RAW == "SANDBOX" else CASHFREE_ENV_RAW) if not CASHFREE_ENV_CONFIG_ERROR else "INVALID"
+if CASHFREE_ENV_CONFIG_ERROR:
+    logging.getLogger("paperplane").critical(
+        "CASHFREE_ENV must be TEST/SANDBOX or PROD; checkout is disabled until it is corrected."
+    )
 CASHFREE_API_VERSION = "2023-08-01"
 CASHFREE_BASE_URL = (
     "https://sandbox.cashfree.com/pg"
     if CASHFREE_ENV == "TEST"
-    else "https://api.cashfree.com/pg"
+    else "https://api.cashfree.com/pg" if CASHFREE_ENV == "PROD" else ""
 )
 CASHFREE_DEFAULT_CUSTOMER_PHONE = os.getenv("CASHFREE_DEFAULT_CUSTOMER_PHONE", "9999999999")
 
@@ -177,7 +182,7 @@ BLUESMINDS_MODEL = os.getenv("BLUESMINDS_MODEL", "openai/gpt-oss-20b")
 BLUESMINDS_TIMEOUT_SECONDS = min(120, max(5, int(os.getenv("BLUESMINDS_TIMEOUT_SECONDS", "60"))))
 BLUESMINDS_MAX_OUTPUT_TOKENS = int(os.getenv("BLUESMINDS_MAX_OUTPUT_TOKENS", "4096"))
 AI_SETTINGS_ENCRYPTION_KEY = os.getenv("PAPERPLANE_AI_SETTINGS_ENCRYPTION_KEY", "").strip()
-PAYMENT_GATEWAY_FEE_PERCENT = float(os.getenv("PAPERPLANE_GATEWAY_FEE_PERCENT", "1.95"))
+PAYMENT_GATEWAY_FEE_PERCENT = float(os.getenv("PAPERPLANE_GATEWAY_FEE_PERCENT", "2.0"))
 PAYMENT_GATEWAY_FEE_GST_PERCENT = float(os.getenv("PAPERPLANE_GATEWAY_FEE_GST_PERCENT", "18"))
 # Legacy alias for test backwards compatibility
 AGENTROUTER_API_KEY = BLUESMINDS_API_KEY

@@ -156,6 +156,8 @@ docker compose logs -f --tail=100
 
 The application stores user accounts, API keys, subscription records, and job metadata in SQLite located at `/data/paperplane.sqlite3`.
 
+Compose pins the project and database volume names so a change to the checkout directory does not silently create an empty database. The default names are `paperplane-pdf_paperplane_data` and `paperplane-pdf_paperplane_backups`; `.env` may override them. Before the first rollout of this configuration, compare `PAPERPLANE_DATA_VOLUME_NAME` with the volume mounted by the currently running container. If they differ, stop and migrate or point the configuration at the existing volume before starting Compose. Do not infer the live volume name from this documentation alone.
+
 To take an atomic, lock-free live backup:
 
 ```bash
@@ -174,7 +176,7 @@ print('Backup complete.')
 Or backup the entire persistent Docker volume:
 
 ```bash
-docker run --rm -v paperplane_data:/data -v $(pwd)/backups:/backup alpine \
+docker run --rm -v paperplane-pdf_paperplane_data:/data -v $(pwd)/backups:/backup alpine \
   tar czf /backup/paperplane_data_$(date +%Y%m%d).tar.gz -C /data .
 ```
 
@@ -187,7 +189,7 @@ To restore from a backup archive:
 docker compose down
 
 # 2. Restore volume contents
-docker run --rm -v paperplane_data:/data -v $(pwd)/backups:/backup alpine \
+docker run --rm -v paperplane-pdf_paperplane_data:/data -v $(pwd)/backups:/backup alpine \
   sh -c "rm -rf /data/* && tar xzf /backup/paperplane_data_<TIMESTAMP>.tar.gz -C /data"
 
 # 3. Restart services

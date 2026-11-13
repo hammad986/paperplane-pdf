@@ -386,6 +386,7 @@
         secondaryFile = f;
         if (docNameLabel) docNameLabel.textContent = `${f.name} (Loading…)`;
         try {
+          const pdfjsLib = await window.PaperplanePdfRuntime.ensurePdfJs();
           const ab = await f.arrayBuffer();
           secondaryDoc = await pdfjsLib.getDocument({ data: ab, isEvalSupported: false }).promise;
           const numPages = secondaryDoc.numPages;

@@ -18,6 +18,12 @@
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   }
 
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[char]);
+  }
+
   function downloadBlob(blob, filename) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -472,7 +478,7 @@
       const signerName = document.getElementById('digital-signer-name')?.value.trim() || 'Verified Signer';
       const reason = document.getElementById('digital-sign-reason')?.value.trim() || 'Document Integrity Verification';
       const location = document.getElementById('digital-sign-location')?.value.trim() || 'Paperplane Local';
-      const addVisual = document.getElementById('digital-sign-visual-seal')?.checked || true;
+      const addVisual = document.getElementById('digital-sign-visual-seal')?.checked ?? false;
 
       const activePage = (window.PaperplaneEditor && window.PaperplaneEditor.editorState.currentPage) ? window.PaperplaneEditor.editorState.currentPage - 1 : 0;
 
@@ -535,11 +541,13 @@
         if (!container) return;
 
         if (!report.is_signed || report.signature_count === 0) {
+          const parseIssues = Array.isArray(report.issues) ? report.issues : [];
           container.innerHTML = `
             <div style="padding: 24px; text-align: center; color: var(--text-muted);">
               <div style="margin-bottom: 8px;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg></div>
               <strong>No Digital Signatures Found</strong>
               <p style="font-size: 11.5px; margin-top: 4px;">This document does not contain cryptographic detached PKCS#7 or CMS signatures.</p>
+              ${parseIssues.length ? `<p style="font-size: 11.5px; color: #fbbf24;">${parseIssues.map(escapeHtml).join('<br>')}</p>` : ''}
             </div>`;
           return;
         }
@@ -555,7 +563,7 @@
               <strong>${isAllValid ? 'ALL SIGNATURES CRYPTOGRAPHICALLY VALID' : (isTampered ? 'TAMPERING DETECTED - FILE WAS MODIFIED' : 'INVALID SIGNATURE')}</strong>
               <span class="badge" style="${badgeStyle}">${report.overall_status}</span>
             </div>
-            <div style="font-size: 11.5px; margin-top: 4px; opacity: 0.9;">Total Signatures: ${report.signature_count}</div>
+            <div style="font-size: 11.5px; margin-top: 4px; opacity: 0.9;">Total Signatures: ${escapeHtml(report.signature_count)}</div>
           </div>
         `;
 
@@ -564,13 +572,14 @@
           html += `
             <div style="padding: 10px; background: rgba(30, 41, 59, 0.5); border: 1px solid var(--studio-border); border-radius: 6px; margin-bottom: 8px; font-size: 12px;">
               <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                <strong>Signature #${sig.index || (i + 1)}</strong>
-                <span class="badge ${sig.status === 'VALID' ? 'badge-full' : 'badge-unavail'}">${sig.status}</span>
+                <strong>Signature #${escapeHtml(sig.index || (i + 1))}</strong>
+                <span class="badge ${sig.status === 'VALID' ? 'badge-full' : 'badge-unavail'}">${escapeHtml(sig.status)}</span>
               </div>
               <div style="color: #cbd5e1; font-size: 11.5px; line-height: 1.5;">
-                <div>Subject: <strong>${cert.subject || 'Unknown'}</strong></div>
-                <div>Issuer: ${cert.issuer || 'Self-Signed'}</div>
-                <div>ByteRange: [${(sig.byte_range || []).join(', ')}]</div>
+                <div>Subject: <strong>${escapeHtml(cert.subject || 'Unknown')}</strong></div>
+                <div>Issuer: ${escapeHtml(cert.issuer || 'Self-Signed')}</div>
+                <div>ByteRange: [${(sig.byte_range || []).map(escapeHtml).join(', ')}]</div>
+                ${cert.self_signed ? '<div style="color: #fbbf24; font-weight: 600; margin-top: 4px;">Self-signed certificate; signer identity is not independently verified.</div>' : ''}
                 ${sig.tamper_detected ? '<div style="color: #ef4444; font-weight: bold; margin-top: 4px;">Digest mismatch: document bytes altered after signing!</div>' : '<div style="color: #10b981; margin-top: 4px;">Document byte stream integrity intact.</div>'}
               </div>
             </div>
@@ -579,7 +588,7 @@
 
         container.innerHTML = html;
       } catch (err) {
-        if (container) container.innerHTML = `<div style="color: #ef4444; padding: 12px;">Verification error: ${err.message}</div>`;
+        if (container) container.textContent = `Verification error: ${err.message}`;
       }
     }
 
@@ -832,6 +841,11 @@
     async applySanitizePdf() {
       const target = this._getActiveFile();
       if (!target) return;
+      const reportBox = document.getElementById('sec-sanitize-report');
+      if (reportBox) {
+        reportBox.hidden = true;
+        reportBox.replaceChildren();
+      }
 
       const opts = {
         remove_metadata: document.getElementById('sanitize-opt-meta')?.checked ?? true,
@@ -849,13 +863,54 @@
         const resp = await fetch('/api/studio/security/sanitize', { method: 'POST', body: form });
         if (!resp.ok) throw new Error(`Sanitize failed (${resp.status})`);
 
+        const reportHeader = resp.headers.get('X-Paperplane-Sanitize-Report');
+        let details = {};
+        try { details = reportHeader ? JSON.parse(reportHeader) : {}; } catch { details = {}; }
         const blob = await resp.blob();
         const newFile = new File([blob], target.name, { type: 'application/pdf' });
         if (window.loadDocumentIntoStudio) await window.loadDocumentIntoStudio(newFile);
         this.currentFile = newFile;
         await this.refreshSecurityAudit();
-        window.showToast?.('Document sanitized: metadata, JavaScript, and comments purged!', 'success');
+        if (reportBox) {
+          const title = document.createElement('strong');
+          title.textContent = 'Sanitization complete';
+          const list = document.createElement('ul');
+          const metadata = Array.isArray(details.metadata_keys_removed) && details.metadata_keys_removed.length
+            ? details.metadata_keys_removed.join(', ')
+            : 'None found';
+          const rows = [
+            `Metadata keys removed: ${metadata}`,
+            `Annotations purged: ${Number(details.annotations_removed) || 0}`,
+            `Attachments removed: ${Number(details.attachments_removed) || 0}`,
+            details.javascript_actions_neutralized
+              ? `JavaScript/open actions neutralized${details.javascript_detected_before ? ` (${Number(details.javascript_actions_detected) || 0} active structure(s) detected)` : ' (no active JavaScript structures were found)'} `
+              : 'JavaScript neutralization was not selected'
+          ];
+          rows.forEach(text => {
+            const item = document.createElement('li');
+            item.textContent = text;
+            list.appendChild(item);
+          });
+          const download = document.createElement('button');
+          download.type = 'button';
+          download.className = 'btn-secondary-action';
+          download.textContent = 'Download sanitized PDF';
+          download.addEventListener('click', () => {
+            const safeName = target.name.toLowerCase().endsWith('.pdf')
+              ? target.name.replace(/\.pdf$/i, '_sanitized.pdf')
+              : `${target.name}_sanitized.pdf`;
+            downloadBlob(blob, safeName);
+          });
+          reportBox.append(title, list, download);
+          reportBox.hidden = false;
+        }
+        window.showToast?.('Sanitized PDF is ready. Review the summary and download the cleaned file.', 'success');
       } catch (err) {
+        if (reportBox) {
+          reportBox.replaceChildren();
+          reportBox.textContent = `Sanitization failed: ${err.message || 'The request could not be completed.'}`;
+          reportBox.hidden = false;
+        }
         window.showToast?.(`Sanitization error: ${err.message}`, 'error');
       }
     }

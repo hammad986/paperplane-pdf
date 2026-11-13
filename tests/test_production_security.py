@@ -5,6 +5,7 @@ import hashlib
 import hmac
 import json
 import time
+from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
@@ -435,8 +436,9 @@ def test_public_api_docs_disabled_for_production_even_if_env_false():
 
 
 def test_csp_does_not_allow_inline_script_execution():
-    response = client.get("/")
-    policy = response.headers["content-security-policy"]
+    nginx = (Path(__file__).resolve().parents[1] / "deploy" / "nginx.conf.template").read_text(encoding="utf-8")
+    policy_line = next(line for line in nginx.splitlines() if 'add_header Content-Security-Policy ' in line)
+    policy = policy_line.split('add_header Content-Security-Policy "', 1)[1].split('" always;', 1)[0]
     script_policy = policy.split("style-src", 1)[0]
     assert "unsafe-inline" not in script_policy
     assert "wasm-unsafe-eval" in script_policy

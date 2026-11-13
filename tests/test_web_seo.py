@@ -140,13 +140,17 @@ def test_cleanup_endpoint_queues_daemon_instead_of_running_inline():
 def test_delivery_shell_keeps_heavy_assets_deferred_and_uses_clean_urls():
     root = Path(__file__).resolve().parent.parent
     app_js = (root / "web" / "assets" / "app.js").read_text(encoding="utf-8")
+    pdf_runtime_js = (root / "web" / "assets" / "pdf_runtime.js").read_text(encoding="utf-8")
     index_html = (root / "web" / "index.html").read_text(encoding="utf-8")
     styles_css = (root / "web" / "assets" / "styles.css").read_text(encoding="utf-8")
     launcher = (root / "app.py").read_text(encoding="utf-8")
 
     assert "window.history.pushState({ view: 'desk', op: state.operation }, '', targetPath)" in app_js
-    assert '<script src="/assets/pdf.min.js" defer></script>' in index_html
-    assert '<script src="/assets/pdf-lib.min.js" defer></script>' in index_html
+    assert '<script src="/assets/pdf_runtime.js?v=1.0.0" defer></script>' in index_html
+    assert '<script src="/assets/pdf.min.js" defer></script>' not in index_html
+    assert '<script src="/assets/pdf-lib.min.js" defer></script>' not in index_html
+    assert "ensurePdfJs" in pdf_runtime_js and "ensurePdfLib" in pdf_runtime_js
+    assert "PaperplanePdfRuntime.ensurePdfJs()" in app_js
     assert "@media (max-width: 900px)" in styles_css
     assert "workers = 1 if os.name == \"nt\" else max(1, configured_workers)" in launcher
     assert app_js.count("handleInitialRouting();") == 1

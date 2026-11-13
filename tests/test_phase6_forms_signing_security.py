@@ -214,10 +214,9 @@ def test_digital_signature_tamper_detection(sample_pdf, test_credentials, tmp_pa
     report_orig = security_forms_engine.verify_pdf_signatures(signed)
     assert report_orig["overall_status"] == "VALID"
 
-    # Tamper with byte stream outside byte range
+    # Change a signed byte while leaving the PDF structure and signature field parseable.
     tampered_bytes = bytearray(signed.read_bytes())
-    # Alter byte at offset 50 (within range 1 before signature dictionary)
-    tampered_bytes[50] = (tampered_bytes[50] + 1) % 256
+    tampered_bytes[150] = (tampered_bytes[150] + 1) % 256
     tampered_pdf = tmp_path / "tampered.pdf"
     tampered_pdf.write_bytes(tampered_bytes)
 
@@ -231,6 +230,22 @@ def test_unsigned_pdf_verification(sample_pdf):
     assert report["is_signed"] is False
     assert report["signature_count"] == 0
     assert report["signatures"] == []
+    assert report["overall_status"] == "NO_SIGNATURES"
+
+
+def test_unsigned_pdf_raw_byte_range_tokens_are_not_signatures(sample_pdf, tmp_path):
+    fabricated = tmp_path / "unsigned_with_fabricated_tokens.pdf"
+    fabricated.write_bytes(
+        sample_pdf.read_bytes()
+        + b"\n% /ByteRange [0 53816 62010 1705] /Contents <00>\n"
+    )
+
+    report = security_forms_engine.verify_pdf_signatures(fabricated)
+
+    assert report["is_signed"] is False
+    assert report["signature_count"] == 0
+    assert report["signatures"] == []
+    assert report["overall_status"] == "NO_SIGNATURES"
 
 
 # ==============================================================================

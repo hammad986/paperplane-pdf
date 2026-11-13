@@ -1,3 +1,5 @@
+name: paperplane-pdf
+
 services:
   paperplane:
     image: pdf_splitter-paperplane:latest
@@ -19,9 +21,13 @@ services:
       PAPERPLANE_COOKIE_SAMESITE: "${PAPERPLANE_COOKIE_SAMESITE:-lax}"
       PAPERPLANE_PUBLIC_URL: "https://${PAPERPLANE_DOMAIN:-localhost}"
       PAPERPLANE_TRUSTED_HOSTS: "paperplane,localhost,127.0.0.1,${PAPERPLANE_DOMAIN:-localhost}"
+      PAPERPLANE_TRUSTED_PROXY_HOSTS: "127.0.0.1,::1,${PAPERPLANE_PROXY_NGINX_IP:-172.30.250.2}"
       PAPERPLANE_ALLOWED_ORIGINS: "http://localhost:8501,http://127.0.0.1:8501,https://${PAPERPLANE_DOMAIN:-localhost}"
     volumes:
       - paperplane_data:/data
+    networks:
+      paperplane_proxy:
+        ipv4_address: "${PAPERPLANE_PROXY_APP_IP:-172.30.250.3}"
     expose:
       - "8501"
     ports:
@@ -47,9 +53,12 @@ services:
       PAPERPLANE_BACKUP_RETENTION_DAYS: "14"
     volumes:
       - paperplane_data:/data
-      # Keep database backups on the host filesystem outside the application
-      # volume so losing paperplane_data does not also remove its backups.
-      - "${PAPERPLANE_BACKUP_HOST_DIR:-../paperplane-backups}:/backups"
+      # Keep backups on an independent persistent volume, separate from the
+      # live database volume and writable by the non-root container user.
+      - paperplane_backups:/backups
+    networks:
+      paperplane_proxy:
+        ipv4_address: "${PAPERPLANE_PROXY_BACKUP_IP:-172.30.250.4}"
     command: ["python", "scripts/backup_db.py", "--daemon"]
     restart: always
     tmpfs:
@@ -68,11 +77,23 @@ services:
       - ./deploy/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
       - ./deploy/certs:/etc/nginx/certs:ro
       - ./deploy/acme:/var/www/certbot:ro
+    networks:
+      paperplane_proxy:
+        ipv4_address: "${PAPERPLANE_PROXY_NGINX_IP:-172.30.250.2}"
     restart: always
 
 volumes:
   paperplane_data:
-    # Stable across compose project directory/name changes. Before deploying,
-    # inspect any existing project-prefixed volume and set the override to its
-    # exact name or migrate its contents into this volume.
-    name: ${PAPERPLANE_DATA_VOLUME_NAME:-paperplane_data}
+    # Preserve the volume created by the original Compose project in
+    # ~/paperplane-pdf. Override only after checking the host's actual volume.
+    name: ${PAPERPLANE_DATA_VOLUME_NAME:-paperplane-pdf_paperplane_data}
+  paperplane_backups:
+    name: ${PAPERPLANE_BACKUP_VOLUME_NAME:-paperplane-pdf_paperplane_backups}
+
+networks:
+  paperplane_proxy:
+    name: ${PAPERPLANE_PROXY_NETWORK_NAME:-paperplane_proxy}
+    ipam:
+      config:
+        # Override if this subnet overlaps the EC2 VPC or another Docker network.
+        - subnet: ${PAPERPLANE_PROXY_SUBNET:-172.30.250.0/24}

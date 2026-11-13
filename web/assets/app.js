@@ -73,10 +73,12 @@ let localWorkDbPromise = null;
 let pendingStudioRestore = null;
 let studioPositionSaveTimer = null;
 let studioPageJumpLockUntil = 0;
+let studioWorkspaceEpoch = 0;
 let studioRestorePending = false;
 let studioRestorePromise = null;
 let aiWorkspaceRestored = false;
 let aiWorkspaceRestorePromise = null;
+const LOCAL_WORK_ACCOUNT_SCOPE_KEY = 'paperplane-local-work-account-id';
 
 function openLocalWorkDb() {
   if (!('indexedDB' in window)) return Promise.reject(new Error('Local browser storage is unavailable.'));
@@ -94,10 +96,54 @@ function openLocalWorkDb() {
   return localWorkDbPromise;
 }
 
+function localWorkScope() {
+  let cachedUserId = '';
+  try { cachedUserId = sessionStorage.getItem(LOCAL_WORK_ACCOUNT_SCOPE_KEY) || ''; } catch { /* storage may be disabled */ }
+  const userId = String(state.user?.user_id || cachedUserId).trim();
+  return userId ? `account:${userId}` : 'guest';
+}
+
+function persistLocalWorkScope(userId) {
+  try {
+    if (userId) sessionStorage.setItem(LOCAL_WORK_ACCOUNT_SCOPE_KEY, String(userId));
+    else sessionStorage.removeItem(LOCAL_WORK_ACCOUNT_SCOPE_KEY);
+  } catch { /* session storage may be disabled */ }
+}
+
+async function setAuthenticatedWorkspaceUser(data) {
+  let cachedUserId = '';
+  try { cachedUserId = sessionStorage.getItem(LOCAL_WORK_ACCOUNT_SCOPE_KEY) || ''; } catch { /* storage may be disabled */ }
+  const previousUserId = String(state.user?.user_id || cachedUserId).trim();
+  const nextUserId = data?.authenticated ? String(data.user_id || '').trim() : '';
+  if (previousUserId && previousUserId !== nextUserId) {
+    await unloadStudioPdf();
+    state.files = [];
+    state.aiConversation = [];
+    aiWorkspaceRestored = false;
+    aiWorkspaceRestorePromise = null;
+    renderAiConversation([]);
+  }
+  state.user = data?.authenticated ? data : null;
+  persistLocalWorkScope(nextUserId || null);
+  document.dispatchEvent(new CustomEvent('paperplane:auth-changed', { detail: { userId: nextUserId || null } }));
+}
+
+function localWorkStoreKey(key, scope = localWorkScope()) {
+  return `${scope}:${key}`;
+}
+
+function studioPositionSessionKey() {
+  return `paperplane-studio-position:${localWorkScope()}`;
+}
+
+function localWorkSessionKey(key) {
+  return `${key}:${localWorkScope()}`;
+}
+
 async function readLocalWork(key) {
   const db = await openLocalWorkDb();
   return new Promise((resolve, reject) => {
-    const request = db.transaction('work', 'readonly').objectStore('work').get(key);
+    const request = db.transaction('work', 'readonly').objectStore('work').get(localWorkStoreKey(key));
     request.onsuccess = () => resolve(request.result ?? null);
     request.onerror = () => reject(request.error || new Error('Could not read saved work.'));
   });
@@ -107,7 +153,7 @@ async function writeLocalWork(key, value) {
   const db = await openLocalWorkDb();
   return new Promise((resolve, reject) => {
     const tx = db.transaction('work', 'readwrite');
-    tx.objectStore('work').put(value, key);
+    tx.objectStore('work').put(value, localWorkStoreKey(key));
     tx.oncomplete = () => resolve(true);
     tx.onerror = () => reject(tx.error || new Error('Could not save work in this browser.'));
     tx.onabort = () => reject(tx.error || new Error('Saving work was interrupted.'));
@@ -119,7 +165,10 @@ async function removeLocalWork(...keys) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction('work', 'readwrite');
     const store = tx.objectStore('work');
-    keys.forEach(key => store.delete(key));
+    keys.forEach(key => {
+      store.delete(localWorkStoreKey(key));
+      store.delete(key); // Remove pre-account-scope records from the older global store.
+    });
     tx.oncomplete = () => resolve(true);
     tx.onerror = () => reject(tx.error || new Error('Could not clear saved work.'));
     tx.onabort = () => reject(tx.error || new Error('Clearing saved work was interrupted.'));
@@ -130,7 +179,15 @@ async function clearLocalWorkStore() {
   const db = await openLocalWorkDb();
   return new Promise((resolve, reject) => {
     const tx = db.transaction('work', 'readwrite');
-    tx.objectStore('work').clear();
+    const store = tx.objectStore('work');
+    const prefix = `${localWorkScope()}:`;
+    const legacyWorkspaceKeys = new Set(['studio-pdf', 'studio-position', 'ai-pdf', 'ai-conversation']);
+    const request = store.getAllKeys();
+    request.onsuccess = () => {
+      request.result.forEach(key => {
+        if (typeof key === 'string' && (key.startsWith(prefix) || legacyWorkspaceKeys.has(key))) store.delete(key);
+      });
+    };
     tx.oncomplete = () => resolve(true);
     tx.onerror = () => reject(tx.error || new Error('Could not clear saved browser workspace data.'));
     tx.onabort = () => reject(tx.error || new Error('Clearing saved browser workspace data was interrupted.'));
@@ -157,7 +214,7 @@ function fileFromLocalRecord(record) {
 function saveStudioPagePosition() {
   if (!state.studio.pdfDoc) return;
   const position = { page: state.studio.currentPage };
-  try { sessionStorage.setItem('paperplane-studio-position', JSON.stringify(position)); } catch { /* IndexedDB remains the durable store. */ }
+  try { sessionStorage.setItem(studioPositionSessionKey(), JSON.stringify(position)); } catch { /* IndexedDB remains the durable store. */ }
   clearTimeout(studioPositionSaveTimer);
   studioPositionSaveTimer = setTimeout(() => {
     writeLocalWork('studio-position', position).catch(error => {
@@ -247,6 +304,7 @@ async function restoreStudioWorkspace() {
   if (state.studio.pdfDoc || state.studio.isLoading) return false;
   if (studioRestorePromise) return studioRestorePromise;
   studioRestorePending = true;
+  const restoreEpoch = studioWorkspaceEpoch;
   studioRestorePromise = (async () => {
     try {
       let saved = pendingStudioRestore;
@@ -254,16 +312,17 @@ async function restoreStudioWorkspace() {
         try {
           const [file, position] = await Promise.all([readLocalWork('studio-pdf'), readLocalWork('studio-position')]);
           let sessionPosition = null;
-          try { sessionPosition = JSON.parse(sessionStorage.getItem('paperplane-studio-position') || 'null'); } catch { /* ignore corrupt tab state */ }
+          try { sessionPosition = JSON.parse(sessionStorage.getItem(studioPositionSessionKey()) || 'null'); } catch { /* ignore corrupt tab state */ }
           if (file) saved = { file, position: sessionPosition || position };
         } catch (error) { console.warn('Paperplane could not read saved Studio work:', error); }
       }
+      if (restoreEpoch !== studioWorkspaceEpoch) return false;
       if (!saved) return false;
       pendingStudioRestore = null;
       const file = fileFromLocalRecord(saved.file);
       if (!file) return false;
       const requestedPage = Math.max(1, Number(saved.position?.page) || 1);
-      const loaded = await loadDocumentIntoStudio(file, { initialPage: requestedPage, persist: false });
+      const loaded = await loadDocumentIntoStudio(file, { initialPage: requestedPage, persist: false, restoreEpoch });
       if (loaded) {
         showToast(`Restored ${file.name} on page ${state.studio.currentPage}`, 'success', 4000);
       }
@@ -277,10 +336,22 @@ async function restoreStudioWorkspace() {
 }
 
 async function clearStudioWorkspace() {
+  studioWorkspaceEpoch += 1;
   clearTimeout(studioPositionSaveTimer);
   await clearLocalWorkStore();
-  try { sessionStorage.removeItem('paperplane-studio-position'); } catch { /* storage may be disabled */ }
-  try { sessionStorage.removeItem('paperplane-last-local-document'); } catch { /* storage may be disabled */ }
+  try { sessionStorage.removeItem(studioPositionSessionKey()); } catch { /* storage may be disabled */ }
+  try { sessionStorage.removeItem(localWorkSessionKey('paperplane-last-local-document')); } catch { /* storage may be disabled */ }
+  state.files = [];
+  state.aiConversation = [];
+  aiWorkspaceRestored = false;
+  renderAiConversation([]);
+  await unloadStudioPdf();
+}
+
+async function unloadStudioPdf() {
+  studioWorkspaceEpoch += 1;
+  state.studio.isLoading = false;
+  clearTimeout(studioPositionSaveTimer);
   if (state.studio.pageObserver) state.studio.pageObserver.disconnect();
   state.studio.pageRenderTasks.forEach(task => { try { task.cancel(); } catch { /* already complete */ } });
   state.studio.pageRenderTasks.clear();
@@ -308,6 +379,7 @@ async function clearStudioWorkspace() {
 }
 
 async function clearStudioPdf() {
+  studioWorkspaceEpoch += 1;
   try {
     await removeLocalWork('studio-pdf', 'studio-position');
   } catch (error) {
@@ -315,33 +387,9 @@ async function clearStudioPdf() {
     console.warn('Could not remove saved Studio PDF:', error);
     return false;
   }
-  clearTimeout(studioPositionSaveTimer);
-  try { sessionStorage.removeItem('paperplane-studio-position'); } catch { /* storage may be disabled */ }
-  if (state.studio.pageObserver) state.studio.pageObserver.disconnect();
-  state.studio.pageRenderTasks.forEach(task => { try { task.cancel(); } catch { /* already complete */ } });
-  state.studio.pageRenderTasks.clear();
-  try { await state.studio.pdfDoc?.destroy?.(); } catch { /* already destroyed */ }
-  state.studio.pdfDoc = null;
-  state.studio.srcFile = null;
-  updateStudioAiHandoffButton();
-  state.studio.totalCount = 0;
-  state.studio.currentPage = 1;
-  $('#studio-page-stack')?.replaceChildren();
-  $('#studio-page-count').textContent = '0';
-  $('#page-jump-input').value = '1';
-  $('#page-jump-input').disabled = true;
-  $('#page-total-indicator').textContent = '0';
-  window.PaperplaneEditor?.loadDocument(null, 'document.pdf', 0);
-  if (window.PaperplanePageOrganizer) {
-    window.PaperplanePageOrganizer.pdfDoc = null;
-    window.PaperplanePageOrganizer.sourceFile = null;
-    window.PaperplanePageOrganizer.sourceName = 'document.pdf';
-    window.PaperplanePageOrganizer.state.setPages(0);
-    window.PaperplanePageOrganizer.renderThumbnails();
-    window.PaperplanePageOrganizer._updateBatchToolbar();
-  }
+  try { sessionStorage.removeItem(studioPositionSessionKey()); } catch { /* storage may be disabled */ }
+  await unloadStudioPdf();
   clearLocalWorkMarkerIfEmpty();
-  showStudioEmptyState();
   return true;
 }
 
@@ -414,6 +462,28 @@ function renderAiConversation(messages = []) {
       const guidance = document.createElement('p');
       guidance.textContent = message.text || 'Upload PDF to chat and ask questions about a document. General questions work without a PDF.';
       bubble.append(label, guidance);
+    } else if (message.kind === 'document-greeting') {
+      const label = document.createElement('strong');
+      label.textContent = 'Paperplane AI:';
+      const greeting = document.createElement('p');
+      greeting.textContent = message.text || 'Your PDF is ready. Ask a question to get an answer with page citations.';
+      bubble.append(label, greeting);
+      const suggestions = document.createElement('div');
+      suggestions.className = 'ai-question-suggestions';
+      (Array.isArray(message.suggestions) ? message.suggestions : []).forEach(question => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'ai-question-suggestion';
+        button.textContent = question;
+        button.addEventListener('click', () => {
+          const input = $('#chat-input');
+          if (!input) return;
+          input.value = question;
+          $('#chat-form')?.requestSubmit();
+        });
+        suggestions.appendChild(button);
+      });
+      bubble.appendChild(suggestions);
     } else {
       const label = document.createElement('strong');
       label.textContent = 'Paperplane AI:';
@@ -432,7 +502,7 @@ function renderAiConversation(messages = []) {
 }
 
 function rememberLocalWork(filename) {
-  try { sessionStorage.setItem('paperplane-last-local-document', filename || 'PDF work'); } catch { /* storage may be disabled */ }
+  try { sessionStorage.setItem(localWorkSessionKey('paperplane-last-local-document'), filename || 'PDF work'); } catch { /* storage may be disabled */ }
 }
 
 function hasInMemoryWork() {
@@ -442,7 +512,7 @@ function hasInMemoryWork() {
 
 function clearLocalWorkMarkerIfEmpty() {
   if (hasInMemoryWork()) return;
-  try { sessionStorage.removeItem('paperplane-last-local-document'); } catch { /* storage may be disabled */ }
+  try { sessionStorage.removeItem(localWorkSessionKey('paperplane-last-local-document')); } catch { /* storage may be disabled */ }
 }
 
 // Keep only the last signed-in email as a same-tab display hint. This is not
@@ -847,8 +917,20 @@ function syncStudioBatchPanelLocation() {
   const drawerOpen = shell?.classList.contains('studio-pages-open');
   const batchPanel = $('#organizer-batch-bar');
   placeStudioControl('#organizer-batch-bar', 'studio-mobile-batch-slot', mobile && organizing && drawerOpen && batchPanel && !batchPanel.hidden);
+  syncStudioMobilePagesPanelPosition();
 }
 window.syncStudioBatchPanelLocation = syncStudioBatchPanelLocation;
+
+function syncStudioMobilePagesPanelPosition() {
+  if (!window.matchMedia('(max-width: 900px)').matches || state.activeView !== 'studio') return;
+  const toolbar = $('#studio-toolbar');
+  const pagesPanel = $('#studio-thumbnails-bar');
+  if (!toolbar || !pagesPanel) return;
+  const toolbarRect = toolbar.getBoundingClientRect();
+  if (toolbarRect.height <= 0) return;
+  const top = Math.max(68, Math.ceil(toolbarRect.bottom + 8));
+  pagesPanel.style.setProperty('--studio-mobile-pages-top', `${top}px`);
+}
 
 function updateStudioMobilePageSummary() {
   const summary = $('#studio-mobile-page-summary');
@@ -968,6 +1050,7 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true, pres
   document.documentElement.classList.remove('footer-revealed');
   try { sessionStorage.setItem('paperplane-active-view', view); } catch { /* storage may be disabled */ }
   state.activeView = view;
+  document.dispatchEvent(new CustomEvent('paperplane:workspace-view-changed', { detail: { view } }));
   const mobileViewLabels = { 'tool-desk': 'Tool Desk', desk: 'PDF Tool', studio: 'Studio', ai: 'AI', download: 'Waitlist' };
   if ($('#mobile-view-pill')) $('#mobile-view-pill').textContent = mobileViewLabels[view] || 'Paperplane';
   $('#tab-tool-desk-view')?.classList.toggle('active', view === 'tool-desk');
@@ -1327,6 +1410,7 @@ function renderHomeToolsGrid(filterCategory = 'all', searchQuery = '') {
     const visibleOps = cat.ops.filter(opId => {
       const op = state.operations[opId];
       if (!op) return false;
+      if (op.available === false && ['summarize', 'translate'].includes(opId)) return false;
       if (!normalizedQuery) return true;
       return op.label.toLowerCase().includes(normalizedQuery) ||
              (op.description && op.description.toLowerCase().includes(normalizedQuery)) ||
@@ -1351,7 +1435,7 @@ function renderHomeToolsGrid(filterCategory = 'all', searchQuery = '') {
             const badgeText = isAvailable ? 'Ready' : (op.prerequisite || 'Engine Required');
             const badgeClass = isAvailable ? 'ready' : 'prereq';
             return `
-              <div class="home-tool-card" role="button" tabindex="0" data-select-operation="${opId}">
+              <a class="home-tool-card" href="${escapeHtml(operationPath(opId))}" data-select-operation="${escapeHtml(opId)}">
                 <div class="home-tool-icon" style="background: ${cat.iconColor}1a; color: ${cat.iconColor};">
                   ${getToolIconSvg(opId)}
                 </div>
@@ -1363,7 +1447,7 @@ function renderHomeToolsGrid(filterCategory = 'all', searchQuery = '') {
                     <span class="home-tool-arrow">→</span>
                   </div>
                 </div>
-              </div>
+              </a>
             `;
           }).join('')}
         </div>
@@ -1407,6 +1491,7 @@ function renderToolDeskDirectory(category = null, searchQuery = null) {
     const ops = cat.ops.filter(id => {
       const op = state.operations[id];
       if (!op) return false;
+      if (op.available === false && ['summarize', 'translate'].includes(id)) return false;
       return !query || `${op.label} ${op.description || ''} ${id}`.toLowerCase().includes(query);
     });
     if (!ops.length) return '';
@@ -1417,10 +1502,10 @@ function renderToolDeskDirectory(category = null, searchQuery = null) {
         const op = state.operations[id];
         const available = op.available !== false && !['DEPENDENCY_MISSING', 'SERVICE_UNAVAILABLE'].includes(op.status);
         const badge = available ? 'Ready' : (op.prerequisite || 'Temporarily unavailable');
-        return `<button type="button" class="home-tool-card" data-select-operation="${escapeHtml(id)}">
+        return `<a class="home-tool-card" href="${escapeHtml(operationPath(id))}" data-select-operation="${escapeHtml(id)}">
           <span class="home-tool-icon" style="background:${cat.iconColor}1a;color:${cat.iconColor}">${getToolIconSvg(id)}</span>
           <span class="home-tool-body"><span class="home-tool-title">${escapeHtml(op.label)}</span><span class="home-tool-desc">${escapeHtml(op.description || 'Fast, private PDF processing.')}</span>
-          <span class="home-tool-footer"><span class="home-status-badge ${available ? 'ready' : 'prereq'}">${escapeHtml(badge)}</span><span class="home-tool-arrow" aria-hidden="true">→</span></span></span></button>`;
+          <span class="home-tool-footer"><span class="home-status-badge ${available ? 'ready' : 'prereq'}">${escapeHtml(badge)}</span><span class="home-tool-arrow" aria-hidden="true">→</span></span></span></a>`;
       }).join('')}</div></section>`;
   }).join('');
   catalog.innerHTML = totalVisible ? sections : `<div class="home-no-results"><h2>No matching tools</h2><p>Try “merge”, “compress”, “sign”, or choose another category.</p><button type="button" class="btn-primary-action" id="tool-desk-reset-search">Clear search</button></div>`;
@@ -1649,8 +1734,12 @@ function selectOperation(op, switchToDesk = true, preserveOpenCloudModal = false
 
   const hint = $('#file-hint');
   if (hint) {
-    const fileType = item.accept === 'image' ? 'Images' : item.accept === 'office' ? 'Office documents' : 'PDF files';
-    hint.textContent = `${fileType} up to ${state.planLimits.free_max_file_size_mb} MB each on Free and ${state.planLimits.pro_max_file_size_mb} MB each on paid plans · ${getOperationBatchGuidance(op)}`;
+    if (item.accept === 'url') {
+      hint.textContent = 'Public HTTP or HTTPS website URL · No file upload required';
+    } else {
+      const fileType = item.accept === 'image' ? 'Images' : item.accept === 'office' ? 'Office documents' : 'PDF files';
+      hint.textContent = `${fileType} up to ${state.planLimits.free_max_file_size_mb} MB each on Free and ${state.planLimits.pro_max_file_size_mb} MB each on paid plans · ${getOperationBatchGuidance(op)}`;
+    }
   }
 
   renderOptions();
@@ -1698,13 +1787,23 @@ function updateBillingUI(data) {
   state.dailyLimit = limit;
   state.dailyUsage = usage;
 
+  const currentPlanTier = String(data?.tier || 'free').toLowerCase();
+  document.querySelectorAll('.pricing-tier-card[data-plan-tier]').forEach(card => {
+    const isCurrent = card.dataset.planTier === currentPlanTier;
+    const marker = card.querySelector('.tier-current-plan');
+    if (marker) marker.hidden = !isCurrent;
+    card.classList.toggle('is-current-plan', isCurrent);
+  });
+
   const batchLimits = `Up to ${maxBatchFiles} files for Merge, JPG/PNG to PDF, and Scan to PDF; Compare accepts 2 files; other tools accept 1 file per run.`;
   const quotaDescription = $('#settings-quota-description');
   if (quotaDescription) quotaDescription.textContent = `Free web tools: up to ${state.planLimits.free_operations_per_day} PDF operations per day and files up to ${freeFileMb} MB each. Paid web tools: no daily operation cap and files up to ${proFileMb} MB each. Batch limits: ${batchLimits}`;
   const fileHint = $('#file-hint');
   if (fileHint) {
     const fileType = state.operations[state.operation]?.accept === 'image' ? 'Images' : state.operations[state.operation]?.accept === 'office' ? 'Office documents' : 'PDF files';
-    fileHint.textContent = `${fileType} up to ${freeFileMb} MB each on Free and ${proFileMb} MB each on paid plans · ${getOperationBatchGuidance(state.operation)}`;
+    fileHint.textContent = state.operations[state.operation]?.accept === 'url'
+      ? 'Public HTTP or HTTPS website URL · No file upload required'
+      : `${fileType} up to ${freeFileMb} MB each on Free and ${proFileMb} MB each on paid plans · ${getOperationBatchGuidance(state.operation)}`;
   }
 
   const quotaText = $('#quota-text');
@@ -1831,7 +1930,7 @@ async function refreshQuotaUsage() {
     const response = await paperplaneNativeFetch('/api/auth/me', { credentials: 'same-origin' });
     if (!response.ok) return;
     const data = await response.json();
-    state.user = data.authenticated ? data : null;
+    await setAuthenticatedWorkspaceUser(data);
     updateBillingUI(data);
   } catch (error) {
     console.warn('Paperplane could not refresh the operation count:', error);
@@ -1841,7 +1940,7 @@ async function refreshQuotaUsage() {
 async function checkAuthStatus() {
   try {
     const data = await safeFetch('/api/auth/me');
-    state.user = data.authenticated ? data : null;
+    await setAuthenticatedWorkspaceUser(data);
     updateBillingUI(data);
     if (data.authenticated) {
       cacheAuthShellEmail(data.email);
@@ -1882,7 +1981,7 @@ async function checkAuthStatus() {
     }
     if (state.activeView === 'desk' && $('#tool-title')) selectOperation(state.operation, false);
   } catch {
-    state.user = null;
+    await setAuthenticatedWorkspaceUser(null);
     if (!restoreCachedAuthShell()) {
       document.body.classList.remove('auth-restoring');
       $('#user-avatar').textContent = 'G';
@@ -2184,10 +2283,6 @@ window.selectOperationFromCommand = key => {
 // In-App PDF Studio (Viewer & Editor via PDF.js)
 // ----------------------------------------------------------------------
 
-if (typeof pdfjsLib !== 'undefined') {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = '/assets/pdf.worker.min.js';
-}
-
 function generateBlankA4PdfBytes() {
   const blankPdfStr = `%PDF-1.4\n1 0 obj <</Type /Catalog /Pages 2 0 R>> endobj\n2 0 obj <</Type /Pages /Kids [3 0 R] /Count 1>> endobj\n3 0 obj <</Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources <<>>>> endobj\nxref\n0 4\n0000000000 65535 f \n0000000010 00000 n \n0000000060 00000 n \n0000000117 00000 n \ntrailer <</Size 4 /Root 1 0 R>>\nstartxref\n214\n%%EOF`;
   const buf = new Uint8Array(blankPdfStr.length);
@@ -2239,16 +2334,19 @@ function hideStudioLoading() {
   if (overlay) overlay.hidden = true;
 }
 
-async function loadDocumentIntoStudio(file, { initialPage = 1, persist = true } = {}) {
+async function loadDocumentIntoStudio(file, { initialPage = 1, persist = true, restoreEpoch = null } = {}) {
   if (file === null && state.studio.isLoading) {
     return false;
   }
+  const loadEpoch = restoreEpoch === null ? ++studioWorkspaceEpoch : restoreEpoch;
+  if (loadEpoch !== studioWorkspaceEpoch) return false;
   state.studio.isLoading = true;
 
   const container = $('#studio-thumbnails-container');
   if (container) container.innerHTML = '<div style="color: #94a3b8; font-size: 12px; text-align: center; padding: 20px;"><div class="studio-spinner" style="margin: 0 auto 10px; width: 20px; height: 20px; border-width: 2px;"></div>Rendering previews…</div>';
 
   try {
+    await window.PaperplanePdfRuntime.ensurePdfJs();
     try {
       if (file) rememberLocalWork(typeof file === 'string' ? 'processed PDF' : (file.name || 'PDF document'));
       else clearLocalWorkMarkerIfEmpty();
@@ -2264,13 +2362,20 @@ async function loadDocumentIntoStudio(file, { initialPage = 1, persist = true } 
       // Create a clean, single blank white A4 PDF page dynamically when no document is uploaded
       arrayBuffer = generateBlankA4PdfBytes();
     }
+    if (loadEpoch !== studioWorkspaceEpoch) return false;
     if (state.studio.pageObserver) state.studio.pageObserver.disconnect();
     state.studio.pageRenderTasks.forEach(task => { try { task.cancel(); } catch { /* task may already be complete */ } });
     state.studio.pageRenderTasks.clear();
     if (state.studio.pdfDoc && state.studio.pdfDoc !== file && typeof state.studio.pdfDoc.destroy === 'function') {
       try { await state.studio.pdfDoc.destroy(); } catch { /* a previous document may already be destroyed */ }
     }
-    state.studio.pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer, isEvalSupported: false }).promise;
+    if (loadEpoch !== studioWorkspaceEpoch) return false;
+    const loadedDoc = await pdfjsLib.getDocument({ data: arrayBuffer, isEvalSupported: false }).promise;
+    if (loadEpoch !== studioWorkspaceEpoch) {
+      try { await loadedDoc.destroy(); } catch { /* stale load was already released */ }
+      return false;
+    }
+    state.studio.pdfDoc = loadedDoc;
     state.studio.totalCount = state.studio.pdfDoc.numPages;
     state.studio.currentPage = Math.max(1, Math.min(state.studio.totalCount, Number(initialPage) || 1));
     state.studio.srcFile = file;
@@ -2293,7 +2398,8 @@ async function loadDocumentIntoStudio(file, { initialPage = 1, persist = true } 
           writeLocalWork('studio-pdf', localPdfRecord(srcFile)),
           writeLocalWork('studio-position', { page: state.studio.currentPage })
         ]);
-        try { sessionStorage.setItem('paperplane-studio-position', JSON.stringify({ page: state.studio.currentPage })); } catch { /* IndexedDB is the durable store. */ }
+        if (loadEpoch !== studioWorkspaceEpoch) return false;
+        try { sessionStorage.setItem(studioPositionSessionKey(), JSON.stringify({ page: state.studio.currentPage })); } catch { /* IndexedDB is the durable store. */ }
       } catch (error) {
         console.warn('Paperplane could not save the Studio PDF locally:', error);
         showToast('This browser could not save the PDF locally. Export your document before closing this tab.', 'warning', 7000);
@@ -2321,6 +2427,7 @@ async function loadDocumentIntoStudio(file, { initialPage = 1, persist = true } 
         break;
       }
       firstPageRendered = await renderStudioPage(firstPage, { priority: true, force: renderAttempt > 0 });
+      if (loadEpoch !== studioWorkspaceEpoch) return false;
       renderAttempt += 1;
       firstCanvas = studioPageSlot(firstPage)?.querySelector('.pdf-page-canvas');
       if (firstPageRendered && firstCanvas?.dataset.rendered === 'true' && firstCanvas.width > 1 && firstCanvas.height > 1) break;
@@ -2329,6 +2436,7 @@ async function loadDocumentIntoStudio(file, { initialPage = 1, persist = true } 
     if (!firstPageRendered || !firstCanvas || firstCanvas.dataset.rendered !== 'true' || firstCanvas.width < 1 || firstCanvas.height < 1) {
       throw new Error(`Page ${state.studio.currentPage} did not produce a visible canvas. Please retry or reopen the PDF.`);
     }
+    if (loadEpoch !== studioWorkspaceEpoch) return false;
 
     // Load into Phase 3 Professional Page Organizer
     if (window.PaperplanePageOrganizer) {
@@ -2339,9 +2447,11 @@ async function loadDocumentIntoStudio(file, { initialPage = 1, persist = true } 
     if (state.studio.currentPage > 1) {
       await jumpToStudioPage(state.studio.currentPage);
     }
+    if (loadEpoch !== studioWorkspaceEpoch) return false;
     hideStudioLoading();
     return true;
   } catch (err) {
+    if (loadEpoch !== studioWorkspaceEpoch) return false;
     state.studio.isLoading = false;
     const reason = err instanceof Error ? err.message : String(err);
     console.error('Failed to load PDF in Studio:', err);
@@ -2358,7 +2468,7 @@ async function loadDocumentIntoStudio(file, { initialPage = 1, persist = true } 
     }
     return false;
   } finally {
-    state.studio.isLoading = false;
+    if (loadEpoch === studioWorkspaceEpoch) state.studio.isLoading = false;
   }
 }
 
@@ -2757,7 +2867,7 @@ if (studioCloseDocBtn) {
     }
     try {
       await removeLocalWork('studio-pdf', 'studio-position');
-      sessionStorage.removeItem('paperplane-studio-position');
+      sessionStorage.removeItem(studioPositionSessionKey());
     } catch (error) {
       console.warn('Could not clear the saved Studio PDF after starting a blank page:', error);
       showToast('The blank page is open, but the previous saved PDF could not be cleared.', 'error', 6500);
@@ -3277,8 +3387,8 @@ function renderOptions() {
   } else if (state.operation === 'rotate') {
     fields += selectField('degrees', 'Rotation Angle', [90, 180, 270]);
   } else if (state.operation === 'organize') {
-    fields += field('pages', 'Page order (list every page once)', 'text', '3,1,2');
-    fields += '<p class="option-help option-field-wide">Enter the output order as comma-separated page numbers, for example 3,1,2. Include each page exactly once.</p>';
+    fields += '<div class="option-field option-field-wide"><label>Visual page order</label><p class="option-help">Drag page tiles to reorder. On touch screens, use the arrow buttons. The exported PDF follows this order.</p><div id="organizer-order-status" class="organizer-order-status" role="status">Add a PDF to preview its pages.</div><div id="organizer-order-grid" class="organizer-order-grid" aria-label="Visual PDF page order"></div></div>';
+    fields += '<div class="option-field option-field-wide"><label for="pages">Advanced: comma-separated page order</label><input id="pages" type="text" placeholder="For example: 3,1,2" autocomplete="off"><small class="option-help">Include every page number exactly once. This list stays synchronized with the visual order.</small></div>';
   } else if (state.operation === 'compress') {
     fields += selectField('preset', 'Target Compression Preset', [
       { value: '100kb', label: '🎯 Under 100 KB (Govt / SSC Exam Form)' },
@@ -3330,6 +3440,7 @@ function renderOptions() {
     fields += field('start_page', 'First Page to Number', 'number', '1', '1', '9999', '1');
   } else if (['protect', 'unlock'].includes(state.operation)) {
     fields += field('password', 'PDF Password', 'password', 'Enter password');
+    fields += '<div class="option-field option-field-wide"><button type="button" class="btn-secondary-action" id="open-security-audit-tool-btn">Open Security Audit &amp; Sanitize</button><small class="option-help">Upload a PDF above, then inspect or sanitize that file here.</small></div>';
   } else if (state.operation === 'redact') {
     fields += field('terms', 'Keywords to permanently sanitize', 'text', 'SSN, account number, secret');
   } else if (state.operation === 'crop') {
@@ -3362,7 +3473,8 @@ function renderOptions() {
   } else if (state.operation === 'summarize') {
     fields += '<div class="option-field" style="grid-column: span 2;"><label>Executive Document Summary</label><p style="color: var(--text-muted); font-size: 13px;">Generates executive briefing and key bullet points using deep NLP summarization.</p></div>';
   } else if (state.operation === 'sign') {
-    fields += field('signature', 'Signer Name (optional typed fallback)', 'text', 'John Doe');
+    fields += field('signature', 'Printed signer name', 'text', 'Enter signer name');
+    fields += '<p class="option-help option-field-wide">This tool places a typed visual stamp. For a drawn or typed signature mark and signature verification, open Studio → More Tools → Digital Signatures.</p>';
   } else if (state.operation === 'html_to_pdf') {
     fields += field('url', 'Public URL to convert', 'url', 'https://example.com');
   } else if (state.operation === 'metadata') {
@@ -3376,6 +3488,25 @@ function renderOptions() {
   o.innerHTML = fields;
   o.hidden = !fields;
   o.style.display = fields ? '' : 'none';
+
+  if (state.operation === 'organize') {
+    $('#pages')?.addEventListener('input', () => syncOrganizerOrderFromInput());
+  }
+
+  $('#open-security-audit-tool-btn')?.addEventListener('click', () => {
+    const file = state.files.find(item => item instanceof File && item.name.toLowerCase().endsWith('.pdf'));
+    if (!file) {
+      showToast('Upload a PDF first to open its security audit.', 'info');
+      return;
+    }
+    const controller = window.PaperplaneSecurityForms;
+    if (!controller) {
+      showToast('The PDF security tools are still loading. Try again in a moment.', 'warning');
+      return;
+    }
+    controller.openSecurityModal(file);
+    controller._switchSecurityTab('audit');
+  });
 
   if (state.operation === 'forms') {
     const formMap = $('#fields');
@@ -3429,6 +3560,205 @@ function selectField(id, label, values) {
 // File Upload & Dropzone Management
 // ----------------------------------------------------------------------
 
+let organizerOrderEpoch = 0;
+let organizerOrderDoc = null;
+let organizerOrderObserver = null;
+
+function parseOrganizerOrder(value, pageCount) {
+  const entries = String(value || '').split(',').map(part => Number(part.trim()));
+  if (entries.length !== pageCount || entries.some(page => !Number.isInteger(page) || page < 1 || page > pageCount)) return null;
+  if (new Set(entries).size !== pageCount) return null;
+  return entries;
+}
+
+function updateOrganizerOrderStatus(message, invalid = false) {
+  const status = $('#organizer-order-status');
+  if (status) status.textContent = message;
+  const input = $('#pages');
+  if (input) {
+    if (invalid) input.setAttribute('aria-invalid', 'true');
+    else input.removeAttribute('aria-invalid');
+  }
+}
+
+function reorderOrganizerOrder(order, { writeInput = true, message = 'Page order updated.' } = {}) {
+  const grid = $('#organizer-order-grid');
+  const input = $('#pages');
+  if (!grid || !input) return;
+  const cards = new Map([...grid.querySelectorAll('.organizer-order-card')].map(card => [Number(card.dataset.page), card]));
+  order.forEach(page => {
+    const card = cards.get(page);
+    if (card) grid.appendChild(card);
+  });
+  grid.querySelectorAll('.organizer-order-card').forEach((card, index, all) => {
+    const page = Number(card.dataset.page);
+    card.querySelector('[data-order-move="up"]').disabled = index === 0;
+    card.querySelector('[data-order-move="down"]').disabled = index === all.length - 1;
+    card.setAttribute('aria-posinset', String(index + 1));
+    card.setAttribute('aria-setsize', String(all.length));
+    card.setAttribute('aria-label', `Page ${page}, position ${index + 1} of ${all.length}`);
+  });
+  if (writeInput) input.value = order.join(',');
+  updateOrganizerOrderStatus(message, false);
+  updateButton();
+}
+
+function syncOrganizerOrderFromInput() {
+  const input = $('#pages');
+  const grid = $('#organizer-order-grid');
+  const pageCount = grid?.querySelectorAll('.organizer-order-card').length || 0;
+  if (!input || !pageCount) return false;
+  const order = parseOrganizerOrder(input.value, pageCount);
+  if (!order) {
+    updateOrganizerOrderStatus(`Enter each page number from 1 to ${pageCount} exactly once.`, true);
+    updateButton();
+    return false;
+  }
+  reorderOrganizerOrder(order, { writeInput: false, message: 'Visual order updated from the advanced list.' });
+  return true;
+}
+
+function moveOrganizerOrderPage(page, delta) {
+  const grid = $('#organizer-order-grid');
+  if (!grid) return;
+  const order = [...grid.querySelectorAll('.organizer-order-card')].map(card => Number(card.dataset.page));
+  const current = order.indexOf(page);
+  const target = current + delta;
+  if (current < 0 || target < 0 || target >= order.length) return;
+  [order[current], order[target]] = [order[target], order[current]];
+  reorderOrganizerOrder(order, { message: `Page ${page} moved ${delta < 0 ? 'earlier' : 'later'}.` });
+}
+
+async function renderOrganizerOrderGrid() {
+  if (state.operation !== 'organize') {
+    organizerOrderEpoch += 1;
+    organizerOrderObserver?.disconnect();
+    organizerOrderObserver = null;
+    try { await organizerOrderDoc?.destroy?.(); } catch { /* Prior preview is already closed. */ }
+    organizerOrderDoc = null;
+    return;
+  }
+  const grid = $('#organizer-order-grid');
+  if (!grid) return;
+  const epoch = ++organizerOrderEpoch;
+  organizerOrderObserver?.disconnect();
+  organizerOrderObserver = null;
+  try { await organizerOrderDoc?.destroy?.(); } catch { /* Prior preview is already closed. */ }
+  organizerOrderDoc = null;
+  grid.replaceChildren();
+
+  const file = state.files.find(item => item instanceof File && item.name.toLowerCase().endsWith('.pdf'));
+  if (!file) {
+    updateOrganizerOrderStatus('Add a PDF to preview its pages.');
+    return;
+  }
+  try {
+    const pdfjsLib = await window.PaperplanePdfRuntime.ensurePdfJs();
+    if (epoch !== organizerOrderEpoch) return;
+    const task = pdfjsLib.getDocument({ data: await file.arrayBuffer(), isEvalSupported: false });
+    const doc = await task.promise;
+    if (epoch !== organizerOrderEpoch) { await doc.destroy(); return; }
+    organizerOrderDoc = doc;
+    const count = doc.numPages;
+    const input = $('#pages');
+    let order = parseOrganizerOrder(input?.value, count);
+    if (!order) {
+      order = Array.from({ length: count }, (_, index) => index + 1);
+      if (input) input.value = order.join(',');
+    }
+
+    const renderThumbnail = async canvas => {
+      if (canvas.dataset.rendered === 'true' || canvas.dataset.rendering === 'true') return;
+      canvas.dataset.rendering = 'true';
+      try {
+        const page = await doc.getPage(Number(canvas.dataset.page));
+        if (epoch !== organizerOrderEpoch) return;
+        const viewport = page.getViewport({ scale: 0.18 });
+        canvas.width = Math.max(1, Math.round(viewport.width));
+        canvas.height = Math.max(1, Math.round(viewport.height));
+        const context = canvas.getContext('2d', { alpha: false });
+        await page.render({ canvasContext: context, viewport }).promise;
+        canvas.dataset.rendered = 'true';
+      } catch {
+        if (epoch === organizerOrderEpoch) updateOrganizerOrderStatus('A page preview could not render. Page numbers and arrow controls remain available.');
+      } finally {
+        delete canvas.dataset.rendering;
+      }
+    };
+
+    for (let page = 1; page <= count; page += 1) {
+      const card = document.createElement('article');
+      card.className = 'organizer-order-card';
+      card.dataset.page = String(page);
+      card.draggable = true;
+      card.tabIndex = 0;
+      const canvas = document.createElement('canvas');
+      canvas.className = 'organizer-order-thumbnail';
+      canvas.dataset.page = String(page);
+      canvas.setAttribute('aria-label', `Preview of page ${page}`);
+      const caption = document.createElement('strong');
+      caption.textContent = `Page ${page}`;
+      const controls = document.createElement('div');
+      controls.className = 'organizer-order-move-controls';
+      const earlier = document.createElement('button');
+      earlier.type = 'button';
+      earlier.dataset.orderMove = 'up';
+      earlier.setAttribute('aria-label', `Move page ${page} earlier`);
+      earlier.textContent = '↑';
+      earlier.addEventListener('click', () => moveOrganizerOrderPage(page, -1));
+      const later = document.createElement('button');
+      later.type = 'button';
+      later.dataset.orderMove = 'down';
+      later.setAttribute('aria-label', `Move page ${page} later`);
+      later.textContent = '↓';
+      later.addEventListener('click', () => moveOrganizerOrderPage(page, 1));
+      controls.append(earlier, later);
+      card.append(canvas, caption, controls);
+      card.addEventListener('dragstart', event => {
+        event.dataTransfer?.setData('text/plain', String(page));
+        if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
+        card.classList.add('dragging');
+      });
+      card.addEventListener('dragend', () => card.classList.remove('dragging'));
+      card.addEventListener('dragover', event => { event.preventDefault(); card.classList.add('drop-target'); });
+      card.addEventListener('dragleave', () => card.classList.remove('drop-target'));
+      card.addEventListener('drop', event => {
+        event.preventDefault();
+        card.classList.remove('drop-target');
+        const from = Number(event.dataTransfer?.getData('text/plain'));
+        if (!from || from === page) return;
+        const nextOrder = [...grid.querySelectorAll('.organizer-order-card')].map(node => Number(node.dataset.page));
+        const fromIndex = nextOrder.indexOf(from);
+        const targetIndex = nextOrder.indexOf(page);
+        if (fromIndex < 0 || targetIndex < 0) return;
+        const rect = card.getBoundingClientRect();
+        const after = event.clientX > rect.left + rect.width / 2;
+        nextOrder.splice(fromIndex, 1);
+        let insertion = targetIndex + (after ? 1 : 0);
+        if (fromIndex < targetIndex) insertion -= 1;
+        nextOrder.splice(Math.max(0, Math.min(nextOrder.length, insertion)), 0, from);
+        reorderOrganizerOrder(nextOrder, { message: `Page ${from} moved in the visual order.` });
+      });
+      grid.appendChild(card);
+    }
+
+    reorderOrganizerOrder(order, { message: `${count} page${count === 1 ? '' : 's'} ready to reorder.` });
+    if ('IntersectionObserver' in window) {
+      organizerOrderObserver = new IntersectionObserver(entries => {
+        entries.filter(entry => entry.isIntersecting).forEach(entry => {
+          organizerOrderObserver?.unobserve(entry.target);
+          renderThumbnail(entry.target);
+        });
+      }, { root: grid, rootMargin: '120px' });
+      grid.querySelectorAll('.organizer-order-thumbnail').forEach(canvas => organizerOrderObserver.observe(canvas));
+    } else {
+      grid.querySelectorAll('.organizer-order-thumbnail').forEach(canvas => renderThumbnail(canvas));
+    }
+  } catch (error) {
+    if (epoch === organizerOrderEpoch) updateOrganizerOrderStatus(`Page previews could not be loaded: ${error.message || 'PDF could not be opened.'}`);
+  }
+}
+
 function renderFiles() {
   if (typeof updateAiDocBar === 'function') updateAiDocBar();
   const list = $('#file-list');
@@ -3446,6 +3776,7 @@ function renderFiles() {
       </div>
     </div>
   `).join('');
+  renderOrganizerOrderGrid();
 }
 
 window.removeFile = idx => {
@@ -3477,7 +3808,8 @@ function addFiles(newFiles) {
     const reader = new FileReader();
     reader.onload = async (e) => {
       try {
-        if (typeof PDFLib !== 'undefined') {
+        const PDFLib = await window.PaperplanePdfRuntime.ensurePdfLib();
+        if (PDFLib) {
           const doc = await PDFLib.PDFDocument.load(e.target.result);
           state.splitPageCount = doc.getPageCount();
           renderOptions();
@@ -3752,6 +4084,7 @@ $('#cloud-form').onsubmit = async e => {
       }
       let pageCount = 0;
       try {
+        const pdfjsLib = await window.PaperplanePdfRuntime.ensurePdfJs();
         const parsed = await pdfjsLib.getDocument({ data: await file.arrayBuffer(), isEvalSupported: false }).promise;
         pageCount = parsed.numPages;
         await parsed.destroy();
@@ -4211,7 +4544,10 @@ function downloadTextFile(text, filename) {
 }
 
 async function downloadSummaryPdf(text, filename) {
-  if (typeof PDFLib === 'undefined') {
+  let PDFLib;
+  try {
+    PDFLib = await window.PaperplanePdfRuntime.ensurePdfLib();
+  } catch {
     downloadTextFile(text, filename.replace(/\.pdf$/i, '.txt'));
     showToast('A PDF download is unavailable in this browser. The summary was downloaded as a text file instead.', 'warning');
     return;
@@ -4347,9 +4683,7 @@ async function runDeskAiWorkflow(options, signal) {
 // ----------------------------------------------------------------------
 
 async function processClientSide() {
-  if (typeof PDFLib === 'undefined') {
-    throw new Error('The local PDF processor is unavailable in this browser.');
-  }
+  const PDFLib = await window.PaperplanePdfRuntime.ensurePdfLib();
 
   if (!CLIENT_SIDE_SUPPORTED_OPERATIONS.has(state.operation)) {
     throw new Error('This tool uses temporary server processing. Turn off Local Processing and retry.');
@@ -4366,7 +4700,7 @@ async function processClientSide() {
       copiedPages.forEach(page => mergedPdf.addPage(page));
     }
     const pdfBytes = await mergedPdf.save();
-    downloadBlob(pdfBytes, 'merged-PDF.pdf', 'application/pdf');
+    showClientSidePdfResult(pdfBytes, 'merged-PDF.pdf');
     return;
   }
 
@@ -4396,7 +4730,7 @@ async function processClientSide() {
     const copied = await newPdf.copyPages(pdf, targetIndices);
     copied.forEach(page => newPdf.addPage(page));
     const pdfBytes = await newPdf.save();
-    downloadBlob(pdfBytes, 'extracted_private.pdf', 'application/pdf');
+    showClientSidePdfResult(pdfBytes, 'extracted_private.pdf');
     return;
   }
 
@@ -4408,11 +4742,22 @@ async function processClientSide() {
       page.setRotation(degrees(page.getRotation().angle + rot));
     });
     const pdfBytes = await pdf.save();
-    downloadBlob(pdfBytes, 'rotated_private.pdf', 'application/pdf');
+    showClientSidePdfResult(pdfBytes, 'rotated_private.pdf');
     return;
   }
 
   throw new Error('This tool uses temporary server processing. Turn off Local Processing and retry.');
+}
+
+function showClientSidePdfResult(bytes, filename) {
+  const blob = new Blob([bytes], { type: 'application/pdf' });
+  const downloadUrl = URL.createObjectURL(blob);
+  showDownloadResult({
+    output_name: filename,
+    output_size: blob.size,
+    status: 'completed',
+    local_processing: true
+  }, downloadUrl);
 }
 
 function downloadBlob(bytes, filename, mimeType) {
@@ -4523,8 +4868,9 @@ function updateAiDocBar() {
       pageContext.textContent = `Page context: ${Math.max(1, Number(state.aiContextPage) || 1)}`;
       pageContext.hidden = false;
     }
-    if (docMeta && window.pdfjsLib) {
-      file.arrayBuffer().then(buffer => window.pdfjsLib.getDocument({ data: buffer, isEvalSupported: false }).promise)
+    if (docMeta) {
+      window.PaperplanePdfRuntime.ensurePdfJs()
+        .then(pdfjsLib => file.arrayBuffer().then(buffer => pdfjsLib.getDocument({ data: buffer, isEvalSupported: false }).promise))
         .then(pdf => { if (state.files[0] === file) docMeta.textContent = `${formatBytes(file.size)} • ${pdf.numPages} pages`; })
         .catch(() => { /* The chat upload still reports a readable user-facing status. */ });
     }
@@ -4535,6 +4881,7 @@ function updateAiDocBar() {
     if (chatBtn) chatBtn.disabled = false;
     if (extractBtn) extractBtn.disabled = false;
     if (summaryBtn) summaryBtn.disabled = executiveBriefAvailable === false;
+    ensureAiDocumentGreeting(file);
   } else {
     if (uploadZone) uploadZone.hidden = false;
     if (activeBar) activeBar.hidden = true;
@@ -4549,6 +4896,25 @@ function updateAiDocBar() {
     if (extractBtn) extractBtn.disabled = false;
     if (summaryBtn) summaryBtn.disabled = executiveBriefAvailable === false;
   }
+}
+
+function ensureAiDocumentGreeting(file) {
+  if (!file) return;
+  const fileKey = `${file.name || 'document.pdf'}:${file.size || 0}:${file.lastModified || 0}`;
+  if (state.aiConversation.some(message => message.kind === 'document-greeting' && message.file_key === fileKey)) return;
+  state.aiConversation.push({
+    role: 'assistant',
+    kind: 'document-greeting',
+    file_key: fileKey,
+    text: 'Your PDF is ready. Ask about its content and I’ll include page citations.',
+    suggestions: [
+      'What is this document about?',
+      'What are the key dates and amounts?',
+      'What word is written on page two?'
+    ]
+  });
+  persistAiConversation();
+  renderAiConversation(state.aiConversation);
 }
 
 function updateStudioAiHandoffButton() {
@@ -5796,6 +6162,11 @@ if (googleAuthBtn) {
 const signoutBtn = $('#settings-signout-btn');
 if (signoutBtn) {
   signoutBtn.onclick = async () => {
+    // Clear account-owned document bytes before the account scope changes so a
+    // later user in this browser cannot inherit the previous open workspace.
+    const clearedStudio = await clearStudioPdf();
+    if (!clearedStudio) await unloadStudioPdf();
+    try { sessionStorage.removeItem(localWorkSessionKey('paperplane-last-local-document')); } catch { /* storage may be disabled */ }
     try {
       await safeFetch('/api/auth/logout', { method: 'POST' });
     } catch (e) {
@@ -5893,9 +6264,7 @@ if (authOtpForm) {
       }
     } catch (err) {
       const message = err.message || 'Invalid or expired verification code.';
-      $('#auth-otp-error').textContent = pendingAuth.purpose === 'signup' && /invalid or expired/i.test(message)
-        ? 'Earlier verification codes remain valid until they expire or are used. Enter any active code from your email.'
-        : message;
+      $('#auth-otp-error').textContent = message;
       $('#auth-otp-error').hidden = false;
     } finally {
       btn.disabled = false;
@@ -6365,8 +6734,8 @@ async function init() {
   let previousDoc = null;
   try {
     previousView = sessionStorage.getItem('paperplane-active-view');
-    previousDoc = sessionStorage.getItem('paperplane-last-local-document');
-    if (previousDoc) sessionStorage.removeItem('paperplane-last-local-document');
+    previousDoc = sessionStorage.getItem(localWorkSessionKey('paperplane-last-local-document'));
+    if (previousDoc) sessionStorage.removeItem(localWorkSessionKey('paperplane-last-local-document'));
   } catch { /* session storage may be disabled */ }
 
   initBillingHandlers();

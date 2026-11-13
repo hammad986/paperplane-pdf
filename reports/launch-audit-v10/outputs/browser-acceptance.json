@@ -1,0 +1,453 @@
+{
+  "scope": "local synthetic browser checks; no account/provider/payment/credentials",
+  "desktop": {
+    "home_performance": {
+      "domContentLoadedMs": 265.8999999985099,
+      "loadMs": 281.0999999977648,
+      "transferBytes": 848462,
+      "resources": 18,
+      "largestContentfulPaintMs": null,
+      "cls": 0,
+      "long_tasks": [
+        {
+          "duration": 123,
+          "startTime": 102.1
+        }
+      ],
+      "script_resources": [
+        {
+          "name": "/js/v3/cashfree.js",
+          "transferBytes": 0,
+          "durationMs": 13
+        },
+        {
+          "name": "/assets/pdf_runtime.js",
+          "transferBytes": 1702,
+          "durationMs": 46
+        },
+        {
+          "name": "/assets/security_forms.js",
+          "transferBytes": 46484,
+          "durationMs": 59
+        },
+        {
+          "name": "/assets/conversion_engine.js",
+          "transferBytes": 25602,
+          "durationMs": 62
+        },
+        {
+          "name": "/assets/optimization_engine.js",
+          "transferBytes": 19392,
+          "durationMs": 71
+        },
+        {
+          "name": "/assets/page_organizer.js",
+          "transferBytes": 67004,
+          "durationMs": 79
+        },
+        {
+          "name": "/assets/editor.js",
+          "transferBytes": 64316,
+          "durationMs": 78
+        },
+        {
+          "name": "/assets/app.js",
+          "transferBytes": 316194,
+          "durationMs": 84
+        },
+        {
+          "name": "/assets/feedback.js",
+          "transferBytes": 18660,
+          "durationMs": 80
+        }
+      ],
+      "pdf_engine_resources_eagerly_loaded": [],
+      "pdf_runtime_loader_loaded": true,
+      "wallToDomContentLoadedMs": 1294.8
+    },
+    "feedback_initial": {
+      "buttonVisible": true,
+      "containerVisibility": "visible",
+      "overlapsHomeCard": false
+    },
+    "feedback": {
+      "dismissed_survives_reload": true,
+      "settings_reopens_dismissed_widget": true,
+      "synthetic_submit_confirmed": true,
+      "button_hidden_after_confirmed_submit": true,
+      "settings_reopens_after_submission": true
+    },
+    "merge_ui_run": {
+      "pages": 4,
+      "first_pages": [
+        "PAPERPLANE_AUDIT_SAMPLE AUDIT_PAGE_1 Applicant: [synthetic details redacted]",
+        "PAPERPLANE_AUDIT_SAMPLE AUDIT_PAGE_2 Applicant: [synthetic details redacted]",
+        "PAPERPLANE_AUDIT_SAMPLE AUDIT_PAGE_1 Applicant: [synthetic details redacted]"
+      ],
+      "name": "merged-PDF.pdf",
+      "bytes": 5722
+    },
+    "word_to_pdf_empty_upload": {
+      "fileInputCount": 0,
+      "visibleFileRows": 0,
+      "toolLabel": "Word to PDF"
+    },
+    "heavy_tool_performance": [
+      {
+        "operation": "compress",
+        "label": "Compress PDF",
+        "renderMs": 115,
+        "longTasks": [
+          {
+            "duration": 63,
+            "startTime": 6833
+          },
+          {
+            "duration": 55,
+            "startTime": 6976.8
+          }
+        ]
+      },
+      {
+        "operation": "organize",
+        "label": "Page Organizer",
+        "renderMs": 92,
+        "longTasks": [
+          {
+            "duration": 63,
+            "startTime": 6833
+          },
+          {
+            "duration": 55,
+            "startTime": 6976.8
+          }
+        ]
+      },
+      {
+        "operation": "grayscale",
+        "label": "Convert to Grayscale",
+        "renderMs": 93,
+        "longTasks": [
+          {
+            "duration": 63,
+            "startTime": 6833
+          },
+          {
+            "duration": 55,
+            "startTime": 6976.8
+          }
+        ]
+      },
+      {
+        "operation": "excel_to_pdf",
+        "label": "Excel to PDF",
+        "renderMs": 77,
+        "longTasks": [
+          {
+            "duration": 63,
+            "startTime": 6833
+          },
+          {
+            "duration": 55,
+            "startTime": 6976.8
+          }
+        ]
+      }
+    ],
+    "studio_initial": {
+      "page_count": 69,
+      "stored_keys": {
+        "present": true,
+        "keys": [
+          "guest:ai-conversation",
+          "guest:studio-pdf",
+          "guest:studio-position"
+        ]
+      },
+      "pdfjs_loaded_on_demand": true,
+      "pdf_lib_remains_deferred_until_processing": true
+    },
+    "pdf_lib_loader_check": {
+      "loaded": true,
+      "requestedOnDemand": true
+    },
+    "toolbar_1920": {
+      "toolbarHeight": 80,
+      "toolbarTop": 76,
+      "distinctButtonRows": 2,
+      "rowTops": [
+        79,
+        122
+      ],
+      "visibleControls": 35,
+      "minFontPx": 10,
+      "outOfViewport": 0,
+      "ribbons": [
+        {
+          "selector": ".studio-primary-ribbon",
+          "top": 76,
+          "height": 43,
+          "scrollWidth": 1368,
+          "clientWidth": 1368
+        },
+        {
+          "selector": ".studio-sub-ribbon",
+          "top": 119,
+          "height": 36,
+          "scrollWidth": 1368,
+          "clientWidth": 1368
+        }
+      ]
+    },
+    "more_tools_menu_items_visible": 7,
+    "reorder_drag": {
+      "endpoint_status": 200,
+      "source_rect_present": true,
+      "target_rect_present": true
+    },
+    "reorder_reverse_drag": {
+      "endpoint_status": 200,
+      "source_rect_present": true,
+      "target_rect_present": true
+    },
+    "export_after_reorder": {
+      "name": "edited_notes-69page.pdf",
+      "pages": 69,
+      "first_pages": [
+        "Page 2 of 69 Section 2. Machine learning is the study of computer algorithms tha",
+        "Page 1 of 69 Section 1. Machine learning is the study of computer algorithms tha",
+        "Page 4 of 69 Section 4. Machine learning is the study of computer algorithms tha"
+      ],
+      "bytes": 4980254
+    },
+    "reorder_content_check": {
+      "pages": 69,
+      "expected_pages": 69,
+      "page_order_matches": true,
+      "full_text_matches_source_pages": true,
+      "order_head": [
+        2,
+        1,
+        4,
+        3,
+        5
+      ],
+      "order_tail": [
+        67,
+        68,
+        69
+      ]
+    },
+    "undo_delete": {
+      "page_count_after_undo": 69
+    },
+    "delete_last_page": {
+      "page_count_after_delete": 68,
+      "undo_banner_visible": true
+    },
+    "export_after_delete": {
+      "name": "edited_notes-69page.pdf",
+      "pages": 68,
+      "first_pages": [
+        "Page 2 of 69 Section 2. Machine learning is the study of computer algorithms tha",
+        "Page 1 of 69 Section 1. Machine learning is the study of computer algorithms tha",
+        "Page 4 of 69 Section 4. Machine learning is the study of computer algorithms tha"
+      ],
+      "bytes": 59753
+    },
+    "delete_content_check": {
+      "pages": 68,
+      "expected_pages": 68,
+      "page_order_matches": true,
+      "full_text_matches_source_pages": true,
+      "order_head": [
+        2,
+        1,
+        4,
+        3,
+        5
+      ],
+      "order_tail": [
+        66,
+        67,
+        68
+      ]
+    },
+    "reload_restore": {
+      "page_count": 68,
+      "stored_keys": {
+        "present": true,
+        "keys": [
+          "guest:ai-conversation",
+          "guest:studio-pdf",
+          "guest:studio-position"
+        ]
+      }
+    },
+    "export_after_reload": {
+      "name": "edited_notes-69page.pdf",
+      "pages": 68,
+      "first_pages": [
+        "Page 2 of 69 Section 2. Machine learning is the study of computer algorithms tha",
+        "Page 1 of 69 Section 1. Machine learning is the study of computer algorithms tha",
+        "Page 4 of 69 Section 4. Machine learning is the study of computer algorithms tha"
+      ],
+      "bytes": 59753
+    },
+    "reload_content_check": {
+      "pages": 68,
+      "expected_pages": 68,
+      "page_order_matches": true,
+      "full_text_matches_source_pages": true,
+      "order_head": [
+        2,
+        1,
+        4,
+        3,
+        5
+      ],
+      "order_tail": [
+        66,
+        67,
+        68
+      ]
+    },
+    "retention_69_68_67": {
+      "after_first_reload": 68,
+      "after_second_delete_and_reload": 67,
+      "stored_keys": {
+        "present": true,
+        "keys": [
+          "guest:ai-conversation",
+          "guest:studio-pdf",
+          "guest:studio-position"
+        ]
+      }
+    },
+    "export_after_second_reload": {
+      "name": "edited_notes-69page.pdf",
+      "pages": 67,
+      "first_pages": [
+        "Page 2 of 69 Section 2. Machine learning is the study of computer algorithms tha",
+        "Page 1 of 69 Section 1. Machine learning is the study of computer algorithms tha",
+        "Page 4 of 69 Section 4. Machine learning is the study of computer algorithms tha"
+      ],
+      "bytes": 58880
+    },
+    "retention_content_check": {
+      "pages": 67,
+      "expected_pages": 67,
+      "page_order_matches": true,
+      "full_text_matches_source_pages": true,
+      "order_head": [
+        2,
+        1,
+        4,
+        3,
+        5
+      ],
+      "order_tail": [
+        65,
+        66,
+        67
+      ]
+    },
+    "new_page_confirmation": {
+      "dialog_shown_before_discard": true,
+      "cancel_preserves_document_pages": 67
+    },
+    "clear_then_fresh_upload": {
+      "keys_after_clear": {
+        "present": true,
+        "keys": [
+          "guest:ai-conversation"
+        ]
+      },
+      "fresh_file_page_count": 2,
+      "expected_fresh_file_pages": 2
+    },
+    "studio_ai_handoff": {
+      "doc_name": "audit-sample.pdf",
+      "page_context": "Page context: 1",
+      "greeting_present": true
+    },
+    "return_to_studio_after_ai": {
+      "page_count": 2
+    }
+  },
+  "mobile": {
+    "feedback_height_checks_390": [
+      {
+        "height": 667,
+        "visible": true,
+        "overlapsFirstCard": false,
+        "overlapsBottomNav": false
+      },
+      {
+        "height": 740,
+        "visible": true,
+        "overlapsFirstCard": false,
+        "overlapsBottomNav": false
+      },
+      {
+        "height": 781,
+        "visible": true,
+        "overlapsFirstCard": false,
+        "overlapsBottomNav": false
+      },
+      {
+        "height": 844,
+        "visible": true,
+        "overlapsFirstCard": false,
+        "overlapsBottomNav": false
+      },
+      {
+        "height": 932,
+        "visible": true,
+        "overlapsFirstCard": false,
+        "overlapsBottomNav": false
+      }
+    ],
+    "feedback_placement": {
+      "buttonVisible": true,
+      "hiddenForCollision": false,
+      "containerVisibility": "visible",
+      "left": 330,
+      "right": 374,
+      "top": 562,
+      "bottom": 606,
+      "navTop": 778,
+      "navBottom": 844,
+      "overlapsBottomNav": false,
+      "viewportWidth": 390,
+      "documentWidth": 390
+    },
+    "feedback_studio_zoom": {
+      "buttonVisible": true,
+      "hiddenForCollision": false,
+      "overlapsZoom": false
+    },
+    "new_page_confirm_and_feedback_modal": {
+      "feedback_widget_hidden_while_dialog_open": true,
+      "cancel_keeps_document_loaded": true
+    },
+    "studio_390": {
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "organizeActive": true,
+      "pagesDrawerOpen": true,
+      "drawerVisible": true,
+      "drawerTop": 345,
+      "drawerBottom": 645,
+      "drawerHeight": 300,
+      "toolbarTop": 64,
+      "toolbarBottom": 337,
+      "toolbarDrawerOverlap": 0,
+      "dockVisible": true,
+      "toolbarHeight": 273,
+      "visibleControls": 28,
+      "outOfViewportControls": 0
+    }
+  },
+  "page_errors": 0
+}

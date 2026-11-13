@@ -52,8 +52,8 @@ COPY . .
 
 # Create non-root user and prepare data directory
 RUN useradd -m -u 1001 -s /bin/bash paperplane && \
-    mkdir -p /data && \
-    chown -R paperplane:paperplane /app /data
+    mkdir -p /data /backups && \
+    chown -R paperplane:paperplane /app /data /backups
 
 USER paperplane
 VOLUME ["/data"]

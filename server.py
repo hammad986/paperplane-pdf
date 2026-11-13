@@ -42,7 +42,6 @@ from fastapi import BackgroundTasks, Body, Depends, FastAPI, File, Form, Header,
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse, Response, RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from PIL import Image
 from pypdf import PdfReader, PdfWriter
@@ -62,7 +61,7 @@ from config import (
     FREE_API_CALLS_PER_DAY, FREE_AI_CALLS_PER_DAY, FREE_MAX_FILE_SIZE_MB, FREE_CONCURRENT_JOBS,
     PAPERPLANE_PUBLIC_URL,
     CASHFREE_APP_ID, CASHFREE_SECRET_KEY, CASHFREE_ENV,
-    CASHFREE_API_VERSION, CASHFREE_BASE_URL, CASHFREE_DEFAULT_CUSTOMER_PHONE,
+    CASHFREE_ENV_CONFIG_ERROR, CASHFREE_API_VERSION, CASHFREE_BASE_URL, CASHFREE_DEFAULT_CUSTOMER_PHONE,
     CLEANUP_INTERVAL_SECONDS, EMERGENCY_DISK_FREE_PERCENT,
     EMERGENCY_DISK_FREE_BYTES, EMERGENCY_JOB_AGE_SECONDS
 )
@@ -274,12 +273,13 @@ app = FastAPI(
 )
 init_db()
 logger.info("Persistence startup snapshot: %s", json.dumps(_persistence_snapshot(), sort_keys=True))
+logger.info("AI startup readiness: %s", json.dumps(ai_engine.get_ai_configuration_health(), sort_keys=True))
 
-# Restore the public scheme/host from the reverse proxy before downstream
-# middleware and route handlers inspect the request URL.  The proxy is the
-# only trusted source in production; the canonical URL helper below still
-# prefers the explicitly configured public origin when one is available.
-app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
+# Restore the public scheme/host only from explicitly trusted proxy peers.
+# Never accept forwarded IPs from arbitrary clients: admin throttles and
+# lockout decisions depend on the resulting client address.
+TRUSTED_PROXY_HOSTS = os.getenv("PAPERPLANE_TRUSTED_PROXY_HOSTS", "127.0.0.1,::1").strip()
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=TRUSTED_PROXY_HOSTS)
 
 # Production-hardened Trusted hosts and CORS middleware (Wildcard origins strictly excluded)
 if TRUSTED_HOSTS:
@@ -293,38 +293,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-
-class SecurityHeadersMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        response = await call_next(request)
-        response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["X-Frame-Options"] = "SAMEORIGIN"
-        response.headers["X-XSS-Protection"] = "1; mode=block"
-        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
-        response.headers["Cross-Origin-Opener-Policy"] = "same-origin-allow-popups"
-        # Keep script-src free of unsafe-inline. style-src unsafe-inline is
-        # currently needed by inline style attributes in index.html and the
-        # app's CSSStyleDeclaration writes (progress widths, PDF canvas sizing,
-        # positioning, and modal/layout states). wasm-unsafe-eval is retained
-        # for PDF.js's WebAssembly parser/decoder path. Remove either only after
-        # migrating those call sites and retesting PDF rendering.
-        response.headers["Content-Security-Policy"] = (
-            "default-src 'self'; "
-            "script-src 'self' 'wasm-unsafe-eval' https://accounts.google.com https://sdk.cashfree.com https://cdn.jsdelivr.net; "
-            "worker-src 'self' blob:; "
-            "style-src 'self' 'unsafe-inline' https://accounts.google.com https://fonts.googleapis.com https://cdn.jsdelivr.net; "
-            "font-src 'self' https://fonts.gstatic.com data:; "
-            "img-src 'self' data: blob: https:; "
-            "connect-src 'self' https://accounts.google.com https://api.cashfree.com https://sandbox.cashfree.com; "
-            "frame-src 'self' https://accounts.google.com https://sdk.cashfree.com; "
-            "object-src 'none';"
-        )
-        return response
-
-
-app.add_middleware(SecurityHeadersMiddleware)
 
 
 def get_client_ip(request: Request) -> str:
@@ -486,7 +454,7 @@ OPERATIONS = {
     # 6. Security
     "protect": {"label": "Protect PDF", "category": "Security", "accept": "pdf", "implemented": True, "description": "Encrypt PDF with high-strength AES-256 and custom passwords."},
     "unlock": {"label": "Unlock PDF", "category": "Security", "accept": "pdf", "implemented": True, "description": "Remove password protection and permission restrictions."},
-    "sign": {"label": "Sign PDF", "category": "Security", "accept": "pdf", "implemented": True, "description": "Embed digital signatures or hand-drawn signature stamps."},
+    "sign": {"label": "Sign PDF", "category": "Security", "accept": "pdf", "implemented": True, "description": "Place a typed signature stamp. Use Studio's Digital Signatures panel for draw/type marks and signature verification."},
 
     # 7. Advanced & AI Tools
     "compare": {"label": "Compare PDF", "category": "Advanced", "accept": "pdf", "implemented": True, "description": "Result: a text file listing the differences between two versions."},
@@ -562,7 +530,7 @@ SEO_CATALOG = {
         "intro": "Combine contracts, scans, invoices, or reports into one PDF while keeping page order visible before you export.",
         "how_to": ("Upload PDFs in the desired order", "Rearrange thumbnails before processing", "Download the merged document"),
         "faqs": (
-            ("Can I merge PDF files without uploading them?", "Yes. Choose Local Processing to merge supported files in your browser. Larger or unsupported files can use temporary server processing and are automatically purged within 24 hours."),
+            ("Can I merge PDF files without uploading them?", "Yes. Choose Local Processing to merge supported files in your browser. Larger or unsupported files can use temporary server processing; expired job files are removed on the configured cleanup schedule (2-hour retention by default)."),
             ("Does merging change page quality?", "Merging copies the source page objects into one document. It does not rasterize pages, so selectable text, vector artwork, and embedded images retain their source quality."),
             ("How many PDFs can I combine at once?", "The web workflow accepts batch uploads within the configured file and request limits. The thumbnail organizer shows the final sequence before the merge job starts."),
         ),
@@ -642,7 +610,7 @@ SEO_CATALOG = {
         "faqs": (
             ("How much can PDF compression reduce a file?", "The reduction depends on image resolution, embedded fonts, duplicate objects, and stream structure. Text-heavy PDFs often shrink less than scan-heavy PDFs with large images."),
             ("Does compression make a PDF blurry?", "Lossless mode avoids image quality changes. Quality-based profiles may downsample or recompress images, so choose the balanced profile when readability matters."),
-            ("Where is my PDF processed?", "Compression runs in Paperplane's temporary processing workspace. The source file and result are automatically purged within 24 hours."),
+            ("Where is my PDF processed?", "Compression runs in Paperplane's temporary processing workspace. The source file and result are removed after the configured retention period (2 hours by default)."),
         ),
         "related": ("pdf_to_jpg", "repair", "ocr", "merge"),
     },
@@ -934,10 +902,10 @@ SEO_CATALOG = {
     },
     "sign": {
         "title": "Sign PDF Online — Add Visual or Digital Signatures | Paperplane",
-        "description": "Sign PDF files with a visual signature stamp or supported PKCS#7 digital signature workflow.",
+        "description": "Place a typed visual signature stamp. Use Paperplane Studio's Digital Signatures panel for a drawn or typed mark and signature verification.",
         "heading": "Sign a PDF for approval or integrity",
-        "intro": "Place a visible signature or apply a cryptographic document seal when a PDF needs an approval mark and verifiable integrity.",
-        "how_to": ("Upload the document to Sign PDF", "Choose visual stamp or digital signing", "Verify the signature and download"),
+        "intro": "This tool places a typed visual signature stamp. For draw/type signature marks and verification, open the document in Paperplane Studio and choose More Tools → Digital Signatures.",
+        "how_to": ("Upload the document and enter the printed signer name", "Run Sign PDF to place a typed stamp", "Open Studio for drawn or certificate-backed signature workflows"),
         "faqs": (
             ("What is the difference between a visual and digital PDF signature?", "A visual signature is an appearance placed on the page. A digital signature uses certificate-backed cryptographic validation to detect changes after signing."),
             ("Does Paperplane provide a certificate authority?", "No. Cryptographic signing requires an authorized certificate and key material. The application can create or verify supported signature structures but does not replace your trust provider."),
@@ -1056,7 +1024,7 @@ SEO_CATALOG = {
         "intro": "Create a shareable copy with the first 8 digits masked, then review the exported file carefully before sharing it.",
         "how_to": ("Upload Aadhaar PDF or scan image", "Click Mask Aadhaar Now", "Download your UIDAI-compliant masked PDF"),
         "faqs": (
-            ("How should I check a masked Aadhaar copy?", "Open the exported file and verify the first eight digits are fully obscured on every page before sharing. Server-powered jobs use temporary processing and are automatically purged within 24 hours."),
+            ("How should I check a masked Aadhaar copy?", "Open the exported file and verify the first eight digits are fully obscured on every page before sharing. Server-powered job files are removed after the configured retention period (2 hours by default)."),
             ("Does it work on password-protected e-Aadhaar PDFs?", "Use our Unlock PDF tool first to remove the master password, then mask the first 8 digits."),
             ("Are the first 8 digits permanently unrecoverable?", "Yes. True redaction removes the covered text and image content from the output PDF."),
         ),
@@ -1147,7 +1115,7 @@ SEO_LANDING_PAGES = {
         "description": "Read the Paperplane PDF privacy policy and learn which supported tools run in your browser and how temporary server processing works.",
         "heading": "Paperplane Privacy Policy & Data Protection",
         "category": "Compliance",
-        "intro": "Some supported PDF operations can run in your browser. Server-powered jobs use temporary processing and are automatically purged within 24 hours; review the policy for account and service data details.",
+        "intro": "Some supported PDF operations can run in your browser. Server-powered job files expire after the configured retention period (2 hours by default); browser-saved Studio and AI Docs work remains on this device until cleared.",
         "related": ("protect", "unlock", "redact", "mask_aadhaar"),
     },
     "terms": {
@@ -1267,7 +1235,7 @@ def seo_page_context(operation: str | None, landing_slug: str | None = None) -> 
             "related": ("merge", "compress", "pdf_to_word", "sign"),
             "how_to": ("Choose a PDF tool", "Add the source document", "Download the verified output"),
             "faqs": (
-                ("Where are files processed?", "Merge, Split / extract, Remove pages, and Rotate PDF can run in your browser when Local Processing is selected. Other tasks use temporary server processing and are automatically purged within 24 hours."),
+                ("Where are files processed?", "Merge, Split / extract, Remove pages, and Rotate PDF can run in your browser when Local Processing is selected. Other tasks use temporary server processing; expired job files are removed on the configured cleanup schedule (2-hour retention by default)."),
                 ("What PDF operations are available?", "The catalog covers organizing, compression, conversion, editing, security, and document intelligence workflows."),
                 ("Does Paperplane work on phones?", "Yes. The public web workspace is responsive and uses touch-sized controls on mobile browsers."),
             ),
@@ -2999,7 +2967,7 @@ async def resend_otp(request: Request, background_tasks: BackgroundTasks):
 
     res = {
         "status": "success",
-        "message": f"A new verification code has been dispatched to {clean_email}."
+        "message": "A new verification code has been sent. Any previous code is now invalid; use the latest code."
     }
     if os.getenv("TESTING") == "True":
         res["dev_otp"] = otp_code
@@ -3407,6 +3375,8 @@ def _cashfree_headers(idempotency_key: str | None = None) -> dict[str, str]:
 
 
 def _cashfree_request(method: str, path: str, body: dict | None = None) -> dict:
+    if CASHFREE_ENV_CONFIG_ERROR or not CASHFREE_BASE_URL:
+        raise RuntimeError("Cashfree checkout is unavailable because its environment is invalid.")
     if not CASHFREE_APP_ID or not CASHFREE_SECRET_KEY:
         raise HTTPException(503, "Cashfree payment processing is not configured for this deployment.")
     payload = json.dumps(body).encode("utf-8") if body is not None else None
@@ -3512,10 +3482,17 @@ def create_checkout_session(
     currency = str(payload.get("currency", "INR")).upper()
     if currency != "INR":
         raise HTTPException(400, "Paperplane checkout currently supports INR only.")
-    if ENVIRONMENT == "production" and CASHFREE_ENV != "PROD":
+    if CASHFREE_ENV_CONFIG_ERROR:
+        logger.error("Cashfree checkout blocked: invalid CASHFREE_ENV configuration.")
         raise HTTPException(
             503,
-            "Live payments are disabled because Cashfree is not configured for PROD in this production environment.",
+            "Payments are temporarily unavailable. Please try again later.",
+        )
+    if ENVIRONMENT == "production" and CASHFREE_ENV != "PROD":
+        logger.warning("Cashfree checkout blocked in production because PROD mode is not configured.")
+        raise HTTPException(
+            503,
+            "Payments are temporarily unavailable. Please try again later.",
         )
     if target_tier == "exam_pass":
         amount = EXAM_PASS_PRICE_INR
@@ -5709,11 +5686,15 @@ async def studio_security_sanitize(
             except Exception:
                 pass
 
-        security_forms_engine.sanitize_pdf(in_path, out_path, config=opts_dict)
+        sanitize_report: dict[str, Any] = {}
+        security_forms_engine.sanitize_pdf(in_path, out_path, targets=opts_dict, report=sanitize_report)
         return StreamingResponse(
             io.BytesIO(out_path.read_bytes()),
             media_type="application/pdf",
-            headers={"Content-Disposition": 'attachment; filename="sanitized.pdf"'}
+            headers={
+                "Content-Disposition": 'attachment; filename="sanitized.pdf"',
+                "X-Paperplane-Sanitize-Report": json.dumps(sanitize_report, separators=(",", ":")),
+            }
         )
     except HTTPException:
         raise
@@ -5796,7 +5777,9 @@ def cloud_sync(
 
         # Reject HTML preview, login, or error pages
         if raw_bytes.startswith((b"<!DOCTYPE", b"<!doctype", b"<html", b"<HTML", b"<body", b"<head")):
-            raise ValueError("The provided link returned an HTML webpage or login screen instead of a direct file. Please ensure the link is publicly accessible without login.")
+            if provider == "Google Drive":
+                raise ValueError("Google Drive returned a preview or login page. Set General access to Anyone with the link, or use a direct PDF download URL.")
+            raise ValueError("The provided link returned an HTML webpage or login screen instead of a direct file. Ensure it is publicly accessible without login or use a direct download URL.")
 
         if not raw_bytes.startswith(b"%PDF-"):
             raise ValueError("Cloud Import accepts PDF files only. This link returned another file type; use its matching converter instead.")
@@ -5839,11 +5822,18 @@ def cloud_sync(
             "data_url": f"data:{content_type or 'application/pdf'};base64,{b64_data}"
         }
     except ValueError as val_err:
-        raise HTTPException(400, f"SSRF Protection: {val_err}") from val_err
+        message = str(val_err)
+        if provider == "Google Drive" and any(
+            token in message.lower() for token in ("could not resolve hostname", "timed out", "connection failed", "network is unreachable")
+        ):
+            message = "Google Drive could not be reached. Confirm the file is shared with anyone who has the link, then retry or use a direct PDF download URL."
+        raise HTTPException(400, message) from val_err
     except HTTPException:
         raise
     except Exception as err:
-        raise HTTPException(400, f"Cloud file sync failed: {err}") from err
+        if provider == "Google Drive":
+            raise HTTPException(400, "Google Drive could not be reached. Confirm public sharing or use a direct PDF download URL.") from err
+        raise HTTPException(400, "Cloud file sync failed. Check that the link is public and points directly to a PDF file.") from err
 
 
 # ----------------------------------------------------------------------
@@ -6471,6 +6461,11 @@ def tool_desk_page(request: Request):
     return render_web_page(request, landing_slug="tool-desk")
 
 
+@app.get("/tools", include_in_schema=False)
+def legacy_tools_redirect():
+    return RedirectResponse(url="/", status_code=301)
+
+
 @app.get("/studio", response_class=HTMLResponse, include_in_schema=False)
 def studio_workspace_page(request: Request):
     return render_web_page(request, landing_slug="studio")
@@ -6566,6 +6561,7 @@ def sitemap_xml(request: Request):
 
 
 LEGACY_SLUG_REDIRECTS = {
+    "scan-pdf": "scan-to-pdf",
     "fill-form": "fill-pdf-form",
     "ai-translate": "translate-pdf",
     "ai-summarize": "summarize-pdf",
@@ -6594,7 +6590,7 @@ LEGACY_SLUG_REDIRECTS = {
 }
 
 
-@app.get("/admin", response_class=HTMLResponse, include_in_schema=False)
+@app.api_route("/admin", methods=["GET", "HEAD"], response_class=HTMLResponse, include_in_schema=False)
 def admin_portal_page():
     """Visual admin portal for the platform owner with 3-factor authentication and visual analytics."""
     return HTMLResponse(content="""<!doctype html>
@@ -7457,6 +7453,7 @@ def admin_portal_page():
             <div class="form-help">Securely masked (sk-••••••••1234). Enter a new key to update, or leave unchanged.</div>
           </div>
 
+          <div id="ai-provider-health-alert" role="status" aria-live="polite" style="display: none; margin-top: 16px; padding: 12px; border-radius: 8px; font-size: 13px;"></div>
           <div style="display: flex; gap: 12px; align-items: center; margin-top: 24px;">
             <button class="btn btn-primary" id="btn-save-ai">💾 Save AI Configuration</button>
             <button class="btn" id="btn-test-ai">⚡ Test Connection</button>
@@ -7955,6 +7952,12 @@ async def admin_cleanup_probes(request: Request, _: None = Depends(_require_admi
 def admin_fetch_ai_config(_: None = Depends(_require_admin)):
     """Get active AI provider, model, base URL, and masked API key."""
     return {"status": "ok", "config": admin_get_ai_config()}
+
+
+@app.get("/api/admin/ai-health", include_in_schema=False)
+def admin_ai_health(_: None = Depends(_require_admin)):
+    """Return sanitized provider readiness; the admin can run Test Connection for reachability."""
+    return ai_engine.get_ai_configuration_health()
 
 
 @app.post("/api/admin/ai-config", include_in_schema=False)

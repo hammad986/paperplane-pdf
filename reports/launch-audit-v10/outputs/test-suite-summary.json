@@ -1,0 +1,23 @@
+{
+  "command": "python -m pytest -q",
+  "runs_sequential": true,
+  "credential_environment_removed": true,
+  "dotenv_disabled": true,
+  "production_endpoints_contacted": false,
+  "runs": [
+    {
+      "run": 1,
+      "exit_code": 0,
+      "duration_seconds": 79.017,
+      "pytest_summary": "381 passed, 1 warning in 74.14s (0:01:14)",
+      "log": "reports/launch-audit-v10/outputs/test-suite-run-1.log"
+    },
+    {
+      "run": 2,
+      "exit_code": 0,
+      "duration_seconds": 79.46,
+      "pytest_summary": "381 passed, 1 warning in 75.13s (0:01:15)",
+      "log": "reports/launch-audit-v10/outputs/test-suite-run-2.log"
+    }
+  ]
+}

@@ -83,9 +83,10 @@ def test_e2e_otp_signup_and_login_lifecycle(tmp_path, monkeypatch):
     assert get_user_by_email(email) is None
 
     # 3. Verify with invalid OTP -> fails
+    invalid_otp = f"{(int(dev_otp) + 1) % 1_000_000:06d}"
     res = client.post("/api/auth/verify-signup-otp", json={
         "email": email,
-        "otp": "999999"
+        "otp": invalid_otp
     })
     assert res.status_code == 400
     assert "Invalid or expired" in res.json().get("detail", "")

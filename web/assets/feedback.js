@@ -6,6 +6,110 @@
   let selectedRating = 5;
   let selectedCategory = "general";
   let isSubmitting = false;
+  let currentScope = "guest";
+  let dismissedInMemory = false;
+  let submittedInMemory = false;
+
+  const storageKey = (kind, scope = currentScope) => `paperplane-feedback-${kind}:v1:${scope}`;
+
+  function feedbackScope() {
+    try {
+      const userId = String(state?.user?.user_id || "").trim();
+      return userId ? `account-${userId}` : "guest";
+    } catch {
+      return "guest";
+    }
+  }
+
+  function readFlag(kind) {
+    try { return localStorage.getItem(storageKey(kind)) === "1"; } catch { return false; }
+  }
+
+  function writeFlag(kind) {
+    try { localStorage.setItem(storageKey(kind), "1"); } catch { /* This tab still remembers the state in memory. */ }
+  }
+
+  function hasSubmitted() { return submittedInMemory || readFlag("submitted"); }
+  function isDismissed() { return dismissedInMemory || readFlag("dismissed"); }
+
+  function syncVisibility({ keepCardOpen = false } = {}) {
+    const button = document.getElementById("pp-btn-feedback-toggle");
+    const card = document.getElementById("pp-feedback-popover");
+    const hidden = hasSubmitted() || isDismissed();
+    if (button) button.hidden = hidden;
+    if (hidden && card && !keepCardOpen) card.style.display = "none";
+  }
+
+  function openFeedback() {
+    const card = document.getElementById("pp-feedback-popover");
+    const textArea = document.getElementById("pp-fb-text-input");
+    if (!card) return;
+    card.style.display = "flex";
+    if (textArea) textArea.focus();
+  }
+
+  function dismissFeedback() {
+    dismissedInMemory = true;
+    writeFlag("dismissed");
+    const card = document.getElementById("pp-feedback-popover");
+    if (card) card.style.display = "none";
+    syncVisibility();
+  }
+
+  function positionFeedbackButton(button) {
+    const directory = document.getElementById("view-tool-desk-directory");
+    const meta = document.getElementById("tool-desk-search-meta");
+    const firstCard = document.querySelector("#tool-desk-tools-catalog .home-tool-card");
+    const nav = document.querySelector(".mobile-workspace-bar");
+    if (!directory || directory.hidden || !meta || !firstCard) {
+      button.style.removeProperty("top");
+      button.style.removeProperty("bottom");
+      return;
+    }
+
+    const metaRect = meta.getBoundingClientRect();
+    const cardRect = firstCard.getBoundingClientRect();
+    const navRect = nav?.getBoundingClientRect();
+    const height = button.getBoundingClientRect().height || 44;
+    const lowestTop = metaRect.bottom + 1;
+    const navTop = navRect && navRect.height > 0 ? navRect.top - height - 1 : Infinity;
+    const highestTop = Math.min(cardRect.top - height - 1, navTop);
+    if (highestTop < lowestTop) {
+      button.style.removeProperty("top");
+      button.style.removeProperty("bottom");
+      return;
+    }
+
+    // Use the gap between the Tool Desk count and first card, keeping the pill
+    // visible without covering either surface or the mobile navigation.
+    const top = Math.round((lowestTop + highestTop) / 2);
+    button.style.top = `${top}px`;
+    button.style.bottom = "auto";
+  }
+
+  let obstructionFrame = 0;
+  function scheduleObstructionCheck() {
+    if (obstructionFrame) return;
+    obstructionFrame = requestAnimationFrame(() => {
+      obstructionFrame = 0;
+      const container = document.getElementById("pp-feedback-container");
+      const button = document.getElementById("pp-btn-feedback-toggle");
+      if (!container || !button || button.hidden) return;
+      positionFeedbackButton(button);
+      const buttonRect = button.getBoundingClientRect();
+      const obstructsImportantControl = [...document.querySelectorAll(".home-tool-card, #zoom-select")].some(target => {
+        const rect = target.getBoundingClientRect();
+        if (rect.width <= 0 || rect.height <= 0) return false;
+        return buttonRect.left < rect.right && buttonRect.right > rect.left
+          && buttonRect.top < rect.bottom && buttonRect.bottom > rect.top;
+      });
+      container.classList.toggle("pp-feedback-obstructed", obstructsImportantControl);
+      if (obstructsImportantControl) {
+        const card = document.getElementById("pp-feedback-popover");
+        if (card) card.style.display = "none";
+      }
+    });
+  }
 
   document.addEventListener("DOMContentLoaded", () => {
     injectFeedbackWidget();
@@ -23,7 +127,8 @@
         position: fixed;
         bottom: 24px;
         right: 24px;
-        z-index: 9990;
+        z-index: 80;
+        bottom: calc(24px + env(safe-area-inset-bottom, 0px));
         background: #141f22;
         color: #f0f5f4;
         border: 1px solid #2d4145;
@@ -48,6 +153,8 @@
       .pp-feedback-btn .fb-icon {
         font-size: 14px;
       }
+      .pp-feedback-btn[hidden] { display: none !important; }
+      #pp-feedback-container.pp-feedback-obstructed { visibility: hidden !important; pointer-events: none !important; }
 
       /* Floating Popover Card */
       .pp-feedback-card {
@@ -60,7 +167,7 @@
         border: 1px solid #283a3f;
         border-radius: 14px;
         box-shadow: 0 20px 48px rgba(0, 0, 0, 0.6);
-        z-index: 9991;
+        z-index: 81;
         display: none;
         flex-direction: column;
         overflow: hidden;
@@ -214,17 +321,25 @@
       /* Mobile adjustment so it sits nicely above mobile bar */
       @media (max-width: 768px) {
         .pp-feedback-btn {
-          bottom: 76px;
+          bottom: calc(76px + env(safe-area-inset-bottom, 0px));
           right: 16px;
           padding: 7px 13px;
           font-size: 12px;
         }
         .pp-feedback-card {
-          bottom: 126px;
+          bottom: calc(126px + env(safe-area-inset-bottom, 0px));
           right: 16px;
           width: calc(100vw - 32px);
         }
       }
+
+      @media (max-width: 479px) {
+        .pp-feedback-btn { width: 44px; height: 44px; justify-content: center; padding: 0; }
+        .pp-feedback-btn > span:last-child { display: none; }
+      }
+      body:has(.modal-backdrop:not([hidden])) #pp-feedback-container,
+      body:has(.command-backdrop:not([hidden])) #pp-feedback-container,
+      body:has(dialog[open]) #pp-feedback-container { display: none; }
     `;
     document.head.appendChild(style);
 
@@ -294,10 +409,24 @@
     }
 
     if (btnClose && card) {
-      btnClose.addEventListener("click", () => {
-        card.style.display = "none";
-      });
+      btnClose.addEventListener("click", dismissFeedback);
     }
+
+    document.getElementById("settings-feedback-open")?.addEventListener("click", () => {
+      const settings = document.getElementById("settings-modal");
+      if (settings) settings.hidden = true;
+      openFeedback();
+    });
+    document.addEventListener("paperplane:open-feedback", openFeedback);
+    document.addEventListener("paperplane:auth-changed", event => {
+      currentScope = event.detail?.userId ? `account-${String(event.detail.userId).trim()}` : "guest";
+      dismissedInMemory = false;
+      submittedInMemory = false;
+      syncVisibility();
+    });
+    document.addEventListener("paperplane:workspace-view-changed", scheduleObstructionCheck);
+    document.addEventListener("scroll", scheduleObstructionCheck, { passive: true, capture: true });
+    window.addEventListener("resize", scheduleObstructionCheck, { passive: true });
 
     // Star Selection
     stars.forEach(star => {
@@ -350,7 +479,11 @@
             })
           });
 
-          if (resp.ok) {
+          const result = resp.ok ? await resp.json().catch(() => null) : null;
+          if (resp.ok && result?.status === "ok" && result.feedback_id) {
+            submittedInMemory = true;
+            writeFlag("submitted");
+            syncVisibility({ keepCardOpen: true });
             if (formBody) formBody.style.display = "none";
             if (successBody) successBody.style.display = "block";
 
@@ -376,5 +509,9 @@
         }
       });
     }
+
+    currentScope = feedbackScope();
+    syncVisibility();
+    scheduleObstructionCheck();
   }
 })();

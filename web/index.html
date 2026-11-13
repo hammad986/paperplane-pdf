@@ -279,7 +279,7 @@
                 or <button type="button" class="browse-link" id="browse">browse files</button>
                 or <button type="button" class="browse-link" id="cloud-drop-btn">import from Google Drive / Dropbox</button>
               </p>
-              <small id="file-hint">PDF files up to %%FREE_MB%% MB each on Free and %%PRO_MB%% MB each on paid plans · one file per run for this tool</small>
+              <small id="file-hint">PDF tools · file size and batch limits are shown for the selected tool</small>
             </div>
 
             <!-- Uploaded File Queue -->
@@ -296,7 +296,7 @@
               </button>
               <div class="secure-assurance">
                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                <span>Encrypted in transit and at rest - Automatically deleted within 24 hours</span>
+                <span>Encrypted in transit · Temporary server files expire on schedule</span>
               </div>
             </div>
 
@@ -926,8 +926,8 @@
                   <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                 </div>
                 <div>
-                  <h3>Data Privacy & 24-Hour Ephemeral Storage</h3>
-                  <p>Server-powered jobs use temporary processing and are automatically deleted within 24 hours. Browser-local processing is available for Merge, Split / extract, Remove pages, and Rotate PDF; other tools use server processing.</p>
+                  <h3>Data Privacy & Temporary Processing</h3>
+                  <p>Server-powered job files expire after the configured retention period (2 hours by default). Browser-saved Studio and AI Docs work remains on this device until you clear it. Browser-local processing is available for Merge, Split / extract, Remove pages, and Rotate PDF; other tools use server processing.</p>
                 </div>
               </div>
 
@@ -937,7 +937,7 @@
                   <p>Paperplane PDF operates under data-minimization practices. We collect only information required to execute user-requested document tasks:</p>
                   <ul>
                     <li><strong>Account Credentials:</strong> When signing in with email or Google OAuth, we store your email address, verification status, and an encrypted session token. Passwords are salted and hashed with PBKDF2 (210,000 iterations).</li>
-                    <li><strong>Document Ephemeral Data:</strong> Uploaded files are placed in isolated temporary directories on the server. Files are retained for up to 24 hours to allow user downloads, after which an automated cleanup daemon permanently unlinks them.</li>
+                    <li><strong>Temporary Job Files:</strong> Uploaded files and generated results are stored in temporary server job directories. A cleanup task removes expired job directories according to the configured retention period (2 hours by default). Browser-saved Studio and AI Docs work remains on this device until you clear it.</li>
                     <li><strong>Usage Counters:</strong> Daily operation counts are tracked per account or IP address to enforce fair use limits and prevent denial-of-service abuse.</li>
                   </ul>
                 </section>
@@ -946,14 +946,14 @@
                   <h3>2. How Files and Data Are Handled</h3>
                   <ul>
                     <li><strong>No Artificial Intelligence Training:</strong> Your uploaded documents, text contents, and OCR outputs are never used to train, retrain, or improve public machine-learning models.</li>
-                    <li><strong>Automated 24-Hour Purge:</strong> A server-side cleanup task automatically deletes job directories and temporary files whose age exceeds 24 hours.</li>
+                    <li><strong>Scheduled Cleanup:</strong> A server-side cleanup task deletes job directories and temporary files after they exceed the configured retention period.</li>
                     <li><strong>Third-Party Processors:</strong> Payment processing is handled by Cashfree Payment Gateway. Sign-in authentication may use Google Identity Services. We do not sell user data to advertising brokers.</li>
                   </ul>
                 </section>
 
                 <section>
                   <h3>3. Security Architecture</h3>
-                  <p>All traffic is encrypted in transit using TLS 1.3 / HTTPS. We enforce security headers including Content-Security-Policy, X-Content-Type-Options: nosniff, X-Frame-Options: SAMEORIGIN, and Referrer-Policy. Documents are processed in isolated in-memory sandboxes and permanently purged from server memory and disk upon completion or within 24 hours.</p>
+                  <p>Traffic is encrypted in transit over HTTPS. Security headers include Content-Security-Policy, X-Content-Type-Options: nosniff, X-Frame-Options: SAMEORIGIN, and Referrer-Policy. Server job files are deleted by scheduled cleanup after the configured retention period; browser-saved Studio and AI Docs work remains until it is cleared on this device.</p>
                 </section>
 
                 <section>
@@ -1529,9 +1529,9 @@ async function convertFileInBrowser(file, operation = 'compress') {
         <div class="footer-left">
           <span>Paperplane PDF Workspace</span>
           <span class="footer-sep">·</span>
-          <span>Temporary server files purged within 24 hours</span>
+          <span>Temporary server files expire on schedule</span>
           <span class="footer-sep">·</span>
-          <span>Auto-Purged in 24h</span>
+          <span>Configured file retention</span>
         </div>
         <div class="footer-right">
           <button type="button" class="footer-link-btn" id="footer-link-developers">Developers</button>
@@ -1752,7 +1752,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
            <div class="settings-card-item privacy-settings-card">
              <span class="settings-eyebrow">DATA CONTROL</span>
              <h4>Ephemeral encrypted storage</h4>
-             <p>Server jobs use temporary processing and are automatically purged within 24 hours. Browser-local processing is available only for Merge, Split / extract, Remove pages, and Rotate PDF.</p>
+             <p>Temporary server job files expire after the configured retention period (2 hours by default). Browser-saved Studio and AI Docs work remains on this device until you clear it. Browser-local processing is available only for Merge, Split / extract, Remove pages, and Rotate PDF.</p>
              <div class="settings-privacy-toggle-row">
                <div>
                  <strong>Local Processing</strong>
@@ -1768,6 +1768,12 @@ async function convertFileInBrowser(file, operation = 'compress') {
              <span class="settings-eyebrow">RETENTION</span>
              <h4>Automatic cleanup</h4>
              <p>Uploaded documents, generated outputs, and temporary provider payloads are scoped to their job and removed by the lifecycle cleanup task.</p>
+           </div>
+           <div class="settings-card-item">
+             <span class="settings-eyebrow">FEEDBACK</span>
+             <h4>Share feedback</h4>
+             <p>Tell us what worked or what needs attention. The floating feedback button can be dismissed and reopened here.</p>
+             <button type="button" class="btn-demo-upgrade" id="settings-feedback-open">Open feedback form</button>
            </div>
          </div>
 
@@ -1974,7 +1980,8 @@ async function convertFileInBrowser(file, operation = 'compress') {
       <!-- Multi-Tier Pricing Grid -->
       <div class="pricing-tiers-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
         <!-- Free plan and limits are shown alongside paid offers. -->
-        <div class="pricing-tier-card">
+        <div class="pricing-tier-card" data-plan-tier="free">
+          <span class="tier-current-plan" hidden>Current plan</span>
           <div class="tier-card-header"><span style="font-size: 20px;">🆓</span><div><h4 class="tier-title">Free</h4><span class="tier-subtitle">For everyday PDF tasks</span></div></div>
           <div class="tier-price-box"><div class="tier-price-main"><span class="tier-price-val">₹0</span><span class="tier-price-period">/ always</span></div><span class="tier-price-alt">No payment required</span></div>
           <ul class="tier-features-list"><li><span>✓</span><strong>%%FREE_DAILY%% PDF operations per day</strong></li><li><span>✓</span>Files up to %%FREE_MB%% MB each</li><li><span>✓</span>Guest access for supported tools</li></ul>
@@ -1982,7 +1989,8 @@ async function convertFileInBrowser(file, operation = 'compress') {
         </div>
 
         <!-- TIER 0: 24-Hour Exam Pass (₹19) -->
-        <div class="pricing-tier-card">
+        <div class="pricing-tier-card" data-plan-tier="exam_pass">
+          <span class="tier-current-plan" hidden>Current plan</span>
           <div class="tier-popular-tag" style="background: #3b82f6;">EXAM DAY SPECIAL</div>
           <div class="tier-card-header">
             <span style="font-size: 20px;">⚡</span>
@@ -2011,7 +2019,8 @@ async function convertFileInBrowser(file, operation = 'compress') {
         </div>
 
         <!-- TIER 1: Student & Educator (₹49/month or ₹399/year) -->
-        <div class="pricing-tier-card">
+        <div class="pricing-tier-card" data-plan-tier="student_pro">
+          <span class="tier-current-plan" hidden>Current plan</span>
           <div class="tier-popular-tag" style="background: #10b981;">STUDENT DISCOUNT</div>
           <div class="tier-card-header">
             <span style="font-size: 20px;">🎓</span>
@@ -2040,7 +2049,8 @@ async function convertFileInBrowser(file, operation = 'compress') {
         </div>
 
         <!-- TIER 2: Pro Power User (₹250/month or ₹999/year) -->
-        <div class="pricing-tier-card popular">
+        <div class="pricing-tier-card popular" data-plan-tier="pro">
+          <span class="tier-current-plan" hidden>Current plan</span>
           <div class="tier-popular-tag">MOST POPULAR</div>
           <div class="tier-card-header">
             <span style="font-size: 16px; font-weight: 700; color: var(--brand-accent);">PRO</span>
@@ -2070,7 +2080,8 @@ async function convertFileInBrowser(file, operation = 'compress') {
         </div>
 
         <!-- TIER 3: Cyber Café & CSC Center Pack (₹299/month) -->
-        <div class="pricing-tier-card">
+        <div class="pricing-tier-card" data-plan-tier="cyber_cafe">
+          <span class="tier-current-plan" hidden>Current plan</span>
           <div class="tier-popular-tag" style="background: #8b5cf6;">CSC & CYBER CAFÉ</div>
           <div class="tier-card-header">
             <span style="font-size: 20px;">🏪</span>
@@ -2099,7 +2110,8 @@ async function convertFileInBrowser(file, operation = 'compress') {
         </div>
 
         <!-- TIER 4: Developer (₹750/month) -->
-        <div class="pricing-tier-card developer">
+        <div class="pricing-tier-card developer" data-plan-tier="developer">
+          <span class="tier-current-plan" hidden>Current plan</span>
           <div class="tier-developer-tag">BUILDERS & TEAMS</div>
           <div class="tier-card-header">
             <span style="font-size: 24px;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M21 2l-9.6 9.6M15.5 7.5l2.5 2.5"/></svg></span>
@@ -3352,6 +3364,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
               <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;"><input type="checkbox" id="sanitize-opt-annots" checked aria-label="Remove comments, notes, and annotations" /> Purge Annotations</label>
               <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;"><input type="checkbox" id="sanitize-opt-js" checked aria-label="Strip embedded JavaScript actions and macros" /> Neutralize JavaScript</label>
             </div>
+            <div id="sec-sanitize-report" class="security-sanitize-report" aria-live="polite" hidden></div>
             <button type="button" class="btn-primary-action" id="btn-apply-sanitize" style="padding: 6px 14px; font-size: 12px;">Sanitize Document Now →</button>
           </div>
         </div>
@@ -3399,9 +3412,8 @@ async function convertFileInBrowser(file, operation = 'compress') {
     </button>
   </nav>
 
-  <!-- Heavy PDF engines are deferred so the shell can paint before parsing them. -->
-  <script src="/assets/pdf.min.js" defer></script>
-  <script src="/assets/pdf-lib.min.js" defer></script>
+  <!-- PDF engines are loaded on demand by the first feature that needs them. -->
+  <script src="/assets/pdf_runtime.js?v=1.0.0" defer></script>
 
   <!-- Phase 6 PDF Forms, Signing & Security Engine -->
   <script src="/assets/security_forms.js?v=6.2.1" defer></script>

@@ -1,0 +1,9 @@
+--- audit-sample.pdf
++++ audit-sample-changed.pdf
+@@ -9,5 +9,5 @@
+ Applicant: Synthetic Example Person
+ Document date: 2026-11-07
+ TEST_SECRET: REDACT_ME_NOW
+-AUDIT_SECOND_PAGE_ORIGINAL
+ SYNTHETIC ONLY - NOT A REAL ID - test pattern: 9999 8888 7776
++AUDIT_SECOND_PAGE_CHANGED_DELTA

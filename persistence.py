@@ -570,6 +570,7 @@ def create_email_otp(email: str, purpose: str, payload_dict: dict | None = None,
     payload_str = json.dumps(payload_dict) if payload_dict is not None else "{}"
 
     with closing(connect()) as connection:
+        connection.execute("BEGIN IMMEDIATE")
         if payload_dict is None:
             prev = connection.execute(
                 "SELECT payload_json FROM email_otps WHERE email = ? AND purpose = ? "
@@ -578,10 +579,9 @@ def create_email_otp(email: str, purpose: str, payload_dict: dict | None = None,
             ).fetchone()
             if prev and prev["payload_json"]:
                 payload_str = prev["payload_json"]
-        # Keep earlier, unexpired codes valid during the resend overlap window.
         connection.execute(
-            "DELETE FROM email_otps WHERE email = ? AND purpose = ? AND expires_at < ?",
-            (cleaned_email, clean_purpose, now)
+            "DELETE FROM email_otps WHERE email = ? AND purpose = ?",
+            (cleaned_email, clean_purpose)
         )
         connection.execute(
             "INSERT INTO email_otps (id, email, otp_hash, purpose, payload_json, attempts, expires_at, created_at) "
@@ -610,7 +610,7 @@ def create_email_otp(email: str, purpose: str, payload_dict: dict | None = None,
 
 
 def delete_email_otp(email: str, purpose: str, otp_code: str | None = None) -> None:
-    """Remove an undelivered OTP without invalidating earlier overlapping codes."""
+    """Remove an undelivered OTP; resend flows never retain an older code."""
     with closing(connect()) as connection:
         if otp_code is None:
             connection.execute(
@@ -639,41 +639,40 @@ def verify_email_otp(email: str, purpose: str, code: str) -> dict | None:
     now = time.time()
 
     with closing(connect()) as connection:
+        connection.execute("BEGIN IMMEDIATE")
         rows = connection.execute(
             "SELECT id, otp_hash, payload_json, attempts, expires_at "
             "FROM email_otps WHERE email = ? AND purpose = ? "
-            "ORDER BY created_at DESC",
+            "ORDER BY created_at DESC, rowid DESC",
             (cleaned_email, clean_purpose)
         ).fetchall()
 
         if not rows:
             return None
 
-        active_rows = []
-        for row in rows:
-            if row["expires_at"] < now or row["attempts"] >= 5:
-                connection.execute("DELETE FROM email_otps WHERE id = ?", (row["id"],))
-            else:
-                active_rows.append(row)
-        if not active_rows:
+        latest = rows[0]
+        # Older unexpired records can exist after an upgrade from the previous
+        # overlap behavior. Only the newest challenge may ever be accepted.
+        connection.executemany(
+            "DELETE FROM email_otps WHERE id = ?",
+            [(row["id"],) for row in rows[1:]],
+        )
+        if latest["expires_at"] < now or latest["attempts"] >= 5:
+            connection.execute("DELETE FROM email_otps WHERE id = ?", (latest["id"],))
             connection.commit()
             return None
 
         candidate_hash = hashlib.sha256(clean_code.encode()).hexdigest()
-        matched = next(
-            (row for row in active_rows if secrets.compare_digest(candidate_hash, row["otp_hash"])),
-            None,
-        )
-        if matched:
-            connection.execute("DELETE FROM email_otps WHERE id = ?", (matched["id"],))
+        if secrets.compare_digest(candidate_hash, latest["otp_hash"]):
+            connection.execute("DELETE FROM email_otps WHERE id = ?", (latest["id"],))
             connection.commit()
             try:
-                return json.loads(matched["payload_json"] or "{}")
+                return json.loads(latest["payload_json"] or "{}")
             except Exception:
                 return {}
         connection.executemany(
             "UPDATE email_otps SET attempts = attempts + 1 WHERE id = ?",
-            [(row["id"],) for row in active_rows],
+            [(latest["id"],)],
         )
         connection.commit()
         return None
@@ -1674,27 +1673,31 @@ def admin_delete_user(
 
 
 def _admin_probe_candidates(connection: sqlite3.Connection, protected_emails: set[str]) -> list[dict]:
-    probe_patterns = (
-        "%probe%", "%example.com", "%@mail.tab.bot", "%@mail.instinct.com",
-        "%@sharklasers.com", "test_%@%",
-    )
-    query = " OR ".join(["email LIKE ?"] * len(probe_patterns))
+    """Return only addresses with explicit test markers or reserved test domains.
+
+    Provider domains and generic example.com addresses are deliberately not
+    sufficient evidence: real users can sign up with any of those domains.
+    """
+    explicit_marker = re.compile(r"(?:^|[._+-])(?:test|probe)(?:[._+-]|\d|$)", re.IGNORECASE)
     rows = connection.execute(
-        f"SELECT id, email FROM users WHERE {query} ORDER BY email COLLATE NOCASE",
-        probe_patterns,
+        "SELECT id, email FROM users ORDER BY email COLLATE NOCASE",
     ).fetchall()
-    return [
-        {"id": str(row["id"]), "email": str(row["email"])}
-        for row in rows
-        if str(row["email"]).strip().lower() not in protected_emails
-    ]
+    candidates = []
+    for row in rows:
+        email = str(row["email"]).strip().lower()
+        local_part, _, domain = email.rpartition("@")
+        reserved_test_domain = domain == "test" or domain.endswith((".test", ".invalid"))
+        if email in protected_emails or not (reserved_test_domain or explicit_marker.search(local_part)):
+            continue
+        candidates.append({"id": str(row["id"]), "email": str(row["email"])})
+    return candidates
 
 
 def admin_cleanup_probe_accounts(
     *, confirm: bool = False, candidate_ids: list[str] | None = None,
     protected_emails: set[str] | None = None,
 ) -> dict:
-    """Preview broad probe matches; delete only explicitly confirmed candidate IDs."""
+    """Preview explicitly marked test users; delete only confirmed candidate IDs."""
     protected = {email.strip().lower() for email in (protected_emails or set()) if email.strip()}
     with closing(connect()) as connection:
         connection.execute("BEGIN IMMEDIATE")

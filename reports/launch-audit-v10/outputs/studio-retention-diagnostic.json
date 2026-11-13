@@ -1,0 +1,77 @@
+{
+  "scope": "isolated local synthetic PDF only",
+  "stages": [
+    {
+      "stage": "loaded_69",
+      "count": 69,
+      "storage": {
+        "keys": [
+          "guest:studio-pdf",
+          "guest:studio-position"
+        ],
+        "hasStudioRecord": true,
+        "blobBytes": 4980286,
+        "savedPagePosition": 1
+      }
+    },
+    {
+      "stage": "first_delete_before_reload",
+      "expected_count": 68,
+      "observed_count": 68,
+      "delete_http_status": 200,
+      "undo_visible": true,
+      "storage": {
+        "keys": [
+          "guest:studio-pdf",
+          "guest:studio-position"
+        ],
+        "hasStudioRecord": true,
+        "blobBytes": 59945,
+        "savedPagePosition": 1
+      }
+    },
+    {
+      "stage": "first_reload",
+      "count": 68,
+      "storage": {
+        "keys": [
+          "guest:studio-pdf",
+          "guest:studio-position"
+        ],
+        "hasStudioRecord": true,
+        "blobBytes": 59945,
+        "savedPagePosition": 1
+      }
+    },
+    {
+      "stage": "second_delete_before_reload",
+      "expected_count": 67,
+      "observed_count": 67,
+      "delete_http_status": 200,
+      "undo_visible": true,
+      "storage": {
+        "keys": [
+          "guest:studio-pdf",
+          "guest:studio-position"
+        ],
+        "hasStudioRecord": true,
+        "blobBytes": 59132,
+        "savedPagePosition": 1
+      }
+    },
+    {
+      "stage": "second_reload_after_restore_wait",
+      "count": 67,
+      "storage": {
+        "keys": [
+          "guest:studio-pdf",
+          "guest:studio-position"
+        ],
+        "hasStudioRecord": true,
+        "blobBytes": 59132,
+        "savedPagePosition": 1
+      }
+    }
+  ],
+  "page_errors": 0
+}

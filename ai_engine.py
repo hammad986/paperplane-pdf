@@ -6,6 +6,7 @@ import math
 import os
 import re
 import time
+import datetime as dt
 import urllib.request
 import urllib.error
 from collections import Counter
@@ -604,6 +605,33 @@ def _runtime_ai_config() -> dict[str, str]:
                 "api_key": fallback_key,
             }
     return config
+
+
+def get_ai_configuration_health() -> dict[str, str | bool]:
+    """Return a startup/admin-safe configuration check without making a request."""
+    credentials = _runtime_ai_config()
+    provider = str(credentials.get("provider") or "unavailable").lower()
+    if credentials.get("configuration_error"):
+        return {
+            "status": "configuration_error",
+            "provider": provider,
+            "configured": False,
+            "message": "The saved AI configuration could not be loaded. Check the server encryption configuration.",
+        }
+    configured = bool(credentials.get("api_key") and credentials.get("model"))
+    if not configured:
+        return {
+            "status": "configuration_missing",
+            "provider": provider,
+            "configured": False,
+            "message": "AI provider credentials or model are not configured; AI document tools are unavailable.",
+        }
+    return {
+        "status": "configured",
+        "provider": provider,
+        "configured": True,
+        "message": "AI provider configuration is present. Run Test Connection to check upstream reachability.",
+    }
 
 
 def _provider_request(system_prompt: str, user_prompt: str, credentials: dict[str, str], timeout_seconds: float | None = None) -> str:
@@ -1278,6 +1306,48 @@ def _extract_metadata_with_agentrouter(
         return None
 
 
+def _extract_valid_document_date(text: str) -> str | None:
+    """Return a validated date in ISO format; reject section numbers such as 3.3.1."""
+    date_pattern = re.compile(
+        r"\b(?:"
+        r"\d{4}[-/.]\d{1,2}[-/.]\d{1,2}"
+        r"|\d{1,2}[-/.]\d{1,2}[-/.]\d{4}"
+        r"|[A-Za-z]{3,9}\s+\d{1,2},?\s+\d{4}"
+        r")\b"
+    )
+    for match in date_pattern.finditer(text or ""):
+        candidate = match.group(0).strip()
+        parsed: dt.date | None = None
+        try:
+            if candidate[0].isalpha():
+                normalized = re.sub(r",", "", candidate)
+                for pattern in ("%B %d %Y", "%b %d %Y"):
+                    try:
+                        parsed = dt.datetime.strptime(normalized, pattern).date()
+                        break
+                    except ValueError:
+                        continue
+            else:
+                parts = re.split(r"[-/.]", candidate)
+                if len(parts) != 3:
+                    continue
+                first, second, third = (int(part) for part in parts)
+                if len(parts[0]) == 4:
+                    parsed = dt.date(first, second, third)
+                else:
+                    # Prefer day-first for ambiguous numeric dates, then accept
+                    # month-first when the first interpretation is impossible.
+                    try:
+                        parsed = dt.date(third, second, first)
+                    except ValueError:
+                        parsed = dt.date(third, first, second)
+        except (ValueError, OverflowError):
+            continue
+        if parsed and 1800 <= parsed.year <= 2200:
+            return parsed.isoformat()
+    return None
+
+
 def extract_metadata_entities(pdf_path: Path, doc_type: str = "auto") -> dict:
     """
     Extracts structured entities conforming to canonical schema:
@@ -1512,11 +1582,28 @@ def extract_metadata_entities(pdf_path: Path, doc_type: str = "auto") -> dict:
         lines = [l.strip() for l in full_text.splitlines() if l.strip()]
         title = lines[0][:100] if lines else "Untitled Document"
 
-        date_m = re.search(r'\b([0-9]{1,4}[-/.][0-9]{1,2}[-/.][0-9]{1,4}|[A-Za-z]{3,9}\s+\d{1,2},?\s+\d{4})\b', full_text)
-        doc_date = date_m.group(1) if date_m else None
+        doc_date = _extract_valid_document_date(full_text)
 
-        # Extract capitalized multi-word phrases as detected topics / entities
-        topics = list(dict.fromkeys(re.findall(r'\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+\b', full_text)))[:8]
+        # Keep the local fallback conservative: skip numbered section headings,
+        # boilerplate labels, and the document title so they are not presented
+        # as substantive topics.
+        topic_stop_phrases = {
+            "invoice date", "due date", "document date", "date", "summary",
+            "executive summary", "table of contents", "contents", "abstract",
+            "introduction", "conclusion", "references", "appendix",
+        }
+        topic_candidates: list[str] = []
+        for normalized_line in lines[1:]:
+            if not normalized_line or re.match(r"^\s*\d+(?:\.\d+)+\b", normalized_line):
+                continue
+            if re.match(r"^\s*(?:date|page|section|chapter|contents|abstract|introduction|conclusion|references)\s*[:.]?\s*$", normalized_line, re.IGNORECASE):
+                continue
+            for phrase in re.findall(r'\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+\b', normalized_line):
+                if phrase.casefold() in topic_stop_phrases or phrase == title:
+                    continue
+                if len(phrase.split()) >= 2 and phrase not in topic_candidates:
+                    topic_candidates.append(phrase)
+        topics = topic_candidates[:8]
         key_entities = list(dict.fromkeys(re.findall(r'\b[A-Z]{2,}\b', full_text)))[:8]
 
         source_pages.add(1)

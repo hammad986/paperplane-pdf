@@ -223,7 +223,8 @@ def test_auth_restore_keeps_a_cached_header_identity_without_caching_entitlement
     assert "cacheAuthShellEmail(data.email);" in app_js
     assert "clearAuthShellEmail();" in app_js
     assert ".auth-pending.auth-restoring #topbar-auth-user { visibility: visible; }" in styles
-    assert "state.user = data.authenticated ? data : null;" in app_js
+    assert "state.user = data?.authenticated ? data : null;" in app_js
+    assert "await setAuthenticatedWorkspaceUser(data);" in app_js
     assert "min-width: 0;" in styles and "box-sizing: border-box;" in styles
 
 

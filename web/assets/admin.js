@@ -351,13 +351,14 @@
   // --- Dashboard Data Fetching ---
   async function fetchDashboardData() {
     try {
-      const [dashResp, usersResp, waitlistResp, revResp, feedbackResp, aiResp] = await Promise.all([
+      const [dashResp, usersResp, waitlistResp, revResp, feedbackResp, aiResp, aiHealthResp] = await Promise.all([
         fetch("/api/admin/dashboard", { headers: { "X-Admin-Session": sessionToken } }),
         fetch("/api/admin/users", { headers: { "X-Admin-Session": sessionToken } }),
         fetch("/api/admin/waitlist", { headers: { "X-Admin-Session": sessionToken } }),
         fetch("/api/admin/revenue", { headers: { "X-Admin-Session": sessionToken } }),
         fetch("/api/admin/feedback", { headers: { "X-Admin-Session": sessionToken } }),
-        fetch("/api/admin/ai-config", { headers: { "X-Admin-Session": sessionToken } })
+        fetch("/api/admin/ai-config", { headers: { "X-Admin-Session": sessionToken } }),
+        fetch("/api/admin/ai-health", { headers: { "X-Admin-Session": sessionToken } })
       ]);
 
       if (dashResp.status === 401 || dashResp.status === 403) {
@@ -371,6 +372,7 @@
       revenueData = await revResp.json().catch(() => null);
       const feedbackObj = await feedbackResp.json().catch(() => ({ feedbacks: [] }));
       aiConfigData = await aiResp.json().catch(() => null);
+      const aiHealth = await aiHealthResp.json().catch(() => null);
 
       // Top Metric Cards
       setElText("m-total-users", metrics.total_users ?? 0);
@@ -408,6 +410,7 @@
       renderAudits(auditData);
       renderRevenue(revenueData);
       renderAiConfig(aiConfigData);
+      renderAiHealth(aiHealth);
     } catch (err) {
       console.error("Dashboard refresh error:", err);
     }
@@ -688,6 +691,17 @@
     }
   }
 
+  function renderAiHealth(data) {
+    const alert = document.getElementById("ai-provider-health-alert");
+    if (!alert || !data) return;
+    alert.textContent = data.message || "AI provider health is unavailable.";
+    alert.style.display = "block";
+    const ready = data.status === "configured";
+    alert.style.background = ready ? "#0d221c" : "#3b1414";
+    alert.style.border = `1px solid ${ready ? "#10b981" : "#7f1d1d"}`;
+    alert.style.color = ready ? "#10b981" : "#f87171";
+  }
+
   // --- Handle AI Config Save ---
   async function handleSaveAiConfig() {
     const providerSel = document.getElementById("ai-provider-select");
@@ -777,18 +791,21 @@
           statusEl.textContent = `✅ Connected (${latency}ms) — Model: ${data.result.model || "Active"}`;
           statusEl.style.color = "var(--green)";
         }
+        renderAiHealth({ status: "configured", message: `AI provider reachable (${latency} ms).` });
       } else {
         const msg = (data.result && data.result.message) || data.detail || "Connection failed";
         if (statusEl) {
           statusEl.textContent = `❌ ${msg} (${latency}ms)`;
           statusEl.style.color = "#f87171";
         }
+        renderAiHealth({ status: "unreachable", message: `AI provider connection failed: ${msg}` });
       }
     } catch (err) {
       if (statusEl) {
         statusEl.textContent = "❌ Network error testing AI connection.";
         statusEl.style.color = "#f87171";
       }
+      renderAiHealth({ status: "unreachable", message: "AI provider connection failed. Check server network access and the saved provider settings." });
     } finally {
       btn.disabled = false;
       btn.textContent = "⚡ Test Connection";

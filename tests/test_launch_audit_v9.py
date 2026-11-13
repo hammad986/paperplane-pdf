@@ -422,12 +422,13 @@ def test_forgot_password_uses_configured_public_url(monkeypatch):
     assert captured == ["https://paperplane.example.test"]
 
 
-def test_resend_keeps_both_unexpired_otp_codes_valid():
+def test_resend_invalidates_the_previous_otp_and_latest_code_is_single_use():
     for index in range(2):
         email = f"overlap-{index}-{secrets.token_hex(4)}@example.test"
         older = persistence.create_email_otp(email, "signup", {"challenge": "shared"})
         newer = persistence.create_email_otp(email, "signup", None)
 
-        assert persistence.verify_email_otp(email, "signup", older) == {"challenge": "shared"}
+        assert persistence.verify_email_otp(email, "signup", older) is None
         assert persistence.verify_email_otp(email, "signup", newer) == {"challenge": "shared"}
+        assert persistence.verify_email_otp(email, "signup", newer) is None
 
