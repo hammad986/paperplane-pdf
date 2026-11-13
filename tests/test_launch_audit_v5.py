@@ -93,9 +93,7 @@ def test_paid_upload_limit_includes_exact_500_mib_boundary():
 
 def test_billable_ai_and_studio_success_count_but_failed_uploads_do_not(tmp_path, monkeypatch):
     monkeypatch.setattr(server, "REQUIRE_AUTH", False)
-    monkeypatch.setattr(server, "check_operation_quota", lambda *args: (True, 0, "free"))
-    counted: list[str] = []
-    monkeypatch.setattr(server, "increment_daily_usage", lambda subject: (counted.append(subject), len(counted))[1])
+    subject = "ip:testclient"
     monkeypatch.setattr(ai_engine, "summarize_pdf", lambda path: "Test overview [Page 1].")
     monkeypatch.setattr(ai_engine, "extract_chunks_from_pdf", lambda path: [SimpleNamespace(page_number=1, text="Test page")])
     client = TestClient(server.app)
@@ -106,7 +104,7 @@ def test_billable_ai_and_studio_success_count_but_failed_uploads_do_not(tmp_path
         result = client.post("/api/ai/summarize", files={"file": (source.name, handle, "application/pdf")})
     assert result.status_code == 200
     assert result.headers["X-Paperplane-Operations-Today"] == "1"
-    assert len(counted) == 1
+    assert server.get_daily_usage(subject) == 1
 
     with source.open("rb") as handle:
         result = client.post(
@@ -119,7 +117,7 @@ def test_billable_ai_and_studio_success_count_but_failed_uploads_do_not(tmp_path
     output = fitz.open(stream=result.content, filetype="pdf")
     assert len(output) == 1 and output[0].rotation == 90
     output.close()
-    assert len(counted) == 2
+    assert server.get_daily_usage(subject) == 2
 
     invalid = client.post(
         "/api/studio/pages/rotate",
@@ -127,13 +125,13 @@ def test_billable_ai_and_studio_success_count_but_failed_uploads_do_not(tmp_path
         files={"file": ("bad.pdf", b"not a pdf", "application/pdf")},
     )
     assert invalid.status_code >= 400
-    assert len(counted) == 2
+    assert server.get_daily_usage(subject) == 2
 
 
 def test_billable_quota_blocks_ai_and_studio_before_processing(monkeypatch):
     monkeypatch.setattr(server, "REQUIRE_AUTH", False)
     monkeypatch.setattr(server, "check_operation_quota", lambda *args: (False, 100, "free"))
-    monkeypatch.setattr(server, "increment_daily_usage", lambda subject: pytest.fail("blocked request must not consume quota"))
+    monkeypatch.setattr(server.persistence, "reserve_daily_usage", lambda *args: pytest.fail("blocked request must not consume quota"))
     client = TestClient(server.app)
     response = client.post("/api/ai/summarize")
     assert response.status_code == 402
@@ -212,17 +210,16 @@ def test_fill_form_json_map_wraps_long_values_and_is_submitted_with_job_options(
     assert ".option-field textarea {\n  min-height: 4.5em;" in styles
 
 
-def test_auth_restore_keeps_a_cached_header_identity_without_caching_entitlements():
+def test_auth_shell_renders_identity_from_the_current_server_session():
     root = Path(__file__).resolve().parents[1]
     app_js = (root / "web" / "assets" / "app.js").read_text(encoding="utf-8")
     styles = (root / "web" / "assets" / "styles.css").read_text(encoding="utf-8")
     assert "paperplane-last-auth-shell-email" in app_js
-    assert "function restoreCachedAuthShell()" in app_js
-    assert "document.body.classList.add('auth-restoring')" in app_js
-    assert "const startupNavigationVersion = workspaceNavigationVersion;\n  restoreCachedAuthShell();" in app_js
-    assert "cacheAuthShellEmail(data.email);" in app_js
+    assert "function restoreCachedAuthShell()" not in app_js
     assert "clearAuthShellEmail();" in app_js
-    assert ".auth-pending.auth-restoring #topbar-auth-user { visibility: visible; }" in styles
+    assert "function renderAuthShell(data)" in app_js
+    assert "window.addEventListener('storage'" in app_js
+    assert ".auth-pending #topbar-auth-guest" in styles
     assert "state.user = data?.authenticated ? data : null;" in app_js
     assert "await setAuthenticatedWorkspaceUser(data);" in app_js
     assert "min-width: 0;" in styles and "box-sizing: border-box;" in styles

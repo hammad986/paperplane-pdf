@@ -668,8 +668,6 @@
 
       const applySanitizeBtn = document.getElementById('btn-apply-sanitize');
       if (applySanitizeBtn) applySanitizeBtn.onclick = () => this.applySanitizePdf();
-      const applySanitizeFooterBtn = document.getElementById('btn-apply-sanitize-footer');
-      if (applySanitizeFooterBtn) applySanitizeFooterBtn.onclick = () => this.applySanitizePdf();
 
       const applyRedactBtn = document.getElementById('btn-apply-hardened-redact');
       if (applyRedactBtn) applyRedactBtn.onclick = () => this.applyHardenedRedaction();
@@ -701,12 +699,10 @@
 
       const protectBtn = document.getElementById('btn-apply-protect');
       const unlockBtn = document.getElementById('btn-apply-unlock');
-      const sanitizeBtn = document.getElementById('btn-apply-sanitize-footer');
       const redactBtn = document.getElementById('btn-apply-hardened-redact-footer');
 
       if (protectBtn) protectBtn.style.display = (tabId === 'protect') ? 'inline-flex' : 'none';
       if (unlockBtn) unlockBtn.style.display = (tabId === 'unlock') ? 'inline-flex' : 'none';
-      if (sanitizeBtn) sanitizeBtn.style.display = (tabId === 'audit') ? 'inline-flex' : 'none';
       if (redactBtn) redactBtn.style.display = (tabId === 'redact') ? 'inline-flex' : 'none';
 
       if (tabId === 'audit') {

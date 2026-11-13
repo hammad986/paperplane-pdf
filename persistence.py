@@ -56,7 +56,8 @@ def init_db() -> None:
                 cashfree_order_id TEXT,
                 payment_method TEXT,
                 subscription_status TEXT DEFAULT 'inactive',
-                subscription_expires_at REAL
+                subscription_expires_at REAL,
+                last_seen_at REAL
             );
             CREATE TABLE IF NOT EXISTS sessions (
                 token_hash TEXT PRIMARY KEY,
@@ -180,6 +181,23 @@ def init_db() -> None:
                 session_expires_at REAL
             );
             INSERT OR IGNORE INTO admin_auth_state (id, failed_attempts, locked_until) VALUES ('current', 0, 0);
+            CREATE TABLE IF NOT EXISTS admin_challenges (
+                id TEXT PRIMARY KEY,
+                email TEXT NOT NULL,
+                client_ip TEXT NOT NULL,
+                otp_hash TEXT NOT NULL,
+                expires_at REAL NOT NULL,
+                attempts INTEGER NOT NULL DEFAULT 0,
+                UNIQUE(email, client_ip)
+            );
+            CREATE TABLE IF NOT EXISTS admin_sessions (
+                id TEXT PRIMARY KEY,
+                token_hash TEXT NOT NULL UNIQUE,
+                email TEXT NOT NULL,
+                client_ip TEXT NOT NULL,
+                created_at REAL NOT NULL,
+                expires_at REAL NOT NULL
+            );
             CREATE TABLE IF NOT EXISTS admin_auth_attempts (
                 client_ip TEXT PRIMARY KEY,
                 failed_attempts INTEGER NOT NULL DEFAULT 0,
@@ -213,6 +231,7 @@ def init_db() -> None:
             ("payment_method", "TEXT"),
             ("subscription_status", "TEXT DEFAULT 'inactive'"),
             ("subscription_expires_at", "REAL"),
+            ("last_seen_at", "REAL"),
         ]:
             try:
                 connection.execute(f"ALTER TABLE users ADD COLUMN {col_name} {col_sql}")
@@ -326,6 +345,7 @@ def create_session_for_user(user_id: str) -> dict:
         expires_at = time.time() + (14 * 24 * 3600)
         token_hash = hashlib.sha256(token.encode()).hexdigest()
         connection.execute("INSERT INTO sessions VALUES (?, ?, ?)", (token_hash, user["id"], expires_at))
+        connection.execute("UPDATE users SET last_seen_at = ? WHERE id = ?", (time.time(), user["id"]))
         connection.commit()
         return {
             "token": token,
@@ -346,6 +366,7 @@ def create_session(email: str, password: str) -> dict:
         expires_at = time.time() + (14 * 24 * 3600)  # 14 days session
         token_hash = hashlib.sha256(token.encode()).hexdigest()
         connection.execute("INSERT INTO sessions VALUES (?, ?, ?)", (token_hash, user["id"], expires_at))
+        connection.execute("UPDATE users SET last_seen_at = ? WHERE id = ?", (time.time(), user["id"]))
         connection.commit()
         return {
             "token": token,
@@ -774,12 +795,13 @@ def get_user_tier(user_id: str | None) -> str:
     if not user_id:
         return "free"
     with closing(connect()) as connection:
-        row = connection.execute("SELECT tier, subscription_status FROM users WHERE id = ?", (user_id,)).fetchone()
+        row = connection.execute("SELECT tier, subscription_status, subscription_expires_at FROM users WHERE id = ?", (user_id,)).fetchone()
         if not row:
             return "free"
         tier = (row["tier"] or "free").lower()
         status = (row["subscription_status"] or "").lower()
-        if tier in PAID_TIERS and status in ("active", "trialing", ""):
+        expiration = row["subscription_expires_at"]
+        if tier in PAID_TIERS and status in ("active", "trialing", "") and (expiration is None or expiration > time.time()):
             return tier
         return "free"
 
@@ -808,6 +830,35 @@ def set_user_tier(
             """,
             (tier, status, customer_id, cashfree_order_id, payment_method, expires_at, user_id)
         )
+        connection.commit()
+
+
+def settle_billing_order(user_id: str, order_id: str, tier: str, method: str, payment: dict) -> bool:
+    now = time.time()
+    expiration = now + 86400 if tier == "exam_pass" else None
+    with closing(connect()) as connection:
+        connection.execute("BEGIN IMMEDIATE")
+        if not connection.execute("SELECT 1 FROM users WHERE id = ?", (user_id,)).fetchone():
+            return False
+        marker = connection.execute(
+            """INSERT OR IGNORE INTO billing_events (id, event_type, customer_id, payload, created_at)
+               VALUES (?, 'cashfree.order_verified', ?, ?, ?)""",
+            (f"{order_id}:verified", user_id, json.dumps(payment), now),
+        )
+        if marker.rowcount:
+            connection.execute(
+                """UPDATE users SET tier = ?, subscription_status = 'active',
+                   subscription_expires_at = ?, payment_customer_id = ?, cashfree_order_id = ?, payment_method = ?
+                   WHERE id = ?""",
+                (tier, expiration, user_id, order_id, method, user_id),
+            )
+        connection.commit()
+    return True
+
+
+def attach_billing_order(user_id: str, order_id: str) -> None:
+    with closing(connect()) as connection:
+        connection.execute("UPDATE users SET cashfree_order_id = ? WHERE id = ?", (order_id, user_id))
         connection.commit()
 
 
@@ -840,6 +891,31 @@ def increment_daily_usage(subject: str, date_str: str | None = None) -> int:
             (subject, date_str)
         ).fetchone()
         return int(row["count"]) if row else 1
+
+
+def reserve_daily_usage(subject: str, limit: int | None, date_str: str) -> int | None:
+    with closing(connect()) as connection:
+        cursor = connection.execute(
+            """INSERT INTO user_usage (subject, usage_date, count)
+               VALUES (?, ?, 1)
+               ON CONFLICT(subject, usage_date) DO UPDATE SET count = count + 1
+               WHERE ? IS NULL OR count < ?
+               RETURNING count""",
+            (subject, date_str, limit, limit),
+        )
+        row = cursor.fetchone()
+        cursor.close()
+        connection.commit()
+        return int(row["count"]) if row else None
+
+
+def refund_daily_usage(subject: str, date_str: str) -> None:
+    with closing(connect()) as connection:
+        connection.execute(
+            "UPDATE user_usage SET count = count - 1 WHERE subject = ? AND usage_date = ? AND count > 0",
+            (subject, date_str),
+        )
+        connection.commit()
 
 
 EDU_EMAIL_PATTERNS = (".edu", ".ac.in", ".edu.in", ".ac.uk", ".ernet.in")
@@ -957,8 +1033,16 @@ def authenticate(token: str | None) -> str | None:
             "SELECT user_id, expires_at FROM sessions WHERE token_hash = ?",
             (token_hash,)
         ).fetchone()
-        if not row or row["expires_at"] < time.time():
+        now = time.time()
+        if not row or row["expires_at"] < now:
             return None
+        user = connection.execute("SELECT last_seen_at FROM users WHERE id = ?", (row["user_id"],)).fetchone()
+        if user and (user["last_seen_at"] or 0) < now - 60:
+            connection.execute(
+                "UPDATE users SET last_seen_at = ? WHERE id = ? AND COALESCE(last_seen_at, 0) < ?",
+                (now, row["user_id"], now - 60),
+            )
+            connection.commit()
         return row["user_id"]
 
 
@@ -1283,16 +1367,54 @@ def admin_get_all_users(limit: int = 500) -> list[dict]:
     """Return all registered users with basic profile data."""
     with closing(connect()) as connection:
         rows = connection.execute(
-            """SELECT u.id, u.email, u.tier, u.created_at, u.subscription_status,
-                      MAX(uu.usage_date) AS last_active_date
-               FROM users u
-               LEFT JOIN user_usage uu ON uu.subject = u.id
-               GROUP BY u.id
-               ORDER BY u.created_at DESC
-               LIMIT ?""",
+            """SELECT u.id, u.email, u.tier, u.created_at, u.subscription_status, u.last_seen_at,
+                      MAX(
+                          COALESCE(u.last_seen_at, 0),
+                          COALESCE((SELECT MAX(a.created_at) FROM audit_logs a
+                                    WHERE a.email = u.email AND a.event_type IN ('login_success', 'signup_success')), 0),
+                          COALESCE((SELECT MAX(j.created_at) FROM jobs j WHERE j.user_id = u.id), 0)
+                      ) AS last_active_at,
+                      (SELECT MAX(uu.usage_date) FROM user_usage uu
+                       WHERE uu.subject = 'user:' || u.id AND uu.count > 0) AS last_active_date
+               FROM users u ORDER BY u.created_at DESC LIMIT ?""",
             (limit,)
         ).fetchall()
     return [dict(r) for r in rows]
+
+
+def admin_update_user_access(user_id: str, actor: str, client_ip: str, tier: str | None = None) -> bool:
+    if tier is not None and tier not in ("free", *PAID_TIERS):
+        raise ValueError("Unknown plan.")
+    now = time.time()
+    with closing(connect()) as connection:
+        connection.execute("BEGIN IMMEDIATE")
+        user = connection.execute("SELECT email, tier FROM users WHERE id = ?", (user_id,)).fetchone()
+        if not user:
+            return False
+        if tier is None:
+            connection.execute(
+                """DELETE FROM user_usage WHERE subject = ? AND usage_date = ?
+                   OR subject IN (?, ?) AND usage_date = ?""",
+                (f"user:{user_id}", datetime.date.today().isoformat(),
+                 f"dev_api:{user_id}", f"dev_ai:{user_id}", _utc_today_str()),
+            )
+            event = "admin_usage_reset"
+            details = f"{actor} reset today's web and API usage."
+        else:
+            expiration = now + 86400 if tier == "exam_pass" else None
+            connection.execute(
+                "UPDATE users SET tier = ?, subscription_status = ?, subscription_expires_at = ? WHERE id = ?",
+                (tier, "inactive" if tier == "free" else "active", expiration, user_id),
+            )
+            event = "admin_plan_changed"
+            details = f"{actor} changed plan from {user['tier']} to {tier}."
+        connection.execute(
+            """INSERT INTO audit_logs (id, event_type, user_id, email, ip_address, details, created_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (uuid.uuid4().hex, event, user_id, user["email"], client_ip, details, now),
+        )
+        connection.commit()
+    return True
 
 
 def admin_get_waitlist(limit: int = 1000) -> list[dict]:
@@ -1386,104 +1508,93 @@ def _admin_otp_digest(otp_code: str) -> str:
     ).hexdigest()
 
 
-def set_admin_pending_otp(otp_code: str, expires_in: int = 600) -> None:
-    """Stores a keyed OTP digest with expiration (default 10 minutes)."""
+def set_admin_pending_otp(otp_code: str, email: str, client_ip: str, expires_in: int = 600) -> str:
+    challenge_id = secrets.token_urlsafe(32)
     now = time.time()
-    otp_hash = _admin_otp_digest(otp_code)
     with closing(connect()) as connection:
+        connection.execute("DELETE FROM admin_challenges WHERE expires_at <= ?", (now,))
         connection.execute(
-            """INSERT INTO admin_auth_state (id, pending_otp_hash, otp_expires_at)
-               VALUES ('current', ?, ?)
-               ON CONFLICT(id) DO UPDATE SET
-                   pending_otp_hash = excluded.pending_otp_hash,
-                   otp_expires_at = excluded.otp_expires_at""",
-            (otp_hash, now + expires_in)
+            """INSERT INTO admin_challenges (id, email, client_ip, otp_hash, expires_at)
+               VALUES (?, ?, ?, ?, ?)
+               ON CONFLICT(email, client_ip) DO UPDATE SET
+                   id = excluded.id, otp_hash = excluded.otp_hash,
+                   expires_at = excluded.expires_at, attempts = 0""",
+            (challenge_id, email, _admin_ip_key(client_ip), _admin_otp_digest(otp_code), now + expires_in),
         )
+        connection.commit()
+    return challenge_id
+
+
+def clear_admin_pending_otp(challenge_id: str) -> None:
+    with closing(connect()) as connection:
+        connection.execute("DELETE FROM admin_challenges WHERE id = ?", (challenge_id,))
         connection.commit()
 
 
-def clear_admin_pending_otp() -> None:
-    """Clear any outstanding owner OTP when delivery fails or authentication is reset."""
-    with closing(connect()) as connection:
-        connection.execute(
-            "UPDATE admin_auth_state SET pending_otp_hash = NULL, otp_expires_at = 0 WHERE id = 'current'"
-        )
-        connection.commit()
-
-
-def verify_admin_otp(otp_code: str) -> bool:
-    """Validates the pending OTP using constant-time comparison and single-use consumption."""
-    now = time.time()
-    clean_code = str(otp_code).strip()
-    if not clean_code:
-        return False
-    otp_hash = _admin_otp_digest(clean_code)
+def verify_admin_otp(otp_code: str, challenge_id: str, client_ip: str) -> str | None:
+    if not re.fullmatch(r"[0-9]{6}", otp_code) or not re.fullmatch(r"[A-Za-z0-9_-]{43}", challenge_id):
+        return None
     with closing(connect()) as connection:
         connection.execute("BEGIN IMMEDIATE")
         row = connection.execute(
-            "SELECT pending_otp_hash, otp_expires_at FROM admin_auth_state WHERE id = 'current'"
+            """SELECT email, otp_hash, attempts FROM admin_challenges
+               WHERE id = ? AND client_ip = ? AND expires_at > ?""",
+            (challenge_id, _admin_ip_key(client_ip), time.time()),
         ).fetchone()
-        if not row or not row["pending_otp_hash"]:
-            connection.rollback()
-            return False
-        if row["otp_expires_at"] < now:
-            connection.rollback()
-            return False
-        if not hmac.compare_digest(row["pending_otp_hash"], otp_hash):
-            connection.rollback()
-            return False
-        # Invalidate OTP on successful use
-        connection.execute(
-            "UPDATE admin_auth_state SET pending_otp_hash = NULL, otp_expires_at = 0 WHERE id = 'current'"
-        )
+        if not row:
+            return None
+        verified = hmac.compare_digest(row["otp_hash"], _admin_otp_digest(otp_code))
+        if verified or row["attempts"] >= 2:
+            connection.execute("DELETE FROM admin_challenges WHERE id = ?", (challenge_id,))
+        else:
+            connection.execute("UPDATE admin_challenges SET attempts = attempts + 1 WHERE id = ?", (challenge_id,))
         connection.commit()
-        return True
+        return row["email"] if verified else None
 
 
-def create_admin_session(ttl_seconds: int = 14400) -> str:
-    """Generates a secure 64-char session token (4-hour validity) for authenticated admin operations."""
+def create_admin_session(email: str, client_ip: str = "unknown", ttl_seconds: int = 14400) -> str:
     token = secrets.token_hex(32)
-    token_hash = hashlib.sha256(token.encode()).hexdigest()
     now = time.time()
     with closing(connect()) as connection:
+        connection.execute("DELETE FROM admin_sessions WHERE expires_at <= ?", (now,))
         connection.execute(
-            """INSERT INTO admin_auth_state (id, session_token_hash, session_expires_at)
-               VALUES ('current', ?, ?)
-               ON CONFLICT(id) DO UPDATE SET
-                   session_token_hash = excluded.session_token_hash,
-                   session_expires_at = excluded.session_expires_at,
-                   failed_attempts = 0,
-                   locked_until = 0""",
-            (token_hash, now + ttl_seconds)
+            """INSERT INTO admin_sessions (id, token_hash, email, client_ip, created_at, expires_at)
+               VALUES (?, ?, ?, ?, ?, ?)""",
+            (uuid.uuid4().hex, hashlib.sha256(token.encode()).hexdigest(), email,
+             _admin_ip_key(client_ip), now, now + ttl_seconds),
         )
         connection.commit()
     return token
 
 
-def verify_admin_session(token: str) -> bool:
-    """Validates an active admin session token."""
-    if not token or len(token) < 32:
-        return False
-    token_hash = hashlib.sha256(token.strip().encode()).hexdigest()
-    now = time.time()
+def get_admin_session(token: str) -> dict | None:
+    if not re.fullmatch(r"[0-9a-f]{64}", token):
+        return None
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
     with closing(connect()) as connection:
         row = connection.execute(
-            "SELECT session_token_hash, session_expires_at FROM admin_auth_state WHERE id = 'current'"
+            """SELECT id, email, client_ip, created_at, expires_at FROM admin_sessions
+               WHERE token_hash = ? AND expires_at > ?""",
+            (token_hash, time.time()),
         ).fetchone()
-        if not row or not row["session_token_hash"]:
-            return False
-        if row["session_expires_at"] < now:
-            return False
-        return hmac.compare_digest(row["session_token_hash"], token_hash)
+    return dict(row) if row else None
 
 
-def revoke_admin_session() -> None:
-    """Invalidates the admin session on logout."""
+def list_admin_sessions() -> list[dict]:
     with closing(connect()) as connection:
-        connection.execute(
-            "UPDATE admin_auth_state SET session_token_hash = NULL, session_expires_at = 0 WHERE id = 'current'"
-        )
+        rows = connection.execute(
+            """SELECT id, email, client_ip, created_at, expires_at FROM admin_sessions
+               WHERE expires_at > ? ORDER BY created_at DESC""",
+            (time.time(),),
+        ).fetchall()
+    return [dict(row) for row in rows]
+
+
+def revoke_admin_session(session_id: str) -> bool:
+    with closing(connect()) as connection:
+        changed = connection.execute("DELETE FROM admin_sessions WHERE id = ?", (session_id,)).rowcount
         connection.commit()
+    return bool(changed)
 
 
 def admin_get_extended_analytics() -> dict:
@@ -1783,6 +1894,18 @@ def admin_get_revenue_analytics() -> dict:
     user_by_order = {str(row["cashfree_order_id"]): dict(row) for row in user_rows if row["cashfree_order_id"]}
     user_by_id = {str(row["id"]): dict(row) for row in user_rows}
     user_by_customer = {str(row["payment_customer_id"]): dict(row) for row in user_rows if row["payment_customer_id"]}
+    order_sources: dict[str, str] = {}
+    order_tiers: dict[str, str] = {}
+    for event in event_rows:
+        if event["event_type"] not in {"cashfree.order_created", "cashfree.demo_order_activated"}:
+            continue
+        try:
+            created = json.loads(event["payload"] or "{}")
+        except (TypeError, ValueError):
+            continue
+        if isinstance(created, dict):
+            order_sources[event["id"]] = str(created.get("gateway_environment") or "").upper()
+            order_tiers[event["id"]] = created.get("tier")
     verified_orders: dict[str, dict] = {}
     accepted_types = {
         "cashfree.order_verified", "payment_success_webhook", "cashfree.payment_success_webhook",
@@ -1808,7 +1931,7 @@ def admin_get_revenue_analytics() -> dict:
             payment.get("payment_status") or order.get("order_status")
             or payload.get("payment_status") or payload.get("order_status") or ""
         ).strip().lower()
-        if status and status not in {"paid", "success", "successful", "payment_success"}:
+        if payload.get("matches_checkout") is False or status not in {"paid", "success", "successful", "payment_success"}:
             continue
 
         order_id = str(
@@ -1829,17 +1952,20 @@ def admin_get_revenue_analytics() -> dict:
         if not currency_raw:
             continue
         currency = str(currency_raw).upper()
-        if amount <= 0 or currency != "INR":
+        if not amount.is_finite() or amount <= 0 or currency != "INR":
             continue
         associated_user = user_by_order.get(order_id)
         customer_id = str(event["customer_id"] or "")
         associated_user = associated_user or user_by_id.get(customer_id) or user_by_customer.get(customer_id)
         associated_user_id = associated_user["id"] if associated_user else None
+        source = order_sources.get(order_id) or str(payload.get("gateway_environment") or "").upper()
+        source = source if source in {"PROD", "TEST", "SIMULATION"} else "UNKNOWN"
         verified_orders.setdefault(order_id, {
             "customer_id": customer_id or (associated_user["id"] if associated_user else None),
             "user_id": associated_user_id,
             "email": associated_user["email"] if associated_user else None,
-            "tier": associated_user["tier"] if associated_user else None,
+            "tier": order_tiers.get(order_id) or (associated_user["tier"] if associated_user else None),
+            "gateway_environment": source,
             "order_id": order_id,
             "amount": amount,
             "created_at": float(event["created_at"] or 0),
@@ -1847,7 +1973,10 @@ def admin_get_revenue_analytics() -> dict:
             "status": "Paid",
         })
 
-    gross = sum((row["amount"] for row in verified_orders.values()), Decimal("0.00"))
+    totals = {source: Decimal("0.00") for source in ("PROD", "TEST", "SIMULATION", "UNKNOWN")}
+    for row in verified_orders.values():
+        totals[row["gateway_environment"]] += row["amount"]
+    gross = totals["PROD"]
     fee_percent = Decimal(str(PAYMENT_GATEWAY_FEE_PERCENT))
     gst_percent = Decimal(str(PAYMENT_GATEWAY_FEE_GST_PERCENT))
     fee_rate = (fee_percent / Decimal(100)) * (Decimal(1) + gst_percent / Decimal(100))
@@ -1857,7 +1986,7 @@ def admin_get_revenue_analytics() -> dict:
         {key: (float(value) if key == "amount" else value) for key, value in row.items() if key != "user_id"}
         for row in sorted(verified_orders.values(), key=lambda item: item["created_at"], reverse=True)[:20]
     ]
-    verified_user_ids = {str(row["user_id"]) for row in verified_orders.values() if row["user_id"]}
+    verified_user_ids = {str(row["user_id"]) for row in verified_orders.values() if row["user_id"] and row["gateway_environment"] == "PROD"}
     paying_users = [dict(row) for row in paid_users_rows if str(row["id"]) in verified_user_ids]
 
     return {
@@ -1868,7 +1997,9 @@ def admin_get_revenue_analytics() -> dict:
         "gateway_fee_rate_percent": round(float(fee_rate * Decimal(100)), 4),
         "estimated_gateway_fees_inr": float(estimated_fee),
         "net_bank_payout_inr": float(estimated_net),
-        "revenue_basis": "Verified paid INR orders, deduplicated by order ID; refunds and settlement timing are not included.",
+        "sandbox_gross_inr": float(totals["TEST"]),
+        "unclassified_gross_inr": float(totals["UNKNOWN"]),
+        "revenue_basis": "Verified production INR orders only. Sandbox and unclassified history are shown separately. Estimates exclude refunds, disputes, and settlement adjustments.",
         "paying_users": paying_users,
         "recent_transactions": transactions,
     }

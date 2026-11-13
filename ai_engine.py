@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+from html import escape
 import json
 import math
 import os
@@ -688,26 +689,33 @@ def _provider_request(system_prompt: str, user_prompt: str, credentials: dict[st
 
     body = json.dumps(payload).encode("utf-8")
     data = None
+    provider_host = urllib.parse.urlsplit(endpoint).hostname
     for attempt in range(2):
         request = urllib.request.Request(endpoint, data=body, headers=headers)
         try:
+            started = time.monotonic()
             with _open_ai_request(request, timeout=timeout) as response:
                 data = json.loads(response.read().decode("utf-8"))
+                logger.debug("AI provider host=%s attempt=%d timeout=%.1fs HTTP=%s elapsed=%.1fs",
+                             provider_host, attempt + 1, timeout, getattr(response, "status", None),
+                             time.monotonic() - started)
             break
         except urllib.error.HTTPError as error:
-            logger.warning("AI provider returned HTTP %s", error.code)
+            logger.warning("AI provider host=%s attempt=%d timeout=%.1fs HTTP=%s",
+                           provider_host, attempt + 1, timeout, error.code)
             if attempt == 0 and error.code in (408, 429, 500, 502, 503, 504):
                 time.sleep(0.4)
                 continue
             raise RuntimeError(f"AI service returned HTTP {error.code}. Please try again.") from error
         except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as error:
-            logger.warning("AI provider connection failed: %s", type(error).__name__)
+            logger.warning("AI provider host=%s attempt=%d timeout=%.1fs failure=%s",
+                           provider_host, attempt + 1, timeout, type(error).__name__)
             if attempt == 0:
                 time.sleep(0.4)
                 continue
             raise RuntimeError("AI service could not be reached or timed out. Please try again.") from error
-    if data is None:
-        raise RuntimeError("AI service could not complete the request. Please try again.")
+    if not isinstance(data, dict):
+        raise RuntimeError("AI service returned an invalid response. Please try again.")
 
     if provider == "anthropic":
         content = data.get("content", [])
@@ -1082,17 +1090,32 @@ def _guard_ai_output(answer: str) -> str:
     return answer
 
 
+SUMMARY_PAGE_LIMIT = 120
+SUMMARY_CALL_TIMEOUT_SECONDS = 55.0
+DOCUMENT_AI_BUDGET_SECONDS = 275.0
+
+
+def _bounded_document_timeout(deadline: float, call_timeout: float) -> float:
+    # Account for both attempts and backoff in the transport.
+    remaining = deadline - time.monotonic()
+    if remaining < 12:
+        raise RuntimeError("The AI provider timed out before the document was complete. Please retry later.")
+    return min(call_timeout, (remaining - 1) / 2)
+
+
 def summarize_pdf(pdf_path: Path, max_pages: int | None = None) -> str:
     """Summarizes document into executive overview and bulleted key takeaways."""
-    doc = fitz.open(str(pdf_path))
-    page_limit = min(doc.page_count, max_pages) if max_pages and max_pages > 0 else doc.page_count
-    page_budget = max(300, min(1500, 22000 // max(1, page_limit)))
-    page_texts: list[tuple[int, str]] = []
-    for page in list(doc)[:page_limit]:
-        t = page.get_text("text").strip()
-        if t:
-            page_texts.append((page.number + 1, t[:page_budget]))
-    doc.close()
+    deadline = time.monotonic() + DOCUMENT_AI_BUDGET_SECONDS
+    with fitz.open(str(pdf_path)) as doc:
+        page_limit = min(doc.page_count, max_pages) if max_pages and max_pages > 0 else doc.page_count
+        if page_limit > SUMMARY_PAGE_LIMIT:
+            raise ValueError(f"Executive Brief accepts up to {SUMMARY_PAGE_LIMIT} pages. Split the PDF and try again.")
+        page_budget = max(250, min(1500, 22000 // max(1, page_limit)))
+        page_texts: list[tuple[int, str]] = []
+        for number in range(page_limit):
+            page_text = doc[number].get_text("text").strip()
+            if page_text:
+                page_texts.append((number + 1, page_text[:page_budget]))
 
     if not page_texts:
         return "The document contains no extractable text."
@@ -1104,7 +1127,7 @@ def summarize_pdf(pdf_path: Path, max_pages: int | None = None) -> str:
     )
     if len(page_texts) <= 24:
         full_text = "\n\n".join(f"--- Page {number} ---\n{text}" for number, text in page_texts)
-        summary = call_llm(system_prompt, f"DOCUMENT CONTENT:\n\n{full_text}", timeout_seconds=50)
+        summary = call_llm(system_prompt, f"DOCUMENT CONTENT:\n\n{full_text}", timeout_seconds=_bounded_document_timeout(deadline, SUMMARY_CALL_TIMEOUT_SECONDS))
     else:
         # Long documents are summarized in bounded, page-labelled sections so
         # one provider request does not have to fit the whole source at once.
@@ -1119,7 +1142,8 @@ def summarize_pdf(pdf_path: Path, max_pages: int | None = None) -> str:
                 "Return concise key facts, decisions, dates, amounts, and themes from this section. "
                 "Ground each item in the supplied text and preserve its [Page N] citation. Do not invent facts."
             )
-            note = call_llm(system_prompt, chunk_prompt, timeout_seconds=35).strip()
+            timeout = _bounded_document_timeout(deadline, SUMMARY_CALL_TIMEOUT_SECONDS)
+            note = call_llm(system_prompt, chunk_prompt, timeout_seconds=timeout).strip()
             if not note:
                 raise RuntimeError(f"AI service returned an empty summary for pages {first_page}-{last_page}.")
             chunk_notes.append(note)
@@ -1128,7 +1152,8 @@ def summarize_pdf(pdf_path: Path, max_pages: int | None = None) -> str:
             "the most useful key takeaways. Preserve source citations from the notes exactly and do not "
             "introduce facts that the notes do not support.\n\n" + "\n\n".join(chunk_notes)
         )
-        summary = call_llm(system_prompt, final_prompt, timeout_seconds=35)
+        timeout = _bounded_document_timeout(deadline, SUMMARY_CALL_TIMEOUT_SECONDS)
+        summary = call_llm(system_prompt, final_prompt, timeout_seconds=timeout)
 
     summary = _guard_ai_output(summary)
     eligible_pages = {page_number for page_number, _ in page_texts}
@@ -1356,9 +1381,9 @@ def extract_metadata_entities(pdf_path: Path, doc_type: str = "auto") -> dict:
     - general: title, document_date, detected_topics, key_entities
     Includes contact, source_pages, honest warnings, and clean RFC-4180 csv_export.
     """
-    doc = fitz.open(str(pdf_path))
-    total_pages = len(doc)
-    page_texts = [page.get_text("text") for page in doc]
+    with fitz.open(str(pdf_path)) as doc:
+        total_pages = len(doc)
+        page_texts = [page.get_text("text") for page in doc]
     full_text = "\n".join(page_texts)
 
     # Detect document type if auto
@@ -1384,7 +1409,6 @@ def extract_metadata_entities(pdf_path: Path, doc_type: str = "auto") -> dict:
 
     upstream_result = _extract_metadata_with_agentrouter(full_text, doc_type, total_pages)
     if upstream_result:
-        doc.close()
         return upstream_result
 
     # Contact extraction
@@ -1617,11 +1641,10 @@ def extract_metadata_entities(pdf_path: Path, doc_type: str = "auto") -> dict:
     extracted["source_pages"] = sorted(list(source_pages)) if source_pages else [1]
     extracted["warnings"] = warnings
     extracted["csv_export"] = _generate_clean_csv(extracted)
-    doc.close()
     return extracted
 
 
-TRANSLATION_CALL_TIMEOUT_SECONDS = 6.0
+TRANSLATION_CALL_TIMEOUT_SECONDS = 30.0
 TRANSLATION_MAX_BLOCKS = 120
 TRANSLATION_BATCH_SIZE = 8
 
@@ -1669,6 +1692,7 @@ def _parse_translation_batch(response: str, expected_ids: list[int]) -> dict[int
 def _translate_text_batch(
     blocks: list[tuple[int, str]],
     target_language: str,
+    deadline: float | None = None,
 ) -> dict[int, str]:
     """Translate a bounded page batch or raise a safe provider failure class."""
     if not blocks or AI_KILL_SWITCH or not _current_bluesminds_api_key():
@@ -1681,10 +1705,13 @@ def _translate_text_batch(
         '{"translations":[{"id":1,"text":"..."}]}. Preserve item ids, meaning, numbers, and line breaks.'
     )
     try:
+        timeout = TRANSLATION_CALL_TIMEOUT_SECONDS
+        if deadline is not None:
+            timeout = _bounded_document_timeout(deadline, timeout)
         response = call_llm(
             system_prompt,
             json.dumps(payload, ensure_ascii=False),
-            timeout_seconds=TRANSLATION_CALL_TIMEOUT_SECONDS,
+            timeout_seconds=timeout,
         )
     except Exception as error:
         # call_bluesminds performs one bounded retry with backoff for transient
@@ -1719,114 +1746,81 @@ def translate_pdf_layout(
     4. Overlays translated text into the exact coordinates with auto-scaled typography.
     """
     target_language = target_lang or target_language
-    doc = fitz.open(str(pdf_path))
-    out_doc = fitz.open()
-
+    deadline = time.monotonic() + DOCUMENT_AI_BUDGET_SECONDS
     report_data = report if report is not None else {}
     report_data.update({
         "target_language": target_language,
-        "pages_seen": len(doc),
+        "pages_seen": 0,
         "blocks_seen": 0,
         "blocks_translated": 0,
         "blocks_preserved": 0,
         "fallback_used": False,
         "warnings": [],
     })
-    translated_block_count = 0
-
-    for page in doc:
-        rect = page.rect
-        new_page = out_doc.new_page(width=rect.width, height=rect.height)
-        # Re-render background visual elements
-        new_page.show_pdf_page(new_page.rect, doc, page.number)
-
-        blocks = page.get_text("blocks")
-        text_blocks: list[tuple[int, fitz.Rect, str]] = []
-        for b in blocks:
-            # b = (x0, y0, x1, y1, text, block_no, block_type)
-            if len(b) >= 7 and b[6] == 0:  # Text block
-                block_rect = fitz.Rect(b[0], b[1], b[2], b[3])
-                original_text = b[4].strip()
-                if not original_text or len(original_text) < 2:
+    with fitz.open(str(pdf_path)) as doc, fitz.open() as out_doc, fitz.open() as overlays:
+        report_data["pages_seen"] = doc.page_count
+        blocks: list[tuple[int, fitz.Rect, str]] = []
+        for page in doc:
+            for block in page.get_text("blocks"):
+                if len(block) < 7 or block[6] != 0 or len(block[4].strip()) < 2:
                     continue
                 report_data["blocks_seen"] += 1
-                text_blocks.append((len(text_blocks), block_rect, original_text))
+                # Preserve the full source of any block we cannot safely fit in a request.
+                if len(block[4].strip()) <= 1600 and len(blocks) < TRANSLATION_MAX_BLOCKS:
+                    blocks.append((page.number, fitz.Rect(block[:4]), block[4].strip()))
 
-        page_translations: dict[int, str] = {}
-        for batch_start in range(0, len(text_blocks), TRANSLATION_BATCH_SIZE):
-            if translated_block_count >= TRANSLATION_MAX_BLOCKS:
-                break
-            batch = text_blocks[batch_start:batch_start + TRANSLATION_BATCH_SIZE]
-            remaining = TRANSLATION_MAX_BLOCKS - translated_block_count
-            batch = batch[:remaining]
+        translated: dict[int, str] = {}
+        for start in range(0, len(blocks), TRANSLATION_BATCH_SIZE):
+            batch = [
+                (index, blocks[index][2])
+                for index in range(start, min(start + TRANSLATION_BATCH_SIZE, len(blocks)))
+            ]
             try:
-                translated = _translate_text_batch(
-                    [(block_id, text) for block_id, _, text in batch],
-                    target_language,
-                )
-            except Exception as error:
+                translated.update(_translate_text_batch(batch, target_language, deadline=deadline))
+            except RuntimeError as error:
                 report_data["fallback_used"] = True
                 report_data["warnings"].append(str(error))
-                out_doc.close()
-                doc.close()
                 raise
-            if translated:
-                page_translations.update(translated)
-                translated_block_count += len(translated)
-            elif batch:
-                report_data["fallback_used"] = True
 
-        if len(text_blocks) > TRANSLATION_MAX_BLOCKS:
-            report_data["fallback_used"] = True
-            report_data["warnings"].append(
-                f"Translation capped at {TRANSLATION_MAX_BLOCKS} text blocks; remaining source text was preserved."
-            )
+        for source_page in doc:
+            page = out_doc.new_page(width=source_page.rect.width, height=source_page.rect.height)
+            if source_page.get_contents():
+                page.show_pdf_page(page.rect, doc, source_page.number)
 
-        for block_id, block_rect, original_text in text_blocks:
-            translated_text = page_translations.get(block_id)
-            if not translated_text:
-                # Never paint over the source text when a provider returns a
-                # timeout, prose, malformed JSON, or no translation at all.
-                report_data["blocks_preserved"] += 1
+        placed = []
+        for index, translation in translated.items():
+            number, bounds, _ = blocks[index]
+            bounds &= out_doc[number].rect
+            if bounds.is_empty:
                 continue
+            overlay = overlays.new_page(width=bounds.width, height=bounds.height)
+            # MuPDF's HTML renderer uses shaped Unicode fonts, including Devanagari.
+            spare, _ = overlay.insert_htmlbox(
+                overlay.rect,
+                escape(translation).replace("\n", "<br>"),
+                css="body { margin: 0; font: 10pt sans-serif; color: #19202a; }",
+                scale_low=0.45,
+            )
+            if spare < 0:
+                continue
+            placed.append((number, bounds, overlay.number))
 
-            # Blank out original text area with clean white mask only after a
-            # valid batch translation was parsed.
-            new_page.draw_rect(block_rect, color=(1, 1, 1), fill=(1, 1, 1))
+        # Complete the source document before grafting pages out of it.
+        for number, bounds, overlay_number in placed:
+            page = out_doc[number]
+            page.draw_rect(bounds, color=None, fill=(1, 1, 1))
+            page.show_pdf_page(bounds, overlays, overlay_number, keep_proportion=False)
             report_data["blocks_translated"] += 1
 
-            # Calculate appropriate font size to fit inside the bounding box.
-            box_height = block_rect.height
-            line_count = max(1, len(translated_text.split()))
-            est_fontsize = min(11, max(7, box_height / max(1, (line_count / 5))))
-
-            # Insert translated text into exact bounding box.
-            rc = new_page.insert_textbox(
-                block_rect,
-                translated_text,
-                fontsize=est_fontsize,
-                fontname="helv",
-                color=(0.1, 0.12, 0.15),
-                align=fitz.TEXT_ALIGN_LEFT
+        report_data["blocks_preserved"] = report_data["blocks_seen"] - report_data["blocks_translated"]
+        if report_data["blocks_preserved"]:
+            report_data["fallback_used"] = True
+            report_data["warnings"].append(
+                "Some source blocks were preserved because the translation was missing or could not fit."
             )
-            if rc < 0:  # If overflowed, try with smaller font
-                new_page.insert_textbox(
-                    block_rect,
-                    translated_text,
-                    fontsize=6,
-                    fontname="helv",
-                    color=(0.1, 0.12, 0.15)
-                )
-
-    if translated_block_count == 0:
-        report_data["fallback_used"] = True
-        report_data["warnings"].append(
-            "No text blocks were translated. No translated document was produced; source text must not be presented as a translation."
-        )
-        out_doc.close()
-        doc.close()
-        raise RuntimeError("No text was translated. The translation service did not produce a translated PDF; please retry later.")
-    out_doc.save(str(output_path), garbage=4, deflate=True)
-    out_doc.close()
-    doc.close()
+        if not report_data["blocks_translated"]:
+            report_data["fallback_used"] = True
+            report_data["warnings"].append("No text blocks were translated.")
+            raise RuntimeError("No text was translated. The translation service did not produce a translated PDF; please retry later.")
+        out_doc.save(str(output_path), garbage=4, deflate=True)
     return output_path

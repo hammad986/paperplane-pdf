@@ -1,0 +1,82 @@
+{
+  "1": {
+    "status": 504,
+    "detail": "The translation provider timed out or could not be reached. Please retry later.",
+    "provider_budgets_seconds": [
+      6.0,
+      6.0
+    ],
+    "usage_change": 0
+  },
+  "2": {
+    "small_status": 200,
+    "large_status": 502,
+    "detail": "AI service could not be reached or timed out. Please try again.",
+    "provider_budgets_seconds": [
+      50.0,
+      35.0,
+      35.0
+    ]
+  },
+  "4": {
+    "viewer_status": 400,
+    "viewer_detail": "Cloud Import accepts PDF files only. This link returned another file type; use its matching converter instead.",
+    "direct_status": 200,
+    "direct_pages": 3,
+    "paths": [
+      "https://drive.google.com/uc",
+      "https://drive.usercontent.google.com/download"
+    ]
+  },
+  "49": {
+    "fixture_bytes": 4980286,
+    "reorder_status": 200,
+    "export_status": 200,
+    "export_pages": 69,
+    "reorder_content_matches": true,
+    "exhausted_export_status": 402,
+    "quota_detail_is_object": true
+  },
+  "93": {
+    "new_process_same_data_directory_login": true,
+    "compose_database_path": "/data/paperplane.sqlite3"
+  },
+  "102": {
+    "submit_status": 200,
+    "admin_status": 200,
+    "visible_in_second_process": true
+  },
+  "98": {
+    "configured": true,
+    "environment": "TEST",
+    "checkout_statuses": {
+      "exam_pass": 503,
+      "student_pro": 503,
+      "cyber_cafe": 503,
+      "pro": 503,
+      "developer": 503
+    },
+    "simulation_status": 403
+  },
+  "101": {
+    "server_imported_without_admin_variables": true,
+    "nonempty_code_fallback": true,
+    "nonempty_key_fallback": false
+  },
+  "132": {
+    "/dashboard": 404,
+    "/history": 404,
+    "/faq": 404,
+    "/feedback": 404,
+    "/pricing": 404,
+    "/plans": 404
+  },
+  "133": {
+    "status": 200,
+    "same_document_title_as_tool_desk": true
+  },
+  "184": {
+    "198.51.100.10": 1,
+    "203.0.113.20": 1
+  }
+}

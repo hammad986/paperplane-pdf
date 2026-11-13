@@ -81,8 +81,10 @@ def test_active_file_resolution_chain_contract():
 
 def test_cashfree_checkout_contract():
     assert 'https://sdk.cashfree.com/js/v3/cashfree.js' in INDEX
-    assert 'id="pro-cashfree-checkout-btn"' in INDEX
-    assert 'id="dev-cashfree-checkout-btn"' in INDEX
+    for tier in ("exam", "student", "cybercafe"):
+        assert f'id="{tier}-cashfree-checkout-btn"' in INDEX
+    assert 'id="pro-cashfree-checkout-btn"' not in INDEX
+    assert 'id="dev-cashfree-checkout-btn"' not in INDEX
     assert 'id="pro-stripe-checkout-btn"' not in INDEX
     assert 'id="dev-stripe-checkout-btn"' not in INDEX
     assert 'window.Cashfree' in APP
@@ -91,8 +93,8 @@ def test_cashfree_checkout_contract():
     assert 'handleCashfreeReturn' in APP
     assert "Checkout cancelled or payment not completed. No plan change was made." in APP
     assert "!['return', 'success'].includes(billingReturn)" in APP
-    assert '₹250' in INDEX
-    assert '₹750' in INDEX
+    assert '₹250' not in INDEX
+    assert '₹750' not in INDEX
     assert 'Netbanking' in INDEX
 
 

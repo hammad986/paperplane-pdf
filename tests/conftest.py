@@ -1,4 +1,5 @@
 import os
+import secrets
 import tempfile
 from pathlib import Path
 
@@ -20,6 +21,9 @@ for _credential_env in (
     "ADMIN_SECRET_KEY", "ADMIN_SECRET_CODE", "PAPERPLANE_SESSION_SECRET", "SESSION_SECRET_KEY",
 ):
     os.environ.pop(_credential_env, None)
+# Startup requires explicit credentials. These values are generated locally per run.
+os.environ["PAPERPLANE_ADMIN_KEY"] = secrets.token_urlsafe(48)
+os.environ["PAPERPLANE_ADMIN_CODE"] = secrets.token_urlsafe(32)
 # Keep persistent app state from one pytest invocation out of another. Billable
 # local requests update the same daily usage store as the app, so reusing the
 # developer's runtime_data database can make later suite runs fail at quota 100.
@@ -35,5 +39,6 @@ def clear_ai_request_limit_bucket():
 
     persistence.init_db()
     with persistence.connect() as connection:
-        connection.execute("DELETE FROM rate_limits WHERE subject LIKE 'ai-account:%'")
+        connection.execute("DELETE FROM rate_limits WHERE subject LIKE 'ai-account:%' OR subject LIKE 'job-account:%'")
+        connection.execute("DELETE FROM user_usage WHERE subject LIKE 'ip:%'")
         connection.commit()

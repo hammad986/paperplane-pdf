@@ -1,6 +1,7 @@
 # Paperplane PDF Platform — Production Runtime Dependencies
 pypdf>=5.0.0
 PyMuPDF>=1.24.0
+maxminddb>=2.6,<4
 Pillow>=10.0.0
 reportlab>=4.0.0
 fastapi>=0.115.0

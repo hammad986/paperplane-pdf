@@ -69,13 +69,13 @@ def test_each_operation_has_unique_seo_catalog_and_schema_payload():
         assert '"@type": "FAQPage"' in response.text
 
 
-def test_forwarded_proxy_headers_drive_canonical_origin():
+def test_untrusted_forwarded_headers_cannot_change_canonical_origin():
     response = client.get(
         "/word-to-pdf",
         headers={"x-forwarded-proto": "https", "x-forwarded-host": "pdf.example.test"},
     )
     assert response.status_code == 200
-    assert 'href="https://pdf.example.test/word-to-pdf"' in response.text
+    assert 'href="http://testserver/word-to-pdf"' in response.text
 
 
 def test_spa_seo_endpoint_returns_the_same_route_content_model():
@@ -146,7 +146,7 @@ def test_delivery_shell_keeps_heavy_assets_deferred_and_uses_clean_urls():
     launcher = (root / "app.py").read_text(encoding="utf-8")
 
     assert "window.history.pushState({ view: 'desk', op: state.operation }, '', targetPath)" in app_js
-    assert '<script src="/assets/pdf_runtime.js?v=1.0.0" defer></script>' in index_html
+    assert '<script src="/assets/pdf_runtime.js?v=13" defer></script>' in index_html
     assert '<script src="/assets/pdf.min.js" defer></script>' not in index_html
     assert '<script src="/assets/pdf-lib.min.js" defer></script>' not in index_html
     assert "ensurePdfJs" in pdf_runtime_js and "ensurePdfLib" in pdf_runtime_js

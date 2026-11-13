@@ -34,7 +34,7 @@ def admin_audit_db(tmp_path, monkeypatch):
 
 
 def _admin_headers():
-    return {"X-Admin-Session": persistence.create_admin_session()}
+    return {"X-Admin-Session": persistence.create_admin_session(server.PRIMARY_ADMIN_EMAIL)}
 
 
 def _password():
@@ -52,7 +52,7 @@ def test_admin_routes_reject_direct_keys_and_url_credentials_and_hide_contact(ad
 
     assert client.get("/api/admin/dashboard", headers={"X-Admin-Key": admin_key}).status_code == 401
     assert client.get("/api/admin/dashboard", params={"key": admin_key}).status_code == 401
-    token = persistence.create_admin_session()
+    token = persistence.create_admin_session(server.PRIMARY_ADMIN_EMAIL)
     assert client.get("/api/admin/dashboard", params={"session": token}).status_code == 401
 
     status = client.get("/api/admin/auth/status")
@@ -140,7 +140,7 @@ def test_three_factor_admin_flow_issues_only_mfa_session(admin_audit_db, monkeyp
     assert start.status_code == 200
     assert "email" not in start.json()
     assert len(delivered) == 1
-    finish = client.post("/api/admin/auth/step2", json={"otp": delivered[0]})
+    finish = client.post("/api/admin/auth/step2", json={"otp": delivered[0], "challenge": start.json()["challenge"]})
 
     assert finish.status_code == 200
     session_token = finish.json()["session_token"]
@@ -162,11 +162,8 @@ def test_admin_step_one_fails_closed_when_otp_delivery_fails(admin_audit_db, mon
 
     assert response.status_code == 503
     with persistence.connect() as db:
-        row = db.execute(
-            "SELECT pending_otp_hash, otp_expires_at FROM admin_auth_state WHERE id='current'"
-        ).fetchone()
-    assert row["pending_otp_hash"] is None
-    assert row["otp_expires_at"] == 0
+        remaining = db.execute("SELECT count(*) FROM admin_challenges").fetchone()[0]
+    assert remaining == 0
     assert "session_token" not in response.json()
 
 
@@ -245,15 +242,15 @@ def test_transactional_email_templates_escape_untrusted_html_fields(monkeypatch)
 
 def test_admin_otp_is_single_use(admin_audit_db):
     generated_otp = f"{secrets.randbelow(1_000_000):06d}"
-    persistence.set_admin_pending_otp(generated_otp)
+    challenge = persistence.set_admin_pending_otp(generated_otp, server.PRIMARY_ADMIN_EMAIL, "127.0.0.1")
     with persistence.connect() as db:
         stored_digest = db.execute(
-            "SELECT pending_otp_hash FROM admin_auth_state WHERE id='current'"
+            "SELECT otp_hash AS pending_otp_hash FROM admin_challenges WHERE id = ?", (challenge,)
         ).fetchone()[0]
     assert stored_digest != hashlib.sha256(generated_otp.encode()).hexdigest()
     assert stored_digest == persistence._admin_otp_digest(generated_otp)
-    assert persistence.verify_admin_otp(generated_otp) is True
-    assert persistence.verify_admin_otp(generated_otp) is False
+    assert persistence.verify_admin_otp(generated_otp, challenge, "127.0.0.1") == server.PRIMARY_ADMIN_EMAIL
+    assert persistence.verify_admin_otp(generated_otp, challenge, "127.0.0.1") is None
 
 
 def test_admin_lockout_is_per_ip_and_proxy_header_is_overwritten(admin_audit_db):
@@ -470,6 +467,7 @@ def test_revenue_uses_verified_deduplicated_inr_orders_and_configured_fees(admin
     unverified_user = persistence.create_user("unverified-customer@example.test", _password())
     persistence.set_user_tier(unverified_user, tier="pro", status="active")
     verified_payload = {
+        "gateway_environment": "PROD",
         "order": {
             "order_id": "verified-order", "order_amount": 100,
             "order_currency": "INR", "order_status": "PAID",

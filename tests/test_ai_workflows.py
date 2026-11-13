@@ -249,7 +249,8 @@ def test_ai_greetings_bypass_document_retrieval_with_or_without_pdf(tmp_path, mo
         "hello": "Hello! How can I help you today? You can ask a general question or ask about your PDF.",
         "how are you": "I'm here and ready to help. What would you like to know or do with your PDF?",
     }
-    for question, answer in expected.items():
+    for index, (question, answer) in enumerate(expected.items()):
+        client = TestClient(app, client=(f"192.0.2.{index + 1}", 50000))
         no_document = client.post("/api/ai/chat", data={"question": question})
         assert no_document.status_code == 200
         assert no_document.json()["answer"] == answer
@@ -444,7 +445,7 @@ def test_large_summary_chunks_all_pages_and_preserves_supported_citations(tmp_pa
         for value in __import__("re").findall(r"--- Page (\d+) ---", prompt)
     }
     assert included_pages == set(range(1, 70))
-    assert all(timeout == 35 for _, timeout in calls)
+    assert all(40 <= timeout <= ai_engine.SUMMARY_CALL_TIMEOUT_SECONDS for _, timeout in calls)
     assert "[Page 1]" in summary and "[Page 69]" in summary
 
 
@@ -486,7 +487,7 @@ def test_translation_batch_requires_structured_json(monkeypatch):
     result = ai_engine._translate_text_batch([(0, "Translated text")], "Spanish")
 
     assert result == {0: "Texto traducido"}
-    assert captured["timeout"] == 6.0
+    assert captured["timeout"] == ai_engine.TRANSLATION_CALL_TIMEOUT_SECONDS
     assert ai_engine._parse_translation_batch("not json", [0]) == {}
 
 

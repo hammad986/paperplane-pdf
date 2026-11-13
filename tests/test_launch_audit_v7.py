@@ -44,7 +44,7 @@ def test_cloud_import_reports_pdf_page_count_and_sanitized_original_name(monkeyp
     assert payload["page_count"] == 3
     assert payload["size"] == len(pdf_bytes)
     assert base64.b64decode(payload["data_url"].split(",", 1)[1]) == pdf_bytes
-    assert fetched_urls == ["https://drive.google.com/uc?export=download&confirm=t&id=test-id"]
+    assert fetched_urls == ["https://drive.usercontent.google.com/download?export=download&id=test-id&confirm=t"]
 
 
 def test_cloud_import_does_not_rewrite_a_lookalike_drive_hostname(monkeypatch):
@@ -125,7 +125,7 @@ def test_plan_limits_and_photo_resizer_names_are_explicit_and_consistent():
     javascript = (root / "web" / "assets" / "app.js").read_text(encoding="utf-8")
     backend = (root / "server.py").read_text(encoding="utf-8")
 
-    assert "Free web tools:" in html
+    assert "Free accounts and guests:" in html
     assert "Paid web tools: no daily operation cap" in html
     assert "Developer API quotas are separate." not in javascript
     assert "Compare accepts 2 files; other tools accept 1 file per run." in html

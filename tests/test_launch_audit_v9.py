@@ -64,7 +64,7 @@ def test_persistence_health_reports_counts_and_resolved_database(tmp_path, monke
     assert client.get("/api/health/persistence").status_code == 401
     response = client.get(
         "/api/health/persistence",
-        headers={"X-Admin-Session": persistence.create_admin_session()},
+        headers={"X-Admin-Session": persistence.create_admin_session(server.PRIMARY_ADMIN_EMAIL)},
     )
 
     assert response.status_code == 200

@@ -2359,16 +2359,16 @@ def merge_photos(
         for im in images:
             merged.paste(im, (cur_x, 0))
             cur_x += im.width
-    elif layout == "grid" and len(images) >= 4:
-        w1 = max(images[0].width, images[2].width)
-        w2 = max(images[1].width, images[3].width)
-        h1 = max(images[0].height, images[1].height)
-        h2 = max(images[2].height, images[3].height)
-        merged = Image.new("RGB", (w1 + w2, h1 + h2), (255, 255, 255))
-        merged.paste(images[0], (0, 0))
-        merged.paste(images[1], (w1, 0))
-        merged.paste(images[2], (0, h1))
-        merged.paste(images[3], (w1, h1))
+    elif layout == "grid":
+        columns = math.ceil(math.sqrt(len(images)))
+        widths = [max((image.width for image in images[column::columns]), default=0)
+                  for column in range(columns)]
+        heights = [max(image.height for image in images[start:start + columns])
+                   for start in range(0, len(images), columns)]
+        merged = Image.new("RGB", (sum(widths), sum(heights)), (255, 255, 255))
+        for index, image in enumerate(images):
+            row, column = divmod(index, columns)
+            merged.paste(image, (sum(widths[:column]), sum(heights[:row])))
     else:
         max_w = max(im.width for im in images)
         total_h = sum(im.height for im in images)

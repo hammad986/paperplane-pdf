@@ -122,7 +122,7 @@ def test_admin_ai_health_is_protected_and_does_not_return_credentials(monkeypatc
     assert client.get("/api/admin/ai-health").status_code == 401
     response = client.get(
         "/api/admin/ai-health",
-        headers={"X-Admin-Session": persistence.create_admin_session()},
+        headers={"X-Admin-Session": persistence.create_admin_session(server.PRIMARY_ADMIN_EMAIL)},
     )
     assert response.status_code == 200
     body = response.json()
@@ -216,7 +216,7 @@ def test_html_fetcher_blocks_redirect_into_private_network(monkeypatch):
 
 def test_drive_import_reports_actionable_message_on_unavailable_drive(monkeypatch):
     def fail_fetch(url, **kwargs):
-        raise ValueError("Could not resolve hostname: drive.google.com")
+        raise ValueError("Could not resolve hostname: drive.usercontent.google.com")
 
     monkeypatch.setattr(server.converters, "safe_fetch_url", fail_fetch)
     response = TestClient(server.app).post(
@@ -358,10 +358,14 @@ def test_tool_cards_are_crawlable_links_and_legacy_routes_redirect():
     assert scan_response.headers["location"] == "/scan-to-pdf"
 
 
-def test_unavailable_provider_tools_are_hidden_from_directory_cards():
+def test_unavailable_provider_tools_remain_discoverable_with_disabled_upload(monkeypatch):
+    monkeypatch.setattr(server.ai_engine, "AI_KILL_SWITCH", True)
+    operations = TestClient(server.app).get("/api/operations").json()
+    for operation in ("summarize", "translate"):
+        assert operations[operation]["status"] == "SERVICE_UNAVAILABLE"
+        assert operations[operation]["available"] is False
     source = (Path(__file__).resolve().parents[1] / "web" / "assets" / "app.js").read_text(encoding="utf-8")
-    assert "if (op.available === false && ['summarize', 'translate'].includes(opId)) return false;" in source
-    assert "if (op.available === false && ['summarize', 'translate'].includes(id)) return false;" in source
+    assert "if (control) control.disabled = operationUnavailable;" in source
 
 
 def test_admin_head_uses_admin_portal_status_without_response_body():

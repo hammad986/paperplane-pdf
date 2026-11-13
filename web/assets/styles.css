@@ -59,7 +59,7 @@
 }
 
 /* Theme Customizations (Dark Mode, Light Mode, Sharp Contrast) */
-body.dark-mode, body.high-contrast {
+:root[data-paperplane-theme="dark"] body.auth-pending, body.dark-mode, body.high-contrast {
   --bg-app: #0d1416;
   --bg-panel: #141e21;
   --bg-panel-alt: #1a2528;
@@ -74,7 +74,7 @@ body.dark-mode, body.high-contrast {
   --error-bg: rgba(239, 68, 68, 0.15);
 }
 
-body.light-mode {
+body.light-mode:not(.auth-pending), :root:not([data-paperplane-theme="dark"]) body.light-mode {
   --bg-app: #f4f6f3;
   --bg-panel: #ffffff;
   --bg-panel-alt: #f8faf9;
@@ -5306,7 +5306,7 @@ body:not(.light-mode) .editor-select option {
 .ai-active .ai-upload-strip { padding: 8px 12px; }
 .ai-active .ai-engine-notice-bar { display: flex; flex: 0 0 auto; padding: 5px 10px; }
 .ai-active .ai-engine-info { display: none; }
-.ai-active .footer, .ai-active .site-footer, .ai-active .privacy-footer, .ai-active .app-global-footer { display: none !important; }
+.ai-active .footer, .ai-active .site-footer, .ai-active .privacy-footer { display: none !important; }
 .ai-active .ai-studio-container { min-height: 0; grid-template-columns: minmax(0, 1fr) minmax(260px, 32%); gap: 10px; }
 .ai-active .ai-chat-card { min-height: 0; height: 100%; }
 .ai-active .ai-chat-messages { min-height: 0; max-height: none; overscroll-behavior: contain; }
@@ -5340,7 +5340,6 @@ body:not(.light-mode) .editor-select option {
 .auth-restoring #topbar-upgrade-btn,
 .auth-restoring #sidebar-upgrade-btn,
 .auth-restoring .profile-card { visibility: hidden; }
-.auth-pending.auth-restoring #topbar-auth-user { visibility: visible; }
 .dynamic-workspace, .tool-desk-container, .home-tools-catalog, .home-cat-section { min-width: 0; max-width: 100%; }
 .home-cat-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr)); }
 [hidden] { display: none !important; }
@@ -9803,7 +9802,7 @@ html.footer-revealed .app-global-footer { visibility: visible; opacity: 1; point
     overflow-x: hidden !important;
     overflow-y: auto !important;
   }
-  #app-shell .mobile-menu-btn { display: none !important; }
+  #app-shell .mobile-menu-btn, #app-shell .mobile-brand, #app-shell .mobile-view-pill { display: none !important; }
   .mobile-workspace-bar { display: none !important; }
   #app-shell .topbar { position: sticky !important; top: 0 !important; flex: 0 0 64px !important; min-width: 0; padding-inline: 12px !important; }
   #app-shell .topbar-left, #app-shell .topbar-right { min-width: 0; gap: 8px; }
@@ -9955,4 +9954,62 @@ body.dark-mode .adsense-banner-container {
   background: rgba(59, 130, 246, 0.03);
   border-style: solid;
   border-color: rgba(59, 130, 246, 0.2);
+}
+
+/* Dedicated workspace routes share the controls used by their overlays. */
+.workspace-page {
+  width: min(100% - 32px, 1200px);
+  margin: 32px auto;
+  min-width: 0;
+}
+.workspace-page > h1 { margin: 0 0 12px; }
+.workspace-page details {
+  padding: 14px 18px;
+  margin: 10px 0;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+}
+.workspace-inline-panel > .modal-card {
+  width: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 20px 0;
+  overflow: visible;
+}
+.workspace-inline-panel .close-modal-btn { display: none; }
+.workspace-inline-panel .settings-modal-card > .modal-header { display: none; }
+@media (max-width: 767px) {
+  .workspace-inline-panel > .settings-modal-card {
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible;
+  }
+}
+.app-global-footer { visibility: visible; opacity: 1; pointer-events: auto; }
+.app-global-footer .footer-right { flex-wrap: wrap; }
+
+:root[data-paperplane-theme="dark"] { color-scheme: dark; background: #0e1416; }
+:root[data-paperplane-theme="dark"] body.light-mode.auth-pending { background: #0e1416; }
+h1, h2, h3, .tool-hero-title { word-spacing: .08em; }
+
+.quota-label-row { gap: 6px 10px; flex-wrap: wrap; }
+#quota-text, #settings-quota-text { white-space: normal; }
+#run-button:disabled {
+  opacity: 1;
+  color: var(--text-muted);
+  background: var(--bg-panel-alt);
+  border: 1px solid var(--border-light);
+}
+@media (min-width: 1024px) and (max-width: 1200px) {
+  #app-shell .topbar { position: relative !important; top: auto !important; }
+  #app-shell .workspace-tabs { position: static !important; transform: none !important; margin-inline: auto; }
+}
+@media (min-width: 901px) and (max-width: 1023px) {
+  #app-shell .mobile-brand, #app-shell .mobile-view-pill { display: none !important; }
+}
+.pricing-modal-card { max-height: calc(100dvh - 32px); overflow: auto; }
+.workspace-inline-panel > .pricing-modal-card { max-height: none; overflow: visible; }
+@media (max-width: 480px) {
+  .workspace-inline-panel .pricing-tiers-grid { grid-template-columns: minmax(0, 1fr) !important; }
 }

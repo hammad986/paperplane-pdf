@@ -251,7 +251,7 @@ class TestPaperplanePlatform(unittest.TestCase):
             trans_out = temp_dir / "translated_es.pdf"
             with patch(
                 "ai_engine._translate_text_batch",
-                side_effect=lambda blocks, target_language: {
+                side_effect=lambda blocks, target_language, **kwargs: {
                     block_id: f"Texto traducido: {text}" for block_id, text in blocks
                 },
             ):

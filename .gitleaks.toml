@@ -1,0 +1,8 @@
+[extend]
+useDefault = true
+
+[[rules]]
+id = "paperplane-admin-fallback"
+description = "Hardcoded admin credential fallback"
+regex = '''(?i)(?:getenv|environ\.get)\(\s*["']PAPERPLANE_ADMIN_(?:KEY|CODE)["']\s*,\s*["']([^"'\r\n]+)["']'''
+secretGroup = 1

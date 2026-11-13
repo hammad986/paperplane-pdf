@@ -2,17 +2,19 @@
 // Paperplane PDF Platform  -  Next-Gen Enterprise Studio Controller
 // ======================================================================
 
+const bootstrap = JSON.parse(document.getElementById('paperplane-bootstrap')?.textContent || '{}');
 const state = {
-  operations: {},
+  operations: bootstrap.operations || {},
   operation: 'merge',
   category: 'Organize',
   files: [],
   user: null,
   planLimits: {
-    free_operations_per_day: 100,
+    free_operations_per_day: 10,
     free_max_file_size_mb: 50,
     pro_max_file_size_mb: 500,
-    max_batch_files: 100
+    max_batch_files: 100,
+    ...bootstrap.planLimits
   },
   clientSideMode: false,
   activeView: 'home', // 'home', 'tool-desk', 'desk', 'studio', 'ai'
@@ -38,9 +40,12 @@ const state = {
   aiContextPage: 1
 };
 
-const CLIENT_SIDE_SUPPORTED_OPERATIONS = new Set(['merge', 'split', 'remove', 'rotate']);
-const CLIENT_SIDE_SUPPORTED_LABEL = 'Merge, Split / extract, Remove pages, and Rotate PDF';
-const CLIENT_SIDE_IMAGE_OPERATIONS = new Set(['photo_compress', 'photo_resize', 'photo_merge', 'organize']);
+const CLIENT_SIDE_SUPPORTED_OPERATIONS = new Set(['merge', 'split', 'remove', 'rotate', 'organize']);
+const CLIENT_SIDE_IMAGE_OPERATIONS = new Set(['photo_compress', 'photo_resize', 'photo_merge', 'photo_resizer']);
+const PROCESSING_MODE_KEY = 'paperplane-pdf-processing-mode';
+const MAX_PHOTO_BATCH = 12;
+let preferLocalProcessing = true;
+try { preferLocalProcessing = localStorage.getItem(PROCESSING_MODE_KEY) !== 'server'; } catch { /* Storage may be disabled. */ }
 
 let generatedControlId = 0;
 function addMissingControlLabels(root) {
@@ -119,6 +124,12 @@ async function setAuthenticatedWorkspaceUser(data) {
   if (previousUserId && previousUserId !== nextUserId) {
     await unloadStudioPdf();
     state.files = [];
+    for (const session of toolSessionCache.values()) {
+      if (session.result?.downloadUrl?.startsWith('blob:')) URL.revokeObjectURL(session.result.downloadUrl);
+    }
+    toolSessionCache.clear();
+    clearResultPanel();
+    renderFiles();
     state.aiConversation = [];
     aiWorkspaceRestored = false;
     aiWorkspaceRestorePromise = null;
@@ -516,35 +527,25 @@ function clearLocalWorkMarkerIfEmpty() {
   try { sessionStorage.removeItem(localWorkSessionKey('paperplane-last-local-document')); } catch { /* storage may be disabled */ }
 }
 
-// Keep only the last signed-in email as a same-tab display hint. This is not
-// an auth token or entitlement cache; API responses remain authoritative.
 const AUTH_SHELL_SESSION_KEY = 'paperplane-last-auth-shell-email';
-
-function cacheAuthShellEmail(email) {
-  if (!email || typeof email !== 'string') return;
-  try { sessionStorage.setItem(AUTH_SHELL_SESSION_KEY, email); } catch { /* session storage may be disabled */ }
-}
+const AUTH_SYNC_KEY = 'paperplane-auth-changed';
+let authRequestVersion = 0;
 
 function clearAuthShellEmail() {
-  try { sessionStorage.removeItem(AUTH_SHELL_SESSION_KEY); } catch { /* session storage may be disabled */ }
+  try { sessionStorage.removeItem(AUTH_SHELL_SESSION_KEY); } catch { /* Storage may be disabled. */ }
 }
 
-function restoreCachedAuthShell() {
-  let email = '';
-  try { email = sessionStorage.getItem(AUTH_SHELL_SESSION_KEY) || ''; } catch { /* storage may be disabled */ }
-  if (!email || !$('#topbar-auth-user') || !$('#topbar-username')) return false;
-
-  const initial = (email[0] || 'U').toUpperCase();
-  document.body.classList.add('auth-restoring');
-  if ($('#topbar-auth-guest')) $('#topbar-auth-guest').hidden = true;
-  $('#topbar-auth-user').hidden = false;
-  $('#topbar-username').textContent = email;
-  if ($('#topbar-avatar')) $('#topbar-avatar').textContent = initial;
-  return true;
+function broadcastAuthChange() {
+  try { localStorage.setItem(AUTH_SYNC_KEY, String(Date.now()) + ':' + Math.random()); } catch { /* Storage may be disabled. */ }
 }
 
+window.addEventListener('storage', event => {
+  if (event.key === AUTH_SYNC_KEY) void checkAuthStatus();
+});
+
+// Only unsaved Studio edits require confirmation before leaving the page.
 window.addEventListener('beforeunload', event => {
-  if (!hasInMemoryWork()) return;
+  if (!window.PaperplaneEditor?.editorState?.dirty) return;
   event.preventDefault();
   event.returnValue = '';
 });
@@ -581,14 +582,6 @@ function saveToolSession(operation) {
 
 const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
-
-// Keep the quota area useful while account status is still loading. Without
-// JavaScript the server-rendered 0 / daily-limit fallback remains visible.
-const initialQuotaText = $('#quota-text');
-if (document.body.classList.contains('auth-pending') && initialQuotaText) {
-  initialQuotaText.textContent = '—';
-  initialQuotaText.setAttribute('aria-label', 'Usage is loading');
-}
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -682,7 +675,7 @@ function showToast(message, type = 'success', duration = 3500) {
   const toast = document.createElement('div');
   const icon = type === 'success' ? 'OK' : type === 'error' ? '!' : type === 'warning' ? '•' : 'i';
   toast.className = `toast-notice toast-${type}`;
-  toast.innerHTML = `<span style="font-weight: 700; font-size: 11px; padding: 1px 5px; border-radius: 3px; background: rgba(255,255,255,0.15);">${icon}</span> <span>${message}</span>`;
+  toast.innerHTML = `<span style="font-weight: 700; font-size: 11px; padding: 1px 5px; border-radius: 3px; background: rgba(255,255,255,0.15);">${icon}</span> <span>${escapeHtml(message)}</span>`;
   document.body.appendChild(toast);
   setTimeout(() => {
     if (toast.parentNode) toast.remove();
@@ -785,42 +778,30 @@ function openUpgradeModal(contextMessage = '') {
       alertEl.hidden = true;
     }
   }
-  const examBtn = $('#exam-cashfree-checkout-btn');
-  if (examBtn) {
-    examBtn.disabled = false;
-    examBtn.innerHTML = 'Pay ₹19 (24-Hour Pass) →';
-  }
-  const studentBtn = $('#student-cashfree-checkout-btn');
-  if (studentBtn) {
-    studentBtn.disabled = false;
-    studentBtn.innerHTML = 'Pay ₹49/month with Cashfree →';
-  }
-  const proBtn = $('#pro-cashfree-checkout-btn');
-  if (proBtn) {
-    proBtn.disabled = false;
-    proBtn.innerHTML = 'Pay ₹250/month with Cashfree →';
-  }
-  const cyberBtn = $('#cybercafe-cashfree-checkout-btn');
-  if (cyberBtn) {
-    cyberBtn.disabled = false;
-    cyberBtn.innerHTML = 'Pay ₹299/month with Cashfree →';
-  }
-  const devBtn = $('#dev-cashfree-checkout-btn');
-  if (devBtn) {
-    devBtn.disabled = false;
-    devBtn.innerHTML = 'Pay ₹750/month with Cashfree →';
-  }
   modal.hidden = false;
 }
 
 function closeUpgradeModal() {
   const modal = $('#upgrade-modal');
-  if (modal) modal.hidden = true;
+  if (modal && !modal.classList.contains('workspace-inline-panel')) modal.hidden = true;
 }
 
 // ----------------------------------------------------------------------
 // Bulletproof Safe Fetch Wrapper
 // ----------------------------------------------------------------------
+
+async function readStudioResponseError(response, fallback) {
+  const data = await response.json().catch(() => null);
+  const detail = data?.detail;
+  const message = (typeof detail === 'string' ? detail : detail?.message)
+    || fallback + ' (HTTP ' + response.status + ').';
+  if (response.status === 402 || detail?.code === 'TIER_LIMIT_REACHED') {
+    openUpgradeModal(message);
+    return null;
+  }
+  return message;
+}
+window.readStudioResponseError = readStudioResponseError;
 
 async function safeFetch(url, options = {}) {
   options.credentials = options.credentials || 'same-origin';
@@ -1043,10 +1024,28 @@ const studioPageSummaryObserver = new MutationObserver(updateStudioMobilePageSum
 });
 $('#page-jump-input')?.addEventListener('input', updateStudioMobilePageSummary);
 
+const dedicatedWorkspaceViews = new Set(['settings', 'pricing', 'faq', 'feedback', 'history']);
+const workspacePanelHosts = {
+  settings: ['#settings-modal', '#settings-page-content'],
+  pricing: ['#upgrade-modal', '#pricing-page-content'],
+};
+
+function mountWorkspacePanel(name, inline) {
+  const [selector, host] = workspacePanelHosts[name];
+  const panel = $(selector);
+  if (!panel) return;
+  const target = inline ? $(host) : document.body;
+  if (target && panel.parentNode !== target) target.appendChild(panel);
+  panel.classList.toggle('workspace-inline-panel', inline);
+  panel.classList.toggle('modal-backdrop', !inline);
+  panel.hidden = !inline;
+}
+
 function switchWorkspaceView(view, extra = 'privacy', updateHistory = true, preserveOpenCloudModal = false) {
   // The root route remains a useful entry point, but the Tool Desk is the
   // single canonical directory for all PDF tools.
   if (view === 'home') view = 'tool-desk';
+  if (view !== state.activeView) $('.toast-notice')?.remove();
   workspaceNavigationVersion += 1;
   if (!preserveOpenCloudModal && view !== 'cloud' && $('#cloud-modal')) $('#cloud-modal').hidden = true;
   if ($('#sidebar')?.classList.contains('mobile-open')) closeMobileSidebar();
@@ -1072,6 +1071,16 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true, pres
   if ($('#view-legal')) $('#view-legal').hidden = view !== 'legal';
   if ($('#view-api-docs')) $('#view-api-docs').hidden = view !== 'api-docs';
   if ($('#view-download')) $('#view-download').hidden = view !== 'download';
+  for (const dedicatedView of dedicatedWorkspaceViews) {
+    const section = document.getElementById('view-' + dedicatedView);
+    if (section) section.hidden = dedicatedView !== view;
+  }
+  for (const name of Object.keys(workspacePanelHosts)) {
+    const panel = $(workspacePanelHosts[name][0]);
+    if (view === name || panel?.classList.contains('workspace-inline-panel')) {
+      mountWorkspacePanel(name, view === name);
+    }
+  }
   $('.main-area')?.classList.toggle('studio-active', view === 'studio');
   $('#app-shell')?.classList.toggle('studio-active', view === 'studio');
   $('#app-shell')?.classList.toggle('ai-active', view === 'ai');
@@ -1080,8 +1089,10 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true, pres
   if (view === 'studio' && window.matchMedia('(max-width: 900px)').matches) {
     window.scrollTo({ top: 0, behavior: 'auto' });
   }
-  if (view === 'studio' && !state.studio.pdfDoc) restoreStudioWorkspace();
-  if (view === 'ai' && !aiWorkspaceRestored) restoreAiWorkspace();
+  if (!document.body.classList.contains('auth-pending')) {
+    if (view === 'studio' && !state.studio.pdfDoc) restoreStudioWorkspace();
+    if (view === 'ai' && !aiWorkspaceRestored) restoreAiWorkspace();
+  }
   if (view === 'studio') syncStudioMobileLayout();
   else {
     $('#app-shell')?.classList.remove('studio-pages-open');
@@ -1110,6 +1121,15 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true, pres
     if (updateHistory && window.history.pushState && window.location.pathname !== '/tool-desk') {
       window.history.pushState({ view: 'tool-desk' }, '', '/tool-desk');
     }
+  } else if (dedicatedWorkspaceViews.has(view)) {
+    if (crumbCat) crumbCat.textContent = 'Workspace';
+    const title = document.getElementById('view-' + view)?.querySelector('h1')?.textContent || 'Paperplane';
+    if (crumbTool) crumbTool.textContent = title;
+    document.title = title + ' | Paperplane';
+    if (view === 'settings') switchSettingsTab('account');
+    if (updateHistory && window.location.pathname !== '/' + view) {
+      window.history.pushState({ view }, '', '/' + view);
+    }
   } else if (view === 'legal') {
     if (crumbCat) crumbCat.textContent = 'Compliance';
     const isTerms = extra === 'terms';
@@ -1124,11 +1144,11 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true, pres
     }
   } else if (view === 'api-docs') {
     if (crumbCat) crumbCat.textContent = 'Developers';
-    if (crumbTool) crumbTool.textContent = 'REST API v2.0 Specifications';
+    if (crumbTool) crumbTool.textContent = 'REST API v1 reference';
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (updateHistory && window.history.pushState) {
-      if (window.location.pathname !== '/api-docs') {
-        window.history.pushState({ view: 'api-docs' }, '', '/api-docs');
+      if (window.location.pathname !== '/developers') {
+        window.history.pushState({ view: 'api-docs' }, '', '/developers');
       }
     }
   } else if (view === 'download') {
@@ -1159,6 +1179,9 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true, pres
     if (crumbCat) crumbCat.textContent = 'Workspace';
     if (crumbTool) crumbTool.textContent = 'AI Document Intelligence';
     if (typeof updateAiDocBar === 'function') updateAiDocBar();
+    if (updateHistory && window.location.pathname !== '/ai-intelligence') {
+      window.history.pushState({ view: 'ai' }, '', '/ai-intelligence');
+    }
   }
 
   if (view === 'studio' && !state.studio.pdfDoc && !state.studio.isLoading) showStudioEmptyState();
@@ -1212,7 +1235,8 @@ function clearResultPanel() {
   if (resMeta) resMeta.textContent = '';
   const dlLink = $('#result-download-link');
   if (dlLink) {
-    if (dlLink.href && dlLink.href.startsWith('blob:')) {
+    const cached = [...toolSessionCache.values()].some(session => session.result?.downloadUrl === dlLink.href);
+    if (dlLink.href && dlLink.href.startsWith('blob:') && !cached) {
       try { URL.revokeObjectURL(dlLink.href); } catch (e) { /* ignore */ }
     }
     dlLink.href = '#';
@@ -1293,6 +1317,10 @@ $$('.nav-category-tab').forEach(button => {
     button.classList.add('active');
     state.category = button.dataset.category;
     renderSidebarTools();
+    if (state.category === 'Photo') {
+      switchWorkspaceView('tool-desk');
+      $('#tool-desk-directory-filters [data-desk-category="photo"]')?.click();
+    }
   };
 });
 
@@ -1425,8 +1453,7 @@ function renderHomeToolsGrid(filterCategory = 'all', searchQuery = '') {
     const visibleOps = cat.ops.filter(opId => {
       const op = state.operations[opId];
       if (!op) return false;
-      if (op.available === false && ['summarize', 'translate'].includes(opId)) return false;
-      if (!normalizedQuery) return true;
+            if (!normalizedQuery) return true;
       return op.label.toLowerCase().includes(normalizedQuery) ||
              (op.description && op.description.toLowerCase().includes(normalizedQuery)) ||
              opId.toLowerCase().includes(normalizedQuery);
@@ -1474,7 +1501,7 @@ function renderHomeToolsGrid(filterCategory = 'all', searchQuery = '') {
     html = `
       <div class="home-no-results">
         <div class="no-results-icon">Search</div>
-        <h3>No tools matched "${searchQuery}"</h3>
+        <h3>No tools matched “${escapeHtml(searchQuery)}”</h3>
         <p>Try searching for "merge", "split", "word", "compress", or "sign".</p>
         <button type="button" class="btn-primary-action" data-reset-home-search>Clear Search</button>
       </div>
@@ -1506,7 +1533,6 @@ function renderToolDeskDirectory(category = null, searchQuery = null) {
     const ops = cat.ops.filter(id => {
       const op = state.operations[id];
       if (!op) return false;
-      if (op.available === false && ['summarize', 'translate'].includes(id)) return false;
       return !query || `${op.label} ${op.description || ''} ${id}`.toLowerCase().includes(query);
     });
     if (!ops.length) return '';
@@ -1598,7 +1624,8 @@ function activateHomeCategoryFilter(category) {
 
 async function syncSeoContent(operation) {
   const section = $('.seo-content');
-  if (!section || !operation) return;
+  if (!section || !operation || section.dataset.operation === operation) return;
+  delete section.dataset.operation;
 
   const requestVersion = ++seoContentRequestVersion;
   const operationLabel = state.operations[operation]?.label || operation;
@@ -1635,6 +1662,7 @@ async function syncSeoContent(operation) {
         <div class="seo-faq"><h3>Frequently asked questions</h3>${faqs}</div>
         <nav class="seo-related" aria-label="Related PDF tools"><strong>Related tools</strong>${related}</nav>
       </div>`;
+    section.dataset.operation = operation;
     section.removeAttribute('aria-busy');
     if (context.title) document.title = context.title;
   } catch (error) {
@@ -1659,6 +1687,7 @@ function getOperationBatchGuidance(operation) {
   if (operation === 'merge') return `Merge supports up to ${maximum} PDF files per run`;
   if (['jpg_to_pdf', 'scan_pdf'].includes(operation)) return `${state.operations[operation]?.label || 'This tool'} supports up to ${maximum} images per run`;
   if (operation === 'compare') return 'Compare supports up to 2 PDF files per run';
+  if (operation === 'photo_merge') return 'Merge 2–' + MAX_PHOTO_BATCH + ' photos per run';
   return 'This tool processes 1 file per run';
 }
 
@@ -1668,11 +1697,6 @@ function selectOperation(op, switchToDesk = true, preserveOpenCloudModal = false
   if (opChanged) saveToolSession(previousOperation);
   const cachedSession = opChanged ? toolSessionCache.get(op) || null : null;
   state.operation = op;
-  const localProcessingWasEnabled = state.clientSideMode;
-  syncClientSideControls();
-  if (localProcessingWasEnabled && !CLIENT_SIDE_SUPPORTED_OPERATIONS.has(op)) {
-    showToast(`${state.operations[op]?.label || op} uses server processing. Local Processing was turned off.`, 'info', 5000);
-  }
   if (opChanged) {
     state.files = cachedSession?.files ? [...cachedSession.files] : [];
     state.splitPageCount = cachedSession?.splitPageCount ?? null;
@@ -1682,18 +1706,7 @@ function selectOperation(op, switchToDesk = true, preserveOpenCloudModal = false
     clearResultPanel();
   }
   const item = state.operations[op] || { label: op, accept: 'pdf', category: 'Organize PDF' };
-  const operationUnavailable = item.available === false || item.status === 'DEPENDENCY_MISSING' || item.status === 'SERVICE_UNAVAILABLE';
-  const availabilityNotice = $('#tool-availability-notice');
-  if (availabilityNotice) {
-    availabilityNotice.hidden = !operationUnavailable;
-    availabilityNotice.textContent = operationUnavailable
-      ? `${item.label} is currently unavailable. ${item.prerequisite || 'The required service is not enabled.'}`
-      : '';
-  }
-  ['#file-input', '#browse', '#cloud-drop-btn'].forEach(selector => {
-    const control = $(selector);
-    if (control) control.disabled = operationUnavailable;
-  });
+  syncToolAvailability();
 
   if ($('#crumb-tool')) $('#crumb-tool').textContent = item.label;
   if ($('#crumb-category')) $('#crumb-category').textContent = item.category;
@@ -1702,41 +1715,15 @@ function selectOperation(op, switchToDesk = true, preserveOpenCloudModal = false
   if ($('#tool-description')) $('#tool-description').textContent = item.description || 'Enterprise document workflow.';
   if ($('#desk-breadcrumb-label')) $('#desk-breadcrumb-label').textContent = `${item.category} / ${item.label}`;
 
-  const tierBadge = $('#tool-tier-badge');
-  if (tierBadge) {
-    if (state.user) {
-      const accountTier = String(state.user.tier || '').toLowerCase();
-      const paidAccount = Boolean(state.user.is_pro || state.user.is_dev || ['developer', 'student_pro', 'cyber_cafe', 'exam_pass'].includes(accountTier));
-      if (paidAccount) {
-        const paidLabel = state.user.is_dev || accountTier === 'developer' ? 'Developer' : accountTier === 'student_pro' ? 'Student & Educator' : accountTier === 'cyber_cafe' ? 'Cyber Café' : accountTier === 'exam_pass' ? 'Exam' : 'Pro Power User';
-        tierBadge.textContent = `${paidLabel} · no daily operation cap · up to ${state.planLimits.pro_max_file_size_mb} MB/file`;
-        tierBadge.style.color = '#f59e0b';
-        tierBadge.style.borderColor = 'rgba(245,158,11,0.3)';
-        tierBadge.style.background = 'rgba(245,158,11,0.1)';
-      } else {
-        tierBadge.textContent = `✨ Free Account · ${state.planLimits.free_operations_per_day} ops/day · ${state.planLimits.free_max_file_size_mb} MB/file`;
-        tierBadge.style.color = '#38bdf8';
-        tierBadge.style.borderColor = 'rgba(56,189,248,0.3)';
-        tierBadge.style.background = 'rgba(56,189,248,0.1)';
-      }
-    } else if (typeof HEAVY_TOOLS !== 'undefined' && HEAVY_TOOLS.has(op)) {
-      tierBadge.textContent = '🔒 Free Account Required · Sign up in 10s';
-      tierBadge.style.color = '#f59e0b';
-      tierBadge.style.borderColor = 'rgba(245,158,11,0.3)';
-      tierBadge.style.background = 'rgba(245,158,11,0.1)';
-    } else {
-      tierBadge.textContent = `⚡ Free Guest Tool · No Account Required (${state.planLimits.free_operations_per_day} ops/day · ${state.planLimits.free_max_file_size_mb} MB/file)`;
-      tierBadge.style.color = '#10b981';
-      tierBadge.style.borderColor = 'rgba(16,185,129,0.3)';
-      tierBadge.style.background = 'rgba(16,185,129,0.1)';
-    }
-  }
+  updateToolTierBadge();
 
   // Update input constraints
   const fileInput = $('#file-input');
   if (fileInput) {
     if (item.accept === 'image') {
-      fileInput.accept = '.jpg,.jpeg,.png,.tiff,.webp';
+      fileInput.accept = CLIENT_SIDE_IMAGE_OPERATIONS.has(op) ? 'image/jpeg,image/png,image/webp' : '.jpg,.jpeg,.png,.tiff,.webp';
+    } else if (item.accept === 'pdf_or_image') {
+      fileInput.accept = 'application/pdf,image/jpeg,image/png,image/webp';
     } else if (item.accept === 'office') {
       fileInput.accept = '.doc,.docx,.xls,.xlsx,.ppt,.pptx';
     } else if (item.accept === 'url') {
@@ -1744,7 +1731,7 @@ function selectOperation(op, switchToDesk = true, preserveOpenCloudModal = false
     } else {
       fileInput.accept = '.pdf';
     }
-    fileInput.multiple = ['merge', 'jpg_to_pdf', 'compare', 'scan_pdf'].includes(op);
+    fileInput.multiple = ['merge', 'jpg_to_pdf', 'compare', 'scan_pdf', 'photo_merge'].includes(op);
   }
 
   const hint = $('#file-hint');
@@ -1752,7 +1739,7 @@ function selectOperation(op, switchToDesk = true, preserveOpenCloudModal = false
     if (item.accept === 'url') {
       hint.textContent = 'Public HTTP or HTTPS website URL · No file upload required';
     } else {
-      const fileType = item.accept === 'image' ? 'Images' : item.accept === 'office' ? 'Office documents' : 'PDF files';
+      const fileType = ({ image: 'Images', office: 'Office documents', pdf_or_image: 'PDFs and images' })[item.accept] || 'PDF files';
       hint.textContent = `${fileType} up to ${state.planLimits.free_max_file_size_mb} MB each on Free and ${state.planLimits.pro_max_file_size_mb} MB each on paid plans · ${getOperationBatchGuidance(op)}`;
     }
   }
@@ -1790,12 +1777,67 @@ function selectOperation(op, switchToDesk = true, preserveOpenCloudModal = false
 // Sticky Bottom-Left Profile & Auth Management
 // ----------------------------------------------------------------------
 
+function syncToolAvailability() {
+  const item = state.operations[state.operation] || {};
+  const operationUnavailable = item.available === false || item.status === 'DEPENDENCY_MISSING' || item.status === 'SERVICE_UNAVAILABLE';
+  const availabilityNotice = $('#tool-availability-notice');
+  if (availabilityNotice) {
+    availabilityNotice.hidden = !operationUnavailable;
+    availabilityNotice.textContent = operationUnavailable
+      ? `${item.label} is currently unavailable. ${item.prerequisite || 'The required service is not enabled.'}`
+      : '';
+  }
+  ['#file-input', '#browse', '#cloud-drop-btn'].forEach(selector => {
+    const control = $(selector);
+    if (control) control.disabled = operationUnavailable;
+  });
+
+  updateButton();
+}
+
+function updateToolTierBadge() {
+  const tierBadge = $('#tool-tier-badge');
+  if (tierBadge) {
+    if (document.body.classList.contains('auth-pending')) {
+      tierBadge.textContent = 'Checking plan…';
+      return;
+    }
+    if (state.user) {
+      const accountTier = String(state.user.tier || '').toLowerCase();
+      const paidAccount = Boolean(state.user.is_pro || state.user.is_dev || ['developer', 'student_pro', 'cyber_cafe', 'exam_pass'].includes(accountTier));
+      if (paidAccount) {
+        const paidLabel = state.user.tier_label || 'Paid plan';
+        tierBadge.textContent = `${paidLabel} · no daily operation cap · up to ${state.planLimits.pro_max_file_size_mb} MB/file`;
+        tierBadge.style.color = '#f59e0b';
+        tierBadge.style.borderColor = 'rgba(245,158,11,0.3)';
+        tierBadge.style.background = 'rgba(245,158,11,0.1)';
+      } else {
+        tierBadge.textContent = `✨ Free Account · ${state.planLimits.free_operations_per_day} server operations/day · ${state.planLimits.free_max_file_size_mb} MB/file`;
+        tierBadge.style.color = '#38bdf8';
+        tierBadge.style.borderColor = 'rgba(56,189,248,0.3)';
+        tierBadge.style.background = 'rgba(56,189,248,0.1)';
+      }
+    } else if (typeof HEAVY_TOOLS !== 'undefined' && HEAVY_TOOLS.has(state.operation)) {
+      tierBadge.textContent = '🔒 Free Account Required · Sign up in 10s';
+      tierBadge.style.color = '#f59e0b';
+      tierBadge.style.borderColor = 'rgba(245,158,11,0.3)';
+      tierBadge.style.background = 'rgba(245,158,11,0.1)';
+    } else {
+      tierBadge.textContent = `⚡ Free Guest Tool · No Account Required (${state.planLimits.free_operations_per_day} server operations/day · ${state.planLimits.free_max_file_size_mb} MB/file)`;
+      tierBadge.style.color = '#10b981';
+      tierBadge.style.borderColor = 'rgba(16,185,129,0.3)';
+      tierBadge.style.background = 'rgba(16,185,129,0.1)';
+    }
+  }
+
+}
+
 function updateBillingUI(data) {
   if (data?.plan_limits) state.planLimits = { ...state.planLimits, ...data.plan_limits };
   const tier = (data && data.tier ? data.tier : 'free').toLowerCase();
   const isPaid = Boolean(data && (data.is_pro || data.is_dev || ['pro', 'developer', 'student_pro', 'cyber_cafe', 'exam_pass'].includes(tier)));
   const usage = data ? (data.usage_today || 0) : 0;
-  const limit = data ? (data.daily_limit ?? 100) : 100;
+  const limit = data?.daily_limit ?? state.planLimits.free_operations_per_day;
   const freeFileMb = state.planLimits.free_max_file_size_mb;
   const proFileMb = state.planLimits.pro_max_file_size_mb;
   const maxBatchFiles = state.planLimits.max_batch_files;
@@ -1810,17 +1852,12 @@ function updateBillingUI(data) {
     card.classList.toggle('is-current-plan', isCurrent);
   });
 
-  // Automatically hide AdSense sponsorship banners for paid plans
-  document.querySelectorAll('.adsense-banner-container').forEach(el => {
-    el.style.display = isPaid ? 'none' : 'block';
-  });
-
-  const batchLimits = `Up to ${maxBatchFiles} files for Merge, JPG/PNG to PDF, and Scan to PDF; Compare accepts 2 files; other tools accept 1 file per run.`;
+  const batchLimits = `Up to ${maxBatchFiles} files for Merge, JPG/PNG to PDF, and Scan to PDF. Compare takes two PDFs. Photo Merge takes 2–12 images.`;
   const quotaDescription = $('#settings-quota-description');
-  if (quotaDescription) quotaDescription.textContent = `Free web tools: up to ${state.planLimits.free_operations_per_day} PDF operations per day and files up to ${freeFileMb} MB each. Paid web tools: no daily operation cap and files up to ${proFileMb} MB each. Batch limits: ${batchLimits}`;
+  if (quotaDescription) quotaDescription.textContent = `Free accounts and guests: up to ${state.planLimits.free_operations_per_day} server operations per day and files up to ${freeFileMb} MB each. Paid web tools: no daily operation cap and files up to ${proFileMb} MB each. Batch limits: ${batchLimits}`;
   const fileHint = $('#file-hint');
   if (fileHint) {
-    const fileType = state.operations[state.operation]?.accept === 'image' ? 'Images' : state.operations[state.operation]?.accept === 'office' ? 'Office documents' : 'PDF files';
+    const fileType = ({ image: 'Images', office: 'Office documents', pdf_or_image: 'PDFs and images' })[state.operations[state.operation]?.accept] || 'PDF files';
     fileHint.textContent = state.operations[state.operation]?.accept === 'url'
       ? 'Public HTTP or HTTPS website URL · No file upload required'
       : `${fileType} up to ${freeFileMb} MB each on Free and ${proFileMb} MB each on paid plans · ${getOperationBatchGuidance(state.operation)}`;
@@ -1841,10 +1878,10 @@ function updateBillingUI(data) {
   if (settingsDailyLimit) settingsDailyLimit.textContent = isPaid ? '(No daily operation cap)' : `(${limit} operations / day)`;
 
   if (isPaid) {
-    let tierName = 'Pro Power User';
-    let badgeText = 'PRO POWER USER';
+    let tierName = 'Legacy Pro';
+    let badgeText = 'LEGACY PRO';
     let badgeColor = '#10b981';
-    let shortLabel = 'Pro Power User';
+    let shortLabel = 'Legacy Pro';
 
     if (tier === 'developer') {
       tierName = 'Developer';
@@ -1868,9 +1905,9 @@ function updateBillingUI(data) {
       shortLabel = 'Exam';
     }
 
-    if (quotaText) quotaText.textContent = `No daily operation cap · up to ${proFileMb} MB/file`;
+    if (quotaText) quotaText.textContent = 'No daily operation cap';
     if (quotaFill) {
-      quotaFill.style.width = '100%';
+      quotaFill.style.width = '0%';
       quotaFill.className = 'quota-progress-fill pro';
     }
     if (sidebarUpgradeBtn) sidebarUpgradeBtn.style.display = 'none';
@@ -1888,7 +1925,7 @@ function updateBillingUI(data) {
     }
     if (settingsQuotaText) settingsQuotaText.textContent = 'No daily operation cap';
     if (settingsQuotaFill) {
-      settingsQuotaFill.style.width = '100%';
+      settingsQuotaFill.style.width = '0%';
       settingsQuotaFill.className = 'quota-progress-fill pro';
     }
   } else {
@@ -1925,7 +1962,7 @@ function applyQuotaCount(count) {
   state.dailyUsage = numericCount;
   const tier = String(state.user?.tier || 'free').toLowerCase();
   if (['pro', 'developer', 'student_pro', 'cyber_cafe', 'exam_pass'].includes(tier)) return;
-  const limit = Number(state.planLimits.free_operations_per_day) || 100;
+  const limit = Number(state.planLimits.free_operations_per_day);
   const pct = Math.min(100, Math.round((numericCount / limit) * 100));
   const quotaText = $('#quota-text');
   const quotaFill = $('#quota-fill');
@@ -1948,6 +1985,10 @@ window.fetch = async (...args) => {
 async function refreshQuotaUsage() {
   try {
     const response = await paperplaneNativeFetch('/api/auth/me', { credentials: 'same-origin' });
+    if (response.status === 401) {
+      await checkAuthStatus();
+      return;
+    }
     if (!response.ok) return;
     const data = await response.json();
     await setAuthenticatedWorkspaceUser(data);
@@ -1957,70 +1998,60 @@ async function refreshQuotaUsage() {
   }
 }
 
-async function checkAuthStatus() {
-  try {
-    const data = await safeFetch('/api/auth/me');
-    await setAuthenticatedWorkspaceUser(data);
-    updateBillingUI(data);
-    if (data.authenticated) {
-      cacheAuthShellEmail(data.email);
-      document.body.classList.remove('auth-restoring');
-      const initial = (data.email[0] || 'U').toUpperCase();
-      $('#user-avatar').textContent = initial;
-      $('#user-name').textContent = data.email;
-      if ($('#topbar-auth-guest')) $('#topbar-auth-guest').hidden = true;
-      if ($('#topbar-auth-user')) $('#topbar-auth-user').hidden = false;
-      if ($('#topbar-avatar')) $('#topbar-avatar').textContent = initial;
-      if ($('#topbar-username')) $('#topbar-username').textContent = data.email;
-      
-      const sAvatar = $('#settings-user-avatar');
-      const sEmail = $('#settings-user-email');
-      const sBadge = $('#settings-user-badge');
-      if (sAvatar) sAvatar.textContent = initial;
-      if (sEmail) sEmail.textContent = data.email;
-      if (sBadge) {
-        sBadge.textContent = data.is_dev ? 'Developer' : data.is_pro ? 'Pro Power User' : `Free · ${state.planLimits.free_operations_per_day} operations/day`;
-      }
-      if ($('#settings-guest-actions')) $('#settings-guest-actions').hidden = true;
-      if ($('#settings-user-actions')) $('#settings-user-actions').hidden = false;
-    } else {
-      clearAuthShellEmail();
-      document.body.classList.remove('auth-restoring');
-      state.user = null;
-      $('#user-avatar').textContent = 'G';
-      $('#user-name').textContent = 'Guest Explorer';
-      if ($('#topbar-auth-guest')) $('#topbar-auth-guest').hidden = false;
-      if ($('#topbar-auth-user')) $('#topbar-auth-user').hidden = true;
-      if ($('#topbar-avatar')) $('#topbar-avatar').textContent = 'G';
-      if ($('#topbar-username')) $('#topbar-username').textContent = 'Guest Explorer';
-      if ($('#settings-user-avatar')) $('#settings-user-avatar').textContent = 'G';
-      if ($('#settings-user-email')) $('#settings-user-email').textContent = 'Guest Explorer';
-      if ($('#settings-user-badge')) $('#settings-user-badge').textContent = `Free · ${state.planLimits.free_operations_per_day} operations/day`;
-      if ($('#settings-guest-actions')) $('#settings-guest-actions').hidden = false;
-      if ($('#settings-user-actions')) $('#settings-user-actions').hidden = true;
-    }
-    if (state.activeView === 'desk' && $('#tool-title')) selectOperation(state.operation, false);
-  } catch {
-    await setAuthenticatedWorkspaceUser(null);
-    if (!restoreCachedAuthShell()) {
-      document.body.classList.remove('auth-restoring');
-      $('#user-avatar').textContent = 'G';
-      $('#user-name').textContent = 'Guest Explorer';
-      if ($('#topbar-auth-guest')) $('#topbar-auth-guest').hidden = false;
-      if ($('#topbar-auth-user')) $('#topbar-auth-user').hidden = true;
-      if ($('#topbar-avatar')) $('#topbar-avatar').textContent = 'G';
-      if ($('#topbar-username')) $('#topbar-username').textContent = 'Guest Explorer';
-      updateBillingUI(null);
-    }
-    if (state.activeView === 'desk' && $('#tool-title')) selectOperation(state.operation, false);
-  } finally {
-    document.body.classList.remove('auth-pending');
+function renderAuthShell(data) {
+  const authenticated = Boolean(data?.authenticated);
+  const name = authenticated ? data.email : 'Guest Explorer';
+  const initial = (name[0] || 'G').toUpperCase();
+  for (const id of ['#user-name', '#topbar-username', '#settings-user-email']) {
+    if ($(id)) $(id).textContent = name;
   }
+  for (const id of ['#user-avatar', '#topbar-avatar', '#settings-user-avatar']) {
+    if ($(id)) $(id).textContent = initial;
+  }
+  if ($('#settings-user-badge')) $('#settings-user-badge').textContent = authenticated ? (data.tier_label || 'Free') : 'Guest';
+  for (const id of ['#topbar-auth-guest', '#settings-guest-actions']) {
+    if ($(id)) $(id).hidden = authenticated;
+  }
+  for (const id of ['#topbar-auth-user', '#settings-user-actions']) {
+    if ($(id)) $(id).hidden = !authenticated;
+  }
+  document.body.classList.remove('auth-pending', 'auth-restoring');
+  updateBillingUI(data);
+  if (state.activeView === 'desk' && $('#tool-title')) updateToolTierBadge();
+}
+
+async function checkAuthStatus() {
+  const requestVersion = ++authRequestVersion;
+  let data = null;
+  try {
+    const response = await paperplaneNativeFetch('/api/auth/me', {
+      credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(5000)
+    });
+    if (response.ok) data = await response.json();
+  } catch { /* Render a signed-out shell when identity cannot be verified. */ }
+  if (requestVersion !== authRequestVersion) return;
+  clearAuthShellEmail();
+  if (!data) {
+    try {
+      const billing = await paperplaneNativeFetch('/api/billing/status', {
+        credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(2500)
+      });
+      if (billing.ok) data = await billing.json();
+    } catch { /* The page can still show its signed-out controls. */ }
+  }
+  if (requestVersion !== authRequestVersion) return;
+  await setAuthenticatedWorkspaceUser(data);
+  if (requestVersion === authRequestVersion) renderAuthShell(data);
 }
 
 // ----------------------------------------------------------------------
 // Settings Modal Controller (Tabbed Architecture)
 // ----------------------------------------------------------------------
+
+function closeSettingsModal() {
+  const modal = $('#settings-modal');
+  if (modal && !modal.classList.contains('workspace-inline-panel')) modal.hidden = true;
+}
 
 function openSettingsModal(defaultTab = 'account') {
   const modal = $('#settings-modal');
@@ -2055,20 +2086,20 @@ if ($('#sidebar-profile-card')) {
   $('#sidebar-profile-card').onclick = () => openSettingsModal('account');
 }
 if ($('#close-settings-modal')) {
-  $('#close-settings-modal').onclick = () => $('#settings-modal').hidden = true;
+  $('#close-settings-modal').onclick = () => closeSettingsModal();
 }
 
 // Account actions in Settings
 if ($('#settings-signin-btn')) {
   $('#settings-signin-btn').onclick = () => {
-    $('#settings-modal').hidden = true;
+    closeSettingsModal();
     openAuthModal();
     if ($('#tab-login')) $('#tab-login').click();
   };
 }
 if ($('#settings-register-btn')) {
   $('#settings-register-btn').onclick = () => {
-    $('#settings-modal').hidden = true;
+    closeSettingsModal();
     openAuthModal();
     if ($('#tab-register')) $('#tab-register').click();
   };
@@ -2078,7 +2109,7 @@ if ($('#settings-signout-btn')) {
     localStorage.removeItem('paperplane_token');
     document.cookie = 'paperplane_token=; path=/; max-age=0; SameSite=Lax';
     checkAuthStatus();
-    $('#settings-modal').hidden = true;
+    closeSettingsModal();
     showToast('Signed out of Paperplane.');
   };
 }
@@ -2095,7 +2126,8 @@ function applyTheme(themeName) {
     $('#theme-dark-btn')?.classList.add('active');
     $('#theme-light-btn')?.classList.remove('active');
   }
-  localStorage.setItem('paperplane_theme', themeName);
+  document.documentElement.dataset.paperplaneTheme = themeName;
+  try { localStorage.setItem('paperplane_theme', themeName); } catch { /* Storage may be disabled. */ }
 }
 
 if ($('#theme-dark-btn')) $('#theme-dark-btn').onclick = () => applyTheme('dark');
@@ -2107,13 +2139,13 @@ if ($('#contrast-toggle-input')) {
 }
 
 // Initialize Theme from localStorage
-const savedTheme = localStorage.getItem('paperplane_theme') || 'light';
+const savedTheme = document.documentElement.dataset.paperplaneTheme || 'light';
 applyTheme(savedTheme);
 
 // Billing actions in Settings
 if ($('#settings-upgrade-plan-btn')) {
   $('#settings-upgrade-plan-btn').onclick = () => {
-    $('#settings-modal').hidden = true;
+    closeSettingsModal();
     openUpgradeModal();
   };
 }
@@ -2133,14 +2165,14 @@ async function loadSettingsApiKeys() {
     list.innerHTML = data.keys.map(k => `
       <div class="file-row-card">
         <div>
-          <strong>${k.name}</strong> · <code style="font-family: var(--font-mono); font-size: 11px;">${k.key_prefix}</code>
+          <strong>${escapeHtml(k.name)}</strong> · <code style="font-family: var(--font-mono); font-size: 11px;">${k.key_prefix}</code>
           <small style="display: block; color: var(--text-muted);">Created: ${new Date(k.created_at * 1000).toLocaleDateString()}</small>
         </div>
         <button type="button" class="delete-file-btn" data-revoke-key="${escapeHtml(k.id)}" title="Revoke API Key"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
       </div>
     `).join('');
   } catch (err) {
-    list.innerHTML = `<div class="result-card error">${err.message}</div>`;
+    list.innerHTML = `<div class="result-card error">${escapeHtml(err.message)}</div>`;
   }
 }
 
@@ -2172,59 +2204,40 @@ if ($('#settings-create-key-form')) {
 }
 
 function syncClientSideControls() {
-  const supported = CLIENT_SIDE_SUPPORTED_OPERATIONS.has(state.operation);
-  if (supported) {
-    state.clientSideMode = true;
-  } else {
-    state.clientSideMode = false;
+  const canSwitch = CLIENT_SIDE_SUPPORTED_OPERATIONS.has(state.operation);
+  const localOnly = CLIENT_SIDE_IMAGE_OPERATIONS.has(state.operation);
+  state.clientSideMode = localOnly || (canSwitch && preferLocalProcessing);
+  const label = state.operations[state.operation]?.label || 'this tool';
+  const help = state.clientSideMode
+    ? label + ' runs in your browser without using your server quota.'
+    : label + ' uploads files for temporary server processing.';
+  const sidebarToggle = $('#client-privacy-toggle');
+  if (sidebarToggle) {
+    sidebarToggle.checked = state.clientSideMode;
+    sidebarToggle.disabled = !canSwitch;
+    sidebarToggle.setAttribute('aria-label', 'Use local processing for ' + label);
+    sidebarToggle.title = help;
   }
-  const operationLabel = state.operations[state.operation]?.label || state.operation;
-  const helpText = supported
-    ? `Local browser processing is active for ${CLIENT_SIDE_SUPPORTED_LABEL}.`
-    : `${operationLabel} uses temporary server processing. Local processing is available for ${CLIENT_SIDE_SUPPORTED_LABEL}.`;
-
-  ['client-privacy-toggle', 'settings-client-privacy-toggle'].forEach(id => {
-    const input = $(`#${id}`);
-    if (!input) return;
-    input.checked = state.clientSideMode;
-    input.disabled = !supported;
-    input.title = helpText;
-    input.setAttribute('aria-label', supported
-      ? `Use local processing for ${operationLabel}`
-      : `Local processing is unavailable for ${operationLabel}; this tool uses temporary server processing`);
-  });
-
-  const label = $('#privacy-mode-label');
-  if (label) label.textContent = state.clientSideMode ? 'Local Processing' : 'Server Mode';
-  const sidebarHelp = $('#privacy-mode-support');
-  if (sidebarHelp) sidebarHelp.textContent = supported
-    ? '100% Private (Browser-Side)'
-    : 'Cloud Engine with auto-delete';
-  const settingsHelp = $('#settings-client-privacy-support');
-  if (settingsHelp) settingsHelp.textContent = helpText;
-  const pill = $('#engine-status-pill');
-  if (pill) pill.className = state.clientSideMode ? 'engine-pill local' : 'engine-pill';
-  const text = $('#engine-status-text');
-  if (text) text.textContent = state.clientSideMode ? 'Local Processing' : 'Server Processing';
+  const settingsToggle = $('#settings-client-privacy-toggle');
+  if (settingsToggle) {
+    settingsToggle.checked = preferLocalProcessing;
+    settingsToggle.setAttribute('aria-label', 'Prefer local processing for supported PDF tools');
+  }
+  if ($('#privacy-mode-label')) $('#privacy-mode-label').textContent = state.clientSideMode ? 'Local Processing' : 'Server Mode';
+  if ($('#privacy-mode-support')) $('#privacy-mode-support').textContent = state.clientSideMode ? 'Files stay in your browser' : 'Temporary server processing';
+  if ($('#settings-client-privacy-support')) {
+    $('#settings-client-privacy-support').textContent = 'Default for Merge, Split, Remove, Rotate, and Page Organizer. Photo tools run in your browser.';
+  }
+  $('#engine-status-pill')?.classList.toggle('local', state.clientSideMode);
+  if ($('#engine-status-text')) $('#engine-status-text').textContent = state.clientSideMode ? 'Local Processing' : 'Server Processing';
+  const steps = $('#job-progress-steps');
+  if (steps) steps.hidden = state.clientSideMode;
 }
 
 function setClientSideMode(enabled) {
-  const supported = CLIENT_SIDE_SUPPORTED_OPERATIONS.has(state.operation);
-  if (enabled && !supported) {
-    state.clientSideMode = false;
-    syncClientSideControls();
-    showToast(`${state.operations[state.operation]?.label || state.operation} uses server processing. Local Processing is available for ${CLIENT_SIDE_SUPPORTED_LABEL}.`, 'warning', 6000);
-    updateButton();
-    return false;
-  }
-
-  state.clientSideMode = Boolean(enabled);
-  syncClientSideControls();
-  showToast(state.clientSideMode
-    ? `${state.operations[state.operation]?.label || state.operation} will run in your browser.`
-    : 'Server processing selected.', 'info');
+  preferLocalProcessing = Boolean(enabled);
+  try { localStorage.setItem(PROCESSING_MODE_KEY, enabled ? 'local' : 'server'); } catch { /* Storage may be disabled. */ }
   updateButton();
-  return true;
 }
 $('#client-privacy-toggle').onchange = e => setClientSideMode(e.target.checked);
 $('#settings-client-privacy-toggle').onchange = e => setClientSideMode(e.target.checked);
@@ -2248,7 +2261,7 @@ function openCommandPalette() {
 
 function closeAllModals() {
   if ($('#command-modal')) $('#command-modal').hidden = true;
-  if ($('#settings-modal')) $('#settings-modal').hidden = true;
+  closeSettingsModal();
   if ($('#auth-modal')) $('#auth-modal').hidden = true;
   if ($('#cloud-modal')) $('#cloud-modal').hidden = true;
   if ($('#upgrade-modal')) $('#upgrade-modal').hidden = true;
@@ -3465,12 +3478,12 @@ function renderOptions() {
     ]);
     fields += field('width', 'Width (px)', 'number', '', '1', '10000', '1');
     fields += field('height', 'Height (px)', 'number', '', '1', '10000', '1');
-    fields += field('scale_percent', 'Or Scale Percentage (%)', 'number', '100', '1', '500', '5');
+    fields += field('scale_percent', 'Or Scale Percentage (%)', 'number', '', '1', '500', '1');
   } else if (state.operation === 'photo_merge') {
     fields += selectField('layout', 'Merge Layout', [
       { value: 'vertical', label: '↕️ Stack Vertically (Top to Bottom)' },
       { value: 'horizontal', label: '↔️ Side by Side (Horizontal)' },
-      { value: 'grid', label: '🔲 2×2 Grid (Requires 4+ photos)' }
+      { value: 'grid', label: '🔲 Grid (automatic columns)' }
     ]);
   } else if (state.operation === 'mask_aadhaar') {
     fields += '<div class="option-field option-field-wide" style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; padding: 12px;"><strong style="color: #10b981;">🛡️ UIDAI Compliant 1-Click Masking</strong><p style="margin: 4px 0 0; font-size: 12px; color: var(--text-muted);">Paperplane automatically searches for 12-digit Aadhaar numbers and permanently black-boxes or redacts the first 8 digits (XXXX-XXXX-1234) in memory.</p></div>';
@@ -3816,7 +3829,7 @@ function renderFiles() {
       <div class="file-row-left">
         <span class="file-row-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
         <div>
-          <span class="file-row-name">${file.name}</span>
+          <span class="file-row-name">${escapeHtml(file.name)}</span>
           <span class="file-row-size">· ${formatBytes(file.size)}</span>
         </div>
       </div>
@@ -3846,7 +3859,14 @@ function addFiles(newFiles) {
     }
   }
 
-  state.files = [...state.files, ...newFiles];
+  const input = $('#file-input');
+  const canBatch = Boolean(input?.multiple);
+  const maxFiles = state.operation === 'photo_merge' ? MAX_PHOTO_BATCH : state.operation === 'compare' ? 2 : state.planLimits.max_batch_files;
+  if (canBatch && state.files.length + newFiles.length > maxFiles) {
+    showToast('This tool accepts up to ' + maxFiles + ' files.', 'warning');
+    return;
+  }
+  state.files = canBatch ? [...state.files, ...newFiles] : newFiles.slice(0, 1);
   if (state.files.length) rememberLocalWork(state.files[0].name || 'PDF document');
   renderFiles();
   updateButton();
@@ -3854,26 +3874,18 @@ function addFiles(newFiles) {
   // If on Split tool, analyze page count dynamically
   if (state.operation === 'split' && state.files.length && state.files[0].name.toLowerCase().endsWith('.pdf')) {
     const targetFile = state.files[0];
-    const reader = new FileReader();
-    reader.onload = async (e) => {
+    void (async () => {
       try {
         const PDFLib = await window.PaperplanePdfRuntime.ensurePdfLib();
-        if (PDFLib) {
-          const doc = await PDFLib.PDFDocument.load(e.target.result);
-          state.splitPageCount = doc.getPageCount();
-          renderOptions();
-          updateButton();
-        } else if (typeof pdfjsLib !== 'undefined') {
-          const doc = await pdfjsLib.getDocument({ data: e.target.result, isEvalSupported: false }).promise;
-          state.splitPageCount = doc.numPages;
-          renderOptions();
-          updateButton();
-        }
-      } catch (err) {
-        console.warn('Split page analysis error:', err);
-      }
-    };
-    reader.readAsArrayBuffer(targetFile);
+        const doc = await PDFLib.PDFDocument.load(await targetFile.arrayBuffer());
+        if (state.operation !== 'split' || state.files[0] !== targetFile) return;
+        state.splitPageCount = doc.getPageCount();
+        const values = captureToolFormValues();
+        renderOptions();
+        restoreToolFormValues(values);
+        updateButton();
+      } catch { /* The selected processing mode handles unreadable PDFs on run. */ }
+    })();
   }
 }
 
@@ -3927,6 +3939,12 @@ function updateButton() {
     return;
   }
 
+  if (state.operation === 'photo_merge' && state.files.length < 2) {
+    btn.disabled = true;
+    btn.textContent = 'Select at least two photos';
+    return;
+  }
+
   if (state.operation === 'split' && state.splitPageCount === 1) {
     btn.disabled = true;
     btn.innerHTML = 'Only 1 page found (Cannot be split) <span>✕</span>';
@@ -3946,6 +3964,15 @@ function updateButton() {
 }
 
 function getToolRequiredFieldState() {
+  if (state.operation === 'photo_resize' && ($('#preset')?.value || 'custom') === 'custom') {
+    const fields = ['#width', '#height', '#scale_percent'].map(selector => $(selector)).filter(Boolean);
+    return {
+      input: fields[0],
+      valid: fields.some(field => Number(field.value) > 0) && fields.every(field => field.validity.valid),
+      message: 'Enter a width, height, or scale percentage.',
+      runLabel: 'Enter a size or scale',
+    };
+  }
   const requirement = {
     remove: { selector: '#pages', message: 'Enter one or more pages to remove, for example 2, 4-6.', runLabel: 'Enter pages to remove' },
     organize: { selector: '#pages', message: 'Enter the complete page order, for example 3,1,2.', runLabel: 'Enter the page order' },
@@ -3983,6 +4010,10 @@ function getToolRequiredFieldState() {
 
 function syncRequiredFieldFeedback(requirement = getToolRequiredFieldState()) {
   document.querySelectorAll('#options .option-required-hint').forEach(node => node.remove());
+  document.querySelectorAll('#options [aria-describedby="required-field-hint"]').forEach(node => {
+    node.removeAttribute('aria-invalid');
+    node.removeAttribute('aria-describedby');
+  });
   if (!requirement || !requirement.input) return;
   if (requirement.valid) {
     requirement.input.removeAttribute('aria-invalid');
@@ -4051,6 +4082,7 @@ $('#file-input').onchange = e => {
   const selected = [...e.target.files];
   if (!checkAccessRequirement(state.operation, selected)) return;
   addFiles(selected);
+  e.target.value = '';
 };
 
 ['dragenter', 'dragover'].forEach(event => {
@@ -4239,22 +4271,20 @@ $('#job-form').onsubmit = async e => {
 
   updateProgress(1, 15, 'Preparing document streams…');
 
-  // Client-Side WASM / Canvas Mode with Automatic Cloud Fallback
-  if (state.clientSideMode || CLIENT_SIDE_SUPPORTED_OPERATIONS.has(state.operation) || CLIENT_SIDE_IMAGE_OPERATIONS.has(state.operation)) {
+  if (state.clientSideMode) {
     try {
-      updateProgress(2, 60, 'Processing 100% privately in browser…');
+      updateProgress(2, 60, 'Processing in your browser…');
       await processClientSide();
-      updateProgress(4, 100, 'Complete!');
-      setTimeout(() => $('#progress-card').hidden = true, 1000);
+      updateProgress(4, 100, 'Complete');
+    } catch (error) {
+      showResult(error.message || 'Browser processing could not complete.', true);
+      showToast(error.message || 'Browser processing could not complete.', 'error');
+    } finally {
+      $('#progress-card').hidden = true;
       btn.disabled = false;
       updateButton();
-      return;
-    } catch (clientErr) {
-      console.warn('Browser-local processing failed, falling back to secure cloud worker:', clientErr);
-      showToast('Switching to high-performance cloud engine for this document…', 'info', 3500);
-      updateProgress(2, 35, 'Routing to cloud worker pool…');
-      // Continues smoothly into server execution below!
     }
+    return;
   }
 
   // Server Workflow Execution
@@ -4378,6 +4408,8 @@ async function waitForJob(url) {
 }
 
 function showDownloadResult(job, downloadUrl, { silent = false } = {}) {
+  const previous = toolSessionCache.get(state.operation)?.result?.downloadUrl;
+  if (previous?.startsWith('blob:') && previous !== downloadUrl) URL.revokeObjectURL(previous);
   state.activeToolResult = { job: { ...job }, downloadUrl };
   toolSessionCache.set(state.operation, {
     files: [...state.files],
@@ -4395,7 +4427,9 @@ function showDownloadResult(job, downloadUrl, { silent = false } = {}) {
   }
   $('#result-title').textContent = 'Your document is ready!';
   const outName = job.output_name || 'document.pdf';
-  $('#result-meta').textContent = `${outName} · ${formatBytes(job.output_size)}`;
+  const dimensions = job.dimensions ? ' · ' + job.dimensions.join(' × ') + ' px' : '';
+  const warning = job.warning ? ' · ' + job.warning : '';
+  $('#result-meta').textContent = `${outName} · ${formatBytes(job.output_size)}${dimensions}${warning}`;
   const dlLink = $('#result-download-link');
   dlLink.href = downloadUrl;
   dlLink.setAttribute('download', outName);
@@ -4403,6 +4437,7 @@ function showDownloadResult(job, downloadUrl, { silent = false } = {}) {
 
   // Direct fetch fallback onclick with reassuring immediate UI feedback
   dlLink.onclick = async (e) => {
+    if (downloadUrl.startsWith('blob:')) return;
     e.preventDefault();
     const originalContent = dlLink.innerHTML;
     try {
@@ -4509,29 +4544,33 @@ function showNeutralResult(message) {
 
 function renderMarkdown(markdown) {
   const lines = String(markdown || '').replace(/\r/g, '').split('\n');
+  const formatInline = text => escapeHtml(text)
+    .replace(/\[\[?(?:Pages?)\s+(\d+(?:\s*,\s*\d+)*)\]\]?/gi, (_match, pages) =>
+      pages.split(',').map(page => aiPageCitationTag(page)).join(' '))
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s.,;:!?)]|$)/g, '$1<em>$2</em>')
+    .replace(/`(.+?)`/g, '<code>$1</code>');
   let html = '';
   let inList = false;
   const closeList = () => {
     if (inList) { html += '</ul>'; inList = false; }
   };
-  lines.forEach(line => {
+  for (const line of lines) {
     const trimmed = line.trim();
-    if (!trimmed) { closeList(); return; }
-    if (/^###\s+/.test(trimmed)) { closeList(); html += `<h4>${escapeHtml(trimmed.replace(/^###\s+/, ''))}</h4>`; return; }
-    if (/^##\s+/.test(trimmed)) { closeList(); html += `<h3>${escapeHtml(trimmed.replace(/^##\s+/, ''))}</h3>`; return; }
-    if (/^#\s+/.test(trimmed)) { closeList(); html += `<h2>${escapeHtml(trimmed.replace(/^#\s+/, ''))}</h2>`; return; }
-    if (/^[-*]\s+/.test(trimmed)) {
+    if (!trimmed) { closeList(); continue; }
+    const heading = /^(#{1,3})\s+(.+)$/.exec(trimmed);
+    if (heading) {
+      closeList();
+      const level = heading[1].length + 1;
+      html += '<h' + level + '>' + formatInline(heading[2]) + '</h' + level + '>';
+    } else if (/^[-*]\s+/.test(trimmed)) {
       if (!inList) { html += '<ul>'; inList = true; }
-      html += `<li>${escapeHtml(trimmed.replace(/^[-*]\s+/, ''))}</li>`;
-      return;
+      html += '<li>' + formatInline(trimmed.replace(/^[-*]\s+/, '')) + '</li>';
+    } else {
+      closeList();
+      html += '<p>' + formatInline(trimmed) + '</p>';
     }
-    closeList();
-    const safe = escapeHtml(trimmed)
-      .replace(/\[Page\s+(\d+)\]/gi, (_match, page) => aiPageCitationTag(page))
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/`(.+?)`/g, '<code>$1</code>');
-    html += `<p>${safe}</p>`;
-  });
+  }
   closeList();
   return html || '<p>No response was generated.</p>';
 }
@@ -4747,6 +4786,71 @@ function loadImageFromFile(file) {
   });
 }
 
+const MAX_CANVAS_PIXELS = 32_000_000;
+
+function photoCanvas(width, height) {
+  if (width < 1 || height < 1 || width > 8192 || height > 8192 || width * height > MAX_CANVAS_PIXELS) {
+    throw new Error('The image is too large to process in this browser. Choose smaller dimensions.');
+  }
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext('2d');
+  context.fillStyle = '#fff';
+  context.fillRect(0, 0, width, height);
+  return canvas;
+}
+
+function drawPhoto(image, width, height) {
+  const canvas = photoCanvas(width, height);
+  canvas.getContext('2d').drawImage(image, 0, 0, width, height);
+  return canvas;
+}
+
+async function encodePhoto(canvas, targetBytes, maxQuality = 0.95) {
+  const encode = quality => new Promise((resolve, reject) => canvas.toBlob(
+    blob => blob ? resolve(blob) : reject(new Error('The browser could not encode this image.')),
+    'image/jpeg', quality
+  ));
+  const highest = await encode(maxQuality);
+  if (!targetBytes || highest.size <= targetBytes) return highest;
+  let low = 0.08;
+  let high = maxQuality;
+  let best = await encode(low);
+  if (best.size > targetBytes) return best;
+  for (let step = 0; step < 7; step++) {
+    const quality = (low + high) / 2;
+    const candidate = await encode(quality);
+    if (candidate.size <= targetBytes) {
+      best = candidate;
+      low = quality;
+    } else {
+      high = quality;
+    }
+  }
+  return best;
+}
+
+async function padJpeg(blob, minimum) {
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  const segmentSize = Math.max(4, minimum - bytes.length);
+  const segment = new Uint8Array(segmentSize);
+  segment.set([0xff, 0xfe, (segmentSize - 2) >>> 8, (segmentSize - 2) & 0xff]);
+  return new Blob([bytes.slice(0, 2), segment, bytes.slice(2)], { type: 'image/jpeg' });
+}
+
+function showPhotoResult(blob, filename, canvas, warning = '') {
+  showDownloadResult({
+    output_name: filename,
+    output_size: blob.size,
+    dimensions: [canvas.width, canvas.height],
+    warning,
+    status: 'completed',
+    local_processing: true,
+  }, URL.createObjectURL(blob));
+  canvas.width = canvas.height = 1;
+}
+
 async function processClientSide() {
   if (!CLIENT_SIDE_SUPPORTED_OPERATIONS.has(state.operation)) {
     if (!CLIENT_SIDE_IMAGE_OPERATIONS.has(state.operation)) {
@@ -4754,46 +4858,58 @@ async function processClientSide() {
     }
   }
 
-  // Handle Photo Tools via Browser Canvas
-  if (state.operation === 'photo_compress') {
-    if (!state.files.length) throw new Error('Please select an image to compress.');
+  if (state.operation === 'photo_resizer') {
+    const presets = {
+      ssc_photo: [350, 450, 20, 50], ssc_sign: [400, 200, 10, 20],
+      upsc_photo: [350, 350, 20, 300], upsc_sign: [350, 350, 20, 300],
+      ibps_photo: [200, 230, 20, 50], ibps_sign: [140, 60, 10, 20],
+    };
     const file = state.files[0];
-    const targetKb = Number($('#target_kb')?.value || 100);
-    const qualityVal = Number($('#quality')?.value || 75);
-    const img = await loadImageFromFile(file);
-    const canvas = document.createElement('canvas');
-    canvas.width = img.width;
-    canvas.height = img.height;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-
-    let blob;
-    if (targetKb > 0) {
-      const targetBytes = targetKb * 1024;
-      let low = 0.1, high = 0.95;
-      let bestBlob = null;
-      for (let i = 0; i < 6; i++) {
-        const mid = (low + high) / 2;
-        const b = await new Promise(r => canvas.toBlob(r, 'image/jpeg', mid));
-        if (!b) break;
-        if (b.size > targetBytes) {
-          high = mid;
-        } else {
-          bestBlob = b;
-          low = mid;
-        }
-      }
-      blob = bestBlob || await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.1));
-    } else {
-      blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', qualityVal / 100));
+    const [width, height, minKb, maxKb] = presets[$('#preset')?.value] || presets.ssc_photo;
+    const canvas = drawPhoto(await loadImageFromFile(file), width, height);
+    const asPdf = $('#format')?.value === 'pdf';
+    const maxJpegBytes = maxKb * 1024 - (asPdf ? 2048 : 0);
+    let blob = await encodePhoto(canvas, maxJpegBytes);
+    if (blob.size > maxJpegBytes) {
+      throw new Error('The photo could not fit the selected file-size range at the required dimensions. Try cropping or simplifying the background.');
     }
-    const downloadUrl = URL.createObjectURL(blob);
-    showDownloadResult({
-      output_name: (file.name.replace(/\.[^.]+$/, '') || 'photo') + '-compressed.jpg',
-      output_size: blob.size,
-      status: 'completed',
-      local_processing: true
-    }, downloadUrl);
+    if (blob.size < minKb * 1024) blob = await padJpeg(blob, minKb * 1024);
+    if (asPdf) {
+      const { PDFDocument } = await window.PaperplanePdfRuntime.ensurePdfLib();
+      const pdf = await PDFDocument.create();
+      const page = pdf.addPage([width, height]);
+      const embedded = await pdf.embedJpg(await blob.arrayBuffer());
+      page.drawImage(embedded, { x: 0, y: 0, width, height });
+      blob = new Blob([await pdf.save()], { type: 'application/pdf' });
+    }
+    if (blob.size < minKb * 1024 || blob.size > maxKb * 1024) {
+      throw new Error('The output did not fit the selected file-size range. Try the JPEG format or a different image.');
+    }
+    showPhotoResult(blob, asPdf ? 'exam-photo.pdf' : 'exam-photo.jpg', canvas);
+    return;
+  }
+
+  if (state.operation === 'photo_compress') {
+    const file = state.files[0];
+    const target = Number($('#target_kb')?.value || 0) * 1024;
+    const maxQuality = Number($('#quality')?.value || 75) / 100;
+    const image = await loadImageFromFile(file);
+    let scale = Math.min(1, 8192 / Math.max(image.width, image.height),
+      Math.sqrt(MAX_CANVAS_PIXELS / (image.width * image.height)));
+    let canvas;
+    let blob;
+    for (let step = 0; step < 8; step++) {
+      canvas = drawPhoto(image, Math.max(1, Math.floor(image.width * scale)),
+        Math.max(1, Math.floor(image.height * scale)));
+      blob = await encodePhoto(canvas, target, maxQuality);
+      if (!target || blob.size <= target || Math.min(canvas.width, canvas.height) <= 96 || step === 7) break;
+      canvas.width = canvas.height = 1;
+      scale *= 0.8;
+    }
+    const warning = target && blob.size > target
+      ? 'Could only reach ' + (blob.size / 1024).toFixed(1) + ' KB at minimum quality.'
+      : '';
+    showPhotoResult(blob, file.name.replace(/\.[^.]+$/, '') + '-compressed.jpg', canvas, warning);
     return;
   }
 
@@ -4828,164 +4944,63 @@ async function processClientSide() {
       finalH = Math.max(1, Math.round(img.height * (scalePct / 100)));
     }
 
-    const canvas = document.createElement('canvas');
-    canvas.width = finalW;
-    canvas.height = finalH;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0, finalW, finalH);
-    const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.92));
-    const downloadUrl = URL.createObjectURL(blob);
-    showDownloadResult({
-      output_name: (file.name.replace(/\.[^.]+$/, '') || 'photo') + '-resized.jpg',
-      output_size: blob.size,
-      status: 'completed',
-      local_processing: true
-    }, downloadUrl);
+    if (preset === 'custom' && !targetW && !targetH && !Number($('#scale_percent')?.value)) {
+      throw new Error('Enter a width, height, or scale percentage.');
+    }
+    const canvas = drawPhoto(img, finalW, finalH);
+    showPhotoResult(await encodePhoto(canvas, 0, 0.92),
+      file.name.replace(/\.[^.]+$/, '') + '-resized.jpg', canvas);
     return;
   }
 
   if (state.operation === 'photo_merge') {
-    if (!state.files.length) throw new Error('Please select at least 2 photos to merge.');
-    const images = await Promise.all(state.files.map(f => loadImageFromFile(f)));
-    const layout = $('#layout')?.value || 'vertical';
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-
-    if (layout === 'horizontal') {
-      canvas.width = images.reduce((sum, img) => sum + img.width, 0);
-      canvas.height = Math.max(...images.map(img => img.height));
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      let curX = 0;
-      images.forEach(img => {
-        ctx.drawImage(img, curX, 0);
-        curX += img.width;
-      });
-    } else if (layout === 'grid' && images.length >= 4) {
-      const w1 = Math.max(images[0].width, images[2].width);
-      const w2 = Math.max(images[1].width, images[3].width);
-      const h1 = Math.max(images[0].height, images[1].height);
-      const h2 = Math.max(images[2].height, images[3].height);
-      canvas.width = w1 + w2;
-      canvas.height = h1 + h2;
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(images[0], 0, 0);
-      ctx.drawImage(images[1], w1, 0);
-      ctx.drawImage(images[2], 0, h1);
-      ctx.drawImage(images[3], w1, h1);
-    } else {
-      canvas.width = Math.max(...images.map(img => img.width));
-      canvas.height = images.reduce((sum, img) => sum + img.height, 0);
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      let curY = 0;
-      images.forEach(img => {
-        ctx.drawImage(img, 0, curY);
-        curY += img.height;
-      });
-    }
-
-    const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.9));
-    const downloadUrl = URL.createObjectURL(blob);
-    showDownloadResult({
-      output_name: 'merged-photos.jpg',
-      output_size: blob.size,
-      status: 'completed',
-      local_processing: true
-    }, downloadUrl);
-    return;
-  }
-
-  // Handle PDF Tools via PDFLib
-  const PDFLib = await window.PaperplanePdfRuntime.ensurePdfLib();
-  const { PDFDocument, degrees, rgb } = PDFLib;
-
-  if (state.operation === 'merge') {
-    const mergedPdf = await PDFDocument.create();
+    if (state.files.length < 2) throw new Error('Select at least two photos to merge.');
+    const images = [];
+    let decodedPixels = 0;
     for (const file of state.files) {
-      const bytes = await file.arrayBuffer();
-      const pdf = await PDFDocument.load(bytes);
-      const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
-      copiedPages.forEach(page => mergedPdf.addPage(page));
-    }
-    const pdfBytes = await mergedPdf.save();
-    showClientSidePdfResult(pdfBytes, 'merged-PDF.pdf');
-    return;
-  }
-
-  if (state.operation === 'split' || state.operation === 'remove') {
-    const bytes = await state.files[0].arrayBuffer();
-    const pdf = await PDFDocument.load(bytes);
-    const newPdf = await PDFDocument.create();
-    const total = pdf.getPageCount();
-    const pagesStr = $('#pages')?.value || '1';
-    
-    const indices = [];
-    pagesStr.split(',').forEach(part => {
-      part = part.trim();
-      if (part.includes('-')) {
-        const [start, end] = part.split('-').map(Number);
-        for (let i = start; i <= end; i++) if (i >= 1 && i <= total) indices.push(i - 1);
-      } else {
-        const p = Number(part);
-        if (p >= 1 && p <= total) indices.push(p - 1);
+      const image = await loadImageFromFile(file);
+      decodedPixels += image.width * image.height;
+      if (decodedPixels > MAX_CANVAS_PIXELS) {
+        throw new Error('The photos are too large to merge in your browser. Resize them first.');
       }
-    });
-
-    const targetIndices = state.operation === 'remove'
-      ? pdf.getPageIndices().filter(idx => !indices.includes(idx))
-      : indices;
-
-    const copied = await newPdf.copyPages(pdf, targetIndices);
-    copied.forEach(page => newPdf.addPage(page));
-    const pdfBytes = await newPdf.save();
-    showClientSidePdfResult(pdfBytes, 'extracted_private.pdf');
-    return;
-  }
-
-  if (state.operation === 'rotate') {
-    const bytes = await state.files[0].arrayBuffer();
-    const pdf = await PDFDocument.load(bytes);
-    const rot = Number($('#degrees')?.value || 90);
-    pdf.getPages().forEach(page => {
-      page.setRotation(degrees(page.getRotation().angle + rot));
-    });
-    const pdfBytes = await pdf.save();
-    showClientSidePdfResult(pdfBytes, 'rotated_private.pdf');
-    return;
-  }
-
-  if (state.operation === 'organize') {
-    const bytes = await state.files[0].arrayBuffer();
-    const pdf = await PDFDocument.load(bytes);
-    const newPdf = await PDFDocument.create();
-    const total = pdf.getPageCount();
-    const pagesStr = $('#pages')?.value || '';
-    let indices = [];
-    if (pagesStr) {
-      indices = pagesStr.split(',').map(s => Number(s.trim()) - 1).filter(i => i >= 0 && i < total);
+      images.push(image);
     }
-    if (!indices.length) indices = pdf.getPageIndices();
-    const copied = await newPdf.copyPages(pdf, indices);
-    copied.forEach(page => newPdf.addPage(page));
-    const pdfBytes = await newPdf.save();
-    showClientSidePdfResult(pdfBytes, 'organized_private.pdf');
+    const layout = $('#layout')?.value || 'vertical';
+    const columns = layout === 'grid' ? Math.ceil(Math.sqrt(images.length)) : layout === 'horizontal' ? images.length : 1;
+    const widths = Array(columns).fill(0);
+    const heights = Array(Math.ceil(images.length / columns)).fill(0);
+    images.forEach((image, index) => {
+      const column = index % columns;
+      const row = Math.floor(index / columns);
+      widths[column] = Math.max(widths[column], image.width);
+      heights[row] = Math.max(heights[row], image.height);
+    });
+    const sum = sizes => sizes.reduce((total, size) => total + size, 0);
+    const canvas = photoCanvas(sum(widths), sum(heights));
+    const ctx = canvas.getContext('2d');
+    images.forEach((image, index) => {
+      ctx.drawImage(image, sum(widths.slice(0, index % columns)),
+        sum(heights.slice(0, Math.floor(index / columns))));
+    });
+    showPhotoResult(await encodePhoto(canvas, 0, 0.9), 'merged-photos.jpg', canvas);
     return;
   }
 
-  throw new Error('This tool uses temporary server processing. Turn off Local Processing and retry.');
-}
-
-function showClientSidePdfResult(bytes, filename) {
-  const blob = new Blob([bytes], { type: 'application/pdf' });
-  const downloadUrl = URL.createObjectURL(blob);
+  const operation = state.operation;
+  const options = {
+    pages: $('#pages')?.value.trim() || '',
+    splitMode: $('#split_mode')?.value,
+    degrees: Number($('#degrees')?.value || 90),
+  };
+  const { filename, output } = await window.PaperplanePdfRuntime.transformLocalPdf(operation, state.files, options);
+  if (state.operation !== operation) return;
+  const blob = output instanceof Blob ? output : new Blob([output], { type: 'application/pdf' });
   showDownloadResult({
     output_name: filename,
     output_size: blob.size,
     status: 'completed',
-    local_processing: true
-  }, downloadUrl);
+    local_processing: true,
+  }, URL.createObjectURL(blob));
 }
 
 function downloadBlob(bytes, filename, mimeType) {
@@ -5099,7 +5114,13 @@ function updateAiDocBar() {
     if (docMeta) {
       window.PaperplanePdfRuntime.ensurePdfJs()
         .then(pdfjsLib => file.arrayBuffer().then(buffer => pdfjsLib.getDocument({ data: buffer, isEvalSupported: false }).promise))
-        .then(pdf => { if (state.files[0] === file) docMeta.textContent = `${formatBytes(file.size)} • ${pdf.numPages} pages`; })
+        .then(async pdf => {
+          try {
+            if (state.files[0] === file) docMeta.textContent = `${formatBytes(file.size)} • ${pdf.numPages} pages`;
+          } finally {
+            await pdf.destroy();
+          }
+        })
         .catch(() => { /* The chat upload still reports a readable user-facing status. */ });
     }
     if (chatInput) {
@@ -5130,6 +5151,7 @@ function ensureAiDocumentGreeting(file) {
   if (!file) return;
   const fileKey = `${file.name || 'document.pdf'}:${file.size || 0}:${file.lastModified || 0}`;
   if (state.aiConversation.some(message => message.kind === 'document-greeting' && message.file_key === fileKey)) return;
+  state.aiConversation = state.aiConversation.filter(message => message.kind !== 'document-greeting');
   state.aiConversation.push({
     role: 'assistant',
     kind: 'document-greeting',
@@ -5989,14 +6011,14 @@ async function loadApiKeys() {
     list.innerHTML = data.keys.map(k => `
       <div class="file-row-card">
         <div>
-          <strong>${k.name}</strong> · <code style="font-family: var(--font-mono); font-size: 11px;">${k.key_prefix}</code>
+          <strong>${escapeHtml(k.name)}</strong> · <code style="font-family: var(--font-mono); font-size: 11px;">${k.key_prefix}</code>
           <small style="display: block; color: var(--text-muted);">Created: ${new Date(k.created_at * 1000).toLocaleDateString()}</small>
         </div>
         <button class="delete-file-btn" data-revoke-key="${escapeHtml(k.id)}" title="Revoke API Key"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
       </div>
     `).join('');
   } catch (err) {
-    list.innerHTML = `<div class="result-card error">${err.message}</div>`;
+    list.innerHTML = `<div class="result-card error">${escapeHtml(err.message)}</div>`;
   }
 }
 
@@ -6390,20 +6412,24 @@ if (googleAuthBtn) {
 const signoutBtn = $('#settings-signout-btn');
 if (signoutBtn) {
   signoutBtn.onclick = async () => {
-    // Clear account-owned document bytes before the account scope changes so a
-    // later user in this browser cannot inherit the previous open workspace.
+    try {
+      const response = await paperplaneNativeFetch('/api/auth/logout', {
+        method: 'POST', credentials: 'same-origin', signal: AbortSignal.timeout(5000)
+      });
+      if (!response.ok && response.status !== 401) throw new Error('Logout rejected');
+    } catch {
+      showToast('Could not sign out. Check your connection and try again.', 'error');
+      return;
+    }
+    authRequestVersion += 1;
     const clearedStudio = await clearStudioPdf();
     if (!clearedStudio) await unloadStudioPdf();
-    try { sessionStorage.removeItem(localWorkSessionKey('paperplane-last-local-document')); } catch { /* storage may be disabled */ }
-    try {
-      await safeFetch('/api/auth/logout', { method: 'POST' });
-    } catch (e) {
-      console.warn('Logout request warning:', e);
-    }
-    localStorage.removeItem('paperplane_token');
-    document.cookie = 'paperplane_token=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
-    $('#settings-modal').hidden = true;
-    await checkAuthStatus();
+    clearAuthShellEmail();
+    try { localStorage.removeItem('paperplane_token'); } catch { /* Storage may be disabled. */ }
+    await setAuthenticatedWorkspaceUser(null);
+    renderAuthShell(null);
+    closeSettingsModal();
+    broadcastAuthChange();
     showToast('Signed out of Paperplane.');
   };
 }
@@ -6891,14 +6917,8 @@ function initBillingHandlers() {
   const studentBtn = $('#student-cashfree-checkout-btn');
   if (studentBtn) studentBtn.onclick = () => initiateCheckout('student_pro', studentBtn);
 
-  const proBtn = $('#pro-cashfree-checkout-btn');
-  if (proBtn) proBtn.onclick = () => initiateCheckout('pro', proBtn);
-
   const cyberBtn = $('#cybercafe-cashfree-checkout-btn');
   if (cyberBtn) cyberBtn.onclick = () => initiateCheckout('cyber_cafe', cyberBtn);
-
-  const devBtn = $('#dev-cashfree-checkout-btn');
-  if (devBtn) devBtn.onclick = () => initiateCheckout('developer', devBtn);
 }
 
 async function initiateCheckout(tier, btnEl) {
@@ -6921,14 +6941,7 @@ async function initiateCheckout(tier, btnEl) {
     });
 
     if (res.mode === 'demo_activated') {
-      const tierDisplayNames = {
-        exam_pass: 'Exam (₹19 · 24 hours)',
-        student_pro: 'Student & Educator (₹49/mo or ₹399/year)',
-        pro: 'Pro Power User (₹250/mo or ₹999/year)',
-        cyber_cafe: 'Cyber Café (₹299/mo)',
-        developer: 'Developer (₹750/mo)'
-      };
-      showToast(`${tierDisplayNames[tier] || 'Pro Power User'} Plan Activated!`, 'success', 5000);
+      showToast((bootstrap.pricing?.[tier]?.label || 'Test plan') + ' activated.', 'success', 5000);
       closeUpgradeModal();
       await checkAuthStatus();
     } else if (res.payment_session_id) {
@@ -6958,8 +6971,7 @@ async function initiateCheckout(tier, btnEl) {
 // ----------------------------------------------------------------------
 
 async function init() {
-  const startupNavigationVersion = workspaceNavigationVersion;
-  restoreCachedAuthShell();
+  clearAuthShellEmail();
   // Snapshot reload-only session markers before asynchronous setup. Reading
   // them after the network awaits can consume fresh work created by a fast user.
   let previousView = null;
@@ -6977,25 +6989,28 @@ async function init() {
   addEndpointTableMobileLabels();
   initHomeSearchAndFilter();
   initToolDeskDirectory();
-  await checkAuthStatus();
-  await checkExecutiveBriefAvailability();
-  await handleCashfreeReturn();
-  await initGoogleAuth();
+  renderSidebarTools();
+  renderHomeToolsGrid();
+  renderToolDeskDirectory();
+  handleInitialRouting();
+  const routedVersion = workspaceNavigationVersion;
+  const availability = safeFetch('/api/operations', { signal: AbortSignal.timeout(6000) })
+    .then(data => {
+      state.operations = data;
+      renderSidebarTools();
+      renderHomeToolsGrid();
+      renderToolDeskDirectory();
+      if (state.activeView === 'desk') syncToolAvailability();
+    })
+    .catch(() => { /* The embedded catalog remains available. */ });
+  void checkExecutiveBriefAvailability();
+  void initGoogleAuth();
 
   try {
-    const data = await safeFetch('/api/operations');
-    state.operations = data;
-    renderSidebarTools();
-    renderHomeToolsGrid();
-    renderToolDeskDirectory();
-    const userNavigatedDuringStartup = workspaceNavigationVersion !== startupNavigationVersion;
-    if (!userNavigatedDuringStartup) {
-      handleInitialRouting();
-    } else if (state.activeView === 'desk' && state.operations[state.operation]) {
-      // A slow auth/catalog startup must not discard a view the user already chose.
-      // Reapply the selected tool now that its server metadata is available.
-      selectOperation(state.operation, true);
-    }
+    await checkAuthStatus();
+    void handleCashfreeReturn();
+    const userNavigatedDuringStartup = workspaceNavigationVersion !== routedVersion;
+    void availability;
     try {
       // Restore the last workspace only on a plain root reload; explicit tool
       // and document routes continue to take precedence.
@@ -7030,7 +7045,7 @@ async function handleCashfreeReturn() {
       const planNames = {
         exam_pass: 'Exam',
         student_pro: 'Student & Educator',
-        pro: 'Pro Power User',
+        pro: 'Legacy Pro',
         cyber_cafe: 'Cyber Café',
         developer: 'Developer'
       };
@@ -7093,7 +7108,7 @@ if ($('#link-auth-terms')) $('#link-auth-terms').onclick = e => {
 
 // Settings modal -> Dedicated REST API Docs View
 if ($('#open-api-docs-btn')) $('#open-api-docs-btn').onclick = () => {
-  $('#settings-modal').hidden = true;
+  closeSettingsModal();
   switchWorkspaceView('api-docs');
 };
 
@@ -7249,9 +7264,10 @@ function handleInitialRouting() {
     setInitialView('api-docs');
   } else if (path.includes('download') || path.includes('apps') || urlParams.get('view') === 'download') {
     setInitialView('download');
-  } else if (pathSlug === 'settings') {
-    setInitialView('tool-desk');
-    openSettingsModal('account');
+  } else if (dedicatedWorkspaceViews.has(pathSlug)) {
+    setInitialView(pathSlug);
+  } else if (pathSlug === 'ai-intelligence') {
+    setInitialView('ai');
   } else if (pathSlug === 'tool-desk') {
     setInitialView('tool-desk');
   } else if (pathSlug === 'studio' || urlParams.get('view') === 'studio') {
@@ -7289,9 +7305,10 @@ window.addEventListener('popstate', e => {
     switchWorkspaceView('api-docs', null, false);
   } else if (path.includes('download') || path.includes('apps')) {
     switchWorkspaceView('download', null, false);
-  } else if (pathSlug === 'settings') {
-    switchWorkspaceView('tool-desk', null, false);
-    openSettingsModal('account');
+  } else if (dedicatedWorkspaceViews.has(pathSlug)) {
+    switchWorkspaceView(pathSlug, null, false);
+  } else if (pathSlug === 'ai-intelligence') {
+    switchWorkspaceView('ai', null, false);
   } else if (pathSlug === 'tool-desk') {
     switchWorkspaceView('tool-desk', null, false);
   } else if (pathSlug === 'studio') {

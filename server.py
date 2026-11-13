@@ -4,10 +4,15 @@ import base64
 import asyncio
 import csv
 import difflib
+from datetime import date
+from decimal import Decimal, InvalidOperation
 import hashlib
 import hmac
 from html import escape as html_escape
+from html.parser import HTMLParser
 import io
+import ipaddress
+from functools import lru_cache
 import json
 import logging
 import os
@@ -42,6 +47,7 @@ from fastapi import BackgroundTasks, Body, Depends, FastAPI, File, Form, Header,
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse, Response, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.background import BackgroundTask
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 from PIL import Image
 from pypdf import PdfReader, PdfWriter
@@ -69,7 +75,7 @@ from persistence import (
     authenticate, consume_rate_limit, create_api_key, create_job as persist_job,
     create_session, create_google_session, create_user, create_user_with_hash, delete_expired_jobs, delete_session, get_job, get_job_internal, get_user,
     get_user_by_email, get_user_by_payment_order, get_billing_event_payload, get_user_tier, set_user_tier,
-    get_daily_usage, increment_daily_usage, check_operation_quota,
+    get_daily_usage, check_operation_quota,
     record_billing_event, init_db, list_api_keys, revoke_api_key, update_job,
     create_password_reset_token, verify_and_consume_reset_token, update_user_password,
     get_developer_api_usage, check_and_consume_developer_quota, refund_developer_quota,
@@ -82,7 +88,7 @@ from persistence import (
     record_audit_event, get_recent_audit_logs, delete_job_record, _password_hash,
     admin_get_analytics, admin_get_all_users, admin_get_waitlist,
     get_admin_lockout_remaining, record_admin_failed_attempt, reset_admin_failed_attempts,
-    set_admin_pending_otp, clear_admin_pending_otp, verify_admin_otp, create_admin_session, verify_admin_session,
+    set_admin_pending_otp, clear_admin_pending_otp, verify_admin_otp, create_admin_session, get_admin_session,
     revoke_admin_session, admin_get_extended_analytics,
     admin_delete_user, admin_cleanup_probe_accounts,
     add_user_feedback, admin_get_feedbacks, admin_delete_feedback,
@@ -179,17 +185,31 @@ def _persistence_snapshot() -> dict[str, Any]:
 
 
 # Admin authentication — 3-factor owner security
-ADMIN_SECRET_KEY: str = os.getenv("PAPERPLANE_ADMIN_KEY", "").strip()
-ADMIN_SECRET_CODE: str = os.getenv("PAPERPLANE_ADMIN_CODE", "nimrakulsum").strip()
-ADMIN_ALERT_EMAIL: str = os.getenv("ADMIN_ALERT_EMAIL", "mdhammad2906@gmail.com").strip()
+def _required_admin_setting(name: str) -> str:
+    value = os.environ.get(name, "").strip()
+    if not value:
+        raise RuntimeError(f"{name} must be set before starting Paperplane.")
+    return value
+
+
+ADMIN_SECRET_KEY = _required_admin_setting("PAPERPLANE_ADMIN_KEY")
+ADMIN_SECRET_CODE = _required_admin_setting("PAPERPLANE_ADMIN_CODE")
+PRIMARY_ADMIN_EMAIL = "mdhammad2906@gmail.com"
+ADMIN_ALERT_EMAIL = os.getenv("ADMIN_ALERT_EMAIL", PRIMARY_ADMIN_EMAIL).strip().lower() or PRIMARY_ADMIN_EMAIL
+ADMIN_OWNER_EMAILS = frozenset({
+    PRIMARY_ADMIN_EMAIL,
+    "mdhammad29006@gmail.com",
+})
 
 
 def _require_admin(
     x_admin_session: str = Header(default="", alias="X-Admin-Session"),
-) -> None:
+) -> dict:
     """Require a session created only after the full owner MFA flow."""
-    if not x_admin_session or not verify_admin_session(x_admin_session):
+    session = get_admin_session(x_admin_session)
+    if not session or session["email"] not in ADMIN_OWNER_EMAILS:
         raise HTTPException(status_code=401, detail="Authentication required. Please complete owner verification.")
+    return session
 
 # Workload-based execution timeouts (in seconds)
 COMPRESS_TIMEOUT_SECONDS = 60.0    # multi-pass downsampling & stream compression
@@ -279,7 +299,8 @@ logger.info("AI startup readiness: %s", json.dumps(ai_engine.get_ai_configuratio
 # Never accept forwarded IPs from arbitrary clients: admin throttles and
 # lockout decisions depend on the resulting client address.
 TRUSTED_PROXY_HOSTS = os.getenv("PAPERPLANE_TRUSTED_PROXY_HOSTS", "127.0.0.1,::1").strip()
-app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=TRUSTED_PROXY_HOSTS)
+if "*" in {host.strip() for host in TRUSTED_PROXY_HOSTS.split(",")}:
+    raise RuntimeError("PAPERPLANE_TRUSTED_PROXY_HOSTS must list trusted peers explicitly.")
 
 # Production-hardened Trusted hosts and CORS middleware (Wildcard origins strictly excluded)
 if TRUSTED_HOSTS:
@@ -358,33 +379,45 @@ async def count_ai_and_studio_operations(request: Request, call_next):
         return _quota_limit_response(usage, tier, bool(user_id))
 
     subject = f"user:{user_id}" if user_id else f"ip:{client_ip}"
-    response = await call_next(request)
+    usage_day = date.today().isoformat()
+    limit = FREE_TIER_DAILY_LIMIT if tier == "free" else None
+    count = persistence.reserve_daily_usage(subject, limit, usage_day)
+    if count is None:
+        return _quota_limit_response(get_daily_usage(subject, usage_day), tier, bool(user_id))
+
+    try:
+        response = await call_next(request)
+    except BaseException:
+        persistence.refund_daily_usage(subject, usage_day)
+        raise
     if response.status_code >= 400:
+        persistence.refund_daily_usage(subject, usage_day)
         return response
 
-    if path == "/api/ai/chat/stream" and getattr(response, "body_iterator", None) is not None:
+    if path == "/api/ai/chat/stream":
         body_iterator = response.body_iterator
 
-        async def count_after_completed_stream():
+        async def refund_incomplete_stream():
             completed = False
-            failed = False
-            async for chunk in body_iterator:
-                data = chunk.decode("utf-8", errors="ignore") if isinstance(chunk, bytes) else str(chunk)
-                completed = completed or "event: done" in data
-                failed = failed or "event: error" in data
-                yield chunk
-            if completed and not failed:
-                count = increment_daily_usage(subject)
-                request.state.usage_today = count
+            try:
+                async for chunk in body_iterator:
+                    data = chunk.decode("utf-8", errors="ignore") if isinstance(chunk, bytes) else str(chunk)
+                    completed = completed or data.startswith("event: done\n")
+                    yield chunk
+            finally:
+                if not completed:
+                    persistence.refund_daily_usage(subject, usage_day)
 
-        response.body_iterator = count_after_completed_stream()
+        response.body_iterator = refund_incomplete_stream()
         return response
 
-    count = increment_daily_usage(subject)
-    request.state.usage_today = count
     response.headers["X-Paperplane-Operations-Today"] = str(count)
     return response
 
+
+# Starlette installs newly added middleware outside earlier middleware.
+# Quotas and authentication must see the address normalized by the trusted edge.
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=TRUSTED_PROXY_HOSTS)
 
 # Periodic background cleanup daemon
 #
@@ -462,13 +495,13 @@ OPERATIONS = {
     "metadata": {"label": "PDF Metadata", "category": "Advanced", "accept": "pdf", "implemented": True, "description": "View and modify document metadata (Title, Author, Subject)."},
     "ai_chat": {"label": "AI PDF Chat", "category": "AI tools", "accept": "pdf", "implemented": True, "description": "Ask questions to your document with RAG and exact page citations."},
     "ai_extract": {"label": "Smart Metadata", "category": "AI tools", "accept": "pdf", "implemented": True, "description": "Extract invoices and resumes into structured JSON & CSV."},
-    "summarize": {"label": "AI Summarize", "category": "AI tools", "accept": "pdf", "implemented": True, "description": "Generate executive overview and key bullet points."},
+    "summarize": {"label": "AI Summarize", "category": "AI tools", "accept": "pdf", "implemented": True, "description": "Generate an executive overview and key takeaways from a PDF of up to 120 pages."},
     "translate": {"label": "AI Translate", "category": "AI tools", "accept": "pdf", "implemented": True, "description": "Translate document content while preserving formatting."},
     "photo_resizer": {"label": "Exam Photo & Signature Resizer", "category": "Photo Tools", "accept": "image", "implemented": True, "description": "Resize photos and signatures to exact dimensions and KB limits for SSC, UPSC, and state exams."},
     "photo_compress": {"label": "Compress Photo / Image", "category": "Photo Tools", "accept": "image", "implemented": True, "description": "Compress JPG, PNG, or WebP photos to exact target KB or quality percentage."},
     "photo_resize": {"label": "Resize Photo Dimensions", "category": "Photo Tools", "accept": "image", "implemented": True, "description": "Resize photo width, height, passport format (3.5x4.5cm), or custom percentage."},
     "photo_merge": {"label": "Merge Photos into One", "category": "Photo Tools", "accept": "image", "implemented": True, "description": "Combine multiple photos side-by-side, stacked vertically, or in a photo collage."},
-    "mask_aadhaar": {"label": "Mask Aadhaar Card", "category": "Security", "accept": "pdf", "implemented": True, "description": "Automatically redact first 8 digits of Aadhaar numbers per UIDAI guidelines."},
+    "mask_aadhaar": {"label": "Mask Aadhaar Card", "category": "Security", "accept": "pdf_or_image", "implemented": True, "description": "Automatically redact first 8 digits of Aadhaar numbers per UIDAI guidelines."},
     "grayscale": {"label": "Convert to Grayscale", "category": "Organize PDF", "accept": "pdf", "implemented": True, "description": "Convert colored PDF pages to monochrome for printing. Output size varies, and colored pages may become image-based."},
     "flatten": {"label": "Flatten PDF Forms", "category": "Edit & Sign", "accept": "pdf", "implemented": True, "description": "Bake all interactive form fields into the page content, creating a non-editable submission copy."},
 }
@@ -1106,6 +1139,15 @@ SEO_CATALOG = {
 
 # Category landing pages are useful entry points for search visitors, but are
 # deliberately kept separate from the 37-operation sitemap inventory.
+WORKSPACE_PAGES = {
+    "settings": ("Paperplane Settings", "Manage your account, theme, billing, and browser storage."),
+    "pricing": ("Paperplane Pricing", "Compare free browser tools and INR plans for exam, student, and high-volume PDF work."),
+    "faq": ("Frequently asked questions", "Learn how browser processing, server limits, and file retention work."),
+    "feedback": ("Feedback", "Send an idea, report a bug, or tell Paperplane about your experience."),
+    "history": ("Temporary downloads", "Find recent results in the tool where you ran them. Paperplane does not keep a permanent history of your files."),
+    "ai-intelligence": ("AI Document Intelligence", "Work with your PDF using chat, Smart Metadata, and Executive Brief."),
+}
+
 SEO_LANDING_PAGES = {
     "compress-pdf-to-100kb": {
         "title": "Compress PDF to 100KB Online Free — SSC, UPSC & Govt Forms | Paperplane",
@@ -1181,8 +1223,8 @@ SEO_LANDING_PAGES = {
     },
     "developers": {
         "title": "Developer REST API & Code Workbench | Paperplane",
-        "description": "Integrate 41 PDF, Office, and OCR transformations into your application with Paperplane's fast, sovereign REST microservice.",
-        "heading": "Enterprise Document Microservice Architecture",
+        "description": f"Integrate {len(OPERATIONS)} PDF, Office, and image tools into your application with the Paperplane REST API.",
+        "heading": "Developer REST API reference",
         "category": "Developers",
         "intro": "Integrate high-speed conversion, organization, and AI operations into your backend apps, CI/CD pipelines, or microservices with dedicated API keys.",
         "related": ("merge", "split", "compress", "ocr"),
@@ -1192,21 +1234,7 @@ SEO_LANDING_PAGES = {
 
 def public_site_url(request: Request) -> str:
     """Return the public canonical origin without leaking an internal proxy URL."""
-    configured = PAPERPLANE_PUBLIC_URL
-    forwarded_proto = request.headers.get("x-forwarded-proto", "").split(",", 1)[0].strip()
-    forwarded_host = request.headers.get("x-forwarded-host", "").split(",", 1)[0].strip()
-
-    if configured:
-        # Keep the configured public origin authoritative while allowing a
-        # trusted proxy to correct scheme/host during blue/green migrations.
-        from urllib.parse import urlsplit, urlunsplit
-
-        parts = urlsplit(configured)
-        return urlunsplit((forwarded_proto or parts.scheme, forwarded_host or parts.netloc, "", "", "")).rstrip("/")
-
-    scheme = forwarded_proto or request.url.scheme
-    host = forwarded_host or request.headers.get("host") or request.url.netloc
-    return f"{scheme}://{host}".rstrip("/")
+    return PAPERPLANE_PUBLIC_URL or str(request.base_url).rstrip("/")
 
 
 def seo_page_context(operation: str | None, landing_slug: str | None = None) -> dict:
@@ -1244,6 +1272,13 @@ def seo_page_context(operation: str | None, landing_slug: str | None = None) -> 
                 ("Are uploaded files kept permanently?", "Processing and retention depend on the selected workflow. Review the privacy information for details."),
             ),
         }
+
+    if landing_slug in WORKSPACE_PAGES:
+        title, description = WORKSPACE_PAGES[landing_slug]
+        context = seo_page_context(None, None)
+        context.update(title=title + " | Paperplane", description=description, heading=title,
+                       category="Workspace", intro=description, slug=landing_slug)
+        return context
 
     if landing_slug:
         landing = SEO_LANDING_PAGES[landing_slug]
@@ -1387,8 +1422,20 @@ def render_web_page(request: Request, operation: str | None = None, landing_slug
 
     html = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
     plan_limits = plan_limits_payload()
+    bootstrap = json.dumps({
+        "operations": OPERATIONS,
+        "planLimits": plan_limits,
+        "pricing": public_pricing_catalog(),
+    }, ensure_ascii=True).replace("<", r"\u003c")
+    html = html.replace("<!-- WORKSPACE_BOOTSTRAP_SLOT -->",
+                        '<script id="paperplane-bootstrap" type="application/json">' + bootstrap + "</script>")
     for token, value in {
         "%%FREE_DAILY%%": plan_limits["free_operations_per_day"],
+        "%%COPYRIGHT_YEAR%%": date.today().year,
+        "%%TOOL_COUNT%%": len(OPERATIONS),
+        "%%EXAM_PRICE%%": EXAM_PASS_PRICE_INR,
+        "%%STUDENT_PRICE%%": STUDENT_PRO_PRICE_INR,
+        "%%CAFE_PRICE%%": CYBER_CAFE_PRICE_INR,
         "%%FREE_MB%%": plan_limits["free_max_file_size_mb"],
         "%%PRO_MB%%": plan_limits["pro_max_file_size_mb"],
         "%%BATCH_FILES%%": plan_limits["max_batch_files"],
@@ -1418,7 +1465,17 @@ def render_web_page(request: Request, operation: str | None = None, landing_slug
   <script type="application/ld+json">{json_ld}</script>
   """
     html = html.replace("<!-- SEO_META_SLOT -->", meta)
-    html = html.replace("<!-- SEO_CONTENT_SLOT -->", render_seo_content(context))
+    html = html.replace("<!-- SEO_CONTENT_SLOT -->", render_seo_content(context) if landing_slug not in WORKSPACE_PAGES else "")
+    if landing_slug in WORKSPACE_PAGES:
+        title, description = WORKSPACE_PAGES[landing_slug]
+        html = html.replace('<div id="view-home" class="home-container">', '<div id="view-home" class="home-container" hidden>', 1)
+        html = html.replace('<b id="crumb-tool">Directory</b>', f'<b id="crumb-tool">{html_escape(title)}</b>', 1)
+        if landing_slug == "ai-intelligence":
+            html = html.replace('id="view-ai-studio" class="ai-studio-wrapper" hidden',
+                                'id="view-ai-studio" class="ai-studio-wrapper"', 1)
+        else:
+            html = html.replace(f'id="view-{landing_slug}" class="workspace-page" hidden',
+                                f'id="view-{landing_slug}" class="workspace-page"', 1)
     html = html.replace("<title>Paperplane PDF - Online PDF Tools &amp; Editor</title>", f"<title>{title}</title>")
 
     # Render the first meaningful viewport for crawlers and no-JavaScript
@@ -1427,6 +1484,24 @@ def render_web_page(request: Request, operation: str | None = None, landing_slug
     # displays the default Merge PDF copy on a deep tool URL.
     if operation is not None:
         info = OPERATIONS[operation]
+        html = html.replace('class="seo-content"', f'class="seo-content" data-operation="{operation}"', 1)
+        accept = info["accept"]
+        if accept == "url":
+            hint = "Public HTTP or HTTPS website URL. No file upload required."
+        else:
+            file_kind = {"image": "Images", "office": "Office documents", "pdf_or_image": "PDFs and images"}.get(accept, "PDF files")
+            batch = {
+                "merge": f"Up to {plan_limits['max_batch_files']} files per run",
+                "jpg_to_pdf": f"Up to {plan_limits['max_batch_files']} images per run",
+                "scan_pdf": f"Up to {plan_limits['max_batch_files']} files per run",
+                "compare": "Exactly two PDFs per run",
+                "photo_merge": "Merge 2–12 photos per run",
+            }.get(operation, "One file per run")
+            hint = f"{file_kind} up to {plan_limits['free_max_file_size_mb']} MB each on Free and {plan_limits['pro_max_file_size_mb']} MB each on paid plans. {batch}."
+        html = html.replace(
+            '<small id="file-hint">PDF tools · file size and batch limits are shown for the selected tool</small>',
+            f'<small id="file-hint">{html_escape(hint)}</small>', 1,
+        )
         html = html.replace(
             '<div id="view-home" class="home-container">',
             '<div id="view-home" class="home-container" hidden>',
@@ -1656,7 +1731,7 @@ def deliver_otp_or_raise(background_tasks: BackgroundTasks, email: str, code: st
     # The automated test harness captures an OTP through its explicitly gated
     # dev_otp response. Outside that harness, never say a code was sent unless
     # a configured mail provider confirms delivery.
-    if os.getenv("TESTING") == "True":
+    if (ENVIRONMENT != "production" and os.getenv("TESTING") == "True"):
         background_tasks.add_task(send_otp_email, email, code, purpose)
         return
     if not send_otp_email(email, code, purpose):
@@ -1758,6 +1833,9 @@ def save_upload(upload: UploadFile, directory: Path, max_bytes: int = MAX_FILE_S
 def validate_upload(path: Path, expected: str, operation: str = "") -> None:
     with path.open("rb") as stream:
         header = stream.read(1024)
+
+    if expected == "pdf_or_image":
+        expected = "pdf" if b"%PDF-" in header else "image"
 
     if expected == "pdf":
         # Accept readers' common compatibility case where a short preamble
@@ -2062,7 +2140,7 @@ def _merge_pdf_inputs(inputs: list[Path], output: Path, options: dict) -> Path:
         reader = PdfReader(str(path), strict=False)
         if reader.is_encrypted:
             pw = passwords.get(path.name) or passwords.get(str(idx)) or global_pw
-            if not pw or not reader.decrypt(pw):
+            if not reader.decrypt(pw):
                 raise ValueError(f"File '{path.name}' is password protected. Please provide a valid password.")
         for page in reader.pages:
             writer.add_page(page)
@@ -2152,7 +2230,11 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
         return converters.merge_photos(inputs, output, layout=layout)
 
     if operation == "mask_aadhaar":
-        return security_forms_engine.mask_aadhaar_pdf(source, output)
+        with source.open("rb") as stream:
+            is_pdf = b"%PDF-" in stream.read(1024)
+        if is_pdf:
+            return security_forms_engine.mask_aadhaar_pdf(source, output)
+        return security_forms_engine.mask_aadhaar_image(source, output.with_suffix(".png"))
 
     if operation == "grayscale":
         run_converter_with_timeout(
@@ -2354,7 +2436,7 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
 
     # 5. Reader / Writer operations
     reader = PdfReader(str(source), strict=False)
-    if reader.is_encrypted and operation != "unlock":
+    if reader.is_encrypted and operation != "unlock" and not reader.decrypt(""):
         raise ValueError("This PDF is encrypted. Use Unlock PDF first.")
 
     writer = PdfWriter()
@@ -2675,7 +2757,7 @@ def _auth_response_data(session: dict, user_id: str | None = None, extra: dict |
         data.update(extra)
     # Session token is strictly delivered via secure HttpOnly cookie.
     # It is only exposed in response body if TESTING is True for automated test harness assertions.
-    if os.getenv("TESTING") == "True":
+    if (ENVIRONMENT != "production" and os.getenv("TESTING") == "True"):
         data["token"] = session.get("token")
     return data
 
@@ -2759,7 +2841,7 @@ async def register(
         "purpose": "signup",
         "message": f"A 6-digit confirmation code has been dispatched to {clean_email}."
     }
-    if os.getenv("TESTING") == "True":
+    if (ENVIRONMENT != "production" and os.getenv("TESTING") == "True"):
         res["dev_otp"] = otp_code
     return res
 
@@ -2822,7 +2904,7 @@ def login(
             "purpose": "login",
             "message": f"A 6-digit verification code has been dispatched to {clean_email}."
         }
-        if os.getenv("TESTING") == "True":
+        if (ENVIRONMENT != "production" and os.getenv("TESTING") == "True"):
             res["dev_otp"] = otp_code
         return res
 
@@ -3029,7 +3111,7 @@ async def resend_otp(request: Request, background_tasks: BackgroundTasks):
         "status": "success",
         "message": "A new verification code has been sent. Any previous code is now invalid; use the latest code."
     }
-    if os.getenv("TESTING") == "True":
+    if (ENVIRONMENT != "production" and os.getenv("TESTING") == "True"):
         res["dev_otp"] = otp_code
     return res
 
@@ -3188,7 +3270,7 @@ async def forgot_password(request: Request, background_tasks: BackgroundTasks):
         background_tasks.add_task(send_password_reset_email, target_email, token, base_url)
 
         # In non-production testing environment, offer safe dev link for verification
-        if ENVIRONMENT != "production" or os.getenv("TESTING") == "True" or "pytest" in sys.modules:
+        if ENVIRONMENT != "production":
             dev_url = reset_link
 
     resp = {
@@ -3356,41 +3438,19 @@ async def join_waitlist(request: Request, background_tasks: BackgroundTasks):
 def get_current_user_profile(request: Request, user_id: str | None = Depends(current_user)):
     if not user_id:
         raise HTTPException(status_code=401, detail="Authentication is required.")
-    client_ip = get_client_ip(request)
-    all_pricing = {
-        "exam_pass": {"inr": EXAM_PASS_PRICE_INR},
-        "student_pro": {"inr": STUDENT_PRO_PRICE_INR},
-        "pro": {"inr": PRO_TIER_PRICE_INR},
-        "cyber_cafe": {"inr": CYBER_CAFE_PRICE_INR},
-        "developer": {"inr": DEV_TIER_PRICE_INR},
-    }
+    all_pricing = public_pricing_catalog()
     plan_limits = plan_limits_payload()
-    if not user_id:
-        usage = get_daily_usage(f"ip:{client_ip}")
-        return {
-            "authenticated": False,
-            "role": "guest",
-            "tier": "free",
-            "tier_label": "Free",
-            "is_pro": False,
-            "is_dev": False,
-            "daily_limit": FREE_TIER_DAILY_LIMIT,
-            "usage_today": usage,
-            "remaining_today": max(0, FREE_TIER_DAILY_LIMIT - usage),
-            "pricing": all_pricing,
-            "plan_limits": plan_limits,
-        }
     user = get_user(user_id)
     if not user:
         raise HTTPException(status_code=401, detail="Authentication is required.")
-    tier = (user.get("tier") or "free").lower()
+    tier = get_user_tier(user_id)
     paid_tiers = ("pro", "developer", "student_pro", "cyber_cafe", "exam_pass")
     is_pro = tier in paid_tiers
-    is_dev = tier == "developer"
+    is_dev = tier in {"developer", "cyber_cafe"}
     usage = get_daily_usage(f"user:{user_id}")
     tier_labels = {
         "developer": "Developer",
-        "pro": "Pro Power User",
+        "pro": "Legacy Pro",
         "student_pro": "Student & Educator",
         "cyber_cafe": "Cyber Café",
         "exam_pass": "Exam",
@@ -3418,6 +3478,39 @@ def get_current_user_profile(request: Request, user_id: str | None = Depends(cur
 # ----------------------------------------------------------------------
 # Cashfree Payment Gateway (PG v2023-08-01) & Billing Endpoints
 # ----------------------------------------------------------------------
+
+
+def public_pricing_catalog() -> dict:
+    return {
+        "free": {"inr": 0, "label": "Free"},
+        "exam_pass": {"inr": EXAM_PASS_PRICE_INR, "label": "Exam Pass"},
+        "student_pro": {"inr": STUDENT_PRO_PRICE_INR, "label": "Student & Educator"},
+        "cyber_cafe": {"inr": CYBER_CAFE_PRICE_INR, "label": "Cyber Café"},
+    }
+
+
+def _cashfree_checkout_issue() -> str | None:
+    if CASHFREE_ENV_CONFIG_ERROR:
+        return "invalid_gateway_environment"
+    allow_test_payments = (
+        ALLOW_TEST_PAYMENTS
+        or (
+            CASHFREE_ENV == "TEST"
+            and CASHFREE_APP_ID.startswith("TEST")
+            and os.getenv("PAPERPLANE_ALLOW_TEST_PAYMENTS", "true").lower() in ("true", "1", "yes")
+        )
+    )
+    if ENVIRONMENT == "production" and CASHFREE_ENV != "PROD" and not allow_test_payments:
+        return "production_requires_prod_gateway"
+    if CASHFREE_ENV == "PROD" and ENVIRONMENT != "production":
+        return "production_gateway_requires_production"
+    if not CASHFREE_APP_ID or not CASHFREE_SECRET_KEY:
+        return "missing_gateway_credentials"
+    return None
+
+
+def _billing_simulation_enabled() -> bool:
+    return ENVIRONMENT == "development" and ALLOW_BILLING_SIMULATION
 
 
 def _cashfree_headers(idempotency_key: str | None = None) -> dict[str, str]:
@@ -3458,6 +3551,22 @@ def _cashfree_request(method: str, path: str, body: dict | None = None) -> dict:
         raise HTTPException(502, "Cashfree returned an invalid response.") from error
 
 
+def _cashfree_payment_matches(created: dict, paid_order: dict) -> bool:
+    environment = created.get("gateway_environment")
+    if environment and environment != CASHFREE_ENV:
+        return False
+    if environment is None and ENVIRONMENT == "production":
+        return False
+    if "amount" not in created and environment is None:
+        # Legacy sandbox fixtures and in-flight development orders predate amount tracking.
+        return ENVIRONMENT == "development"
+    try:
+        return (str(paid_order.get("order_currency", "")).upper() == created.get("currency")
+                and Decimal(str(paid_order.get("order_amount"))) == Decimal(str(created["amount"])))
+    except (InvalidOperation, KeyError):
+        return False
+
+
 def _cashfree_tier_from_order(order_id: str) -> str:
     payload = get_billing_event_payload(order_id) or {}
     tier = str(payload.get("tier", "pro")).lower()
@@ -3485,15 +3594,15 @@ def _cashfree_payment_method(payment_data: dict | None) -> str:
 def billing_status(request: Request, user_id: str | None = Depends(current_user)):
     client_ip = get_client_ip(request)
     user = get_user(user_id) if user_id else None
-    tier = (user.get("tier") if user else "free").lower()
+    tier = get_user_tier(user_id)
     subject = f"user:{user_id}" if user_id else f"ip:{client_ip}"
     usage = get_daily_usage(subject)
     paid_tiers = ("pro", "developer", "student_pro", "cyber_cafe", "exam_pass")
     is_pro = tier in paid_tiers
-    is_dev = tier == "developer"
+    is_dev = tier in {"developer", "cyber_cafe"}
     tier_labels = {
         "developer": "Developer",
-        "pro": "Pro Power User",
+        "pro": "Legacy Pro",
         "student_pro": "Student & Educator",
         "cyber_cafe": "Cyber Café",
         "exam_pass": "Exam",
@@ -3508,14 +3617,9 @@ def billing_status(request: Request, user_id: str | None = Depends(current_user)
         "daily_limit": None if is_pro else FREE_TIER_DAILY_LIMIT,
         "usage_today": usage,
         "remaining_today": "Unlimited" if is_pro else max(0, FREE_TIER_DAILY_LIMIT - usage),
-        "pricing": {
-            "exam_pass": {"inr": EXAM_PASS_PRICE_INR},
-            "student_pro": {"inr": STUDENT_PRO_PRICE_INR},
-            "pro": {"inr": PRO_TIER_PRICE_INR},
-            "cyber_cafe": {"inr": CYBER_CAFE_PRICE_INR},
-            "developer": {"inr": DEV_TIER_PRICE_INR},
-        },
-        "cashfree_configured": bool(CASHFREE_APP_ID and CASHFREE_SECRET_KEY),
+        "pricing": public_pricing_catalog(),
+        "cashfree_configured": _cashfree_checkout_issue() is None,
+        "billing_simulation_enabled": _billing_simulation_enabled(),
         "cashfree_environment": CASHFREE_ENV,
         "subscription_status": user.get("subscription_status", "inactive") if user else "inactive",
         "has_payment_customer": bool(user and user.get("payment_customer_id")),
@@ -3535,33 +3639,19 @@ def create_checkout_session(
     if not user:
         raise HTTPException(404, "User not found.")
 
-    valid_tiers = {"exam_pass", "student_pro", "cyber_cafe", "pro", "developer"}
-    target_tier = str(payload.get("tier", "pro")).lower()
-    if target_tier not in valid_tiers:
-        target_tier = "pro"
+    target_tier = str(payload.get("tier", "cyber_cafe")).lower()
     currency = str(payload.get("currency", "INR")).upper()
     if currency != "INR":
         raise HTTPException(400, "Paperplane checkout currently supports INR only.")
-    if CASHFREE_ENV_CONFIG_ERROR:
-        logger.error("Cashfree checkout blocked: invalid CASHFREE_ENV configuration.")
-        raise HTTPException(
-            503,
-            "Payments are temporarily unavailable. Please try again later.",
-        )
-    allow_test_payments = (
-        ALLOW_TEST_PAYMENTS
-        or (
-            CASHFREE_ENV == "TEST"
-            and CASHFREE_APP_ID.startswith("TEST")
-            and os.getenv("PAPERPLANE_ALLOW_TEST_PAYMENTS", "true").lower() in ("true", "1", "yes")
-        )
-    )
-    if ENVIRONMENT == "production" and CASHFREE_ENV != "PROD" and not allow_test_payments:
-        logger.warning("Cashfree checkout blocked in production because PROD mode is not configured.")
-        raise HTTPException(
-            503,
-            "Payments are temporarily unavailable. Please try again later.",
-        )
+    checkout_issue = _cashfree_checkout_issue()
+    if checkout_issue and not (checkout_issue == "missing_gateway_credentials" and _billing_simulation_enabled()):
+        logger.warning("Cashfree checkout blocked: %s", checkout_issue)
+        raise HTTPException(503, "Payments are temporarily unavailable. Please try again later.")
+    offered = {"exam_pass", "student_pro", "cyber_cafe"}
+    if ENVIRONMENT == "development":
+        offered.update({"pro", "developer"})
+    if target_tier not in offered:
+        raise HTTPException(422, "Choose a currently offered plan.")
     if target_tier == "exam_pass":
         amount = EXAM_PASS_PRICE_INR
     elif target_tier == "student_pro":
@@ -3572,12 +3662,7 @@ def create_checkout_session(
         amount = DEV_TIER_PRICE_INR
     else:
         amount = PRO_TIER_PRICE_INR
-    # Cashfree order IDs are deliberately deterministic and traceable back to
-    # the account that initiated the payment. The timestamp keeps retries from
-    # colliding in normal operation while the database retains the active ID.
-    order_id = f"order_pp_{user_id[:8]}_{int(time.time())}"
-    if user.get("cashfree_order_id") == order_id:
-        order_id = f"{order_id}_{uuid.uuid4().hex[:6]}"
+    order_id = f"order_pp_{user_id[:8]}_{uuid.uuid4().hex}"
     public_url = (PAPERPLANE_PUBLIC_URL or str(request.base_url)).rstrip("/")
     # The redirect only means checkout returned to the merchant. Payment is
     # activated exclusively after verify_cashfree_order sees Cashfree PAID.
@@ -3598,23 +3683,21 @@ def create_checkout_session(
         "order_note": f"Paperplane PDF {target_tier.capitalize()} Plan",
     }
 
-    if not CASHFREE_APP_ID or not CASHFREE_SECRET_KEY:
-        if ENVIRONMENT != "development" or not ALLOW_BILLING_SIMULATION:
-            raise HTTPException(503, "Live Cashfree payment processing is not configured.")
+    if checkout_issue == "missing_gateway_credentials":
         set_user_tier(
             user_id, tier=target_tier, status="active",
             customer_id=f"demo_cashfree_{uuid.uuid4().hex[:12]}",
             cashfree_order_id=order_id, payment_method="cashfree_demo",
         )
-        record_billing_event(order_id, "cashfree.demo_order_activated", user["id"], {"user_id": user_id, "tier": target_tier, "currency": currency, "amount": amount})
+        record_billing_event(order_id, "cashfree.demo_order_activated", user["id"], {"user_id": user_id, "tier": target_tier, "currency": currency, "amount": amount, "gateway_environment": "SIMULATION"})
         return {"status": "success", "mode": "demo_activated", "order_id": order_id, "environment": CASHFREE_ENV, "tier": target_tier}
 
     data = _cashfree_request("POST", "/orders", order_payload)
     payment_session_id = data.get("payment_session_id")
     if not payment_session_id:
         raise HTTPException(502, "Cashfree did not return a payment session.")
-    set_user_tier(user_id, tier=user.get("tier", "free"), status=user.get("subscription_status", "inactive"), cashfree_order_id=order_id, payment_method="cashfree")
-    record_billing_event(order_id, "cashfree.order_created", user["id"], {"user_id": user_id, "tier": target_tier, "currency": currency, "amount": amount, "cashfree_order": data})
+    persistence.attach_billing_order(user_id, order_id)
+    record_billing_event(order_id, "cashfree.order_created", user["id"], {"user_id": user_id, "tier": target_tier, "currency": currency, "amount": amount, "gateway_environment": CASHFREE_ENV, "cashfree_order": data})
     return {"status": "success", "payment_session_id": payment_session_id, "order_id": order_id, "environment": CASHFREE_ENV}
 
 
@@ -3623,24 +3706,26 @@ def verify_cashfree_order(order_id: str, user_id: str | None = Depends(current_u
     if not user_id:
         raise HTTPException(401, "Authentication is required.")
     user = get_user(user_id)
-    if not user or user.get("cashfree_order_id") != order_id:
+    created_order = get_billing_event_payload(order_id)
+    owns_legacy_order = user and user.get("cashfree_order_id") == order_id
+    if not user or not (owns_legacy_order or (created_order and created_order.get("user_id") == user_id)):
         raise HTTPException(404, "Payment order not found for this account.")
     data = _cashfree_request("GET", f"/orders/{urllib.parse.quote(order_id, safe='')}")
     if str(data.get("order_status", "")).upper() != "PAID":
         return {"status": str(data.get("order_status", "PENDING")).lower(), "order_id": order_id, "tier": user.get("tier", "free")}
+    if (not created_order or created_order.get("user_id") != user_id
+            or data.get("order_id") != order_id or not _cashfree_payment_matches(created_order, data)):
+        raise HTTPException(409, "The payment could not be matched to this checkout.")
     tier = _cashfree_tier_from_order(order_id)
     customer_id = (data.get("customer_details") or {}).get("customer_id") or user_id
+    if customer_id != user_id:
+        raise HTTPException(409, "The payment could not be matched to this account.")
     payment_method = _cashfree_payment_method(data.get("payment"))
-    set_user_tier(
-        user_id,
-        tier=tier,
-        status="active",
-        customer_id=customer_id,
-        cashfree_order_id=order_id,
-        payment_method=payment_method,
-    )
-    record_billing_event(f"{order_id}:verified", "cashfree.order_verified", customer_id, data)
-    return {"status": "paid", "tier": tier, "order_id": order_id}
+    if not persistence.settle_billing_order(
+        user_id, order_id, tier, payment_method, {**data, "gateway_environment": created_order.get("gateway_environment")}
+    ):
+        raise HTTPException(404, "Payment account not found.")
+    return {"status": "paid", "tier": get_user_tier(user_id), "order_id": order_id}
 
 
 @app.post("/api/billing/cashfree-webhook", include_in_schema=False)
@@ -3676,51 +3761,52 @@ async def cashfree_webhook(request: Request):
         or request.headers.get("x-webhook-id")
         or f"cashfree_{hashlib.sha256(raw_body).hexdigest()}"
     )
-    record_billing_event(event_id, event_type, customer_id, event)
-
-    if event_type == "PAYMENT_SUCCESS_WEBHOOK" and str(payment_data.get("payment_status", "SUCCESS")).upper() == "SUCCESS" and order_id:
-        user = get_user_by_payment_order(order_id)
-        if not user and customer_id:
-            user = get_user(customer_id)
-        if user:
+    created_order = get_billing_event_payload(order_id) if isinstance(order_id, str) else None
+    audited_event = {**event}
+    audited_event.pop("gateway_environment", None)
+    audited_event.pop("matches_checkout", None)
+    if created_order and created_order.get("gateway_environment"):
+        audited_event["gateway_environment"] = created_order["gateway_environment"]
+    if event_type == "PAYMENT_SUCCESS_WEBHOOK":
+        user_id = (created_order or {}).get("user_id")
+        matches = bool(user_id and (not customer_id or customer_id == user_id)
+                       and str(payment_data.get("payment_status", "")).upper() == "SUCCESS"
+                       and _cashfree_payment_matches(created_order, order_data))
+        if matches:
             tier = _cashfree_tier_from_order(order_id)
-            set_user_tier(
-                user["id"],
-                tier=tier,
-                status="active",
-                customer_id=customer_id or user["id"],
-                cashfree_order_id=order_id,
-                payment_method=_cashfree_payment_method(payment_data),
-            )
+            persistence.settle_billing_order(user_id, order_id, tier, _cashfree_payment_method(payment_data), audited_event)
+        else:
+            audited_event["matches_checkout"] = False
+    record_billing_event(f"webhook:{event_id}", event_type, customer_id, audited_event)
     return {"status": "OK"}
 
 
 @app.post("/api/billing/simulate-pro", include_in_schema=False)
 def simulate_pro(user_id: str = Depends(current_user)):
-    """Developer test endpoint to toggle Pro Power User tier."""
-    if ENVIRONMENT != "development" or not ALLOW_BILLING_SIMULATION:
+    """Developer test endpoint to activate the legacy Pro plan."""
+    if not _billing_simulation_enabled():
         raise HTTPException(403, "Billing simulation is disabled in production environments.")
     if not user_id:
         raise HTTPException(401, "Sign in first to simulate Pro tier.")
     set_user_tier(user_id, tier="pro", status="active")
-    return {"status": "success", "tier": "pro", "message": "Upgraded to Pro Power User (₹250/mo)!"}
+    return {"status": "success", "tier": "pro", "message": "Legacy Pro test plan activated."}
 
 
 @app.post("/api/billing/simulate-dev", include_in_schema=False)
 def simulate_dev(user_id: str = Depends(current_user)):
     """Developer test endpoint to toggle Developer API tier."""
-    if ENVIRONMENT != "development" or not ALLOW_BILLING_SIMULATION:
+    if not _billing_simulation_enabled():
         raise HTTPException(403, "Billing simulation is disabled in production environments.")
     if not user_id:
         raise HTTPException(401, "Sign in first to simulate Developer tier.")
     set_user_tier(user_id, tier="developer", status="active")
-    return {"status": "success", "tier": "developer", "message": "Upgraded to Developer (₹750/mo)!"}
+    return {"status": "success", "tier": "developer", "message": "Developer test plan activated."}
 
 
 @app.post("/api/billing/simulate-free", include_in_schema=False)
 def simulate_free(user_id: str = Depends(current_user)):
     """Developer test endpoint to reset to Free tier."""
-    if ENVIRONMENT != "development" or not ALLOW_BILLING_SIMULATION:
+    if not _billing_simulation_enabled():
         raise HTTPException(403, "Billing simulation is disabled in production environments.")
     if not user_id:
         raise HTTPException(401, "Sign in first.")
@@ -3744,7 +3830,7 @@ def generate_key(name: str = Form("Default API Key"), user_id: str = Depends(cur
     if not user_id:
         raise HTTPException(401, "Authentication is required to generate API keys.")
     user = get_user(user_id)
-    tier = (user.get("tier") if user else "free").lower()
+    tier = get_user_tier(user_id)
     existing_keys = list_api_keys(user_id)
 
     # Free tier gets 1 evaluation key, Pro, Cyber Café & Developer tiers get unlimited keys
@@ -4015,7 +4101,8 @@ async def ai_summarize(
             raise
         return {"status": "success", "summary": summary, "citations": citations}
     except ValueError as ve:
-        raise HTTPException(status_code=503, detail=str(ve))
+        status = 422 if str(ve).startswith("Executive Brief accepts") else 503
+        raise HTTPException(status_code=status, detail=str(ve)) from ve
     except RuntimeError as re:
         raise HTTPException(status_code=502, detail=str(re))
     except HTTPException:
@@ -4040,25 +4127,13 @@ async def ai_extract(
         await save_pdf_upload_async(file, temp_pdf, user_id=user_id)
         data = await asyncio.to_thread(ai_engine.extract_metadata_entities, temp_pdf, doc_type)
         return {"status": "success", "data": data}
+    except HTTPException:
+        raise
+    except (fitz.FileDataError, fitz.EmptyFileError) as error:
+        raise HTTPException(422, "This PDF is damaged or empty.") from error
     except Exception as err:
-        logging.getLogger("paperplane").warning(f"Smart metadata extraction fallback triggered: {err}")
-        return {
-            "status": "success",
-            "data": {
-                "document_type": "general",
-                "total_pages": 1,
-                "contact": {"emails": [], "phones": []},
-                "source_pages": [],
-                "warnings": ["Extraction completed using local fallback parser."],
-                "general_data": {
-                    "title": file.filename or "Document",
-                    "document_date": None,
-                    "detected_topics": ["General Document"],
-                    "key_entities": []
-                },
-                "retrieval_method": "Deterministic Structural Entity Extraction"
-            }
-        }
+        logging.getLogger("paperplane").warning("Smart Metadata failed (%s)", type(err).__name__)
+        raise HTTPException(502, "Smart Metadata could not read this PDF. Please try again.") from err
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
 
@@ -4071,12 +4146,14 @@ async def ai_translate_endpoint(
 ):
     if not translation_ai_available():
         raise HTTPException(503, "AI translation is unavailable because the Paperplane AI translation service is not configured or enabled.")
+    if not re.fullmatch(r"[a-zA-Z]{2,3}(?:-[a-zA-Z]{2,8})?", target_language):
+        raise HTTPException(422, "Choose a supported target language.")
     temp_dir = Path(tempfile.mkdtemp())
     translation_task: asyncio.Task | None = None
     defer_temp_cleanup = False
     try:
         temp_pdf = temp_dir / "translate_input.pdf"
-        save_pdf_upload(file, temp_pdf, user_id=user_id)
+        await save_pdf_upload_async(file, temp_pdf, user_id=user_id)
         out_pdf = temp_dir / f"translated_{target_language}.pdf"
         translation_report: dict = {}
         translation_task = asyncio.create_task(asyncio.to_thread(
@@ -4192,7 +4269,7 @@ async def pdf_annotate_endpoint(
 # ----------------------------------------------------------------------
 
 @app.post("/api/studio/apply-edits")
-async def studio_apply_edits(
+def studio_apply_edits(
     file: UploadFile = File(...),
     edits: str = Form("[]"),
     user_id: str | None = Depends(current_user)
@@ -4230,18 +4307,17 @@ async def studio_apply_edits(
         out_path = temp_dir / "edited.pdf"
         converters.apply_editor_annotations(in_path, out_path, edit_list)
 
-        out_bytes = out_path.read_bytes()
-        return StreamingResponse(
-            io.BytesIO(out_bytes),
-            media_type="application/pdf",
-            headers={"Content-Disposition": 'attachment; filename="edited.pdf"'}
+        return FileResponse(
+            out_path, media_type="application/pdf", filename="edited.pdf",
+            background=BackgroundTask(shutil.rmtree, temp_dir, ignore_errors=True),
         )
     except HTTPException:
+        shutil.rmtree(temp_dir, ignore_errors=True)
         raise
     except Exception as err:
-        raise HTTPException(500, f"Editor bake failed: {err}") from err
-    finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
+        logger.warning("Studio export failed (%s)", type(err).__name__)
+        raise HTTPException(500, "Unable to export this PDF. Reopen the file and try again.") from err
 
 
 @app.post("/api/studio/page/insert")
@@ -4423,7 +4499,7 @@ async def studio_page_duplicate(
 # ----------------------------------------------------------------------
 
 @app.post("/api/studio/pages/reorder")
-async def studio_pages_reorder(
+def studio_pages_reorder(
     file: UploadFile = File(...),
     order: str = Form(...),  # JSON array of page indices
     user_id: str | None = Depends(current_user)
@@ -4464,17 +4540,17 @@ async def studio_pages_reorder(
         out_path = temp_dir / "reordered.pdf"
         converters.reorder_pdf_pages(in_path, out_path, order_list)
 
-        return StreamingResponse(
-            io.BytesIO(out_path.read_bytes()),
-            media_type="application/pdf",
-            headers={"Content-Disposition": 'attachment; filename="reordered.pdf"'}
+        return FileResponse(
+            out_path, media_type="application/pdf", filename="reordered.pdf",
+            background=BackgroundTask(shutil.rmtree, temp_dir, ignore_errors=True),
         )
     except HTTPException:
+        shutil.rmtree(temp_dir, ignore_errors=True)
         raise
     except Exception as err:
-        raise HTTPException(500, f"Page reorder failed: {err}") from err
-    finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
+        logger.warning("Studio reorder failed (%s)", type(err).__name__)
+        raise HTTPException(500, "Unable to reorder this PDF. Reopen the file and try again.") from err
 
 
 @app.post("/api/studio/pages/rotate")
@@ -5806,6 +5882,71 @@ async def studio_security_redact(
 
 
 
+_DRIVE_DOWNLOAD_HOSTS = {"drive.google.com", "drive.usercontent.google.com"}
+_DRIVE_DOWNLOAD_PATHS = {"/uc", "/download"}
+_DRIVE_CONFIRM_FIELDS = {"id", "export", "confirm", "uuid", "resourcekey"}
+
+
+class _DriveDownloadForm(HTMLParser):
+    """Extract only the public Drive download form, never arbitrary links."""
+
+    def __init__(self):
+        super().__init__()
+        self.action: str | None = None
+        self.fields: dict[str, str] = {}
+        self.in_download_form = False
+
+    def handle_starttag(self, tag, attrs):
+        props = dict(attrs)
+        if tag == "form":
+            self.in_download_form = props.get("id") == "download-form" and (props.get("method") or "get").lower() == "get"
+            if self.in_download_form:
+                self.action = props.get("action")
+        elif tag == "input" and self.in_download_form:
+            name = (props.get("name") or "").lower()
+            if name in _DRIVE_CONFIRM_FIELDS and props.get("type") == "hidden":
+                self.fields[name] = (props.get("value") or "")[:256]
+
+    def handle_endtag(self, tag):
+        if tag == "form":
+            self.in_download_form = False
+
+
+def _drive_download_url(url: str, parsed: urllib.parse.SplitResult) -> tuple[str, str | None, dict]:
+    path_match = re.fullmatch(r"/file/d/([A-Za-z0-9_-]+)/?(?:view|preview|edit)?/?", parsed.path)
+    query = urllib.parse.parse_qs(parsed.query)
+    file_id = path_match.group(1) if path_match else query.get("id", [""])[0]
+    if not re.fullmatch(r"[A-Za-z0-9_-]{1,200}", file_id):
+        return url, None, {}
+    params = {"export": "download", "id": file_id, "confirm": "t"}
+    for name in ("resourcekey", "uuid", "confirm"):
+        value = query.get(name, [""])[0]
+        if re.fullmatch(r"[A-Za-z0-9_-]{1,256}", value):
+            params[name] = value
+    return "https://drive.usercontent.google.com/download?" + urllib.parse.urlencode(params), file_id, params
+
+
+def _confirm_drive_download(raw: bytes, final_url: str, file_id: str, params: dict) -> str | None:
+    if len(raw) > 256 * 1024:
+        return None
+    origin = urllib.parse.urlsplit(final_url)
+    if origin.scheme != "https" or origin.hostname not in _DRIVE_DOWNLOAD_HOSTS:
+        return None
+    form = _DriveDownloadForm()
+    form.feed(raw.decode("utf-8", "replace"))
+    if not form.action or form.fields.get("id") != file_id:
+        return None
+    target = urllib.parse.urlsplit(urllib.parse.urljoin(final_url, form.action))
+    if (target.scheme != "https" or target.hostname not in _DRIVE_DOWNLOAD_HOSTS
+            or target.username or target.password or target.port not in (None, 443)
+            or target.path not in _DRIVE_DOWNLOAD_PATHS):
+        return None
+    fields = {**params, **{name: value for name, value in form.fields.items()
+                          if re.fullmatch(r"[A-Za-z0-9_-]{1,256}", value)}}
+    fields["export"] = "download"
+    return urllib.parse.urlunsplit(("https", target.hostname, target.path, urllib.parse.urlencode(fields), ""))
+
+
 @app.post("/api/cloud/sync")
 def cloud_sync(
     file_url: str = Form(...),
@@ -5821,12 +5962,14 @@ def cloud_sync(
     if parsed_url.username or parsed_url.password:
         raise HTTPException(400, "Invalid URL: embedded credentials are not allowed")
 
-    # Format Google Drive shareable link to direct export
-    if hostname == "drive.google.com":
-        match = re.search(r"/d/([a-zA-Z0-9_-]+)", parsed_url.path) or re.search(r"(?:^|&)id=([a-zA-Z0-9_-]+)(?:&|$)", parsed_url.query)
-        if match:
-            url = f"https://drive.google.com/uc?export=download&confirm=t&id={match.group(1)}"
-            provider = "Google Drive"
+    # Normalize only the documented Drive hosts. User-supplied provider names
+    # cannot opt into confirmation handling for any other domain.
+    drive_id = None
+    drive_params = {}
+    provider = "direct"
+    if hostname in _DRIVE_DOWNLOAD_HOSTS:
+        url, drive_id, drive_params = _drive_download_url(url, parsed_url)
+        provider = "Google Drive"
     elif hostname == "dropbox.com" or hostname.endswith(".dropbox.com"):
         url = re.sub(r"[?&]dl=0", "", url)
         url += ("&" if "?" in url else "?") + "dl=1"
@@ -5843,10 +5986,23 @@ def cloud_sync(
             response_metadata=response_metadata,
         )
 
-        # Reject HTML preview, login, or error pages
-        if raw_bytes.startswith((b"<!DOCTYPE", b"<!doctype", b"<html", b"<HTML", b"<body", b"<head")):
+        if drive_id and not raw_bytes.startswith(b"%PDF-"):
+            confirm_url = _confirm_drive_download(
+                raw_bytes, response_metadata.get("final_url", url), drive_id, drive_params
+            )
+            if confirm_url:
+                response_metadata.clear()
+                raw_bytes, content_type = converters.safe_fetch_url(
+                    confirm_url, max_size=upload_limit_bytes_for_user(user_id),
+                    timeout=30, response_metadata=response_metadata,
+                )
+
+        is_html = "html" in content_type.lower() or raw_bytes.lstrip().lower().startswith(
+            (b"<!doctype", b"<html", b"<body", b"<head", b"<!--")
+        )
+        if not raw_bytes.startswith(b"%PDF-") and is_html:
             if provider == "Google Drive":
-                raise ValueError("Google Drive returned a preview or login page. Set General access to Anyone with the link, or use a direct PDF download URL.")
+                raise ValueError("Google Drive returned a preview, confirmation, or sign-in page. Allow anyone with the link to download, or use a direct PDF URL.")
             raise ValueError("The provided link returned an HTML webpage or login screen instead of a direct file. Ensure it is publicly accessible without login or use a direct download URL.")
 
         if not raw_bytes.startswith(b"%PDF-"):
@@ -5940,7 +6096,10 @@ async def organize_thumbnails(
 # Job Runner & Management
 # ----------------------------------------------------------------------
 
-def run_job(job_id: str, operation: str, paths: list[Path], options: dict, user_id: str | None) -> None:
+def run_job(
+    job_id: str, operation: str, paths: list[Path], options: dict, user_id: str | None,
+    usage_reservation: tuple[str, str] | None = None,
+) -> None:
     job_dir = JOBS / job_id
     try:
         update_job(job_id, status="processing", progress=20)
@@ -5953,6 +6112,8 @@ def run_job(job_id: str, operation: str, paths: list[Path], options: dict, user_
             output_size=result.stat().st_size
         )
     except Exception as error:
+        if usage_reservation:
+            persistence.refund_daily_usage(*usage_reservation)
         update_job(job_id, status="failed", progress=100, error=str(error))
 
 
@@ -6019,7 +6180,9 @@ def create_job_endpoint(
         raise HTTPException(400, "Please select at least one file to process.")
 
     # Batch limits (up to 100 for merge/scan/images)
-    max_files = MAX_BATCH_FILES if operation in {"merge", "jpg_to_pdf", "scan_pdf"} else 2 if operation == "compare" else 1
+    max_files = MAX_BATCH_FILES if operation in {"merge", "jpg_to_pdf", "scan_pdf"} else {"compare": 2, "photo_merge": 12}.get(operation, 1)
+    if operation == "photo_merge" and len(files) < 2:
+        raise HTTPException(400, "Select at least two photos to merge.")
     if len(files) > max_files:
         raise HTTPException(400, f"This operation accepts at most {max_files} files.")
 
@@ -6054,11 +6217,22 @@ def create_job_endpoint(
             validate_upload(p, expected, operation)
             paths.append(p)
 
-        # Failed uploads and invalid files do not consume a daily operation.
+        # Failed uploads never spend quota. Keep a reservation for queued AI
+        # work so that failure can refund the day on which it was submitted.
         subject = f"user:{user_id}" if user_id else f"ip:{client_ip}"
-        usage_today = increment_daily_usage(subject)
+        usage_day = date.today().isoformat()
+        limit = FREE_TIER_DAILY_LIMIT if user_tier == "free" else None
+        usage_today = persistence.reserve_daily_usage(subject, limit, usage_day)
+        if usage_today is None:
+            limit_response = _quota_limit_response(get_daily_usage(subject), user_tier, bool(user_id))
+            raise HTTPException(402, json.loads(limit_response.body)["detail"])
+        reservation = (subject, usage_day) if operation in {"translate", "summarize", "ai_extract", "ai_chat"} else None
+        try:
+            executor.submit(run_job, job_id, operation, paths, parsed_options, user_id, reservation)
+        except Exception:
+            persistence.refund_daily_usage(subject, usage_day)
+            raise
         response.headers["X-Paperplane-Operations-Today"] = str(usage_today)
-        executor.submit(run_job, job_id, operation, paths, parsed_options, user_id)
         return {
             "job_id": job_id,
             "status": "queued",
@@ -6227,7 +6401,9 @@ async def create_v1_job(
     if operation != "html_to_pdf" and not files:
         raise HTTPException(400, "Please supply at least one input file in the 'files' multipart form field.")
 
-    max_files = MAX_BATCH_FILES if operation in {"merge", "jpg_to_pdf", "scan_pdf"} else 2 if operation == "compare" else 1
+    max_files = MAX_BATCH_FILES if operation in {"merge", "jpg_to_pdf", "scan_pdf"} else {"compare": 2, "photo_merge": 12}.get(operation, 1)
+    if operation == "photo_merge" and len(files) < 2:
+        raise HTTPException(400, "Select at least two photos to merge.")
     if len(files) > max_files:
         raise HTTPException(400, f"Operation '{operation}' accepts at most {max_files} input file(s).")
 
@@ -6541,7 +6717,25 @@ def studio_workspace_page(request: Request):
 
 @app.get("/settings", response_class=HTMLResponse, include_in_schema=False)
 def settings_page(request: Request):
-    return render_web_page(request, landing_slug="tool-desk")
+    return render_web_page(request, landing_slug="settings")
+
+
+@app.get("/pricing", response_class=HTMLResponse, include_in_schema=False)
+def pricing_page(request: Request):
+    return render_web_page(request, landing_slug="pricing")
+
+
+@app.get("/dashboard", include_in_schema=False)
+def dashboard_redirect():
+    return RedirectResponse(url="/tool-desk", status_code=301)
+
+
+@app.get("/tools/{tool_slug}", include_in_schema=False)
+def legacy_nested_tool(tool_slug: str):
+    canonical = LEGACY_SLUG_REDIRECTS.get(tool_slug, tool_slug)
+    if canonical not in SLUG_TO_OPERATION:
+        raise HTTPException(404, "Tool not found.")
+    return RedirectResponse(url=f"/{canonical}", status_code=301)
 
 
 @app.get("/privacy", response_class=HTMLResponse)
@@ -6620,6 +6814,7 @@ def sitemap_xml(request: Request):
     paths = ["/"]
     paths.extend(f"/{slug}" for slug in OPERATION_SLUGS.values())
     paths.extend(f"/{slug}" for slug in SEO_LANDING_PAGES)
+    paths.extend(("/pricing", "/faq", "/ai-intelligence"))
     urls = "".join(
         f"<url><loc>{html_escape(site_url + path, quote=True)}</loc><changefreq>weekly</changefreq><priority>{'1.0' if path != '/' else '1.0'}</priority></url>"
         for path in paths
@@ -6629,6 +6824,14 @@ def sitemap_xml(request: Request):
 
 
 LEGACY_SLUG_REDIRECTS = {
+    "metadata": "pdf-metadata",
+    "photo-compress": "compress-image-online",
+    "compress-photos": "compress-image-online",
+    "ai-chat": "ai-pdf-chat",
+    "chat-pdf": "ai-pdf-chat",
+    "pdf-chat": "ai-pdf-chat",
+    "plans": "pricing",
+    "billing": "pricing",
     "scan-pdf": "scan-to-pdf",
     "fill-form": "fill-pdf-form",
     "ai-translate": "translate-pdf",
@@ -7211,6 +7414,8 @@ def admin_portal_page():
       <div id="auth-error" class="error-msg"></div>
 
       <div class="field-group">
+        <label class="field-label" for="admin-email-input">Owner email</label>
+        <input type="email" id="admin-email-input" class="input-field" autocomplete="username" required />
         <label class="field-label" for="admin-key-input">Admin Secret Key</label>
         <div class="input-wrapper">
           <input type="password" id="admin-key-input" class="input-field" placeholder="Paste your 64-character admin key..." autocomplete="off" />
@@ -7353,6 +7558,7 @@ def admin_portal_page():
         <div class="tabs">
           <button class="tab-btn active" id="tab-users-btn">Registered Users (<span id="count-users">0</span>)</button>
           <button class="tab-btn" id="tab-revenue-btn">💰 Revenue &amp; Payouts</button>
+          <button type="button" class="tab-btn" id="tab-sessions-btn">Admin sessions (<span id="count-sessions">0</span>)</button>
           <button class="tab-btn" id="tab-feedback-btn">💬 User Feedback (<span id="count-feedback">0</span>)</button>
           <button class="tab-btn" id="tab-ai-btn">🤖 AI Settings</button>
           <button class="tab-btn" id="tab-waitlist-btn">App Waitlist (<span id="count-waitlist">0</span>)</button>
@@ -7403,9 +7609,9 @@ def admin_portal_page():
             <div class="sub">Active Pro &amp; Developer Subscribers</div>
           </div>
           <div class="revenue-card">
-            <div class="title">Verified Gross Payments</div>
+            <div class="title">Verified Production Gross</div>
             <div class="value" id="rev-gross-revenue">-</div>
-            <div class="sub">Unique paid INR orders recorded</div>
+            <div class="sub">Unique paid production INR orders</div>
           </div>
           <div class="revenue-card">
             <div class="title">Estimated Gateway Fees (<span id="rev-fee-rate">—</span>)</div>
@@ -7432,19 +7638,28 @@ def admin_portal_page():
                 <th>Subscribed Tier</th>
                 <th>Order / Transaction ID</th>
                 <th>Amount (INR)</th>
+                <th>Gateway environment</th>
                 <th>Created Date</th>
                 <th>Payment Status</th>
               </tr>
             </thead>
             <tbody id="revenue-tbody">
-              <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">Loading financial ledger...</td></tr>
+              <tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">Loading financial ledger...</td></tr>
             </tbody>
           </table>
         </div>
       </div>
 
+      <section id="panel-sessions" class="table-container" style="display: none;" aria-label="Admin sessions">
+        <table>
+          <thead><tr><th>Owner account</th><th>Role</th><th>Signed in</th><th>Expires</th><th>Action</th></tr></thead>
+          <tbody id="sessions-tbody"></tbody>
+        </table>
+      </section>
+
       <!-- User Feedback Panel -->
       <div id="panel-feedback" style="display: none;">
+        <p id="feedback-refresh-status" role="status">Feedback refreshes while this tab is open.</p>
         <div class="table-container">
           <div style="padding: 12px 16px; background: #111a1d; border-bottom: 1px solid var(--card-border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
             <div style="display: flex; align-items: center; gap: 8px;">
@@ -7556,19 +7771,20 @@ def admin_portal_page():
               <th>Event Type</th>
               <th>Target Email</th>
               <th>IP Address</th>
+              <th>Approximate location</th>
               <th>Timestamp</th>
               <th>Details</th>
             </tr>
           </thead>
           <tbody id="audit-tbody">
-            <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">Loading security audit logs...</td></tr>
+            <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">Loading security audit logs...</td></tr>
           </tbody>
         </table>
       </div>
     </div>
   </main>
 
-  <script src="/assets/admin.js?v=2.1.0" defer></script>
+  <script src="/assets/admin.js?v=13" defer></script>
 </body>
 </html>""")
 
@@ -7582,7 +7798,7 @@ def tool_landing_page(tool_slug: str, request: Request):
     operation = SLUG_TO_OPERATION.get(tool_slug)
     if operation:
         return render_web_page(request, operation=operation)
-    if tool_slug in SEO_LANDING_PAGES:
+    if tool_slug in SEO_LANDING_PAGES or tool_slug in WORKSPACE_PAGES:
         return render_web_page(request, landing_slug=tool_slug)
     raise HTTPException(status_code=404, detail="Page not found")
 
@@ -7665,7 +7881,8 @@ async def admin_auth_step1(request: Request, background_tasks: BackgroundTasks):
         and hmac.compare_digest(admin_code.encode("utf-8"), ADMIN_SECRET_CODE.encode("utf-8"))
     )
 
-    if not (key_ok and code_ok):
+    owner_email = str(body.get("email") or PRIMARY_ADMIN_EMAIL).strip().lower()
+    if not (key_ok and code_ok and owner_email in ADMIN_OWNER_EMAILS):
         attempts, is_locked = record_admin_failed_attempt(client_ip)
         record_audit_event("admin_auth_failed", email=ADMIN_ALERT_EMAIL, ip_address=client_ip, details=f"Failed attempt {attempts}/3")
         if is_locked:
@@ -7687,16 +7904,16 @@ async def admin_auth_step1(request: Request, background_tasks: BackgroundTasks):
 
     # Key and Secret Code validated -> generate 6-digit OTP
     otp = f"{secrets.randbelow(1_000_000):06d}"
-    set_admin_pending_otp(otp, expires_in=600)
+    challenge = set_admin_pending_otp(otp, owner_email, client_ip, expires_in=600)
 
     delivered = await asyncio.to_thread(
         send_admin_login_otp,
-        to_email=ADMIN_ALERT_EMAIL,
+        to_email=owner_email,
         otp_code=otp,
         client_ip=client_ip,
     )
     if not delivered:
-        clear_admin_pending_otp()
+        clear_admin_pending_otp(challenge)
         record_audit_event(
             "admin_otp_delivery_failed",
             email=ADMIN_ALERT_EMAIL,
@@ -7707,8 +7924,8 @@ async def admin_auth_step1(request: Request, background_tasks: BackgroundTasks):
             status_code=503,
             detail="Owner verification email could not be delivered. Please try again later.",
         )
-    record_audit_event("admin_otp_dispatched", email=ADMIN_ALERT_EMAIL, ip_address=client_ip, details="Admin OTP dispatched to owner")
-    return {"status": "otp_sent"}
+    record_audit_event("admin_otp_dispatched", email=owner_email, ip_address=client_ip, details="Admin OTP dispatched to owner")
+    return JSONResponse({"status": "otp_sent", "challenge": challenge}, headers={"Cache-Control": "no-store"})
 
 
 @app.post("/api/admin/auth/step2", include_in_schema=False)
@@ -7725,9 +7942,10 @@ async def admin_auth_step2(request: Request, background_tasks: BackgroundTasks):
     body = await _read_limited_admin_json(request)
 
     otp = str(body.get("otp", "")).strip()
-    otp_ok = verify_admin_otp(otp)
+    challenge = str(body.get("challenge", ""))
+    owner_email = verify_admin_otp(otp, challenge, client_ip)
 
-    if not otp_ok:
+    if owner_email not in ADMIN_OWNER_EMAILS:
         attempts, is_locked = record_admin_failed_attempt(client_ip)
         record_audit_event("admin_otp_failed", email=ADMIN_ALERT_EMAIL, ip_address=client_ip, details=f"Invalid OTP attempt {attempts}/3")
         if is_locked:
@@ -7749,27 +7967,70 @@ async def admin_auth_step2(request: Request, background_tasks: BackgroundTasks):
 
     # Full 3-factor authentication verified -> issue 4-hour session
     reset_admin_failed_attempts(client_ip)
-    session_token = create_admin_session(ttl_seconds=14400)
-    record_audit_event("admin_login_success", email=ADMIN_ALERT_EMAIL, ip_address=client_ip, details="Owner authenticated via 3-factor verification")
+    session_token = create_admin_session(owner_email, client_ip, ttl_seconds=14400)
+    record_audit_event("admin_login_success", email=owner_email, ip_address=client_ip, details="Owner authenticated via 3-factor verification")
 
-    return {
-        "status": "authenticated",
-        "session_token": session_token,
-        "expires_in": 14400
-    }
+    return JSONResponse(
+        {"status": "authenticated", "session_token": session_token, "expires_in": 14400},
+        headers={"Cache-Control": "no-store"},
+    )
 
 
 @app.post("/api/admin/auth/logout", include_in_schema=False)
-def admin_auth_logout(_: None = Depends(_require_admin)):
-    """Revokes active admin session."""
-    revoke_admin_session()
+def admin_auth_logout(session: dict = Depends(_require_admin)):
+    revoke_admin_session(session["id"])
     return {"status": "logged_out"}
+
+
+@app.get("/api/admin/sessions", include_in_schema=False)
+def admin_sessions(session: dict = Depends(_require_admin)):
+    active = [
+        {**row, "current": row["id"] == session["id"], "role": "superadmin"}
+        for row in persistence.list_admin_sessions() if row["email"] in ADMIN_OWNER_EMAILS
+    ]
+    return JSONResponse({"sessions": active}, headers={"Cache-Control": "no-store"})
+
+
+@app.delete("/api/admin/sessions/{session_id}", include_in_schema=False)
+def admin_logout_other_session(session_id: str, request: Request, session: dict = Depends(_require_admin)):
+    if session_id == session["id"]:
+        raise HTTPException(409, "Use Logout to end your current session.")
+    if not revoke_admin_session(session_id):
+        raise HTTPException(404, "This admin session has already ended.")
+    record_audit_event("admin_session_revoked", email=session["email"], ip_address=get_client_ip(request),
+                       details="An owner revoked another admin session.")
+    return {"status": "logged_out"}
+
+
+@lru_cache(maxsize=512)
+def _lookup_admin_location(ip: str) -> str | None:
+    path = os.getenv("PAPERPLANE_GEOIP_DB", "").strip()
+    if not path:
+        return None
+    try:
+        address = ipaddress.ip_address(ip)
+        if not address.is_global:
+            return None
+        import maxminddb
+
+        with maxminddb.open_database(path) as reader:
+            entry = reader.get(str(address)) or {}
+        city = (entry.get("city") or {}).get("names", {}).get("en")
+        regions = entry.get("subdivisions") or []
+        region = regions[0].get("names", {}).get("en") if regions else None
+        country = (entry.get("country") or {}).get("names", {}).get("en")
+        return ", ".join(dict.fromkeys(part for part in (city, region, country) if part)) or None
+    except (OSError, ValueError, ImportError):
+        return None
 
 
 @app.get("/api/admin/dashboard", include_in_schema=False)
 def admin_dashboard(_: None = Depends(_require_admin)):
     """Full visual analytics and telemetry snapshot for the owner dashboard."""
     analytics = admin_get_extended_analytics()
+    for event in analytics["recent_audits"]:
+        if event["event_type"] in {"login_success", "admin_login_success"}:
+            event["location"] = _lookup_admin_location(event.get("ip_address") or "")
     return {
         "status": "ok",
         "environment": os.getenv("PAPERPLANE_ENV", "production"),
@@ -7783,6 +8044,29 @@ def admin_list_users(_: None = Depends(_require_admin)):
     """List all registered users with tier, signup date, and last active date."""
     users = admin_get_all_users()
     return {"status": "ok", "count": len(users), "users": users}
+
+
+@app.post("/api/admin/users/set-plan", include_in_schema=False)
+async def admin_set_user_plan(request: Request, session: dict = Depends(_require_admin)):
+    body = await _read_limited_admin_json(request)
+    user_id = body.get("user_id")
+    tier = body.get("tier")
+    if not isinstance(user_id, str) or not isinstance(tier, str) or tier not in public_pricing_catalog():
+        raise HTTPException(422, "Choose a user and a currently offered plan.")
+    if not await asyncio.to_thread(persistence.admin_update_user_access, user_id, session["email"], get_client_ip(request), tier):
+        raise HTTPException(404, "User not found.")
+    return {"status": "ok", "tier": tier}
+
+
+@app.post("/api/admin/users/reset-usage", include_in_schema=False)
+async def admin_reset_user_usage(request: Request, session: dict = Depends(_require_admin)):
+    body = await _read_limited_admin_json(request)
+    user_id = body.get("user_id")
+    if not isinstance(user_id, str):
+        raise HTTPException(422, "Choose a user.")
+    if not await asyncio.to_thread(persistence.admin_update_user_access, user_id, session["email"], get_client_ip(request)):
+        raise HTTPException(404, "User not found.")
+    return {"status": "ok"}
 
 
 def _safe_csv_cell(value: Any) -> str:
@@ -7805,7 +8089,8 @@ def admin_export_users_csv(_: None = Depends(_require_admin)):
     """Download all registered users as a CSV file."""
     users = admin_get_all_users()
     output = io.StringIO()
-    writer = csv.DictWriter(output, fieldnames=["id", "email", "tier", "created_at", "subscription_status", "last_active_date"])
+    writer = csv.DictWriter(output, fieldnames=["id", "email", "tier", "created_at", "subscription_status", "last_active_date"],
+                            extrasaction="ignore")
     writer.writeheader()
     for u in users:
         writer.writerow({k: _safe_csv_cell(u.get(k, "")) for k in writer.fieldnames})
@@ -7935,7 +8220,7 @@ def admin_revenue_data(_: None = Depends(_require_admin)):
 
 
 def _protected_admin_emails() -> set[str]:
-    protected = {ADMIN_ALERT_EMAIL.strip().lower()} if ADMIN_ALERT_EMAIL.strip() else set()
+    protected = set(ADMIN_OWNER_EMAILS) | {ADMIN_ALERT_EMAIL}
     protected.update(
         item.strip().lower()
         for item in os.getenv("PAPERPLANE_PROTECTED_USER_EMAILS", "").split(",")

@@ -240,6 +240,60 @@ def mask_aadhaar_pdf(source: Path, output: Path) -> Path:
     return output
 
 
+def mask_aadhaar_image(source: Path, output: Path) -> Path:
+    """OCR a local image and burn the mask into pixels before exporting PNG."""
+    from PIL import Image, ImageDraw, ImageOps
+
+    with Image.open(source) as original:
+        if original.width * original.height > 32_000_000:
+            raise ValueError("Choose an Aadhaar image with fewer than 32 megapixels.")
+        image = ImageOps.exif_transpose(original).convert("RGB")
+    buffer = io.BytesIO()
+    image.save(buffer, "PNG")
+    width, height = image.size
+    with fitz.open() as document:
+        page = document.new_page(width=width, height=height)
+        page.insert_image(page.rect, stream=buffer.getvalue())
+        tessdata = Path(__file__).with_name("tessdata")
+        try:
+            text_page = page.get_textpage_ocr(language="eng", dpi=72, full=True, tessdata=str(tessdata))
+        except (RuntimeError, ValueError) as error:
+            raise ValueError("Image text could not be read by OCR. Use a clearer image or a searchable PDF.") from error
+        # The searchable OCR layer locates the number. The mask boundary is
+        # taken from the original pixels because an OCR word's character boxes
+        # can all have the same width even when the printed digits do not.
+        pattern = re.compile(r"\b(?:[0-9]{4}[ -][0-9]{4}[ -][0-9]{4}|[0-9]{12})\b")
+        masks = []
+        for block in page.get_text("rawdict", textpage=text_page)["blocks"]:
+            for line in block.get("lines", []):
+                chars = [char for span in line["spans"] for char in span["chars"]]
+                for match in pattern.finditer("".join(char["c"] for char in chars)):
+                    digits = [char for char in chars[match.start():match.end()] if char["c"].isdigit()]
+                    bounds = fitz.Rect(digits[0]["bbox"])
+                    for char in digits[1:]:
+                        bounds |= fitz.Rect(char["bbox"])
+                    margin = max(2, round(bounds.height * 0.10))
+                    crop_box = (max(0, int(bounds.x0) - margin), max(0, int(bounds.y0) - margin),
+                                min(width, int(bounds.x1) + margin + 1), min(height, int(bounds.y1) + margin + 1))
+                    sample = image.crop(crop_box).convert("L")
+                    low, high = sample.getextrema()
+                    # Invert dark print to find the horizontal ink runs.
+                    ink = sample.point([255 if value < (low + high) / 2 else 0 for value in range(256)])
+                    columns = ink.resize((ink.width, 1), Image.Resampling.BOX)
+                    runs = [match.span() for match in re.finditer(rb"[^\x00]+", columns.tobytes())]
+                    if len(runs) != 12:
+                        raise ValueError("The image digits overlap or are unclear. Use a sharper image or a searchable PDF.")
+                    cutoff = (runs[7][1] + runs[8][0]) // 2
+                    masks.append((crop_box[0], crop_box[1], crop_box[0] + cutoff - 1, crop_box[3] - 1))
+    if not masks:
+        raise ValueError("No 12-digit Aadhaar number pattern was detected in the document. Nothing was masked.")
+    draw = ImageDraw.Draw(image)
+    for rectangle in masks:
+        draw.rectangle(rectangle, fill="black")
+    image.save(output, "PNG")
+    return output
+
+
 def flatten_pdf_forms(source: Path, output: Path) -> Path:
     """Destructively bakes form field appearances into page vector content and eliminates interactive widgets."""
     if not source.exists():

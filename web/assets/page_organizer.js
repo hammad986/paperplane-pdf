@@ -1193,12 +1193,8 @@
           body: form
         });
         if (!resp.ok) {
-          let errDetail = `Operation failed (${resp.status})`;
-          try {
-            const j = await resp.json();
-            if (j.detail) errDetail = j.detail;
-          } catch {}
-          window.showToast(errDetail, 'error');
+          const message = await window.readStudioResponseError(resp, 'Page operation failed');
+          if (message) window.showToast(message, 'error');
           return null;
         }
 
@@ -1206,7 +1202,7 @@
         const newFile = new File([blob], this.sourceName, { type: 'application/pdf' });
         return newFile;
       } catch (err) {
-        window.showToast(`Network error: ${err.message}`, 'error');
+        window.showToast('Connection interrupted during the page operation. The document was not changed. Try again.', 'error');
         return null;
       }
     }

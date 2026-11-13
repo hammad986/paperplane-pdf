@@ -16,5 +16,6 @@ if __name__ == "__main__":
         port=int(os.getenv("PAPERPLANE_PORT", "8501")),
         workers=workers,
         reload=False,
+        proxy_headers=False,
     )
 

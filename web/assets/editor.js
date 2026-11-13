@@ -1780,9 +1780,9 @@ class PaperplaneEditorController {
       });
 
       if (!resp.ok) {
-        let errMsg = `Export failed (HTTP ${resp.status})`;
-        try { const j = await resp.json(); errMsg = j.detail || errMsg; } catch {}
-        throw new Error(errMsg);
+        const message = await window.readStudioResponseError(resp, 'Export failed');
+        if (message) window.showToast(message, 'error');
+        return null;
       }
 
       const blob = await resp.blob();
@@ -1810,8 +1810,10 @@ class PaperplaneEditorController {
       window.showToast('Edited PDF exported successfully!', 'success');
       return blob;
     } catch (err) {
-      window.showToast(`Export error: ${err.message}`, 'error');
-      throw err;
+      window.showToast(err instanceof TypeError
+        ? 'Connection interrupted during export. Your edits are still open. Try exporting again.'
+        : (err.message || 'Unable to export this PDF.'), 'error');
+      return null;
     } finally {
       if (btn) { btn.disabled = false; btn.innerHTML = origText; }
     }

@@ -233,7 +233,7 @@ def test_corrupt_pdf_is_rejected_before_daily_usage_is_consumed(tmp_path, monkey
     monkeypatch.setattr(server, "JOBS", tmp_path / "jobs")
     monkeypatch.setattr(server, "check_operation_quota", lambda *args, **kwargs: (True, 0, "free"))
     monkeypatch.setattr(server, "persist_job", lambda *args, **kwargs: ("corrupt-pdf-audit", "guest-token"))
-    monkeypatch.setattr(server, "increment_daily_usage", lambda *args, **kwargs: consumed.append(args))
+    monkeypatch.setattr(server.persistence, "reserve_daily_usage", lambda *args: consumed.append(args))
     client = TestClient(server.app)
 
     response = client.post(
@@ -255,7 +255,7 @@ def test_pdf_renamed_as_xlsx_is_rejected_before_daily_usage_is_consumed(tmp_path
     monkeypatch.setattr(server, "JOBS", tmp_path / "jobs")
     monkeypatch.setattr(server, "check_operation_quota", lambda *args, **kwargs: (True, 0, "free"))
     monkeypatch.setattr(server, "persist_job", lambda *args, **kwargs: ("fake-xlsx-audit", "guest-token"))
-    monkeypatch.setattr(server, "increment_daily_usage", lambda *args, **kwargs: consumed.append(args))
+    monkeypatch.setattr(server.persistence, "reserve_daily_usage", lambda *args: consumed.append(args))
     client = TestClient(server.app)
 
     with source.open("rb") as handle:

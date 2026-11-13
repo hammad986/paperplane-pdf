@@ -12,11 +12,14 @@
     window.history.replaceState({}, document.title, `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`);
   }
   let sessionToken = sessionStorage.getItem("pp_admin_session") || "";
+  let adminChallenge = "";
   let usersData = [];
   let waitlistData = [];
   let auditData = [];
   let revenueData = null;
   let feedbackData = [];
+  let feedbackRequestPending = false;
+  let feedbackTimer = null;
   let aiConfigData = null;
 
   let currentTab = "users";
@@ -96,6 +99,9 @@
     if (tabUsersBtn) tabUsersBtn.addEventListener("click", () => switchTab("users"));
     if (tabRevenueBtn) tabRevenueBtn.addEventListener("click", () => switchTab("revenue"));
     if (tabFeedbackBtn) tabFeedbackBtn.addEventListener("click", () => switchTab("feedback"));
+    document.getElementById("tab-sessions-btn")?.addEventListener("click", () => switchTab("sessions"));
+    document.getElementById("sessions-tbody")?.addEventListener("click", logoutOtherAdmin);
+    document.getElementById("users-tbody")?.addEventListener("click", updateUserAccess);
     if (tabAiBtn) tabAiBtn.addEventListener("click", () => switchTab("ai"));
     if (tabWaitlistBtn) tabWaitlistBtn.addEventListener("click", () => switchTab("waitlist"));
     if (tabAuditBtn) tabAuditBtn.addEventListener("click", () => switchTab("audit"));
@@ -198,8 +204,9 @@
     const key = (keyInput ? keyInput.value : "").trim();
     const code = (codeInput ? codeInput.value : "").trim();
 
-    if (!key || !code) {
-      showError(errBox, "Both Admin Secret Key and Secret Code are required.");
+    const email = document.getElementById("admin-email-input")?.value.trim();
+    if (!email || !key || !code) {
+      showError(errBox, "Enter your owner email, admin key, and secret code.");
       return;
     }
 
@@ -211,12 +218,15 @@
       const resp = await fetch("/api/admin/auth/step1", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ admin_key: key, admin_code: code })
+        body: JSON.stringify({ email, admin_key: key, admin_code: code })
       });
 
       const data = await resp.json().catch(() => ({}));
 
-      if (resp.status === 200) {
+      if (resp.status === 200 && data.challenge) {
+        adminChallenge = data.challenge;
+        if (keyInput) keyInput.value = "";
+        if (codeInput) codeInput.value = "";
         switchScreen("step2");
         const otpInput = document.getElementById("admin-otp-input");
         if (otpInput) {
@@ -256,12 +266,14 @@
       const resp = await fetch("/api/admin/auth/step2", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ otp: otp })
+        body: JSON.stringify({ otp, challenge: adminChallenge })
       });
 
       const data = await resp.json().catch(() => ({}));
 
       if (resp.status === 200 && data.session_token) {
+        adminChallenge = "";
+        if (otpInput) otpInput.value = "";
         sessionToken = data.session_token;
         sessionStorage.setItem("pp_admin_session", sessionToken);
         switchScreen("dashboard");
@@ -290,6 +302,9 @@
 
     sessionStorage.removeItem("pp_admin_session");
     sessionToken = "";
+    clearInterval(feedbackTimer);
+    feedbackTimer = null;
+    feedbackData = [];
     switchScreen("step1");
   }
 
@@ -351,12 +366,11 @@
   // --- Dashboard Data Fetching ---
   async function fetchDashboardData() {
     try {
-      const [dashResp, usersResp, waitlistResp, revResp, feedbackResp, aiResp, aiHealthResp] = await Promise.all([
+      const [dashResp, usersResp, waitlistResp, revResp, aiResp, aiHealthResp] = await Promise.all([
         fetch("/api/admin/dashboard", { headers: { "X-Admin-Session": sessionToken } }),
         fetch("/api/admin/users", { headers: { "X-Admin-Session": sessionToken } }),
         fetch("/api/admin/waitlist", { headers: { "X-Admin-Session": sessionToken } }),
         fetch("/api/admin/revenue", { headers: { "X-Admin-Session": sessionToken } }),
-        fetch("/api/admin/feedback", { headers: { "X-Admin-Session": sessionToken } }),
         fetch("/api/admin/ai-config", { headers: { "X-Admin-Session": sessionToken } }),
         fetch("/api/admin/ai-health", { headers: { "X-Admin-Session": sessionToken } })
       ]);
@@ -370,7 +384,6 @@
       const usersObj = await usersResp.json();
       const waitlistObj = await waitlistResp.json();
       revenueData = await revResp.json().catch(() => null);
-      const feedbackObj = await feedbackResp.json().catch(() => ({ feedbacks: [] }));
       aiConfigData = await aiResp.json().catch(() => null);
       const aiHealth = await aiHealthResp.json().catch(() => null);
 
@@ -398,7 +411,6 @@
       usersData = usersObj.users || [];
       waitlistData = waitlistObj.entries || [];
       auditData = metrics.recent_audits || [];
-      feedbackData = feedbackObj.feedbacks || [];
 
       setElText("count-users", usersData.length);
       setElText("count-waitlist", waitlistData.length);
@@ -411,10 +423,95 @@
       renderRevenue(revenueData);
       renderAiConfig(aiConfigData);
       renderAiHealth(aiHealth);
+      void refreshFeedback();
+      void refreshAdminSessions();
     } catch (err) {
       console.error("Dashboard refresh error:", err);
     }
   }
+
+  async function refreshAdminSessions() {
+    if (!sessionToken) return;
+    try {
+      const response = await fetch("/api/admin/sessions", {
+        headers: { "X-Admin-Session": sessionToken }, cache: "no-store"
+      });
+      if (!response.ok) return;
+      const { sessions } = await response.json();
+      setElText("count-sessions", sessions.length);
+      const rows = document.getElementById("sessions-tbody");
+      rows.replaceChildren();
+      for (const session of sessions) {
+        const row = rows.insertRow();
+        row.insertCell().textContent = session.email;
+        row.insertCell().textContent = "Super admin";
+        row.insertCell().textContent = new Date(session.created_at * 1000).toLocaleString();
+        row.insertCell().textContent = new Date(session.expires_at * 1000).toLocaleString();
+        const action = row.insertCell();
+        if (session.current) {
+          action.textContent = "This session";
+        } else {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "btn btn-danger btn-xs";
+          button.dataset.sessionId = session.id;
+          button.textContent = "Log out";
+          action.append(button);
+        }
+      }
+    } catch {
+      setElText("count-sessions", "—");
+    }
+  }
+
+  async function logoutOtherAdmin(event) {
+    const button = event.target.closest("[data-session-id]");
+    if (!button || !confirm("Log out this admin session?")) return;
+    button.disabled = true;
+    try {
+      const response = await fetch("/api/admin/sessions/" + encodeURIComponent(button.dataset.sessionId), {
+        method: "DELETE", headers: { "X-Admin-Session": sessionToken }
+      });
+      if (!response.ok && response.status !== 404) throw new Error("Logout failed");
+      await refreshAdminSessions();
+    } catch {
+      alert("Could not log out that admin session.");
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  async function refreshFeedback() {
+    if (!sessionToken || feedbackRequestPending || document.hidden) return;
+    feedbackRequestPending = true;
+    const currentSession = sessionToken;
+    try {
+      const response = await fetch("/api/admin/feedback", {
+        headers: { "X-Admin-Session": currentSession },
+        cache: "no-store"
+      });
+      if (currentSession !== sessionToken) return;
+      if (response.status === 401) {
+        await handleLogout();
+        return;
+      }
+      if (!response.ok) throw new Error("Feedback unavailable");
+      const data = await response.json();
+      if (currentSession !== sessionToken) return;
+      feedbackData = data.feedbacks || [];
+      setElText("count-feedback", feedbackData.length);
+      setElText("feedback-refresh-status", "Updated " + new Date().toLocaleTimeString());
+      if (currentTab === "feedback") applyFilters();
+    } catch {
+      setElText("feedback-refresh-status", "Could not refresh feedback. Retrying while this tab is open.");
+    } finally {
+      feedbackRequestPending = false;
+    }
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    if (currentTab === "feedback" && !document.hidden) void refreshFeedback();
+  });
 
   // --- Visual Analytics: Tier Meter ---
   function renderTierMeter(m) {
@@ -467,7 +564,7 @@
   // --- Tab Switcher ---
   function switchTab(tab) {
     currentTab = tab;
-    const tabs = ["users", "revenue", "feedback", "ai", "waitlist", "audit"];
+    const tabs = ["users", "revenue", "feedback", "ai", "waitlist", "audit", "sessions"];
 
     tabs.forEach(t => {
       const btn = document.getElementById(`tab-${t}-btn`);
@@ -476,6 +573,13 @@
       if (panel) panel.style.display = t === tab ? "block" : "none";
     });
 
+    clearInterval(feedbackTimer);
+    feedbackTimer = null;
+    if (tab === "sessions") void refreshAdminSessions();
+    if (tab === "feedback") {
+      void refreshFeedback();
+      feedbackTimer = setInterval(refreshFeedback, 8000);
+    }
     applyFilters();
   }
 
@@ -533,7 +637,7 @@
       if (tier.includes("dev")) badgeClass = "badge-dev";
 
       const created = u.created_at ? new Date(u.created_at * 1000).toLocaleString() : "—";
-      const lastActive = u.last_active_date || "—";
+      const lastActive = u.last_active_at ? new Date(u.last_active_at * 1000).toLocaleString() : (u.last_active_date || "—");
       const status = u.subscription_status || "active";
 
       return `<tr>
@@ -543,12 +647,49 @@
         <td>${lastActive}</td>
         <td style="color: var(--text-muted);">${escapeHtml(status)}</td>
         <td>
+          <select aria-label="Choose plan for ${escapeHtml(u.email)}">
+            <option value="">Choose plan</option><option value="free">Free</option>
+            <option value="exam_pass">Exam Pass</option><option value="student_pro">Student &amp; Educator</option>
+            <option value="cyber_cafe">Cyber Café</option>
+          </select>
+          <button type="button" class="btn btn-xs" data-admin-user-action="set-plan" data-user-id="${escapeHtml(u.id)}">Set plan</button>
+          <button type="button" class="btn btn-xs" data-admin-user-action="reset-usage" data-user-id="${escapeHtml(u.id)}">Reset usage</button>
           <button type="button" class="btn btn-danger btn-xs btn-delete-user" data-user-id="${escapeHtml(u.id)}" data-user-email="${escapeHtml(u.email)}" title="Delete account">
             🗑️ Delete
           </button>
         </td>
       </tr>`;
     }).join("");
+  }
+
+  async function updateUserAccess(event) {
+    const button = event.target.closest("[data-admin-user-action]");
+    if (!button) return;
+    const action = button.dataset.adminUserAction;
+    const selected = button.parentElement.querySelector("select");
+    const tier = selected.value;
+    if (action === "set-plan" && !tier) {
+      selected.focus();
+      return;
+    }
+    const message = action === "set-plan"
+      ? "Set this account to " + selected.selectedOptions[0].textContent + "?"
+      : "Reset today's web and API usage for this account?";
+    if (!confirm(message)) return;
+    button.disabled = true;
+    try {
+      const response = await fetch("/api/admin/users/" + action, {
+        method: "POST",
+        headers: { "X-Admin-Session": sessionToken, "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: button.dataset.userId, tier }),
+      });
+      if (!response.ok) throw new Error("Update failed");
+      await fetchDashboardData();
+    } catch {
+      alert("Could not update this account. Refresh the dashboard and try again.");
+    } finally {
+      button.disabled = false;
+    }
   }
 
   function renderWaitlist(list) {
@@ -574,7 +715,7 @@
     const tbody = document.getElementById("audit-tbody");
     if (!tbody) return;
     if (!list.length) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 30px;">No recent security events.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">No recent security events.</td></tr>';
       return;
     }
     tbody.innerHTML = list.map(a => {
@@ -583,6 +724,7 @@
         <td><code style="color: var(--pro-color);">${escapeHtml(a.event_type || "audit")}</code></td>
         <td>${escapeHtml(a.email || "—")}</td>
         <td style="font-family: monospace;">${escapeHtml(a.ip_address || "—")}</td>
+        <td>${escapeHtml(a.location || "—")}</td>
         <td>${dateStr}</td>
         <td style="color: var(--text-muted);">${escapeHtml(a.details || "—")}</td>
       </tr>`;
@@ -598,14 +740,16 @@
     setElText("rev-gateway-fees", `₹${(rev.estimated_gateway_fees_inr ?? 0).toLocaleString("en-IN")}`);
     setElText("rev-net-payout", `₹${(rev.net_bank_payout_inr ?? 0).toLocaleString("en-IN")}`);
     setElText("rev-fee-rate", `${Number(rev.gateway_fee_rate_percent ?? 0).toFixed(2)}%`);
-    setElText("rev-revenue-basis", rev.revenue_basis || "Estimated totals must be reconciled against the gateway settlement report.");
+    setElText("rev-revenue-basis", (rev.revenue_basis || "") + " Sandbox: ₹"
+      + (rev.sandbox_gross_inr ?? 0).toLocaleString("en-IN") + ". Unclassified: ₹"
+      + (rev.unclassified_gross_inr ?? 0).toLocaleString("en-IN") + ".");
 
     const tbody = document.getElementById("revenue-tbody");
     if (!tbody) return;
 
     const orders = rev.recent_transactions || [];
     if (!orders.length) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">No payment transactions recorded yet.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">No payment transactions recorded yet.</td></tr>';
       return;
     }
 
@@ -616,6 +760,7 @@
         <td><span class="badge badge-pro">${escapeHtml((ord.tier || "PRO").toUpperCase())}</span></td>
         <td><code style="color: var(--text-muted);">${escapeHtml(ord.order_id || ord.customer_id)}</code></td>
         <td><strong style="color: var(--green);">₹${(ord.amount || 0).toLocaleString("en-IN")}</strong></td>
+        <td>${escapeHtml(ord.gateway_environment || "UNKNOWN")}</td>
         <td>${dateStr}</td>
         <td><span style="color: var(--green); font-weight: 600;">● ${escapeHtml(ord.status || "Paid")}</span></td>
       </tr>`;

@@ -110,6 +110,8 @@ Run the service using Docker Compose:
 
 ```bash
 # Build the production image with all engines (LibreOffice, Tesseract, Chromium, qpdf)
+# Refuse a replacement when the existing /data mount differs from the Compose volume.
+python3 scripts/check_data_mount.py
 docker compose build
 
 # Launch in background with automated restarts
@@ -222,3 +224,13 @@ If a deployment failure occurs:
    print(f'Cleaned {cleaned} expired jobs.')
    "
    ```
+
+### Owner settings for v13
+
+Set `PAPERPLANE_ADMIN_KEY` and `PAPERPLANE_ADMIN_CODE` to rotated values in the deployment environment before starting the app. The startup check reports only missing variable names. The two owner addresses each receive their own email OTP and get independent, revocable sessions.
+
+In production set `CASHFREE_ENV=PROD` with the production merchant credentials. For a sandbox checkout use an isolated development database and `CASHFREE_ENV=TEST`. Set `PAPERPLANE_ALLOW_BILLING_SIMULATION=true` only when testing the local no-gateway flow. Historical payments without a verified environment remain unclassified until reconciled with merchant records.
+
+Use the Nginx address from the app's actual Compose network as the only forwarded-header peer. Keep the edge's `X-Forwarded-For` replacement rule unless an upstream proxy is explicitly trusted. Verify two distinct networks have independent guest quotas before opening traffic.
+
+For optional login city and region, mount a GeoLite2 City database read-only, set `PAPERPLANE_GEOIP_DB` to its container path, and restart the app when updating the dataset. IP geolocation reports an approximate network location.
