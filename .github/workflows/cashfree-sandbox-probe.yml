@@ -1,0 +1,29 @@
+name: Daily Cashfree sandbox checkout probe
+
+on:
+  schedule:
+    - cron: "17 8 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sandbox-checkout:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      CASHFREE_ENV: TEST
+      CASHFREE_APP_ID: ${{ secrets.CASHFREE_TEST_APP_ID }}
+      CASHFREE_SECRET_KEY: ${{ secrets.CASHFREE_TEST_SECRET_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install browser probe dependencies
+        run: |
+          python -m pip install --disable-pip-version-check playwright
+          python -m playwright install --with-deps chromium
+      - name: Create unpaid test order and verify checkout drop
+        run: python scripts/cashfree_sandbox_smoke.py --verify-drop

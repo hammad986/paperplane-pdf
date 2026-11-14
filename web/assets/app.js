@@ -1354,6 +1354,16 @@ function renderSidebarTools() {
   const cat = state.category;
   let toolKeys = [];
 
+  // Keep the suite badges sourced from the same operation lists as the
+  // sidebar, so totals cannot drift from the live server catalog.
+  $$('.nav-category-tab').forEach(button => {
+    const category = button.dataset.category;
+    const keys = category === 'All' ? Object.keys(state.operations) : (CATEGORY_MAP[category] || []);
+    const count = keys.filter(key => Boolean(state.operations[key])).length;
+    const badge = button.querySelector('.nav-cat-badge');
+    if (badge) badge.textContent = String(count);
+  });
+
   if (cat === 'All') {
     toolKeys = Object.keys(state.operations);
   } else {
@@ -4102,11 +4112,15 @@ async function waitForInitialAuth() {
 }
 
 $('#browse').onclick = async () => {
-  if (!await waitForInitialAuth()) return;
+  // Open the native picker immediately. Waiting for a slow first-auth request
+  // before invoking file selection leaves the browser in a fragile delayed
+  // picker state; authorization is rechecked when the selected files arrive.
   if (HEAVY_TOOLS.has(state.operation) && !state.user) {
-    showToast('This advanced AI / conversion tool requires a free account. Please sign in or register.', 'info');
-    openAuthModal('', 'login');
-    return;
+    if (!document.body.classList.contains('auth-pending')) {
+      showToast('This advanced AI / conversion tool requires a free account. Please sign in or register.', 'info');
+      openAuthModal('', 'login');
+      return;
+    }
   }
   $('#file-input').click();
 };
@@ -4115,11 +4129,12 @@ const dropzoneEl = $('#dropzone');
 if (dropzoneEl) {
   dropzoneEl.onclick = async (e) => {
     if (e.target.closest('#browse') || e.target.closest('#cloud-drop-btn') || e.target.closest('.cloud-import-btn')) return;
-    if (!await waitForInitialAuth()) return;
     if (HEAVY_TOOLS.has(state.operation) && !state.user) {
-      showToast('This advanced AI / conversion tool requires a free account. Please sign in or register.', 'info');
-      openAuthModal('', 'login');
-      return;
+      if (!document.body.classList.contains('auth-pending')) {
+        showToast('This advanced AI / conversion tool requires a free account. Please sign in or register.', 'info');
+        openAuthModal('', 'login');
+        return;
+      }
     }
     $('#file-input').click();
   };
@@ -4128,12 +4143,19 @@ if (dropzoneEl) {
 $('#file-input').onchange = async e => {
   const selected = [...e.target.files];
   const operation = state.operation;
-  if (!await waitForInitialAuth() || operation !== state.operation || !checkAccessRequirement(operation, selected)) {
+  try {
+    if (!selected.length) return;
+    if (!await waitForInitialAuth() || operation !== state.operation || !checkAccessRequirement(operation, selected)) {
+      return;
+    }
+    addFiles(selected);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'The selected file could not be opened.';
+    showResult(message, true);
+    showToast(message, 'error', 6000);
+  } finally {
     e.target.value = '';
-    return;
   }
-  addFiles(selected);
-  e.target.value = '';
 };
 
 ['dragenter', 'dragover'].forEach(event => {
@@ -4408,7 +4430,9 @@ $('#job-form').onsubmit = async e => {
   const controller = new AbortController();
   activeDeskAiController = controller;
   let timedOut = false;
-  const timeout = window.setTimeout(() => { timedOut = true; controller.abort(); }, 600000);
+  // Keep this below the reverse proxy's 900s read limit. Large image-heavy
+  // merges can spend minutes copying page resources before status advances.
+  const timeout = window.setTimeout(() => { timedOut = true; controller.abort(); }, 840000);
   const cancelButton = $('#job-cancel-btn');
   if (cancelButton) cancelButton.hidden = false;
   try {

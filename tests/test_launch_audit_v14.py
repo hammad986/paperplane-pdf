@@ -11,6 +11,7 @@ import ai_engine
 import converters
 import persistence
 import server
+from scripts.check_served_pdf_runtime import verify_served_runtime
 from fastapi.testclient import TestClient
 import secrets
 import time
@@ -36,6 +37,90 @@ def test_206_runtime_cache_key_changes_from_stale_v13():
     runtime = (ROOT / "web/assets/pdf_runtime.js").read_text(encoding="utf-8")
     assert '/assets/pdf_runtime.js?v=14' in page
     assert 'transformLocalPdf,' in runtime
+
+
+def test_206_served_runtime_probe_rejects_old_stub(monkeypatch):
+    class Response:
+        status = 200
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def read(self, _limit):
+            return b"window.PaperplanePdfRuntime = {};"
+
+    monkeypatch.setattr("scripts.check_served_pdf_runtime.urllib.request.urlopen", lambda *_a, **_k: Response())
+    with pytest.raises(RuntimeError, match="incomplete"):
+        verify_served_runtime("http://127.0.0.1:8501")
+
+
+def test_206_served_runtime_probe_requires_worker_api(monkeypatch):
+    class Response:
+        status = 200
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def read(self, _limit):
+            return b"x" * 2600
+
+    monkeypatch.setattr("scripts.check_served_pdf_runtime.urllib.request.urlopen", lambda *_a, **_k: Response())
+    with pytest.raises(RuntimeError, match="worker API"):
+        verify_served_runtime("http://127.0.0.1:8501")
+
+
+def test_229_file_picker_is_not_blocked_by_auth_wait():
+    source = (ROOT / "web/assets/app.js").read_text(encoding="utf-8")
+    browse_handler = source.split("$('#browse').onclick = async () => {", 1)[1].split("};", 1)[0]
+    assert "waitForInitialAuth" not in browse_handler
+    assert "$('#file-input').click()" in browse_handler
+    picker_handler = source.split("$('#file-input').onchange = async e => {", 1)[1].split("};", 1)[0]
+    assert "waitForInitialAuth()" in picker_handler
+    assert "checkAccessRequirement(operation, selected)" in picker_handler
+
+
+def test_207_large_merge_has_a_bounded_proxy_compatible_timeout():
+    app_source = (ROOT / "server.py").read_text(encoding="utf-8")
+    client_source = (ROOT / "web/assets/app.js").read_text(encoding="utf-8")
+    assert "MERGE_TIMEOUT_SECONDS = 840.0" in app_source
+    assert "}, 840000);" in client_source
+    nginx = (ROOT / "deploy/nginx.conf.template").read_text(encoding="utf-8")
+    assert "proxy_read_timeout 900s;" in nginx
+
+
+def test_153_marketing_tool_count_is_catalog_driven_and_sidebar_counts_total_44():
+    server_source = (ROOT / "server.py").read_text(encoding="utf-8")
+    app_source = (ROOT / "web/assets/app.js").read_text(encoding="utf-8")
+    html = (ROOT / "web/index.html").read_text(encoding="utf-8")
+    assert "{len(OPERATIONS)} focused tools" in server_source
+    assert "const count = keys.filter(key => Boolean(state.operations[key])).length;" in app_source
+    convert_section = html.split('data-category="Convert"', 1)[1].split("</button>", 1)[0]
+    assert '<span class="nav-cat-badge">12</span>' in convert_section
+
+
+def test_226_ai_docs_alias_reaches_the_named_ai_workspace():
+    client = TestClient(server.app)
+    response = client.get("/ai-docs", follow_redirects=False)
+    assert response.status_code == 301
+    assert response.headers["location"] == "/ai-intelligence"
+    landing = client.get("/ai-intelligence")
+    assert landing.status_code == 200
+
+
+def test_228_daily_checkout_probe_is_strictly_sandbox_only():
+    workflow = (ROOT / ".github/workflows/cashfree-sandbox-probe.yml").read_text(encoding="utf-8")
+    script = (ROOT / "scripts/cashfree_sandbox_smoke.py").read_text(encoding="utf-8")
+    assert 'CASHFREE_ENV: TEST' in workflow
+    assert '--verify-drop' in workflow
+    assert 'config.CASHFREE_ENV != "TEST"' in script
+    assert 'mode: \'sandbox\'' in script
+    assert 'no payment was submitted' in script.lower()
 
 
 def test_ai_capability_reads_do_not_consume_provider_rate_limit(monkeypatch):

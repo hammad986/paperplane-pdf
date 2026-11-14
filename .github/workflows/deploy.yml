@@ -24,4 +24,5 @@ jobs:
             git pull --ff-only origin main
             python3 scripts/check_data_mount.py
             docker compose up -d --build
+            python3 scripts/check_served_pdf_runtime.py http://127.0.0.1:8501
             docker image prune -f

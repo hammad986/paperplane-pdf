@@ -215,7 +215,7 @@ def _require_admin(
 COMPRESS_TIMEOUT_SECONDS = 60.0    # multi-pass downsampling & stream compression
 OCR_TIMEOUT_SECONDS = 90.0         # page-by-page C++ Tesseract OCR execution
 GRAYSCALE_TIMEOUT_SECONDS = 45.0   # 150-DPI monochrome rasterization per page
-MERGE_TIMEOUT_SECONDS = 120.0       # bounded multi-file page copy; proxy allows 900s
+MERGE_TIMEOUT_SECONDS = 840.0       # large image-heavy jobs; Nginx allows 900s
 AI_SUMMARY_REQUEST_TIMEOUT_SECONDS = 300.0  # up to four chunked large-document requests with one bounded retry each
 AI_TRANSLATION_REQUEST_TIMEOUT_SECONDS = 300.0  # bounded batches for documents up to the current text-block cap
 
@@ -1315,7 +1315,7 @@ def seo_page_context(operation: str | None, landing_slug: str | None = None) -> 
             "description": "Merge, split, compress, convert, edit, sign, protect, and organize PDF files with Paperplane's privacy-first online tools.",
             "heading": "Every tool you need to work with PDFs in one place",
             "category": "PDF tools",
-            "intro": "A responsive PDF workspace with 41 focused tools, clear upload steps, and temporary processing for server-powered tasks.",
+            "intro": f"A responsive PDF workspace with {len(OPERATIONS)} focused tools, clear upload steps, and temporary processing for server-powered tasks.",
             "operation": None,
             "slug": "",
             "related": ("merge", "compress", "pdf_to_word", "sign"),
@@ -6736,6 +6736,11 @@ def pricing_page(request: Request):
 @app.get("/dashboard", include_in_schema=False)
 def dashboard_redirect():
     return RedirectResponse(url="/tool-desk", status_code=301)
+
+
+@app.get("/ai-docs", include_in_schema=False)
+def ai_docs_redirect():
+    return RedirectResponse(url="/ai-intelligence", status_code=301)
 
 
 @app.get("/tools/{tool_slug}", include_in_schema=False)
