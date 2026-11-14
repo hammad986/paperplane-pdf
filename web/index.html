@@ -223,7 +223,7 @@
           <h1>Paperplane Pricing</h1>
           <p>Compare free browser tools and paid plans in INR.</p>
           <div id="pricing-page-content"></div>
-          <noscript><p>Free ₹0 · Exam Pass ₹%%EXAM_PRICE%% · Student &amp; Educator ₹%%STUDENT_PRICE%% · Cyber Café ₹%%CAFE_PRICE%%. Enable JavaScript to compare features and start checkout.</p></noscript>
+          <noscript><p>Free ₹0 · Exam Pass ₹%%EXAM_PRICE%% · Student &amp; Educator ₹%%STUDENT_PRICE%% · All-In-One Pro &amp; Developer ₹%%CAFE_PRICE%%. Enable JavaScript to compare features and start checkout.</p></noscript>
         </section>
         <section id="view-faq" class="workspace-page" hidden>
           <h1>Frequently asked questions</h1>
@@ -1074,9 +1074,9 @@
             <div class="api-docs-hero-box">
               <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
                 <div style="flex: 1; min-width: 280px;">
-                  <span class="pro-tag" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">DEVELOPER API · INCLUDED WITH CYBER CAFÉ</span>
+                  <span class="pro-tag" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3);">DEVELOPER API · INCLUDED WITH ALL-IN-ONE PRO &amp; DEVELOPER</span>
                   <h3 style="margin: 8px 0 4px 0; font-size: 18px; color: var(--text-main);">Integrate Paperplane with your application</h3>
-                  <p style="margin: 0; font-size: 13.5px; color: var(--text-muted); line-height: 1.5;">Integrate all 41 high-speed conversion, organization, and AI operations into your backend apps, CI/CD pipelines, or microservices with dedicated API keys (<code>sk_live_...</code>).</p>
+                  <p style="margin: 0; font-size: 13.5px; color: var(--text-muted); line-height: 1.5;">Integrate 44 conversion, organization, and AI operations into your backend apps, CI/CD pipelines, or microservices with dedicated API keys (<code>sk_live_...</code>).</p>
                 </div>
                 <div style="display: flex; gap: 10px;">
                   <button type="button" class="btn-primary-action" id="full-api-generate-key-btn" style="padding: 10px 18px; font-size: 13px;">
@@ -1571,7 +1571,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <span>Configured file retention</span>
         </div>
         <div class="footer-right">
-          <a class="footer-link" href="/dashboard">Dashboard</a>
+          <a class="footer-link" href="/tool-desk">Tool Desk</a>
           <a class="footer-link" href="/history">Downloads</a>
           <a class="footer-link" href="/pricing">Pricing</a>
           <a class="footer-link" href="/faq">FAQ</a>
@@ -1762,7 +1762,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <div class="api-info-callout">
             <div class="api-info-icon">Info</div>
             <div class="api-info-text">
-              Developer API (Pay-As-You-Go API Tier): Dedicated REST API keys (<code>sk_live_...</code>) for integrating Paperplane PDF conversion and AI tools directly into your own applications and microservices.
+              Developer API (All-In-One Pro &amp; Developer): Dedicated REST API keys (<code>sk_live_...</code>) for integrating Paperplane PDF conversion and AI tools directly into your own applications and microservices.
             </div>
           </div>
 
@@ -2079,9 +2079,9 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <div class="tier-price-box">
             <div class="tier-price-main">
               <span class="tier-price-val">₹%%STUDENT_PRICE%%</span>
-              <span class="tier-price-period">/month</span>
+              <span class="tier-price-period">/30 days</span>
             </div>
-            <span class="tier-price-alt">UPI and cards supported</span>
+            <span class="tier-price-alt">One-time payment · No automatic renewal</span>
           </div>
           <ul class="tier-features-list">
             <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Full Access to All 44+ Tools:</strong> PDF, Office docs &amp; photo tools.</li>
@@ -2090,7 +2090,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
           </ul>
           <div class="tier-actions">
             <button type="button" class="btn-primary-action tier-subscribe-btn" id="student-cashfree-checkout-btn" style="background: #10b981;">
-              <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span> Pay ₹%%STUDENT_PRICE%%/month with Cashfree →
+              <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span> Pay ₹%%STUDENT_PRICE%% for 30 days with Cashfree →
             </button>
           </div>
         </div>
@@ -2109,9 +2109,9 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <div class="tier-price-box">
             <div class="tier-price-main">
               <span class="tier-price-val">₹%%CAFE_PRICE%%</span>
-              <span class="tier-price-period">/month</span>
+              <span class="tier-price-period">/30 days</span>
             </div>
-            <span class="tier-price-alt">High volume · Developer REST API included</span>
+            <span class="tier-price-alt">One-time payment · No automatic renewal</span>
           </div>
           <ul class="tier-features-list">
             <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Batch up to 100 Files:</strong> High-speed multi-form queue.</li>
@@ -2121,7 +2121,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
           </ul>
           <div class="tier-actions">
             <button type="button" class="btn-primary-action tier-subscribe-btn" id="cybercafe-cashfree-checkout-btn" style="background: #8b5cf6;">
-              <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span> Pay ₹%%CAFE_PRICE%%/month with Cashfree →
+              <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span> Pay ₹%%CAFE_PRICE%% for 30 days with Cashfree →
             </button>
           </div>
         </div>
@@ -3390,7 +3390,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
     </button>
     <button type="button" class="mobile-nav-btn" id="mob-nav-ai" data-workspace-view="ai">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a8 8 0 0 0-8 8c0 3.37 2.08 6.25 5 7.42V20a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-2.58c2.92-1.17 5-4.05 5-7.42a8 8 0 0 0-8-8z"/></svg>
-      <span>AI Docs</span>
+      <span>AI Intelligence</span>
     </button>
     <button type="button" class="mobile-nav-btn" id="mob-nav-download" data-workspace-view="download" aria-label="Apps Waitlist">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -3399,7 +3399,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
   </nav>
 
   <!-- PDF engines are loaded on demand by the first feature that needs them. -->
-  <script src="/assets/pdf_runtime.js?v=13" defer></script>
+  <script src="/assets/pdf_runtime.js?v=14" defer></script>
 
   <!-- Phase 6 PDF Forms, Signing & Security Engine -->
   <script src="/assets/security_forms.js?v=6.2.1" defer></script>
@@ -3412,7 +3412,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
   <!-- Phase 2 Professional Editor Engine -->
 <script src="/assets/editor.js?v=13" defer></script>
   <!-- Application Controller -->
-  <script src="/assets/app.js?v=13" defer></script>
+  <script src="/assets/app.js?v=14" defer></script>
   <!-- Floating Customer Feedback Widget -->
   <script src="/assets/feedback.js?v=13" defer></script>
 </body>

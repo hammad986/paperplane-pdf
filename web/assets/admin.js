@@ -650,7 +650,7 @@
           <select aria-label="Choose plan for ${escapeHtml(u.email)}">
             <option value="">Choose plan</option><option value="free">Free</option>
             <option value="exam_pass">Exam Pass</option><option value="student_pro">Student &amp; Educator</option>
-            <option value="cyber_cafe">Cyber Café</option>
+            <option value="cyber_cafe">All-In-One Pro &amp; Developer</option>
           </select>
           <button type="button" class="btn btn-xs" data-admin-user-action="set-plan" data-user-id="${escapeHtml(u.id)}">Set plan</button>
           <button type="button" class="btn btn-xs" data-admin-user-action="reset-usage" data-user-id="${escapeHtml(u.id)}">Reset usage</button>

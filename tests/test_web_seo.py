@@ -146,7 +146,7 @@ def test_delivery_shell_keeps_heavy_assets_deferred_and_uses_clean_urls():
     launcher = (root / "app.py").read_text(encoding="utf-8")
 
     assert "window.history.pushState({ view: 'desk', op: state.operation }, '', targetPath)" in app_js
-    assert '<script src="/assets/pdf_runtime.js?v=13" defer></script>' in index_html
+    assert '<script src="/assets/pdf_runtime.js?v=14" defer></script>' in index_html
     assert '<script src="/assets/pdf.min.js" defer></script>' not in index_html
     assert '<script src="/assets/pdf-lib.min.js" defer></script>' not in index_html
     assert "ensurePdfJs" in pdf_runtime_js and "ensurePdfLib" in pdf_runtime_js

@@ -356,7 +356,13 @@ def _quota_limit_response(usage: int, tier: str, authenticated: bool) -> JSONRes
 async def count_ai_and_studio_operations(request: Request, call_next):
     """Apply the same free daily operation quota to billable AI and Studio POST workflows."""
     path = request.url.path
-    if path.startswith("/api/ai/"):
+    # Reads such as /api/ai/capabilities are called while rendering tool pages.
+    # Counting them against the provider request budget lets ordinary navigation
+    # exhaust the user's 12 AI calls/minute before they submit a single document.
+    provider_ai_call = request.method == "POST" and (
+        path in _BILLABLE_AI_ENDPOINTS or path == "/api/ai/test-connection"
+    )
+    if provider_ai_call:
         identity = _quota_identity_from_request(request) or get_client_ip(request)
         if not consume_rate_limit(f"ai-account:{identity}", 12, window_seconds=60):
             return JSONResponse(
@@ -1687,6 +1693,8 @@ def require_developer_key(
             status_code=401,
             detail="Invalid or revoked Paperplane API key. Check your key in Settings or generate a new one."
         )
+    if get_user_tier(user_id) not in ("developer", "cyber_cafe"):
+        raise HTTPException(403, "Developer API access requires the All-In-One Pro & Developer plan.")
     return user_id
 
 
@@ -1843,6 +1851,10 @@ def validate_upload(path: Path, expected: str, operation: str = "") -> None:
         # one real page below. A signature alone must never pass as a document.
         if b"%PDF-" not in header:
             raise ValueError("The uploaded file does not have a valid PDF header (%PDF-).")
+        if operation == "repair":
+            # The repair engine must be allowed to inspect a damaged PDF that
+            # a normal parser cannot open; it performs its own recovery checks.
+            return
         try:
             document = fitz.open(str(path))
             try:
@@ -2203,7 +2215,14 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
 
     if operation == "repair":
         mode = options.get("mode", "automatic")
-        return converters.repair_pdf(source, output, mode=mode)
+        try:
+            return converters.repair_pdf(source, output, mode=mode)
+        except OSError as error:
+            logging.getLogger("paperplane").warning("PDF repair storage failure: %s", error)
+            raise RuntimeError("The repair service could not read or write the file. Please retry later.") from error
+        except Exception as error:
+            logging.getLogger("paperplane").warning("PDF repair failed: %s", error)
+            raise ValueError("This PDF is too damaged to repair automatically.") from error
 
     if operation == "scan_pdf":
         return converters.scan_to_pdf(inputs, output, enhance=True)
@@ -3452,7 +3471,7 @@ def get_current_user_profile(request: Request, user_id: str | None = Depends(cur
         "developer": "Developer",
         "pro": "Legacy Pro",
         "student_pro": "Student & Educator",
-        "cyber_cafe": "Cyber Café",
+        "cyber_cafe": "All-In-One Pro & Developer",
         "exam_pass": "Exam",
         "free": "Free",
     }
@@ -3485,22 +3504,18 @@ def public_pricing_catalog() -> dict:
         "free": {"inr": 0, "label": "Free"},
         "exam_pass": {"inr": EXAM_PASS_PRICE_INR, "label": "Exam Pass"},
         "student_pro": {"inr": STUDENT_PRO_PRICE_INR, "label": "Student & Educator"},
-        "cyber_cafe": {"inr": CYBER_CAFE_PRICE_INR, "label": "Cyber Café"},
+        "cyber_cafe": {"inr": CYBER_CAFE_PRICE_INR, "label": "All-In-One Pro & Developer"},
     }
 
 
 def _cashfree_checkout_issue() -> str | None:
     if CASHFREE_ENV_CONFIG_ERROR:
         return "invalid_gateway_environment"
-    allow_test_payments = (
-        ALLOW_TEST_PAYMENTS
-        or (
-            CASHFREE_ENV == "TEST"
-            and CASHFREE_APP_ID.startswith("TEST")
-            and os.getenv("PAPERPLANE_ALLOW_TEST_PAYMENTS", "true").lower() in ("true", "1", "yes")
-        )
+    allow_test_in_prod = (
+        os.getenv("PAPERPLANE_ALLOW_TEST_PAYMENTS", "false").lower() in ("true", "1", "yes")
+        and not os.getenv("TESTING")
     )
-    if ENVIRONMENT == "production" and CASHFREE_ENV != "PROD" and not allow_test_payments:
+    if ENVIRONMENT == "production" and CASHFREE_ENV != "PROD" and not allow_test_in_prod:
         return "production_requires_prod_gateway"
     if CASHFREE_ENV == "PROD" and ENVIRONMENT != "production":
         return "production_gateway_requires_production"
@@ -3604,7 +3619,7 @@ def billing_status(request: Request, user_id: str | None = Depends(current_user)
         "developer": "Developer",
         "pro": "Legacy Pro",
         "student_pro": "Student & Educator",
-        "cyber_cafe": "Cyber Café",
+        "cyber_cafe": "All-In-One Pro & Developer",
         "exam_pass": "Exam",
         "free": "Free",
     }
@@ -3823,29 +3838,6 @@ def get_keys(user_id: str = Depends(current_user)):
     if not user_id:
         raise HTTPException(401, "Authentication is required to view API keys.")
     return {"keys": list_api_keys(user_id)}
-
-
-@app.post("/api/developer/keys")
-def generate_key(name: str = Form("Default API Key"), user_id: str = Depends(current_user)):
-    if not user_id:
-        raise HTTPException(401, "Authentication is required to generate API keys.")
-    user = get_user(user_id)
-    tier = get_user_tier(user_id)
-    existing_keys = list_api_keys(user_id)
-
-    # Free tier gets 1 evaluation key, Pro, Cyber Café & Developer tiers get unlimited keys
-    if tier not in ("pro", "developer", "cyber_cafe") and len(existing_keys) >= 1:
-        raise HTTPException(
-            status_code=402,
-            detail={
-                "code": "DEV_REQUIRED_API_KEYS",
-                "message": "Generating multiple API keys and continuous CI/CD SDK pipelines requires the Cyber Café & Developer plan (₹299/mo).",
-                "tier": tier
-            }
-        )
-
-    key_id, raw_key = create_api_key(user_id, name)
-    return {"key_id": key_id, "api_key": raw_key, "name": name, "tier": tier}
 
 
 @app.delete("/api/developer/keys/{key_id}")
@@ -6551,18 +6543,34 @@ def list_keys_endpoint(request: Request, user_id: str | None = Depends(current_u
 
 @app.post("/api/v1/keys", tags=["Developer API v1"])
 @app.post("/api/developer/keys", tags=["Developer Keys"])
-def create_key_endpoint(
+async def create_key_endpoint(
     request: Request,
-    name: str = Form("Default API Key"),
     user_id: str | None = Depends(current_user)
 ):
     effective_user_id = user_id or authenticate(request.cookies.get("paperplane_token"))
     if not effective_user_id:
         raise HTTPException(401, "Authentication required to generate an API key.")
+    tier = get_user_tier(effective_user_id)
+    if tier not in ("developer", "cyber_cafe"):
+        raise HTTPException(403, "API key creation requires the All-In-One Pro & Developer plan.")
+    if request.headers.get("content-type", "").split(";", 1)[0].strip().lower() == "application/json":
+        try:
+            body = await request.json()
+        except ValueError as error:
+            raise HTTPException(400, "Invalid JSON request.") from error
+        if not isinstance(body, dict):
+            raise HTTPException(400, "Request must be a JSON object.")
+    else:
+        body = await request.form()
+    name = str(body.get("name") or "Default API Key").strip()
+    if not name or len(name) > 100:
+        raise HTTPException(400, "Key name must be between 1 and 100 characters.")
     key_id, raw_key = create_api_key(effective_user_id, name)
     return {
         "id": key_id,
+        "key_id": key_id,
         "name": name,
+        "tier": tier,
         "api_key": raw_key,
         "key_prefix": raw_key[:12] + "...",
         "created_at": time.time(),
@@ -7784,7 +7792,7 @@ def admin_portal_page():
     </div>
   </main>
 
-  <script src="/assets/admin.js?v=13" defer></script>
+  <script src="/assets/admin.js?v=14" defer></script>
 </body>
 </html>""")
 

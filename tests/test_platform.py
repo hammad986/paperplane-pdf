@@ -22,7 +22,7 @@ from PIL import Image
 
 # Import platform modules
 import config
-from persistence import init_db
+from persistence import init_db, set_user_tier
 from server import app
 import converters
 import ai_engine
@@ -83,6 +83,7 @@ class TestPaperplanePlatform(unittest.TestCase):
         self.assertEqual(me_res.status_code, 200)
         self.assertTrue(me_res.json()["authenticated"])
         self.assertEqual(me_res.json()["email"], test_email)
+        set_user_tier(me_res.json()["user_id"], "cyber_cafe")
 
         # Generate API key
         key_res = self.client.post("/api/developer/keys", data={"name": "Test Key"}, headers={"Authorization": f"Bearer {token}"})

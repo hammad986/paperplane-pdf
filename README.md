@@ -113,7 +113,9 @@ bash scripts/deploy_production.sh
 The deployment suite validates production secrets and Docker Compose, checks the
 Nginx template, builds and starts the stack, verifies `/health`, `/sitemap.xml`,
 `/robots.txt`, and `/api/operations`, and runs an isolated DOCX-to-PDF smoke
-conversion. Use `python scripts/deploy_production.py --dry-run` to inspect the
+conversion. It also checks a browser-side PDF merge against the served site;
+install the development requirements and Playwright Chromium on the machine
+running the deployment suite before deploying. Use `python scripts/deploy_production.py --dry-run` to inspect the
 actions without changing Docker state.
 
 To provision or renew Let's Encrypt certificates before the HTTPS stack starts:

@@ -349,6 +349,11 @@ def main() -> int:
         if not public_url or "yourdomain.com" in public_url:
             public_url = "http://127.0.0.1:8501"
         report["checks"].extend(smoke_tests(public_url, args.dry_run))
+        # ID 206: exercise the asset actually served to a browser, including its
+        # worker and downloaded output, rather than checking source files alone.
+        run_command([sys.executable, str(ROOT / "scripts" / "local_merge_smoke.py"), public_url],
+                    dry_run=args.dry_run, timeout=120)
+        report["checks"].append("Browser-side PDF merge " + ("scheduled" if args.dry_run else "passed"))
         report["base_url"] = public_url
         report["status"] = "preflight_passed" if args.dry_run else "deployed_and_verified"
         if args.dry_run:

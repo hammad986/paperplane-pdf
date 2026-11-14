@@ -835,10 +835,13 @@ def set_user_tier(
 
 def settle_billing_order(user_id: str, order_id: str, tier: str, method: str, payment: dict) -> bool:
     now = time.time()
-    expiration = now + 86400 if tier == "exam_pass" else None
+    expiration = now + 86400 if tier == "exam_pass" else now + 30 * 86400 if tier in {"student_pro", "cyber_cafe"} else None
     with closing(connect()) as connection:
         connection.execute("BEGIN IMMEDIATE")
-        if not connection.execute("SELECT 1 FROM users WHERE id = ?", (user_id,)).fetchone():
+        user = connection.execute(
+            "SELECT tier, subscription_status, subscription_expires_at FROM users WHERE id = ?", (user_id,)
+        ).fetchone()
+        if not user:
             return False
         marker = connection.execute(
             """INSERT OR IGNORE INTO billing_events (id, event_type, customer_id, payload, created_at)
@@ -846,6 +849,10 @@ def settle_billing_order(user_id: str, order_id: str, tier: str, method: str, pa
             (f"{order_id}:verified", user_id, json.dumps(payment), now),
         )
         if marker.rowcount:
+            if (tier in {"student_pro", "cyber_cafe"} and user["tier"] == tier
+                    and user["subscription_status"] in ("active", "trialing")
+                    and user["subscription_expires_at"] and user["subscription_expires_at"] > now):
+                expiration = user["subscription_expires_at"] + 30 * 86400
             connection.execute(
                 """UPDATE users SET tier = ?, subscription_status = 'active',
                    subscription_expires_at = ?, payment_customer_id = ?, cashfree_order_id = ?, payment_method = ?

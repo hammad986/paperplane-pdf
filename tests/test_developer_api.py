@@ -21,7 +21,7 @@ import fitz
 import config
 from persistence import (
     init_db, create_user, create_api_key, revoke_api_key,
-    get_developer_api_usage, check_and_consume_developer_quota
+    get_developer_api_usage, check_and_consume_developer_quota, set_user_tier
 )
 from server import app
 
@@ -35,10 +35,12 @@ class TestDeveloperAPI(unittest.TestCase):
         # Create isolated developer test accounts
         cls.user_a_email = f"dev_test_a_{uuid.uuid4().hex[:8]}@paperplane.test"
         cls.user_a_id = create_user(cls.user_a_email, "SecureDevPass123!")
+        set_user_tier(cls.user_a_id, "cyber_cafe")
         cls.key_a_id, cls.key_a_raw = create_api_key(cls.user_a_id, name="Test Key Alpha")
 
         cls.user_b_email = f"dev_test_b_{uuid.uuid4().hex[:8]}@paperplane.test"
         cls.user_b_id = create_user(cls.user_b_email, "SecureDevPass456!")
+        set_user_tier(cls.user_b_id, "cyber_cafe")
         cls.key_b_id, cls.key_b_raw = create_api_key(cls.user_b_id, name="Test Key Beta")
 
         # Create a small valid test PDF
@@ -246,6 +248,7 @@ class TestDeveloperAPI(unittest.TestCase):
         """Verifies that exceeding the 10 daily operations limit returns HTTP 429."""
         user_c_email = f"dev_quota_{uuid.uuid4().hex[:8]}@paperplane.test"
         user_c_id = create_user(user_c_email, "SecureQuotaPass123!")
+        set_user_tier(user_c_id, "cyber_cafe")
         _, key_c_raw = create_api_key(user_c_id, name="Quota Exhauster Key")
 
         # Consume all 10 free quota units
@@ -271,6 +274,7 @@ class TestDeveloperAPI(unittest.TestCase):
         """Verifies that AI operations are capped at 3 calls/day within the 10 total allowance."""
         user_d_email = f"dev_ai_{uuid.uuid4().hex[:8]}@paperplane.test"
         user_d_id = create_user(user_d_email, "SecureAIPass123!")
+        set_user_tier(user_d_id, "cyber_cafe")
         _, key_d_raw = create_api_key(user_d_id, name="AI Tester Key")
 
         # Consume 3 AI calls

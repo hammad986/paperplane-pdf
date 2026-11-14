@@ -84,6 +84,7 @@ let studioRestorePending = false;
 let studioRestorePromise = null;
 let aiWorkspaceRestored = false;
 let aiWorkspaceRestorePromise = null;
+let aiWorkspaceEpoch = 0;
 const LOCAL_WORK_ACCOUNT_SCOPE_KEY = 'paperplane-local-work-account-id';
 
 function openLocalWorkDb() {
@@ -122,6 +123,7 @@ async function setAuthenticatedWorkspaceUser(data) {
   const previousUserId = String(state.user?.user_id || cachedUserId).trim();
   const nextUserId = data?.authenticated ? String(data.user_id || '').trim() : '';
   if (previousUserId && previousUserId !== nextUserId) {
+    aiWorkspaceEpoch += 1;
     await unloadStudioPdf();
     state.files = [];
     for (const session of toolSessionCache.values()) {
@@ -148,24 +150,30 @@ function studioPositionSessionKey() {
   return `paperplane-studio-position:${localWorkScope()}`;
 }
 
+function studioUnsavedSessionKey() {
+  return `paperplane-studio-unsaved:${localWorkScope()}`;
+}
+
 function localWorkSessionKey(key) {
   return `${key}:${localWorkScope()}`;
 }
 
 async function readLocalWork(key) {
+  const scopedKey = localWorkStoreKey(key);
   const db = await openLocalWorkDb();
   return new Promise((resolve, reject) => {
-    const request = db.transaction('work', 'readonly').objectStore('work').get(localWorkStoreKey(key));
+    const request = db.transaction('work', 'readonly').objectStore('work').get(scopedKey);
     request.onsuccess = () => resolve(request.result ?? null);
     request.onerror = () => reject(request.error || new Error('Could not read saved work.'));
   });
 }
 
 async function writeLocalWork(key, value) {
+  const scopedKey = localWorkStoreKey(key);
   const db = await openLocalWorkDb();
   return new Promise((resolve, reject) => {
     const tx = db.transaction('work', 'readwrite');
-    tx.objectStore('work').put(value, localWorkStoreKey(key));
+    tx.objectStore('work').put(value, scopedKey);
     tx.oncomplete = () => resolve(true);
     tx.onerror = () => reject(tx.error || new Error('Could not save work in this browser.'));
     tx.onabort = () => reject(tx.error || new Error('Saving work was interrupted.'));
@@ -173,12 +181,13 @@ async function writeLocalWork(key, value) {
 }
 
 async function removeLocalWork(...keys) {
+  const scope = localWorkScope();
   const db = await openLocalWorkDb();
   return new Promise((resolve, reject) => {
     const tx = db.transaction('work', 'readwrite');
     const store = tx.objectStore('work');
     keys.forEach(key => {
-      store.delete(localWorkStoreKey(key));
+      store.delete(localWorkStoreKey(key, scope));
       store.delete(key); // Remove pre-account-scope records from the older global store.
     });
     tx.oncomplete = () => resolve(true);
@@ -188,11 +197,11 @@ async function removeLocalWork(...keys) {
 }
 
 async function clearLocalWorkStore() {
+  const prefix = `${localWorkScope()}:`;
   const db = await openLocalWorkDb();
   return new Promise((resolve, reject) => {
     const tx = db.transaction('work', 'readwrite');
     const store = tx.objectStore('work');
-    const prefix = `${localWorkScope()}:`;
     const legacyWorkspaceKeys = new Set(['studio-pdf', 'studio-position', 'ai-pdf', 'ai-conversation']);
     const request = store.getAllKeys();
     request.onsuccess = () => {
@@ -289,12 +298,14 @@ window.confirmAction = async function confirmAction(message, { confirmLabel = 'C
 async function restoreAiWorkspace() {
   if (aiWorkspaceRestored) return false;
   if (aiWorkspaceRestorePromise) return aiWorkspaceRestorePromise;
+  const restoreEpoch = aiWorkspaceEpoch;
   aiWorkspaceRestorePromise = (async () => {
   try {
     const [savedFile, savedMessages] = await Promise.all([
       readLocalWork('ai-pdf'),
       readLocalWork('ai-conversation')
     ]);
+    if (restoreEpoch !== aiWorkspaceEpoch) return false;
     const file = fileFromLocalRecord(savedFile);
     if (file) state.files = [file];
     state.aiConversation = Array.isArray(savedMessages) ? savedMessages : [];
@@ -305,7 +316,7 @@ async function restoreAiWorkspace() {
     return Boolean(file || state.aiConversation.length);
   } catch (error) {
     console.warn('Paperplane could not restore AI work from this browser:', error);
-    aiWorkspaceRestored = true;
+    if (restoreEpoch === aiWorkspaceEpoch) aiWorkspaceRestored = true;
     return false;
   }
   })();
@@ -319,6 +330,15 @@ async function restoreStudioWorkspace() {
   const restoreEpoch = studioWorkspaceEpoch;
   studioRestorePromise = (async () => {
     try {
+      try {
+        if (sessionStorage.getItem(studioUnsavedSessionKey()) === '1') {
+          showToast('The last Studio change was not saved in this browser. Reopen your exported PDF.', 'warning', 7000);
+          showStudioEmptyState();
+          const hint = $('#studio-canvas-area .studio-empty-state p');
+          if (hint) hint.textContent = 'The last Studio change was not saved in this browser. Reopen your exported PDF.';
+          return false;
+        }
+      } catch { /* Storage may be unavailable. */ }
       let saved = pendingStudioRestore;
       if (!saved) {
         try {
@@ -352,6 +372,7 @@ async function clearStudioWorkspace() {
   clearTimeout(studioPositionSaveTimer);
   await clearLocalWorkStore();
   try { sessionStorage.removeItem(studioPositionSessionKey()); } catch { /* storage may be disabled */ }
+  try { sessionStorage.removeItem(studioUnsavedSessionKey()); } catch { /* storage may be disabled */ }
   try { sessionStorage.removeItem(localWorkSessionKey('paperplane-last-local-document')); } catch { /* storage may be disabled */ }
   state.files = [];
   state.aiConversation = [];
@@ -400,6 +421,7 @@ async function clearStudioPdf() {
     return false;
   }
   try { sessionStorage.removeItem(studioPositionSessionKey()); } catch { /* storage may be disabled */ }
+  try { sessionStorage.removeItem(studioUnsavedSessionKey()); } catch { /* storage may be disabled */ }
   await unloadStudioPdf();
   clearLocalWorkMarkerIfEmpty();
   return true;
@@ -827,7 +849,9 @@ async function safeFetch(url, options = {}) {
   } else {
     const rawText = await response.text();
     const cleanText = rawText.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-    data = { detail: cleanText.slice(0, 300) || `Server returned HTTP ${response.status} (${response.statusText})` };
+    data = { detail: response.status >= 500
+      ? 'The service is temporarily unavailable. Please try again.'
+      : cleanText.slice(0, 300) || `Server returned HTTP ${response.status} (${response.statusText})` };
   }
 
   if (!response.ok) {
@@ -1894,10 +1918,10 @@ function updateBillingUI(data) {
       badgeColor = '#10b981';
       shortLabel = 'Student & Educator';
     } else if (tier === 'cyber_cafe') {
-      tierName = 'Cyber Café';
-      badgeText = 'CYBER CAFÉ';
+      tierName = 'All-In-One Pro & Developer';
+      badgeText = 'ALL-IN-ONE PRO';
       badgeColor = '#8b5cf6';
-      shortLabel = 'Cyber Café';
+      shortLabel = 'All-In-One Pro';
     } else if (tier === 'exam_pass') {
       tierName = 'Exam';
       badgeText = 'EXAM';
@@ -2300,7 +2324,6 @@ function renderCommandResults(query) {
   container.innerHTML = matches.map(([key, item]) => `
     <div class="command-item" data-command-operation="${key}" tabindex="0" role="button">
       <div class="command-item-left">
-        <span style="font-weight: 700; color: var(--brand-accent);">API</span>
         <div>
           <strong>${item.label}</strong>
           <small style="display: block;">${item.description || 'Production workflow'}</small>
@@ -2416,12 +2439,6 @@ async function loadDocumentIntoStudio(file, { initialPage = 1, persist = true, r
     state.studio.totalCount = state.studio.pdfDoc.numPages;
     state.studio.currentPage = Math.max(1, Math.min(state.studio.totalCount, Number(initialPage) || 1));
     state.studio.srcFile = file;
-    $('#studio-page-count').textContent = state.studio.totalCount;
-    const pageJump = $('#page-jump-input');
-    const pageTotal = $('#page-total-indicator');
-    if (pageJump) { pageJump.min = '1'; pageJump.max = String(state.studio.totalCount); pageJump.value = String(state.studio.currentPage); pageJump.disabled = false; }
-    if (pageTotal) pageTotal.textContent = String(state.studio.totalCount);
-
     // Load into Phase 2 PaperplaneEditor
     let srcFile = file;
     if (!srcFile || typeof srcFile === 'string') {
@@ -2430,18 +2447,27 @@ async function loadDocumentIntoStudio(file, { initialPage = 1, persist = true, r
     state.studio.srcFile = srcFile;
     updateStudioAiHandoffButton();
     if (persist) {
+      try { sessionStorage.setItem(studioUnsavedSessionKey(), '1'); } catch { /* storage may be disabled */ }
       try {
         await Promise.all([
           writeLocalWork('studio-pdf', localPdfRecord(srcFile)),
           writeLocalWork('studio-position', { page: state.studio.currentPage })
         ]);
         if (loadEpoch !== studioWorkspaceEpoch) return false;
+        try { sessionStorage.removeItem(studioUnsavedSessionKey()); } catch { /* storage may be disabled */ }
         try { sessionStorage.setItem(studioPositionSessionKey(), JSON.stringify({ page: state.studio.currentPage })); } catch { /* IndexedDB is the durable store. */ }
       } catch (error) {
         console.warn('Paperplane could not save the Studio PDF locally:', error);
         showToast('This browser could not save the PDF locally. Export your document before closing this tab.', 'warning', 7000);
       }
     }
+    // Do not advertise a completed page mutation before its saved copy has
+    // finished writing: users may reload as soon as the page count changes.
+    $('#studio-page-count').textContent = state.studio.totalCount;
+    const pageJump = $('#page-jump-input');
+    const pageTotal = $('#page-total-indicator');
+    if (pageJump) { pageJump.min = '1'; pageJump.max = String(state.studio.totalCount); pageJump.value = String(state.studio.currentPage); pageJump.disabled = false; }
+    if (pageTotal) pageTotal.textContent = String(state.studio.totalCount);
     if (window.PaperplaneEditor) {
       window.PaperplaneEditor.loadDocument(srcFile, srcFile.name, state.studio.totalCount);
     }
@@ -3380,8 +3406,6 @@ if (moreToolsTrigger && moreToolsMenu) {
   $('#studio-ocr-btn')?.addEventListener('click', () => { selectOperation('ocr'); });
   $('#studio-repair-btn')?.addEventListener('click', () => { selectOperation('repair'); });
   $('#studio-convert-btn')?.addEventListener('click', () => { selectOperation('pdf_to_word'); });
-  $('#studio-sign-btn')?.addEventListener('click', () => { selectOperation('sign'); });
-  $('#studio-security-btn')?.addEventListener('click', () => { selectOperation('protect'); });
 }
 
 function initStudioDrawingLayer() {
@@ -3461,7 +3485,7 @@ function renderOptions() {
       { value: 'pdf', label: 'PDF Document (Single-page)' }
     ]);
   } else if (state.operation === 'photo_compress') {
-    fields += field('target_kb', 'Target File Size (KB)', 'number', '100', '10', '10000', '5');
+    fields += field('target_kb', 'Target File Size (KB)', 'number', '100', '10', '10000', '5', '100');
     fields += selectField('quality', 'Image Quality', [
       { value: '75', label: '75% (Balanced - Recommended)' },
       { value: '60', label: '60% (High Compression)' },
@@ -3519,7 +3543,10 @@ function renderOptions() {
   } else if (state.operation === 'ocr') {
     fields += selectField('language', 'OCR Language', ['eng (English)', 'spa (Spanish)', 'deu (German)', 'fra (French)', 'hin (Hindi)']);
   } else if (state.operation === 'repair') {
-    fields += selectField('mode', 'Repair Mode', ['automatic (Automatic Recovery)', 'validate_xref (Validate XRef Only)']);
+    fields += selectField('mode', 'Repair Mode', [
+      { value: 'automatic', label: 'Automatic recovery' },
+      { value: 'validate_only', label: 'Validate structure only' }
+    ]);
   } else if (['word_to_pdf', 'excel_to_pdf', 'powerpoint_to_pdf'].includes(state.operation)) {
     fields += '<div class="option-field option-field-wide option-engine-badge"><span class="engine-badge-dot"></span><div><strong>Paperplane High-Fidelity Engine</strong><small>Enterprise headless conversion with ISO-standard fidelity.</small></div></div>';
   } else if (state.operation === 'pdf_to_jpg') {
@@ -3605,8 +3632,8 @@ function renderOptions() {
   syncRequiredFieldFeedback();
 }
 
-function field(id, label, type, placeholder, min = '', max = '', step = '') {
-  return `<div class="option-field"><label for="${id}">${label}</label><input id="${id}" type="${type}" placeholder="${placeholder}" ${min ? `min="${min}" max="${max}" step="${step}"` : ''}></div>`;
+function field(id, label, type, placeholder, min = '', max = '', step = '', initialValue = '') {
+  return `<div class="option-field"><label for="${id}">${label}</label><input id="${id}" type="${type}" placeholder="${placeholder}" ${initialValue ? `value="${initialValue}"` : ''} ${min ? `min="${min}" max="${max}" step="${step}"` : ''}></div>`;
 }
 
 function selectField(id, label, values) {
@@ -4056,7 +4083,26 @@ function checkAccessRequirement(operation, files = []) {
   return true;
 }
 
-$('#browse').onclick = () => {
+async function waitForInitialAuth() {
+  if (!document.body.classList.contains('auth-pending')) return true;
+  await new Promise(resolve => {
+    const observer = new MutationObserver(() => {
+      if (!document.body.classList.contains('auth-pending')) finish();
+    });
+    const finish = () => { observer.disconnect(); clearTimeout(timer); resolve(); };
+    const timer = setTimeout(finish, 8500);
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    if (!document.body.classList.contains('auth-pending')) finish();
+  });
+  if (document.body.classList.contains('auth-pending')) {
+    showToast('Still checking your account. Please try again in a moment.', 'info');
+    return false;
+  }
+  return true;
+}
+
+$('#browse').onclick = async () => {
+  if (!await waitForInitialAuth()) return;
   if (HEAVY_TOOLS.has(state.operation) && !state.user) {
     showToast('This advanced AI / conversion tool requires a free account. Please sign in or register.', 'info');
     openAuthModal('', 'login');
@@ -4067,8 +4113,9 @@ $('#browse').onclick = () => {
 
 const dropzoneEl = $('#dropzone');
 if (dropzoneEl) {
-  dropzoneEl.onclick = (e) => {
+  dropzoneEl.onclick = async (e) => {
     if (e.target.closest('#browse') || e.target.closest('#cloud-drop-btn') || e.target.closest('.cloud-import-btn')) return;
+    if (!await waitForInitialAuth()) return;
     if (HEAVY_TOOLS.has(state.operation) && !state.user) {
       showToast('This advanced AI / conversion tool requires a free account. Please sign in or register.', 'info');
       openAuthModal('', 'login');
@@ -4078,9 +4125,13 @@ if (dropzoneEl) {
   };
 }
 
-$('#file-input').onchange = e => {
+$('#file-input').onchange = async e => {
   const selected = [...e.target.files];
-  if (!checkAccessRequirement(state.operation, selected)) return;
+  const operation = state.operation;
+  if (!await waitForInitialAuth() || operation !== state.operation || !checkAccessRequirement(operation, selected)) {
+    e.target.value = '';
+    return;
+  }
   addFiles(selected);
   e.target.value = '';
 };
@@ -4099,9 +4150,10 @@ $('#file-input').onchange = e => {
   });
 });
 
-$('#dropzone').ondrop = e => {
+$('#dropzone').ondrop = async e => {
   const dropped = [...e.dataTransfer.files];
-  if (!checkAccessRequirement(state.operation, dropped)) return;
+  const operation = state.operation;
+  if (!await waitForInitialAuth() || operation !== state.operation || !checkAccessRequirement(operation, dropped)) return;
   addFiles(dropped);
 };
 
@@ -4353,12 +4405,18 @@ $('#job-form').onsubmit = async e => {
   form.append('options', JSON.stringify(options));
   state.files.forEach(f => form.append('files', f));
 
+  const controller = new AbortController();
+  activeDeskAiController = controller;
+  let timedOut = false;
+  const timeout = window.setTimeout(() => { timedOut = true; controller.abort(); }, 600000);
+  const cancelButton = $('#job-cancel-btn');
+  if (cancelButton) cancelButton.hidden = false;
   try {
-    updateProgress(2, 40, 'Dispatching to worker pool…');
-    const data = await safeFetch('/api/jobs', { method: 'POST', body: form });
+    updateProgress(2, 20, 'Uploading and validating files…');
+    const data = await safeFetch('/api/jobs', { method: 'POST', body: form, signal: controller.signal });
     
     updateProgress(3, 75, 'Transforming & compressing streams…');
-    const job = await waitForJob(data.status_url);
+    const job = await waitForJob(data.status_url, controller.signal);
     
     updateProgress(4, 100, 'Finished!');
     setTimeout(() => $('#progress-card').hidden = true, 800);
@@ -4366,6 +4424,14 @@ $('#job-form').onsubmit = async e => {
     await checkAuthStatus();
   } catch (error) {
     $('#progress-card').hidden = true;
+    if (controller.signal.aborted) {
+      const message = timedOut
+        ? 'The operation took too long. The server may still be processing it; check History before retrying.'
+        : 'Stopped waiting. If the upload completed, the server may still process the job.';
+      showResult(message, true);
+      showToast(message, timedOut ? 'error' : 'info', 6000);
+      return;
+    }
     if (state.operation === 'mask_aadhaar' && /no 12-digit aadhaar number pattern was detected/i.test(error.message || '')) {
       showNeutralResult('No Aadhaar number was found, so nothing was changed.');
       showToast('No Aadhaar number was found, so nothing was changed.', 'info', 5000);
@@ -4392,19 +4458,22 @@ $('#job-form').onsubmit = async e => {
       showToast(error.message, 'error', 4500);
     }
   } finally {
+    window.clearTimeout(timeout);
+    if (activeDeskAiController === controller) activeDeskAiController = null;
+    if (cancelButton) cancelButton.hidden = true;
     btn.disabled = false;
     updateButton();
   }
 };
 
-async function waitForJob(url) {
-  for (let attempt = 0; attempt < 180; attempt++) {
-    const job = await safeFetch(url);
+async function waitForJob(url, signal) {
+  while (!signal?.aborted) {
+    const job = await safeFetch(url, { signal });
     if (job.status === 'completed') return job;
     if (job.status === 'failed') throw new Error(job.error || 'The job failed during processing.');
-    await new Promise(r => setTimeout(r, 600));
+    await new Promise(resolve => setTimeout(resolve, 600));
   }
-  throw new Error('Processing timed out.');
+  throw new DOMException('Stopped waiting.', 'AbortError');
 }
 
 function showDownloadResult(job, downloadUrl, { silent = false } = {}) {
@@ -5234,6 +5303,8 @@ if (aiChangeDocBtn) aiChangeDocBtn.onclick = () => aiFileInput?.click();
 
 if (aiClearDocBtn) {
   aiClearDocBtn.onclick = async () => {
+    aiWorkspaceEpoch += 1;
+    aiWorkspaceRestored = true;
     const scrollPosition = captureAiWorkspaceScroll();
     summaryRequestController?.abort();
     extractionRequestController?.abort();
@@ -5257,6 +5328,9 @@ if (aiFileInput) {
     if (e.target.files?.length) {
       const scrollPosition = captureAiWorkspaceScroll();
       const file = e.target.files[0];
+      if (!await waitForInitialAuth()) return;
+      aiWorkspaceEpoch += 1;
+      aiWorkspaceRestored = true;
       if (!file.name.toLowerCase().endsWith('.pdf')) {
         showToast('Please select a valid PDF file.', 'warning');
         return;
@@ -5285,12 +5359,15 @@ if (aiUploadZone) {
   aiUploadZone.ondragleave = () => {
     aiUploadZone.style.borderColor = '';
   };
-  aiUploadZone.ondrop = (e) => {
+  aiUploadZone.ondrop = async (e) => {
     e.preventDefault();
     aiUploadZone.style.borderColor = '';
     if (e.dataTransfer?.files?.length) {
       const scrollPosition = captureAiWorkspaceScroll();
       const file = e.dataTransfer.files[0];
+      if (!await waitForInitialAuth()) return;
+      aiWorkspaceEpoch += 1;
+      aiWorkspaceRestored = true;
       if (!file.name.toLowerCase().endsWith('.pdf')) {
         showToast('Please drop a valid PDF file.', 'warning');
         return;
@@ -7046,7 +7123,7 @@ async function handleCashfreeReturn() {
         exam_pass: 'Exam',
         student_pro: 'Student & Educator',
         pro: 'Legacy Pro',
-        cyber_cafe: 'Cyber Café',
+        cyber_cafe: 'All-In-One Pro & Developer',
         developer: 'Developer'
       };
       showUserErrorModal(

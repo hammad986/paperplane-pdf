@@ -168,12 +168,18 @@ def test_ai_test_connection_returns_specific_visible_http_failure(monkeypatch):
 def test_ai_routes_apply_guest_request_limit_with_retry_after():
     from fastapi.testclient import TestClient
     from server import app
+    import persistence
+    import secrets
 
-    client = TestClient(app)
-    headers = {"X-Forwarded-For": "198.51.100.42"}
+    email = f"ai-limit-{secrets.token_hex(8)}@example.invalid"
+    password = secrets.token_urlsafe(24)
+    persistence.create_user(email, password)
+    persistence.set_user_tier(persistence.get_user_by_email(email)["id"], "cyber_cafe")
+    token = persistence.create_session(email, password)["token"]
+    client = TestClient(app, cookies={"paperplane_token": token})
     for _ in range(12):
-        assert client.get("/api/ai/capabilities", headers=headers).status_code == 200
-    limited = client.get("/api/ai/capabilities", headers=headers)
+        assert client.post("/api/ai/chat/stream", data={"question": "Hello"}).status_code == 200
+    limited = client.post("/api/ai/chat/stream", data={"question": "Hello"})
     assert limited.status_code == 429
     assert limited.headers["Retry-After"] == "60"
 

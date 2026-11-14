@@ -23,8 +23,19 @@ services:
       PAPERPLANE_TRUSTED_HOSTS: "paperplane,localhost,127.0.0.1,${PAPERPLANE_DOMAIN:-localhost}"
       PAPERPLANE_TRUSTED_PROXY_HOSTS: "127.0.0.1,::1,${PAPERPLANE_PROXY_NGINX_IP:-172.30.250.2}"
       PAPERPLANE_ALLOWED_ORIGINS: "http://localhost:8501,http://127.0.0.1:8501,https://${PAPERPLANE_DOMAIN:-localhost}"
+      PAPERPLANE_ADMIN_KEY: "${PAPERPLANE_ADMIN_KEY}"
+      PAPERPLANE_ADMIN_CODE: "${PAPERPLANE_ADMIN_CODE:?PAPERPLANE_ADMIN_CODE must be set}"
+      PAPERPLANE_ALLOW_TEST_PAYMENTS: "${PAPERPLANE_ALLOW_TEST_PAYMENTS:-true}"
     volumes:
       - paperplane_data:/data
+      - ./server.py:/app/server.py:ro
+      - ./persistence.py:/app/persistence.py:ro
+      - ./converters.py:/app/converters.py:ro
+      - ./ai_engine.py:/app/ai_engine.py:ro
+      - ./security_forms_engine.py:/app/security_forms_engine.py:ro
+      - ./email_service.py:/app/email_service.py:ro
+      - ./config.py:/app/config.py:ro
+      - ./web:/app/web:ro
     networks:
       paperplane_proxy:
         ipv4_address: "${PAPERPLANE_PROXY_APP_IP:-172.30.250.3}"

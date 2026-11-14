@@ -1987,6 +1987,8 @@ def repair_pdf(source: Path, output: Path, mode: str = "automatic") -> Path:
     res = repair_pdf_advanced(source, output, mode=mode)
     if not res.get("valid") and not res.get("repaired"):
         raise ValueError(f"Unable to repair corrupted PDF: {res.get('message')}")
+    if mode == "validate_only" and res.get("valid"):
+        shutil.copyfile(source, output)
     if not output.exists() or output.stat().st_size == 0:
         raise ValueError("Repair failed: No salvageable pages could be recovered.")
     try:

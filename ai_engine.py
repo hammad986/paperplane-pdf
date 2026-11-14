@@ -11,6 +11,7 @@ import datetime as dt
 import urllib.request
 import urllib.error
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import logging
 from pathlib import Path
 from typing import Any, Iterator
@@ -315,6 +316,7 @@ def correct_false_premise(pdf_path: Path | None, question: str) -> str | None:
 
     metadata: dict[str, str] = {}
     document_author = ""
+    corrections: list[str] = []
     if pdf_path is not None:
         page_count, metadata = _pdf_metadata_facts(pdf_path)
         try:
@@ -335,7 +337,7 @@ def correct_false_premise(pdf_path: Path | None, question: str) -> str | None:
         if page_count_claim:
             claimed = int(page_count_claim.group(1))
             if claimed != page_count:
-                return (
+                corrections.append(
                     f"Correction: the uploaded PDF contains {page_count} pages, not {claimed}. "
                     f"I can answer questions using those {page_count} pages."
                 )
@@ -358,10 +360,11 @@ def correct_false_premise(pdf_path: Path | None, question: str) -> str | None:
                 correction = "Paris is the capital of France; Berlin is the capital of Germany."
             else:
                 correction = f"{expected_city.title()} is the capital of {country.title()}, not {city.title()}."
-            return (
+            corrections.append(
                 f"Correction: {correction} This is a general geography correction; "
                 "it is not a fact inferred from the uploaded PDF."
             )
+            break
 
     author = metadata.get("author", "").strip() or document_author
     if re.search(r"\b(author|authored|wrote|written by)\b", question, re.IGNORECASE):
@@ -370,23 +373,23 @@ def correct_false_premise(pdf_path: Path | None, question: str) -> str | None:
             question,
         )
         if claimed_author and author and claimed_author.group(1).casefold() != author.casefold():
-            return (
+            corrections.append(
                 f"Correction: the PDF identifies {author} as the author, not "
                 f"{claimed_author.group(1)}. This is based on the document text or embedded metadata."
             )
         if claimed_author and not author:
-            return "I can't verify that authorship claim: the PDF's metadata and opening text do not identify an author."
+            corrections.append("I can't verify that authorship claim: the PDF's metadata and opening text do not identify an author.")
 
     creation_year = _metadata_year(metadata.get("creationDate", ""))
     if creation_year and re.search(r"\b(date|year|published|publication|created|written)\b", question, re.IGNORECASE):
         claimed_year = re.search(r"\b(?:19|20)\d{2}\b", question)
         if claimed_year and claimed_year.group(0) != creation_year:
-            return (
+            corrections.append(
                 f"Correction: the PDF creation metadata records {creation_year}, not {claimed_year.group(0)}. "
                 "A file creation date does not establish the document's original publication date."
             )
 
-    return None
+    return " ".join(corrections) or None
 
 
 def align_answer_citations(answer: str, eligible_pages: list[int] | set[int]) -> tuple[str, list[int]]:
@@ -688,7 +691,7 @@ def _provider_request(system_prompt: str, user_prompt: str, credentials: dict[st
         raise ValueError("Unsupported AI provider.")
 
     body = json.dumps(payload).encode("utf-8")
-    data = None
+    answer = ""
     provider_host = urllib.parse.urlsplit(endpoint).hostname
     for attempt in range(2):
         request = urllib.request.Request(endpoint, data=body, headers=headers)
@@ -699,6 +702,20 @@ def _provider_request(system_prompt: str, user_prompt: str, credentials: dict[st
                 logger.debug("AI provider host=%s attempt=%d timeout=%.1fs HTTP=%s elapsed=%.1fs",
                              provider_host, attempt + 1, timeout, getattr(response, "status", None),
                              time.monotonic() - started)
+            if not isinstance(data, dict):
+                raise ValueError("Invalid provider response")
+            if provider == "anthropic":
+                content = data.get("content", [])
+                answer = "".join(item.get("text", "") for item in content if isinstance(item, dict) and item.get("type") == "text")
+            elif provider == "gemini":
+                candidates = data.get("candidates", [])
+                parts = candidates[0].get("content", {}).get("parts", []) if candidates else []
+                answer = "".join(item.get("text", "") for item in parts if isinstance(item, dict))
+            else:
+                choices = data.get("choices", [])
+                answer = choices[0].get("message", {}).get("content", "") if choices else ""
+            if not isinstance(answer, str) or not answer.strip():
+                raise ValueError("Empty provider response")
             break
         except urllib.error.HTTPError as error:
             logger.warning("AI provider host=%s attempt=%d timeout=%.1fs HTTP=%s",
@@ -714,21 +731,12 @@ def _provider_request(system_prompt: str, user_prompt: str, credentials: dict[st
                 time.sleep(0.4)
                 continue
             raise RuntimeError("AI service could not be reached or timed out. Please try again.") from error
-    if not isinstance(data, dict):
-        raise RuntimeError("AI service returned an invalid response. Please try again.")
-
-    if provider == "anthropic":
-        content = data.get("content", [])
-        answer = "".join(item.get("text", "") for item in content if isinstance(item, dict) and item.get("type") == "text")
-    elif provider == "gemini":
-        candidates = data.get("candidates", [])
-        parts = candidates[0].get("content", {}).get("parts", []) if candidates else []
-        answer = "".join(item.get("text", "") for item in parts if isinstance(item, dict))
-    else:
-        choices = data.get("choices", [])
-        answer = choices[0].get("message", {}).get("content", "") if choices else ""
-    if not isinstance(answer, str) or not answer.strip():
-        raise RuntimeError("AI service returned an empty response. Please try again.")
+        except (ValueError, KeyError, TypeError, IndexError, AttributeError) as error:
+            logger.warning("AI provider host=%s attempt=%d returned an empty or invalid response", provider_host, attempt + 1)
+            if attempt == 0:
+                time.sleep(0.4)
+                continue
+            raise RuntimeError("AI service returned an empty or invalid response. Please try again.") from error
     return answer.strip()
 
 
@@ -1323,6 +1331,24 @@ def _extract_metadata_with_agentrouter(
         ] if isinstance(source_pages, list) else []
         warnings = extracted.get("warnings")
         extracted["warnings"] = [str(item) for item in warnings] if isinstance(warnings, list) else []
+        if doc_type == "general":
+            general = extracted["general_data"]
+            raw_date = general.get("document_date")
+            normalized_date = _extract_valid_document_date(raw_date) if isinstance(raw_date, str) else None
+            source_dates = {_extract_valid_document_date(line) for line in full_text.splitlines()}
+            if raw_date and (not normalized_date or normalized_date not in source_dates):
+                general["document_date"] = None
+                extracted["warnings"].append("The proposed document date could not be verified in the source text.")
+            elif normalized_date:
+                general["document_date"] = normalized_date
+            topics = general.get("detected_topics")
+            if isinstance(topics, list):
+                general["detected_topics"] = [topic.strip() for topic in topics
+                    if isinstance(topic, str) and len(topic.strip().split()) >= 2
+                    and not re.match(r"^\s*\d+(?:\.\d+)+\b", topic)
+                    and topic.strip().casefold() not in {"table of contents", "executive summary"}][:8]
+            else:
+                general["detected_topics"] = []
         extracted.pop("provider", None)
         extracted["retrieval_method"] = "Paperplane AI structured extraction"
         extracted["csv_export"] = _generate_clean_csv(extracted)
@@ -1644,9 +1670,24 @@ def extract_metadata_entities(pdf_path: Path, doc_type: str = "auto") -> dict:
     return extracted
 
 
-TRANSLATION_CALL_TIMEOUT_SECONDS = 30.0
-TRANSLATION_MAX_BLOCKS = 120
+TRANSLATION_CALL_TIMEOUT_SECONDS = 55.0
 TRANSLATION_BATCH_SIZE = 8
+TRANSLATION_MAX_PARALLEL_BATCHES = 3
+
+
+def _translation_chunks(text: str, limit: int = 1600) -> list[str]:
+    """Split large blocks without silently dropping any source text."""
+    chunks = []
+    remaining = text.strip()
+    while len(remaining) > limit:
+        boundary = remaining.rfind(" ", 0, limit + 1)
+        if boundary < limit // 2:
+            boundary = limit
+        chunks.append(remaining[:boundary].strip())
+        remaining = remaining[boundary:].strip()
+    if remaining:
+        chunks.append(remaining)
+    return chunks
 
 
 def _parse_translation_batch(response: str, expected_ids: list[int]) -> dict[int, str]:
@@ -1765,27 +1806,44 @@ def translate_pdf_layout(
                 if len(block) < 7 or block[6] != 0 or len(block[4].strip()) < 2:
                     continue
                 report_data["blocks_seen"] += 1
-                # Preserve the full source of any block we cannot safely fit in a request.
-                if len(block[4].strip()) <= 1600 and len(blocks) < TRANSLATION_MAX_BLOCKS:
-                    blocks.append((page.number, fitz.Rect(block[:4]), block[4].strip()))
+                blocks.append((page.number, fitz.Rect(block[:4]), block[4].strip()))
 
-        translated: dict[int, str] = {}
-        for start in range(0, len(blocks), TRANSLATION_BATCH_SIZE):
-            batch = [
-                (index, blocks[index][2])
-                for index in range(start, min(start + TRANSLATION_BATCH_SIZE, len(blocks)))
-            ]
-            try:
-                translated.update(_translate_text_batch(batch, target_language, deadline=deadline))
-            except RuntimeError as error:
-                report_data["fallback_used"] = True
-                report_data["warnings"].append(str(error))
-                raise
+        segments: list[tuple[int, str]] = []
+        block_segments: list[list[tuple[int, str]]] = []
+        for index, (_, _, source_text) in enumerate(blocks):
+            ids = []
+            cursor = 0
+            for chunk in _translation_chunks(source_text):
+                position = source_text.find(chunk, cursor)
+                separator = source_text[cursor:position]
+                joiner = "\n" if "\n" in separator else " " if separator else ""
+                ids.append((len(segments), joiner))
+                segments.append((len(segments), chunk))
+                cursor = position + len(chunk)
+            block_segments.append(ids)
+        batches = [segments[start:start + TRANSLATION_BATCH_SIZE]
+                   for start in range(0, len(segments), TRANSLATION_BATCH_SIZE)]
+        translated_segments: dict[int, str] = {}
+        try:
+            with ThreadPoolExecutor(max_workers=TRANSLATION_MAX_PARALLEL_BATCHES,
+                                    thread_name_prefix="translation") as pool:
+                futures = [pool.submit(_translate_text_batch, batch, target_language, deadline=deadline)
+                           for batch in batches]
+                for future in as_completed(futures):
+                    translated_segments.update(future.result())
+        except RuntimeError as error:
+            report_data["fallback_used"] = True
+            report_data["warnings"].append(str(error))
+            raise
+        translated = {
+            index: "".join(separator + translated_segments[segment_id] for segment_id, separator in ids)
+            for index, ids in enumerate(block_segments)
+            if ids and all(segment_id in translated_segments for segment_id, _ in ids)
+        }
 
-        for source_page in doc:
-            page = out_doc.new_page(width=source_page.rect.width, height=source_page.rect.height)
-            if source_page.get_contents():
-                page.show_pdf_page(page.rect, doc, source_page.number)
+        # Copy the actual page contents so that text successfully translated can
+        # be removed from the searchable layer rather than hidden under a box.
+        out_doc.insert_pdf(doc, links=True, annots=True)
 
         placed = []
         for index, translation in translated.items():
@@ -1805,10 +1863,16 @@ def translate_pdf_layout(
                 continue
             placed.append((number, bounds, overlay.number))
 
+        # Redact only blocks for which a replacement fitted. Keep images and
+        # vector artwork, and leave failed/untranslated blocks intact.
+        for number, bounds, _ in placed:
+            out_doc[number].add_redact_annot(bounds, fill=False, cross_out=False)
+        for number in {number for number, _, _ in placed}:
+            out_doc[number].apply_redactions(images=0, graphics=0)
+
         # Complete the source document before grafting pages out of it.
         for number, bounds, overlay_number in placed:
             page = out_doc[number]
-            page.draw_rect(bounds, color=None, fill=(1, 1, 1))
             page.show_pdf_page(bounds, overlays, overlay_number, keep_proportion=False)
             report_data["blocks_translated"] += 1
 

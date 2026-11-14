@@ -191,7 +191,7 @@ def test_cashfree_webhook_signature_audits_payload_and_activates_tier(monkeypatc
     assert json.loads(audited["payload"]) == event
 
 
-def test_cashfree_production_allows_test_gateway_when_opted_in(monkeypatch):
+def test_cashfree_production_blocks_test_gateway_even_when_opted_in(monkeypatch):
     client, user_id, _ = _registered_client()
     captured: dict = {}
 
@@ -210,12 +210,8 @@ def test_cashfree_production_allows_test_gateway_when_opted_in(monkeypatch):
 
     response = client.post("/api/billing/checkout-session", json={"tier": "exam_pass"})
 
-    assert response.status_code == 200
-    payload = response.json()
-    assert payload["status"] == "success"
-    assert payload["payment_session_id"] == "session_test_allowed_in_prod"
-    assert payload["environment"] == "TEST"
-    assert captured["body"]["order_amount"] == 19
+    assert response.status_code == 503
+    assert captured == {}
 
 
 def test_cashfree_production_blocks_test_gateway_when_not_opted_in(monkeypatch):
