@@ -93,7 +93,6 @@ def test_paid_upload_limit_includes_exact_500_mib_boundary():
 
 def test_billable_ai_and_studio_success_count_but_failed_uploads_do_not(tmp_path, monkeypatch):
     monkeypatch.setattr(server, "REQUIRE_AUTH", False)
-    subject = "ip:testclient"
     monkeypatch.setattr(ai_engine, "summarize_pdf", lambda path: "Test overview [Page 1].")
     monkeypatch.setattr(ai_engine, "extract_chunks_from_pdf", lambda path: [SimpleNamespace(page_number=1, text="Test page")])
     client = TestClient(server.app)
@@ -104,7 +103,9 @@ def test_billable_ai_and_studio_success_count_but_failed_uploads_do_not(tmp_path
         result = client.post("/api/ai/summarize", files={"file": (source.name, handle, "application/pdf")})
     assert result.status_code == 200
     assert result.headers["X-Paperplane-Operations-Today"] == "1"
-    assert server.get_daily_usage(subject) == 1
+    quota_id = server._guest_quota_id_from_cookie(client.cookies.get(server.GUEST_QUOTA_COOKIE))
+    assert quota_id
+    assert server.get_daily_usage(f"ip:testclient|{quota_id}") == 1
 
     with source.open("rb") as handle:
         result = client.post(
@@ -117,7 +118,8 @@ def test_billable_ai_and_studio_success_count_but_failed_uploads_do_not(tmp_path
     output = fitz.open(stream=result.content, filetype="pdf")
     assert len(output) == 1 and output[0].rotation == 90
     output.close()
-    assert server.get_daily_usage(subject) == 2
+    quota_subject = f"ip:testclient|{quota_id}"
+    assert server.get_daily_usage(quota_subject) == 2
 
     invalid = client.post(
         "/api/studio/pages/rotate",
@@ -125,7 +127,7 @@ def test_billable_ai_and_studio_success_count_but_failed_uploads_do_not(tmp_path
         files={"file": ("bad.pdf", b"not a pdf", "application/pdf")},
     )
     assert invalid.status_code >= 400
-    assert server.get_daily_usage(subject) == 2
+    assert server.get_daily_usage(quota_subject) == 2
 
 
 def test_billable_quota_blocks_ai_and_studio_before_processing(monkeypatch):

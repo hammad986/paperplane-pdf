@@ -1315,11 +1315,17 @@
     }
 
     async deletePages(pages) {
-      const total = this.state.totalCount;
-      if (pages.length >= total) {
+      const total = Number(this.pdfDoc?.numPages) || Number(this.state.totalCount) || 0;
+      const validPages = [...new Set((pages || []).map(Number).filter(page => Number.isInteger(page) && page >= 1 && page <= total))];
+      if (!total || !validPages.length) {
+        window.showToast('No valid pages are selected for deletion.', 'error');
+        return;
+      }
+      if (validPages.length >= total) {
         window.showToast('Cannot delete all pages. The document must contain at least one page.', 'error');
         return;
       }
+      pages = validPages;
 
       // Capture before opening the confirmation dialog; focusing the modal can
       // scroll the mobile document and change the visible page counter.

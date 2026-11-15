@@ -93,7 +93,7 @@ async function transform({ operation, files, options }) {
     return { filename: 'rotated.pdf', output: await pdf.save() };
   }
   if (operation === 'split' && options.splitMode === 'all_pages') {
-    if (count > 1000) throw new Error('For a ZIP over 1,000 pages, choose Server Mode.');
+    if (count > 1000) throw new Error('For a ZIP over 1,000 pages, choose Server Processing.');
     const pages = [];
     for (let index = 0; index < count; index++) pages.push(await copyPages(pdf, [index]));
     return { filename: 'split-pages.zip', output: zipPages(pages) };
@@ -117,7 +117,7 @@ self.onmessage = async event => {
     self.postMessage(result, result.output instanceof Uint8Array ? [result.output.buffer] : []);
   } catch (error) {
     const message = /encrypted/i.test(error.message || '')
-      ? 'This PDF needs a password. Choose Server Mode and enter the password, or unlock the PDF first.'
+      ? 'This PDF needs a password. Choose Server Processing and enter the password, or unlock the PDF first.'
       : (error.message || 'Browser PDF processing failed.');
     self.postMessage({ error: message });
   }

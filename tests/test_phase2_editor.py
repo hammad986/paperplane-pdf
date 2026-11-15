@@ -106,6 +106,7 @@ class TestPhase2Editor(unittest.TestCase):
         doc = fitz.open(str(result))
         self.assertEqual(len(doc), 3)
         page1_text = doc[0].get_text()
+        page1_text = page1_text.replace("\u00a0", " ")
         self.assertIn("CONFIDENTIAL OVERLAY TEST", page1_text)
         self.assertIn("Italicized Revision Note", page1_text)
         doc.close()
@@ -299,7 +300,7 @@ class TestPhase2Editor(unittest.TestCase):
         # Check content
         doc = fitz.open(stream=response.content, filetype="pdf")
         self.assertEqual(len(doc), 3)
-        self.assertIn("API Editor Export Verification", doc[0].get_text())
+        self.assertIn("API Editor Export Verification", doc[0].get_text().replace("\u00a0", " "))
         doc.close()
 
     def test_08_api_studio_page_operations(self):

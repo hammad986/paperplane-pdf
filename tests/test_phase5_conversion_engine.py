@@ -18,6 +18,7 @@ import os
 import shutil
 import tempfile
 import unittest
+import unittest.mock
 import zipfile
 from pathlib import Path
 
@@ -452,16 +453,12 @@ class TestPhase5ConversionEngine(unittest.TestCase):
         self.assertGreater(len(shapes), 1)
 
     def test_17_pdf_to_pdfa_archival(self):
-        """Tests PDF/A-1b metadata and standardization."""
+        """Never claim PDF/A unless the configured standards converter can run."""
         out_pdfa = self.temp_dir / "archived.pdf"
-        converters.pdf_to_pdfa(self.sample_pdf, out_pdfa)
-        self.assertTrue(out_pdfa.exists())
-        doc = fitz.open(str(out_pdfa))
-        self.assertEqual(len(doc), 2)
-        meta = doc.metadata or {}
-        self.assertEqual(meta.get("keywords"), "PDF/A-1b")
-        self.assertEqual(meta.get("producer"), "Paperplane PDF/A Archival Engine")
-        doc.close()
+        with unittest.mock.patch.object(converters.shutil, "which", return_value=None):
+            with self.assertRaisesRegex(RuntimeError, "Ghostscript is not installed"):
+                converters.pdf_to_pdfa(self.sample_pdf, out_pdfa)
+        self.assertFalse(out_pdfa.exists())
 
     def test_18_validate_conversion_output_suite(self):
         """Tests validation engine on valid formats and safe error detection."""

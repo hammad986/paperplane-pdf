@@ -269,7 +269,8 @@ def test_studio_and_ai_docs_preserve_the_document_page_during_handoff():
     assert "await jumpToStudioPage(targetPage)" in source
     assert "data-ai-page=\"${pageNumber}\"" in source
     assert "state.aiContextPage = Math.max(1, Number(citation.dataset.aiPage) || 1)" in source
-    assert "citations.innerHTML = (message.citations || []).map(aiPageCitationTag).join('')" in source
+    assert "citations.innerHTML = uniqueAiCitationPages(message.citations).map(aiPageCitationTag).join('')" in source
+    assert "responseCitations = uniqueAiCitationPages(payload.citations)" in source
 
 
 def test_developer_keys_work_with_both_headers_and_update_last_used():
@@ -327,6 +328,21 @@ def test_chat_with_attached_pdf_uses_context_without_phrase_gate(tmp_path, monke
     assert "hello!" in hey["answer"].lower()
     assert "hello!" in hello["answer"].lower()
     assert hey["citations"] == hello["citations"] == []
+
+
+def test_chat_answers_document_metadata_without_retrieval_match(tmp_path):
+    source = tmp_path / "four-page-report.pdf"
+    source.write_bytes(_pdf_bytes(["Unrelated body text."] * 4))
+    document = fitz.open(source)
+    document.set_metadata({"title": "Quarterly Report"})
+    document.saveIncr()
+    document.close()
+
+    result = ai_engine.chat_with_pdf(source, "How many pages does this document have?")
+
+    assert result["answer"] == "This document has 4 pages."
+    assert result["retrieval_method"] == "Verified PDF Metadata"
+    assert result["citations"] == []
 
 
 def test_stream_chat_uses_attached_pdf_without_phrase_gate(monkeypatch):

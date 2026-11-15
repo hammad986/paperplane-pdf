@@ -52,6 +52,8 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 from PIL import Image
 from pypdf import PdfReader, PdfWriter
 from reportlab.pdfgen import canvas
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 
 from config import (
     ALLOWED_ORIGINS, CLAMAV_HOST, CLAMAV_PORT, JOBS_DIR,
@@ -323,6 +325,42 @@ def get_client_ip(request: Request) -> str:
     return "127.0.0.1"
 
 
+GUEST_QUOTA_COOKIE = "paperplane_guest_quota"
+GUEST_QUOTA_COOKIE_MAX_AGE = 30 * 24 * 60 * 60
+
+
+def _guest_quota_cookie_value() -> tuple[str, str]:
+    """Create a signed, opaque browser identifier and its stable quota digest."""
+    random_id = secrets.token_urlsafe(32)
+    signature = hmac.new(config.JWT_SECRET.encode("utf-8"), random_id.encode("ascii"), hashlib.sha256).hexdigest()
+    quota_id = hmac.new(
+        config.JWT_SECRET.encode("utf-8"), f"guest-quota:{random_id}".encode("ascii"), hashlib.sha256
+    ).hexdigest()[:32]
+    return f"{random_id}.{signature}", quota_id
+
+
+def _guest_quota_id_from_cookie(value: str | None) -> str | None:
+    if not value or len(value) > 160:
+        return None
+    random_id, separator, supplied_signature = value.rpartition(".")
+    if not separator or not re.fullmatch(r"[A-Za-z0-9_-]{32,64}", random_id):
+        return None
+    expected = hmac.new(config.JWT_SECRET.encode("utf-8"), random_id.encode("ascii"), hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(supplied_signature, expected):
+        return None
+    return hmac.new(
+        config.JWT_SECRET.encode("utf-8"), f"guest-quota:{random_id}".encode("ascii"), hashlib.sha256
+    ).hexdigest()[:32]
+
+
+def quota_client_identity(request: Request) -> str:
+    """Keep guest daily usage separate per browser and network address."""
+    device_id = getattr(request.state, "guest_quota_id", None)
+    if not device_id:
+        device_id = _guest_quota_id_from_cookie(request.cookies.get(GUEST_QUOTA_COOKIE))
+    return f"{get_client_ip(request)}|{device_id}" if device_id else get_client_ip(request)
+
+
 _BILLABLE_AI_ENDPOINTS = {
     "/api/ai/chat",
     "/api/ai/chat/stream",
@@ -379,7 +417,7 @@ async def count_ai_and_studio_operations(request: Request, call_next):
     user_id = _quota_identity_from_request(request)
     if REQUIRE_AUTH and not user_id:
         return await call_next(request)
-    client_ip = get_client_ip(request)
+    client_ip = quota_client_identity(request)
     allowed, usage, tier = check_operation_quota(user_id, client_ip, FREE_TIER_DAILY_LIMIT)
     if not allowed:
         return _quota_limit_response(usage, tier, bool(user_id))
@@ -424,6 +462,29 @@ async def count_ai_and_studio_operations(request: Request, call_next):
 # Starlette installs newly added middleware outside earlier middleware.
 # Quotas and authentication must see the address normalized by the trusted edge.
 app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=TRUSTED_PROXY_HOSTS)
+
+
+@app.middleware("http")
+async def guest_quota_device_cookie(request: Request, call_next):
+    """Issue a signed browser ID so one Docker proxy IP cannot exhaust every guest quota."""
+    cookie_value = request.cookies.get(GUEST_QUOTA_COOKIE)
+    quota_id = _guest_quota_id_from_cookie(cookie_value)
+    new_cookie_value = None
+    if quota_id is None:
+        new_cookie_value, quota_id = _guest_quota_cookie_value()
+    request.state.guest_quota_id = quota_id
+    response = await call_next(request)
+    if new_cookie_value:
+        response.set_cookie(
+            key=GUEST_QUOTA_COOKIE,
+            value=new_cookie_value,
+            max_age=GUEST_QUOTA_COOKIE_MAX_AGE,
+            httponly=True,
+            secure=SECURE_COOKIES,
+            samesite=COOKIE_SAMESITE,
+            path="/",
+        )
+    return response
 
 # Periodic background cleanup daemon
 #
@@ -478,7 +539,7 @@ OPERATIONS = {
     "pdf_to_word": {"label": "PDF to Word", "category": "Convert from PDF", "accept": "pdf", "implemented": True, "description": "Convert PDF documents to editable Microsoft Word (.docx)."},
     "pdf_to_excel": {"label": "PDF to Excel", "category": "Convert from PDF", "accept": "pdf", "implemented": True, "description": "Extract structured tables into an Excel (.xlsx) workbook."},
     "pdf_to_powerpoint": {"label": "PDF to PowerPoint", "category": "Convert from PDF", "accept": "pdf", "implemented": True, "description": "Convert PDF pages into PowerPoint presentation slides (.pptx)."},
-    "pdf_to_pdfa": {"label": "PDF to PDF/A", "category": "Convert from PDF", "accept": "pdf", "implemented": True, "description": "Standardize documents to ISO PDF/A-1b archiving standards."},
+    "pdf_to_pdfa": {"label": "PDF to PDF/A", "category": "Convert from PDF", "accept": "pdf", "implemented": True, "description": "Convert documents to PDF/A-1b using Ghostscript and an sRGB output profile."},
     "pdf_to_text": {"label": "PDF to Text", "category": "Convert from PDF", "accept": "pdf", "implemented": True, "description": "Extract plain selectable text from document streams."},
     "pdf_to_markdown": {"label": "PDF to Markdown", "category": "Convert from PDF", "accept": "pdf", "implemented": True, "description": "Convert formatted documents into structured Markdown."},
 
@@ -2202,7 +2263,12 @@ def overlay(width: float, height: float, text: str, kind: str, options: dict) ->
     output = io.BytesIO()
     pdf = canvas.Canvas(output, pagesize=(width, height))
     size = int(options.get("font_size", 11))
-    pdf.setFont("Helvetica-Bold" if kind == "watermark" else "Helvetica", size if kind != "watermark" else min(44, max(20, width / 12)))
+    font_path = converters.unicode_font_path(bold=kind == "watermark")
+    font_name = "PaperplaneUnicodeBold" if kind == "watermark" else "PaperplaneUnicode"
+    if font_name not in pdfmetrics.getRegisteredFontNames():
+        pdfmetrics.registerFont(TTFont(font_name, font_path))
+    render_size = size if kind != "watermark" else min(44, max(20, width / 12))
+    pdf.setFont(font_name, render_size)
 
     if kind == "watermark":
         pdf.saveState()
@@ -2210,11 +2276,11 @@ def overlay(width: float, height: float, text: str, kind: str, options: dict) ->
         pdf.setFillColorRGB(0.2, 0.22, 0.25)
         pdf.translate(width / 2, height / 2)
         pdf.rotate(35)
-        pdf.drawString(-pdf.stringWidth(text, "Helvetica-Bold", min(44, max(20, width / 12))) / 2, 0, text)
+        pdf.drawString(-pdf.stringWidth(text, font_name, render_size) / 2, 0, text)
         pdf.restoreState()
     else:
         position = options.get("position", "Footer center")
-        text_width = pdf.stringWidth(text, "Helvetica", size)
+        text_width = pdf.stringWidth(text, font_name, size)
         x = 28 if position.endswith("left") else width - text_width - 28 if position.endswith("right") else (width - text_width) / 2
         y = 24 if position.startswith("Footer") else height - 34
         pdf.drawString(x, y, text)
@@ -2539,8 +2605,9 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
     if operation == "compare":
         if len(inputs) != 2:
             raise ValueError("Compare requires exactly two PDF files.")
-        left = "\n".join(page.get_text() for page in fitz.open(str(inputs[0])))
-        right = "\n".join(page.get_text() for page in fitz.open(str(inputs[1])))
+        with fitz.open(str(inputs[0])) as left_doc, fitz.open(str(inputs[1])) as right_doc:
+            left = "\n".join(page.get_text() for page in left_doc)
+            right = "\n".join(page.get_text() for page in right_doc)
         original_names = options.get("_original_filenames", [])
         from_name = original_names[0] if len(original_names) > 0 else inputs[0].name
         to_name = original_names[1] if len(original_names) > 1 else inputs[1].name
@@ -2624,8 +2691,8 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
                     lbl = f"Page {curr} of {total_pages}"
 
             ov = PdfReader(io.BytesIO(overlay(float(page.mediabox.width), float(page.mediabox.height), lbl, operation, options)))
-            page.merge_page(ov.pages[0])
             writer.add_page(page)
+            writer.pages[-1].merge_page(ov.pages[0])
 
     elif operation == "protect":
         password = (options.get("password") or options.get("user_password") or "").strip()
@@ -3703,7 +3770,7 @@ def _cashfree_payment_method(payment_data: dict | None) -> str:
 
 @app.get("/api/billing/status")
 def billing_status(request: Request, user_id: str | None = Depends(current_user)):
-    client_ip = get_client_ip(request)
+    client_ip = quota_client_identity(request)
     user = get_user(user_id) if user_id else None
     tier = get_user_tier(user_id)
     subject = f"user:{user_id}" if user_id else f"ip:{client_ip}"
@@ -4033,8 +4100,21 @@ async def ai_chat_stream(
             if file is not None:
                 temp_pdf = temp_dir / "chat_stream.pdf"
                 await save_upload_spooled_async(file, temp_pdf, max_bytes=upload_limit_bytes_for_user(user_id))
+                if re.search(r"\b(how many pages?|page count|number of pages|document title|pdf title|file name|filename)\b", question, re.IGNORECASE):
+                    metadata_result = await asyncio.to_thread(ai_engine.chat_with_pdf, temp_pdf, question)
+                    yield frame("replace", text=metadata_result["answer"])
+                    yield frame("done", citations=metadata_result.get("citations", []), mode="document_metadata")
+                    return
                 yield frame("stage", stage="Extracting…")
                 chunks = await asyncio.to_thread(ai_engine.extract_chunks_from_pdf, temp_pdf)
+                page_count, pdf_metadata = await asyncio.to_thread(ai_engine._pdf_metadata_facts, temp_pdf)
+                document_title = pdf_metadata.get("title") or file.filename or "document.pdf"
+                system_prompt += (
+                    "\n\nDOCUMENT METADATA\n"
+                    f"Filename: {file.filename or 'document.pdf'}\n"
+                    f"Page count: {page_count}\n"
+                    f"Title: {document_title}\n"
+                )
                 correction = await asyncio.to_thread(ai_engine.correct_false_premise, temp_pdf, question)
                 if correction:
                     yield frame("replace", text=correction)
@@ -6233,8 +6313,9 @@ def create_job_endpoint(
 ):
     # Freemium Tier & Daily Quota Check
     client_ip = get_client_ip(request)
+    quota_ip = quota_client_identity(request)
     enforce_account_rate_limit(f"job-account:{user_id or client_ip}", limit=20, window_seconds=60)
-    allowed, usage_count, user_tier = check_operation_quota(user_id, client_ip, FREE_TIER_DAILY_LIMIT)
+    allowed, usage_count, user_tier = check_operation_quota(user_id, quota_ip, FREE_TIER_DAILY_LIMIT)
     if not allowed:
         if user_id:
             quota_msg = f"Daily limit reached ({FREE_TIER_DAILY_LIMIT}/{FREE_TIER_DAILY_LIMIT} operations on Free Tier). Paid plans have no daily operation cap; upload and batch limits still apply."
@@ -6307,7 +6388,7 @@ def create_job_endpoint(
 
         # Failed uploads never spend quota. Keep a reservation for queued AI
         # work so that failure can refund the day on which it was submitted.
-        subject = f"user:{user_id}" if user_id else f"ip:{client_ip}"
+        subject = f"user:{user_id}" if user_id else f"ip:{quota_ip}"
         usage_day = date.today().isoformat()
         limit = FREE_TIER_DAILY_LIMIT if user_tier == "free" else None
         usage_today = persistence.reserve_daily_usage(subject, limit, usage_day)

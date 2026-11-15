@@ -121,8 +121,11 @@ def test_184_proxy_quotas_are_independent_and_spoofing_is_ignored():
     untrusted = TestClient(server.app, client=("192.0.2.1", 50000))
     a = {"X-Forwarded-For": "198.51.100.10"}
     b = {"X-Forwarded-For": "203.0.113.20"}
+    trusted.get("/api/billing/status", headers=a)  # issue the per-browser quota identity
+    device_id = server._guest_quota_id_from_cookie(trusted.cookies.get(server.GUEST_QUOTA_COOKIE))
+    assert device_id
     for _ in range(10):
-        persistence.increment_daily_usage("ip:198.51.100.10")
+        persistence.increment_daily_usage(f"ip:198.51.100.10|{device_id}")
     assert trusted.get("/api/billing/status", headers=a).json()["remaining_today"] == 0
     assert trusted.get("/api/billing/status", headers=b).json()["remaining_today"] == 10
     assert post_pdf(trusted, "/api/studio/apply-edits").status_code == 200
@@ -172,7 +175,8 @@ def test_1_translation_retries_slow_request_and_renders_hindi(mock_ai, monkeypat
     assert response.headers["X-Paperplane-Translation-Mode"] == "translated"
     with fitz.open(stream=response.content, filetype="pdf") as result:
         assert result.page_count == 3
-        assert all(any("Devanagari" in font[3] for font in page.get_fonts(full=True)) for page in result)
+        assert all("भारत सरकार" in page.get_text() for page in result)
+        assert all(page.get_images(full=True) for page in result)
 
 
 def test_1_failed_queued_translation_refunds_guest_quota(mock_ai, monkeypatch):
@@ -459,13 +463,7 @@ def test_188_aadhaar_image_redaction_burns_pixels_without_removing_last_four(tmp
 
 def test_23_184_concurrent_ai_requests_cannot_take_same_guest_quota_slot(monkeypatch):
     monkeypatch.setattr(server, "REQUIRE_AUTH", False)
-    subject = "ip:192.0.2.73"
     day = date.today().isoformat()
-    with persistence.connect() as connection:
-        connection.execute(
-            "INSERT INTO user_usage (subject, usage_date, count) VALUES (?, ?, ?)",
-            (subject, day, server.FREE_TIER_DAILY_LIMIT - 1),
-        )
     started, release = Event(), Event()
 
     def summarize(_path):
@@ -475,6 +473,15 @@ def test_23_184_concurrent_ai_requests_cannot_take_same_guest_quota_slot(monkeyp
 
     monkeypatch.setattr(ai_engine, "summarize_pdf", summarize)
     with TestClient(server.app, client=("192.0.2.73", 34567)) as client, ThreadPoolExecutor(1) as executor:
+        client.get("/")
+        quota_id = server._guest_quota_id_from_cookie(client.cookies.get(server.GUEST_QUOTA_COOKIE))
+        assert quota_id
+        subject = f"ip:192.0.2.73|{quota_id}"
+        with persistence.connect() as connection:
+            connection.execute(
+                "INSERT INTO user_usage (subject, usage_date, count) VALUES (?, ?, ?)",
+                (subject, day, server.FREE_TIER_DAILY_LIMIT - 1),
+            )
         first = executor.submit(post_pdf, client, "/api/ai/summarize")
         try:
             assert started.wait(5)

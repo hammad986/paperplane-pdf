@@ -1,0 +1,10 @@
+{
+  "standard": {
+    "status": 200,
+    "body": "{\"answer\":\"This document has 4 pages.\",\"citations\":[],\"retrieval_method\":\"Verified PDF Metadata\",\"fallback_used\":false,\"relevant_passages\":[]}"
+  },
+  "stream": {
+    "status": 200,
+    "body": "event: stage\ndata: {\"stage\": \"Thinking\u2026\"}\n\nevent: replace\ndata: {\"text\": \"This document has 4 pages.\"}\n\nevent: done\ndata: {\"citations\": [], \"mode\": \"document_metadata\"}\n\n"
+  }
+}

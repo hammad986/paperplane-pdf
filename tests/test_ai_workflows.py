@@ -96,6 +96,49 @@ def test_bluesminds_retries_transient_first_attempt(monkeypatch):
     assert open_url.call_count == 2
 
 
+def test_bluesminds_429_retry_honors_bounded_retry_after(monkeypatch):
+    from urllib.error import HTTPError
+
+    monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "test-key")
+    use_bluesminds_test_config(monkeypatch)
+
+    class FakeResponse:
+        def __enter__(self): return self
+        def __exit__(self, exc_type, exc_value, traceback): return False
+        def read(self): return b'{"choices":[{"message":{"content":"recovered after provider cooldown"}}]}'
+
+    throttled = HTTPError("https://provider.invalid", 429, "limited", {"Retry-After": "60"}, None)
+    with patch("ai_engine._open_ai_request", side_effect=[throttled, FakeResponse()]) as open_url, \
+            patch("ai_engine.time.sleep") as sleep:
+        assert ai_engine.call_bluesminds("system", "user", timeout_seconds=8) == "recovered after provider cooldown"
+    assert open_url.call_count == 2
+    sleep.assert_called_once_with(5.0)
+
+
+def test_hindi_translation_embeds_extractable_devanagari_text(tmp_path, monkeypatch):
+    source = tmp_path / "hindi-source.pdf"
+    output = tmp_path / "hindi-translated.pdf"
+    with fitz.open() as document:
+        page = document.new_page()
+        page.insert_text((72, 100), "Sample English text for translation")
+        document.save(source)
+
+    monkeypatch.setattr(ai_engine, "AI_KILL_SWITCH", False)
+    monkeypatch.setattr(ai_engine, "_current_bluesminds_api_key", lambda: "controlled-test-key")
+    monkeypatch.setattr(ai_engine, "_translate_text_batch", lambda batch, *args, **kwargs: {
+        block_id: "प्लेन टेस्ट" for block_id, _ in batch
+    })
+    report = {}
+
+    ai_engine.translate_pdf_layout(source, output, target_language="Hindi", report=report)
+
+    with fitz.open(output) as translated:
+        extracted = translated[0].get_text()
+        assert "प्लेन" in extracted
+        assert "टेस्ट" in extracted
+        assert report["blocks_translated"] == 1
+
+
 def test_bluesminds_stream_parses_provider_deltas(monkeypatch):
     monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "test-key")
     use_bluesminds_test_config(monkeypatch)

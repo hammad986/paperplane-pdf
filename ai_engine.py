@@ -8,6 +8,7 @@ import os
 import re
 import time
 import datetime as dt
+from email.utils import parsedate_to_datetime
 import urllib.request
 import urllib.error
 from collections import Counter
@@ -15,6 +16,10 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import logging
 from pathlib import Path
 from typing import Any, Iterator
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfgen import canvas as reportlab_canvas
+from pypdf import PdfReader, PdfWriter
 
 logger = logging.getLogger("paperplane")
 
@@ -693,6 +698,20 @@ def _provider_request(system_prompt: str, user_prompt: str, credentials: dict[st
     body = json.dumps(payload).encode("utf-8")
     answer = ""
     provider_host = urllib.parse.urlsplit(endpoint).hostname
+    def retry_delay(attempt: int, retry_after: str | None = None) -> float:
+        if retry_after:
+            try:
+                return min(5.0, max(0.0, float(retry_after)))
+            except ValueError:
+                try:
+                    retry_at = parsedate_to_datetime(retry_after)
+                    if retry_at.tzinfo is None:
+                        retry_at = retry_at.replace(tzinfo=dt.timezone.utc)
+                    return min(5.0, max(0.0, (retry_at - dt.datetime.now(dt.timezone.utc)).total_seconds()))
+                except (TypeError, ValueError, OverflowError):
+                    pass
+        return min(5.0, 1.0 * (2 ** attempt))
+
     for attempt in range(2):
         request = urllib.request.Request(endpoint, data=body, headers=headers)
         try:
@@ -721,20 +740,21 @@ def _provider_request(system_prompt: str, user_prompt: str, credentials: dict[st
             logger.warning("AI provider host=%s attempt=%d timeout=%.1fs HTTP=%s",
                            provider_host, attempt + 1, timeout, error.code)
             if attempt == 0 and error.code in (408, 429, 500, 502, 503, 504):
-                time.sleep(0.4)
+                retry_after = error.headers.get("Retry-After") if error.headers else None
+                time.sleep(retry_delay(attempt, retry_after))
                 continue
             raise RuntimeError(f"AI service returned HTTP {error.code}. Please try again.") from error
         except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as error:
             logger.warning("AI provider host=%s attempt=%d timeout=%.1fs failure=%s",
                            provider_host, attempt + 1, timeout, type(error).__name__)
             if attempt == 0:
-                time.sleep(0.4)
+                time.sleep(retry_delay(attempt))
                 continue
             raise RuntimeError("AI service could not be reached or timed out. Please try again.") from error
         except (ValueError, KeyError, TypeError, IndexError, AttributeError) as error:
             logger.warning("AI provider host=%s attempt=%d returned an empty or invalid response", provider_host, attempt + 1)
             if attempt == 0:
-                time.sleep(0.4)
+                time.sleep(retry_delay(attempt))
                 continue
             raise RuntimeError("AI service returned an empty or invalid response. Please try again.") from error
     return answer.strip()
@@ -923,6 +943,34 @@ def chat_with_pdf(pdf_path: Path, question: str) -> dict:
     if _is_identity_question(question):
         return {"answer": _PAPERPLANE_IDENTITY, "citations": [], "retrieval_method": None, "fallback_used": False}
     chunks = extract_chunks_from_pdf(pdf_path)
+    document_page_count, document_metadata = _pdf_metadata_facts(pdf_path)
+    document_title = document_metadata.get("title") or pdf_path.name
+    metadata_header = (
+        "DOCUMENT METADATA\n"
+        f"Filename: {pdf_path.name}\n"
+        f"Page count: {document_page_count}\n"
+        f"Title: {document_title}\n"
+    )
+    metadata_question = bool(re.search(
+        r"\b(how many pages?|page count|number of pages|document title|pdf title|file name|filename)\b",
+        question,
+        re.IGNORECASE,
+    ))
+    if metadata_question:
+        normalized_question = question.lower()
+        if re.search(r"\b(how many pages?|page count|number of pages)\b", normalized_question):
+            answer = f"This document has {document_page_count} pages."
+        elif re.search(r"\b(title|name|filename)\b", normalized_question):
+            answer = f"The document title is \"{document_title}\". The file name is \"{pdf_path.name}\"."
+        else:
+            answer = metadata_header.strip()
+        return {
+            "answer": answer,
+            "citations": [],
+            "retrieval_method": "Verified PDF Metadata",
+            "fallback_used": False,
+            "relevant_passages": [],
+        }
     correction = correct_false_premise(pdf_path, question)
     if correction:
         return {
@@ -1001,7 +1049,8 @@ def chat_with_pdf(pdf_path: Path, question: str) -> dict:
     context_str = "\n\n---\n\n".join(context_parts)
     system_prompt = (
         "You are an expert AI document assistant. Answer the user's question accurately using ONLY "
-        "the provided document excerpts. Always cite specific page numbers like [Page X] when referencing facts."
+        "the provided document excerpts. Always cite specific page numbers like [Page X] when referencing facts.\n\n"
+        + metadata_header
     )
     user_prompt = f"DOCUMENT EXCERPTS:\n{context_str}\n\nUSER QUESTION: {question}"
 
@@ -1845,7 +1894,7 @@ def translate_pdf_layout(
         # be removed from the searchable layer rather than hidden under a box.
         out_doc.insert_pdf(doc, links=True, annots=True)
 
-        placed = []
+        placed: list[tuple[int, fitz.Rect, str, int]] = []
         for index, translation in translated.items():
             number, bounds, _ = blocks[index]
             bounds &= out_doc[number].rect
@@ -1856,24 +1905,30 @@ def translate_pdf_layout(
             spare, _ = overlay.insert_htmlbox(
                 overlay.rect,
                 escape(translation).replace("\n", "<br>"),
-                css="body { margin: 0; font: 10pt sans-serif; color: #19202a; }",
+                css=("body { margin: 0; font: 10pt 'Noto Sans Devanagari', 'Nirmala UI', "
+                     "'Mangal', 'DejaVu Sans', sans-serif; color: #19202a; }"),
                 scale_low=0.45,
             )
             if spare < 0:
                 continue
-            placed.append((number, bounds, overlay.number))
+            placed.append((number, bounds, translation, overlay.number))
 
         # Redact only blocks for which a replacement fitted. Keep images and
         # vector artwork, and leave failed/untranslated blocks intact.
-        for number, bounds, _ in placed:
+        for number, bounds, _, _ in placed:
             out_doc[number].add_redact_annot(bounds, fill=False, cross_out=False)
-        for number in {number for number, _, _ in placed}:
+        for number in {number for number, _, _, _ in placed}:
             out_doc[number].apply_redactions(images=0, graphics=0)
 
-        # Complete the source document before grafting pages out of it.
-        for number, bounds, overlay_number in placed:
+        # MuPDF currently shapes Devanagari visually but can write a broken
+        # ToUnicode map for its generated PDF text. Rasterize only translated
+        # text boxes, then add an invisible standards-based Unicode text layer
+        # below with ReportLab's embedded TrueType font.
+        for number, bounds, _, overlay_number in placed:
             page = out_doc[number]
-            page.show_pdf_page(bounds, overlays, overlay_number, keep_proportion=False)
+            text_page = overlays[overlay_number]
+            rendered = text_page.get_pixmap(matrix=fitz.Matrix(4, 4), alpha=True)
+            page.insert_image(bounds, stream=rendered.tobytes("png"), overlay=True)
             report_data["blocks_translated"] += 1
 
         report_data["blocks_preserved"] = report_data["blocks_seen"] - report_data["blocks_translated"]
@@ -1886,5 +1941,64 @@ def translate_pdf_layout(
             report_data["fallback_used"] = True
             report_data["warnings"].append("No text blocks were translated.")
             raise RuntimeError("No text was translated. The translation service did not produce a translated PDF; please retry later.")
-        out_doc.save(str(output_path), garbage=4, deflate=True)
+        rendered_pdf = output_path.with_name(f"{output_path.stem}_rendered.pdf")
+        out_doc.save(str(rendered_pdf), garbage=4, deflate=True)
+
+    # Use a TrueType Unicode cmap for text extraction/search/accessibility. The
+    # visible translation above remains correctly shaped by MuPDF's HTML engine.
+    repo_font = Path(__file__).resolve().parent / "deploy" / "fonts" / "FreeSans.ttf"
+    font_candidates = [
+        (Path(r"C:\Windows\Fonts\Nirmala.ttc"), 0),
+        (repo_font, 0),
+        (Path("/usr/share/fonts/truetype/freefont/FreeSans.ttf"), 0),
+        (Path("/usr/share/fonts/truetype/freefont/FreeSerif.ttf"), 0),
+        (Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"), 0),
+    ]
+    font_path, font_index = next(((path, index) for path, index in font_candidates if path.is_file()), (None, 0))
+    if font_path is None:
+        rendered_pdf.unlink(missing_ok=True)
+        raise RuntimeError("Hindi translation requires an embeddable Unicode font for its searchable text layer.")
+    font_name = "PaperplaneTranslationUnicode"
+    if font_name not in pdfmetrics.getRegisteredFontNames():
+        pdfmetrics.registerFont(TTFont(font_name, str(font_path), subfontIndex=font_index))
+    base = PdfReader(str(rendered_pdf))
+    hidden_stream = io.BytesIO()
+    hidden = reportlab_canvas.Canvas(hidden_stream, pagesize=(float(base.pages[0].mediabox.width), float(base.pages[0].mediabox.height)))
+    by_page: dict[int, list[tuple[fitz.Rect, str]]] = {}
+    for number, bounds, translation, _ in placed:
+        by_page.setdefault(number, []).append((bounds, translation))
+    for page_number, base_page in enumerate(base.pages):
+        width, height = float(base_page.mediabox.width), float(base_page.mediabox.height)
+        hidden.setPageSize((width, height))
+        for bounds, translation in by_page.get(page_number, []):
+            text_object = hidden.beginText()
+            text_object.setTextOrigin(max(0, bounds.x0 + 1), max(1, height - bounds.y0 - 10))
+            text_object.setFont(font_name, 8)
+            text_object.setTextRenderMode(3)
+            max_width = max(20, bounds.width - 2)
+            for paragraph in translation.splitlines() or [translation]:
+                line = ""
+                for word in paragraph.split():
+                    candidate = f"{line} {word}".strip()
+                    if line and pdfmetrics.stringWidth(candidate, font_name, 8) > max_width:
+                        text_object.textLine(line)
+                        line = word
+                    else:
+                        line = candidate
+                if line:
+                    text_object.textLine(line)
+            hidden.drawText(text_object)
+        hidden.showPage()
+    hidden.save()
+    hidden_stream.seek(0)
+    hidden_reader = PdfReader(hidden_stream)
+    writer = PdfWriter()
+    try:
+        for index, base_page in enumerate(base.pages):
+            writer.add_page(base_page)
+            writer.pages[-1].merge_page(hidden_reader.pages[index])
+        with output_path.open("wb") as output_file:
+            writer.write(output_file)
+    finally:
+        rendered_pdf.unlink(missing_ok=True)
     return output_path

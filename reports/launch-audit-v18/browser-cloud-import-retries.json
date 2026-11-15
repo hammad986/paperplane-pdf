@@ -1,0 +1,62 @@
+[
+  {
+    "name": "drive_owner_exact",
+    "pass": 1,
+    "status": 400,
+    "error": "Cloud Import accepts PDF files only. This link returned another file type; use its matching converter instead."
+  },
+  {
+    "name": "drive_owner_exact",
+    "pass": 2,
+    "status": 400,
+    "error": "Cloud Import accepts PDF files only. This link returned another file type; use its matching converter instead."
+  },
+  {
+    "name": "drive",
+    "pass": 1,
+    "status": 200,
+    "filename": "August 2025 Spirit Week Flyers - English and Spanish.pdf",
+    "bytes": 7901402,
+    "pages": 2,
+    "first_page_text": "“Throwback Thursday!”\nYou can’t welcome the future without taking \na look at the past! Dress like yo"
+  },
+  {
+    "name": "drive",
+    "pass": 2,
+    "status": 200,
+    "filename": "August 2025 Spirit Week Flyers - English and Spanish.pdf",
+    "bytes": 7901402,
+    "pages": 2,
+    "first_page_text": "“Throwback Thursday!”\nYou can’t welcome the future without taking \na look at the past! Dress like yo"
+  },
+  {
+    "name": "direct",
+    "pass": 1,
+    "status": 400,
+    "error": "Cloud file sync failed. Check that the link is public and points directly to a PDF file."
+  },
+  {
+    "name": "direct",
+    "pass": 2,
+    "status": 400,
+    "error": "Cloud file sync failed. Check that the link is public and points directly to a PDF file."
+  },
+  {
+    "name": "direct_corrected",
+    "pass": 1,
+    "status": 200,
+    "filename": "dummy.pdf",
+    "bytes": 13264,
+    "pages": 1,
+    "first_page_text": "Dummy PDF file\n"
+  },
+  {
+    "name": "direct_corrected",
+    "pass": 2,
+    "status": 200,
+    "filename": "dummy.pdf",
+    "bytes": 13264,
+    "pages": 1,
+    "first_page_text": "Dummy PDF file\n"
+  }
+]

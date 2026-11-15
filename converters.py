@@ -37,6 +37,29 @@ from reportlab.lib.pagesizes import letter, landscape, A4
 
 logger = logging.getLogger(__name__)
 
+
+def unicode_font_path(bold: bool = False) -> str:
+    """Find an embeddable Unicode font so generated text has a ToUnicode map."""
+    repo_font = Path(__file__).resolve().parent / "deploy" / "fonts" / "FreeSans.ttf"
+    candidates = (
+        [
+            Path("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"),
+            Path("/usr/share/fonts/truetype/freefont/FreeSansBold.ttf"),
+            Path(r"C:\Windows\Fonts\arialbd.ttf"),
+            Path("/Library/Fonts/Arial Bold.ttf"),
+        ] if bold else [
+            repo_font,
+            Path("/usr/share/fonts/truetype/freefont/FreeSans.ttf"),
+            Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
+            Path(r"C:\Windows\Fonts\arial.ttf"),
+            Path("/Library/Fonts/Arial.ttf"),
+        ]
+    )
+    for candidate in candidates:
+        if candidate.is_file():
+            return str(candidate)
+    raise RuntimeError("Unicode text embedding is unavailable because a supported TrueType font is missing.")
+
 # LibreOffice is a heavyweight process: bound the number of simultaneous
 # profiles so queued requests cannot multiply CPU and resident memory usage.
 MAX_CONCURRENT_OFFICE_JOBS = max(1, min(4, (os.cpu_count() or 2)))
@@ -1329,39 +1352,70 @@ tr:nth-child(even) {{ background: #fafcfb; }}
 
 
 def pdf_to_pdfa(source: Path, output: Path) -> Path:
-    """Converts a standard PDF to PDF/A-1b compliant format."""
+    """Convert to PDF/A-1b with Ghostscript; never relabel an ordinary PDF as archival."""
     gs = shutil.which("gs") or shutil.which("gswin64c") or shutil.which("gswin32c")
-    if gs:
-        try:
-            subprocess.run([
-                gs,
-                "-dPDFA=1",
-                "-dBATCH",
-                "-dNOPAUSE",
-                "-dNOOUTERSAVE",
-                "-sProcessColorModel=DeviceRGB",
-                "-sDEVICE=pdfwrite",
-                "-sPDFACompatibilityPolicy=1",
-                f"-sOutputFile={output}",
-                str(source)
-            ], check=True, timeout=180)
-            return output
-        except Exception:
-            pass
+    if not gs:
+        raise RuntimeError("PDF/A conversion is unavailable because Ghostscript is not installed.")
 
-    doc = fitz.open(str(source))
-    meta = doc.metadata or {}
-    meta["keywords"] = "PDF/A-1b"
-    meta["subject"] = "PDF/A-1b Archival Document"
-    meta["producer"] = "Paperplane PDF/A Archival Engine"
-    doc.set_metadata(meta)
-    doc.save(
-        str(output),
-        garbage=4,
-        deflate=True,
-        clean=True
+    icc_profile = Path(os.environ.get("PAPERPLANE_SRGB_ICC", "/usr/share/color/icc/sRGB.icc"))
+    if not icc_profile.is_file():
+        raise RuntimeError("PDF/A conversion is unavailable because the required sRGB ICC profile is missing.")
+
+    gs_path = Path(gs).resolve()
+    gs_roots = [Path("/usr/share/ghostscript")]
+    if gs_path.parent.name.lower() == "bin":
+        gs_roots.insert(0, gs_path.parent.parent / "share" / "ghostscript")
+    definition = next(
+        (candidate for root in gs_roots if root.exists() for candidate in root.glob("*/lib/PDFA_def.ps")),
+        None,
     )
-    doc.close()
+    if definition is None:
+        raise RuntimeError("PDF/A conversion is unavailable because Ghostscript's PDFA_def.ps is missing.")
+
+    import tempfile
+    with tempfile.TemporaryDirectory(prefix="paperplane-pdfa-") as temp_dir:
+        definition_copy = Path(temp_dir) / "PDFA_def.ps"
+        definition_text = definition.read_text(encoding="latin-1")
+        profile_declaration = re.compile(r"(?m)^\s*/ICCProfile\s*\([^\r\n]*\)\s*def\s*$")
+        replacement = f"/ICCProfile ({icc_profile.resolve().as_posix()}) def"
+        if not profile_declaration.search(definition_text):
+            raise RuntimeError("Ghostscript's PDF/A definition does not declare an ICC profile.")
+        definition_copy.write_text(profile_declaration.sub(replacement, definition_text, count=1), encoding="latin-1")
+        try:
+            subprocess.run(
+                [gs, "-dPDFA=1", "-dBATCH", "-dNOPAUSE", "-dNOOUTERSAVE",
+                 "-sProcessColorModel=DeviceRGB", "-sColorConversionStrategy=RGB",
+                 "-sDEVICE=pdfwrite", "-dPDFACompatibilityPolicy=2",
+                 f"-sOutputFile={output}", str(definition_copy), str(source)],
+                check=True, timeout=180, capture_output=True, text=True,
+            )
+        except subprocess.CalledProcessError as error:
+            output.unlink(missing_ok=True)
+            raise RuntimeError("Ghostscript could not create a conforming PDF/A-1b file.") from error
+        except subprocess.TimeoutExpired as error:
+            output.unlink(missing_ok=True)
+            raise RuntimeError("PDF/A conversion timed out before a validated output was created.") from error
+
+    try:
+        with fitz.open(str(output)) as converted:
+            metadata = converted.metadata or {}
+            xmp = converted.get_xml_metadata() or ""
+            pdfa_claimed = bool(re.search(r"pdfaid:part\s*=\s*['\"]1['\"]", xmp))
+            catalog = converted.pdf_catalog()
+            intent_kind, intent_array = converted.xref_get_key(catalog, "OutputIntents")
+            intent_ref = re.search(r"\b(\d+)\s+0\s+R", intent_array or "")
+            intent_object = converted.xref_object(int(intent_ref.group(1)), compressed=False) if intent_ref else ""
+            if (not converted.page_count or not pdfa_claimed or intent_kind != "array"
+                    or "/Type /OutputIntent" not in intent_object
+                    or "/DestOutputProfile" not in intent_object):
+                raise RuntimeError("The converted PDF is missing required PDF/A identification or output intent.")
+            if metadata.get("producer", "").lower().find("ghostscript") < 0:
+                logger.warning("PDF/A output was generated but its producer metadata is unexpected")
+    except Exception as error:
+        output.unlink(missing_ok=True)
+        if isinstance(error, RuntimeError):
+            raise
+        raise RuntimeError("The PDF/A output failed structural conformance checks.") from error
     return output
 
 
@@ -2481,7 +2535,8 @@ def annotate_pdf(source: Path, output: Path | list[dict], annotations: list[dict
             if not text:
                 raise ValueError("Text annotations need content.")
             fontsize = float(ann.get("fontsize", 12))
-            page.insert_text(fitz.Point(pt[0], pt[1]), text, fontsize=fontsize, color=color_tuple)
+            page.insert_text(fitz.Point(pt[0], pt[1]), text, fontsize=fontsize, color=color_tuple,
+                             fontname="paperplane-unicode", fontfile=unicode_font_path())
         elif atype in {"sticky_note", "comment"}:
             pt = ann.get("point", [72, 72])
             text = str(ann.get("content", ann.get("text", ""))).strip()
@@ -2615,7 +2670,8 @@ def apply_editor_annotations(
             page.insert_text(
                 fitz.Point(cx, text_y_pdf + ch - 2),
                 text,
-                fontname=fontname,
+                fontname="paperplane-unicode-bold" if bold else "paperplane-unicode",
+                fontfile=unicode_font_path(bold=bold),
                 fontsize=fontsize,
                 color=rgb,
             )
@@ -2712,7 +2768,8 @@ def apply_editor_annotations(
                     page.insert_text(
                         fitz.Point(cx, text_y_pdf),
                         sig_text,
-                        fontname='heit',
+                        fontname='paperplane-unicode',
+                        fontfile=unicode_font_path(),
                         fontsize=float(obj.get('fontSize', 20)),
                         color=rgb,
                     )
@@ -2743,7 +2800,8 @@ def apply_editor_annotations(
             page.insert_text(
                 fitz.Point(cx + 4, text_y_pdf + fontsize / 2),
                 label,
-                fontname='hebo',
+                fontname='paperplane-unicode-bold',
+                fontfile=unicode_font_path(bold=True),
                 fontsize=fontsize,
                 color=stamp_rgb,
             )

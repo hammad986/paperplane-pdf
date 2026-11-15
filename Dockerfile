@@ -40,6 +40,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tesseract-ocr-eng \
     qpdf \
     ghostscript \
+    icc-profiles-free \
     chromium \
     fonts-dejavu-core \
     && rm -rf /var/lib/apt/lists/*

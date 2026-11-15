@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light dark" />
   <title>Paperplane PDF - Online PDF Tools &amp; Editor</title>
   <!-- SEO_META_SLOT -->
   <!-- WORKSPACE_BOOTSTRAP_SLOT -->
@@ -227,7 +228,7 @@
         </section>
         <section id="view-faq" class="workspace-page" hidden>
           <h1>Frequently asked questions</h1>
-          <details><summary>Which tools keep my files on this device?</summary><p>Tools marked Local Processing run in your browser when that mode is selected. Server Mode uploads the files for processing.</p></details>
+          <details><summary>Which tools keep my files on this device?</summary><p>Tools marked Local Processing run in your browser when that mode is selected. Server Processing uploads the files for processing.</p></details>
           <details><summary>How many server operations are included?</summary><p>Guests and Free accounts can run %%FREE_DAILY%% server operations per day. Browser processing has no daily operation limit. See <a href="/pricing">plans and limits</a>.</p></details>
           <details><summary>How long are files kept?</summary><p>Server downloads expire on the configured cleanup schedule. Workspace files saved by your browser can be cleared in <a href="/settings">Settings</a>. See the <a href="/privacy">Privacy Policy</a>.</p></details>
         </section>
@@ -1680,15 +1681,15 @@ async function convertFileInBrowser(file, operation = 'compress') {
               <form id="settings-change-password-form">
                 <div class="option-field" style="margin-bottom: 10px;">
                   <label for="settings-old-password" style="font-size: 12px;">Current Password</label>
-                  <input type="password" id="settings-old-password" class="editor-input" placeholder="Current password" required style="width: 100%; font-size: 13px; padding: 8px 10px;" />
+                  <input type="password" id="settings-old-password" class="editor-input" placeholder="Current password" autocomplete="current-password" required style="width: 100%; font-size: 13px; padding: 8px 10px;" />
                 </div>
                 <div class="option-field" style="margin-bottom: 10px;">
                   <label for="settings-new-password" style="font-size: 12px;">New Password (min 8 chars)</label>
-                  <input type="password" id="settings-new-password" class="editor-input" placeholder="New password" minlength="8" required style="width: 100%; font-size: 13px; padding: 8px 10px;" />
+                  <input type="password" id="settings-new-password" class="editor-input" placeholder="New password" autocomplete="new-password" minlength="8" required style="width: 100%; font-size: 13px; padding: 8px 10px;" />
                 </div>
                 <div class="option-field" style="margin-bottom: 12px;">
                   <label for="settings-confirm-password" style="font-size: 12px;">Confirm New Password</label>
-                  <input type="password" id="settings-confirm-password" class="editor-input" placeholder="Confirm new password" minlength="8" required style="width: 100%; font-size: 13px; padding: 8px 10px;" />
+                  <input type="password" id="settings-confirm-password" class="editor-input" placeholder="Confirm new password" autocomplete="new-password" minlength="8" required style="width: 100%; font-size: 13px; padding: 8px 10px;" />
                 </div>
                 <div id="settings-password-msg" class="result-card" hidden style="margin-bottom: 10px; padding: 8px; font-size: 12px;"></div>
                 <button type="submit" class="btn-primary-action" id="settings-password-submit-btn" style="padding: 8px 16px; font-size: 12.5px;">
@@ -1867,7 +1868,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
         <div class="option-field" style="margin-bottom: 12px;">
           <label for="auth-password">Password</label>
           <div class="password-input-wrapper">
-            <input type="password" id="auth-password" placeholder="••••••••" autocomplete="current-password" required />
+            <input type="password" id="auth-password" name="login-password" placeholder="••••••••" autocomplete="current-password" required />
             <button type="button" class="password-toggle-btn" id="password-toggle-btn" title="Show or hide password" aria-label="Toggle password visibility">
               <svg id="eye-icon-auth" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>

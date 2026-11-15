@@ -527,7 +527,7 @@ function renderAiConversation(messages = []) {
       bubble.append(label, answer);
       const citations = document.createElement('div');
       citations.className = 'chat-citation-tags';
-      citations.innerHTML = (message.citations || []).map(aiPageCitationTag).join('');
+      citations.innerHTML = uniqueAiCitationPages(message.citations).map(aiPageCitationTag).join('');
       bubble.appendChild(citations);
     }
     container.appendChild(bubble);
@@ -2160,6 +2160,10 @@ function applyTheme(themeName) {
     $('#theme-dark-btn')?.classList.add('active');
     $('#theme-light-btn')?.classList.remove('active');
   }
+  const metaColorScheme = document.querySelector('meta[name="color-scheme"]');
+  if (metaColorScheme) {
+    metaColorScheme.content = themeName === 'light' ? 'light' : 'dark';
+  }
   document.documentElement.dataset.paperplaneTheme = themeName;
   try { localStorage.setItem('paperplane_theme', themeName); } catch { /* Storage may be disabled. */ }
 }
@@ -2249,7 +2253,7 @@ function syncClientSideControls() {
   if (sidebarToggle) {
     sidebarToggle.checked = state.clientSideMode;
     sidebarToggle.disabled = !canSwitch;
-    sidebarToggle.setAttribute('aria-label', 'Use local processing for ' + label);
+    sidebarToggle.setAttribute('aria-label', (state.clientSideMode ? 'Use local processing for ' : 'Use server processing for ') + label);
     sidebarToggle.title = help;
   }
   const settingsToggle = $('#settings-client-privacy-toggle');
@@ -2257,7 +2261,7 @@ function syncClientSideControls() {
     settingsToggle.checked = preferLocalProcessing;
     settingsToggle.setAttribute('aria-label', 'Prefer local processing for supported PDF tools');
   }
-  if ($('#privacy-mode-label')) $('#privacy-mode-label').textContent = state.clientSideMode ? 'Local Processing' : 'Server Mode';
+  if ($('#privacy-mode-label')) $('#privacy-mode-label').textContent = state.clientSideMode ? 'Local Processing' : 'Server Processing';
   if ($('#privacy-mode-support')) $('#privacy-mode-support').textContent = state.clientSideMode ? 'Files stay in your browser' : 'Temporary server processing';
   if ($('#settings-client-privacy-support')) {
     $('#settings-client-privacy-support').textContent = 'Default for Merge, Split, Remove, Rotate, and Page Organizer. Photo tools run in your browser.';
@@ -2980,7 +2984,14 @@ if (pageJumpInput) {
     jumpToStudioPage(target);
   };
   pageJumpInput.addEventListener('change', jumpToEnteredPage);
-  pageJumpInput.addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); jumpToEnteredPage(); pageJumpInput.blur(); } });
+  pageJumpInput.addEventListener('keydown', event => {
+    if (event.isComposing || event.keyCode === 229) return;
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      jumpToEnteredPage();
+      pageJumpInput.blur();
+    }
+  });
 }
 
 async function refreshVisibleStudioPages() {
@@ -3886,6 +3897,12 @@ window.removeFile = idx => {
 };
 
 function addFiles(newFiles) {
+  if (state.operation === 'html_to_pdf' && newFiles.length) {
+    showToast('HTML to PDF uses a public URL. This tool does not accept uploaded .html files; enter the page URL instead.', 'warning', 6000);
+    const input = $('#file-input');
+    if (input) input.value = '';
+    return;
+  }
   // Validate file types for specific tools
   if (state.operation === 'png_to_pdf') {
     const nonPng = newFiles.filter(f => !f.name.toLowerCase().endsWith('.png'));
@@ -4521,7 +4538,14 @@ function showDownloadResult(job, downloadUrl, { silent = false } = {}) {
   $('#result-title').textContent = 'Your document is ready!';
   const outName = job.output_name || 'document.pdf';
   const dimensions = job.dimensions ? ' · ' + job.dimensions.join(' × ') + ' px' : '';
-  const warning = job.warning ? ' · ' + job.warning : '';
+  const compressionReduction = state.operation === 'compress' && state.files[0]?.size > 0
+    ? 1 - (Number(job.output_size || 0) / state.files[0].size)
+    : 0;
+  const extremeCompression = compressionReduction > 0.95;
+  const qualityWarning = extremeCompression
+    ? 'Quality warning: this file is over 95% smaller. Review every page before use; choose Balanced for image-heavy PDFs.'
+    : '';
+  const warning = [job.warning, qualityWarning].filter(Boolean).map(message => ` · ${message}`).join('');
   $('#result-meta').textContent = `${outName} · ${formatBytes(job.output_size)}${dimensions}${warning}`;
   const dlLink = $('#result-download-link');
   dlLink.href = downloadUrl;
@@ -4530,6 +4554,10 @@ function showDownloadResult(job, downloadUrl, { silent = false } = {}) {
 
   // Direct fetch fallback onclick with reassuring immediate UI feedback
   dlLink.onclick = async (e) => {
+    if (extremeCompression && !window.confirm(qualityWarning + '\n\nDownload this compressed PDF anyway?')) {
+      e.preventDefault();
+      return;
+    }
     if (downloadUrl.startsWith('blob:')) return;
     e.preventDefault();
     const originalContent = dlLink.innerHTML;
@@ -4671,6 +4699,17 @@ function renderMarkdown(markdown) {
 function aiPageCitationTag(page) {
   const pageNumber = Math.max(1, Math.trunc(Number(page) || 1));
   return `<span class="ai-citation-tag" role="button" tabindex="0" data-ai-page="${pageNumber}" title="Open page ${pageNumber} in Studio">Page ${pageNumber}</span>`;
+}
+
+function uniqueAiCitationPages(pages) {
+  if (!Array.isArray(pages)) return [];
+  const seen = new Set();
+  return pages.filter(page => {
+    const number = Number(page);
+    if (!Number.isInteger(number) || number < 1 || seen.has(number)) return false;
+    seen.add(number);
+    return true;
+  });
 }
 
 $('#chat-messages')?.addEventListener('click', event => {
@@ -5595,7 +5634,7 @@ $('#chat-form').onsubmit = async e => {
           textNode.textContent = answerText;
         }
         if (eventName === 'done') {
-          responseCitations = Array.isArray(payload.citations) ? payload.citations : [];
+          responseCitations = uniqueAiCitationPages(payload.citations);
           citationsNode.innerHTML = responseCitations.map(aiPageCitationTag).join('');
           if (payload.mode === 'local_extraction' && responseModeNode) {
             responseModeNode.hidden = false;
