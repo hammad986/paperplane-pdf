@@ -1,0 +1,284 @@
+[
+  {
+    "round": 1,
+    "checked_routes": [
+      {
+        "route": "/",
+        "status": 200,
+        "steps": [
+          "Browse the tool directory and open the workflow that matches your task.",
+          "Add the source file in that workflow; supported formats and available controls are shown there.",
+          "Review the generated file before saving or sharing it."
+        ]
+      },
+      {
+        "route": "/ocr-pdf",
+        "status": 200,
+        "steps": [
+          "Select a scanned PDF in the upload area; supported size limits are shown beside it.",
+          "After selecting the file, choose a language from the available control before recognition; no quality setting is shown.",
+          "Download the searchable copy and check several pages for recognition quality."
+        ]
+      },
+      {
+        "route": "/html-to-pdf",
+        "status": 200,
+        "steps": [
+          "Enter a public web address in the URL field above; private network destinations are blocked.",
+          "Check the URL you entered, then run the conversion. This form does not offer separate page-size controls.",
+          "Open the generated PDF and review its page breaks, fonts, and images."
+        ]
+      },
+      {
+        "route": "/pdf-to-word",
+        "status": 200,
+        "steps": [
+          "Select a text-based PDF. Scanned documents need OCR before conversion.",
+          "The converter uses its built-in layout reconstruction; this page has no OCR settings selector.",
+          "Open the DOCX output and check paragraphs, tables, and page layout."
+        ]
+      },
+      {
+        "route": "/pdf-to-excel",
+        "status": 200,
+        "steps": [
+          "Select a PDF that contains tables or aligned text.",
+          "The conversion extracts available tabular content; it does not show table-region previews before running.",
+          "Open the XLSX output and check row and column alignment in a spreadsheet app."
+        ]
+      },
+      {
+        "route": "/pdf-to-ppt",
+        "status": 200,
+        "steps": [
+          "Select the PDF whose pages you want to reuse as slides.",
+          "The converter creates slides from the source pages using its built-in reconstruction behavior.",
+          "Open the PPTX output and review text, images, and slide order."
+        ]
+      },
+      {
+        "route": "/pdf-to-jpg",
+        "status": 200,
+        "steps": [
+          "Select the PDF whose pages should become images.",
+          "After selecting the PDF, choose an export resolution from the available control; the tool exports every page.",
+          "Download the ZIP and review the page images at the selected resolution."
+        ]
+      },
+      {
+        "route": "/excel-to-pdf",
+        "status": 200,
+        "steps": [
+          "Select an Excel workbook in the upload area above.",
+          "The converter uses its built-in sheet and page-layout behavior; no sheet selector is shown.",
+          "Open the PDF and check the rendered pages and page breaks."
+        ]
+      },
+      {
+        "route": "/scan-to-pdf",
+        "status": 200,
+        "steps": [
+          "Select photos or scans in the sequence you want them in the PDF.",
+          "The selected images are combined in that sequence; this page does not expose separate enhancement controls.",
+          "Download the PDF and check page order and readability."
+        ]
+      },
+      {
+        "route": "/watermark-pdf",
+        "status": 200,
+        "steps": [
+          "Select a PDF in the upload area above.",
+          "Enter watermark text or select an image, then set opacity. Placement uses the tool's built-in layout.",
+          "Download the watermarked PDF and check that the mark is legible without obscuring content."
+        ]
+      },
+      {
+        "route": "/protect-pdf",
+        "status": 200,
+        "steps": [
+          "Select the PDF you are authorized to protect.",
+          "Enter the password requested by the form; this tool does not expose separate owner-password or permission controls.",
+          "Download the encrypted copy and verify it opens with the password you entered."
+        ]
+      },
+      {
+        "route": "/pdf-metadata",
+        "status": 200,
+        "steps": [
+          "Select the PDF whose document properties you want to update.",
+          "Review or edit only the title, author, and subject fields shown above.",
+          "Download the updated PDF and check its properties in a PDF reader."
+        ]
+      },
+      {
+        "route": "/annotate-pdf",
+        "status": 200,
+        "steps": [
+          "Select a PDF to annotate in the workspace above.",
+          "After selecting the PDF, choose an annotation type and enter only the options displayed for that type.",
+          "Export the PDF, then reopen it to confirm the annotations appear as expected."
+        ]
+      },
+      {
+        "route": "/translate-pdf",
+        "status": 200,
+        "steps": [
+          "Select a text PDF or an OCR-processed scan in the upload area above.",
+          "After selecting the PDF, choose a target language from the available options; that control is not shown before upload.",
+          "Review the translated pages and text layer before sharing the output."
+        ]
+      },
+      {
+        "route": "/download",
+        "status": 200,
+        "steps": [
+          "Check the platform cards to see which native builds are currently available.",
+          "Use the waitlist form to request release updates for your device.",
+          "The browser-based Paperplane tools remain available while native builds are not released."
+        ]
+      }
+    ],
+    "page_errors": []
+  },
+  {
+    "round": 2,
+    "checked_routes": [
+      {
+        "route": "/",
+        "status": 200,
+        "steps": [
+          "Browse the tool directory and open the workflow that matches your task.",
+          "Add the source file in that workflow; supported formats and available controls are shown there.",
+          "Review the generated file before saving or sharing it."
+        ]
+      },
+      {
+        "route": "/ocr-pdf",
+        "status": 200,
+        "steps": [
+          "Select a scanned PDF in the upload area; supported size limits are shown beside it.",
+          "After selecting the file, choose a language from the available control before recognition; no quality setting is shown.",
+          "Download the searchable copy and check several pages for recognition quality."
+        ]
+      },
+      {
+        "route": "/html-to-pdf",
+        "status": 200,
+        "steps": [
+          "Enter a public web address in the URL field above; private network destinations are blocked.",
+          "Check the URL you entered, then run the conversion. This form does not offer separate page-size controls.",
+          "Open the generated PDF and review its page breaks, fonts, and images."
+        ]
+      },
+      {
+        "route": "/pdf-to-word",
+        "status": 200,
+        "steps": [
+          "Select a text-based PDF. Scanned documents need OCR before conversion.",
+          "The converter uses its built-in layout reconstruction; this page has no OCR settings selector.",
+          "Open the DOCX output and check paragraphs, tables, and page layout."
+        ]
+      },
+      {
+        "route": "/pdf-to-excel",
+        "status": 200,
+        "steps": [
+          "Select a PDF that contains tables or aligned text.",
+          "The conversion extracts available tabular content; it does not show table-region previews before running.",
+          "Open the XLSX output and check row and column alignment in a spreadsheet app."
+        ]
+      },
+      {
+        "route": "/pdf-to-ppt",
+        "status": 200,
+        "steps": [
+          "Select the PDF whose pages you want to reuse as slides.",
+          "The converter creates slides from the source pages using its built-in reconstruction behavior.",
+          "Open the PPTX output and review text, images, and slide order."
+        ]
+      },
+      {
+        "route": "/pdf-to-jpg",
+        "status": 200,
+        "steps": [
+          "Select the PDF whose pages should become images.",
+          "After selecting the PDF, choose an export resolution from the available control; the tool exports every page.",
+          "Download the ZIP and review the page images at the selected resolution."
+        ]
+      },
+      {
+        "route": "/excel-to-pdf",
+        "status": 200,
+        "steps": [
+          "Select an Excel workbook in the upload area above.",
+          "The converter uses its built-in sheet and page-layout behavior; no sheet selector is shown.",
+          "Open the PDF and check the rendered pages and page breaks."
+        ]
+      },
+      {
+        "route": "/scan-to-pdf",
+        "status": 200,
+        "steps": [
+          "Select photos or scans in the sequence you want them in the PDF.",
+          "The selected images are combined in that sequence; this page does not expose separate enhancement controls.",
+          "Download the PDF and check page order and readability."
+        ]
+      },
+      {
+        "route": "/watermark-pdf",
+        "status": 200,
+        "steps": [
+          "Select a PDF in the upload area above.",
+          "Enter watermark text or select an image, then set opacity. Placement uses the tool's built-in layout.",
+          "Download the watermarked PDF and check that the mark is legible without obscuring content."
+        ]
+      },
+      {
+        "route": "/protect-pdf",
+        "status": 200,
+        "steps": [
+          "Select the PDF you are authorized to protect.",
+          "Enter the password requested by the form; this tool does not expose separate owner-password or permission controls.",
+          "Download the encrypted copy and verify it opens with the password you entered."
+        ]
+      },
+      {
+        "route": "/pdf-metadata",
+        "status": 200,
+        "steps": [
+          "Select the PDF whose document properties you want to update.",
+          "Review or edit only the title, author, and subject fields shown above.",
+          "Download the updated PDF and check its properties in a PDF reader."
+        ]
+      },
+      {
+        "route": "/annotate-pdf",
+        "status": 200,
+        "steps": [
+          "Select a PDF to annotate in the workspace above.",
+          "After selecting the PDF, choose an annotation type and enter only the options displayed for that type.",
+          "Export the PDF, then reopen it to confirm the annotations appear as expected."
+        ]
+      },
+      {
+        "route": "/translate-pdf",
+        "status": 200,
+        "steps": [
+          "Select a text PDF or an OCR-processed scan in the upload area above.",
+          "After selecting the PDF, choose a target language from the available options; that control is not shown before upload.",
+          "Review the translated pages and text layer before sharing the output."
+        ]
+      },
+      {
+        "route": "/download",
+        "status": 200,
+        "steps": [
+          "Check the platform cards to see which native builds are currently available.",
+          "Use the waitlist form to request release updates for your device.",
+          "The browser-based Paperplane tools remain available while native builds are not released."
+        ]
+      }
+    ],
+    "page_errors": []
+  }
+]

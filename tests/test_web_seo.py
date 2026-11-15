@@ -69,6 +69,45 @@ def test_each_operation_has_unique_seo_catalog_and_schema_payload():
         assert '"@type": "FAQPage"' in response.text
 
 
+def test_workflow_cards_have_useful_body_copy_without_claiming_missing_controls():
+    import re
+
+    for slug in OPERATION_SLUGS.values():
+        response = client.get(f"/{slug}")
+        cards = re.findall(r'<article class="seo-howto-step">.*?<h3>(.*?)</h3><p>(.*?)</p>', response.text, re.S)
+        assert len(cards) == 3, slug
+        assert all(title.strip() and body.strip() for title, body in cards), slug
+
+    checks = {
+        "ocr-pdf": ("After upload, select an available OCR language", "quality setting"),
+        "translate-pdf": ("After upload, choose the target language", "visible list"),
+        "html-to-pdf": ("Enter an allowed public URL", "page-size controls"),
+        "pdf-to-word": ("Select a text-based PDF", "OCR settings selector"),
+        "pdf-to-excel": ("Convert the extracted content, then review the workbook", "table-region previews"),
+        "pdf-to-powerpoint": ("Convert the pages into slides", "text reconstruction options"),
+        "pdf-to-jpg": ("After upload, choose an export resolution", "page and image quality options"),
+        "excel-to-pdf": ("Convert the workbook and review its pages", "sheet selector"),
+        "annotate-pdf": ("Choose an annotation type", "Load the PDF into Studio"),
+        "watermark-pdf": ("Enter watermark text or select an image", "position"),
+        "protect-pdf": ("Enter a password for the protected copy", "owner passwords plus permissions"),
+        "pdf-metadata": ("title, author, and subject", "keywords"),
+    }
+    for slug, (present, absent) in checks.items():
+        response = client.get(f"/{slug}")
+        cards = re.findall(r'<article class="seo-howto-step">.*?<h3>(.*?)</h3><p>(.*?)</p>', response.text, re.S)
+        card_copy = " ".join(" ".join(item) for item in cards)
+        card_titles = " ".join(title for title, _ in cards)
+        assert present in card_copy, slug
+        assert absent not in card_titles, slug
+
+    home = client.get("/")
+    apps = client.get("/download")
+    home_cards = re.findall(r'<article class="seo-howto-step">.*?<h3>(.*?)</h3><p>(.*?)</p>', home.text, re.S)
+    assert len(home_cards) == 3
+    assert all(title.strip() and body.strip() for title, body in home_cards)
+    assert "native builds are not released" in apps.text
+
+
 def test_untrusted_forwarded_headers_cannot_change_canonical_origin():
     response = client.get(
         "/word-to-pdf",

@@ -638,7 +638,7 @@ SEO_CATALOG = {
         "description": "Turn photographed pages into a cleaner PDF with scan enhancement, contrast adjustment, and local privacy controls.",
         "heading": "Turn photos and scans into a readable PDF",
         "intro": "Prepare receipts, whiteboard photos, and paper documents for sharing with a focused scan-to-PDF workflow.",
-        "how_to": ("Add scanned images or camera photos", "Adjust enhancement and page order", "Export the optimized PDF"),
+        "how_to": ("Upload images in the order they should appear", "Check the selected image files", "Export the optimized PDF"),
         "faqs": (
             ("What image formats can I use for scan to PDF?", "The workflow accepts common image formats including JPG, PNG, TIFF, and WebP when the browser or server image decoder can verify them safely."),
             ("Does scan enhancement create searchable text?", "Enhancement improves the visual scan. Use OCR PDF afterward when you also need a searchable text layer."),
@@ -677,7 +677,7 @@ SEO_CATALOG = {
         "description": "Run OCR on scanned PDF pages to add searchable text while keeping the original page image visible.",
         "heading": "Make a scanned PDF searchable with OCR",
         "intro": "Create a text layer for scanned invoices, receipts, forms, and archival documents so users can search and copy recognized text.",
-        "how_to": ("Upload a scanned PDF", "Select the OCR language and quality", "Download the searchable PDF"),
+        "how_to": ("Upload a scanned PDF", "After upload, select an available OCR language", "Download the searchable PDF"),
         "faqs": (
             ("Does OCR change the original scan?", "OCR adds recognized text behind or alongside the scanned page. The visual page remains available, while recognition accuracy depends on resolution, contrast, and language."),
             ("Which languages are supported?", "Available languages depend on the installed OCR language packs and deployment configuration. The interface reports runtime capability instead of claiming unsupported languages."),
@@ -716,7 +716,7 @@ SEO_CATALOG = {
         "description": "Convert Excel XLSX spreadsheets into readable PDF reports with sheet-aware rendering and privacy-first document processing.",
         "heading": "Convert Excel spreadsheets to PDF",
         "intro": "Create a fixed-layout PDF from workbooks, tables, and financial sheets for review, printing, and distribution.",
-        "how_to": ("Upload an XLS or XLSX workbook", "Choose the sheets and page layout", "Download the formatted PDF"),
+        "how_to": ("Upload an XLS or XLSX workbook", "Convert the workbook and review its pages", "Download the formatted PDF"),
         "faqs": (
             ("Can Excel to PDF include multiple worksheets?", "Yes. The converter can render workbook sheets supported by the installed Office engine. Review page counts and sheet breaks before distributing the output."),
             ("Why does a spreadsheet become landscape PDF?", "Wide tables generally need landscape orientation to keep columns legible. The conversion engine chooses a layout that fits the workbook content where possible."),
@@ -742,7 +742,7 @@ SEO_CATALOG = {
         "description": "Render trusted HTML content or a public page into a PDF with controlled page sizing and a verified output file.",
         "heading": "Convert HTML content into a PDF",
         "intro": "Create a portable PDF from HTML snippets, print-ready pages, or an allowed public URL without manually printing from a browser.",
-        "how_to": ("Provide HTML or an allowed public URL", "Choose page size and rendering options", "Download the rendered PDF"),
+        "how_to": ("Enter an allowed public URL", "Review the URL and start the conversion", "Download the rendered PDF"),
         "faqs": (
             ("Can HTML to PDF access private network URLs?", "No. Server-side URL imports enforce SSRF protections and reject loopback, private-network, and metadata endpoints. Prefer supplying HTML directly for sensitive content."),
             ("Will CSS styles render in the PDF?", "Supported CSS is rendered by the configured browser engine. Highly dynamic scripts, cross-origin assets, and unsupported browser features may not reproduce exactly."),
@@ -755,7 +755,7 @@ SEO_CATALOG = {
         "description": "Convert PDF pages to high-resolution JPG images in a ZIP bundle for previews, publishing, or image-based workflows.",
         "heading": "Convert PDF pages to JPG images",
         "intro": "Rasterize selected document pages for sharing in systems that accept images instead of PDF files.",
-        "how_to": ("Upload the source PDF", "Choose page and image quality options", "Download the JPG image bundle"),
+        "how_to": ("Upload the source PDF", "After upload, choose an export resolution", "Download the JPG image bundle"),
         "faqs": (
             ("Is PDF to JPG conversion lossless?", "JPG is a lossy image format. Choose an appropriate quality setting, or use a lossless image workflow when text and line art must remain pixel-perfect."),
             ("Can I convert only selected PDF pages?", "Yes. Configure the page range or selected pages before rendering so you do not need to export the entire document."),
@@ -768,7 +768,7 @@ SEO_CATALOG = {
         "description": "Convert PDF files into editable Word DOCX documents with text extraction, layout reconstruction, and privacy-first processing.",
         "heading": "Convert PDF files to editable Word documents",
         "intro": "Recover editable paragraphs and tables from a PDF when the next step is revision rather than distribution.",
-        "how_to": ("Select a text or scanned PDF", "Choose conversion and OCR options", "Download the editable DOCX file"),
+        "how_to": ("Select a text-based PDF", "Convert the document and review its text layout", "Download the editable DOCX file"),
         "faqs": (
             ("Will PDF to Word preserve the original layout?", "The converter reconstructs paragraphs, text blocks, and supported tables. Exact fidelity varies with columns, positioned text, embedded fonts, and scanned content."),
             ("Can scanned PDFs be converted to Word?", "Scanned pages need OCR before editable text can be reconstructed. Use OCR PDF first when the source contains page images rather than a text layer."),
@@ -781,7 +781,7 @@ SEO_CATALOG = {
         "description": "Extract structured PDF tables into Excel XLSX workbooks for analysis, cleanup, and downstream reporting.",
         "heading": "Convert PDF tables to Excel",
         "intro": "Move tabular data out of a report and into a workbook without manually retyping every row.",
-        "how_to": ("Upload a table-containing PDF", "Review detected table regions", "Download the XLSX workbook"),
+        "how_to": ("Upload a table-containing PDF", "Convert the extracted content, then review the workbook", "Download the XLSX workbook"),
         "faqs": (
             ("Can PDF to Excel extract scanned tables?", "Scanned tables require OCR and table recognition. Results depend on scan quality, cell borders, column alignment, and the language model available to the converter."),
             ("Will formulas be created in the Excel output?", "The output represents extracted values and table structure. It does not infer business formulas that were not explicitly encoded in the PDF."),
@@ -794,7 +794,7 @@ SEO_CATALOG = {
         "description": "Convert PDF pages into PowerPoint PPTX slides for editing, presentation reuse, or slide-based review.",
         "heading": "Convert a PDF into PowerPoint slides",
         "intro": "Rebuild a slide deck from a PDF when you need to edit supported text and visual elements in a presentation workspace.",
-        "how_to": ("Choose the source PDF", "Select slide and text reconstruction options", "Download the PPTX presentation"),
+        "how_to": ("Choose the source PDF", "Convert the pages into slides", "Download and review the PPTX presentation"),
         "faqs": (
             ("Will each PDF page become a slide?", "The default workflow maps PDF pages to presentation slides. Complex page content may be represented as grouped or rasterized artwork depending on the source."),
             ("Can I edit text after conversion?", "Recognized text may be editable, while positioned glyphs, outlines, and scanned page images may remain visual content."),
@@ -859,7 +859,7 @@ SEO_CATALOG = {
         "description": "Annotate PDF documents with highlights, underlines, notes, freehand drawings, and shapes in a browser-based workspace.",
         "heading": "Annotate PDF pages for review",
         "intro": "Mark up contracts, research papers, proofs, and drafts without changing the original page text underneath your review layer.",
-        "how_to": ("Load the PDF into Studio", "Choose highlight, note, or drawing tools", "Save the annotated PDF for review"),
+        "how_to": ("Upload the PDF", "Choose an annotation type and its available options", "Save the annotated PDF for review"),
         "faqs": (
             ("Can I highlight text in a PDF?", "Yes, when the page contains selectable text. Image-only pages can still receive visual drawing or rectangle annotations."),
             ("Are annotations permanent?", "Annotations are written into the exported PDF. Use Sanitize or flattening controls when a review copy must become a fixed visual document."),
@@ -898,7 +898,7 @@ SEO_CATALOG = {
         "description": "Add a transparent text or image watermark to PDF pages with adjustable placement, opacity, and rotation.",
         "heading": "Watermark PDF pages for ownership or status",
         "intro": "Label drafts, approvals, confidential copies, and branded documents with a watermark that stays visible in the exported PDF.",
-        "how_to": ("Choose a PDF and watermark type", "Set text, image, opacity, and position", "Apply the watermark and download"),
+        "how_to": ("Choose a PDF", "Enter watermark text or select an image, then set opacity", "Apply the watermark and download"),
         "faqs": (
             ("Can I watermark every page?", "Yes. Choose the full document scope or a selected page range before applying the overlay."),
             ("Can I change watermark opacity?", "Yes. Opacity controls let you balance visibility against readability so body text remains usable underneath the mark."),
@@ -924,7 +924,7 @@ SEO_CATALOG = {
         "description": "Protect a PDF with password-based AES-256 encryption and configurable permissions using Paperplane's privacy-first security tools.",
         "heading": "Protect a PDF with strong password encryption",
         "intro": "Add document-open and owner controls before sharing a PDF that contains private, regulated, or commercially sensitive information.",
-        "how_to": ("Upload the PDF to the security tool", "Set user and owner passwords plus permissions", "Encrypt and download the protected PDF"),
+        "how_to": ("Upload the PDF to the security tool", "Enter a password for the protected copy", "Encrypt and download the protected PDF"),
         "faqs": (
             ("What encryption does Protect PDF use?", "The security workflow targets AES-256 PDF encryption through the native PDF security engine when the required capability is available. Passwords are not stored after processing."),
             ("What is the difference between a user and owner password?", "The user password controls opening the document. The owner password controls permission changes and administrative operations supported by the PDF security handler."),
@@ -989,7 +989,7 @@ SEO_CATALOG = {
         "description": "View and update PDF metadata such as title, author, subject, keywords, and creator before publishing or archiving a document.",
         "heading": "Inspect and edit PDF metadata",
         "intro": "Clean up document identity fields and remove accidental author or application details before you share a PDF externally.",
-        "how_to": ("Upload the PDF", "Review title, author, subject, and keywords", "Save the updated metadata and download"),
+        "how_to": ("Upload the PDF", "Review or update its title, author, and subject", "Save the updated metadata and download"),
         "faqs": (
             ("What PDF metadata can I change?", "Common fields include title, author, subject, keywords, creator, producer, and creation or modification dates when the source permits updates."),
             ("Does metadata editing change visible page content?", "No. Metadata is document-level information. It does not rewrite the visible page content unless you choose another editing or sanitization operation."),
@@ -1041,7 +1041,7 @@ SEO_CATALOG = {
         "description": "Translate PDF text into another language with layout-aware assistance when the configured translation engine is available.",
         "heading": "Translate PDF content for multilingual review",
         "intro": "Create a translated working copy while keeping the original document available for legal and editorial comparison.",
-        "how_to": ("Upload a text-based or OCR PDF", "Choose the target language", "Review and download the translated copy"),
+        "how_to": ("Upload a text-based or OCR PDF", "After upload, choose the target language", "Review and download the translated copy"),
         "faqs": (
             ("Does translation preserve the exact PDF layout?", "Layout preservation depends on text length, fonts, columns, and the translation engine. Longer translated phrases may reflow or require manual review."),
             ("Is the translated PDF legally certified?", "No. Machine translation is not a certified legal translation. Use a qualified translator for contracts, filings, or regulated communications."),
@@ -1288,6 +1288,11 @@ def seo_page_context(operation: str | None, landing_slug: str | None = None) -> 
 
     if landing_slug:
         landing = SEO_LANDING_PAGES[landing_slug]
+        how_to = (
+            ("Check your platform's app availability", "Join the waitlist for release updates", "Use Paperplane in your browser while apps are pending")
+            if landing_slug in {"download", "apps"}
+            else ("Choose the workflow for your task", "Follow the controls shown in that workspace", "Review the result or information provided")
+        )
         return {
             "title": landing["title"],
             "description": landing["description"],
@@ -1297,11 +1302,7 @@ def seo_page_context(operation: str | None, landing_slug: str | None = None) -> 
             "operation": None,
             "slug": landing_slug,
             "related": landing["related"],
-            "how_to": (
-                "Choose the PDF workflow that matches your goal",
-                "Add your document and review the available options",
-                "Download the verified result",
-            ),
+            "how_to": how_to,
             "faqs": (
                 ("Is Paperplane free to use?", "Paperplane includes free workflows for everyday PDF tasks. Browser-local processing is available for Merge, Split / extract, Remove pages, and Rotate PDF."),
                 ("Are files stored permanently?", "No. Server-mode job files use isolated storage and an automatic lifecycle cleanup policy."),
@@ -1363,6 +1364,101 @@ def render_seo_content(context: dict) -> str:
     )
     related_html = " ".join(related_links)
 
+    details_by_operation = {
+        "ocr": (
+            "Select a scanned PDF in the upload area; supported size limits are shown beside it.",
+            "After selecting the file, choose a language from the available control before recognition; no quality setting is shown.",
+            "Download the searchable copy and check several pages for recognition quality.",
+        ),
+        "translate": (
+            "Select a text PDF or an OCR-processed scan in the upload area above.",
+            "After selecting the PDF, choose a target language from the available options; that control is not shown before upload.",
+            "Review the translated pages and text layer before sharing the output.",
+        ),
+        "html_to_pdf": (
+            "Enter a public web address in the URL field above; private network destinations are blocked.",
+            "Check the URL you entered, then run the conversion. This form does not offer separate page-size controls.",
+            "Open the generated PDF and review its page breaks, fonts, and images.",
+        ),
+        "pdf_to_word": (
+            "Select a text-based PDF. Scanned documents need OCR before conversion.",
+            "The converter uses its built-in layout reconstruction; this page has no OCR settings selector.",
+            "Open the DOCX output and check paragraphs, tables, and page layout.",
+        ),
+        "pdf_to_excel": (
+            "Select a PDF that contains tables or aligned text.",
+            "The conversion extracts available tabular content; it does not show table-region previews before running.",
+            "Open the XLSX output and check row and column alignment in a spreadsheet app.",
+        ),
+        "pdf_to_powerpoint": (
+            "Select the PDF whose pages you want to reuse as slides.",
+            "The converter creates slides from the source pages using its built-in reconstruction behavior.",
+            "Open the PPTX output and review text, images, and slide order.",
+        ),
+        "pdf_to_jpg": (
+            "Select the PDF whose pages should become images.",
+            "After selecting the PDF, choose an export resolution from the available control; the tool exports every page.",
+            "Download the ZIP and review the page images at the selected resolution.",
+        ),
+        "excel_to_pdf": (
+            "Select an Excel workbook in the upload area above.",
+            "The converter uses its built-in sheet and page-layout behavior; no sheet selector is shown.",
+            "Open the PDF and check the rendered pages and page breaks.",
+        ),
+        "scan_pdf": (
+            "Select photos or scans in the sequence you want them in the PDF.",
+            "The selected images are combined in that sequence; this page does not expose separate enhancement controls.",
+            "Download the PDF and check page order and readability.",
+        ),
+        "watermark": (
+            "Select a PDF in the upload area above.",
+            "Enter watermark text or select an image, then set opacity. Placement uses the tool's built-in layout.",
+            "Download the watermarked PDF and check that the mark is legible without obscuring content.",
+        ),
+        "protect": (
+            "Select the PDF you are authorized to protect.",
+            "Enter the password requested by the form; this tool does not expose separate owner-password or permission controls.",
+            "Download the encrypted copy and verify it opens with the password you entered.",
+        ),
+        "metadata": (
+            "Select the PDF whose document properties you want to update.",
+            "Review or edit only the title, author, and subject fields shown above.",
+            "Download the updated PDF and check its properties in a PDF reader.",
+        ),
+        "annotate": (
+            "Select a PDF to annotate in the workspace above.",
+            "After selecting the PDF, choose an annotation type and enter only the options displayed for that type.",
+            "Export the PDF, then reopen it to confirm the annotations appear as expected.",
+        ),
+    }
+    operation = context.get("operation")
+    if operation in details_by_operation:
+        step_details = details_by_operation[operation]
+    elif context.get("slug") in {"download", "apps"}:
+        step_details = (
+            "Check the platform cards to see which native builds are currently available.",
+            "Use the waitlist form to request release updates for your device.",
+            "The browser-based Paperplane tools remain available while native builds are not released.",
+        )
+    elif operation:
+        step_details = (
+            "The upload area above lists the supported file types and limits for this tool.",
+            "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+            "Review the result details, then download and open the output to check it.",
+        )
+    elif not context.get("slug"):
+        step_details = (
+            "Browse the tool directory and open the workflow that matches your task.",
+            "Add the source file in that workflow; supported formats and available controls are shown there.",
+            "Review the generated file before saving or sharing it.",
+        )
+    else:
+        step_details = (
+            "Open the relevant Paperplane workspace from the navigation above.",
+            "Follow the controls shown on that page for the selected task.",
+            "Review any result or account information before leaving the page.",
+        )
+
     return f"""
     <section class="seo-content" aria-labelledby="seo-page-heading">
       <div class="seo-content-inner">
@@ -1371,7 +1467,7 @@ def render_seo_content(context: dict) -> str:
         <p class="seo-lede">{html_escape(context['intro'])}</p>
 
         <div class="seo-howto-grid">
-          {''.join(f'<article class="seo-howto-step"><span>{index:02d}</span><h3>{html_escape(step)}</h3></article>' for index, step in enumerate(context['how_to'], 1))}
+          {''.join(f'<article class="seo-howto-step"><span>{index:02d}</span><h3>{html_escape(step)}</h3><p>{html_escape(step_details[index - 1] if index - 1 < len(step_details) else "Follow the on-screen steps to complete this action.")}</p></article>' for index, step in enumerate(context['how_to'], 1))}
         </div>
 
         <div class="seo-faq"><h3>Frequently asked questions</h3>{faq_html}</div>

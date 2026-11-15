@@ -1,0 +1,2179 @@
+Paperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 1 of 38
+PAPERPLANE · PRE-LAUNCH · ELITE ENGINEERING PROMPT
+Paperplane Codex Elite Prompt v15
+End-to-end deployment round: fix everything that remains, prove it in a real browser, deploy, retest
+live — and only then launch.
+VERDICT TODAY: NOT DEPLOYMENT-READY — 10 P0s OPEN
+Date: Saturday, 14 November 2026 (evening)  |  Live site: https://paperplane.qd.je/  |  Build under test: deployed v14
+build (app.js?v=14, footer v14.0.1 when signed in). GitHub origin/main is still e4a2bd3 — the v14 code was deployed by
+SCP and never pushed, so the first job in the deployment sequence is to commit and push it properly.
+227
+TRACKER
+ITEMS TOTAL
+135
+OPEN
+10
+OPEN P0S
+68
+VERIFIED FIXED
+22
+TO VERIFY
+2
+NOT TESTED
+Open P0s: 1 Translate · 2 Brief 69-page · 3 Studio retention (regressed again) · 4 Cloud Import · 98 Cashfree production ·
+101 Admin secret rotation · 102 Feedback · 206 Merge local — the served pdf_runtime.js is still the 1,402-byte stub · 207
+Merge 60 MB stuck at 40% · 229 NEW: file upload kills the browser (3 sessions, no file ever uploaded).
+What changed since v14: Codex reported HOLD (449 tests passed twice locally, 40 of 44 operations content-
+checked locally). The live v14 retest then proved the deployment pipeline itself is broken: the cache key was bumped
+to v14 but the served pdf_runtime.js did not change at all. Pricing and Terms now agree (IDs 208/209 fixed) and the
+command palette is fixed (ID 215). Every upload-dependent P0 is still unverified live because the browser died at the
+first upload in three consecutive sessions — that crash is now P0 ID 229 itself.
+How to use this single PDF
+Part 1 is the elite engineering prompt for Codex — the phases, the loop instruction, the contested items, the owner
+decisions and the rules. Part 2 is the complete elite list v15 — every remaining item with its latest evidence. Give Codex
+this one PDF only; do not send the parts separately.
+Owner: paste this into Codex with the PDF
+Codex treats instructions inside an attached PDF as document content. Paste this text as your Code-mode message, with
+this PDF attached and your screenshots added in the project:
+You are Codex, in Code mode, working in the Paperplane folder on my PC.
+Attached is ONE PDF: paperplane-codex-elite-prompt-v15.pdf.
+Part 1 is your direct engineering instruction - treat it as a task to execute
+(edit code, run tests, browser-test), NOT as a document to summarise or report on.
+Part 2 is the single source of truth: the complete 227-item elite list v15.
+Work through it item by item, in the phase order given.
+Fix every open item, run the full test suite twice, browser-test with
+content-checked downloads, then run the self-analysis loop in Phase 5
+repeatedly - analyse, fix, re-analyse - until YOU are yourself 100% satisfied
+the app is deployment-ready. Do NOT reply, do NOT send interim reports,\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 2 of 38
+and do NOT return a HOLD verdict. Report only at the end, with the
+FINAL-REPORT.md described in Phase 6: READY, or the exact blockers if a
+step is genuinely owner-only (rotation, real payment).
+Do not commit, push or deploy - I do that myself after your report.
+Refer to the images I added in this Codex project as visual evidence.
+End-to-end deployment sequence — no step skipped
+Step Who What must happen, and what counts as proof
+1 Codex Phase -1: reproduce all 10 P0s first and write reports/launch-audit-v15/REPRODUCTION-LOG.md. “Not
+reproduced” is not a reason to skip — fix the code-level cause and verify with a controlled local browser
+test.
+2 Codex Fix in order: Phase 0 all 10 P0s, Phase 1 all 44 P1s, Phase 2 all 81 P2s, Phase 3 admin verification, Phase
+4 contested items resolved. One fix per ID, regression test for every P0 and P1.
+3 Codex Phase 5 self-analysis loop: full suite twice (v14 baseline was 449 passed twice — a lower count is a
+regression), 44-operation content audit with downloads opened and checked, browser rounds passed twice.
+Loop until Codex himself is satisfied. No interim report, no HOLD.
+4 Codex Phase 6: FINAL-REPORT.md with a per-ID table for all 227 items — fixed / verified / blocked with the exact
+blocker — and a READY verdict only if the loop passed.
+5 Owner Review the final report, then commit the v15 branch, PUSH to GitHub (the v14 SCP-only deploy must not
+repeat), and deploy. A version bump alone is not a deploy.
+6 Owner Immediately after deploy, verify the SERVED files by HTTP: pdf_runtime.js must contain transformLocalPdf,
+be far larger than 1,402 bytes, and differ from md5 a2cc693d8102cd9db553c81b9200d9d9. If the served file
+is still the stub, the deploy failed — stop and fix the pipeline (ID 206).
+7 Muse Full live retest of the deployed build, including the upload tests that were blocked in v14 — by browser
+takeover, where the owner picks files in the native picker himself. Content-checked downloads for every
+tool, signed-in Pro round, Guest round, and the Cashfree signed-in check.
+8 Owner Owner-only steps, after the retest: (a) rotate the production admin credentials; (b) one real production
+Cashfree payment and confirm the entitlement activates and persists; (c) delete the bad mirror paperplane-
+redacted-v14.git from the PC — it still contains the historical secret and must never be published.
+9 Owner + Muse Launch decision only when: 0 P0s open, the live retest passes end to end, rotation is done, and one real
+payment has succeeded. Anything less is a test-site deploy, not a public launch.
+What “done” means in this round: a fix counts only when it is seen running on the deployed build, with the
+downloaded output opened and checked. A passing local test, a bumped version string, or a banner saying “success”
+does not count on its own.
+Sources merged in Part 2: Muse live retests v10–v14, the v13 full retest of e4a2bd3, the mobile code audit, Instinct Master Audit Rounds
+5–8, Codex v14 FINAL-REPORT and reproduction log, and HTTP re-verification of the deployed assets on 14 Nov 2026 at 21:30 IST. IDs
+169 and 179 were never assigned — the gap is intentional. Tracker-artifact ID mapping is given in full at the head of Part 2.\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 3 of 38
+Part 1 — Elite Engineering Prompt v15
+The direct instruction for Codex. Execute it in Code mode, item by item.
+Paperplane — Elite Engineering Prompt v15 (merged:
+Muse v14 live retest + Codex v14 FINAL-REPORT)
+Date: Saturday 2026-11-14 (evening). Build under test: the deployed v14 build — page requests app.js?v=14 and
+pdf_runtime.js?v=14, footer shows v14.0.1 when signed in; deployed by the owner via SCP (GitHub origin/main is
+still e4a2bd3 — the v14 code was never pushed). Live site: https://paperplane.qd.je/ — /health returns
+{"status":"ok","service":"paperplane-
+pdf","version":"2.0.0","auth_required":false,"workers":4,"max_file_size_mb":500,"job_ttl_hours":24}. You
+are Codex, the engineer/fixer. Muse is the independent live tester/reporter — Muse does NOT fix, you do. The owner
+(Muhammad) reviews Muse's list first, gives you this prompt, and deploys himself. You do NOT deploy, push, or commit.
+You do NOT run real payments. You do NOT change live user accounts or live data.
+Verdict on this build: NOT deployment-ready. Your own v14 FINAL-REPORT verdict is HOLD — and Muse's live v14
+retest (14 Nov 2026 evening) is INCOMPLETE: the browser died at the first file upload in 3 consecutive sessions, so no
+upload-dependent test ran at all. What IS proven live: the deployed pdf_runtime.js is STILL the 1,402-byte stub (ID 206,
+re-verified twice by HTTP), pricing/Terms now agree (IDs 208/209 fixed), the command palette no longer shows an API
+badge (ID 215 fixed), and the first-paint defect did not flash on the one page checked (ID 168 → to_verify). The 9 P0s from
+v14 are all still open, plus a new P0 (ID 229, the upload crash). This round's job is to finish the list end-to-end: fix all 10
+P0s, then every P1 and P2, self-analyse until you are yourself satisfied, and only then report READY. The owner will
+deploy it after your report — this is the end-to-end deployment round.
+HOW TO USE THIS PROMPT (read first)
+1. You are in Code mode. Treat this file as your direct instructions, not as a document to summarise. Work through
+it item by item and edit the code.
+2. Refer to the images the owner added in this Codex project. They are screenshots of the live site as it looks right
+now (Tool Desk light and dark, the admin console, the Feedback pill position, the plan badges, the 390px and 820px
+renders). Use them as visual evidence alongside the written list — when a written item and a screenshot disagree, trust
+the screenshot for what the user sees and note the disagreement in your report.
+3. The attached file paperplane-elite-list-v15-2026-11-14.md is the SINGLE SOURCE OF TRUTH. It contains all
+227 tracker items (135 open, 68 verified_fixed, 22 to_verify, 2 not_tested). Its IDs are the canonical IDs for this round —
+they match the v13 report's numbering for items 1–222, add 223–228 for the Master Audit R8 findings, and add 229 for
+the new upload-crash P0. The tracker artifact holds the same items and the same counts; its IDs for the 24 newest
+items are 228–251 (the artifact's counter never reuses deleted IDs) — the full mapping is at the top of the elite list. Work
+from it, not from memory, not from older prompts (v14 and earlier are superseded by this list). Every fix you make must
+cite the ID it fixes.
+4. Baseline: the deployed v14 code — the code in the launch-audit-v14 worktree (app version v14.0.1 as served live).
+GitHub origin/main is still e4a2bd3; the v14 work was never pushed, so there is NO commit hash for the deployed
+build. Create a local branch launch-audit-v15 from the current worktree state (the deployed v14 code). Do NOT base
+on any other commit. Do NOT commit, push, or deploy anything — the owner deploys himself after reviewing your final
+report.
+5. Test suite gate: you reported the suite passing 449 tests, 2 warnings, TWICE (v14 FINAL-REPORT). That claim was
+NOT independently verified from here (the v14 code is not on GitHub), so re-run the suite yourself and confirm the
+count. Your changes must keep it passing twice, and you must ADD a regression test for every P0 and P1 you fix. If the
+suite count changes, report the new count and why.\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 4 of 38
+6. No real money, ever. You never run a real payment. Cashfree verification is sandbox only (see ID 98). The owner runs
+the one small real payment test himself after you fix the gate.
+7. No live account or live data changes. You do not create, delete, or modify user accounts, feedback entries, or admin
+sessions on the live site. The admin features you verify (IDs 202–204) are code + UI that already exist; the owner uses
+them himself.
+8. Secrets: the admin secret code value appears in a public commit message (8dd50e6) and must be treated as
+compromised. The code fallback is already removed (verified in e4a2bd3 — see ID 101); what remains is rotation +
+history purge. NEVER print, log, or paste the actual secret value anywhere — not in code, not in tests, not in your
+report. Use a placeholder like <ROTATED-VALUE-SET-BY-OWNER-IN-AWS>.
+9. Do not trust a version string. The v14 round proved this: the cache key was bumped v13→v14 but the served file did
+not change. A fix is proven by the SERVED file (HTTP: size + content) and by a live browser run — never by a version
+string, a query parameter, or a local file that the server does not serve.
+THE ENGINEERING LOOP — HOW YOU MUST WORK (the owner's explicit
+instruction)
+This is not a one-pass fix list. You work in a LOOP, and you do not report until YOU are genuinely satisfied. The owner said
+it plainly, three times, the last one the operative one: work like an agent, not a chat model — analyse everything, fix by
+debugging, self-analyse after fixing, and keep looping until HE is himself really satisfied; no reply until the app is 100%
+(100000%) deployment-ready and 1000% verified by tests + browser tests; no interim reports, no HOLD verdict, no
+technical questions — figure it out from the code, the live site, and the 227-item list. "Not reproduced" is not a reason to
+skip an item — fix the code-level causes and verify with controlled/local browser tests. The live retest happens after the
+owner deploys; your job is to prove the fixes locally first. This instruction SUPERSEDES the v14 prompt's Phase 6 READY-
+or-HOLD rule. Here is the loop:
+1. ANALYSE (Phase -1). Reproduce each P0 before touching it. Write the reproduction log. Do not fix what you have not
+reproduced.
+2. FIX (Phases 0–4). Fix every item, one by one, citing its ID. Add a regression test for every P0 and P1. Implement each
+thing properly — no partial fixes, no fixes that only work on one input, no "fixed" without evidence.
+3. SELF-ANALYSE (Phase 5). After fixing, analyse YOUR OWN work as if you were the auditor. Re-run the reproduction
+for every P0 and P1 you fixed. Re-test every fix. Re-run the full test suite twice. Re-check the do-not-regress list (68
+items). Re-verify the contested items. Hunt for: fixes that are incomplete, fixes that only work on one input or one
+language, fixes that introduced a regression, fixes that pass the test but fail the real user flow, and items you skipped or
+marked fixed without evidence.
+4. LOOP. If your self-analysis finds ANY gap, regression, incomplete fix, or unaddressed item — go back to step 2, fix it
+properly, and self-analyse again. Repeat the loop. Do NOT stop at the first pass. Do NOT report after the first fix round.
+Do NOT mark an item fixed on a single run — verify each fix twice (two consecutive runs).
+5. ONLY WHEN YOU ARE REALLY SATISFIED — when your self-analysis finds nothing left, every P0 is fixed with
+evidence, the suite passes twice, and the do-not-regress list is clean — only then write FINAL-REPORT.md and report
+READY. If you are not satisfied, keep looping. The report comes last, never first. If a specific item is blocked ONLY on
+an owner step (credential rotation, a real payment, a key the owner must supply), finish everything else first and report
+READY with that owner step listed as the final gate — do not let one owner step block the other 225 items.
+PHASE -1 — ANALYSE FIRST (do this before fixing anything)
+For EACH of the 10 P0s (IDs 1, 2, 3, 4, 98, 101, 102, 206, 207, 229), reproduce it against the current code and write a
+reproduction log at reports/launch-audit-v15/REPRODUCTION-LOG.md with, per item: the ID, the exact reproduction steps
+you ran, what you observed (with file:line references), the root cause in code, and the fix you plan. Do NOT start fixing until
+the log covers all 10 P0s. If you cannot reproduce a P0 in code, say so explicitly in the log with the evidence AND the
+code-level cause you will fix anyway — "not reproduced" is not a reason to skip an item. This phase is mandatory; a
+prompt that skips it is not done. Start with the two new blockers (IDs 229 and 206) — they are the reason this round exists.\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 5 of 38
+PHASE 0 — P0 LAUNCH BLOCKERS (fix all 10, in this order)
+1. ID 229 — NEW P0 (v15): file upload kills the browser (3 sessions, no file ever uploaded). Live v14 retest (14 Nov
+2026 evening, 20:46–20:53 IST): the first granted-file upload on /merge-pdf killed the browser in THREE consecutive
+sessions — two cloud sessions and the owner's Windows Chrome (device browser). Each time: the page loaded fine,
+the account was signed in (Legacy Pro, quota "5 / 10 today"), the local-processing toggle was checked and persisted,
+Files showed 0 — then the upload attempt returned "outcome is unknown" and the browser became unavailable. No file
+was ever confirmed uploaded, no Merge run started, no download obtained. Cause UNDETERMINED: either the file-
+transfer mechanism in these browser environments, or the site's v14 upload path itself. Investigate the site's side first:
+the v14 change "Upload selection and drop now wait for initial account restoration" (ID 168 fix) — check whether that
+gate breaks file selection (does a file input change event hang waiting for account restoration? does a worker initialise
+on select and never resolve?). Reproduce with a real browser + a native file picker (no granted-file mechanism), find the
+breaking handler, fix it, and prove a full upload→run→download cycle live, twice. If you cannot reproduce it locally, say
+so with the exact browser + picker steps you ran, and make the upload path defensive (timeouts, no blocking waits on
+account state, a visible error instead of a hang). This is the entry point of every tool — nothing else matters if upload
+kills the browser.
+2. ID 206 — Merge local processing broken: the DEPLOY PIPELINE serves a stub, not the real runtime (P0, THE
+other launch blocker). Your v14 fix — bumping the cache key to v14 + a local merge smoke test — did NOT change
+what the live server serves. Live v14 retest (HTTP, re-verified twice, 20:44 and 21:30 IST): the deployed
+pdf_runtime.js?v=14 is STILL the same 1,402-byte stub as v13 (identical md5 a2cc693d8102cd9db553c81b9200d9d9
+across ?v=13, ?v=14 and a fresh cache-busting query; Last-Modified: Fri, 13 Nov 2026 05:15:37 GMT; zero
+occurrences of transformLocalPdf). The source (2,581 bytes) DOES export transformLocalPdf (defined line 38,
+exported line 70) and app.js calls it (line 4995). So the root cause is now the DEPLOY PIPELINE, not the version string:
+find why the live server serves the stub — is the build step copying the wrong file? does the deploy script (SCP) copy
+an old asset? is a proxy/CDN caching the old file and ignoring the query string? is web/assets/pdf_runtime.js not the
+file the server serves? Fix the pipeline so the deployed asset IS the real 2,581-byte file, and add a deploy smoke check
+that FAILS the deploy if the served runtime is the stub (fetch the served file over HTTP, assert size ≥ 2,500 bytes and
+transformLocalPdf present). Proof: (a) HTTP fetch of the served pdf_runtime.js shows the real file (size +
+transformLocalPdf present); (b) a local merge of two small PDFs works in the browser with Server Mode OFF. Do NOT
+bump another version string and call it fixed — verify the SERVED file. This kills local merge/split/remove/rotate and
+every other client-side PDF path — the exact "Unlimited Browser-Side Processing" the Free plan sells — and Free
+users silently burn the 10/day cloud quota instead. Photo tools use a separate canvas path and are NOT affected.
+3. ID 207 — REGRESSION v13: Merge 60 MB + 10-page stuck at 40% 'Dispatching to worker pool...' (P0). Live v13
+retest: Merge 60 MB (large_60mb.pdf 57.84 MB) + 10-page file, server mode — stuck at 40% 'Dispatching to worker
+pool...' with Run disabled, no error, no cancel. Attempt 1: 3+ min. Attempt 2 (01:38 IST): still 40% after 2+ min. Identical
+failure twice. v11 merged 60 MB + 10-page into 769 correct pages — this is a v13 regression. Your v14 claim (synthetic
+60 MiB merge passed, 769 pages) used a fixture that stores incompressible data as a PDF attachment — NOT
+equivalent to the owner's file — so re-verify with the real 60 MB file (the owner has it) or a file of the same structure. Fix
+the worker-pool stall and add a Cancel control that actually cancels. Proof: the 60 MB + 10-page merge completes and
+the output opens with 769 pages.
+4. ID 3 — REGRESSION v13: Studio page deletions do not survive reload (stale restore) (P0). REOPENED from
+verified_fixed (v11). Live v13 retest: deleted page 69 (PAGES 69→68, '1 page(s) deleted. Undo'), reloaded, waited 30 s
+— the document returned as PAGES (69) with the ORIGINAL content, and the page order had reverted to the state
+after the first drag. The last reorder AND the deletion were both lost. The restore is STALE — recent edits are dropped
+across reload. v11 had verified the fix (delete 69→68 survives reload after ~15 s restore); v13 regressed it. Your v14
+claim (synthetic 69→68→67 survived reload) needs the real 5.4 MB file to be believed — re-verify with it. Fix the stale
+restore. Proof: delete a page, reload, confirm the deletion survives, twice, on the real file.
+5. ID 1 — AI Translate: RESOLVE THE CONFLICT, do not pick a side (P0). Muse's v13 live round (same build, same
+night as R8): EN→Spanish failed TWICE with 'The translation provider is unavailable (upstream HTTP 503). Please
+retry later.' — 5th consecutive round of failure. Master Audit R8 (same build, same night): Translate to Hindi produced a
+PERFECT Devanagari render. Both observations are on e4a2bd3 within the same hour. Your v14 claim (controlled-
+provider Chromium checks on synthetic 3- and 69-page PDFs, Spanish AND Hindi outputs) used controlled test
+doubles — the live provider was NOT checked. Test BOTH languages on the SAME file, on the same build, with the\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 6 of 38
+LIVE provider: EN→Spanish and EN→Hindi, small file and the 69-page file. Pin down whether the failure is language-
+specific, file-specific, or flaky (provider timeout budget vs provider latency). Extend the per-operation timeout for
+translate, add one retry with backoff, and do NOT count quota when a job fails. Do NOT mark this fixed on one
+language alone. Proof: a live translate of a 3-page document to Hindi AND to Spanish, with both translated PDFs as
+evidence. (Related: ID 226(c) — translated PDFs keep the original English invisible in the content stream, so copy-
+paste/screen readers extract scrambled interleaved text; rebuild the text layer instead of overlaying.)
+6. ID 2 — Brief/Summarize fails on the 69-page document (P0). Small files work (verified by both Muse v13 and R8 —
+accurate 6-page summary, citation pills Page 1-10). The 69-page file fails: attempt 1 'AI service returned an empty
+response'; attempt 2 raw '502 Bad Gateway 502 Bad Gateway nginx/1.27.5' leaked to the user. 6th round of failure on
+the 69-page file. File-size-dependent. Your v14 claim (69-page brief rendered with a controlled provider) used a test
+double — the live provider was NOT checked. Fix the timeout/limits path for large documents (same family as ID 1) or
+honestly scope the feature to a page limit and say so in the UI. Proof: a successful executive brief on the 69-page file
+with the LIVE provider.
+7. ID 4 — Cloud Import: the MODAL works, the FORM fails, the Drive link is untested (P0). New distinction (Master
+Audit R8 + Muse v13, same build): the Cloud Import MODAL (Drive/Dropbox/OneDrive/HTTPS) WORKS — a public
+HTTPS PDF imported into the merge list (toast "Imported dummy.pdf - 0.01MB - 1 pages"). The DIRECT-DOWNLOAD
+FORM still FAILS — Muse's v13 round: a valid public PDF (W3C dummy.pdf) failed twice with 'Cloud file sync failed.
+Check that the link is public and points directly to a PDF file.' The owner's exact Drive /view link is STILL untested (no
+public Drive file was available to either round). Your v14 claim (W3C dummy imported through the browser form) does
+not cover the owner's Drive link. Fix the direct-download form AND the Drive viewer-URL path (viewer URL →
+downloadable file). Proof: the owner's Drive link imports and opens, and the direct-download form imports the W3C
+dummy.pdf. The owner's Drive link is https://drive.google.com/file/d/1dAovOT7FCFaur33cX5_M6SsL6EvZT9rS/view
+(file SreeVarun_V.pdf, 1 page, 554,620 bytes) — test with THIS exact link.
+8. ID 102 — Feedback submission accepted but never reaches the admin list (P0). Submissions are accepted with a
+thank-you and a server 2xx but only intermittently appear in admin, because write and read hit different databases; the
+list also does not auto-refresh. Your v14 claim (synthetic feedback appeared in an already-open admin tab without
+manual refresh) needs the real path verified. Fix the write/read divergence and add auto-refresh (or a visible refresh
+state). Proof: submit feedback and show it in the admin list without a manual refresh.
+9. ID 98 — Cashfree: sandbox purchase PROVEN end-to-end, PROD still owed (P0). The full sandbox purchase
+works — /pricing > Pay Rs 49 Student Pro > Cashfree sandbox drop > simulator OTP > SUCCESS > "Payment
+Succeeded! Welcome to the Student & Educator plan" modal; the account flipped to tier=student_pro, is_pro=true,
+remaining=Unlimited, verified three times via /api/billing/status. (Muse's v13 round independently confirmed checkout
+OPENS to sandbox with correct amounts, merchant 'testMerchantName', phone '+91 9999999999'.) Your v14 claim
+(production mode rejects sandbox checkout, 503/403) is a gate, not a payment. The P0 now stands ONLY on the
+PROD side: set CASHFREE_ENV=PROD with the real PROD keys (the OWNER supplies the keys in AWS — you
+must not invent them), then the owner runs ONE small REAL payment test himself. You must not run a real payment.
+Do NOT weaken the 403 on the simulation endpoints in production. The audit account k5mmx3@mail.instinct.com is
+now Student Pro via this sandbox purchase (no real money) — note it in your report, do not change it. ALSO: set up the
+daily synthetic sandbox checkout probe (ID 228) — see Phase 2.
+10. ID 101 — Admin secret code: code fallback REMOVED, rotation + history purge still open (P0). server.py now
+reads the code and key through _required_admin_setting(), which raises RuntimeError if the env var is unset — the
+app refuses to start without them. The hardcoded fallback is GONE. What remains: (a) rotate
+PAPERPLANE_ADMIN_CODE and PAPERPLANE_ADMIN_KEY to new random values in the AWS environment — the
+OWNER does this, you must not invent or set real values; (b) rewrite git history (git filter-repo) to purge the value from
+all commits, then force-push — public commit 8dd50e6 is still fetchable from github.com/hammad986/paperplane-pdf;
+GitHub caches mean rotation is mandatory regardless; (c) add gitleaks (or equivalent) to CI as a pre-commit secret
+scanner — your v14 note says Gitleaks was unavailable locally, so set it up IN CI, not locally. Verify by fetching commit
+8dd50e6 from the public repo afterwards — it should 404. NEVER print, log, or paste the actual secret value anywhere.
+NOTE on the history mirrors: the reviewed mirror (paperplane-redacted-v14-reviewed.git) exists but excludes the
+uncommitted v14 changes and is NOT ready to publish — do NOT publish it. The BAD mirror (paperplane-redacted-
+v14.git) still contains the historical secret and your deletion was blocked by policy — the OWNER deletes that folder
+himself from his PC. Do not touch either mirror; prepare the purge so it can be re-filtered AFTER the v15 work is
+committed.\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 7 of 38
+PHASE 1 — P1 HIGH
+Work through the elite list's P1 table in ID order (44 open). Do not skip any. The headline items are:
+ID 223 (P1) — Developer API keys: gating vs copy conflict (revenue/security). /developers banner says
+"DEVELOPER API: INCLUDED WITH CYBER CAFE", but a Student Pro (Rs 49/mo) account can POST
+/api/developer/keys and gets 200 with a working live key. Bearer auth verified against /api/v1/account/usage (quota 10
+calls/day, 3 AI/day, reset 00:00 UTC). Two more problems: (1) there is no plan called "Cyber Cafe" anywhere on /pricing
+— the Rs 299 tier is named "All-in-One Pro & Developer"; (2) the same page says "Integrate all 41 ... operations" while
+the rest of the site says 44. Also the POST ignored the name field (returned "Default API Key"). Your v14 claim (key
+creation limited to developer tiers on both routes, names accepted, keys lose developer access after downgrade) needs
+the live check: create a key as a Student Pro account and confirm it is REJECTED (403), then as an All-in-One account
+and confirm it works. Fix one side: EITHER enforce the tier server-side in /api/developer/keys (403 unless the API-
+including tier) OR correct the banner. Default (unless the owner says otherwise): enforce the gating — do not leak paid
+API access to a Rs 49 tier — and rename the references. Also honour the 'name' field on key creation, and fix 'Integrate
+all 41 operations' → 44. Cross-ref IDs 94 (the opposite direction — Developer keys rejected with 401), 209 (stale
+'CYBER CAFÉ' name — now verified_fixed on the pricing surface; check no other surface still uses it), 153 (counts).
+NOTE: the audit account now holds one live API key from this test — harmless, revocable from Settings > API Keys; do
+not delete it yourself, note it in your report. The live v14 retest could NOT verify this as Pro (the no-upload browser was
+Guest) — your local verification is the only check.
+ID 184 — All guests share one 10-ops/day quota (shared proxy IP 172.18.0.4) (P1). CONFIRMED LIVE on v13
+(Master Audit R8): a fresh guest identity showed the shared bucket already exhausted (10/10 used, 0 remaining) with
+zero guest ops from the audit session, and a guest grayscale op was rejected 402 'Daily guest limit reached'. New
+visitors are blocked from cloud ops right now until the 00:00 UTC reset. Fix the proxy chain: in the nginx template add
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for; and X-Real-IP $remote_addr;, then set
+PAPERPLANE_TRUSTED_PROXY_HOSTS in the AWS environment to the proxy's address so the app honours those
+headers. Verify by logging in from two different networks and confirming the security log shows two distinct real IPs, and
+that /api/billing/status as a guest shows an independent quota per visitor. This one fix also repairs the admin security log
+(all IPs currently 172.18.0.4) and rate limits. (Owner decision Q3 below: fix the IP keying first — new visitors are
+blocked right now.)
+ID 167 — Display-font word-spacing (P1, to_verify). Headings read as joined words ('PDFwithout', 'toolyou',
+'PDFpages'); the DOM space renders ~2px wide. Fix at the font/letter-spacing level and verify on all headings, not by
+editing individual strings. (Not observed in the v13 live round — needs one load check before calling it fixed; it is in
+to_verify.)
+IDs 197 + 198 — Sign-out (P1, to_verify — the audit claims fixed, verify it). Muse's live round (13 Nov, v11 build)
+CONFIRMED both: after sign-out there is NO 'Sign in' button anywhere, even after a full refresh; the topbar still shows
+the user's email after refresh while /api/auth/me returns 401. Master Audit R8 (v13 build) claims FIXED: after UI sign-out
++ reload the same tab shows Guest/Free and /api/auth/me = 401, and a full re-login was verified (password + 6-digit
+email code). Your job: verify on the current build — sign in, sign out, reload — the header must show Guest and a
+working Sign in button; open a second tab and confirm it also shows Guest. If the audit's claim is wrong, both items stay
+open with your evidence. Root cause for ID 197 (if still present): the email chip is hydrated from sessionStorage key
+paperplane-last-auth-shell-email, which logout never clears — clear it on logout and on any 401 from /api/auth/me,
+and sync across tabs via the storage event.
+ID 185 — Tab freezes after local ops when navigating away (P1, 4/4 repro — BLOCKED by ID 206, retest after
+the fix). After any local browser-side op (merge/split/rotate/remove) completes, navigating away hangs the tab
+indefinitely — the main thread never goes idle. On the v13 build the hang path is unreachable because local ops crash
+first (ID 206). Retest immediately after the ID 206 fix. Audit the local runtime teardown (pdf_runtime.js): terminate Web
+Workers after the job resolves, cancel pending requestAnimationFrame loops, resolve/reject all pending promises, and
+make sure no beforeunload handler blocks navigation. Add a test: run a local merge, then immediately navigate to / and
+assert the new page loads within 2 seconds.
+ID 186 — Server Mode toggle (P1, to_verify — the audit claims fixed, verify it). Master Audit R8 (F2) claims FIXED:
+"toggle now persists off; server mode selectable". Muse's v13 live round the same night found the state inconsistent
+across pages (ID 211 — ON on some pages, OFF on others). Your job: the discriminating check — enable server mode\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 8 of 38
+on Merge, verify a server job is created and quota decrements; then open Split and confirm the toggle is still OFF. If it
+does not persist across pages, ID 186 stays open and ID 211 is the live bug. (Owner decision Q1: if local-only is the
+intended design for these four tools, delete the dead toggle instead — default is to fix it.)
+ID 187 — Exam Photo & Signature Resizer (P1, to_verify — the audit claims resolved, verify it). Master Audit R8
+(F4) claims RESOLVED: "exam resizer now runs locally (canvas); SSC 350×450px / 35KB in-browser". Muse's v13
+round verified the OUTPUT (exactly 20.0 KB, 350×450) but did NOT discriminate server vs client. Your job: the
+discriminating check — run the exam resizer and confirm NO /api/jobs POST and NO quota decrement. If it still POSTs
+to /api/jobs, it stays open. (Owner decision Q2 default: client-side, free, unlimited.)
+ID 211 — Server Mode toggle state is inconsistent across pages (P1). The toggle is ON on some pages, OFF on
+others — the preference does not persist reliably. Fix the persistence (shared state, not per-page). Cross-ref IDs 148,
+155, 186.
+ID 210 — Studio Organize Earlier/Later buttons are in the DOM but invisible and unclickable by mouse (P1).
+Clicks are refused as 'covered' twice; Alt+Right / Alt+Left shortcuts DO work both directions. Drag-reorder works (ID 47
+fixed). Your v14 claim (mouse-selected page 2, Earlier, downloaded + checked first two pages) needs the live check —
+the v14 live retest could not run it (upload crash, ID 229). Make the buttons visible and clickable by mouse, and prove it
+with a real mouse click in a browser.
+ID 214 — Mobile view cannot be tested from the laptop browser (P1). Three routes failed (cloud browser viewport
+control, local Chromium blocked by the WebGL policy, Playwright Chromium cannot use the VM egress proxy). A code-
+level responsive audit was done instead. The visual 390px render, touch targets and pill-vs-CTA overlap still need the
+owner's phone — but note the audit's R8 viewport matrix rendered 390px and 820px CLEAN (screenshots). Your job on
+the code side: keep the responsive code correct; the visual check is the owner's.
+ID 218 — AI Intelligence load-state race (P1). The AI view shows the empty state ('What can I help with?' / 'Upload a
+PDF') while the DOM already lists the loaded document ('Loaded & Ready'); the greeting appears before the document
+renders. Same load-state family as ID 168.
+ID 222 — No Log In / Sign Up in the topbar at ≤480px (P1). At ≤480px .topbar-right { display: none
+!important; }, and it holds 'View plans', 'Cloud', 'Log In' and 'Sign Up Free'. At 390px the topbar has NO sign-in entry
+point; signing in depends entirely on the mobile drawer. Verify the drawer shows Log In (code could not confirm it) — if it
+does not, a phone guest cannot find Log In.
+ID 168 — First-paint / load-state root cause (P1, now to_verify — do NOT treat it as open). The v12/v13 defect
+(every page renders wrong defaults for ~5–10s, then async config corrects them; no correct skeleton state) was NOT
+observed on one Guest page load in the live v14 retest (/compress-pdf at 0s/5s/10s — only transient "Checking
+usage…"/"Checking plan…" placeholders, resolved by ~5s). Your v14 claim (paid user selecting a large file before
+account load finished was treated as free guest; upload/drop now wait for account restoration) is the code-side fix — but
+NOTE: that same change is a suspect in the ID 229 upload crash, so verify it does not break file selection. Your job: one
+signed-in, multi-page first-paint check (Home + 3 tool pages + /settings) — if no wrong defaults appear anywhere, ID
+168 is fixed; if they appear, it reopens with your evidence.
+The remaining P1s: work through the elite list's P1 table in ID order (44 open). Do not skip any. For each, the elite list
+gives the latest evidence; your fix must address that evidence, not the original report alone.
+PHASE 2 — P2 MUST FIX
+Work through the elite list's P2 table in ID order (81 open). Do not skip any. The headline items are:
+ID 153 (P2) — Tool-count labels are wrong (44 vs 45 vs 41) — STILL OPEN after the v14 live retest. Flat directory
+lists 44 tools; Tool Desk says "44 tools available" and its sections sum to 44; but the sidebar suite badges sum to 45
+(7+13+8+13+4) and the marketing strip says "41 focused tools" — three conflicting counts on ONE page (live v14
+retest, Guest, 14 Nov 2026 evening). Reconcile from the single operations registry: one count everywhere. Fix the
+sidebar badges and the marketing copy (or the registry, if the registry itself is wrong). Proof: one page where the
+sidebar, Tool Desk, and marketing strip all agree.
+ID 224 (P2) — Photo compress: default Target KB (100) shown but not applied on first run. On /compress-image-
+online the TARGET FILE SIZE (KB) field displays 100 by default. Leaving it untouched and running produced a 228.2
+KB file (quality-mode output, 2400×1800) — the displayed 100 KB target was silently ignored. After actually editing the\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 9 of 38
+field to 50, the same image came out 48.8 KB (1228×921) — target honored. Your v14 claim (target is an actual initial
+value; reopened output below 100 KiB) needs the live check — the v14 live retest could not run it (upload crash, ID
+229). Fix: initialize the target-KB state from the input's default value on mount, or ship the field empty with a
+placeholder. (This supersedes the R7 #14 note on ID 194 — edited targets now work; ID 194 is verified_fixed.)
+ID 225 (P2) — Repair tool leaks raw pikepdf error on unrecoverable files. A deliberately corrupt PDF (no trailer,
+unrecoverable even by qpdf) fails with the raw library string 'code=4: not a dict (null)'. The failure itself is correct — the
+file is unrecoverable — but the message is a pikepdf internal. Your v14 claim (safe error message; validate-only returns
+the unchanged file) needs the live check. Fix: catch pikepdf exceptions and return a friendly message, e.g. 'This PDF is
+too damaged to repair automatically.' Keep the technical detail in server logs only. (ID 113 Repair itself is verified_fixed;
+this is the error-message half.)
+ID 226 (P2) — R8-F5 nav/404 nits + translate text layer. (a) /ai-docs returns a styled 404, yet the mobile bottom nav
+labels the AI hub 'AI Docs' — the actual route is /ai-intelligence. Point the nav at /ai-intelligence or alias /ai-docs. (b)
+/dashboard client-side redirects to /tool-desk, so the footer 'Dashboard' link lands on Tool Desk — point the footer link at
+/tool-desk or rename it (owner decision Q4; default: point it at /tool-desk). (c) Translated PDFs keep the original English
+invisible in the content stream — copy-paste/screen readers extract scrambled interleaved text; rebuild the text layer
+instead of overlaying. (d) Tool counts: suite badges sum to 45 while everything says 44 (ID 153, still open; /developers
+still says 41) — reconcile from the single operations registry.
+ID 227 (P2) — Sign-pdf modal opens AND navigates to /sign-pdf in Studio (loop residue). In Studio, the Digital
+Signatures entry opens the modal (good) but still also navigates to /sign-pdf. Your v14 claim (navigation removed;
+dialogs stay on /studio) needs the live check. Remove the navigation so only the modal opens (the modal itself works
+fine). Cross-ref IDs 117, 126.
+ID 228 (P2) — No daily synthetic checkout probe — SET IT UP THIS ROUND. Payments reliability is absent from
+the plan — checkout 503'd across two audit rounds before R8 fixed it. Your v14 FINAL-REPORT says the probe is still
+not set up. Build a daily synthetic Cashfree SANDBOX checkout probe (initiate a checkout, confirm the sandbox drop
+loads with the correct amount, alert the owner on failure). The probe must use the sandbox/test gateway only — never
+a real payment. (Owner to confirm the alert channel.)
+IDs 208, 209, 215 — NOW VERIFIED_FIXED (live v14 retest) — do NOT regress them. ID 208: Terms §4 vs pricing
+now agree (one-time/no-renewal on all paid plans). ID 209: the stale 'CYBER CAFÉ'/'Pay-As-You-Go API Tier' names
+are gone from the pricing modal. ID 215: no API badge on any of the 44 tools in the command palette. They are in the
+do-not-regress list (Phase 5). (ID 209's owner decision Q2 — retire 'Cyber Cafe' — is therefore resolved on the pricing
+surface; check no other surface still uses the name.)
+ID 152 — Photo tools server-only (P2) — RESOLVE THE CONFLICT FIRST. The v11 live round observed all four
+photo tools showing 'Server Mode / Local processing is unavailable'. The Master Audit Round 7 claims photo
+compress/resize/merge PASS as client-side. The v13 round ran the photo tools and verified the outputs but did NOT
+discriminate local vs server processing. Do NOT mark this fixed on any single claim. Determine the truth: does the file
+upload to the server or process locally? If the tools are server-side, either implement the client-side (Canvas) path the
+briefing promises or correct the briefing and the plan copy — and recompute the cost model on server-side photo
+volume. Related: ID 166 (Organize is server-only despite being listed as a client-side operation) and ID 163 (Merge
+claims 'never upload' but lists a 'Stream Upload' step).
+IDs 15 + 189 + 190 — Layout at narrow widths (P2, all to_verify — the audit claims fixed, verify them). ID 15: the
+sticky pill overlaps tool-page headers at ~1104px — verify at 1104px, not 1920px. ID 189: at 768–1024px BOTH the
+mobile header and the desktop topbar + sidebar rendered stacked (820px) — the audit R8 claims FIXED (single
+collapsible-sidebar layout at 820px, viewport matrix ALL PASS); verify with one visual 820px check. ID 190: at 390px
+the floating Feedback pill covered the primary CTA — the audit R8 claims FIXED (fixed pill removed; only an in-flow
+footer Feedback link remains; CTA bottom 446px vs nav top 778px, no overlap); verify with one visual 390px check.
+Make the media queries mutually exclusive at one shared breakpoint (mobile: max-width 1023px; desktop: min-width
+1024px); verify at 768, 820, 834, 1024 and 1366px that exactly one header shows.
+ID 154 + ID 192 — Stale prices (P2). ID 154 is verified_fixed ( ₹ 750/$299 gone). ID 192 is to_verify: the audit R8 claims
+FIXED (no legacy ₹ 250 labels; 'Plans & Billing' / 'View Pricing Tiers') — verify with one live check of the sidebar upsell
+card + topbar button for the 'Pro Power User · Rs 250/mo' badge. Replace every hardcoded plan label with the current
+catalog, and remove the legacy pro/developer tiers from the API pricing map or mark them hidden. Grep for '250' and
+'Pro Power User' across web/ and server.py and show there are no stale references left.\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 10 of 38
+ID 136 — Quota contradiction (P2, verified_fixed in v13). Production limit is 10/day; Home hero no longer says
+100/day; Pricing/Settings/Terms say 10/day consistently. The live v14 retest re-confirmed it (Guest: "Operations Today 0
+/ 10" everywhere). Do NOT regress it. (Owner decision Q3: after the IP fix, 10/day per guest for server tools, local tools
+unlimited — say so plainly on every surface.) NOTE from the v14 live retest: the Pro account (other browser) showed
+quota "5 / 10 today" — a Legacy Pro account with a 10/day cap, while Settings says paid plans have "no daily operation
+cap". Check whether "Legacy Pro" is intentionally capped; if it is a bug, fix it; if it is intended, say so in the UI.
+ID 128 + ID 147 — Feedback pill (P2). No close (X) control; mounts inconsistently; its POSITION is not anchored (the
+owner's dark-mode screenshot shows it at mid-right height instead of the bottom-right corner). Owner decision (2026-
+11-11, still in force): the button must be dismissible, shown to first-time users on login/signup, hidden after feedback,
+and live only in Settings. Implement exactly that, and anchor the pill to the viewport bottom-right when it is shown. (ID
+221: the dismiss × EXISTS in code — feedback.js renders a 28px dismiss button with a working handler — but three
+live rounds report no X visible; one visual check settles it. ID 190 is to_verify for the 390px overlap.) NOTE from the v14
+live retest: as Guest, NO feedback pill appeared anywhere in ~7 minutes — only a footer Feedback link. In v13, signed-
+in Pro saw the pill on tool pages. Determine whether the pill is session-dependent (signed-in only) and make it match
+the owner's decision either way.
+ID 137 — Theme (P1 in the list). The Tool Desk main content renders DARK in one of the owner's screenshots and
+LIGHT in another taken the same day; Studio is dark; tool pages/AI are light. The theme is not fixed per surface. Pin
+down the theme source of truth (system setting? user toggle? first-paint default?) and make it consistent: one theme per
+surface, no flip with no action.
+ID 205 — Top pill nav reported broken/mixed (P2, to_verify). The owner reports the pill nav box looks broken/mixed.
+A 1920px check (Pro) found it clean. Review the pill nav at every width (especially ~1104px and the Free-account view
+— the owner's screenshots are from a Free account) and against the owner's images in this project; fix whatever is
+broken/mixed (styling, spacing, overlap, or the sticky behaviour in ID 15). Do not close it on the 1920px check alone.
+IDs 171–183 — v12 pages/layouts items (P2). No footer except Home (171 — verified_fixed in v13, footer now on
+every page; re-confirmed live in v14; do not regress). Headings-only step cards (172); steps promise controls that do
+not exist pre-upload (173 — still reproduces, expanded list in v13); Studio phantom 'Page 1 is loading…' (174 — the
+phantom did NOT reproduce on the empty state in v13; the lower-section-unreachable and annotation-tool-change
+halves were not re-checked); photo tools no lower sections (175 — verified_fixed in v13); stale toast across navigation
+(176); pricing modal taller than viewport, Pay clipped (177 — still taller at 1920×998, own scrollbar, ₹ 49/ ₹ 299 Pay
+buttons cut off); Photo & Exam suite lands on AI view (178); /developers heading twice + v2.0 vs /api/v1 (180 —
+verified_fixed in v13; re-confirmed live in v14 — v1 reference, /api/v1; do not regress); dead slugs (181 — verified_fixed
+in v13, all six redirect; re-confirmed live in v14; do not regress); pale-peach CTA (182); footer no copyright/links + hero
+'100% Private' contradiction (183 — the footer half is FIXED in v13; the hero claim half stays open).
+ID 196 — Copy/polish bugs from Master Audit #17 (P2). (a) Remove-pages local output downloads as
+'extracted_private.pdf' — rename to removed-pages.pdf (NOT re-triggered in R8 — local path down under ID 206;
+retest after the ID 206 fix). (b) Split range placeholder — FIXED in R8 ('1-3, 5, 8-12'). (d) Photo file inputs accept='' —
+FIXED in R8 (accept='image/jpeg,image/png,image/webp'). (f) POST /api/admin/auth/logout returns 401 via fetch —
+admin out of scope in R8; align its auth with the UI path.
+The remaining P2s: work through the elite list's P2 table in ID order (81 open). Do not skip any.
+PHASE 3 — ADMIN FEATURES (verify live, do not rebuild what exists)
+Muse verified in the e4a2bd3 code (14 Nov 2026) that these already exist — your job is to VERIFY them live via the admin
+console and finish any missing wiring, not to rebuild them from scratch. The owner will log you in / you verify through the
+console UI. (The audit R8 excluded the admin console, so only API presence was confirmed there.)
+ID 204 (P1, to_verify) — Set plan / reset usage per user. Endpoints exist: POST /api/admin/users/set-plan and POST
+/api/admin/users/reset-usage (server.py lines 8049, 8061). The admin console UI renders "Set plan" and "Reset usage"
+buttons per user row (web/assets/admin.js lines 655–656) with handlers. Verify LIVE: set a test user's plan, reset a test
+user's usage, and confirm both take effect + an audit-log entry is written. This is the top admin improvement requested
+and the owner needs it to unblock quota-gated test accounts.
+ID 202 (P1, to_verify) — Admin session list + logout-others. Endpoints exist: GET /api/admin/sessions (lists admin
+sessions, marks owner sessions with role "superadmin") and DELETE /api/admin/sessions/{session_id} (revoke\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 11 of 38
+another admin session, 409 if you try to revoke your own). The admin console UI fetches and renders them
+(web/assets/admin.js lines 436, 472). Verify LIVE: the session list renders, and logging out another admin session
+works from the owner's main email.
+ID 203 (P1, to_verify) — Super admin role: BOTH owner accounts are superadmin. Code exists:
+ADMIN_OWNER_EMAILS = frozenset({mdhammad2906@gmail.com, mdhammad29006@gmail.com}) and
+_require_admin checks membership in it; the sessions endpoint marks owner sessions as role "superadmin". (Owner
+decision 19:29 IST — BOTH accounts are superadmin; this supersedes the earlier 'only 1 account' requirement.) Verify
+LIVE: both accounts can log in as admin, both show as superadmin, and the admin OTP works for both. The admin
+login/OTP must work for both accounts.
+ID 201 (P2) — Location on login. When a user logs in, their exact location must display in the admin console
+(city/region from the real client IP, once ID 184 is fixed). Currently only the shared proxy IP 172.18.0.4 is shown for
+every login.
+ID 200 (P2) — Admin 'Last Active' always '-'. "Last seen NOT FIXED in R7; admin out of scope in R8." Fix it (the
+Master Audit notes last_seen_at is throttled to 1/minute in auth middleware — verify and fix).
+ID 107 (P2) — Revenue: real vs sandbox split. Sandbox/test orders are labelled 'Verified paid' ( ₹ 3,750 gross mixes
+the owner's own accounts + old sandbox orders; there are no real customers yet). Add an environment/order-source
+column and a real-revenue subtotal.
+PHASE 4 — CONTESTED ITEMS (resolve, do not ignore)
+ID 229 (upload crash) — see Phase 0 #1. Cause undetermined (site vs file-transfer mechanism). Your job is to prove
+the site's side with a real browser + native picker. Do not close it on a localhost run that uses a different upload path.
+ID 206 (deploy pipeline) — see Phase 0 #2. The cache-key bump did not reach live. Your job is to fix the pipeline and
+prove it by HTTP on the SERVED file. Do not close it on a local file.
+ID 1 (Translate) — see Phase 0 #5. Spanish 503×2 (Muse v13) vs Hindi perfect render (R8), same build, same night.
+Test both languages on the same file, with the LIVE provider. Do not close on one language or on a controlled test
+double.
+ID 168 (first-paint, to_verify) — see Phase 1. One Guest page load in the v14 live retest showed no flash; the v12/v13
+defect was systematic. One signed-in, multi-page check settles it.
+ID 129 (duplicate Sanitize buttons, to_verify) — v10 and the Master Audit (6:58 PM, post-upload panel) both say two
+identical 'Sanitize Document Now' buttons render. The audit R8 (F35) claims FIXED: "exactly one Sanitize button
+renders". Muse's pre-upload checks found zero (the duplicates live in the POST-UPLOAD panel, which the v13 round
+did not reach). Your job: reproduce it post-upload and confirm exactly one button renders.
+ID 152 (photo tools server-only) — see Phase 2. Resolve the conflict with a discriminating check, not a claim.
+ID 142 ('1 tools' grammar) — the v12 round did NOT find it. Exercise the search filter to observe the count string and
+either fix it or prove it gone.
+ID 15 (sticky pill overlap) — see Phase 2. Verify at 1104px.
+ID 205 (pill nav) — see Phase 2. Resolve against the owner's images.
+ID 3 (Studio retention) — REOPENED in v13 (P0). Do not close it on the v11 evidence or on a synthetic fixture — use
+the real 5.4 MB file.
+ID 191 (merge-photos grid) — now verified_fixed (two independent observations agree). Do not regress it.
+ID 194 (photo compress target) — now verified_fixed for edited targets (R8: 50 → 48.8 KB; Muse v13: 20 KB target
+hit). The default-inert variant is the new ID 224. Do not regress the edited-target behaviour.
+PHASE 5 — SELF-ANALYSIS LOOP (mandatory — do this after fixing, before
+reporting)
+This is the phase the owner explicitly asked for. Do NOT skip it. Do NOT report before it passes.\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 12 of 38
+1. Re-test every fix. For every P0 and P1 you fixed, re-run the exact reproduction from your Phase -1 log and confirm the
+fix holds. Then run it a SECOND time (two consecutive runs). A fix that works once and fails on the re-run is not a fix —
+loop back and fix it properly.
+2. Re-run the full test suite twice. It must pass twice (≥449 tests — confirm your count). Report the count. If it drops, find
+the regression, fix it, and re-run twice again.
+3. Re-check the do-not-regress list (68 verified_fixed items). Verify EACH of the 68 still works, on TWO consecutive
+runs, and list the result per item in your final report. Pay special attention to: ID 93 (redeploy persistence — newly fixed;
+the account + API key survived the 12:41 AM redeploy), ID 191 (grid), ID 194 (compress target), IDs 208/209/215
+(newly fixed in the v14 live retest — Terms/pricing agreement, stale plan names gone, palette API badge gone), ID 3's
+neighbours (Studio Export was fixed in v9/v10 and regressed in v11 — your ID 206 fix must not regress it again), ID 134
+(waitlist form on /download — controls appear only after ~20s), ID 138 (AI Intelligence pill opens the AI view in place),
+ID 68 (drawn signature), ID 99 (AI Chat grounded + citation), ID 108 (/api-docs gated), ID 81 (duplicate headers), ID 113
+(Repair), ID 116 (Sanitize), ID 117 Verify part, ID 136 (quota 10/day — re-confirmed live in v14), ID 171 (footer on every
+page — re-confirmed live in v14), ID 180 (/developers v1 — re-confirmed live in v14), ID 181 (dead slugs redirect — re-
+confirmed live in v14). If any verified_fixed item regresses, it goes back to open in your report with the new evidence.
+4. Re-verify the contested items (Phase 4). If a contested item is still contested after your fix, say so with both sides'
+evidence — do not force it closed.
+5. Hunt for regressions you introduced. Run the full A–Z tool pass once more (all 44 tools, at least one real file each,
+downloads checked). Check the first-paint state (ID 168) on every page you touched. Check the 390px and 820px
+renders for every layout change you made. Re-run the upload→run→download cycle (ID 229) after every change to the
+upload path or the account-restoration gate.
+6. Check your own work for honesty. For every item you claim fixed, ask: did I verify it live (or with a real test), or did I
+only change the code and assume? Did I test the exact input the bug report used (the 69-page file for ID 2, the 60 MB
+file for ID 207, the 2400×1800 photos for ID 191, the owner's Drive link for ID 4)? Did I test both languages for ID 1? Did
+I test the quota-blocked path for ID 193? Did I verify the SERVED file for ID 206, or only the local file? If the answer to
+any of these is no, the item is NOT done — go back and test it.
+7. LOOP. If this self-analysis finds ANY gap, regression, incomplete fix, or unaddressed item — return to Phase 0–4, fix it
+properly, and self-analyse again. Repeat until you are genuinely satisfied. Only then go to Phase 6.
+PHASE 6 — FINAL A–Z + FINAL REPORT
+1. Run the full test suite twice. Report the count (must be ≥449, twice) and every new regression test you added.
+2. Do a final A–Z pass over the elite list: every open item is either FIXED (with the ID, the fix, and the evidence) or NOT
+FIXED (with the reason and what is still needed). No item may be left unaddressed and no item may be marked fixed
+without evidence.
+3. Write reports/launch-audit-v15/FINAL-REPORT.md with: the verdict (READY — only when every P0 is fixed with
+evidence and the self-analysis loop passes), the per-ID results table, the test suite result, the reproduction log
+reference, the self-analysis log (what your Phase 5 found and what you looped back to fix), the do-not-regress results,
+and the exact branch (launch-audit-v15, uncommitted) the report covers. Do NOT write a HOLD verdict and do NOT
+send interim reports — the owner's standing instruction is: no reply until you are yourself satisfied the app is 100%
+deployment-ready. If a specific item is blocked ONLY on an owner step (credential rotation, a real payment, a key the
+owner must supply), finish everything else first and report READY with that owner step listed as the final gate.
+4. NOTHING is committed, pushed, or deployed by you. The owner reviews the report, commits + pushes + deploys
+himself, and Muse live-retests the deployed build end-to-end. The end-to-end plan (owner-decided, 14 Nov 2026
+evening): (1) you finish this list + self-analysis and report READY; (2) the owner deploys v15 to the test site and shares
+the new hash; (3) Muse live-retests v15 end-to-end (browser takeover for uploads if the crash persists; all 10 P0s +
+post-deployment checks); (4) any remaining gaps come back to you as v16; (5) when the live retest is clean, the owner
+does the owner steps (credential rotation, real payment check, bad-mirror deletion, history publish) and the app is
+declared launch-ready.\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 13 of 38
+OWNER DECISIONS (already made — do not re-litigate)
+Compress default 'Under 100 KB Govt/SSC' is INTENDED. Continuous Studio scrolling is a launch MUST. Pricing is
+INR-only. Studio toolbar/tools to be made smaller (ID 125). Feedback button: dismissible, first-time users, hidden after
+feedback, lives only in Settings (ID 128). Super admin: BOTH mdhammad2906@gmail.com AND
+mdhammad29006@gmail.com (ID 203, decided 19:29 IST — and already in the code as ADMIN_OWNER_EMAILS).
+Refer to the images the owner added in this Codex project (see 'How to use this prompt', point 2).
+End-to-end deployment plan (decided 14 Nov 2026 evening): the owner wants the app end-to-end deployment-
+ready and WILL deploy it. Sequence: Codex v15 finishes this list + self-analysis and reports READY → owner commits
++ pushes + deploys v15 → Muse live-retests v15 end-to-end → any remaining gaps go to Codex as v16 → when the
+live retest is clean, the owner does the owner steps (rotation, real payment, bad-mirror deletion, history publish) and the
+app is declared launch-ready.
+OWNER DECISIONS STILL OPEN (use these defaults unless the owner says
+otherwise)
+Master Audit Q1 — Server Mode toggle (ID 186): default FIX the toggle to work two-way (users can choose server
+processing for merge/split/remove/rotate, quota-counted). If the owner later says local-only, delete the dead toggle
+instead.
+Master Audit Q2 — Exam resizer (ID 187): default CLIENT-SIDE (free, unlimited, on-brand) — move it to the client-
+side engine.
+Master Audit Q3 — Guest quota (ID 184): after the IP fix, 10/day per guest for SERVER tools; LOCAL tools unlimited
+for guests. Say so plainly on every surface.
+Master Audit Q4 — Blocked suite re-run: after you build set-plan (ID 204 — already in code, verify it live), the owner
+will unblock the k5mmx3 account (or use the new set-plan action) and you re-run the blocked checks (Studio export
+page-size ID 199, exam resizer end-to-end, remaining server tools, paid-tier checks, checkout e2e). Do not run the DB
+command yourself — that is on the AWS box and is the owner's job.
+Audit R8 Q1 — API keys for everyone, or Rs 299-only? (ID 223): default ENFORCE the gating (server-side 403
+unless the API-including tier) — do not leak paid API access to a Rs 49 tier — and fix the banner + the '41 operations'
+copy either way.
+Audit R8 Q2 — Is 'Cyber Cafe' a retired plan name? (ID 209): RESOLVED on the pricing surface (ID 209
+verified_fixed in the live v14 retest — the name is gone from the pricing modal). Check no other surface still uses it; if
+one does, retire it there too.
+Audit R8 Q3 — Guest quota: leave as-is for launch, or fix first? (ID 184): default FIX FIRST — new visitors are
+blocked right now (402 on a fresh guest).
+Audit R8 Q4 — /dashboard redirect or change the footer link? (ID 226): default point the footer link directly at /tool-
+desk.
+Audit R8 Q5 — Move OTP/reset/alerts to a transactional sender (SES) with SPF/DKIM? (ID 61): owner decision —
+the mail still goes from the owner's personal Gmail as 'Paperplane PDF Security', which looks phishy to filters and caps
+volume. If he says yes, implement the sender switch (SES, since the app is on AWS).
+Audit R8 Q6 — TOTP authenticator support for admin? owner decision — the admin OTP goes to the owner's email
+and needed relaying during audits. If he says yes, implement TOTP so admin login is not dependent on email delivery
+(and the 3-attempt/24h lockout).
+Audit R8 Q7 — Do saved Studio/AI documents actually get purged within 24h? (ID 109): default IMPLEMENT the
+purge — the tool pages promise 'Automatically deleted within 24 hours' — and verify it with a check.
+ROADMAP REVIEW (from the audit, Section D — for the owner and for you)
+PWA offline mode first: ship the local runtime as a PWA — 80% of the offline story at 5% of the cost of the Tauri client;
+it validates demand before the multi-week Tauri+PDFium work. (The dual-ecosystem decision — web + Tauri offline\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 14 of 38
+client, not a shared runtime — is right, and the offline plan is unusually thorough.)
+Funnel analytics: tool start/complete, quota wall, upgrade modal, checkout events — the owner is blind on conversion
+today. Add the events.
+Daily checkout probe (ID 228): a daily synthetic sandbox checkout probe outranks every Phase 2-5 item.
+Security Phase 1.5: the admin-code purge, proxy IPs, and secret-scanning CI deserve a Phase 1.5 with feature-level
+weight — do not leave them unscheduled.
+Gate 'Complete' on a real-device viewport matrix, not on code existing. (Phase 1 items were marked 'Complete'
+while broken live — the tablet header.)
+Competitor note (ihatepdf.cv): free, open-source, 46–60+ tools running 100% client-side via WebAssembly, no
+upload, no account, no limits, works offline. Where they still win: their whole catalog is unlimited; guest friction ('no
+signup ever' vs the shared 10/day guest bucket, which a visitor can find already exhausted — live right now); true
+offline. Where Paperplane wins: accounts/sync/history, 500MB server muscle vs their ~150MB ceiling, Advanced
+Studio, PKCS#7 signing, developer API, AI without a user-supplied key — and the Rs 19 Exam Pass is a genuinely
+sharp wedge they have no answer to. The hybrid rebuild already closed their #1 gap (local ops quota-free) — which is
+exactly why the ID 206 local-ops outage hurts double: it reopens that gap on launch day.
+RULES
+One fix per ID, cited by ID. No drive-by refactors. No changes to unrelated files.
+Every P0 and P1 fix gets a regression test. Every fix gets a before/after note in your final report.
+Never print, log, or paste a secret, key, code, OTP, or password value — not in code, tests, logs, or your report. Use
+placeholders.
+Never run a real payment. Never create, delete, or modify a live user account, feedback entry, or admin session.
+If an item cannot be fixed (needs an owner decision, a key, or live access), say so in the report with the exact blocker —
+do not silently skip it and do not mark it fixed.
+The elite list is the authority. If this prompt and the elite list disagree on an ID, follow the elite list and note the
+disagreement.
+The self-analysis loop (Phase 5) is mandatory. A report written before the loop passes is not a report — it is a draft.
+Do not reply until you are yourself satisfied the app is 100% deployment-ready. No interim reports, no HOLD verdict —
+the owner's standing instruction.
+Do not bump a version string and call an asset fixed. Verify the SERVED file by HTTP and the behaviour in a real
+browser.\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 15 of 38
+Part 2 — Single Elite List v15
+The complete remaining-work list: 135 open, 22 to verify, 2 not tested, 68 verified fixed. This list is the authority if any
+wording differs.
+Paperplane — SINGLE ELITE LIST (v15 edition — all
+bugs, all sources, one list)
+Date: Saturday 2026-11-14 (evening). Build under test: the deployed v14 build — page requests app.js?v=14 and
+pdf_runtime.js?v=14, footer shows v14.0.1 when signed in; deployed by the owner via SCP (GitHub origin/main is
+still e4a2bd3 — the v14 code was never pushed). Live site: https://paperplane.qd.je/ — /health returns
+{"status":"ok","service":"paperplane-
+pdf","version":"2.0.0","auth_required":false,"workers":4,"max_file_size_mb":500,"job_ttl_hours":24}.
+Verdict: NOT deployment-ready. Codex's v14 FINAL-REPORT verdict is HOLD — and Muse's live v14 retest (14 Nov
+2026 evening) is INCOMPLETE: the browser died at the first file upload in 3 consecutive sessions, so no upload-
+dependent test ran at all. What IS proven live: the deployed pdf_runtime.js is STILL the 1,402-byte stub (ID 206, re-
+verified twice by HTTP), pricing/Terms now agree (IDs 208/209 fixed), the command palette no longer shows an API badge
+(ID 215 fixed), and the first-paint defect did not flash on the one page checked (ID 168 → to_verify). The 9 P0s from v14
+are all still open, plus a new P0 (ID 229, the upload crash). End-to-end deployment readiness needs: Codex v15 → owner
+deploys → Muse live retests (takeover for uploads) → owner steps (rotation, real payment).
+Tracker: 227 items — 135 open (10 P0s), 68 verified_fixed, 22 to_verify, 2 not_tested. Open P0s: 1, 2, 3, 4, 98, 101,
+102, 206, 207, 229. (ID 93 redeploy persistence is now verified_fixed.) IDs 169 and 179 were never assigned (v12 round
+skipped them) — the gap is intentional.
+Tracker-artifact ID note (read first): the tracker artifact's addissue assigns IDs from a monotonic counter that never
+reuses deleted IDs. The 17 v13 items were first added at scrambled IDs 211–227 and then deleted, so the counter stayed
+at 227 and the 23 newest items landed at artifact IDs 228–250. This list uses the v13 report's numbering (206–222 for the
+v13 items, 223–228 for the Master Audit R8 items) because that numbering matches the v13 report the owner already has.
+The mapping from this list's IDs to the tracker artifact's IDs is: 206→228, 207→249, 208→245, 209→236, 210→237,
+211→248, 212→233, 213→246, 214→234, 215→231, 216→232, 217→243, 218→235, 219→239, 220→242, 221→247,
+222→238, 223→229, 224→230, 225→250, 226→244, 227→241, 228→240, 229→251. IDs 1–205 are identical in both.
+The counts (135 open / 68 fixed / 22 to_verify / 2 not_tested) are the same in both.
+Sources merged into this one list: (a) the 203-item elite list of 13 Nov 2026 (Muhammad's v12 deep-analysis + Instinct
+Master Audit Rounds 6+7 + Muse's live retests v10/v11 + v12 browser checks); (b) Muse's live v13 retest (14 Nov 2026,
+00:45–01:42 IST, 57 min, signed-in Pro, desktop 1919×998) + follow-up (01:42–01:44 IST, Repair-corrupted + Studio
+Export download) + independent pytest twice on e4a2bd3 + curl status checks; (c) the mobile code audit (14 Nov 2026,
+10:49–11:05 IST) — no visual 390px render was achieved (three routes failed), so the mobile findings are code-level
+evidence from the deployed build, not visual verdicts; (d) the Master Audit Rounds 5-8 consolidated report (14 Nov 2026,
+Round 8 00:44–01:15 IST, same build e4a2bd3, same night as the v13 retest) + Muse's independent code checks on
+e4a2bd3 (admin fallback removed, pdf_runtime.js source vs deployed stub, ADMIN_OWNER_EMAILS both accounts, set-
+plan/reset-usage + sessions endpoints exist in code + UI); (e) Muse's live v14 retest (14 Nov 2026, 20:44–21:03 IST,
+INCOMPLETE — browser died at first upload in 3 sessions; no-upload round as Guest) + HTTP re-verification of the
+deployed assets (21:30 IST) + Codex's v14 FINAL-REPORT (verdict HOLD, suite 449 passed twice — claimed, not
+independently verified from here) and his four progress updates. How to read it: P0 = launch blocker. P1 = high, must fix
+before or at launch. P2 = must fix, can trail launch only if the owner says so. to_verify = needs one more check.
+not_tested = never exercised. 'Latest evidence' is the newest observation for that item.
+CORRECTIONS in this edition (read first): the v14 list said 138 open / 65 fixed / 21 to_verify. The live v14 retest verified
+three fixes (IDs 208, 209, 215) and moved ID 168 to to_verify, so the correct counts before the new item are 134 open / 68
+fixed / 22 to_verify. One new item (ID 229, upload crash) is added, giving 227 items: 135 open / 68 fixed / 22 to_verify / 2\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 16 of 38
+not_tested. The v14 prompt's Phase 6 READY-or-HOLD rule is SUPERSEDED by the owner's standing instruction (17:35
+IST, 14 Nov 2026, repeated twice after): Codex must NOT reply until the app is 100% (100000%) deployment-ready —
+keep looping analyse-debug-implement-browser-test until he himself is satisfied; no interim reports, no HOLD verdict. Also
+corrected: the v14 list's section headers said P1 open 46 / P2 open 83, but the tables actually held 45 / 84 (the total open,
+138, was correct). This edition's headers are machine-counted from the tables.
+What the v13 round proved (evidence summary)
+Pytest on e4a2bd3 (Muse, independent): 430 passed, 2 warnings, TWICE (65.08 s, 54.30 s). Codex claimed 428
+passed twice with one warning each — the suite fully passes either way, but Codex's count is understated by 2.
+Live (browser, signed-in Pro): 38 VERIFIED (37 tools + Studio Export, downloads content-checked with PyMuPDF:
+Repair corrupted → 10 pages readable; Studio Export → 10 pages readable; Protect genuinely encrypted; Unlock
+genuinely decrypted), 2 PARTIAL (Cloud Import Drive /view; Studio Earlier/Later buttons), 6 FALSE (Merge local,
+Merge 60 MB, Translate, Brief 69-page, Cloud Import direct-download, Studio retention).
+Fixed live (16 flips): 47 drag-reorder, 49 Studio Export, 54 /pricing+/plans, 130 /settings renders real page, 132 four
+routes, 133 /settings URL, 136 quota (100/day gone, 10/day consistent), 149 Photo Merge (real 2×2 grid), 154 stale
+₹ 750/$299 gone, 161 Compress 69-page works, 165 Photo Resize (exactly 350×450), 170 Guest badge gone, 171
+footer on every page, 175 photo lower sections, 180 /developers v2.0 gone, 181 dead slugs redirect.
+Regressions (3): Merge 60 MB stuck at 40% (v11 merged 769 pages fine), Merge local runtime error (v13 'offline
+workers' claim false live), Studio retention stale restore (v11 fix lost).
+Cashfree changed: checkout now OPENS to the sandbox with correct amounts (was 503 'Payments are temporarily
+unavailable') — but it is still sandbox with placeholder merchant 'testMerchantName' and phone '+91 9999999999', so
+no real payment is possible.
+Mobile: no visual 390px render from the laptop (three routes failed — see ID 214). Code audit of the deployed build
+found ID 222 (P1 — no Log In / Sign Up in the topbar at ≤480px) and ID 221 (feedback dismiss × exists in code, never
+seen live). Visual phone checks still need the owner's phone.
+What the Master Audit Round 8 changed (14 Nov 2026, same build, same night)
+The Master Audit Rounds 5-8 consolidated report (Round 8: 00:44–01:15 IST, build e4a2bd3, test account
+k5mmx3@mail.instinct.com) tested the SAME build on the SAME night as Muse's v13 retest, so its findings are directly
+comparable — and where the two rounds disagree, it is a real conflict, not build drift.
+Verdict: NOT READY — one launch blocker. Payments fixed end-to-end (sandbox), the server engine passes 36/36
+with deep-checked outputs, live AI works — but every local (browser-side) PDF operation crashes instantly (R8-F1 = ID
+206, root cause pinned: deployed stub vs source). Fix R8-F1 before launch; everything else is secondary.
+Checkout e2e PROVEN (R8): full Cashfree sandbox purchase (Student Pro, simulator OTP, "Payment Succeeded!",
+tier flipped live, verified 3×). ID 98 now stands only on the PROD side. The audit account is now Student Pro (sandbox,
+no real money).
+Translate CONFLICT: Muse v13 got 503×2 (EN→Spanish); R8 got a perfect Hindi render — same build, same night.
+ID 1 stays open; test both languages.
+Cloud Import distinction: the MODAL (HTTPS path) works (R8); the direct-download FORM fails (Muse v13); the
+owner's Drive link is still untested by either round. ID 4 stays open.
+Admin code: fallback REMOVED in code (verified by Muse in e4a2bd3: _required_admin_setting raises if unset).
+Rotation + history purge still owed. ID 101 stays open (P0), narrowed scope.
+Admin features EXIST in code + UI (verified by Muse in e4a2bd3): set-plan/reset-usage endpoints + buttons, admin
+sessions list + logout-others, ADMIN_OWNER_EMAILS = both accounts. IDs 202, 203, 204 move to to_verify — they
+need a LIVE admin check, not a rebuild.
+Audit claims fixed (to_verify — verify live, do not take on faith): Server Mode toggle (F2 → ID 186), exam resizer
+local (F4 → ID 187), Mask Aadhaar PNG (→ ID 188), tablet double header (F10 → ID 189), mobile pill over CTA (F11\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 17 of 38
+→ ID 190), ₹ 250 labels (F17/F20 → ID 192), sign-out stale identity (F34 → IDs 197, 198), duplicate Sanitize buttons
+(F35 → ID 129).
+Verified fixed by two independent observations: redeploy persistence (ID 93 — account + API key survived the
+12:41 AM redeploy), merge-photos grid (ID 191 — exact 2400×1800 inputs, true 2×2), photo compress edited targets
+(ID 194 — 50 KB → 48.8 KB).
+New items (IDs 223–228): API keys gating vs copy (223, P1), photo compress default KB inert (224), repair raw
+pikepdf error (225), R8-F5 nav/404 nits + translate text layer (226), sign-pdf modal + navigate (227), daily checkout
+probe (228).
+Audit's viewport matrix: ALL PASS (390/820/1366/1920, screenshots) — but no physical device check; the owner's
+phone is still needed for IDs 214, 221, 222.
+New owner questions (audit Q1–Q7): API keys for everyone or ₹ 299-only? Is 'Cyber Cafe' retired? Guest quota — fix
+first or leave for launch? /dashboard redirect or footer link? Move mail to SES? TOTP for admin? 24h purge of saved
+Studio/AI docs? (See Owner Decisions.)
+Audit account state: k5mmx3@mail.instinct.com is now Student Pro (sandbox purchase, no real money) and holds
+one live API key from the R8-F2 gating test (harmless, revocable from Settings > API Keys). Do not change it; note it.
+What the v14 live retest changed (14 Nov 2026 evening — INCOMPLETE round)
+The owner deployed the v14 build (app.js v14, footer v14.0.1) via SCP and asked Muse to live-retest it. The round ran
+20:44–21:03 IST and is INCOMPLETE — the browser died at the first file upload in 3 consecutive sessions (2 cloud + the
+owner's Windows Chrome), so NO upload-dependent test ran at all (no file ever uploaded, no tool run started, no download
+obtained). A no-upload round (Guest session) verified the non-upload items. Full interim report: paperplane-live-retest-v14-
+2026-11-14.md.
+ID 206 — STILL BROKEN LIVE (the headline). The deployed pdf_runtime.js?v=14 is STILL the 1,402-byte stub:
+identical file across ?v=13, ?v=14 and a fresh cache-busting query (md5 a2cc693d8102cd9db553c81b9200d9d9), zero
+occurrences of transformLocalPdf, Last-Modified: Fri, 13 Nov 2026 05:15:37 GMT. The cache key was bumped
+v13→v14 but the served file content did NOT change. Codex's fix (cache-key bump + local smoke test) does not reach
+the live server — the DEPLOY PIPELINE is the root cause now, not the version string. Re-verified 21:30 IST,
+unchanged. This is the #1 fix for v15: find why the live server serves the stub (build step? deploy script? proxy/CDN
+cache? wrong file copied?) and make the deployed asset the real 2,581-byte file, then prove it by HTTP (size +
+transformLocalPdf present) AND by a live local Merge.
+ID 229 — NEW P0: file upload kills the browser (3 sessions). First granted-file upload on /merge-pdf killed the
+browser in 3 consecutive sessions (2 cloud, 1 device/real Chrome). Cause undetermined: either the file-transfer
+mechanism or the site's v14 upload path itself. The discriminating test is a native-picker upload (owner takeover —
+offered, answer pending). If the site's upload handler is the cause, it is a launch blocker: upload is the entry point of
+every tool. Note the v14 change in this area: "Upload selection and drop now wait for initial account restoration" (ID 168
+fix) — investigate whether that change broke file selection.
+Verified fixed live (3 flips): ID 208 (Terms §4 vs pricing — one-time/no-renewal everywhere), ID 209 (stale 'CYBER
+CAFÉ'/'Pay-As-You-Go' names gone from pricing), ID 215 (no API badge in the command palette).
+ID 168 → to_verify: one Guest page load (/compress-pdf) showed NO wrong-default flash at 0s/5s/10s (only transient
+"Checking usage…"/"Checking plan…" placeholders, resolved by ~5s). Signed-in multi-page check still owed.
+ID 153 stays open: Tool Desk "44 tools available" and sections sum to 44, but the sidebar suite badges sum to 45
+(7+13+8+13+4) and marketing copy says "41 focused tools" — three totals on one page.
+Guest vs Pro differences observed: this round's no-upload browser was Guest ("Guest Explorer / Free", quota
+"Operations Today 0 / 10") — the Pro session was absent in that browser. As Guest: NO feedback pill anywhere in ~7
+minutes (IDs 128/147 open — in v13, signed-in Pro saw the pill on tool pages); footer shows NO app version (signed-in
+sessions showed v14.0.1); Pay ₹ 299 opens a "Create an Account" dialog, not a checkout (ID 98 — signed-in checkout
+still untested); /settings renders but API Keys gating as Pro is unverified (ID 223). The Pro account (other browser)
+showed quota "5 / 10 today" — a Legacy Pro account with a 10/day cap, while Settings says paid plans have "no daily
+operation cap". Unresolved.\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 18 of 38
+Codex's v14 FINAL-REPORT (verdict HOLD): suite 449 passed twice (claimed — not independently verifiable from
+here; the v14 code is not on GitHub), browser rounds 28–29 passed, 44-operation content audit 40 passed / 3
+unavailable (provider/tool absent) / 1 private URL blocked. Remaining per Codex: ID 228 (daily sandbox checkout
+probe), ID 4 exact Drive link, IDs 1–2 live-provider checks, remaining P1/P2 + do-not-regress verification, Gitleaks CI
+scan not run (unavailable locally). Owner steps: rotate the compromised admin credential, real production payment
+check + entitlement persistence. The reviewed history mirror (paperplane-redacted-v14-reviewed.git) is unchanged and
+not ready to publish (excludes uncommitted changes); the BAD mirror (paperplane-redacted-v14.git) still contains the
+historical secret and Codex's deletion was blocked by policy — the owner must delete it himself from his PC.
+What the live retest could NOT check (all still open): the live behaviour of IDs 1, 2, 3, 4, 102, 223, 224, 225, 210 and
+98 (signed-in) — all need the upload path working (takeover) or a signed-in session.
+P0 — LAUNCH BLOCKERS (10 open)
+ID 1 — AI Translate fails with HTTP 500
+Area: AI · Status: open · Source: v5 retest · 7 Nov 2026
+Latest evidence: UPDATE 14 Nov 2026 (live v13 retest, signed-in Pro, e4a2bd3, 00:45-01:42 IST): STILL FALSE - 2
+attempts, EN->Spanish, both 'The translation provider is unavailable (upstream HTTP 503). Please retry later.' 5th
+consecutive round of failure (v8, v9, v10, v11, v13). The AI provider connection itself was reachable in the v11 admin check
+(Test Connection 6742 ms), so the failure is in the translate path, not the connection. CONFLICT (Master Audit R8, same
+build, same night): Translate to Hindi produced a PERFECT Devanagari render. Both observations are on e4a2bd3 within
+the same hour. Test BOTH languages on the same file — do not mark fixed on one language alone.
+ID 2 — Executive Brief / AI Summarize fail on the 69-page document
+Area: AI · Status: open · Source: v5 retest · 7 Nov 2026
+Latest evidence: UPDATE 14 Nov 2026 (live v13 retest, e4a2bd3): small-file Summarize VERIFIED again (executive
+briefing, citation pills Page 1-10, brief PDF downloaded). 69-page file STILL FALSE - 2 attempts: attempt 1 'AI service
+returned an empty response'; attempt 2 raw '502 Bad Gateway 502 Bad Gateway nginx/1.27.5' leaked to the user. 6th
+round of failure on the 69-page file.
+ID 3 — REGRESSION v13: Studio page deletions do not survive reload (stale restore)
+Area: Studio · Status: open · Source: live v13 retest · 14 Nov 2026
+Latest evidence: REOPENED from verified_fixed (v11). Live v13 retest (signed-in Pro, e4a2bd3, 00:45-01:42 IST): deleted
+page 69 (PAGES 69->68, '1 page(s) deleted. Undo'), reloaded, waited 30 s - the document returned as PAGES (69) with
+the ORIGINAL content, and the page order had reverted to the state after the first drag. The last reorder AND the deletion
+were both lost. The restore is STALE - recent edits are dropped across reload. v11 had verified the fix (delete 69->68
+survives reload after ~15 s restore); v13 regressed it.
+ID 4 — Cloud Import from the owner's Drive link is unreliable
+Area: Cloud Import · Status: open · Source: v5 retest · 7 Nov 2026
+Latest evidence: UPDATE 14 Nov 2026 (live v13 retest, e4a2bd3): STILL FALSE - direct-download form with a valid public
+PDF (W3C dummy.pdf) fails twice: 'Cloud file sync failed. Check that the link is public and points directly to a PDF file.' A
+Google Drive /view link is recognised and returns a Drive-specific error ('Google Drive could not be reached...') but no real
+public Drive file was available, so a successful Drive import is still NOT verified. DISTINCTION (Master Audit R8, same
+build): the Cloud Import MODAL (HTTPS path) WORKS — a public HTTPS PDF imported into the merge list (toast
+'Imported dummy.pdf - 0.01MB - 1 pages'). The direct-download FORM fails (above). The owner's Drive /view link is still
+untested by either round.
+ID 98 — Pro checkout is Cashfree sandbox in production — anyone can get Pro free
+Area: Site · Status: open · Source: Tab full re-test · 10 Nov 2026\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 19 of 38
+Latest evidence: UPDATE 14 Nov 2026 (live v13 retest, e4a2bd3): CHANGED - checkout now OPENS. Pay Rs 19 / Rs 49
+/ Rs 299 all open https://sandbox.cashfree.com/checkout/ with the correct amounts (initiation only, nothing paid), merchant
+'testMerchantName', phone '+91 9999999999', UPI QR + Card + Wallets + Net Banking + Paylater. The v13 commit
+message says 'preserve Cashfree test sandbox mode' - the live site is still SANDBOX with placeholder merchant values,
+so no real payment is possible. The old 503 'Payments are temporarily unavailable' is gone, but the P0 stands: real PROD
+keys + one small real payment by the owner are still owed. PROVEN END-TO-END (Master Audit R8, same build): the full
+sandbox purchase works — Pay Rs 49 Student Pro > Cashfree sandbox drop > simulator OTP > SUCCESS > 'Payment
+Succeeded! Welcome to the Student & Educator plan' modal; the account flipped to tier=student_pro, is_pro=true,
+remaining=Unlimited, verified three times via /api/billing/status. The audit account k5mmx3@mail.instinct.com is now
+Student Pro via this sandbox purchase (no real money). The P0 now stands ONLY on the PROD side: real PROD keys +
+one small real payment by the owner.
+ID 101 — Admin secret code is the hardcoded public repo default (server.py:184) — fail closed +
+rotate
+Area: Code · Status: open · Source: live v9 retest · 10 Nov 2026
+Latest evidence: UPDATE (Master Audit re-verified at c480aa6, 13 Nov 2026): server.py line 183 still reads
+os.getenv('PAPERPLANE_ADMIN_CODE', '...') with the code as fallback default; public commit 8dd50e6 still fetchable
+(history not purged). Fix requires: rotate PAPERPLANE_ADMIN_CODE and PAPERPLANE_ADMIN_KEY in AWS, remove
+the fallback so the app refuses to start when unset, rewrite git history (git filter-repo) to purge the code and force-push, add
+gitleaks to CI. UPDATE 14 Nov 2026: NOT re-tested in the v13 round - admin was excluded by the owner (OTP needed).
+Rotation remains urgent and unconfirmed. CODE FIX CONFIRMED (Muse, e4a2bd3, 14 Nov 2026): server.py now reads
+the code and key through _required_admin_setting(), which raises RuntimeError if the env var is unset — the app refuses
+to start without them. The hardcoded fallback is GONE. What remains: rotation of the code/key in AWS (owner) + git
+history purge (commit 8dd50e6 still fetchable) + gitleaks in CI.
+ID 102 — Feedback widget submission accepted but never reaches the admin list — write/read hit
+different databases
+Area: Site · Status: open · Source: live v9 retest · 10 Nov 2026
+Latest evidence: UPDATE 14 Nov 2026 (live v13 retest, e4a2bd3): the /feedback widget OPENS (5 stars,
+General/Idea/Bug, message, optional email, 'Send Feedback ->') but nothing was submitted this round, so delivery-to-
+admin was NOT re-verified. The floating pill is present on tool pages and NOT visible on /feedback itself. Stays open.
+ID 206 — Merge local processing broken: transformLocalPdf is not a function
+Area: Tools · Status: open · Source: live v13 retest · 14 Nov 2026
+Latest evidence: Live v13 retest (signed-in Pro, e4a2bd3): Merge with local processing ON fails with 'Processing failed -
+window.PaperplanePdfRuntime.transformLocalPdf is not a function'. The v13 'offline workers' hardening claim is FALSE
+live, and it contradicts the FAQ promise that Merge can run in-browser. Server-mode Merge of small files works (10+10 ->
+13.3 KB verified). ROOT CAUSE PINNED (Master Audit R8-F1 + Muse code check, 14 Nov 2026): the deployed
+pdf_runtime.js?v=13 is a 1402-byte stub that only exposes ensurePdfJs/ensurePdfLib/ensurePdfTools, while app.js v=3.6.8
+calls window.PaperplanePdfRuntime.transformLocalPdf(...). BUT the source (e4a2bd3, web/assets/pdf_runtime.js, 2581
+bytes) DOES export transformLocalPdf (defined line 38, exported line 70) and app.js calls it (line 4995). So this is a
+BUILD/DEPLOY discrepancy: the source is fine, the deployed asset is a stub. This is the audit's single launch blocker.
+UPDATE 14 Nov 2026 (live v14 retest, evening — HTTP, re-verified 21:30 IST): STILL THE STUB LIVE. The deployed
+pdf_runtime.js?v=14 is the same 1,402-byte file as v13 (identical md5 across ?v=13, ?v=14 and a fresh query string;
+Last-Modified: Fri, 13 Nov 2026 05:15:37 GMT; zero transformLocalPdf). Codex's v14 fix — bumping the cache key
+to v14 + a local merge smoke test — does NOT change what the live server serves. The root cause is now the DEPLOY
+PIPELINE, not the version string: find why the live server serves the stub (build step? deploy script copying the wrong file?
+proxy/CDN cache ignoring the query string?) and make the deployed asset the real 2,581-byte file. Prove it by HTTP (size
+2,581 + transformLocalPdf present) AND by a live local Merge in the browser. The browser could not confirm the user-
+facing error this round (upload crash, ID 229) — but the HTTP evidence is conclusive on the file content.\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 20 of 38
+ID 207 — REGRESSION v13: Merge 60 MB + 10-page stuck at 40% 'Dispatching to worker pool...'
+Area: Tools · Status: open · Source: live v13 retest · 14 Nov 2026
+Latest evidence: Live v13 retest (signed-in Pro, e4a2bd3): Merge 60 MB (large_60mb.pdf 57.84 MB) + 10-page file, server
+mode - stuck at 40% 'Dispatching to worker pool...' with Run disabled, no error, no cancel. Attempt 1: 3+ min. Attempt 2
+(01:38 IST): still 40% after 2+ min. Identical failure twice. v11 merged 60 MB + 10-page into 769 correct pages - this is a
+v13 regression.
+ID 229 — NEW P0 (v15): file upload kills the browser — 3 consecutive sessions, no file ever
+uploaded
+Area: Tools · Status: open · Source: live v14 retest · 14 Nov 2026
+Latest evidence: Live v14 retest (14 Nov 2026 evening, 20:46–20:53 IST): the first granted-file upload on /merge-pdf killed
+the browser in THREE consecutive sessions — two cloud sessions and the owner's Windows Chrome (device browser).
+Each time: the page loaded fine, the account was signed in (mdhammad869@gmail.com, Legacy Pro, quota "5 / 10
+today"), the local-processing toggle was checked and persisted, Files showed 0 — then the upload attempt returned
+"outcome is unknown" and the browser became unavailable. No file was ever confirmed uploaded, no Merge run started,
+no download obtained. Cause UNDETERMINED: either the file-transfer mechanism in these browser environments, or the
+site's v14 upload path itself (note the v14 change: "Upload selection and drop now wait for initial account restoration" — ID
+168 fix — investigate whether that change broke file selection). The discriminating test is a native-picker upload by the
+owner (browser takeover — offered, answer pending). If the site's upload handler is the cause, this is a launch blocker: file
+upload is the entry point of every tool. Fix: reproduce with a real browser + native picker, find the breaking handler (file
+input change event? worker init on select? account-restoration gate?), fix it, and prove a full upload→run→download cycle
+live.
+P1 — HIGH (open: 44)
+ID Title Area Latest evidence
+5 Summary citations are
+nondeterministic
+AI Three runs on the same document: 12 text citations / 12 chips (match), then HTTP 429
+with only 6/6 on retry, then 10 in-text tokens vs 12 chips. The literal "cited as [Page X]"
+template leak is fixed, but format and coverage still vary per run. UPDATE 8 Nov …
+UPDATE 14 Nov 2026 (v13): one small-file brief run showed consistent citation pills
+(Page 1-10) and 'Verified pages: Page 1...Page 10' - but nondeterminism needs multiple
+runs to close; stays open.
+6 False author claim is never
+corrected
+AI Asked whether the document "was written by Albert Einstein", the page count is
+corrected (69, not 100) but the author claim is ignored — 4th round running. The guard
+still checks embedded metadata only, which is blank on the test file. UPDATE 8 Nov
+2026: 5th …
+8 Remove Pages times out on first
+attempt (~3 min)
+Tools First attempt timed out after about 3 minutes; the retry succeeded (5.23 MB output).
+UPDATE 8 Nov 2026 (v6 verification): not covered in v6. UPDATE 9 Nov 2026 (live v8
+round): Remove Pages (page 2, 10-page file) succeeded on the first attempt — …
+UPDATE 14 Nov 2026 (v13): Remove Pages succeeded on the FIRST attempt (4.3 KB
+output) - the timeout flakiness did not reproduce this round; needs more runs to close.
+9 Smart Metadata: 502 on first
+attempt, wrong DOCUMENT
+DATE
+Tools First attempt returned 502 (retry succeeded). The viewer shows DOCUMENT DATE
+"3.3.1" — a section number, not a date — and claims "System health: OK 100%" despite
+the failed first run. UPDATE 8 Nov 2026: DOCUMENT DATE "3.3.1" confirmed again in
+the live round. …
+10 Studio Extract produces no
+automatic download
+Studio Single page: only a toast, no download or link within 10s. Multi-page: an 82 KB PDF
+downloaded only via the fallback link — the automatic download never fires. The post-
+fetch a.click() mechanism is unchanged in code. UPDATE 8 Nov 2026: single-page
+Extract is …
+11 Canvas is blank at 0s on a page
+jump
+Studio Jump to page 69: blank white canvas at 0s, renders by ~5s. Return jump to page 1
+briefly shows a page-18 placeholder. Prune function unchanged; the render fix is a retry
+loop. UPDATE 8 Nov 2026: BETTER — page 1 renders within 5s; jumps to 5, 69, 1 and
+…\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 21 of 38
+ID Title Area Latest evidence
+12 Chat answers render raw
+markdown and [[Page 1]] tokens
+AI Answers show literal asterisks ("[Page 1]:") and raw LaTeX, plus double-bracket "[[Page
+1]]" tokens instead of clean citation chips. UPDATE 8 Nov 2026: still present — [Page N]
++ [[Page N]] duplication in chat answers; summary intros say "spanning 13 … UPDATE
+14 Nov 2026 (v13): one AI Chat answer was clean with citation pills and no raw tokens -
+single answer only; stays open.
+13 Studio page delete is slow (~15–
+20s)
+Studio The PAGES count takes ~15–20s to update after a delete (success toast + Undo do
+appear). A full document reload sits underneath a one-page delete. UPDATE 8 Nov
+2026: now ~60–90s for the one delete that applied; the page-69 delete never applied at
+all (see …
+14 Annotate and Redact contradict
+each other on the same keyword
+Tools Same file, same keyword "Important": Annotate reports success, Redact says "No
+matching text was found". One of the two text searches is wrong. UPDATE 8 Nov 2026
+(v6 verification): NOT TESTED — same document + keyword not run on both paths in
+v6.
+15 Sticky top-nav pill overlaps tool-
+page headers
+Site When scrolled, the sticky pill covers headers on tool pages (seen on /ocr-pdf and
+/remove-pages). A Grayscale card description is also cut mid-word. UPDATE 8 Nov
+2026: worse at ~1104px — the pill overlaps H1s, dropzone headings and file lists on
+essentially …
+16 /developers still has no
+Swagger/ReDoc links (3rd
+round)
+Site The page shows an endpoints table and code snippets but no working spec links; the
+footer "API Docs" link self-loops to the same page. Code still points links at /docs and
+/redoc and strips them when docs are disabled. UPDATE 8 Nov 2026: still no …
+30 Mobile Studio is unusable (owner
+screenshot 4)
+Mobile Owner screenshot 4 (phone, dark theme): PAGES (4) with Split/Import, thumbnails, a
+large banner ("Studio PDF, page, deletes, reorder, and duplicates save in this
+browser...") with "Clear saved work" that eats half the screen, then toolbar rows — Undo
+/ Redo / …
+32 Cloud Import modal pops up
+unexpectedly on tool dropzones
+Cloud
+Import
+The Cloud Import modal popped up unexpectedly 3 times when uploading files to tool
+dropzones (AI Summarize, Compare PDF, Edit PDF) — a separate flakiness bug. The
+modal placeholder also reads "https://drive.google.com/file/d/...or https://dropbox.com"
+…
+34 AI Docs page layout shifts after
+Executive Summary and does
+not fit
+Site Screenshot 1 is the layout the owner wants (chat left, Smart Metadata + Executive
+Summarizer panels right). Screenshot 2: after using Executive Summary the same page
+shifts/breaks — chat column narrower, right panels wider and cut off at the right edge, …
+UPDATE 14 Nov 2026 (v13): AI Intelligence view still shows a load-state race (empty
+state while the document is already loaded in the DOM) - see ID 218.
+42 DECISION: redesign all views
+after the reference design
+(screenshot 5)
+Site Owner decision (8 Nov 2026, screenshot 5): apply the clean reference editor design to
+ALL views — mobile AND laptop AND every view — not a phone-only skin. Top bar
+(menu, logo, view pill, account), Undo / Redo / Save / Export row, single icon tool row,
+clean …
+45 Studio layout: remove save
+banner, shrink tool buttons to 3–
+4 rows, footer hidden until scroll
+(all views)
+Studio Owner screenshots 21:54 IST (laptop, dark theme, /studio): (1) The banner 'PDF and
+page edits save here. Export annotations to keep them.' + 'Clear saved work' takes a full
+row of space — REMOVE it entirely. (2) The tool buttons below it (Open PDF / New
+Page …
+52 AI Docs empty state: 'page
+citations.' placeholder fragment
+half-hidden under the chat
+header
+AI AI Docs empty state (after clearing the loaded PDF with the 'Clear' button): mostly fits —
+no horizontal scrollbar, Upload a PDF dropzone, Smart Metadata and Executive
+Summarizer panels all fit, no footer inside the page. One real defect: in the AI Chat card,
+… UPDATE 14 Nov 2026 (v13): AI view still shows the empty state ('What can I help
+with?' / 'Upload a PDF') while the DOM already lists the loaded document - see ID 218.
+53 Studio header breaks on scroll:
+toolbar/Export cut off,
+breadcrumb truncated, PAGES
+panel vanishes
+Studio Owner's screenshot (10 Nov 2026, /studio, signed-in Pro, 67-page doc): the top toolbar /
+Export button appears cut off at the top edge, the breadcrumb reads 'Paperplane /
+Workspace / Advan…', the PAGES panel looks squeezed. Layout hunt (10:13–10:20
+IST, …
+60 Signup: new code silently
+cancels the old one, no notice
+Site Signup old code silently invalidated on resend (v7): create_email_otp deleted the old
+OTP row on resend, so the first code stopped working with no notice to the user. v8
+added the message 'This code may have been replaced by a newer one. Use the latest
+email, …
+61 OTP emails land in junk, sent
+from a personal Gmail address
+Site Signup OTP and login-notification emails arrive in the spam/junk folder, sent from a
+personal Gmail address shown as 'Paperplane PDF Security'
+mdhammad2906@gmail.com. Observed on every OTP mail in both audit rounds
+(Instinct) and re-confirmed in the final …\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 22 of 38
+ID Title Area Latest evidence
+62 Studio Export + zoom controls
+vanish (0x0) after mobile/desktop
+window resize
+Studio Confirmed by the external audit (Instinct round 1 + final sweep F4, 9 Nov 2026). A fresh
+desktop visit to Studio at 1366x768 shows the Export PDF button and zoom controls
+normally (120x36 and 36x34 px, with and without a document). But if the viewport
+changes …
+64 Forms 'Add Field' is unreachable
+— its button is display:none;
+visible button runs form fill
+Tools Confirmed by the external audit (Instinct round 1 + final sweep F9, 9 Nov 2026) with
+screenshots + code inspection at commit e8ef0fa. In Studio's Forms dialog, the 'Add
+Field' tab lets you type a field name, type, value and position — but the footer still …
+69 CONTESTED: 'Clear Studio
+PDF' button — final sweep says
+it does not clear; Muse's check
+says it works
+Studio CONTESTED — two live observations disagree. Final sweep (9 Nov 2026, mobile):
+Settings > Storage & Privacy > 'Clear Studio PDF and page position' does NOT clear the
+Studio document — it wipes localStorage keys, but the PDF persists in sessionStorage
+…
+70 Page Organizer: tool page offers
+NO reorder controls; output
+unchanged but reports success
+Tools VERIFIED by Muse live + content check (9 Nov 2026, 13:06–13:10 IST) — and worse
+than the external report. The external audit (Instinct H3) said the Page Organizer run
+returns a success card but the output keeps the original page order (job … UPDATE 14
+Nov 2026 (v13): Organize output order DID reverse correctly (10->1, 6.4 KB) - the
+'output unchanged' half is refuted; which reorder controls were used was not recorded,
+so the 'no reorder controls' half stays open.
+94 Developer API rejects its own
+freshly generated keys with 401
+Code Round 4 fresh audit (2026-11-10): the Developer plan (Rs 750) was activated via
+Cashfree sandbox (no real payment), two API keys were generated fresh, and BOTH
+were rejected with 401 when used — each key tested twice. The paid Developer tier's
+core feature …
+97 Password-reset emails never
+arrive
+Site Password-reset emails never arrive. Code (v8): email_service.py — SMTP_ENABLED
+defaults to 'false'; send_password_reset_email uses the DEFAULT
+allow_simulated=True, so it logs 'Email dispatch simulated' and returns success when no
+provider accepts the …
+103 Admin session ends after ~75
+min despite a 4-hour TTL in code
+Code Live v9 round 10 Nov 2026: admin login at 22:21 IST (step 1 + OTP, first try both); the
+console was active at 23:36 IST ('Session Active') but had returned to the step-1 login
+form when checked right after — about 75 minutes after login. Code (HEAD 1596e5d):
+…
+106 Intermittent first-attempt 502s
+and 75% timeout stalls (single
+jobs, not concurrent)
+Code Intermittent first-attempt 502s and 75% timeout stalls. Muse's v9 round (22:23-23:35
+IST): Remove Pages, PDF to Text and Sign failed on first attempt with '502 Bad
+Gateway 502 Bad Gateway nginx/1.27.5' (retries succeeded); PDF to Excel and
+Metadata stalled at … UPDATE 14 Nov 2026 (v13): 502s still occur - AI Brief on the 69-
+page file returned a raw '502 Bad Gateway' to the user (ID 2). The single-job 502 class is
+alive.
+110 SEO heading off-by-one on 27
+tool pages
+Site Deep analysis (2026-11-10, desktop width): 27 tool pages show the PREVIOUS tool's
+SEO heading (off-by-one). Root cause: syncSeoContent in app.js (~1458) never clears
+the old SEO block; the race guard drops stale responses. Whether it self-corrects after
+…
+114 Studio restores a previous
+account's document for a new
+account; Clear Studio PDF does
+nothing
+Studio Round 5 F5: on a brand-new account, Studio opened with a leftover Round 4 document
+('R4B-Page 2 of 5') pulled from browser storage, and later toasted 'Restored 57-
+test5.pdf'. Uploading a fresh 4-page PDF did not replace it (pager still 1/5). Clicking
+'Clear … UPDATE 14 Nov 2026 (v13): Studio retention FAILED again with a stale
+restore (ID 3 reopened) - same family, different mechanism.
+117 Digital Signatures Verify shows
+false signatures / TAMPERING
+DETECTED on an unsigned file
+Tools Round 5 F4: Digital Signatures Verify gives a result that looks real ("signature is
+cryptographically valid") for a file that was never signed — Muse traced it to a regex-
+based 'signature detection' over raw PDF bytes that matches text containing … UPDATE
+14 Nov 2026: not re-tested in the v13 round (no signature tests run). The v10 round
+verified the Verify part; the Apply part (no downloadable validly-signed PDF) stays open.
+118 Admin lockout bypassable via
+spoofed X-Forwarded-For
+Code e2e report item 104: IP keying trusts X-Forwarded-For. CODE (1596e5d): server.py:282
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts='*') — the app trusts X-
+Forwarded-For from ANY client, so an attacker can rotate the header to appear as a new
+IP on …
+135 Wrong per-tool limits text names
+Merge, truncated
+Tools On /summarize-pdf and /mask-aadhaar-card-online the accessible limits line reads: 'PDF
+files up to 50 MB each on Free and 500 MB each on paid plans · Merge supports up to
+100 PDF file…' — names Merge (the wrong tool) and is truncated mid-phrase. The
+visible …\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 23 of 38
+ID Title Area Latest evidence
+137 Theme inconsistency —
+dark/light flip, AI Intelligence light
+Site The same URL / rendered dark on first load (12:27) and light on later loads (12:30+) with
+no deliberate theme change. Studio is dark; tool pages / AI Intelligence / /tool-desk are
+light. AI Intelligence renders light while the rest of the app is dark. …
+150 Server engine falsely rejects a
+common test PDF as encrypted
+Tools Server engine falsely rejects a common test PDF as encrypted. orimi pdf-test.pdf (plain,
+unprotected, opens fine in Chrome) is rejected in Merge ('Warning — Protected PDF
+Detected… password protected', twice) and Rotate ('Processing failed — This PDF is …
+151 Ads shown to a paid Pro account
++ placeholder AdSense ID
+Site Ads shown to a paid Pro account + placeholder AdSense ID. Home renders a
+'SPONSORED' house ad ('100% Private Browser Processing… Go Ad-Free for ₹ 19') —
+not a real Google ad — and it is VISIBLE while signed in as Pro, so updateBillingUI is
+not hiding ads for …
+152 Photo tools are server-only by
+design (briefing's browser-
+Canvas claim does not hold live)
+Tools Photo tools are server-only by design — briefing's browser-Canvas claim does not hold
+live. All photo tools show 'Local processing is unavailable… uses temporary server
+processing'. The '75% of routine tasks cost ₹ 0' story does not cover photos. [Source: …
+UPDATE 14 Nov 2026 (v13): photo tools ran and produced outputs, but local-vs-server
+processing was NOT discriminated this round - the conflict stands.
+184 All guests share one 10-ops/day
+quota (shared proxy IP
+172.18.0.4)
+Site Master Audit #3: guest quota is keyed by client IP, but every visitor arrives as 172.18.0.4
+(Docker proxy); PAPERPLANE_TRUSTED_PROXY_HOSTS defaults to 127.0.0.1,::1 so
+the app ignores X-Forwarded-For; the first 10 guest server ops of the day exhaust the
+quota …
+185 Tab freezes after local ops when
+navigating away (4/4 repro)
+Tools Master Audit #4: after any local browser-side op (merge/split/rotate/remove) completes,
+navigating away hangs the tab indefinitely — never recovers (waited 60s+); main thread
+never goes idle. Reproduced 4/4.
+210 Studio Organize Earlier/Later
+buttons are in the DOM but
+invisible and unclickable by
+mouse
+Studio Live v13 retest (e4a2bd3): the Earlier/Later buttons are in the DOM but invisible in every
+screenshot and clicks are refused as 'covered' twice - a mouse user cannot reach them.
+Alt+Right / Alt+Left shortcuts DO work both directions (~15-20 s async). Drag-reorder
+itself works via a held pointer drag (ID 47 fixed). [Source: live v13 retest · 14 Nov 2026]
+211 Server Mode / Local Processing
+toggle state is inconsistent
+across pages
+Tools Live v13 retest (e4a2bd3): the toggle is ON on some pages, OFF on others - the
+preference does not persist reliably. Its sidebar description says local processing is
+'Available for Merge, Split, Remove, Rotate' while Settings -> Storage & Privacy adds
+Page Organizer and the photo tools. Cross-ref IDs 148, 155, 186. [Source: live v13
+retest · 14 Nov 2026] UPDATE (Master Audit R8, 14 Nov 2026): the audit claims the
+toggle 'now persists off; server mode selectable' (F2) — but Muse's v13 live round the
+same night found the state inconsistent across pages. The cross-page persistence half
+stays open; see ID 186 (to_verify).
+214 Mobile view cannot be tested
+from the laptop browser (no
+390px render)
+Mobile Three routes tried and failed (2026-11-14): managed cloud browser viewport control
+(F12 rejected, Ctrl+Shift+I no DevTools, Ctrl++ no zoom, Alt+F no menu); local
+Chromium blocked at startup by the Hatch WebGL domain policy; Playwright + upstream
+Chromium 159 launches but EVERY navigation fails
+ERR_TUNNEL_CONNECTION_FAILED (Chromium cannot use the VM egress proxy;
+curl works). A code-level responsive audit of e4a2bd3 was done instead (see the Mobile
+addendum in the v13 retest report) - visual 390px render, touch targets and pill-vs-CTA
+overlap still need the owner's phone. [Source: mobile audit · 14 Nov 2026]
+222 No Log In / Sign Up in the topbar
+at ≤480px - sign-in depends
+entirely on the mobile drawer
+Site Code audit of e4a2bd3 (14 Nov 2026): at ≤480px .topbar-right { display:
+none !important; }, and .topbar-right holds 'View plans', 'Cloud', 'Log In'
+and 'Sign Up Free'. At 390px the topbar has NO sign-in entry point; signing in depends
+entirely on the mobile drawer (#mobile-menu-btn -> #sidebar.mobile-open). Whether the
+drawer shows Log In was not verifiable from code - needs one visual check on the
+phone. If the drawer lacks it, a phone guest cannot find Log In. [Source: mobile code
+audit · 14 Nov 2026]
+223 Developer API keys: Student Pro
+(Rs 49) gets a live key despite
+'INCLUDED WITH CYBER
+CAFE' banner — gating vs copy
+conflict
+Code Master Audit R8-F2 (14 Nov 2026, live v13 e4a2bd3): the /developers banner says
+'DEVELOPER API: INCLUDED WITH CYBER CAFE', but a Student Pro (Rs 49/mo)
+account can POST /api/developer/keys and gets 200 with a working live key. Bearer
+auth verified against /api/v1/account/usage (quota 10 calls/day, 3 AI/day, reset 00:00
+UTC). No plan called 'Cyber Cafe' exists on /pricing (Rs 299 is 'All-In-One Pro &
+Developer'); the page also says 'Integrate all 41 operations' vs 44 elsewhere; the POST
+ignored the name field ('Default API Key'). Owner decision needed (audit Q1): API keys
+for everyone, or Rs 299-only? Cross-ref IDs 94, 209, 153. [Source: Master Audit Rounds
+5-8 · 14 Nov 2026]\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 24 of 38
+P2 — MUST FIX (open: 81)
+ID Title Area Latest evidence
+38 Combobox truncation, progress-
+bar lag, guessed slugs 404
+Site Split combobox truncated: "Extract all 10 pages into individual PDF files (Z" ("(ZIP)" cut
+by the dropdown arrow). Exam Resizer preset combobox truncated: "SSC Exam Photo
+(3.5 × 4.5 cm, 20 KB - 50" ("KB)" cut). Progress-bar lag: on Exam Resizer, Flatten, Sign
+…
+40 Plan names, price formats and
+tool names inconsistent
+Site Same plan, several names: Student — "Student & Educator" vs "Student Pro" vs
+"Student & Educator Pro Tier"; Developer — "Developer API" vs "Developer API Tier
+( ₹ 750/mo)" vs "Developer Tier ( ₹ 750/mo)"; Free — "Free Sovereign Tier" vs "Free Tier"
+vs "FREE …
+41 PDF to Markdown flaky timeout
+(PARTIAL)
+Tools First attempt on the 69-page doc timed out ("Processing timed out." after ~3.5 min); retry
+succeeded in <60s (87.9 KB output). Flaky — needs a fix or a timeout budget, not a retry
+bandage. UPDATE 8 Nov 2026 (v6 verification): NOT TESTED — 69-page Markdown …
+43 Studio delete undo window is
+effectively unusable (10s vs 10–
+30s delete)
+Studio Delete takes 10–30s to apply, but the undo window is 10 seconds from when the
+deletion completes. First delete (page 69) showed no Undo banner at +30s and the
+toolbar Undo button was disabled; the second delete (page 4) did show '1 page(s)
+deleted. [Undo]'. …
+50 /developers copy defects: 'Copy
+Copy Snippet', 'keys(sk_live_...)'
+Site On /developers (/api-docs redirects there): the copy button reads 'Copy Copy Snippet'
+(duplicated word) and the intro reads '…microservices with dedicated API
+keys(sk_live_...).' — no space between 'keys' and '(sk_live_...)'. Both confirmed visually
+and in …
+51 Settings: 'Local or temporary
+processing' label wraps and clips
+in its pink box
+Site In Settings → Storage & Privacy, the left-nav label 'Local or temporary processing' wraps
+to two lines and sits tight/clipped at the bottom of its selected pink box. Layout hunt 9
+Nov 2026 (10:13–10:20 IST). The rest of the Settings modal fits (Account, Plans …
+55 Sidebar 'Operations Today' box
+cramped at 1104px — quota text
+wraps mid-phrase
+Site The quota WORDING was fixed (ID 46 — 'No daily operation cap · up to 500 MB/file'),
+but the sidebar BOX is cramped at ~1104px: the label 'Operations / Today' and the text
+'No daily operation cap · up to 500 MB/file' sit side-by-side in a narrow box and wrap …
+56 Per-platform 'Join Waitlist'
+buttons only highlight the card
+(no form/message)
+Site On /download, the per-platform 'Join Waitlist' buttons (Windows, macOS, Linux cards)
+do NOT open a form and show NO message or toast; each one only highlights/selects
+that platform card (orange border, orange-outlined button) and scrolls to it, replacing the
+…
+72 Mobile: 'View in Studio' from a
+scrolled result opens Studio mid-
+scroll, toolbar clipped
+Mobile Confirmed by the external audit (Instinct round 1 + final sweep, 9 Nov 2026) with
+screenshots. On mobile, after running a tool and scrolling down to the result card,
+tapping 'View in Studio' lands in Studio with the window still scrolled (measured scrollY
+323 …
+73 Export stalls after resize (pages
+4-5 hang 45+s on 'Loading');
+pager/canvas page desync
+Studio Confirmed by the external audit (final sweep N2 + F3/F4, 9 Nov 2026). (a) After a
+mobile-to-desktop resize, clicking Export stalls: pages 4-5 of 5 show 'Loading page...' for
+45+ seconds with no completion or error. (b) Studio restore pager/canvas desync: …
+75 Compare: .txt extension fixed,
+but temp hash filenames still leak
+inside the diff body
+Tools PARTIALLY FIXED — verified by Muse live + content check (9 Nov 2026, 13:06–13:10
+IST). The external audit (Instinct M4) said the Compare tool delivers a text diff
+mislabeled as a PDF with a temp-style filename. The extension half is FIXED: Muse's
+run on …
+77 Studio GEOMETRY/ORDER &
+OCR toolbar row clipped at
+390px; zoom select shows '16'
+Mobile Confirmed by the external audit (final sweep N4 + F6/F8, 9 Nov 2026). (a) The Studio
+GEOMETRY / ORDER & OCR toolbar row (Resize, Earlier, Later, OCR) is horizontally
+clipped at 390px — reachable only by scrolling the row, with no visual affordance that
+more …
+80 Mobile Settings panes overflow
+slightly; tab strip clipped at 390px
+Mobile Confirmed by the external audit (Instinct round 1 + final sweep F11/N6, 9 Nov 2026). On
+mobile, the Settings dialog's account pane measured about 372px wide starting 25px
+from the left, putting its right edge roughly 7px past the 390px viewport, and the …
+82 Tool 'details' sections lazy-load
+after first paint — brief 'Loading
+... details...' flash
+Site Confirmed by the external audit (Instinct round 1 §3.6 + final sweep F15, 9 Nov 2026).
+On several tool pages (compress, organize, OCR, remove pages, repair, rotate, split,
+scan, jpg-to-pdf) the description and how-to section renders a moment after the rest of
+…
+84 Escape closes ALL stacked
+modals at once; mobile drawer
+ignores Escape
+Site Confirmed by the external audit (final sweep F12 + N5, 9 Nov 2026). Two related
+Escape-key bugs: (a) Escape closes ALL stacked modals at once (minor UX); (b) the\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 25 of 38
+ID Title Area Latest evidence
+inverse new bug — the mobile left navigation drawer does NOT close on Escape (only
+outside tap), …
+85 Result-card buttons clipped on
+mobile; toast can cover the Run
+button / bottom nav
+Mobile Confirmed by the external audit (Instinct L2 + final sweep F13/F14, 9 Nov 2026). (a)
+Result-card action buttons are clipped on mobile — final sweep: IMPROVED on Merge
+(Download File and View in Studio fully visible) but an adjacent carousel card still …
+86 AI Docs polish: raw '[Page N]'
+markers, '1-' file prefix, empty
+chat area, clipped step chips
+AI Confirmed by the external audit (Instinct L1, 9 Nov 2026). AI Docs polish issues: (a)
+answers show raw '[Page 2]' citation markers as plain text instead of styled badges/links;
+(b) uploaded file names get a '1-' prefix (the original name is changed); (c) …
+87 Phone bottom bar labels are 9px
+— hard to read
+Mobile Reported by the external audit (Tab LOW 6, 9 Nov 2026). The labels in the phone
+bottom bar (Tool Desk, Studio, AI Docs, Waitlist) are 9px. The sidebar's section titles are
+10 to 10.5px. Both are hard to read on a phone in daylight. The bar itself is fine: the …
+92 Studio 'New Page' discards
+without confirmation and persists
+a zero-byte blank doc → error
+banner on reload
+Studio Found by Muse's browser in the live v8 round (signed-in Pro, 18:54–19:38 IST, app.js
+v3.6.8). In Studio there is no 'Clear Studio PDF' button (see ID 69) — the nearest action
+is the 'New Page' button ('New Blank Page / Close Document'). Clicking it discards …
+104 Cloud Import dialog sometimes
+auto-appears after an upload
+Tools Live v9 round 10 Nov 2026: the Cloud Import dialog sometimes auto-appeared after an
+upload (closed without effect). Minor UX wart — the dialog should only open when the
+user asks for Cloud Import. Noted in the v9 round report; needs one reproduction to …
+105 Smart Metadata document_date
+is '3.3.1' (a section number) and
+2 of 8 topics are header
+fragments
+Tools Live v9 round 10 Nov 2026: Smart Metadata export JSON (Muse content-checked) has
+title 'Introduction to Machine Learning Class Notes' (correct) but document_date '3.3.1'
+— a section number, not a date — and 2 of the 8 detected_topics are header fragments
+…
+107 Revenue dashboard labels
+sandbox test orders 'Verified
+paid' ( ₹ 3,750 gross)
+Site Admin dashboard 10 Nov 2026 (read-only): Revenue & Payouts shows VERIFIED
+GROSS PAYMENTS ₹ 3,750, ESTIMATED GATEWAY FEES (2.30%) ₹ 86.29,
+ESTIMATED NET PAYOUT ₹ 3,663.71, 9 Paid transactions ( ₹ 750/ ₹ 250), with the note
+'Verified paid INR orders, deduplicated by …
+109 24-hour deletion claim does not
+cover saved Studio/AI
+documents
+Site Round 5 F7: days after Round 4, AI Intelligence still held the Round 4 test file ('47-
+test2.pdf — Loaded & Ready') with its chat history, and Studio still restores the same 5-
+page document. Tool pages promise 'Automatically deleted within 24 hours.' If saved …
+111 Word to PDF fails when files
+from a previous tool are still in
+the uploader
+Tools Tab Complete Pre-Launch item 4 (tool 12): Word to PDF FAILED in the full pass with
+'Processing failed. This operation accepts at most 1 files.' — it had picked up the two
+Merge files from the earlier Merge run. A clean single-file run PASSED. So the uploader
+…
+112 HTML-to-PDF SSRF protection
+— verify with tests (guard exists
+in code)
+Code Round 5 F9: the HTML-to-PDF tool fetches arbitrary public URLs server-side (classic
+SSRF surface). The auditor did NOT probe internal addresses (check-only). CODE
+(1596e5d): the guard EXISTS — converters.py html_to_pdf() calls is_safe_url() before
+fetching, …
+115 Feedback pill overlaps mobile
+content and floats over modals
+Mobile Round 5 F10: the Feedback pill covers tool-card text on the mobile Tool Desk, covers
+the Studio zoom control, and stays visible on top of the sign-in and plan modals. The
+widget itself works end to end (rating, General/Idea/Bug tabs, submit, 'Thank You', and
+…
+119 Studio Organize button does
+nothing on 390px mobile
+Mobile Round 5 F15: in Studio, the toolbar 'Organize' button shows no panel on mobile —
+tapping it on a 390px viewport produced no visible panel or page-thumbnail view. FIX:
+check its click handler and responsive rendering; open the page organizer as a bottom
+sheet …
+120 /admin HEAD returns 405 (GET
+works)
+Site e2e report item 113: HEAD /admin returns 405 (nginx/1.27.5) although GET /admin
+renders as a real page and @app.get('/admin') exists (server.py:6597). The e2e report
+concludes the responding server/proxy was not running this v9 code at probe time (stale
+…
+121 Sign PDF tool page has no draw
+pad — typed name only
+Tools Round 5 F13: /sign-pdf has no draw pad — only a typed-name fallback — while the card
+advertises hand-drawn signature stamps. Draw/Type/Place controls exist only inside
+Studio. (The Page Organizer half of F13 — text-input only, no drag thumbnails — is
+tracker …
+122 Browser tabs freeze on heavy
+pages (performance)
+Site Round 5 F15: browser tabs froze 5+ times during testing on heavy pages (home grid,
+compress-pdf, organize-pdf first load, grayscale-pdf, excel-to-pdf, Studio export) —
+reproducible enough that low-end phones will likely feel it. Flagged from repeated …\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 26 of 38
+ID Title Area Latest evidence
+123 Local tool downloads are toast-
+only — no size or re-download
+link
+Tools e2e report item 107: Merge/Split/Rotate in local mode show only a toast ('Downloaded
+merged-PDF.pdf processed locally!') with no file size and no re-download link — the user
+cannot verify what was produced. FIX: local-mode results must show the file name, …
+124 Copy/UX nits grouped (v10) Site Grouped minor copy/UX nits, all live on v9: (1) Merge PDF helper text reads 'one file per
+run' before upload, then corrects to 'up to 100 files' after upload (F12). (2) HTML-to-PDF
+dropzone says 'PDF files up to 50 MB each' on a page whose inputs are HTML …
+125 Advanced Studio toolbar/tools
+need to be smaller (more
+compact)
+Studio Owner (2026-11-11, with screenshot v10-studio-toolbar-compact.png): the Advanced
+Studio toolbar/tools are still too big — make them a bit smaller. The toolbar currently
+spans 3 rows at 1920px (Pages, Open PDF, AI Docs, New Page, Clear Studio PDF,
+pager, zoom, …
+126 Security Audit/Sanitize modal not
+reachable from /protect-pdf or
+/unlock-pdf
+Tools Round 5 F15: the security modal (Audit / Sanitize / Hardened Redaction) is reachable
+only via Studio > More Tools > Protect & Unlock PDF, never from the standalone
+/protect-pdf or /unlock-pdf pages — users of those pages never see it. FIX: add an entry
+point …
+127 Tool cards are JS buttons, not
+links; wrong-route 404s
+Site Round 5 F14: tool cards on the home grid are BUTTON elements with JS navigation, so
+tool URLs are invisible to search-engine crawlers and cannot be right-click/copy-linked.
+Common wrong guesses 404: /scan-pdf, /tools and /all-tools return the 404 page; the …
+128 Feedback button: dismissible;
+shown to first-time users; hides
+after feedback; lives in Settings
+after that
+Site Owner decision (2026-11-11): the Feedback button must be closable/dismissible. A first-
+time user sees the Feedback button when they log in or sign up. Once the user has
+submitted feedback, the button disappears from the UI and feedback lives ONLY inside
+…
+131 1104px clipping: /download
+heading and /developers LIMITS
+& RESET card under sidebar
+Site Live v10 retest 2026-11-13 (~1104px width): the /download heading and the /developers
+'LIMITS & RESET' card are slightly clipped under the sidebar. Layout-only; content is
+reachable.
+139 Sidebar AVAILABLE TOOLS
+empty on several pages
+Site Sidebar 'AVAILABLE TOOLS' empty on /apps, /download, /privacy, /terms and /mask-
+aadhaar-card-online; populated on home/tool pages. [Source: deep pages/layouts
+analysis · 13 Nov 2026] UPDATE (v12 round): now a FIRST-PAINT defect (ID 168) —
+empty at 0s, … UPDATE 14 Nov 2026 (v13): now a first-paint defect (ID 168) - empty at
+0s, settles in ~1 s; still reproduces.
+140 Sidebar profile card missing on
+several pages
+Site Sidebar profile card (email + 'Pro Power User') missing on /apps, /download, /privacy
+and /terms; present on home, Studio, tool pages. [Source: deep pages/layouts analysis ·
+13 Nov 2026] UPDATE (v12 round): now a FIRST-PAINT defect (ID 168) — missing at
+0s, … UPDATE 14 Nov 2026 (v13): now a first-paint defect (ID 168) - missing at 0s,
+settles in ~1 s; still reproduces.
+141 Pricing modal layout — two-
+column feature lists, detached
+PRO badge
+Site Six INR plans verified in the pricing modal: Free ₹ 0, Exam ₹ 19/24h, Student ₹ 49/mo or
+₹ 399/yr, Pro ₹ 250/mo or ₹ 999/yr (marked CURRENT PLAN + MOST POPULAR), Cyber
+Café ₹ 299/mo, Developer ₹ 750/mo. Cashfree methods listed: UPI, UPI QR, Google Pay,
+PhonePe, … UPDATE 14 Nov 2026 (v13): pricing is now FOUR cards (Free ₹ 0, Exam
+₹ 19, Student Pro ₹ 49, All-in-One ₹ 299) - the six-plan text in the old evidence is stale.
+The modal is still taller than the viewport (ID 177). Stays open for the layout half.
+142 Grammar — '1 tools' Site Searching for 'translate' filters to '1 tools' under the section heading (should be '1 tool').
+[Source: deep pages/layouts analysis · 13 Nov 2026] UPDATE (v12 round): '1 tools'
+NOT found this round — stays open, needs one re-check (may be fixed or may need …
+143 Developers banner missing a
+space
+Site Developers green banner: 'registered and verified with dedicated API keys(sk_live_…' —
+missing space before the parenthesis. Cross-ref ID 50. [Source: deep pages/layouts
+analysis · 13 Nov 2026]
+144 404 page is bare — no sidebar
+or top navigation
+Site The 404 page is bare — no sidebar or top navigation, only the return link. A lost user has
+no navigation at all. [Source: deep pages/layouts analysis · 13 Nov 2026]
+145 Large empty white bar under the
+dropzone on every tool page
+Tools Large empty white bar under the dropzone on every tool page — the empty file-list area
+reads as a blank strip before files are added. [Source: deep pages/layouts analysis · 13
+Nov 2026]
+146 Translate CTA pale peach, low
+contrast
+Tools On /translate-pdf the primary CTA 'Select files to continue →' renders pale peach with
+low contrast (also its disabled-state styling). [Source: deep pages/layouts analysis · 13
+Nov 2026]
+147 Floating Feedback button
+mounts inconsistently
+Site Floating Feedback button visible in some views, absent from the DOM in others (present
+on /scan-to-pdf, absent on /merge-pdf). /feedback is a 404 (ID 132). Cross-ref ID 128
+(feedback button: dismissible, first-time users, Settings only) and ID 102. [Source: …\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 27 of 38
+ID Title Area Latest evidence
+UPDATE 14 Nov 2026 (v13): pill present on tool pages, NOT visible on /feedback itself;
+mounting still inconsistent across views.
+148 'Server Mode' toggle state varies
+by page/load
+Site 'Server Mode' toggle is on in some views, off in others, with no user action. [Source:
+deep pages/layouts analysis · 13 Nov 2026] UPDATE (v12 round): now a FIRST-PAINT
+defect (ID 168) — varies at 0s, settles after load. UPDATE 14 Nov 2026 (v13): toggle
+state still inconsistent across pages - see ID 211.
+153 Tool-count labels are wrong (41
+vs 44 vs 45)
+Site Tool-count labels are wrong. Flat directory lists 44 tools; label says 'All 41 Tools';
+category badges sum to 45 (7+13+8+13+4); the Convert list actually contains 12, not 13.
+[Source: new-build audit c11042e · 13 Nov 2026] UPDATE 13 Nov 2026 (live v11
+browser … UPDATE 14 Nov 2026 (v13): STILL WRONG - Home category counts sum to
+44, the marketing strip says 41, sidebar suite badges sum to 45 (7+13+8+13+4). Three
+conflicting counts on ONE page. UPDATE 14 Nov 2026 (live v14 retest, Guest): STILL
+WRONG — Tool Desk '44 tools available' and sections sum to 44, sidebar suite badges
+sum to 45 (7+13+8+13+4), marketing strip says '41 focused tools'. Three conflicting
+counts on ONE page.
+155 Local-processing controls
+contradict each other
+Tools Local-processing controls contradict each other. Settings modal checkbox 'Use local
+processing for Merge PDF' was unchecked while the Merge page's own checkbox was
+checked. [Source: new-build audit c11042e · 13 Nov 2026] UPDATE 14 Nov 2026 (v13):
+scope lists still disagree - sidebar says local is 'Available for Merge, Split, Remove,
+Rotate' while Settings -> Storage & Privacy adds Page Organizer and the photo tools.
+See ID 211.
+156 Split mode label lies (says ZIP,
+outputs single PDF)
+Tools Split mode label lies. Mode said 'individual PDFs (ZIP)' but the output was a single PDF.
+[Source: new-build audit c11042e · 13 Nov 2026]
+157 AI Chat welcome message
+renders twice
+AI AI Chat welcome message renders twice (duplicate greeting cards on the AI Intelligence
+page). [Source: new-build audit c11042e · 13 Nov 2026] UPDATE (v12 round): greeting
+duplicate CONFIRMED in the AI Intelligence view too, not just on the tool page.
+UPDATE 14 Nov 2026 (v13): AI view still shows a load-state race with the greeting
+appearing before the document renders - see ID 218. The duplicate-greeting half was
+not re-checked.
+158 'Download Another File' is
+circular
+Tools 'Download Another File' is circular — returns to the same tool page, in multiple tools.
+[Source: new-build audit c11042e · 13 Nov 2026]
+159 Home shows 'Loading tools…'
+for several seconds
+Site Home shows 'Loading tools…' for several seconds before the tool grid renders. [Source:
+new-build audit c11042e · 13 Nov 2026] UPDATE 14 Nov 2026 (v13): first paint still
+shows 'Checking plan...' / 'Checking usage...' and settles in ~1 s (ID 168) - the loading
+state is shorter but not gone.
+160 Settings modal content differs by
+entry point
+Site Settings modal content differs by entry point. The /settings-loaded modal showed
+Billing/Current Pack sections the home-opened modal does not. [Source: new-build
+audit c11042e · 13 Nov 2026]
+162 Photo Resize rejects 50% scale Tools Photo Resize rejects 50% scale. Validation says 'nearest valid values are 46 and 51' —
+a round 50% is not accepted. [Source: new-build audit c11042e · 13 Nov 2026]
+163 Merge claims 'never upload' but
+lists a 'Stream Upload' step
+Tools Merge with local processing ON shows the toast 'processed entirely in your browser' and
+'Processing privately in your browser... We'll never upload your files...' - but the
+processing steps also list 'Stream Upload', and the footer says temporary server files …
+164 Studio 'Unsaved' signature
+annotation is lost on reload with
+no save prompt
+Studio A drawn signature placed in Studio shows as a visible 'Signature Mark' on page 1 with
+an 'Unsaved' badge. After a full reload the signature was GONE - the unsaved
+annotation did not persist, and no save prompt or save action was offered before the
+reload. (ID …
+166 Page Organizer is server-only
+despite being listed as a client-
+side operation
+Tools Page Organizer shows 'Local processing is unavailable for Page Organizer; this tool
+uses temporary server processing' - but app.js CLIENT_SIDE_IMAGE_OPERATIONS
+lists 'organize' as a client-side operation. The briefing's client-side engine claim does not
+cover …
+172 Step cards headings-only, no
+body text (Home, every tool
+How-it-works, /download)
+Site Step cards headings-only, no body text. Home 'Simple steps' cards have a heading and
+no body text. Every tool's How-it-works section is headings with no body text. /download
+shows generic 3-step boilerplate that does not describe downloading apps (the apps do
+… UPDATE 14 Nov 2026 (v13): STILL headings-only everywhere - Home 'Simple steps'
+cards have a heading and no body text.
+173 Steps promise controls that do
+not exist pre-upload
+Tools Steps promise controls that do not exist pre-upload. The How-it-works text describes
+controls the page does not show before upload: OCR promises a language/quality\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 28 of 38
+ID Title Area Latest evidence
+(OCR/Translate/HTML-to-
+PDF/JPG-to-PDF)
+picker (none), Translate promises a language picker (none pre-upload), HTML-to-PDF
+promises a … UPDATE 14 Nov 2026 (v13): STILL reproduces, expanded list - PDF to
+Word 'Choose conversion and OCR options'; PDF to Excel 'Review detected table
+regions'; PDF to PowerPoint 'Select slide and text reconstruction options'; PDF to JPG
+'Choose page and image quality options' (resolution only, no page chooser); HTML to
+PDF 'Choose page size and rendering options'; Watermark 'Set text, image, opacity, and
+position' (no position control); Protect 'Set user and owner passwords plus permissions'
+(ONE password field only); Metadata 'Review title, author, subject, and keywords' (no
+keywords field); Annotate step 01 'Load the PDF into Studio'; Excel to PDF 'Choose the
+sheets and page layout' (no sheet chooser); Scan to PDF 'Adjust enhancement and
+page order' (none). The OCR language selector, Translate target language and HTML-
+to-PDF URL box ARE now visible pre-upload - the controls exist, but the steps still
+promise controls that don't.
+174 Studio: phantom 'Page 1 is
+loading…' with PAGES (0); lower
+section unreachable by scroll at
+1920x999; default annotation
+tool changes without input
+Studio Studio: phantom 'Page 1 is loading…' with PAGES (0); lower section unreachable by
+scroll at 1920x999; default annotation tool changes without input. On load, Studio shows
+'Page 1 is loading…' while the PAGES counter reads (0) — a loading indicator for a …
+UPDATE 14 Nov 2026 (v13): the phantom 'Page 1 is loading...' did NOT reproduce on
+the Studio empty state; lazy-render placeholders 'Page N is loading...' on pages 4-69 are
+legitimate. The lower-section-unreachable and annotation-tool-change halves were not
+re-checked - stays open.
+176 Stale toast persists across
+navigation; breadcrumbs change
+after settling
+Site Stale toast persists across navigation; breadcrumbs change after settling. A toast from a
+previous page is still visible after navigating; breadcrumbs also change after settling
+(same load-state family as ID 168).
+177 Pricing modal taller than
+viewport; Pay buttons clipped
+until scrolled inside modal
+Site Pricing modal taller than viewport; Pay buttons clipped until scrolled inside modal. At
+1920x999 the pricing modal is taller than the viewport; the Pay buttons are clipped until
+you scroll inside the modal. A user who does not discover the inner scroll cannot …
+UPDATE 14 Nov 2026 (v13): STILL taller than the viewport at 1920x998 - own vertical
+scrollbar, ₹ 49/ ₹ 299 Pay buttons cut off at the bottom edge until scrolled inside the
+modal.
+178 Photo & Exam suite click lands
+main pane on AI view
+Site Photo & Exam suite click lands main pane on AI view. Clicking the Photo & Exam suite
+in the sidebar/pill nav lands the main pane on the AI Intelligence view — the pane does
+not match the suite selected. Suite selection and main-pane content are out of sync.
+182 Pale-peach 'Select files to
+continue →' CTA, white on
+peach, low contrast on every tool
+Tools Pale-peach 'Select files to continue →' CTA, white on peach, low contrast on every tool.
+The primary CTA 'Select files to continue →' renders white-on-pale-peach with low
+contrast on every tool page, not just Translate. ID 146 (Translate only) is now …
+183 Home footer has no
+copyright/year and no
+Pricing/FAQ/Dashboard links;
+hero '100% Private' contradicts
+server toggles
+Site Home footer has no copyright/year and no Pricing/FAQ/Dashboard links; hero '100%
+Private' contradicts server toggles. The Home footer has no copyright/year and no
+Pricing/FAQ/Dashboard links. Hero claim '100% Private Browser Processing' contradicts
+the … UPDATE 14 Nov 2026 (v13): the footer half is FIXED - footer with © 2026
+Paperplane PDF and
+Dashboard/Downloads/Pricing/FAQ/Apps/Feedback/Developers/Privacy/Terms/API
+Docs links is now present on EVERY page. The hero '100% Private Browser Processing'
+claim was not re-checked - stays open for that half.
+193 Studio Export shows 'Error:
+[object Object]' when quota-
+blocked
+Studio Master Audit #13: with account quota exhausted, Studio Export PDF throws 'Error:
+[object Object]' (editor.js:1785); structured quota error stringified wrong; should show the
+clean quota message / quota modal like tool pages. UPDATE (Master Audit R8, 14 Nov
+2026): NOT REPRODUCIBLE now — export succeeds ('Edited PDF exported
+successfully!'); the quota-blocked state is unreachable on an unlimited tier. The quota-
+blocked error path still needs a quota-exhausted account to verify.
+195 Photo resize runs with no
+dimensions entered (same-size
+no-op output)
+Tools Master Audit #15: clicking resize with width/height/percent all empty produces a same-
+size JPEG, a no-op dressed as a result. Cross-ref ID 165.
+196 Copy/polish bugs from Master
+Audit #17
+Tools Master Audit #17 copy/polish bugs: (a) Remove-pages local output downloads as
+'extracted_private.pdf' (same name as split) — rename to removed-pages.pdf; (b) Split
+range placeholder reads 'e.g. 1-3, 5, 8-6' — note the reversed 8-6, change to '1-3, 5, 8-
+10'; … UPDATE (Master Audit R8, 14 Nov 2026): (b) split placeholder FIXED ('1-3, 5, 8-
+12'); (d) photo input accept FIXED (accept=image/jpeg,image/png,image/webp); (a)
+remove-pages filename NOT re-triggered (local path down under ID 206); (f) admin
+logout 401 out of scope in R8.
+200 Admin 'Last Active' always '-' Site Master Audit Round 6 #14, re-verified 13 Nov 2026: the admin users list shows Last
+Active '-' for everyone. UPDATE (Master Audit R8, 14 Nov 2026): 'Last seen NOT FIXED\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 29 of 38
+ID Title Area Latest evidence
+in R7; admin out of scope in R8.'
+201 Admin shows no location on
+login (exact location should
+display)
+Site Muhammad's request 13 Nov 2026 19:07 IST: when a user logs in, their exact location
+should be shown in the admin console; currently only the shared proxy IP 172.18.0.4 is
+shown for every login regardless of where the login came from.
+212 Repair mode options expose raw
+enum labels
+Tools Live v13 retest (e4a2bd3): the Repair mode selector shows raw enum labels - 'automatic
+(Automatic Recovery)', 'validate_xref (Validate XRef Only)'. [Source: live v13 retest · 14
+Nov 2026]
+213 Success panels render below the
+fold; Download button cut off;
+Studio Export never shows the
+file name
+Tools Live v13 retest (e4a2bd3): on Protect/Unlock/Sign the success panel renders below the
+fold so the Download File button is initially cut off at the viewport bottom edge - a scroll is
+required before it can be clicked (early Protect/Unlock download failures were this
+scroll/timing artifact). Studio Export never displays the exported file's name (toast and
+/history name no file). [Source: live v13 retest · 14 Nov 2026]
+216 Organizer tile labels wrap
+('Page'/'10') with arrows close to
+the label
+Tools Live v13 retest (e4a2bd3): Organizer tile labels wrap across two lines ('Page' / '10') with
+the move arrows close to the label. Cosmetic. [Source: live v13 retest · 14 Nov 2026]
+217 Toast warns 'temporary tool
+uploads may need to be selected
+again after reload' on the Merge
+page
+Tools Live v13 retest (e4a2bd3): the Merge page shows the toast 'Some temporary tool
+uploads may need to be selected again after reload.' - a retention warning shown to
+users on a core tool. Cross-ref ID 3. [Source: live v13 retest · 14 Nov 2026]
+218 AI Intelligence load-state race:
+empty state shown while the
+document is already loaded
+AI Live v13 retest (e4a2bd3): on fresh navigation the AI Intelligence view shows the empty
+state ('What can I help with?' / 'Upload a PDF' / 'Choose PDF') while the DOM already
+lists the loaded document (test-text-10page.pdf, 'Loaded & Ready'); the 'Your PDF is
+ready...' greeting appears before the document renders. Same load-state family as ID
+168. [Source: live v13 retest · 14 Nov 2026]
+224 Photo compress: default Target
+KB (100) shown but not applied
+on first run
+Tools Master Audit R8-F3 (14 Nov 2026, live v13 e4a2bd3): the TARGET FILE SIZE (KB) field
+displays 100 by default. Leaving it untouched and running produced a 228.2 KB file
+(quality-mode output, 2400x1800) — the displayed 100 KB target was silently ignored.
+Editing the field to 50 gave 48.8 KB (1228x921) — target honored. The default is inert
+until the user re-types it. Fix: initialize the target-KB state from the input's default value
+on mount, or ship the field empty with a placeholder. Cross-ref ID 194. [Source: Master
+Audit Rounds 5-8 · 14 Nov 2026]
+225 Repair tool leaks raw pikepdf
+error on unrecoverable files
+Tools Master Audit R8-F4 (14 Nov 2026, live v13 e4a2bd3): a deliberately corrupt PDF (no
+trailer, unrecoverable even by qpdf) fails with the raw library string 'code=4: not a dict
+(null)'. The failure is correct; the message is a pikepdf internal. Fix: catch pikepdf
+exceptions and return 'This PDF is too damaged to repair automatically.' Keep the
+technical detail in server logs only. Cross-ref ID 113. [Source: Master Audit Rounds 5-8 ·
+14 Nov 2026]
+226 R8-F5 nav/404 nits: /ai-docs
+404s, footer 'Dashboard'
+redirects, translated PDFs keep
+invisible original text, tool counts
+Site Master Audit R8-F5 (14 Nov 2026, live v13 e4a2bd3): (a) /ai-docs returns a styled 404,
+yet the mobile bottom nav labels the AI hub 'AI Docs' (real route /ai-intelligence). (b)
+/dashboard client-redirects to /tool-desk, so the footer 'Dashboard' link lands on Tool
+Desk. (c) Translate-to-Hindi output renders perfectly, but the original English remains
+invisible in the PDF content stream — copy-paste/screen readers extract scrambled
+interleaved text; rebuild the text layer instead of overlaying. (d) Suite badges sum to 45
+while everything says 44 (ID 153; /developers says 41). Owner decision (audit Q4): keep
+the /dashboard redirect or change the footer link? Cross-ref IDs 132/133, 153, 1.
+[Source: Master Audit Rounds 5-8 · 14 Nov 2026]
+227 Sign-pdf modal opens AND
+navigates to /sign-pdf in Studio
+(Digital Signatures loop residue)
+Studio Master Audit R8 (F32, 14 Nov 2026, live v13 e4a2bd3): in Studio, the Digital Signatures
+entry opens the modal (good) but still also navigates to /sign-pdf. Fix: remove the
+navigation so only the modal opens (the modal itself works fine). Cross-ref IDs 117, 126.
+[Source: Master Audit Rounds 5-8 · 14 Nov 2026]
+228 No daily synthetic checkout
+probe — payments reliability
+absent from the plan
+Code Master Audit Rounds 5-8, Section D (14 Nov 2026): payments reliability is absent from
+the roadmap — checkout 503'd across two audit rounds before R8 fixed it. Build a daily
+synthetic Cashfree SANDBOX checkout probe (initiate a checkout, confirm the sandbox
+drop loads with the correct amount, alert the owner on failure). The probe must use the
+sandbox/test gateway only — never a real payment. Owner to confirm the alert channel.
+Cross-ref ID 98. [Source: Master Audit Rounds 5-8 · 14 Nov 2026]\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 30 of 38
+TO VERIFY (22) — one more check needed
+ID 27 — Mobile layout on real phone widths (Mobile, P1) — The v5 retest ran at desktop widths. Codex claims 48
+routes × 5 widths × 4 zooms × 2 themes × 2 sidebar states = 3,840 emulation checks with no overflow, but no physical
+device or native-zoom check has been done. The owner's phone screenshots (M-1–M-11) remain the reference list.
+UPDATE 8 Nov 2026: … UPDATE 14 Nov 2026 (mobile code audit, e4a2bd3): viewport meta correct; phone
+breakpoints 480/420/380/900 exist; grids collapse to 1 column; Studio has a mobile dock; pricing modal scrolls
+internally. No visual 390px render was achieved (three routes failed - see ID 214). Visual check on the owner's phone
+still required. UPDATE (Master Audit R8, 14 Nov 2026): the audit's viewport matrix rendered
+390px/820px/1366px/1920px ALL CLEAN with screenshots — but no physical-device/native-zoom check; the phone
+visual check is still owed.
+ID 28 — Contents inside downloaded outputs (Tools, P2) — Not opened in any round: merged page count, split ZIP
+entry contents, OCR text layer, protected file's password prompt, filled-form values inside the output.
+Banner/filename/size were the only evidence so far. UPDATE 8 Nov 2026 (v6 verification): Merge (71 pages) + Studio
+export contents opened by … UPDATE 14 Nov 2026 (v13): downloads content-checked with PyMuPDF this round -
+Repair corrupted -> 10 pages readable; Studio Export -> 10 pages readable; Protect genuinely encrypted; Unlock
+genuinely decrypted. Split ZIP entry contents and the OCR text layer are still unopened - stays to_verify. UPDATE
+(Master Audit R8, 14 Nov 2026): the audit's 36/36 server matrix deep-verified outputs (organize page order 6-5-4-3-2-1,
+redaction 0 occurrences, diff output, Hindi render). Split ZIP entry contents + OCR text layer still unopened.
+ID 36 — Copy errors: "Characters glyphs", "Uncap", template text on every tool page (Site, P2) — Only 2 genuine
+language errors in prominent copy: "Characters glyphs and vector coordinates are physically and permanently
+obliterated..." (redact warning box) and "Uncap scanned marksheets & certificates" (pricing). Plus generic lowercase
+template text on EVERY tool page: "For every tool you need …
+ID 90 — UNRETESTED: login code in a response header; server 502s under 2–4 concurrent jobs (Code, P1) —
+Reported in the external auditor Tab's FIRST report and explicitly NOT re-tested in the 9 Nov 2026 layout pass (out of
+scope — 'You asked me to keep load light and skip attacks, so they stay open until someone re-checks them'). (a) The
+login code was shown in a response header (security issue — …
+ID 167 — Display-font word-spacing: headings read as joined words (Site, P1) - NOT observed in the v13 live round (57
+min of browsing, 1920x999). The v12 round observed it systematically ('PDFwithout', 'toolyou', 'PDFpages', DOM space
+~2px). Needs one more load check before calling it fixed. [Source: live v13 retest · 14 Nov 2026]
+ID 205 — Top pill nav reported broken/mixed by owner — browser found it clean at 1920px (Site, P2) — Muhammad
+(19:07 IST, 13 Nov 2026) reports the top pill nav box (Tool Desk / Advanced Studio / AI Intelligence / Apps Waitlist)
+looks broken/mixed. Muse's browser round (19:08–19:12 IST, 1920px, signed-in Pro) found it CLEAN: a single dark
+rounded pill container, centred in the topbar, 'Tool Desk' …
+ID 219 — Excel->PDF output is 1.9 KB, suspiciously small; content fidelity not re-checked (Tools, P2) - Live v13 retest:
+test-sheet_excel_to_pdf.pdf is 1.9 KB. The file was not opened to check the table data survived. Needs one content
+check. [Source: live v13 retest · 14 Nov 2026]
+ID 220 — PDF/A-1b output ISO conformance not independently validated (Tools, P2) - Live v13 retest: test-text-
+10page_pdf_to_pdfa.pdf is 5.4 KB. Size only; no conformance validation was run. [Source: live v13 retest · 14 Nov
+2026]
+ID 221 — Feedback dismiss × exists in code but live rounds report none visible (Site, P2) - Code audit of e4a2bd3 (14
+Nov 2026): feedback.js renders a 28px dismiss button ('×', aria-label 'Dismiss feedback prompt') with a working
+dismissFeedback() handler writing a 'dismissed' flag. Three live rounds reported 'no X'. Either the rounds missed a
+small dark-on-dark X or it does not render live - one visual check settles it. [Source: mobile code audit · 14 Nov 2026]
+ID 129 — Duplicate 'Sanitize Document Now' buttons in the post-upload panel (Tools, P2) — v10 round and the Master
+Audit (6:58 PM, post-upload panel) both say two identical buttons render. Master Audit R8 (F35, 14 Nov 2026) claims
+FIXED: 'exactly one Sanitize button renders'. Muse never reached the post-upload panel (the duplicates live there; pre-
+upload checks found zero). One post-upload check settles it. [Source: Master Audit Rounds 5-8 · 14 Nov 2026]
+ID 186 — Server Mode toggle can never be enabled (Tools, P1) — Master Audit R8 (F2, 14 Nov 2026) claims FIXED:
+'toggle now persists off; server mode selectable'. Muse's v13 live round the same night found the state inconsistent
+across pages (ID 211). Discriminating check: enable server mode on Merge, verify a server job runs and quota
+decrements, then check the state persists on Split. [Source: Master Audit Rounds 5-8 · 14 Nov 2026]\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 31 of 38
+ID 187 — Exam Photo & Signature Resizer burns the server quota (Tools, P1) — Master Audit R8 (F4, 14 Nov 2026)
+claims RESOLVED: 'exam resizer now runs locally (canvas); SSC 350×450px / 35KB in-browser'. Muse's v13 round
+verified the output only (exactly 20.0 KB, 350×450). Discriminating check: run it and confirm NO /api/jobs POST and NO
+quota decrement. [Source: Master Audit Rounds 5-8 · 14 Nov 2026]
+ID 188 — Mask Aadhaar rejects images (422) while advertising 'PDF & Image' (Tools, P2) — The audit's server matrix
+ran mask_aadhaar with a PNG and it PASSED. One UI confirmation owed: upload a PNG on /mask-aadhaar-card-
+online and confirm it masks. [Source: Master Audit Rounds 5-8 · 14 Nov 2026]
+ID 189 — Tablet double header at 820px (Site, P2) — Master Audit R8 (F10, 14 Nov 2026) claims FIXED: single
+collapsible-sidebar layout at 820px, viewport matrix ALL PASS. One visual 820px check owed. [Source: Master Audit
+Rounds 5-8 · 14 Nov 2026]
+ID 190 — Feedback pill covers mobile CTA at 390px (Site, P2) — Master Audit R8 (F11, 14 Nov 2026) claims FIXED:
+the fixed pill is REMOVED at 390px; only an in-flow footer Feedback link remains; CTA bottom 446px vs nav top 778px
+— no overlap. One phone visual check owed. Note: Muse's v13 DESKTOP round found the pill present on tool pages
+— different surface, no direct conflict. [Source: Master Audit Rounds 5-8 · 14 Nov 2026]
+ID 192 — Sidebar/topbar sell 'Pro Power User Rs 250/mo' that no longer exists (Site, P2) — Master Audit R8 (F17/F20,
+14 Nov 2026) claims FIXED: no legacy ₹ 250 labels; 'Plans & Billing' / 'View Pricing Tiers'. One live check of the sidebar
+upsell card + topbar button owed. [Source: Master Audit Rounds 5-8 · 14 Nov 2026]
+ID 197 — Signed-out users still look signed in — email chip stays (Site, P1) — Master Audit R8 (F34, 14 Nov 2026)
+claims FIXED on the v13 build: after UI sign-out + reload the same tab shows Guest/Free, /api/auth/me = 401, and a full
+re-login was verified (password + 6-digit email code). Muse's bug confirmation was on the v11 build (13 Nov evening).
+One live check on the current build owed. [Source: Master Audit Rounds 5-8 · 14 Nov 2026]
+ID 198 — Sign-in button missing after sign-out (Site, P1) — Same as ID 197: Master Audit R8 claims FIXED on the v13
+build (Guest/Free after sign-out + reload, full re-login verified). Muse confirmed it on the v11 build. One live check on the
+current build owed. [Source: Master Audit Rounds 5-8 · 14 Nov 2026]
+ID 202 — Admin has no list of who is logged in as admin and no logout-others (Site, P1) — IMPLEMENTED in code +
+UI at e4a2bd3 (verified by Muse, 14 Nov 2026): GET /api/admin/sessions + DELETE /api/admin/sessions/{session_id}
+in server.py (409 if revoking own session); admin.js lines 436/472 fetch/render them. Live admin check owed: the
+session list renders and logging out another admin session works. [Source: code check e4a2bd3 · 14 Nov 2026]
+ID 203 — Super admin role: BOTH owner accounts are superadmin (Site, P1) — IMPLEMENTED in code at e4a2bd3
+(verified by Muse, 14 Nov 2026): ADMIN_OWNER_EMAILS contains BOTH accounts (mdhammad2906@gmail.com,
+mdhammad29006@gmail.com); the sessions endpoint marks owner sessions role 'superadmin'. Live check owed: both
+accounts can complete admin login + OTP and show as superadmin. [Source: code check e4a2bd3 · 14 Nov 2026]
+ID 204 — Admin has no set-plan / reset-usage per user (Site, P1) — IMPLEMENTED in code + UI at e4a2bd3 (verified
+by Muse, 14 Nov 2026): POST /api/admin/users/set-plan (server.py line 8049) + /api/admin/users/reset-usage (line
+8061); admin.js lines 655–656 render 'Set plan'/'Reset usage' buttons per user row with handlers. The audit F28
+confirms API presence only. Live check owed: set a plan and reset usage from the console and confirm both take effect.
+[Source: code check e4a2bd3 · 14 Nov 2026]
+ID 168 — First-paint / load-state root cause: wrong defaults for ~5–10s (Site, P1) — Live v14 retest (14 Nov 2026
+evening, Guest): one fresh load of /compress-pdf showed NO wrong-default flash at 0s/5s/10s (only transient 'Checking
+usage…'/'Checking plan…' placeholders, resolved by ~5s). The v12/v13 defect (wrong defaults for ~5–10s, settling in
+~1s in v13) was not observed this round. Needs a signed-in, multi-page check before calling it fixed. [Source: live v14
+retest · 14 Nov 2026]
+NOT TESTED (2)
+ID 29 — Guest mode, correct-password Unlock, payments (Site, P2) — All live rounds ran signed-in on Pro. Guest
+gating, the correct-password Unlock round-trip, INR checkout for non-Pro tiers, OTP claims, production TLS and the
+Docker image remain untested. UPDATE 8 Nov 2026 (v6 verification): NOT TESTED — guest workflow, correct-
+password Unlock, payment TEST, … UPDATE 14 Nov 2026 (v13): the correct-password Unlock half is now CLOSED -
+Unlock with the README password produced a genuinely decrypted 10-page PDF (PyMuPDF-verified). Guest mode
+and payments remain untested.\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 32 of 38
+ID 199 — Studio Export page size A4->Letter swap unverifiable (quota-gated) (Studio, P2) — Master Audit Round 6 #7:
+Studio export page-size swap could not be verified because export is quota-gated (account 58/10, guest bucket 10/10
+both exhausted); recheck after unblock.
+VERIFIED FIXED (68) — do not regress
+ID 7 — Workflow/FAQ copy shows the previous tool's text on first SPA landing (Site)
+ID 17 — Tool Desk is a real view (Site)
+ID 18 — /fill-form and /ai-translate route aliases work (Site)
+ID 19 — Studio sidebar toggle no longer covers the toolbar (Studio)
+ID 20 — Run-button labels no longer wrap mid-word (Site)
+ID 21 — Studio page-1 canvas renders within ~5s (Studio)
+ID 22 — "Upload PDF to chat" wording is in the AI empty state (AI)
+ID 23 — Free-tier quota bypass closed (code-confirmed) (Code)
+ID 24 — AI status endpoints no longer lie (code-confirmed) (Code)
+ID 25 — Tool catalog: 38 of 41 tools verified end-to-end (8 Nov) (Tools)
+ID 26 — Mask Aadhaar: masking inside the output never checked (Tools)
+ID 31 — "Bluesminds" provider name leaks on /developers (Site)
+ID 33 — iLovePDF named in shipped HTML/JS comments (Site)
+ID 35 — General greetings fail when a document is loaded (AI)
+ID 37 — "Browser zero-upload processing: Supported" on all 41 tool pages (Site)
+ID 39 — DECISION: remove one of the duplicated AI tools / Tool Desk tabs (Site)
+ID 44 — AI Intelligence: remove 'Your AI PDF and full chat history save in this browser...' banner (AI)
+ID 46 — Sidebar quota text is contradictory: 'Unlimited · 500 MB · 100 files' (Site)
+ID 47 — REGRESSION v7: Studio reorder no longer works (Studio) — FIXED in v13 live retest 14 Nov 2026: real held
+pointer drag works both directions with 'Pages reordered successfully.' toast each time. Earlier/Later buttons remain
+unreachable by mouse - see ID 210.
+ID 48 — REGRESSION v7: Studio duplicate fails with 'Network error: Failed to fetch' (Studio)
+ID 49 — REGRESSION v7: Studio Export fails with 'Export error: Failed to fetch' (Studio) — FIXED in v13 live retest 14
+Nov 2026: toast 'Edited PDF exported successfully!' + 7 KB download captured, PyMuPDF-verified 10 pages readable.
+Caveat: the site never displays the exported file's name (ID 213).
+ID 54 — /tools/*, /pricing and /plans return styled 404 (no standalone pricing page) (Site) — FIXED in v13 live retest 14
+Nov 2026: curl 200 for /pricing and /plans (plans redirects to /pricing); the pricing page has 4 cards.
+ID 57 — More Tools dropdown left half hidden in owner's screenshot state (not reproduced at rest) (Studio)
+ID 58 — DECISION: PAGES panel needs a collapse/expand toggle (laptop + mobile) (Studio)
+ID 59 — Tablet (820px) gets the phone layout — sidebar hidden, drawer only (Mobile)
+ID 63 — CRITICAL: Register without OTP — email+password only creates an account + instant session (Code)
+ID 65 — CRITICAL: No OTP rate limiting — 6-digit OTP brute-forceable (6–7 wrong codes, no 429) (Code)
+ID 66 — /developers tables run past the right edge on phones and tablets (Mobile)
+ID 67 — CRITICAL: IDOR — any logged-in user can download any other user's processed files (Code)
+ID 68 — Draw Signature pad dead (touch ignored); drawn /sign-pdf output has no signature — Type works (Studio)
+ID 71 — Annotate tool is a silent no-op — reports success, output has no annotation (Tools)
+ID 74 — Terms §4 promises cancellation via Settings billing, but Billing has Upgrade only — no cancel (Site)
+ID 76 — Empty fields show 'Operation Failed' instead of a plain hint (Remove/Watermark/Redact/Mask) (Tools)
+ID 78 — CONTESTED: 'Open in Studio' handoff — final sweep says it ignores the new file; Muse's check says it works
+(Studio)\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 33 of 38
+ID 79 — DECISION: No History/Dashboard page — past jobs are not listed anywhere (Site)
+ID 81 — Duplicate security headers (X-Frame-Options, X-Content-Type-Options, Referrer-Policy sent twice) (Code)
+ID 83 — 'Test AI Connection' debug link is visible to all users on the AI Docs page (AI)
+ID 88 — Merge output named after first file; Compare card does not say the result is a .txt diff (Tools)
+ID 89 — API inconsistency: register is form-encoded, OTP endpoints take JSON; guest_token in URLs (Code)
+ID 91 — Deep-linking to /settings returns the 404 page (Settings is an overlay with no route) (Site)
+ID 93 — Redeploy wipes accounts/data — production DB not persistent across deploys (Code) — FIXED (Master Audit
+R8, 14 Nov 2026): the audit account (k5mmx3) + its API key survived the 12:41 AM redeploy; R7 had confirmed
+persistence separately. The formal create → redeploy → login test was never run, but the outcome is now observed
+across R6/R7/R8 + Muse's v13 supporting note.
+ID 95 — Smart Metadata export not confirmed — no export button found (Tools)
+ID 96 — Fill PDF Form on a real fillable form not confirmed (Tools)
+ID 99 — AI PDF Chat ignores the attached document unless the question says 'according to this document' (AI)
+ID 100 — Mobile drawer uses 100vh not 100dvh — profile card + settings gear unreachable (Mobile)
+ID 108 — /api-docs publicly accessible in production (Code)
+ID 113 — Repair PDF rejects genuinely damaged files (Tools)
+ID 116 — Sanitize Document Now gives no feedback (Studio)
+ID 130 — /settings renders the Tool Desk directory, not a settings page (Site) — FIXED in v13 live retest 14 Nov 2026:
+/settings is now a real page with 5 tabs (Account & Profile, Appearance & Theme, Plans & Billing, Developer API Keys,
+Storage & Privacy).
+ID 132 — /dashboard, /history, /faq, /feedback return 404 (Site) — FIXED in v13 live retest 14 Nov 2026: curl 200 for all
+four; /dashboard redirects to /tool-desk; /history loads as 'Temporary downloads'; /faq has 3 questions; /feedback loads
+with the widget.
+ID 133 — /settings URL shows Tool Desk content after the modal closes (Site) — FIXED in v13 live retest 14 Nov 2026:
+/settings is now a real page with 5 tabs; URL and content match.
+ID 134 — Waitlist form on /download — contested, now confirmed present (Site)
+ID 136 — Free-operations contradiction — 250 vs 100 (and 10 in production) (Site) — FIXED in v13 live retest 14 Nov
+2026: the '100/day' Home claim was not found anywhere; 10/day for free is now consistent across FAQ, Terms, Settings
+and Pricing; Home shows the Pro 'No daily operation cap'.
+ID 138 — AI Intelligence has no route (Site)
+ID 149 — Photo Merge cannot merge (single-file input) (Tools) — FIXED in v13 live retest 14 Nov 2026: 4x photo Grid
+run produced merged-photos.jpg 94.9 KB, 2400x1600 = 2x2 of 1200x800.
+ID 154 — Stale prices leak in the live UI ( ₹ 750, $299/month) (Site) — FIXED in v13 live retest 14 Nov 2026: no ₹ 750 or
+$299 found anywhere; pricing is ₹ 0/19/49/299 everywhere. Related stale names live under IDs 192 and 209.
+ID 161 — Compress PDF 502 on 5.2 MB / 69-page file (Tools) — FIXED in v13 live retest 14 Nov 2026: 69-page file
+compressed 5.20 MB -> 89.7 KB under the 100 KB preset, verified live.
+ID 165 — Photo Resize preset/dimensions cleared on upload; output stays 1200x800 (350x450 not applied) (Tools) —
+FIXED in v13 live retest 14 Nov 2026: Passport preset produced test-photo-resized.jpg 11.2 KB, exactly 350x450.
+ID 170 — 'Free Guest Tool' badge on every tool page for a signed-in Pro user (Site) — FIXED in v13 live retest 14 Nov
+2026: badges now read 'Legacy Pro' for the signed-in Pro user.
+ID 171 — No footer on any page except Home (Site) — FIXED in v13 live retest 14 Nov 2026: footer with © 2026 and
+full link set is now present on EVERY page.
+ID 175 — Photo tools have no lower sections; Mask Aadhaar taxonomy mismatch (Sign & Protect grid vs Photo & Exam
+sidebar) (Tools) — FIXED in v13 live retest 14 Nov 2026: photo tools now have lower sections (How it works / FAQ /
+Related tools). The Mask Aadhaar taxonomy half was not re-checked.
+ID 180 — /developers: heading twice; version mismatch v2.0 vs /api/v1; /api-docs is only a redirect, not docs (Site) —
+FIXED in v13 live retest 14 Nov 2026: all v1 now ('Developer REST API v1 reference', base /api/v1); heading appears
+once (breadcrumb repeats the same text).\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 34 of 38
+ID 181 — Dead slugs with correct slugs existing (/metadata, /photo-compress, /compress-photos, /ai-chat, /chat-pdf,
+/pdf-chat) (Site) — FIXED in v13 live retest 14 Nov 2026: all six redirect to live pages (curl 200): /metadata -> /pdf-
+metadata; /photo-compress + /compress-photos -> /compress-image-online; /ai-chat + /chat-pdf + /pdf-chat -> /ai-
+intelligence.
+ID 191 — Merge-photos grid is a vertical strip, not a 2×2 (Tools) — FIXED (Master Audit R8, 14 Nov 2026): the audit re-
+ran the EXACT original inputs (4 photos 2400×1800, Grid layout) and got a true 2×2 grid (4800×3600) via a UI run;
+Muse's v13 round also produced a real 2×2 grid. Original bug refuted by two independent observations.
+ID 194 — Photo compress misses 'exact target KB' silently (50KB target → 101.8KB, no warning) (Tools) — FIXED
+(Master Audit R8, 14 Nov 2026): edited targets honored — 50 KB → 48.8 KB from the same 429 KB source; Muse's
+v13 round hit the 20 KB target (17.0 KB out). The default-inert variant is the new ID 224.
+ID 208 — Terms §4 'no automatic renewals' contradicts ₹ 49/ ₹ 299 monthly pricing (Site) — live v14 retest: pricing shows
+one-time/no-renewal on all paid plans, Terms §4 agrees
+ID 209 — Stale plan names: 'CYBER CAFÉ' and 'Pay-As-You-Go API Tier' (Site) — live v14 retest: neither name
+appears in the pricing modal
+ID 215 — Command palette shows an 'API' badge on every tool item (Site) — live v14 retest: no API badge on any of
+the 44 tools
+CONTESTED / CONFLICTS — do not close on one source alone
+1. ID 205 (pill nav) — Muhammad reports the top pill nav looks broken/mixed; Muse's browser round at 1920px (Pro)
+found it clean. Needs the owner's pointer (which part, what width/zoom). His screenshots are from a Free account.
+UPDATE (Master Audit R8, 14 Nov 2026): the audit's viewport matrix rendered 390/820/1366/1920 clean; the Free-
+account view + ~1104px width still need a check.
+2. ID 129 (duplicate Sanitize buttons) — v10 round and the Master Audit (6:58 PM, post-upload panel) both say two
+identical buttons render. Muse's 19:08–19:12 IST round found ZERO 'Sanitize Document Now' buttons on the PRE-
+upload page — the duplicates live in the post-upload panel, which that round did not reach (no file uploaded). The v13
+round did not reach the post-upload panel either. UPDATE (Master Audit R8 F35, 14 Nov 2026): the audit claims FIXED
+— 'exactly one Sanitize button renders'. One post-upload check settles it — ID 129 is now to_verify.
+3. ID 152 (photo tools server-only) — v11 live round (signed-in Pro) observed all four photo tools showing 'Server Mode
+/ Local processing is unavailable'. The Master Audit Round 7 claims photo compress/resize/merge PASS as client-side
+(429KB→101.8KB; exact 350×450; merges pixel-exact). The v13 round ran the photo tools and verified the outputs but
+did NOT discriminate local vs server processing. Do NOT mark fixed on any single claim — needs a discriminating
+check (does the file upload to the server or process locally?).
+4. ID 142 ('1 tools' grammar) — v12 round did NOT find it; stays open, needs one re-check (search filter must be
+exercised to observe the count string).
+5. ID 15 (sticky pill overlaps headers) — v6 verification claimed 0 overlap in a 32-observation probe; the 9 Nov layout
+hunt found it STILL PRESENT on every page at ~1104px (tool cards slide under the pill, headings half-cut while
+scrolling). The 1920px check (19:08 IST) found no overlap at 1920px. Width-dependent — verify at 1104px, not 1920px.
+6. ID 3 (Studio retention) — REOPENED in v13 (14 Nov 2026): delete 69→68, reload → original 69-page document
+back, page order reverted; the restore is stale. The v11 verified fix regressed. It now sits in P0 — do not close it on the
+v11 evidence.
+7. ID 134 (waitlist form) — SETTLED verified_fixed (18:50 IST live-DOM re-check, 13 Nov 2026: form rendered and
+visible above the fold on /download; controls appear only after ~20s, ID 168). The v13 round found it visible on FIRST
+paint. Submit itself is NOT tested (last working live submit 2026-11-09).
+8. ID 138 (AI Intelligence pill) — verified_fixed for the pill behaviour (opens the AI view in place). The URL still does not
+change — no route, not bookmarkable/shareable. The missing route belongs with the ID 133/132 route family.
+9. ID 191 (merge-photos grid) — SETTLED verified_fixed (Master Audit R8, 14 Nov 2026): the audit re-ran the EXACT
+original inputs (4 photos 2400×1800, Grid layout) and got a true 2×2 grid (4800×3600) via a UI run; Muse's v13 round
+(4× the same photo) also produced a real 2×2 grid. Original bug refuted by two independent observations.\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 35 of 38
+10. ID 221 (feedback dismiss ×) — the code renders a 28px dismiss button with a working handler; three live rounds
+report no X visible. One visual check settles it.
+ADMIN — feature requests from the owner (13 Nov 2026, 19:07 IST) + Master
+Audit
+UPDATE 14 Nov 2026: admin was NOT re-checked in the v13 round (excluded by the owner — OTP needed). The 13 Nov
+snapshot below stands. No admin check, no OTP, no payment was made in the v13 round. UPDATE (Master Audit R8, 14
+Nov 2026): admin was out of scope in R8 too — only API presence confirmed. UPDATE (Muse code check, e4a2bd3, 14
+Nov 2026): the admin features for IDs 202, 203, 204 EXIST in code + UI (see below) — they need a LIVE admin check, not
+a rebuild.
+These are NEW FUNCTIONALITY the owner asked for, not just bug fixes. They are tracker items 200–204 (plus the
+related open bugs 107, 184).
+ID 204 (P1) — Admin has no set-plan / reset-usage per user. Needed for support and testing (e.g. unblocking a quota-
+gated audit account). The Master Audit calls this the top admin improvement. UPDATE (Muse code check, e4a2bd3, 14
+Nov 2026): IMPLEMENTED — POST /api/admin/users/set-plan (server.py line 8049) + /api/admin/users/reset-usage
+(line 8061); admin.js lines 655–656 render the buttons. Live check owed — ID 204 is now to_verify.
+ID 202 (P1) — Admin has no list of who is logged in as admin and no logout-others. The owner wants a separate
+section showing how many people are logged in as admin, and the ability to log out other admin sessions from his main
+email. UPDATE (Muse code check, e4a2bd3, 14 Nov 2026): IMPLEMENTED — GET /api/admin/sessions + DELETE
+/api/admin/sessions/{session_id}; admin.js lines 436/472 render them. Live check owed — ID 202 is now to_verify.
+ID 203 (P1) — Super admin role: BOTH owner accounts are superadmin (mdhammad2906@gmail.com AND
+mdhammad29006@gmail.com), grant all access, can logout/remove admins. Owner decision 19:29 IST — the earlier
+'only 1 account' requirement is superseded. The admin login/OTP must work for both. UPDATE (Muse code check,
+e4a2bd3, 14 Nov 2026): IMPLEMENTED — ADMIN_OWNER_EMAILS contains BOTH accounts; the sessions
+endpoint marks owner sessions 'superadmin'. Live check owed — ID 203 is now to_verify.
+ID 201 (P2) — Admin shows no location on login. The owner's exact location should display when someone logs in
+(currently only the shared proxy IP 172.18.0.4 is shown for every login).
+ID 200 (P2) — Admin 'Last Active' always '-'.
+ID 184 (P1) — All guests share one 10-ops/day quota (shared proxy IP 172.18.0.4). This is the root cause behind the
+admin log showing one IP for everyone: PAPERPLANE_TRUSTED_PROXY_HOSTS defaults to 127.0.0.1,::1, so the
+app ignores X-Forwarded-For. Fix the proxy chain (nginx X-Forwarded-For / X-Real-IP + trusted-proxy config) and guest
+quota, rate limits and security logs all get real IPs.
+ID 107 (P2) — Sandbox/test orders are still labelled 'Verified paid' in admin revenue ( ₹ 3,750 gross mixes the owner's
+own accounts + old sandbox orders; no real customers yet). Needs an environment/order-source column and a real-
+revenue subtotal.
+Admin state observed 13 Nov 2026 (owner's screenshot, 19:02 IST): 12 users (9→10 Free after
+pradhishpradhish65@gmail.com registered today, 1 Pro, 1 Developer), jobs 155, revenue ₹ 3,750 / ₹ 88.5 / ₹ 3,661.5 (9
+txns, all 'Paid'), feedback 8, waitlist 3, security audits 10 — ALL at IP 172.18.0.4, including the Instinct account
+k5mmx3@mail.instinct.com logging in again at 17:39 IST. The browser round (19:08–19:12 IST) could NOT reach /admin
+(it asks for the admin key + code + OTP; nothing was entered).
+OWNER DECISIONS STILL NEEDED (before Codex starts)
+1. Admin secret code rotation (ID 101, P0) — URGENT and unconfirmed. The 2026-11-11 leave-as-is decision
+predates the value appearing in a public commit message (8dd50e6) and being pasted in chat. Making the repo private
+does not retract existing clones or the public commit. Rotation + git history purge (git filter-repo) + gitleaks in CI, or an
+explicit re-decision with those facts stated. UPDATE 14 Nov 2026: still unconfirmed; admin was not re-checked in the
+v13 round (excluded by the owner). UPDATE 14 Nov 2026 (Muse code check, e4a2bd3): the code-side fallback is\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 36 of 38
+REMOVED — server.py now reads the code/key through _required_admin_setting() and refuses to start if unset. What
+remains: rotation of the values in AWS (owner) + git history purge + gitleaks in CI. UPDATE 14 Nov 2026 (v14 live
+retest): the reviewed mirror (paperplane-redacted-v14-reviewed.git) exists but excludes the uncommitted v14 changes
+and is NOT ready to publish. The BAD mirror (paperplane-redacted-v14.git) still contains the historical secret —
+Codex's deletion was blocked by policy; the OWNER must delete that folder himself from his PC. Do not publish either
+mirror until the v15 work is committed and the mirror is re-filtered to include it.
+2. Super admin (ID 203) — DECIDED 19:29 IST. BOTH accounts are superadmin: mdhammad2906@gmail.com (one
+zero, current admin/Developer) AND mdhammad29006@gmail.com (two zeros, currently Free). The earlier 'only 1
+account' requirement is superseded.
+3. Cashfree PROD keys (ID 98, P0) — UPDATE 14 Nov 2026: checkout now OPENS to the Cashfree sandbox with
+correct amounts (merchant 'testMerchantName', phone '+91 9999999999') — the 503 is gone, but it is still sandbox, not
+PROD. Set CASHFREE_ENV=PROD with real PROD keys, then ONE small REAL payment test by the owner. Codex
+must not run a real payment. UPDATE (Master Audit R8, 14 Nov 2026): the full sandbox purchase is PROVEN end-to-
+end (Student Pro bought via simulator OTP, tier flipped live, verified 3×). The P0 now stands only on the PROD side.
+4. AdSense real publisher ID (ID 151) — placeholder ca-pub-XXXXXXXXXXXXXXXX is still live; paid users still see the
+SPONSORED slot. Paste the verified ID and confirm paid-user ad hiding.
+5. Master Audit Q1 — Server Mode toggle: should users even get server processing for merge/split/remove/rotate (quota-
+counted) once the toggle is fixed (ID 186), or is local-only the intended design for those four? If local-only, delete the
+dead toggle instead of fixing it.
+6. Master Audit Q2 — Exam resizer: client-side (free, unlimited, on-brand) or server-side (quota)? It is the flagship exam
+hook (ID 187).
+7. Master Audit Q3 — Guest bucket: after the IP fix (ID 184), is 10/day per guest the intent? Local tools are already
+unlimited for guests; server tools 10/day — say so plainly.
+8. Master Audit Q4 — Re-run the blocked suite (Studio export page-size ID 199, exam resizer end-to-end, remaining
+server tools, paid-tier checks, checkout e2e) once the k5mmx3 account is unblocked? One command on the AWS box:
+set tier='cyber_cafe' for user_id d22af2e2c8a7413d8faff47b53d30e80 in /data/paperplane.sqlite3. (Owner's call; set-
+plan now EXISTS in code + UI at e4a2bd3 (ID 204, to_verify) — the owner can use it from the console once verified
+live.)
+9. Cleanup (auditor decisions open since 2026-11-11) — delete the 3 QA feedback entries + the test feedback entry
+(submitted 12:03:38 IST, 13 Nov) + probe/test accounts via the v2 cleanup sheet (paperplane-test-account-cleanup-v2-
+2026-11-12.md). Note: k5mmx3@mail.instinct.com logged in again 17:39 IST (13 Nov) and
+pradhishpradhish65@gmail.com registered today — the audit accounts are still active. UPDATE 14 Nov 2026:
+k5mmx3@mail.instinct.com is now Student Pro (sandbox purchase, no real money) and holds one live API key from the
+R8-F2 test (revocable from Settings > API Keys).
+10. Pill nav pointer (ID 205) — which part of the pill nav looks broken/mixed, and at what width/zoom?
+11. Mobile visual checks (IDs 214, 221, 222) — NEW 14 Nov 2026: drawer sign-in at 390px, pill-vs-CTA overlap,
+feedback dismiss × visibility — one visual pass on the owner's phone.
+12. Audit R8 Q1 — API keys for everyone, or Rs 299-only? (ID 223) — /developers says 'INCLUDED WITH CYBER
+CAFE' but a Student Pro (Rs 49) account gets a working live key. Default: enforce the gating (server-side 403 unless
+the API-including tier) and fix the banner.
+13. Audit R8 Q2 — Is 'Cyber Cafe' a retired plan name? (ID 209) — the Rs 299 tier is 'All-in-One Pro & Developer' on
+/pricing. Default: retire 'Cyber Cafe' everywhere.
+14. Audit R8 Q3 — Guest quota: leave as-is for launch, or fix first? (ID 184) — a fresh guest finds the shared bucket
+already exhausted (402 live). Default: fix the IP keying first.
+15. Audit R8 Q4 — /dashboard redirect or change the footer link? (ID 226) — /dashboard client-redirects to /tool-desk.
+Default: point the footer link at /tool-desk.
+16. Audit R8 Q5 — Move OTP/reset/alert mail to a transactional sender (SES) with SPF/DKIM? (ID 61) — mail still
+goes from the owner's personal Gmail as 'Paperplane PDF Security', which looks phishy to filters and caps volume.
+Owner decision (needs his AWS/SES setup).
+17. Audit R8 Q6 — TOTP authenticator support for admin? — the admin OTP goes to the owner's email and needed
+relaying during audits. Owner decision (if yes, Codex implements TOTP so admin login is not dependent on email\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 37 of 38
+delivery).
+18. Audit R8 Q7 — Do saved Studio/AI documents actually get purged within 24h? (ID 109) — default: implement the
+purge (the tool pages promise it) and verify it.
+19. End-to-end deployment plan (v15) — DECIDED by the owner, 14 Nov 2026 evening. The owner wants the app
+end-to-end deployment-ready and WILL deploy it. Sequence: (1) Codex v15 finishes this list + self-analysis loop and
+reports READY (no interim replies — standing instruction); (2) the owner commits + pushes + deploys v15 to the test
+site and shares the new hash; (3) Muse live-retests v15 end-to-end (browser takeover for uploads if the crash persists;
+all 10 P0s + post-deployment checks); (4) any remaining gaps go to Codex as v16; (5) when the live retest is clean, the
+owner does the owner steps (credential rotation, real payment check, bad-mirror deletion, history publish) and the app
+is declared launch-ready. The browser takeover for uploads is offered and pending the owner's answer.
+FIX ORDER (recommended — updated for v15)
+1. P0 — THE TWO BLOCKERS FIRST: ID 229 (upload crash — reproduce with a native picker, find the breaking handler,
+prove upload→run→download live) and ID 206 (Merge local — fix the DEPLOY PIPELINE so the live server serves the
+real 2,581-byte runtime, not the stub; prove by HTTP + live local Merge). Then ID 207 (Merge 60 MB worker-pool stall),
+ID 3 (Studio stale restore).
+2. AI: IDs 1 (Translate — resolve the Spanish-503 vs Hindi-success conflict; live provider, both languages, both sizes), 2
+(Brief 69-page 502/empty; live provider). Do not count quota on failed jobs.
+3. Cloud Import: ID 4 (direct-download form + the owner's exact Drive link; the modal already works).
+4. Cashfree: ID 98 (real PROD keys + one small real payment by the owner; sandbox e2e is proven; Codex must not run
+a real payment). Plus ID 228 (daily synthetic sandbox checkout probe — set it up).
+5. First-paint + counts: ID 168 (to_verify — signed-in multi-page check), ID 153 (tool counts 44/45/41), ID 173, ID 177.
+6. P1: ID 223 (API keys gating vs copy), ID 184 (guest quota — shared proxy IP), ID 211 (toggle persistence), ID 210
+(Earlier/Later buttons), ID 218 (AI load-state race).
+7. Admin verification (not a rebuild — code + UI exist): IDs 204, 202, 203 (set-plan/reset-usage, session list + logout-
+others, super admin) — verify live; then IDs 201, 200, 107. Plus ID 101 (history purge preparation + gitleaks CI; rotation
+is the owner's).
+8. Photo/exam remaining: IDs 187 (exam resizer — discriminating check), 188 (Mask Aadhaar PNG), 224 (compress
+default KB), 225 (repair raw error), 195 (resize with no dimensions), 152 (photo tools server-only — resolve the conflict
+first), 227 (sign-pdf modal), 226 (R8-F5 nits).
+9. Pricing honesty: IDs 192 ( ₹ 250 upsell — to_verify), 151 (ads to Pro + placeholder AdSense). IDs 208 and 209 are fixed
+in v14; 154 and 136 are fixed in v13.
+10. Layout/polish: IDs 15 (sticky pill at ~1104px), 189/190 (tablet double header, mobile pill — both to_verify, audit claims
+fixed), 172, 174, 176, 178, 182, 183, 196, 205 (pill nav — after the owner's pointer), 212, 213, 216, 217.
+11. The rest of the P1/P2 tables above, in ID order within each severity. Then the self-analysis loop (Phase 5 of the prompt)
+— re-test every fix twice, re-check the 68 do-not-regress items, loop until satisfied, then report.
+NOT TESTED / LIMITS (this report)
+Pytest: Codex reports 449 passed, 2 warnings, twice (v14 FINAL-REPORT) — NOT independently verified from here
+(the v14 code is not on GitHub). Muse's independent pytest on e4a2bd3 (v13 baseline): 430 passed, 2 warnings, twice.
+Most tool outputs were size/name-verified; 4 downloads were content-checked with PyMuPDF in v13 (Repair corrupted,
+Studio Export, Protect encryption, Unlock decryption). Split ZIP entry contents and the OCR text layer are still unopened
+(ID 28).
+390px phone layout: no visual render was achieved from the laptop (three routes failed — ID 214). A code-level
+responsive audit of e4a2bd3 was done instead (viewport meta correct, phone breakpoints exist, grids collapse, Studio
+has a mobile dock, pricing modal scrolls internally). Visual phone testing by the owner is still required (IDs 214, 221,
+222).\nPaperplane - Codex Elite Prompt v15 - 14 Nov 2026 - Page 38 of 38
+Console errors / network: no DevTools access in Muse's browser rounds; a real DevTools pass is still needed.
+Admin console: NOT re-checked in the v13 round (excluded by the owner — OTP needed). The 13 Nov admin
+snapshot above stands.
+Guest-mode quota UX live (10/day): CONFIRMED by the audit R8 — a fresh guest found the shared bucket already
+exhausted (10/10, 402 'Daily guest limit reached'). Per-visitor behaviour after any fix is untested.
+ID 93 redeploy persistence: now verified_fixed (Master Audit R8 — account + API key survived the 12:41 AM redeploy;
+R7 confirmed separately). The formal create → redeploy → login test was never run.
+Real payment: no payment attempted (hard limit). Cashfree sandbox e2e is PROVEN by the audit R8 (full Student Pro
+purchase, tier flipped live, verified 3×). A real PROD payment is the owner's job.
+Files above 25MB: beyond the Master Audit's upload tooling; the 50MB free limit is untested at the boundary. Muse
+verified a 60 MB in-browser Merge in v11 (769 pages, correct order) — the same merge FAILS in v13 (ID 207).
+Live v14 retest (14 Nov 2026 evening): INCOMPLETE — the browser died at the first file upload in 3 consecutive
+sessions; no upload-dependent test ran. The no-upload round (Guest) verified pricing, palette, footer, developers, slugs,
+quota and first-paint (one page). The deployed pdf_runtime.js is still the 1,402-byte stub (ID 206) — re-verified by HTTP
+twice (20:44 and 21:30 IST).
+Studio Export A4→Letter (ID 199): export works now and is not quota-blocked on Student Pro, but the page-size swap
+was not re-measured in R8 — stays not_tested.
+Digital Signatures Apply downloadable-valid-signature gap (ID 117): not re-tested in v13.
+What this report does NOT do
+This list is Part 2 of the v15 prompt PDF (paperplane-codex-elite-prompt-v15-2026-11-14.pdf) — the prompt in Part 1
+refers to this list as its single source of truth. The prompt goes to Codex only on the owner's explicit go-ahead, after he
+reviews this list.
+No code was changed, nothing was deployed, nothing was pushed, nothing was paid. This is a testing/reporting list
+only.
+The v13 follow-up round loaded the 10-page test file into Studio — if it persisted, the stored Studio document is now
+that file; reload the original 69-page file when wanted. The v13 browser sessions ended signed-in as Pro (no sign-out
+test this round).
+No credential, OTP or password value is recorded in this report.
