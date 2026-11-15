@@ -1446,12 +1446,19 @@ textarea::placeholder {
 }
 
 .progress-bar-fill {
-  height: 100%;
-  width: 0%;
-  background: linear-gradient(90deg, var(--accent) 0%, #ff8b6e 100%);
+  display: block;
+  width: 100%;
+  height: 8px;
+  border: 0;
   border-radius: 8px;
-  transition: width 0.3s ease;
+  overflow: hidden;
+  accent-color: var(--accent);
+  background: rgba(0, 0, 0, 0.06);
 }
+
+.progress-bar-fill::-webkit-progress-bar { background: rgba(0, 0, 0, 0.06); border-radius: 8px; }
+.progress-bar-fill::-webkit-progress-value { background: linear-gradient(90deg, var(--accent) 0%, #ff8b6e 100%); border-radius: 8px; transition: width 0.3s ease; }
+.progress-bar-fill::-moz-progress-bar { background: linear-gradient(90deg, var(--accent) 0%, #ff8b6e 100%); border-radius: 8px; }
 
 .progress-steps {
   display: flex;
@@ -5335,11 +5342,27 @@ body:not(.light-mode) .editor-select option {
 .organizer-grid .thumb-card, .organizer-grid .page-card { min-width: 0; max-width: 100%; }
 .auth-pending #topbar-auth-guest, .auth-pending #topbar-auth-user,
 .auth-pending #topbar-upgrade-btn, .auth-pending #sidebar-upgrade-btn,
-.auth-pending .profile-card { visibility: hidden; }
+.auth-pending .profile-card,
+.auth-pending #settings-user-email, .auth-pending #settings-user-avatar,
+.auth-pending #settings-user-badge, .auth-pending #settings-guest-actions,
+.auth-pending #settings-user-actions { visibility: hidden; }
 .auth-restoring #topbar-auth-guest,
 .auth-restoring #topbar-upgrade-btn,
 .auth-restoring #sidebar-upgrade-btn,
-.auth-restoring .profile-card { visibility: hidden; }
+.auth-restoring .profile-card,
+.auth-restoring #settings-user-email, .auth-restoring #settings-user-avatar,
+.auth-restoring #settings-user-badge, .auth-restoring #settings-guest-actions,
+.auth-restoring #settings-user-actions { visibility: hidden; }
+.auth-pending .profile-card-row, .auth-restoring .profile-card-row { position: relative; }
+.auth-pending .profile-card-row::before, .auth-restoring .profile-card-row::before {
+  content: ""; position: absolute; inset: 4px 42px 4px 0; border-radius: 8px;
+  background: linear-gradient(90deg, rgba(120, 130, 132, .08), rgba(120, 130, 132, .18), rgba(120, 130, 132, .08));
+  background-size: 200% 100%; animation: auth-shell-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes auth-shell-shimmer { to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .auth-pending .profile-card-row::before, .auth-restoring .profile-card-row::before { animation: none; }
+}
 .dynamic-workspace, .tool-desk-container, .home-tools-catalog, .home-cat-section { min-width: 0; max-width: 100%; }
 .home-cat-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr)); }
 [hidden] { display: none !important; }

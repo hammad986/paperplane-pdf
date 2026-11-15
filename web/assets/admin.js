@@ -399,7 +399,6 @@
       setElText("m-jobs-today", `${metrics.jobs_today ?? 0} processed today`);
 
       // System Banner
-      setElText("live-db-path", `${metrics.db_location || "/data"}/paperplane.sqlite3 (${metrics.total_users} users)`);
       setElText("live-env-name", (metrics.environment || "production").toUpperCase());
       const headerEnv = document.getElementById("header-env");
       if (headerEnv) headerEnv.textContent = `${(metrics.environment || "Production").toUpperCase()} LIVE`;
@@ -813,6 +812,10 @@
     const baseUrlInput = document.getElementById("ai-baseurl-input");
     const modelInput = document.getElementById("ai-model-input");
     const apiKeyInput = document.getElementById("ai-apikey-input");
+    const fallbackProvider = document.getElementById("ai-fallback-provider-select");
+    const fallbackBaseUrl = document.getElementById("ai-fallback-baseurl-input");
+    const fallbackModel = document.getElementById("ai-fallback-model-input");
+    const fallbackKey = document.getElementById("ai-fallback-apikey-input");
 
     if (providerSel && cfg.provider) providerSel.value = cfg.provider;
     if (baseUrlInput && cfg.base_url) baseUrlInput.value = cfg.base_url;
@@ -825,6 +828,16 @@
         ? `Saved: ${cfg.api_key_masked || "configured"} · leave blank to keep`
         : "Enter provider API key";
       apiKeyInput.autocomplete = "new-password";
+    }
+    if (fallbackProvider) fallbackProvider.value = cfg.fallback_provider || "";
+    if (fallbackBaseUrl) fallbackBaseUrl.value = cfg.fallback_base_url || "";
+    if (fallbackModel) fallbackModel.value = cfg.fallback_model || "";
+    if (fallbackKey) {
+      fallbackKey.value = "";
+      fallbackKey.placeholder = cfg.fallback_has_key
+        ? `Saved: ${cfg.fallback_api_key_masked || "configured"} · leave blank to keep`
+        : "Enter fallback provider API key";
+      fallbackKey.autocomplete = "new-password";
     }
     const saveMsg = document.getElementById("ai-save-msg");
     if (saveMsg && cfg.key_needs_encryption) {
@@ -853,6 +866,10 @@
     const baseUrlInput = document.getElementById("ai-baseurl-input");
     const modelInput = document.getElementById("ai-model-input");
     const apiKeyInput = document.getElementById("ai-apikey-input");
+    const fallbackProviderInput = document.getElementById("ai-fallback-provider-select");
+    const fallbackBaseUrlInput = document.getElementById("ai-fallback-baseurl-input");
+    const fallbackModelInput = document.getElementById("ai-fallback-model-input");
+    const fallbackApiKeyInput = document.getElementById("ai-fallback-apikey-input");
     const msgBox = document.getElementById("ai-save-msg");
     const btn = document.getElementById("btn-save-ai");
 
@@ -860,6 +877,10 @@
     const baseUrl = (baseUrlInput ? baseUrlInput.value : "").trim();
     const model = (modelInput ? modelInput.value : "").trim();
     const apiKey = (apiKeyInput ? apiKeyInput.value : "").trim();
+    const fallbackProvider = (fallbackProviderInput ? fallbackProviderInput.value : "").trim();
+    const fallbackBaseUrl = (fallbackBaseUrlInput ? fallbackBaseUrlInput.value : "").trim();
+    const fallbackModel = (fallbackModelInput ? fallbackModelInput.value : "").trim();
+    const fallbackApiKey = (fallbackApiKeyInput ? fallbackApiKeyInput.value : "").trim();
 
     btn.disabled = true;
     btn.textContent = "Saving...";
@@ -876,7 +897,11 @@
           provider: provider,
           base_url: baseUrl,
           model: model,
-          api_key: apiKey
+          api_key: apiKey,
+          fallback_provider: fallbackProvider,
+          fallback_base_url: fallbackBaseUrl,
+          fallback_model: fallbackModel,
+          fallback_api_key: fallbackApiKey
         })
       });
 

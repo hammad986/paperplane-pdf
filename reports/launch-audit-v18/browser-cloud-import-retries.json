@@ -3,13 +3,13 @@
     "name": "drive_owner_exact",
     "pass": 1,
     "status": 400,
-    "error": "Cloud Import accepts PDF files only. This link returned another file type; use its matching converter instead."
+    "error": "Google Drive returned image/png, not a PDF. Check that the shared link points to the PDF itself and is available to anyone with the link."
   },
   {
     "name": "drive_owner_exact",
     "pass": 2,
     "status": 400,
-    "error": "Cloud Import accepts PDF files only. This link returned another file type; use its matching converter instead."
+    "error": "Google Drive returned image/png, not a PDF. Check that the shared link points to the PDF itself and is available to anyone with the link."
   },
   {
     "name": "drive",
@@ -33,13 +33,13 @@
     "name": "direct",
     "pass": 1,
     "status": 400,
-    "error": "Cloud file sync failed. Check that the link is public and points directly to a PDF file."
+    "error": "The linked host returned HTTP 404; check the public URL and try again."
   },
   {
     "name": "direct",
     "pass": 2,
     "status": 400,
-    "error": "Cloud file sync failed. Check that the link is public and points directly to a PDF file."
+    "error": "The linked host returned HTTP 404; check the public URL and try again."
   },
   {
     "name": "direct_corrected",

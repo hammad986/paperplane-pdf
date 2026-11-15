@@ -2149,17 +2149,46 @@ def _read_ai_settings(connection: sqlite3.Connection) -> tuple[dict[str, str], s
     return settings, "", False
 
 
+def _read_ai_fallback_settings(connection: sqlite3.Connection) -> tuple[dict[str, str], bool]:
+    row = connection.execute(
+        "SELECT value FROM admin_system_settings WHERE key = 'AI_FALLBACK_CONFIG'"
+    ).fetchone()
+    if not row:
+        return {}, False
+    value = str(row[0] or "")
+    if not value.startswith("fernet:v1:"):
+        return {}, bool(value)
+    fernet, invalid_token = _ai_settings_fernet()
+    try:
+        payload = json.loads(fernet.decrypt(value.removeprefix("fernet:v1:").encode("ascii")).decode("utf-8"))
+    except (invalid_token, UnicodeDecodeError, json.JSONDecodeError, TypeError) as error:
+        raise RuntimeError("Saved fallback AI credentials cannot be decrypted with the configured encryption key.") from error
+    if not isinstance(payload, dict):
+        raise RuntimeError("Saved fallback AI configuration is invalid.")
+    provider = str(payload.get("provider") or "").strip().lower()
+    if provider not in AI_PROVIDER_DEFAULTS:
+        raise RuntimeError("Saved fallback AI provider is unsupported.")
+    model = str(payload.get("model") or "").strip()
+    api_key = str(payload.get("api_key") or "").strip()
+    base_url = _validate_ai_base_url(provider, str(payload.get("base_url") or AI_PROVIDER_DEFAULTS[provider]))
+    if not model or not api_key:
+        raise RuntimeError("Saved fallback AI configuration is incomplete.")
+    return {"provider": provider, "model": model, "base_url": base_url, "api_key": api_key}, False
+
+
 def admin_get_ai_config() -> dict:
     """Return runtime selection with the credential masked; never return stored plaintext."""
     try:
         with closing(connect()) as connection:
             settings, saved_key, needs_encryption = _read_ai_settings(connection)
+            fallback, fallback_needs_encryption = _read_ai_fallback_settings(connection)
     except RuntimeError:
         with closing(connect()) as connection:
             settings = dict(connection.execute(
                 "SELECT key, value FROM admin_system_settings WHERE key != 'AI_API_KEY' AND key != 'AI_API_KEY_PROVIDER' AND key NOT LIKE 'AI_API_KEY__%'"
             ).fetchall())
         saved_key, needs_encryption = "", True
+        fallback, fallback_needs_encryption = {}, True
     provider = settings.get("AI_PROVIDER") or _default_ai_provider()
     model = settings.get("AI_MODEL") or (GEMINI_MODEL if provider == "gemini" else BLUESMINDS_MODEL if provider == "bluesminds" else "")
     base_url = settings.get("AI_BASE_URL") or AI_PROVIDER_DEFAULTS.get(provider, AI_PROVIDER_DEFAULTS["bluesminds"])
@@ -2172,10 +2201,28 @@ def admin_get_ai_config() -> dict:
         "api_key_masked": masked_key,
         "has_key": bool(raw_key),
         "key_needs_encryption": needs_encryption,
+        "fallback_provider": fallback.get("provider", ""),
+        "fallback_model": fallback.get("model", ""),
+        "fallback_base_url": fallback.get("base_url", ""),
+        "fallback_api_key_masked": (
+            f"{fallback['api_key'][:4]}••••••••{fallback['api_key'][-4:]}"
+            if len(fallback.get("api_key", "")) > 8 else ("••••••••" if fallback.get("api_key") else "")
+        ),
+        "fallback_has_key": bool(fallback.get("api_key")),
+        "fallback_key_needs_encryption": fallback_needs_encryption,
     }
 
 
-def admin_set_ai_config(provider: str, model: str, base_url: str, api_key: str | None = None) -> dict:
+def admin_set_ai_config(
+    provider: str,
+    model: str,
+    base_url: str,
+    api_key: str | None = None,
+    fallback_provider: str | None = None,
+    fallback_model: str | None = None,
+    fallback_base_url: str | None = None,
+    fallback_api_key: str | None = None,
+) -> dict:
     """Validate the provider endpoint and encrypt any newly supplied API key at rest."""
     clean_provider = (provider or "").strip().lower()
     if clean_provider not in AI_PROVIDER_DEFAULTS:
@@ -2192,6 +2239,31 @@ def admin_set_ai_config(provider: str, model: str, base_url: str, api_key: str |
         fernet, _ = _ai_settings_fernet()
         encrypted_key = "fernet:v1:" + fernet.encrypt(clean_key.encode("utf-8")).decode("ascii")
 
+    fallback_payload: dict[str, str] | None = None
+    disable_fallback = fallback_provider is not None and not fallback_provider.strip()
+    if fallback_provider is not None and not disable_fallback:
+        clean_fallback_provider = fallback_provider.strip().lower()
+        if clean_fallback_provider not in AI_PROVIDER_DEFAULTS:
+            raise ValueError("Unsupported fallback AI provider.")
+        clean_fallback_model = (fallback_model or "").strip()
+        if not clean_fallback_model or len(clean_fallback_model) > 200 or any(ord(ch) < 32 for ch in clean_fallback_model):
+            raise ValueError("Enter a valid fallback AI model identifier (1–200 characters).")
+        clean_fallback_base = _validate_ai_base_url(
+            clean_fallback_provider,
+            (fallback_base_url or AI_PROVIDER_DEFAULTS[clean_fallback_provider]).strip(),
+        )
+        clean_fallback_key = (fallback_api_key or "").strip()
+        if "••" in clean_fallback_key:
+            clean_fallback_key = ""
+        if clean_fallback_key and len(clean_fallback_key) > 4096:
+            raise ValueError("Fallback AI API key is too long.")
+        fallback_payload = {
+            "provider": clean_fallback_provider,
+            "model": clean_fallback_model,
+            "base_url": clean_fallback_base,
+            "api_key": clean_fallback_key,
+        }
+
     now = time.time()
     with closing(connect()) as connection:
         connection.execute("BEGIN IMMEDIATE")
@@ -2201,6 +2273,16 @@ def admin_set_ai_config(provider: str, model: str, base_url: str, api_key: str |
             raise RuntimeError(
                 "Configure the AI settings encryption key and re-enter the current provider key before switching providers."
             )
+        if fallback_provider is not None and not disable_fallback:
+            current_fallback, fallback_needs_encryption = _read_ai_fallback_settings(connection)
+            if fallback_needs_encryption:
+                raise RuntimeError("The saved fallback key must be re-entered before it can be changed or used.")
+            if fallback_payload is not None and not fallback_payload["api_key"]:
+                if current_fallback.get("provider") != fallback_payload["provider"]:
+                    raise ValueError("Enter an API key when changing the fallback provider.")
+                fallback_payload["api_key"] = current_fallback.get("api_key", "")
+            if fallback_payload is not None and not fallback_payload["api_key"]:
+                raise ValueError("Enter a fallback provider API key.")
         for key, value in (
             ("AI_PROVIDER", clean_provider),
             ("AI_MODEL", clean_model),
@@ -2215,6 +2297,18 @@ def admin_set_ai_config(provider: str, model: str, base_url: str, api_key: str |
                 "INSERT INTO admin_system_settings (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
                 (_ai_provider_key_setting(clean_provider), encrypted_key, now),
             )
+        if disable_fallback:
+            connection.execute("DELETE FROM admin_system_settings WHERE key = 'AI_FALLBACK_CONFIG'")
+        elif fallback_payload is not None:
+            fernet, _ = _ai_settings_fernet()
+            encrypted_fallback = "fernet:v1:" + fernet.encrypt(
+                json.dumps(fallback_payload, separators=(",", ":")).encode("utf-8")
+            ).decode("ascii")
+            connection.execute(
+                "INSERT INTO admin_system_settings (key, value, updated_at) VALUES ('AI_FALLBACK_CONFIG', ?, ?) "
+                "ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
+                (encrypted_fallback, now),
+            )
         connection.commit()
     return admin_get_ai_config()
 
@@ -2224,8 +2318,10 @@ def get_runtime_ai_credentials() -> dict:
     try:
         with closing(connect()) as connection:
             settings, saved_key, needs_encryption = _read_ai_settings(connection)
+            fallback, _ = _read_ai_fallback_settings(connection)
     except sqlite3.Error:
         settings, saved_key, needs_encryption = {}, "", False
+        fallback = {}
     if needs_encryption:
         raise RuntimeError("Stored AI credentials are plaintext; configure encryption and save the key again.")
     provider = settings.get("AI_PROVIDER") or _default_ai_provider()
@@ -2239,4 +2335,5 @@ def get_runtime_ai_credentials() -> dict:
         "model": model,
         "base_url": base_url,
         "api_key": saved_key or _environment_ai_key(provider),
+        "fallback": fallback,
     }

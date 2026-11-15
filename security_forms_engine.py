@@ -301,13 +301,17 @@ def flatten_pdf_forms(source: Path, output: Path) -> Path:
 
     doc = fitz.open(str(source))
     try:
-        # Use PyMuPDF's bake method to burn widgets into page streams
+        # Bake both AcroForm widgets and PDF annotations into page streams.
         if hasattr(doc, "bake"):
-            doc.bake(annots=False, widgets=True)
+            doc.bake(annots=True, widgets=True)
         else:
             for page in doc:
                 for widget in list(page.widgets()):
                     page.delete_widget(widget)
+                # Older PyMuPDF builds cannot burn annotation appearances.
+                # Refuse a false-success output while annotations remain.
+                if list(page.annots() or []):
+                    raise RuntimeError("This server build cannot safely flatten PDF annotations.")
 
         out_bytes = doc.tobytes(garbage=4, clean=True, deflate=True)
     finally:

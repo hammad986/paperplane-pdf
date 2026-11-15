@@ -71,7 +71,9 @@ def test_98_misconfigured_production_is_never_reported_ready(monkeypatch):
     monkeypatch.setattr(server, "ENVIRONMENT", "production")
     monkeypatch.setattr(server, "ALLOW_BILLING_SIMULATION", True)
     monkeypatch.setattr(server, "_cashfree_request", lambda *args: pytest.fail("Gateway must not be contacted"))
-    assert not client.get("/api/billing/status").json()["cashfree_configured"]
+    public_status = client.get("/api/billing/status").json()
+    assert "cashfree_configured" not in public_status
+    assert "cashfree_environment" not in public_status
     for tier in ("exam_pass", "student_pro", "cyber_cafe"):
         assert client.post("/api/billing/checkout-session", json={"tier": tier}).status_code == 503
     assert client.post("/api/billing/simulate-pro").status_code == 403
@@ -203,7 +205,7 @@ def test_2_large_summary_covers_all_69_pages_under_bounded_budget(mock_ai, monke
     def upstream(request, timeout):
         prompt = json.loads(request.data)["messages"][1]["content"]
         calls.append((timeout, prompt))
-        if timeout < 40:
+        if timeout < 6:
             raise TimeoutError
         return MockProviderReply("The opening and closing pages describe the audit. [Page 1] [Page 69]")
 
@@ -211,8 +213,8 @@ def test_2_large_summary_covers_all_69_pages_under_bounded_budget(mock_ai, monke
     response = post_pdf(TestClient(server.app), "/api/ai/summarize", content=pdf_bytes(69))
     assert response.status_code == 200
     assert response.json()["citations"] == [1, 69]
-    assert len(calls) == 4
-    assert all(any(f"--- Page {n} ---" in prompt for _, prompt in calls[:3]) for n in range(1, 70))
+    assert len(calls) == 7
+    assert all(any(f"--- Page {n} ---" in prompt for _, prompt in calls[:6]) for n in range(1, 70))
     oversized = post_pdf(TestClient(server.app), "/api/ai/summarize", content=pdf_bytes(121))
     assert oversized.status_code == 422
 

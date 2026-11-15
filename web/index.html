@@ -342,12 +342,12 @@
           <!-- Multi-Stage Processing Loader -->
           <div id="progress-card" class="progress-card" hidden>
             <div class="progress-header">
-              <strong id="progress-status-title">Processing Document...</strong>
+              <strong id="progress-status-title" role="status" aria-live="polite">Processing Document...</strong>
               <span id="progress-percent">0%</span>
               <button type="button" id="job-cancel-btn" class="btn-secondary-action" hidden>Cancel</button>
             </div>
             <div class="progress-track">
-              <div class="progress-bar-fill" id="progress-bar-fill"></div>
+              <progress class="progress-bar-fill" id="progress-bar-fill" max="100" aria-label="Document upload and processing progress"></progress>
             </div>
             <div class="progress-steps" id="job-progress-steps">
               <span class="progress-step active" id="step-1">1. Stream Upload</span>

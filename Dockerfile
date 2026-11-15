@@ -43,6 +43,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     icc-profiles-free \
     chromium \
     fonts-dejavu-core \
+    && profile="$(find /usr/share/color/icc -type f -iname 'sRGB.icc' -print -quit)" \
+    && test -n "$profile" \
+    && if [ "$profile" != "/usr/share/color/icc/sRGB.icc" ]; then install -D "$profile" /usr/share/color/icc/sRGB.icc; fi \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy installed Python packages from builder

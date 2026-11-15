@@ -279,6 +279,16 @@ class SSRFRedirectHandler(urllib.request.HTTPRedirectHandler):
         return super().redirect_request(req, fp, code, msg, headers, newurl)
 
 
+class RemoteFetchHTTPError(RuntimeError):
+    """Safe upstream HTTP failure metadata without retaining a signed URL."""
+
+    def __init__(self, status_code: int, host: str, content_type: str = "") -> None:
+        self.status_code = int(status_code)
+        self.host = host
+        self.content_type = content_type.split(";", 1)[0].strip().lower()
+        super().__init__(f"Remote host returned HTTP {self.status_code}.")
+
+
 def safe_fetch_url(
     url: str,
     max_size: int = 50 * 1024 * 1024,
@@ -303,7 +313,18 @@ def safe_fetch_url(
         headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Paperplane/2.0 (SSRF-Guarded)"}
     )
 
-    with opener.open(req, timeout=timeout) as resp:
+    try:
+        response = opener.open(req, timeout=timeout)
+    except urllib.error.HTTPError as error:
+        host = urllib.parse.urlsplit(url).hostname or "remote host"
+        content_type = error.headers.get("Content-Type", "") if error.headers else ""
+        try:
+            error.close()
+        except Exception:
+            pass
+        raise RemoteFetchHTTPError(error.code, host, content_type) from None
+
+    with response as resp:
         content_type = resp.headers.get("Content-Type", "application/octet-stream")
         if response_metadata is not None:
             response_metadata.update({
@@ -861,20 +882,8 @@ li {{ margin-bottom: 4px; }}
 
 def pdf_to_word(source: Path, output: Path, pages: str = "all") -> Path:
     """Converts a PDF into an editable Microsoft Word (.docx) document."""
-    try:
-        from pdf2docx import Converter
-        cv = Converter(str(source))
-        if pages == "all" or not pages:
-            cv.convert(str(output), start=0, end=None)
-        else:
-            cv.convert(str(output), start=0, end=None)
-        cv.close()
-        if output.exists() and output.stat().st_size > 0:
-            return output
-    except Exception:
-        pass
-
-    # Fallback: Extract structured text and blocks with PyMuPDF into python-docx
+    # Prefer real editable text. pdf2docx may rasterize complex pages into huge
+    # images, so use images only for pages without an extractable text layer.
     doc = fitz.open(str(source))
     out_docx = docx.Document()
     for page in doc:
@@ -883,6 +892,12 @@ def pdf_to_word(source: Path, output: Path, pages: str = "all") -> Path:
             for line in text.split("\n\n"):
                 if line.strip():
                     out_docx.add_paragraph(line.strip())
+        else:
+            pixmap = page.get_pixmap(matrix=fitz.Matrix(150 / 72, 150 / 72), alpha=False)
+            image = io.BytesIO(pixmap.tobytes("png"))
+            section = out_docx.sections[-1]
+            max_width = section.page_width - section.left_margin - section.right_margin
+            out_docx.add_picture(image, width=max_width)
         out_docx.add_page_break()
     out_docx.save(str(output))
     doc.close()
@@ -926,15 +941,31 @@ def pdf_to_excel(source: Path, output: Path, pages: str = "all") -> Path:
         sheet = wb.create_sheet(title="Extracted Data")
         current_row = 1
         for page_idx, page in enumerate(doc, 1):
-            text = page.get_text("text")
-            for line in text.splitlines():
-                line = line.strip()
-                if not line:
-                    continue
-                cols = re.split(r'\t+|\s{2,}|,', line)
-                for c_idx, col in enumerate(cols, 1):
-                    sheet.cell(row=current_row, column=c_idx, value=col.strip())
+            words = page.get_text("words", sort=True)
+            rows: list[list[tuple]] = []
+            for word in sorted(words, key=lambda item: (item[1], item[0])):
+                matching_row = next((row for row in rows if abs(row[0][1] - word[1]) <= 3), None)
+                if matching_row is None:
+                    rows.append([word])
+                else:
+                    matching_row.append(word)
+            for row_words in rows:
+                row_words.sort(key=lambda word: word[0])
+                cells: list[str] = []
+                current_cell: list[str] = []
+                previous_end = None
+                for word in row_words:
+                    if previous_end is not None and word[0] - previous_end >= 28 and current_cell:
+                        cells.append(" ".join(current_cell))
+                        current_cell = []
+                    current_cell.append(word[4])
+                    previous_end = word[2]
+                if current_cell:
+                    cells.append(" ".join(current_cell))
+                for column_idx, value in enumerate(cells, 1):
+                    sheet.cell(row=current_row, column=column_idx, value=value)
                 current_row += 1
+            current_row += 1
 
     wb.save(str(output))
     doc.close()
@@ -1351,14 +1382,38 @@ tr:nth-child(even) {{ background: #fafcfb; }}
     return output
 
 
+def _find_srgb_icc_profile() -> Path | None:
+    """Resolve the distro ICC package's real sRGB path, including container variants."""
+    configured = os.environ.get("PAPERPLANE_SRGB_ICC")
+    candidates = [Path(configured)] if configured else [
+        Path("/usr/share/color/icc/sRGB.icc"),
+        Path("/usr/share/color/icc/colord/sRGB.icc"),
+        Path("/usr/share/ghostscript/iccprofiles/default_rgb.icc"),
+    ]
+    if not configured:
+        for root in (Path("/usr/share/color/icc"), Path("/usr/share/ghostscript")):
+            if root.is_dir():
+                candidates.extend(root.rglob("sRGB.icc"))
+                candidates.extend(root.rglob("default_rgb.icc"))
+    for candidate in candidates:
+        try:
+            with candidate.open("rb") as profile:
+                header = profile.read(128)
+            if len(header) == 128 and header[36:40] == b"acsp":
+                return candidate.resolve()
+        except OSError:
+            continue
+    return None
+
+
 def pdf_to_pdfa(source: Path, output: Path) -> Path:
     """Convert to PDF/A-1b with Ghostscript; never relabel an ordinary PDF as archival."""
     gs = shutil.which("gs") or shutil.which("gswin64c") or shutil.which("gswin32c")
     if not gs:
         raise RuntimeError("PDF/A conversion is unavailable because Ghostscript is not installed.")
 
-    icc_profile = Path(os.environ.get("PAPERPLANE_SRGB_ICC", "/usr/share/color/icc/sRGB.icc"))
-    if not icc_profile.is_file():
+    icc_profile = _find_srgb_icc_profile()
+    if icc_profile is None:
         raise RuntimeError("PDF/A conversion is unavailable because the required sRGB ICC profile is missing.")
 
     gs_path = Path(gs).resolve()
@@ -2520,6 +2575,9 @@ def annotate_pdf(source: Path, output: Path | list[dict], annotations: list[dict
                 else:
                     annot = page.add_strikeout_annot(rect)
                 annot.set_colors(stroke=color_tuple)
+                comment = str(ann.get("content", ann.get("comment", ""))).strip()
+                if comment:
+                    annot.set_info(title=str(ann.get("author", "User")), content=comment)
                 annot.update()
         elif atype in {"rect", "rectangle"}:
             rect = fitz.Rect(*ann.get("rect", [72, 72, 200, 150]))
@@ -3138,6 +3196,41 @@ def split_pdf_document(source: Path, output_dir: Path, mode: str, param: str) ->
 
     out_paths: list[Path] = []
 
+    def save_verified_part(part_doc: fitz.Document, expected_pages: list[int], out_file: Path) -> None:
+        if len(part_doc) != len(expected_pages):
+            part_doc.close()
+            raise RuntimeError("Split output page count did not match the requested pages.")
+        for output_index, source_index in enumerate(expected_pages):
+            actual_text = " ".join(part_doc[output_index].get_text("text").split())
+            expected_text = " ".join(src_doc[source_index].get_text("text").split())
+            if actual_text != expected_text:
+                part_doc.close()
+                raise RuntimeError("Split output page content did not match the requested pages.")
+            if not expected_text:
+                actual_pixels = part_doc[output_index].get_pixmap(matrix=fitz.Matrix(0.25, 0.25), annots=True).samples
+                expected_pixels = src_doc[source_index].get_pixmap(matrix=fitz.Matrix(0.25, 0.25), annots=True).samples
+                if hashlib.sha256(actual_pixels).digest() != hashlib.sha256(expected_pixels).digest():
+                    part_doc.close()
+                    raise RuntimeError("Split output visual content did not match the requested pages.")
+        part_doc.save(str(out_file), garbage=4, deflate=True)
+        part_doc.close()
+        check = fitz.open(str(out_file))
+        try:
+            if len(check) != len(expected_pages):
+                raise RuntimeError("Saved split output did not contain the requested number of pages.")
+            for output_index, source_index in enumerate(expected_pages):
+                actual_text = " ".join(check[output_index].get_text("text").split())
+                expected_text = " ".join(src_doc[source_index].get_text("text").split())
+                if actual_text != expected_text:
+                    raise RuntimeError("Saved split output content did not match the requested pages.")
+                if not expected_text:
+                    actual_pixels = check[output_index].get_pixmap(matrix=fitz.Matrix(0.25, 0.25), annots=True).samples
+                    expected_pixels = src_doc[source_index].get_pixmap(matrix=fitz.Matrix(0.25, 0.25), annots=True).samples
+                    if hashlib.sha256(actual_pixels).digest() != hashlib.sha256(expected_pixels).digest():
+                        raise RuntimeError("Saved split output visual content did not match the requested pages.")
+        finally:
+            check.close()
+
     if mode == "every_n":
         try:
             n = int(param)
@@ -3154,8 +3247,7 @@ def split_pdf_document(source: Path, output_dir: Path, mode: str, param: str) ->
             part_doc = fitz.open()
             part_doc.insert_pdf(src_doc, from_page=start_idx, to_page=end_idx - 1)
             out_file = output_dir / f"{source.stem}_part{part_idx}_p{start_idx + 1}-{end_idx}.pdf"
-            part_doc.save(str(out_file), garbage=4, deflate=True)
-            part_doc.close()
+            save_verified_part(part_doc, list(range(start_idx, end_idx)), out_file)
             out_paths.append(out_file)
             part_idx += 1
 
@@ -3191,8 +3283,7 @@ def split_pdf_document(source: Path, output_dir: Path, mode: str, param: str) ->
             part_doc = fitz.open()
             part_doc.insert_pdf(src_doc, from_page=s_page - 1, to_page=e_page - 1)
             out_file = output_dir / f"{source.stem}_part{part_idx}_p{s_page}-{e_page}.pdf"
-            part_doc.save(str(out_file), garbage=4, deflate=True)
-            part_doc.close()
+            save_verified_part(part_doc, list(range(s_page - 1, e_page)), out_file)
             out_paths.append(out_file)
             part_idx += 1
     else:

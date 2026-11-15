@@ -828,10 +828,39 @@ window.readStudioResponseError = readStudioResponseError;
 async function safeFetch(url, options = {}) {
   options.credentials = options.credentials || 'same-origin';
   options.headers = options.headers || {};
+  const { onUploadProgress, ...requestOptions } = options;
 
   let response;
   try {
-    response = await fetch(url, options);
+    if (typeof onUploadProgress === 'function' && typeof XMLHttpRequest !== 'undefined') {
+      response = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open(requestOptions.method || 'GET', url, true);
+        xhr.withCredentials = requestOptions.credentials === 'include';
+        Object.entries(requestOptions.headers || {}).forEach(([name, value]) => xhr.setRequestHeader(name, value));
+        xhr.upload.onprogress = event => {
+          if (event.lengthComputable && event.total > 0) onUploadProgress(event.loaded, event.total);
+        };
+        xhr.onload = () => {
+          const headers = new Headers();
+          xhr.getAllResponseHeaders().trim().split(/[\r\n]+/).filter(Boolean).forEach(line => {
+            const separator = line.indexOf(':');
+            if (separator > 0) headers.append(line.slice(0, separator).trim(), line.slice(separator + 1).trim());
+          });
+          const responseBody = [204, 205, 304].includes(xhr.status) ? null : xhr.responseText;
+          resolve(new Response(responseBody, { status: xhr.status, statusText: xhr.statusText, headers }));
+        };
+        xhr.onerror = () => reject(new TypeError('Network request failed'));
+        xhr.onabort = () => reject(new DOMException('The operation was aborted.', 'AbortError'));
+        if (requestOptions.signal) {
+          if (requestOptions.signal.aborted) { xhr.abort(); return; }
+          requestOptions.signal.addEventListener('abort', () => xhr.abort(), { once: true });
+        }
+        xhr.send(requestOptions.body ?? null);
+      });
+    } else {
+      response = await fetch(url, requestOptions);
+    }
   } catch (netErr) {
     if (netErr?.name === 'AbortError' || netErr?.name === 'TimeoutError') throw netErr;
     throw new Error(`Connection error: Could not reach server. (${netErr.message})`);
@@ -884,6 +913,51 @@ async function safeFetch(url, options = {}) {
   }
 
   return data;
+}
+
+async function submitJobWithUploadProgress(form, operation, options, files, signal, onProgress) {
+  const useChunks = files.some(file => file.size > 10 * 1024 * 1024);
+  if (!useChunks) {
+    return safeFetch('/api/jobs', {
+      method: 'POST', body: form, signal,
+      onUploadProgress: (loaded, total) => onProgress(loaded, total)
+    });
+  }
+
+  const totalBytes = files.reduce((sum, file) => sum + file.size, 0);
+  const session = await safeFetch('/api/uploads/chunked', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ operation, files: files.map(file => ({ name: file.name, size: file.size })) }),
+    signal
+  });
+  let completedBytes = 0;
+  try {
+    for (let fileIndex = 0; fileIndex < files.length; fileIndex += 1) {
+      const file = files[fileIndex];
+      const chunkCount = session.chunk_counts[fileIndex];
+      for (let chunkIndex = 0; chunkIndex < chunkCount; chunkIndex += 1) {
+        if (signal?.aborted) throw new DOMException('The operation was aborted.', 'AbortError');
+        const start = chunkIndex * session.chunk_bytes;
+        const chunk = file.slice(start, Math.min(file.size, start + session.chunk_bytes));
+        $('#progress-status-title').textContent = `Uploading file ${fileIndex + 1} of ${files.length}…`;
+        await safeFetch(`/api/uploads/chunked/${encodeURIComponent(session.upload_id)}/${fileIndex}/${chunkIndex}`, {
+          method: 'PUT', body: chunk, signal,
+          onUploadProgress: (loaded, total) => onProgress(completedBytes + Math.min(loaded, total), totalBytes)
+        });
+        completedBytes += chunk.size;
+        onProgress(completedBytes, totalBytes);
+      }
+    }
+    return await safeFetch(`/api/uploads/chunked/${encodeURIComponent(session.upload_id)}/commit`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operation, options }), signal
+    });
+  } catch (error) {
+    try {
+      await safeFetch(`/api/uploads/chunked/${encodeURIComponent(session.upload_id)}`, { method: 'DELETE' });
+    } catch { /* the original upload error is more useful to the user */ }
+    throw error;
+  }
 }
 
 // ----------------------------------------------------------------------
@@ -4291,8 +4365,14 @@ $('#cloud-form').onsubmit = async e => {
 
 function updateProgress(step, percent, title) {
   $('#progress-card').hidden = false;
-  $('#progress-bar-fill').style.width = `${percent}%`;
-  $('#progress-percent').textContent = `${percent}%`;
+  const progress = $('#progress-bar-fill');
+  if (percent === null || percent === undefined) {
+    progress.removeAttribute('value');
+    $('#progress-percent').textContent = 'Working';
+  } else {
+    progress.value = Math.max(0, Math.min(100, percent));
+    $('#progress-percent').textContent = `${Math.round(progress.value)}%`;
+  }
   if (title) $('#progress-status-title').textContent = title;
 
   [1, 2, 3, 4].forEach(s => {
@@ -4313,7 +4393,7 @@ function updateAiWorkflowProgress(message) {
   card.classList.add('ai-workflow-progress');
   $('#progress-status-title').textContent = message;
   $('#progress-percent').textContent = 'Waiting';
-  $('#progress-bar-fill').style.width = '34%';
+  $('#progress-bar-fill').removeAttribute('value');
 }
 
 $('#job-cancel-btn')?.addEventListener('click', () => activeDeskAiController?.abort());
@@ -4453,10 +4533,13 @@ $('#job-form').onsubmit = async e => {
   const cancelButton = $('#job-cancel-btn');
   if (cancelButton) cancelButton.hidden = false;
   try {
-    updateProgress(2, 20, 'Uploading and validating files…');
-    const data = await safeFetch('/api/jobs', { method: 'POST', body: form, signal: controller.signal });
-    
-    updateProgress(3, 75, 'Transforming & compressing streams…');
+    updateProgress(2, null, 'Uploading files…');
+    const data = await submitJobWithUploadProgress(
+      form, state.operation, options, state.files, controller.signal,
+      (loaded, total) => updateProgress(2, loaded / total * 100, 'Uploading files…')
+    );
+
+    updateProgress(3, null, 'Upload complete. Processing your document…');
     const job = await waitForJob(data.status_url, controller.signal);
     
     updateProgress(4, 100, 'Finished!');

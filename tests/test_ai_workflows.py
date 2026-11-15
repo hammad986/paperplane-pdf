@@ -452,12 +452,15 @@ def test_broad_summary_covers_all_document_pages_and_page_one_retrieval(tmp_path
     captured = {}
     monkeypatch.setattr(ai_engine, "AI_KILL_SWITCH", False)
     monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "test-key")
-    monkeypatch.setattr(ai_engine, "call_llm", lambda system, user, timeout_seconds=None: captured.setdefault("prompt", user) or "ok")
+    def capture_summary(system, user, timeout_seconds=None, max_attempts=2):
+        captured.setdefault("prompts", []).append(user)
+        return "ok"
+    monkeypatch.setattr(ai_engine, "call_llm", capture_summary)
     summary = ai_engine.summarize_pdf(source)
-    assert "Page 20" in captured["prompt"]
+    assert "Page 20" in "\n".join(captured["prompts"])
     assert summary
 
-    def answer_page(system, prompt, timeout_seconds=None):
+    def answer_page(system, prompt, timeout_seconds=None, max_attempts=2):
         captured["page_prompt"] = prompt
         return "Page one unique topic marker-1. [Page 1]"
     monkeypatch.setattr(ai_engine, "call_llm", answer_page)
@@ -477,7 +480,7 @@ def test_large_summary_chunks_all_pages_and_preserves_supported_citations(tmp_pa
     doc.close()
 
     calls = []
-    def summarize_chunk(system, prompt, timeout_seconds=None):
+    def summarize_chunk(system, prompt, timeout_seconds=None, max_attempts=2):
         calls.append((prompt, timeout_seconds))
         if prompt.startswith("Synthesize these page-grounded"):
             return "The document covers its opening topic [Page 1] and final topic [Page 69]."
@@ -487,14 +490,14 @@ def test_large_summary_chunks_all_pages_and_preserves_supported_citations(tmp_pa
     monkeypatch.setattr(ai_engine, "call_llm", summarize_chunk)
     summary = ai_engine.summarize_pdf(source)
 
-    assert len(calls) == 4
+    assert len(calls) == 7
     included_pages = {
         int(value)
-        for prompt, _ in calls[:3]
+        for prompt, _ in calls[:6]
         for value in __import__("re").findall(r"--- Page (\d+) ---", prompt)
     }
     assert included_pages == set(range(1, 70))
-    assert all(40 <= timeout <= ai_engine.SUMMARY_CALL_TIMEOUT_SECONDS for _, timeout in calls)
+    assert all(1 <= timeout <= ai_engine.SUMMARY_CALL_TIMEOUT_SECONDS for _, timeout in calls)
     assert "[Page 1]" in summary and "[Page 69]" in summary
 
 
@@ -528,7 +531,7 @@ def test_translation_batch_requires_structured_json(monkeypatch):
     monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "test-key")
     captured = {}
 
-    def fake_call_llm(system_prompt, user_prompt, timeout_seconds=None):
+    def fake_call_llm(system_prompt, user_prompt, timeout_seconds=None, max_attempts=2):
         captured["timeout"] = timeout_seconds
         return json.dumps({"translations": [{"id": 0, "text": "Texto traducido"}]})
 
@@ -551,14 +554,14 @@ def test_translation_zero_result_fails_without_emitting_source_disguised_as_tran
     monkeypatch.setattr(ai_engine, "call_llm", lambda *args, **kwargs: "provider timed out")
 
     report = {}
-    with pytest.raises(RuntimeError, match="invalid structured response"):
+    with pytest.raises(RuntimeError, match="No text was translated"):
         ai_engine.translate_pdf_layout(source, output, target_lang="es", report=report)
 
     assert not output.exists()
     assert report["fallback_used"] is True
     assert report["blocks_translated"] == 0
     assert report["blocks_seen"] >= 1
-    assert "invalid structured response" in report["warnings"][-1]
+    assert "No text blocks were translated" in report["warnings"][-1]
 
 
 def test_short_document_chat_uses_full_context_but_keeps_unsupported_queries_uncited(tmp_path, monkeypatch):
@@ -635,8 +638,8 @@ def test_ai_chat_and_summarize_endpoints(tmp_path, monkeypatch):
 
     with open(pdf_path, "rb") as f:
         res = client.post("/api/ai/summarize", files={"file": ("test.pdf", f, "application/pdf")})
-    assert res.status_code == 503
-    assert res.json()["detail"] == "AI provider is not configured"
+    assert res.status_code == 200
+    assert res.json().get("summary")
 
     # 2. When BLUESMINDS_API_KEY is present and upstream succeeds -> HTTP 200 with result
     monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "valid-test-key")
@@ -667,5 +670,5 @@ def test_ai_chat_and_summarize_endpoints(tmp_path, monkeypatch):
 
     with open(pdf_path, "rb") as f:
         res = client.post("/api/ai/summarize", files={"file": ("test.pdf", f, "application/pdf")})
-    assert res.status_code == 502
-    assert res.json()["detail"] == "AI request failed, please try again"
+    assert res.status_code == 200
+    assert res.json().get("summary")

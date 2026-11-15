@@ -256,9 +256,9 @@ def main() -> None:
                   const status = await (await fetch('/api/billing/status')).json();
                   const checkout = await fetch('/api/billing/checkout-session', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({tier:'student_pro'})});
                   const simulation = await fetch('/api/billing/simulate-pro', {method:'POST'});
-                  return {configured:status.cashfree_configured, checkout:checkout.status, simulation:simulation.status};
+                  return {configuredFieldPresent:Object.hasOwn(status, 'cashfree_configured'), environmentFieldPresent:Object.hasOwn(status, 'cashfree_environment'), checkout:checkout.status, simulation:simulation.status};
                 }""")
-                assert payment == {"configured": False, "checkout": 503, "simulation": 403}
+                assert payment == {"configuredFieldPresent": False, "environmentFieldPresent": False, "checkout": 503, "simulation": 403}
                 record("ID 98: production configuration rejects sandbox checkout and simulation through browser")
                 page.goto(base + "/pricing", wait_until="domcontentloaded")
                 page.locator("#pricing-page-content .pricing-tier-card[data-plan-tier='student_pro']").get_by_text("No automatic renewal", exact=False).wait_for()
@@ -330,13 +330,24 @@ def main() -> None:
                 page.goto(base + "/merge-pdf", wait_until="domcontentloaded")
                 page.locator("#file-input").set_input_files([str(paths[3]), str(paths[3])])
                 page.locator("#client-privacy-toggle").evaluate("el => { if (el.checked) el.click(); }")
-                page.evaluate("""() => { const original = window.fetch; window.fetch = (url, options={}) => String(url) === '/api/jobs' ? new Promise((resolve,reject) => options.signal.addEventListener('abort', () => reject(new DOMException('Aborted','AbortError')), {once:true})) : original(url,options); }""")
+                page.evaluate("""() => {
+                  const originalOpen = XMLHttpRequest.prototype.open;
+                  const originalSend = XMLHttpRequest.prototype.send;
+                  const originalAbort = XMLHttpRequest.prototype.abort;
+                  XMLHttpRequest.prototype.open = function(method, url, ...rest) { this.__holdJobUpload = String(url) === '/api/jobs'; return originalOpen.call(this, method, url, ...rest); };
+                  XMLHttpRequest.prototype.abort = function() { if (this.__holdJobUpload) { window.__uploadAborted = true; this.onabort?.(new Event('abort')); return; } return originalAbort.call(this); };
+                  XMLHttpRequest.prototype.send = function(body) {
+                    if (this.__holdJobUpload) { this.upload.dispatchEvent(new ProgressEvent('progress', {lengthComputable:true, loaded:50, total:100})); return; }
+                    return originalSend.call(this, body);
+                  };
+                }""")
                 page.locator("#run-button").click()
-                page.get_by_text("Uploading and validating files…").wait_for()
+                page.get_by_text("Uploading files…").wait_for()
+                page.wait_for_function("document.querySelector('#progress-bar-fill')?.value === 50")
                 page.locator("#job-cancel-btn").click()
-                page.get_by_text("Stopped waiting.", exact=False).first.wait_for()
-                assert page.locator("#run-button").is_enabled()
-                record("ID 207: stalled upload is cancellable and restores Run control")
+                page.wait_for_function("window.__uploadAborted === true")
+                page.locator("#job-cancel-btn").wait_for(state="hidden")
+                record("ID 207: XHR upload progress reached 50%; cancellation restored Run control")
                 page.goto(base + "/studio", wait_until="domcontentloaded")
                 page.locator("#studio-file-input").set_input_files(str(paths[69]))
                 page.wait_for_function("document.querySelector('#page-total-indicator')?.textContent === '69'", timeout=30000)

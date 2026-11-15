@@ -643,7 +643,13 @@ def get_ai_configuration_health() -> dict[str, str | bool]:
     }
 
 
-def _provider_request(system_prompt: str, user_prompt: str, credentials: dict[str, str], timeout_seconds: float | None = None) -> str:
+def _provider_request(
+    system_prompt: str,
+    user_prompt: str,
+    credentials: dict[str, str],
+    timeout_seconds: float | None = None,
+    max_attempts: int = 2,
+) -> str:
     """Make one non-streaming request using the selected provider's native wire format."""
     provider = str(credentials.get("provider") or "bluesminds").lower()
     model = str(credentials.get("model") or BLUESMINDS_MODEL or "").strip()
@@ -656,7 +662,13 @@ def _provider_request(system_prompt: str, user_prompt: str, credentials: dict[st
     if not base_url.startswith("https://"):
         raise ValueError("AI provider requires a validated HTTPS endpoint.")
 
-    timeout = max(5, min(120, float(timeout_seconds or BLUESMINDS_TIMEOUT_SECONDS)))
+    total_timeout = max(5, min(120, float(timeout_seconds or BLUESMINDS_TIMEOUT_SECONDS)))
+    attempts = max(1, min(4, int(max_attempts)))
+    retry_delays = (0.4, 2.0, 5.0)
+    total_backoff = sum(retry_delays[:max(0, attempts - 1)])
+    per_attempt_timeout = (
+        total_timeout if attempts <= 2 else max(5.0, (total_timeout - total_backoff) / attempts)
+    )
     headers = {"Content-Type": "application/json", "User-Agent": "Paperplane-PDF/1.0"}
     if provider in {"bluesminds", "openrouter", "deepseek", "openai_compatible"}:
         endpoint = f"{base_url}/chat/completions" if base_url.endswith("/v1") else f"{base_url}/v1/chat/completions"
@@ -710,16 +722,16 @@ def _provider_request(system_prompt: str, user_prompt: str, credentials: dict[st
                     return min(5.0, max(0.0, (retry_at - dt.datetime.now(dt.timezone.utc)).total_seconds()))
                 except (TypeError, ValueError, OverflowError):
                     pass
-        return min(5.0, 1.0 * (2 ** attempt))
+        return retry_delays[min(attempt, len(retry_delays) - 1)]
 
-    for attempt in range(2):
+    for attempt in range(attempts):
         request = urllib.request.Request(endpoint, data=body, headers=headers)
         try:
             started = time.monotonic()
-            with _open_ai_request(request, timeout=timeout) as response:
+            with _open_ai_request(request, timeout=per_attempt_timeout) as response:
                 data = json.loads(response.read().decode("utf-8"))
                 logger.debug("AI provider host=%s attempt=%d timeout=%.1fs HTTP=%s elapsed=%.1fs",
-                             provider_host, attempt + 1, timeout, getattr(response, "status", None),
+                             provider_host, attempt + 1, per_attempt_timeout, getattr(response, "status", None),
                              time.monotonic() - started)
             if not isinstance(data, dict):
                 raise ValueError("Invalid provider response")
@@ -738,22 +750,22 @@ def _provider_request(system_prompt: str, user_prompt: str, credentials: dict[st
             break
         except urllib.error.HTTPError as error:
             logger.warning("AI provider host=%s attempt=%d timeout=%.1fs HTTP=%s",
-                           provider_host, attempt + 1, timeout, error.code)
-            if attempt == 0 and error.code in (408, 429, 500, 502, 503, 504):
+                           provider_host, attempt + 1, per_attempt_timeout, error.code)
+            if attempt + 1 < attempts and error.code in (408, 429, 500, 502, 503, 504):
                 retry_after = error.headers.get("Retry-After") if error.headers else None
-                time.sleep(retry_delay(attempt, retry_after))
+                time.sleep(min(5.0, retry_delay(attempt, retry_after)))
                 continue
             raise RuntimeError(f"AI service returned HTTP {error.code}. Please try again.") from error
         except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as error:
             logger.warning("AI provider host=%s attempt=%d timeout=%.1fs failure=%s",
-                           provider_host, attempt + 1, timeout, type(error).__name__)
-            if attempt == 0:
+                           provider_host, attempt + 1, per_attempt_timeout, type(error).__name__)
+            if attempt + 1 < attempts:
                 time.sleep(retry_delay(attempt))
                 continue
             raise RuntimeError("AI service could not be reached or timed out. Please try again.") from error
         except (ValueError, KeyError, TypeError, IndexError, AttributeError) as error:
             logger.warning("AI provider host=%s attempt=%d returned an empty or invalid response", provider_host, attempt + 1)
-            if attempt == 0:
+            if attempt + 1 < attempts:
                 time.sleep(retry_delay(attempt))
                 continue
             raise RuntimeError("AI service returned an empty or invalid response. Please try again.") from error
@@ -813,9 +825,12 @@ def call_llm(
     user_prompt: str,
     timeout_seconds: float | None = None,
     model: str | None = None,
+    max_attempts: int = 2,
 ) -> str:
     """Dispatch inference using the selected provider's native API contract."""
-    return _call_selected_provider(system_prompt, user_prompt, model=model, timeout_seconds=timeout_seconds)
+    return _call_selected_provider(
+        system_prompt, user_prompt, model=model, timeout_seconds=timeout_seconds, max_attempts=max_attempts
+    )
 
 
 def _call_selected_provider(
@@ -823,6 +838,7 @@ def _call_selected_provider(
     user_prompt: str,
     model: str | None = None,
     timeout_seconds: float | None = None,
+    max_attempts: int = 2,
 ) -> str:
     if AI_KILL_SWITCH:
         return _offline_rag_fallback(system_prompt, user_prompt)
@@ -834,7 +850,21 @@ def _call_selected_provider(
     if model:
         credentials = dict(credentials)
         credentials["model"] = model
-    return _provider_request(system_prompt, user_prompt, credentials, timeout_seconds=timeout_seconds)
+    try:
+        return _provider_request(
+            system_prompt, user_prompt, credentials, timeout_seconds=timeout_seconds, max_attempts=max_attempts
+        )
+    except Exception as primary_error:
+        fallback = credentials.get("fallback")
+        if not isinstance(fallback, dict) or not fallback.get("api_key") or not fallback.get("model"):
+            raise
+        logger.warning(
+            "Primary AI provider failed; trying configured fallback provider host=%s",
+            urllib.parse.urlsplit(str(fallback.get("base_url", ""))).hostname or "unknown",
+        )
+        return _provider_request(
+            system_prompt, user_prompt, fallback, timeout_seconds=timeout_seconds, max_attempts=max_attempts
+        )
 
 
 def _offline_rag_fallback(system_prompt: str, user_prompt: str) -> str:
@@ -876,7 +906,7 @@ def _offline_rag_fallback(system_prompt: str, user_prompt: str) -> str:
                     if page_text:
                         return f"{page_text} [Page {requested_number}]"
 
-        if re.search(r"\b(summar(?:y|ize|ise)|overview|key points|important information)\b", question, re.IGNORECASE):
+        if re.search(r"\b(summar(?:y|ize|ise)|overview|key points|important information|about (?:this|the) document|describe (?:this|the) document)\b|\bwhat is (?:this|the) (?:pdf|document) about\b|\btell me about (?:this|the) (?:pdf|document)\b", question, re.IGNORECASE):
             # A broad-summary retrieval deliberately samples pages across the
             # document, so a lexical overlap query may have no topical terms.
             # Return short extractive page notes instead of falsely claiming
@@ -994,7 +1024,7 @@ def chat_with_pdf(pdf_path: Path, question: str) -> dict:
         question,
         re.IGNORECASE,
     )
-    broad_summary = bool(re.search(r"\b(summar(?:y|ize|ise)|overview|key points|important information)\b", question, re.IGNORECASE))
+    broad_summary = bool(re.search(r"\b(summar(?:y|ize|ise)|overview|key points|important information)\b|\bwhat is (?:this|the) (?:pdf|document) about\b|\btell me about (?:this|the) (?:pdf|document)\b", question, re.IGNORECASE))
     if page_match:
         page_value = page_match.group(1).lower()
         page_words = {
@@ -1019,6 +1049,14 @@ def chat_with_pdf(pdf_path: Path, question: str) -> dict:
     is_short_document = document_page_count <= 5 or len(chunks) <= 6
     context_chunks = retrieved_chunks
     citation_chunks = retrieved_chunks
+    broad_document_question = bool(re.search(
+        r"\b(?:what is|tell me about|describe) (?:this|the) (?:pdf|document)|\b(?:overview|summar(?:y|ize|ise))\b",
+        question,
+        re.IGNORECASE,
+    ))
+    if broad_document_question and chunks:
+        context_chunks = chunks[:24]
+        citation_chunks = context_chunks
     low_score_threshold = 0.15
     if is_short_document and (
         not scored_chunks or scored_chunks[0][0] < low_score_threshold
@@ -1030,8 +1068,14 @@ def chat_with_pdf(pdf_path: Path, question: str) -> dict:
         citation_chunks = _query_supporting_chunks(chunks, question)
 
     if not context_chunks:
+        extracted_chars = sum(len(re.sub(r"\s+", "", chunk.text)) for chunk in chunks)
+        no_context_answer = (
+            "This PDF has very little extractable text, so I could not reliably identify its subject. It may contain scanned or image based pages. Try OCR or provide a clearer text copy."
+            if extracted_chars < 240 else
+            "No relevant information found in the document for this question. The active document does not contain matching keywords or passages."
+        )
         return {
-            "answer": "No relevant information found in the document for your question. The active document does not contain matching keywords or passages.",
+            "answer": no_context_answer,
             "citations": [],
             "retrieval_method": "BM25 Keyword Retrieval",
             "fallback_used": False,
@@ -1152,12 +1196,14 @@ SUMMARY_CALL_TIMEOUT_SECONDS = 55.0
 DOCUMENT_AI_BUDGET_SECONDS = 275.0
 
 
-def _bounded_document_timeout(deadline: float, call_timeout: float) -> float:
-    # Account for both attempts and backoff in the transport.
+def _bounded_document_timeout(deadline: float, call_timeout: float, remaining_calls: int = 1) -> float:
+    # Reserve up to 7.4 seconds per request for three bounded retries.
     remaining = deadline - time.monotonic()
     if remaining < 12:
         raise RuntimeError("The AI provider timed out before the document was complete. Please retry later.")
-    return min(call_timeout, (remaining - 1) / 2)
+    calls_left = max(1, int(remaining_calls))
+    per_call_budget = max(5.0, (remaining - 7.4 * calls_left) / calls_left)
+    return min(call_timeout, per_call_budget)
 
 
 def summarize_pdf(pdf_path: Path, max_pages: int | None = None) -> str:
@@ -1182,15 +1228,26 @@ def summarize_pdf(pdf_path: Path, max_pages: int | None = None) -> str:
         "bullet points of key details, decisions, numbers, and deadlines. Ground every document fact in the "
         "provided text and append a page citation in the exact form [Page N] or [Pages N-M]. Do not invent citations."
     )
-    if len(page_texts) <= 24:
+    if len(page_texts) <= 12:
         full_text = "\n\n".join(f"--- Page {number} ---\n{text}" for number, text in page_texts)
-        summary = call_llm(system_prompt, f"DOCUMENT CONTENT:\n\n{full_text}", timeout_seconds=_bounded_document_timeout(deadline, SUMMARY_CALL_TIMEOUT_SECONDS))
+        try:
+            summary = call_llm(
+                system_prompt,
+                f"DOCUMENT CONTENT:\n\n{full_text}",
+                timeout_seconds=_bounded_document_timeout(deadline, SUMMARY_CALL_TIMEOUT_SECONDS),
+                max_attempts=4,
+            )
+        except Exception as error:
+            logger.warning("Executive Brief provider failed for pages 1-%d; using local extractive fallback (%s)",
+                           page_texts[-1][0], type(error).__name__)
+            summary = _offline_rag_fallback(system_prompt, f"DOCUMENT CONTENT:\n\n{full_text}")
     else:
         # Long documents are summarized in bounded, page-labelled sections so
         # one provider request does not have to fit the whole source at once.
         chunk_notes: list[str] = []
-        chunk_size = 24
-        for start in range(0, len(page_texts), chunk_size):
+        chunk_size = 12
+        chunk_count = (len(page_texts) + chunk_size - 1) // chunk_size
+        for chunk_index, start in enumerate(range(0, len(page_texts), chunk_size)):
             chunk = page_texts[start:start + chunk_size]
             chunk_text = "\n\n".join(f"--- Page {number} ---\n{text}" for number, text in chunk)
             first_page, last_page = chunk[0][0], chunk[-1][0]
@@ -1199,10 +1256,20 @@ def summarize_pdf(pdf_path: Path, max_pages: int | None = None) -> str:
                 "Return concise key facts, decisions, dates, amounts, and themes from this section. "
                 "Ground each item in the supplied text and preserve its [Page N] citation. Do not invent facts."
             )
-            timeout = _bounded_document_timeout(deadline, SUMMARY_CALL_TIMEOUT_SECONDS)
-            note = call_llm(system_prompt, chunk_prompt, timeout_seconds=timeout).strip()
+            remaining_calls = chunk_count - chunk_index + 1
+            timeout = _bounded_document_timeout(
+                deadline, SUMMARY_CALL_TIMEOUT_SECONDS, remaining_calls=remaining_calls
+            )
+            try:
+                note = call_llm(system_prompt, chunk_prompt, timeout_seconds=timeout, max_attempts=4).strip()
+            except Exception as error:
+                logger.warning("Executive Brief provider failed for pages %d-%d; using local extractive fallback (%s)",
+                               first_page, last_page, type(error).__name__)
+                local_note = _offline_rag_fallback(system_prompt, f"DOCUMENT CONTENT:\n\n{chunk_text}")
+                note = f"Local extractive notes from [Pages {first_page}-{last_page}]:\n{local_note}"
             if not note:
-                raise RuntimeError(f"AI service returned an empty summary for pages {first_page}-{last_page}.")
+                local_note = _offline_rag_fallback(system_prompt, f"DOCUMENT CONTENT:\n\n{chunk_text}")
+                note = f"Local extractive notes from [Pages {first_page}-{last_page}]:\n{local_note}"
             chunk_notes.append(note)
         final_prompt = (
             "Synthesize these page-grounded section notes into one concise executive summary followed by "
@@ -1210,7 +1277,11 @@ def summarize_pdf(pdf_path: Path, max_pages: int | None = None) -> str:
             "introduce facts that the notes do not support.\n\n" + "\n\n".join(chunk_notes)
         )
         timeout = _bounded_document_timeout(deadline, SUMMARY_CALL_TIMEOUT_SECONDS)
-        summary = call_llm(system_prompt, final_prompt, timeout_seconds=timeout)
+        try:
+            summary = call_llm(system_prompt, final_prompt, timeout_seconds=timeout, max_attempts=4)
+        except Exception as error:
+            logger.warning("Executive Brief synthesis failed; using local extractive fallback (%s)", type(error).__name__)
+            summary = _offline_rag_fallback(system_prompt, "DOCUMENT CONTENT:\n\n" + "\n\n".join(chunk_notes))
 
     summary = _guard_ai_output(summary)
     eligible_pages = {page_number for page_number, _ in page_texts}
@@ -1802,10 +1873,10 @@ def _translate_text_batch(
             system_prompt,
             json.dumps(payload, ensure_ascii=False),
             timeout_seconds=timeout,
+            max_attempts=4,
         )
     except Exception as error:
-        # call_bluesminds performs one bounded retry with backoff for transient
-        # upstream failures. Preserve only the safe failure class/status here.
+        # Preserve only the safe failure class/status; never expose provider bodies.
         status_match = re.search(r"\bHTTP\s+(\d{3})\b", str(error), re.IGNORECASE)
         if status_match:
             failure_class = f"upstream HTTP {status_match.group(1)}"
@@ -1873,17 +1944,34 @@ def translate_pdf_layout(
         batches = [segments[start:start + TRANSLATION_BATCH_SIZE]
                    for start in range(0, len(segments), TRANSLATION_BATCH_SIZE)]
         translated_segments: dict[int, str] = {}
-        try:
-            with ThreadPoolExecutor(max_workers=TRANSLATION_MAX_PARALLEL_BATCHES,
-                                    thread_name_prefix="translation") as pool:
-                futures = [pool.submit(_translate_text_batch, batch, target_language, deadline=deadline)
-                           for batch in batches]
-                for future in as_completed(futures):
+        batch_failures: list[tuple[int, list[int], str]] = []
+        with ThreadPoolExecutor(max_workers=TRANSLATION_MAX_PARALLEL_BATCHES,
+                                thread_name_prefix="translation") as pool:
+            future_batches = {
+                pool.submit(_translate_text_batch, batch, target_language, deadline=deadline): (index, batch)
+                for index, batch in enumerate(batches, start=1)
+            }
+            for future in as_completed(future_batches):
+                batch_number, batch = future_batches[future]
+                block_ids = [block_id for block_id, _ in batch]
+                try:
                     translated_segments.update(future.result())
-        except RuntimeError as error:
+                except Exception as error:
+                    safe_failure = str(error)[:180]
+                    logger.warning(
+                        "Translation batch failed language=%s batch=%d block_ids=%s reason=%s",
+                        target_language, batch_number, block_ids, safe_failure,
+                    )
+                    batch_failures.append((batch_number, block_ids, safe_failure))
+                    report_data["warnings"].append(
+                        f"Translation batch {batch_number} failed ({safe_failure}); affected source text was preserved."
+                    )
+        if batch_failures:
+            report_data["failed_batches"] = [
+                {"batch": batch_number, "block_ids": block_ids, "reason": reason}
+                for batch_number, block_ids, reason in batch_failures
+            ]
             report_data["fallback_used"] = True
-            report_data["warnings"].append(str(error))
-            raise
         translated = {
             index: "".join(separator + translated_segments[segment_id] for segment_id, separator in ids)
             for index, ids in enumerate(block_segments)

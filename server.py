@@ -118,6 +118,10 @@ import security_forms_engine
 
 ROOT = Path(__file__).parent
 JOBS = JOBS_DIR
+CHUNKED_UPLOADS_DIR = Path(config.DATA_DIR) / "staged_uploads"
+CHUNKED_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+UPLOAD_CHUNK_BYTES = 5 * 1024 * 1024
+UPLOAD_SESSION_TTL_SECONDS = 60 * 60
 logger = logging.getLogger(__name__)
 executor = ThreadPoolExecutor(max_workers=max(4, int(os.getenv("PAPERPLANE_WORKERS", "4"))))
 
@@ -2787,6 +2791,17 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
         return converters.pdf_to_images(source, output, fmt=fmt, dpi=dpi, pages=pages, quality=quality)
 
     output.write_bytes(pdf_bytes(writer))
+    if operation == "split":
+        with fitz.open(str(source)) as original_pdf, fitz.open(str(output)) as split_pdf:
+            if len(split_pdf) != len(selected):
+                output.unlink(missing_ok=True)
+                raise RuntimeError("Split output page count did not match the requested pages.")
+            for output_index, source_page_number in enumerate(selected):
+                source_text = " ".join(original_pdf[source_page_number - 1].get_text("text").split())
+                output_text = " ".join(split_pdf[output_index].get_text("text").split())
+                if source_text != output_text:
+                    output.unlink(missing_ok=True)
+                    raise RuntimeError("Split output content did not match the requested pages.")
     return output
 
 
@@ -3796,9 +3811,6 @@ def billing_status(request: Request, user_id: str | None = Depends(current_user)
         "usage_today": usage,
         "remaining_today": "Unlimited" if is_pro else max(0, FREE_TIER_DAILY_LIMIT - usage),
         "pricing": public_pricing_catalog(),
-        "cashfree_configured": _cashfree_checkout_issue() is None,
-        "billing_simulation_enabled": _billing_simulation_enabled(),
-        "cashfree_environment": CASHFREE_ENV,
         "subscription_status": user.get("subscription_status", "inactive") if user else "inactive",
         "has_payment_customer": bool(user and user.get("payment_customer_id")),
         "cashfree_order_id": user.get("cashfree_order_id") if user else None,
@@ -6174,7 +6186,16 @@ def cloud_sync(
             raise ValueError("The provided link returned an HTML webpage or login screen instead of a direct file. Ensure it is publicly accessible without login or use a direct download URL.")
 
         if not raw_bytes.startswith(b"%PDF-"):
-            raise ValueError("Cloud Import accepts PDF files only. This link returned another file type; use its matching converter instead.")
+            media_type = (content_type or "unknown content type").split(";", 1)[0].strip().lower()
+            if provider == "Google Drive":
+                raise ValueError(
+                    f"Google Drive returned {media_type or 'an unknown file type'}, not a PDF. "
+                    "Check that the shared link points to the PDF itself and is available to anyone with the link."
+                )
+            raise ValueError(
+                f"Cloud Import accepts PDF files only; this link returned {media_type or 'an unknown file type'}. "
+                "Use the matching converter for other file types."
+            )
         try:
             imported_pdf = fitz.open(stream=raw_bytes, filetype="pdf")
             page_count = imported_pdf.page_count
@@ -6222,7 +6243,24 @@ def cloud_sync(
         raise HTTPException(400, message) from val_err
     except HTTPException:
         raise
+    except converters.RemoteFetchHTTPError as error:
+        logger.warning(
+            "Cloud import upstream rejected provider=%s host=%s status=%d content_type=%s",
+            provider, error.host, error.status_code, error.content_type or "unknown",
+        )
+        if provider == "Google Drive":
+            if "html" in error.content_type:
+                detail = f"Google Drive returned an HTML response (HTTP {error.status_code}); check public sharing or use a direct PDF URL."
+            else:
+                detail = f"Google Drive returned HTTP {error.status_code}; check public sharing and confirm the link points to a PDF."
+        else:
+            detail = f"The linked host returned HTTP {error.status_code}; check the public URL and try again."
+        raise HTTPException(400, detail) from None
     except Exception as err:
+        logger.warning(
+            "Cloud import fetch failed provider=%s host=%s error_type=%s",
+            provider, hostname or "unknown", type(err).__name__,
+        )
         if provider == "Google Drive":
             raise HTTPException(400, "Google Drive could not be reached. Confirm public sharing or use a direct PDF download URL.") from err
         raise HTTPException(400, "Cloud file sync failed. Check that the link is public and points directly to a PDF file.") from err
@@ -6301,6 +6339,200 @@ def job_status(
     return res
 
 
+def _chunked_upload_session_dir(upload_id: str) -> Path:
+    if not re.fullmatch(r"[a-f0-9]{32}", upload_id or ""):
+        raise HTTPException(404, "Upload session not found.")
+    return CHUNKED_UPLOADS_DIR / upload_id
+
+
+def _load_chunked_upload_session(upload_id: str, request: Request, user_id: str | None) -> tuple[Path, dict]:
+    session_dir = _chunked_upload_session_dir(upload_id)
+    manifest_path = session_dir / "manifest.json"
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        raise HTTPException(404, "Upload session not found.") from None
+    if time.time() - float(manifest.get("created_at", 0)) > UPLOAD_SESSION_TTL_SECONDS:
+        shutil.rmtree(session_dir, ignore_errors=True)
+        raise HTTPException(410, "Upload session expired. Start the upload again.")
+    guest_identity = hashlib.sha256(quota_client_identity(request).encode("utf-8")).hexdigest()
+    if manifest.get("user_id") != user_id or (not user_id and manifest.get("guest_identity") != guest_identity):
+        raise HTTPException(404, "Upload session not found.")
+    return session_dir, manifest
+
+
+def _cleanup_expired_chunked_uploads(now: float | None = None) -> None:
+    cutoff = (time.time() if now is None else now) - UPLOAD_SESSION_TTL_SECONDS
+    try:
+        session_dirs = list(CHUNKED_UPLOADS_DIR.iterdir())
+    except OSError:
+        return
+    for session_dir in session_dirs:
+        if not session_dir.is_dir() or not re.fullmatch(r"[a-f0-9]{32}", session_dir.name):
+            continue
+        try:
+            created_at = float(json.loads((session_dir / "manifest.json").read_text(encoding="utf-8")).get("created_at", 0))
+        except (OSError, ValueError, TypeError, json.JSONDecodeError):
+            created_at = 0
+        if created_at < cutoff:
+            shutil.rmtree(session_dir, ignore_errors=True)
+
+
+@app.post("/api/uploads/chunked", status_code=201)
+async def start_chunked_upload(request: Request, user_id: str | None = Depends(current_user)):
+    _cleanup_expired_chunked_uploads()
+    client_ip = get_client_ip(request)
+    enforce_account_rate_limit(f"job-account:{user_id or client_ip}", limit=20, window_seconds=60)
+    try:
+        payload = await request.json()
+    except Exception:
+        raise HTTPException(400, "Upload session details are invalid.") from None
+    if not isinstance(payload, dict):
+        raise HTTPException(400, "Upload session details are invalid.")
+    operation = str(payload.get("operation", "")).strip()
+    files = payload.get("files")
+    if operation not in OPERATIONS or not OPERATIONS[operation].get("implemented"):
+        raise HTTPException(400, "Choose an available operation before uploading.")
+    if not isinstance(files, list) or not files:
+        raise HTTPException(400, "Select at least one file to upload.")
+    max_files = MAX_BATCH_FILES if operation in {"merge", "jpg_to_pdf", "scan_pdf"} else {"compare": 2, "photo_merge": 12}.get(operation, 1)
+    if len(files) > max_files:
+        raise HTTPException(400, f"This operation accepts at most {max_files} files.")
+    tier = get_user_tier(user_id)
+    per_file_limit = upload_limit_bytes_for_tier(tier)
+    normalized_files = []
+    for item in files:
+        if not isinstance(item, dict):
+            raise HTTPException(400, "Upload file details are invalid.")
+        filename = Path(str(item.get("name", "document.pdf")).replace("\\", "/")).name
+        filename = "".join(char for char in filename if char.isprintable())[:180] or "document.pdf"
+        try:
+            size = int(item.get("size", 0))
+        except (TypeError, ValueError):
+            raise HTTPException(400, "Upload file size is invalid.") from None
+        if size <= 0 or size > per_file_limit:
+            raise HTTPException(413, f"{filename} exceeds the upload limit for your plan.")
+        chunk_count = (size + UPLOAD_CHUNK_BYTES - 1) // UPLOAD_CHUNK_BYTES
+        normalized_files.append({"name": filename, "size": size, "chunk_count": chunk_count,
+                                 "received": [False] * chunk_count})
+    upload_id = uuid.uuid4().hex
+    session_dir = CHUNKED_UPLOADS_DIR / upload_id
+    session_dir.mkdir(mode=0o700, parents=False, exist_ok=False)
+    guest_identity = hashlib.sha256(quota_client_identity(request).encode("utf-8")).hexdigest()
+    manifest = {"created_at": time.time(), "operation": operation, "user_id": user_id,
+                "guest_identity": guest_identity if not user_id else None, "files": normalized_files}
+    (session_dir / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+    logger.info("job_upload phase=chunked_started upload_id=%s operation=%s file_count=%d total_bytes=%d",
+                upload_id, operation, len(normalized_files), sum(item["size"] for item in normalized_files))
+    return {"upload_id": upload_id, "chunk_bytes": UPLOAD_CHUNK_BYTES,
+            "chunk_counts": [item["chunk_count"] for item in normalized_files]}
+
+
+@app.delete("/api/uploads/chunked/{upload_id}")
+async def discard_chunked_upload(
+    upload_id: str,
+    request: Request,
+    user_id: str | None = Depends(current_user),
+):
+    session_dir, manifest = _load_chunked_upload_session(upload_id, request, user_id)
+    shutil.rmtree(session_dir, ignore_errors=True)
+    logger.info("job_upload phase=chunked_discarded upload_id=%s file_count=%d", upload_id, len(manifest.get("files", [])))
+    return {"deleted": True}
+
+
+@app.put("/api/uploads/chunked/{upload_id}/{file_index}/{chunk_index}", status_code=204)
+async def put_chunked_upload_part(
+    upload_id: str,
+    file_index: int,
+    chunk_index: int,
+    request: Request,
+    user_id: str | None = Depends(current_user),
+):
+    session_dir, manifest = _load_chunked_upload_session(upload_id, request, user_id)
+    if file_index < 0 or file_index >= len(manifest["files"]):
+        raise HTTPException(404, "Upload file not found.")
+    file_data = manifest["files"][file_index]
+    if chunk_index < 0 or chunk_index >= file_data["chunk_count"]:
+        raise HTTPException(404, "Upload part not found.")
+    if file_data["received"][chunk_index]:
+        raise HTTPException(409, "This upload part was already received.")
+    expected_size = min(UPLOAD_CHUNK_BYTES, file_data["size"] - chunk_index * UPLOAD_CHUNK_BYTES)
+    content_length = request.headers.get("content-length")
+    if content_length and (not content_length.isdigit() or int(content_length) != expected_size):
+        raise HTTPException(400, "Upload part size does not match the session.")
+    part_path = session_dir / f"file-{file_index}-chunk-{chunk_index}.part"
+    try:
+        received_bytes = 0
+        with part_path.open("xb") as part:
+            async for body in request.stream():
+                received_bytes += len(body)
+                if received_bytes > expected_size:
+                    raise HTTPException(413, "Upload part exceeds the expected size.")
+                part.write(body)
+        if received_bytes != expected_size:
+            part_path.unlink(missing_ok=True)
+            raise HTTPException(400, "Upload part size does not match the session.")
+    except FileExistsError:
+        raise HTTPException(409, "This upload part was already received.") from None
+    except BaseException:
+        part_path.unlink(missing_ok=True)
+        raise
+    file_data["received"][chunk_index] = True
+    manifest_path = session_dir / "manifest.json"
+    temporary_manifest = session_dir / "manifest.tmp"
+    temporary_manifest.write_text(json.dumps(manifest), encoding="utf-8")
+    os.replace(temporary_manifest, manifest_path)
+    return Response(status_code=204)
+
+
+@app.post("/api/uploads/chunked/{upload_id}/commit", status_code=202)
+async def commit_chunked_upload(
+    upload_id: str,
+    request: Request,
+    response: Response,
+    user_id: str | None = Depends(current_user),
+):
+    session_dir, manifest = _load_chunked_upload_session(upload_id, request, user_id)
+    if any(not all(item["received"]) for item in manifest["files"]):
+        raise HTTPException(409, "The upload is incomplete. Retry the missing parts before continuing.")
+    try:
+        payload = await request.json()
+    except Exception:
+        raise HTTPException(400, "Operation settings are invalid.") from None
+    if not isinstance(payload, dict):
+        raise HTTPException(400, "Operation settings are invalid.")
+    operation = str(payload.get("operation", "")).strip()
+    options = payload.get("options", {})
+    if operation != manifest["operation"] or not isinstance(options, dict):
+        raise HTTPException(400, "Upload operation settings do not match the session.")
+    if len(json.dumps(options, ensure_ascii=False)) > 64 * 1024:
+        raise HTTPException(413, "Operation settings are too large.")
+
+    temporary_output_dir = Path(tempfile.mkdtemp(prefix=f"{upload_id}-assembled-", dir=CHUNKED_UPLOADS_DIR))
+    uploads: list[UploadFile] = []
+    try:
+        for file_index, file_data in enumerate(manifest["files"]):
+            assembled = temporary_output_dir / f"{file_index}-{file_data['name']}"
+            with assembled.open("xb") as destination:
+                for chunk_index in range(file_data["chunk_count"]):
+                    part = session_dir / f"file-{file_index}-chunk-{chunk_index}.part"
+                    with part.open("rb") as chunk:
+                        shutil.copyfileobj(chunk, destination, length=1024 * 1024)
+            if assembled.stat().st_size != file_data["size"]:
+                raise HTTPException(400, "Assembled upload size did not match the declared file size.")
+            uploads.append(UploadFile(filename=file_data["name"], file=assembled.open("rb")))
+        logger.info("job_upload phase=chunked_assembled upload_id=%s operation=%s file_count=%d total_bytes=%d",
+                    upload_id, operation, len(uploads), sum(item["size"] for item in manifest["files"]))
+        result = create_job_endpoint(request, response, operation, json.dumps(options, ensure_ascii=False), uploads, user_id)
+        response.status_code = 202
+        return result
+    finally:
+        for upload in uploads:
+            upload.file.close()
+        shutil.rmtree(temporary_output_dir, ignore_errors=True)
+        shutil.rmtree(session_dir, ignore_errors=True)
+
+
 @app.post("/api/jobs/create", status_code=202)
 @app.post("/api/jobs", status_code=202)
 def create_job_endpoint(
@@ -6311,6 +6543,7 @@ def create_job_endpoint(
     files: list[UploadFile] = File(default=[]),
     user_id: str | None = Depends(current_user)
 ):
+    upload_started_at = time.monotonic()
     # Freemium Tier & Daily Quota Check
     client_ip = get_client_ip(request)
     quota_ip = quota_client_identity(request)
@@ -6381,9 +6614,22 @@ def create_job_endpoint(
     try:
         paths = []
         upload_limit_bytes = upload_limit_bytes_for_tier(user_tier)
-        for file in files:
+        for file_index, file in enumerate(files, start=1):
+            file_started_at = time.monotonic()
             p = save_upload(file, job_dir, max_bytes=upload_limit_bytes)
+            uploaded_bytes = p.stat().st_size
+            logger.info(
+                "job_upload phase=spooled job_id=%s operation=%s file_index=%d file_count=%d bytes=%d elapsed_ms=%d",
+                job_id, operation, file_index, len(files), uploaded_bytes,
+                int((time.monotonic() - file_started_at) * 1000),
+            )
+            validation_started_at = time.monotonic()
             validate_upload(p, expected, operation)
+            logger.info(
+                "job_upload phase=validated job_id=%s operation=%s file_index=%d bytes=%d elapsed_ms=%d",
+                job_id, operation, file_index, uploaded_bytes,
+                int((time.monotonic() - validation_started_at) * 1000),
+            )
             paths.append(p)
 
         # Failed uploads never spend quota. Keep a reservation for queued AI
@@ -6401,6 +6647,11 @@ def create_job_endpoint(
         except Exception:
             persistence.refund_daily_usage(subject, usage_day)
             raise
+        logger.info(
+            "job_upload phase=enqueued job_id=%s operation=%s file_count=%d total_bytes=%d elapsed_ms=%d",
+            job_id, operation, len(paths), sum(path.stat().st_size for path in paths),
+            int((time.monotonic() - upload_started_at) * 1000),
+        )
         response.headers["X-Paperplane-Operations-Today"] = str(usage_today)
         return {
             "job_id": job_id,
@@ -7585,7 +7836,7 @@ def admin_portal_page():
       <div style="font-size: 48px; margin-bottom: 12px;">🚨</div>
       <h1 style="color: #ef4444;">Admin Console Locked</h1>
       <p style="color: #fca5a5;">
-        3 consecutive incorrect attempts were detected. As an automated intrusion defense against brute-force attacks, administrative access has been suspended for 24 hours.
+        Administrative access is temporarily unavailable. Please try again later or contact the site owner.
       </p>
       <div style="background: #271414; border: 1px solid #7f1d1d; border-radius: 8px; padding: 14px; text-align: left; font-size: 13px; margin-bottom: 20px;">
         <div style="margin-bottom: 6px;"><strong style="color: #fca5a5;">Notification:</strong> <span style="color: #fff;">Sent to the configured owner email</span></div>
@@ -7599,7 +7850,7 @@ def admin_portal_page():
     <div id="step1-screen" class="auth-card">
       <div class="logo-icon" style="width:48px;height:48px;font-size:24px;margin:0 auto 16px;">P</div>
       <h1>Owner Authentication</h1>
-      <p>Enter your Admin Secret Key and Secret Code to initiate 2-factor email verification.</p>
+      <p>Enter your administrator credentials to continue.</p>
 
       <div id="auth-error" class="error-msg"></div>
 
@@ -7654,11 +7905,10 @@ def admin_portal_page():
       <!-- System Connection Banner -->
       <div class="system-banner">
         <div>
-          <span>Database: <strong id="live-db-path">SQLite (Loading...)</strong></span>
           <span style="margin: 0 10px; color: var(--card-border);">|</span>
-          <span>Environment: <strong id="live-env-name">Production</strong></span>
+          <span>Environment: <strong id="live-env-name">Live</strong></span>
           <span style="margin: 0 10px; color: var(--card-border);">|</span>
-          <span>Security: <strong style="color: var(--green);">3-Factor Verified (Session Valid)</strong></span>
+          <span>Security: <strong style="color: var(--green);">Verified</strong></span>
         </div>
         <div style="color: var(--text-muted); font-size: 12px;" id="live-time-now"></div>
       </div>
@@ -7925,6 +8175,36 @@ def admin_portal_page():
             </div>
             <div class="form-help">Securely masked (sk-••••••••1234). Enter a new key to update, or leave unchanged.</div>
           </div>
+
+          <fieldset class="form-panel" style="margin-top: 18px; padding: 16px; border: 1px solid var(--border-light); border-radius: 10px;">
+            <legend style="padding: 0 8px; font-weight: 700;">Translation and document AI fallback (optional)</legend>
+            <p class="form-help">If the primary provider is rate-limited or unavailable, Paperplane can try this separately configured provider. Its key is encrypted before storage.</p>
+            <div class="form-group">
+              <label class="field-label" for="ai-fallback-provider-select">Fallback provider</label>
+              <select id="ai-fallback-provider-select" class="form-select">
+                <option value="">Disabled</option>
+                <option value="openai_compatible">OpenAI-Compatible / Universal Gateway</option>
+                <option value="bluesminds">Bluesminds Gateway</option>
+                <option value="openrouter">OpenRouter AI</option>
+                <option value="anthropic">Anthropic (Claude Direct / Proxy)</option>
+                <option value="gemini">Google Gemini / AI Studio</option>
+                <option value="deepseek">DeepSeek AI</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="field-label" for="ai-fallback-baseurl-input">Fallback API base URL</label>
+              <input type="url" id="ai-fallback-baseurl-input" class="form-input" autocomplete="url" />
+            </div>
+            <div class="form-group">
+              <label class="field-label" for="ai-fallback-model-input">Fallback model</label>
+              <input type="text" id="ai-fallback-model-input" class="form-input" autocomplete="off" />
+            </div>
+            <div class="form-group">
+              <label class="field-label" for="ai-fallback-apikey-input">Fallback API secret key</label>
+              <input type="password" id="ai-fallback-apikey-input" class="form-input" autocomplete="new-password" />
+              <div class="form-help">Leave blank to keep the saved fallback key. Disable the provider to remove it.</div>
+            </div>
+          </fieldset>
 
           <div id="ai-provider-health-alert" role="status" aria-live="polite" style="display: none; margin-top: 16px; padding: 12px; border-radius: 8px; font-size: 13px;"></div>
           <div style="display: flex; gap: 12px; align-items: center; margin-top: 24px;">
@@ -8511,9 +8791,24 @@ async def admin_update_ai_config(request: Request, _: None = Depends(_require_ad
     model = str(body.get("model", "")).strip()
     base_url = str(body.get("base_url", "")).strip()
     api_key = str(body.get("api_key", "")).strip() or None
+    fallback_provider = body.get("fallback_provider")
+    if fallback_provider is not None and not isinstance(fallback_provider, str):
+        raise HTTPException(status_code=422, detail="Fallback provider must be a string.")
+    fallback_model = body.get("fallback_model")
+    fallback_base_url = body.get("fallback_base_url")
+    fallback_api_key = body.get("fallback_api_key")
+    if any(value is not None and not isinstance(value, str)
+           for value in (fallback_model, fallback_base_url, fallback_api_key)):
+        raise HTTPException(status_code=422, detail="Fallback provider fields must be text.")
 
     try:
-        updated = admin_set_ai_config(provider=provider, model=model, base_url=base_url, api_key=api_key)
+        updated = admin_set_ai_config(
+            provider=provider, model=model, base_url=base_url, api_key=api_key,
+            fallback_provider=fallback_provider,
+            fallback_model=fallback_model,
+            fallback_base_url=fallback_base_url,
+            fallback_api_key=fallback_api_key,
+        )
     except ValueError as error:
         raise HTTPException(status_code=422, detail=str(error)) from error
     except RuntimeError as error:
