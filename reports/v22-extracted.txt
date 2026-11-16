@@ -1,0 +1,1973 @@
+--- PAGE 1 ---\nHOW TO PASTE THIS PROMPT (owner — read this first, 30 seconds): This file IS the paste
+text. Copy the WHOLE file, open Codex in Code mode in the Paperplane folder on your PC,
+paste it as your message, and attach the EXISTING single PDF paperplane-codex-elite-
+prompt-v21.pdf  (Part 1 = the v21 prompt, Part 2 = the complete 309-item elite list v21 — the
+list is UNCHANGED, do not rebuild it) plus the screenshots you added in the Codex project.
+This file is the v22 prompt (revised instructions); the PDF is the same v21 PDF. Do NOT paste
+only part of it, do NOT summarise it, and do NOT paste the PDF's text instead of this file —
+Codex treats instructions inside an attached PDF as document content, so the pasted Code-
+mode message is what it acts on. Codex must NOT commit, push or deploy — you deploy
+yourself after its report.
+Paperplane — Elite Engineering Prompt v22
+(revision of v21: prove your v21 work first, then
+finish the list)
+Date: Monday 2026-11-16. Build under test: GitHub origin/main is STILL 172afcc  ("docker-
+compose: mount deploy/fonts for TrueType Unicode font fallback") on top of 5c23c95  ("Integrate
+Launch Audit v20"), on top of 66cd0cd . The owner has NOT pushed or deployed your v21 work —
+it lives ONLY in your local working copy on your local branch launch-audit-v21  (uncommitted,
+unpushed). CONTINUE on launch-audit-v21  — do NOT reset to 172afcc, do NOT create a new
+branch. The live site is STILL 172afcc (https://paperplane.qd.je/ — /health returns
+{"status":"healthy","service":"Paperplane PDF Platform","version":"2.0.0"} ). Pytest on
+172afcc, run by Muse TWICE: 477 passed, 2 warnings (66.39 s + 61.80 s). You reported 481 passed
+twice in v21 — Phase -2 must confirm that count in your working copy (see Phase -2). There is no
+preservation step in this round — the v20 code IS on main, and your v21 work is on your local
+branch. Live site: https://paperplane.qd.je/. NOTE: the page still requests app.js?v=14  and
+pdf_runtime.js?v=14  (the version strings were NOT bumped — the files were replaced in place),
+and the footer shows NO app version number (ID 261). Do not trust a version string — verify the
+served file by HTTP. You are Codex, the engineer/fixer. Muse is the independent live
+tester/reporter — Muse does NOT fix, you do. The owner (Muhammad) reviews Muse's list first,
+gives you this prompt, and deploys himself. You do NOT deploy, push, or commit. You do NOT run
+real payments. You do NOT change live user accounts or live data.
+Verdict on this build: NOT deployment-ready. Your two v21 reports both say so, and the owner
+has NOT deployed anything since v21 — GitHub origin/main is still 172afcc and the live site is still
+172afcc. Your v21 work is real work, but it is UNVERIFIED: it exists only on your local machine, and
+Muse has not independently verified a single v21 claim because nothing is deployed. The v21 live
+retest (15 Nov 2026, 22:23–23:17 IST, build 172afcc) still stands as the newest live evidence: 7 of 8
+P0s open (only ID 207 Merge 60 MB is VERIFIED FIXED). Translate still FAILS in both languages;
+Brief completes only via the offline fallback (pages 1–12 of 69); Cloud Import imports nothing with
+the owner's link; PDF/A still fails (ICC profile missing in the live container); Cashfree is still
+\n\n--- PAGE 2 ---\nsandbox. Rotation is MORE urgent than ever: Round 12 re-confirmed the old admin credentials
+still log in (one permitted attempt, ~23:08 IST on 15 Nov). This round's job is TWO things, in order:
+FIRST prove your v21 work is actually in the code (Phase -2) — then finish the list end-to-end
+(Phases -1 to 6): fix all 7 P0s, then every P1 and P2, self-analyse until you are yourself satisfied,
+and only then report READY. The owner will deploy your v21 + v22 work together after your
+report, and Muse will live-retest the deployed build — this is the end-to-end deployment round.
+WHAT YOU SAID YOU DID IN v21 — CLAIMS TO VERIFY IN
+PHASE -2 (none of these is verified)
+You sent TWO v21 reports (both "Not deployment ready"). The owner asked you to first
+understand the codebase and the live site, then implement — and you report you did real work.
+None of the 10 claims below is verified by Muse: nothing is deployed, GitHub is still 172afcc,
+the live site is still 172afcc. Every claim below is a CLAIM, not a fix. A claim becomes a fix only
+when Phase -2 confirms it in code AND the owner deploys it AND Muse live-retests it. If Phase -2
+finds a claim missing from your working copy, say so explicitly in your report — do not silently re-
+do it and do not silently drop it.
+1. Mobile/tablet layout fixes (IDs 311, 312, 313, 288). You claim: Settings 820px overflow fixed
+(ID 311), Studio sidebar tablet layout fixed (ID 312), signature dialog / toast overlap fixed (ID
+313, and toast overlap ID 288). You checked 176 route/viewport combinations (390, 820, 1366,
+1920 px) with no horizontal overflow or browser errors.
+2. 44-tool browser audit. You claim: 39 outputs downloaded and content-checked, 1 SSRF case
+blocked as expected, 3 checks unavailable (OCR + AI provider setup missing).
+3. PDF/A (ID 220). You claim: the Windows-host audit still fails (no Ghostscript executable on
+that host); the WSL Ghostscript conversion passed TWICE.
+4. Brief, compression, Word (IDs 2, 283/294, 308). You claim: Executive Brief (ID 2), image
+compression (ID 283/294) and mixed-page PDF-to-Word (ID 308) fixes implemented and
+tested.
+5. Full suite: 481 passed, TWICE (was 477 — +4 tests), one Starlette/httpx deprecation warning
+per run.
+6. Live checks (on the still-172afcc live site). You claim: 176/176 routes HTTP 200, no
+measured horizontal overflow or page errors, no unnamed visible controls in a basic
+accessibility-name scan. Content-checked live downloads: Merge (10 pages), Split (2), Rotate,
+Compress, PDF-to-Text, PDF-to-Word, DOCX-to-PDF, AI Extract, Summarize. Scan-to-PDF valid
+on retry. These are ROUTE/layout checks, not full live upload workflows per tool.
+7. Live OCR: INCONCLUSIVE. You claim: the live OCR upload returned 202 Accepted but
+browser polling saw no completed/failed state within 300 seconds. The deployed OCR
+endpoint reports English, German, French, Spanish packs installed. The same one-page
+image-only PDF through LOCAL OCR took 3.93s and extracted 4,651 characters — that does
+NOT verify live OCR.
+\n\n--- PAGE 3 ---\n8. Privacy-copy fix in local code only (app.js:2321). You claim: the sidebar now clearly states
+per selected tool whether files are processed in the browser (not uploaded) or uploaded
+temporarily for server processing. Local Chromium check: Merge and OCR messages correct.
+This code is NOT in the live deployment.
+9. Modern Web Guidance applied. You claim: responsive-design (100dvh-based max height on
+dialogs), css-layout (removed a conflicting shell override for the 820px tablet layout; overflow
+fixed by layout, not overflow:hidden), accessibility (processing-mode toggle now has an
+accessible description naming the selected tool and actual processing mode).
+10. You did NOT commit, push, deploy, or run a real payment. Your verdict: NOT deployment-
+ready; the full 309-item list is NOT implemented/individually verified; owner steps (production
+credential rotation, real Cashfree payment) remain.
+STRICT IMPLEMENTATION CONTRACT — READ THIS FIRST,
+BEFORE ANYTHING ELSE
+The owner is giving you this prompt because the last round was NOT done properly. In the v16
+round you worked from the WRONG list (the v15, 227-item extraction, not the v16 list) and fixed
+only 2 items (172/173), then reported NOT READY. That must never happen again. This contract is
+binding. If you cannot meet it, say so in your first line — do not silently do half the job.
+1. THE ATTACHED v21 PDF (309 items) IS THE ONLY CHECKLIST. Do not use any other list,
+extraction, text file, or older version. FIRST: confirm you have the v21 PDF, count its items
+(309), and write the count in your reproduction log. If the count is not 309, STOP and say so
+— do not proceed on a wrong list. The v20 list (298 items) and every earlier version are
+superseded. The 5 new v20-retest items are IDs 303–307; the 6 new Round 12 items are IDs
+308–313; the Round 11 items are IDs 292–302; the v18-retest items are IDs 287–291; the
+Round 10 items are IDs 282–286; the v17 sweep items are IDs 274–281. If any of those are
+missing from the file you have, you have the wrong file.
+2. COMPLETE implementation, not partial. Every item must be FULLY fixed. A fix is COMPLETE
+only when ALL of these hold: (a) the code change is made, (b) a regression test or a controlled
+browser check proves the exact acceptance condition stated in the list, (c) for a flaky item, the
+check passes on TWO consecutive runs. "I changed the code" is not a fix. "It worked once on
+my machine" is not a fix for a flaky item. A half-fixed item counts as NOT fixed. If you fix the
+code but cannot prove it with the stated acceptance condition, the item stays open in your
+report with the exact reason.
+3. Work the ENTIRE list. All 309 items, in phase order. Do not stop after the P0s. Do not stop
+after a few P1s. Do not send an interim report. The list is not done until every open item is
+fixed and verified. The P2s are not optional — 143 of them are in this list and every one needs
+a fix or a stated blocker.
+4. NO skipping. "Not reproduced" is not a reason to skip an item (standing rule) — fix the code-
+level cause and verify with a controlled/local browser test. If an item is genuinely owner-only
+(rotation, real payment), mark it as such in the final report with the exact blocker — do not
+\n\n--- PAGE 4 ---\nsilently skip it. If an item needs an owner decision, write the decision question in your report
+— do not skip the item and do not guess the answer.
+5. PER-ITEM PROOF. The FINAL-REPORT.md must contain a per-ID table for ALL 309 items: fixed
+/ verified / blocked, with the exact proof for each (test name + result, or browser check +
+evidence). No item may be marked fixed without proof. An item with no proof row is an item
+you did not do.
+6. NO interim replies, NO HOLD verdict (standing instruction from Muhammad, 2026-11-14).
+Report only at the end with FINAL-REPORT.md: READY, or the exact owner-only blockers. Do
+not reply after Phase -2. Do not reply after Phase -1. Do not reply after the P0s. Do not reply
+to say you are stuck — figure it out from the code, the live site, and the 309-item list.
+7. REGRESSION GATE. The full suite must pass twice (baseline 477 passed, 2 warnings, TWICE
+on 172afcc — Muse-verified; you reported 481 passed twice in v21 — Phase -2 must confirm
+that count; 477 is the floor and a lower count is a regression; if 481 is confirmed, 481 is the
+new gate). The 83 do-not-regress items must all still pass. The v20 44-tool sweep proved 37 of
+38 tools PASSED (1 PARTIAL — AI Translate French, 0 FAILED) and Round 11's 33-tool ~5 MB
+matrix passed 23 clean — do not regress any of them. If your change breaks a verified_fixed
+item, it goes back to open in your report with the new evidence, and you fix it before
+reporting.
+8. FLAKY items (1, 4) need TWO consecutive clean passes. A single pass is not proof. For ID 1,
+BOTH languages (Spanish AND Hindi) must work cleanly; for ID 4, BOTH paths (Drive /view
+AND direct-download) must work twice, including the owner's exact Drive file. A flaky item
+that passes once and fails once is still open. ID 207 is now VERIFIED FIXED (2nd consecutive
+clean pass in the v20 P0 round) — do not regress it.
+9. Do NOT commit, push, or deploy. The owner does everything else himself after your report.
+Refer to the images the owner added in the Codex project as visual evidence. List every file
+you changed in v21 AND in v22 in your final report (one line each) so the owner can verify the
+changes exist before he deploys.
+HOW TO USE THIS PROMPT (read first)
+1. You are in Code mode. Treat this file as your direct instructions, not as a document to
+summarise. Work through it item by item and edit the code.
+2. Refer to the images the owner added in this Codex project. They are screenshots of the
+live site as it looks right now (Tool Desk light and dark, the admin console, the Feedback pill
+position, the plan badges, the 390px and 820px renders). Use them as visual evidence
+alongside the written list — when a written item and a screenshot disagree, trust the
+screenshot for what the user sees and note the disagreement in your report.
+3. The attached file paperplane-elite-list-v21-2026-11-15.md  is the SINGLE SOURCE OF
+TRUTH. It contains all 309 tracker items (210 open, 83 verified_fixed, 14 to_verify, 2
+not_tested). Its IDs are the canonical IDs for this round — they match the owner's v15 report
+numbering for items 1–239, add 240–262 for the Round 9 findings, the five restored R8 items,
+and the v16 live findings, add 263–273 for the v16 fix-guide items and the new v16 live
+\n\n--- PAGE 5 ---\ndefects, add 274–281 for the v17 sweep defects, add 282–286 for the Master Audit Round 10
+findings, add 287–291 for the v18 live retest findings, add 292–302 for the Master Audit
+Round 11 findings, and add 303–307 for the v20 live retest findings, and add 308–313 for the
+Master Audit Round 12 findings. The tracker artifact holds 310 items (1 more than the list —
+artifact 244 is a separate item, see the mapping note below); its IDs for the newest items
+differ (the artifact's counter never reuses deleted IDs). Work from the list, not from memory,
+not from older prompts. The v21 PROMPT is superseded by this v22 prompt for instructions
+— but the LIST is the same v21 list (309 items, unchanged); do not rebuild it. Every fix you
+make must cite the ID it fixes.
+4. Baseline: GitHub origin/main is STILL 172afcc  — the owner has NOT pushed or deployed
+your v21 work. Your v21 changes live ONLY in your local working copy on your local branch
+launch-audit-v21  (uncommitted, unpushed). CONTINUE on launch-audit-v21  — do NOT
+reset to 172afcc, do NOT create a new branch. Do NOT base on 66cd0cd  or any other
+commit. Do NOT commit, push, or deploy anything — the owner deploys himself after
+reviewing your final report.
+5. Test suite gate: Muse independently verified the suite passing 477 tests, 2 warnings, TWICE
+on 172afcc (66.39 s, 61.80 s). Re-run the suite yourself and confirm the count — you reported
+481 passed twice in v21; Phase -2 must confirm that count in your working copy (if it is 477,
+your 4 new tests are missing; below 477 is a regression). Your changes must keep it passing
+twice, and you must ADD a regression test for every P0 and P1 you fix. If the suite count
+changes, report the new count and why.
+6. No real money, ever. You never run a real payment. Cashfree verification is sandbox only
+(see ID 98). The owner runs the one small real payment test himself after you fix the gate.
+7. No live account or live data changes. You do not create, delete, or modify user accounts,
+feedback entries, or admin sessions on the live site. The admin features you verify (IDs 202–
+204) are code + UI that already exist; the owner uses them himself.
+8. Secrets: the admin secret code value appears in a public commit message (8dd50e6) and
+must be treated as compromised. Round 10 PROVED it is still the live code (the admin login
+accepted the saved key + code + OTP in the single attempt the owner allowed). The code
+fallback is already removed (verified in e4a2bd3 — see ID 101); what remains is rotation +
+history purge. NEVER print, log, or paste the actual secret value anywhere — not in code, not
+in tests, not in your report. Use a placeholder like <ROTATED-VALUE-SET-BY-OWNER-IN-AWS> .
+9. Do not trust a version string. The v14 round proved this (the cache key was bumped
+v13→v14 but the served file did not change), and v15/v16 prove it again (the version strings
+still say v14 while the files are v15/v16, and the footer shows no version at all — ID 261). A fix
+is proven by the SERVED file (HTTP: size + content) and by a live browser run — never by a
+version string, a query parameter, or a local file that the server does not serve.
+10. Two live rounds disagreed — do not pick a side. Two v15 retests ran at the same time
+(23:16–00:08 IST) on the SAME account and interfered with each other (most visibly in Studio,
+where both rounds deleted page 1 of the same shared document). Four P0s were
+CONTESTED (IDs 1, 3, 4, 207). The v16 live retest (15 Nov 12:13–12:39 IST) was a CLEAN
+SINGLE RUN with no parallel round, and it SETTLES ID 3 as fixed — a controlled clean run is
+\n\n--- PAGE 6 ---\nwhat settles a contested item. The v17 sweep (15 Nov 12:40–13:20 IST) was also a CLEAN
+SINGLE RUN and it SETTLES ID 3 again — but it REOPENS ID 207 (stalls at 20%) and ID 49
+(Studio Export 'Failed to fetch'). IDs 1 and 4 remain contested/flaky: ID 1 FLIPPED twice
+(Spanish fails/Hindi works in v16, Spanish works/Hindi fails in the sweep) and Round 10 now
+proves the provider is RATE-LIMITED (upstream HTTP 429); ID 4's Drive /view path works in 2
+rounds and fails in 2, and the direct-download path fails in every round. Your job is to fix the
+underlying code-level cause and prove it with a CONTROLLED test (a clean, single-run, local
+browser test with the exact inputs), not to declare one round right and the other wrong. A
+contested item is closed only when a controlled test settles it. The v18 live retest (15 Nov
+17:00–17:39 IST) was a CLEAN SINGLE RUN with no parallel round: it confirms ID 207
+completed once (flaky, 1 consecutive pass), ID 1 Spanish works / Hindi fails with upstream
+HTTP 429, and ID 4 both paths fail. BUT the fix guide's parallel round (15 Nov 17:03–17:14 IST)
+ran AT THE SAME TIME on the same account and disagrees on all three (ID 1 both languages
+failed, ID 207 stalled at 20% again, ID 4 Drive /view worked) — so IDs 1, 4 and 207 are
+CONTESTED again and need a controlled single-run test to settle them. Round 11 (15 Nov
+~18:00–19:00 IST) was a single clean round: Spanish PASS, Hindi not tested; it did not test
+Merge 60 MB or Cloud Import's direct path. The v20 live retest (15 Nov 22:23–23:17 IST, build
+172afcc) was a CLEAN SINGLE RUN with no parallel round: it SETTLES ID 207 as fixed (real
+moving progress 0%→100%, 769 pages content-checked — 2nd consecutive clean pass after
+the v18 P0 round), finds ID 1 failing in BOTH languages (Spanish REGRESSED — v18 verified it;
+French PARTIAL in the sweep), ID 2 PARTIAL (offline fallback only, pages 1–12 of 69), ID 4
+PARTIAL (Drive link returns image/png with an informative error; W3C link 404s), ID 293
+PARTIAL (widgets 3→0 verified, highlight-annotation bake-in not tested), ID 294 fixed (all
+three 5 MB tools complete), and ID 220 still failing (ICC profile missing in the live container).
+IDs 1, 2 and 4 remain contested/flaky and need a controlled single-run test to settle them.
+11. Round 9 ran on the v14 build, not v15/v16. Round 10 ran on v16 (ac27255). Master Audit
+Round 9 (14 Nov 23:15–00:00 IST) tested the v14 build (app.js?v=14). Its findings (IDs 240–254)
+are carried forward into this list and must be re-checked on the current build after your fixes
+— do not assume a Round 9 finding is already fixed in v16, and do not assume it still
+reproduces either. Verify each one on the current code. Round 10 (15 Nov 12:15–13:00 IST)
+ran on build ac27255, so its findings were current then — but it was check-only (nothing
+changed) and it did not test payments, drag-and-drop, Drive/Dropbox import buttons,
+tablet/desktop viewports, the feedback XSS probe, Developer API keys, or load testing. Round
+11 (15 Nov ~18:00–19:00 IST) ran on the CURRENT build 66cd0cd — its findings are the
+newest evidence in this list (IDs 292–302 and updates on IDs 1, 9, 61, 101, 168, 184, 220, 240,
+241, 242, 246, 250, 253, 282, 283). Round 11 did NOT test payments (Cashfree — sandbox
+only, per scope), drag-and-drop gestures, the feedback XSS probe, Developer API keys flow, or
+load testing. The v18 live retest (15 Nov 17:00–17:39 IST) ran on the LIVE deployed v18 build
+— its findings are the previous round's evidence. The fix guide v18-final's live round (15 Nov
+17:03–17:14 IST) ran IN PARALLEL with this chat's v18 P0 round — where the two disagree,
+the item is CONTESTED. The v20 live retest (15 Nov 22:23–23:17 IST) ran on the CURRENT
+build 172afcc — its findings are the newest evidence in this list (IDs 303–307 and updates on
+IDs 1, 2, 4, 49, 93, 98, 102, 168, 220, 241, 271, 275, 279, 284, 286, 288, 289, 290, 291, 292, 293,
+\n\n--- PAGE 7 ---\n294, 295, 298, 299, 301, 302). The v20 retest did NOT test: the live OTP lockout probe, the
+admin console, or any payment (owner steps / out of scope).
+12. The v16 fix guide is not a substitute for this list. The owner also has a detailed fix guide
+(paperplane-elite-fix-guide-v16, 41 pages) built on the v16 list with a HOW TO FIX note per
+item. He may fix items himself from it. Do NOT assume any guide item is already fixed —
+work the full v20 list as written, and verify every item yourself. The fix guide v18-final (51
+pages, built on the v18 282-item list) is NOT a substitute for this list — but its CODE ROOT
+CAUSES are verified (in ac27255, re-checked against 66cd0cd) and are folded into this
+prompt's Phase 0 and the list's HOW TO FIX notes: IDs 1+2 share one provider path
+(_provider_request makes EXACTLY 2 attempts; 66cd0cd improved the backoff but NOT the
+count); ID 207's "20%" is a hardcoded stage marker (app.js:4439) — now superseded by the
+v20 chunked-upload path + XHR progress, which the v20 P0 round verified live; ID 4's generic
+except hides the real fetch error; ID 168 ships the guest shell as default; ID 184's quota half is
+fixed by the signed cookie while the proxy-IP half needs an ENV change; ID 271 is fixed in
+code in 66cd0cd. Do NOT adopt the guide's tracker counts (192 open / 16 to_verify) — they
+differ from this list's live-verified counts; each item was reconciled against live evidence
+(notably ID 220 stays OPEN, not to_verify, because live evidence proves it fails; ID 284 is now
+VERIFIED FIXED on live evidence, ID 286 stays to_verify with a partial live pass, ID 271 was
+NOT TESTED in v20 — no Hindi output). The guide's live round ran in parallel with this chat's
+P0 round — its disagreements (IDs 1, 4, 207) are marked CONTESTED.
+13. Coverage of the live evidence is honest, not total. The v20 live retest (15 Nov 2026, 22:23–
+23:17 IST, build 172afcc, clean single runs, signed-in Pro) tested the 8 P0s (22:23–22:43 IST)
+and 38 tools one by one (22:45–23:17 IST) — 37 PASSED, 1 PARTIAL (AI Translate French), 0
+FAILED; 6 tools skipped as P0-covered (Split, Compress PDF, Watermark, Page Numbers, PDF
+to PDF/A, Flatten). 31 of 38 outputs were captured on disk; 7 download captures failed
+because the 'Download complete!' toast covered the button (ID 288) — those 7 stand on
+name/size only, not content-checked. The DOCX, XLSX, Annotate PDF and Edit PDF outputs
+were content-checked independently with PyMuPDF. The AI Translate download was clicked
+but no 'Download complete!' toast was observed and no file name/size was shown. The live
+OTP lockout probe, admin console, and any payment were NOT tested. Round 11 tested all 44
+tools at least twice (small + ~5 MB inputs) with a 33-tool ~5 MB matrix: 23 clean PASS, 4 PASS-
+with-caveat, 1 intermittent, 1 flaky, 4 FAIL (split, pdf-to-pdfa, watermark, page-numbers) +
+flatten (no-op) = 5 hard failures. The v18 live retest tested the 8 P0s (17:00–17:14 IST, clean
+single run, signed-in Pro) and all 44 tools one by one (17:15–17:39 IST, 42 VERIFIED, PDF to
+PDF/A failed, Translate PARTIAL, PDF to PowerPoint NOT TESTED this round) with content-
+checked downloads for the key tools (Spanish Translate 10 pages, Merge 60 MB 769 pages,
+Compress, Photo Resize, Repair, Excel→PDF, Merge local, Protect, Studio Export). The
+Protect→Unlock literal roundtrip could not be completed (browser uploads accept only
+granted files). The v17 sweep tested all 44 tools one by one with screenshots (39 VERIFIED, 5
+PARTIAL, 0 wholly false) but captured only 8 of the ~44 downloads on disk. Do NOT treat any
+of these rounds as proof for a tool they did not content-check — Phase 5 says so explicitly.
+NOTE: the v18 sweep recorded Flatten as VERIFIED on output-existence only; Round 11's
+content check proves it is a no-op (new ID 293) — that output-only check is withdrawn. The
+\n\n--- PAGE 8 ---\nv20 P0 round content-checked Flatten's widget removal (3→0) but did NOT test the highlight-
+annotation bake-in — that half is still owed (ID 293). Content-check every tool output from
+now on. Master Audit Round 12 (15 Nov 2026, 22:49–23:23 IST, 172afcc, check-only, one
+permitted admin login, nothing changed) attempted all 44 tools fresh with synthetic fixtures
+(the original Round 11 5.7 MB/image-heavy files were unavailable) and 176 first-view layout
+captures at 390/820/1366/1920px: verdict NOT READY. It re-confirms the old admin
+credentials still log in (~23:08 IST), reopens ID 283, proves the 12-page brief ceiling, corrects
+the Cloud Import URL, and adds IDs 308–313. It did NOT test: real Cashfree payment, new
+signup, strict two-browser guest quota, container replacement/DB persistence, provider
+quota/outage recovery, or a penetration test; the claimed 60 MiB production path,
+cancel/expiry cleanup, replay and ownership enforcement were NOT independently verified.
+ELITE-LIST → TRACKER-ARTIFACT ID MAPPING (read before
+citing an artifact ID)
+Elite IDs 1–205 (except the intentional gaps 169, 179) are the same as the tracker artifact IDs. The
+rest differ (the tracker's monotonic counter never reuses deleted IDs). Do NOT delete-and-re-add
+to chase numbers.
+Elite 206→228, 207→249, 208→245, 209→236, 210→237, 211→248, 212→233, 213→246,
+214→234, 215→231, 216→232, 217→243, 218→235, 219→239, 220→242, 221→247,
+222→238.
+Elite 223→252, 224→257, 225→255, 227→256, 228→253, 229→254, 230→258, 231→259,
+232→260, 233→261, 234→262, 235→263, 236→267, 237→265 (to_verify), 239→266.
+Elite 240→264, 241→272, 242→274, 243→229, 244→270, 245→271, 246→268, 247→273,
+248→269, 249→275, 250→279, 251→278, 252→276, 253→283, 254→281, 255→230,
+256→250, 257→241, 258→240, 259→277, 260→282, 261→280, 262→251.
+Elite 263→288, 264→285 (open), 265→289, 266→292, 267→284, 268→286, 269→287,
+270→291, 271→294, 272→290, 273→293.
+Elite 282→295, 283→296, 284→297, 285→298, 286→299.
+Elite 274→306, 275→301, 276→303, 277→300, 278→305, 279→307, 280→304, 281→302.
+(The v17 sweep items were added to the tracker after the v18 build.)
+Elite 287→310, 288→308, 289→309, 290→312, 291→311. (The v18 retest items, added with
+the v19 build.)
+Elite 292→315, 293→314, 294→317, 295→313, 296→318, 297→316, 298→321, 299→323,
+300→322, 301→319, 302→320. (The Round 11 items, added with the v20 build. The artifact's
+counter assigns IDs in completion order, so these are NOT sequential — cite the ELITE IDs in
+your report, not the artifact IDs.)
+Elite 303→327, 304→324, 305→325, 306→326, 307→328. (The v20 retest items, added with
+the v21 build. The artifact's counter assigns IDs in completion order, so these are NOT
+sequential — cite the ELITE IDs in your report, not the artifact IDs.)
+\n\n--- PAGE 9 ---\nElite 308→330, 309→329, 310→332, 311→334, 312→331, 313→333. (The Round 12 items,
+added with the v21 build. The artifact's counter assigns IDs in completion order, so these are
+NOT sequential — cite the ELITE IDs in your report, not the artifact IDs.)
+Known deltas (intentional, do not "fix" by editing the tracker): elite 215 is verified_fixed in the
+tracker but OPEN in the v21 list — the command-palette API badge was verified absent live in
+the v14, v15, v16 AND v20 rounds, so the tracker's verified_fixed stands on live evidence and
+the list's row carries only stale v13 evidence. Artifact 244 (the R8 ai-docs group) is kept as a
+separate open tracker item — in the list it is folded into ID 216, which is why the tracker count
+differs from the list. Artifact 245 (elite 208) has severity P2 in the tracker while the list carries
+ID 208 as P1 — do not change severity. Artifact 49 (elite 49) has severity P0 in the tracker
+while the list carries ID 49 as P1 — do not change severity. The tracker (310 items: 210 open,
+84 verified_fixed, 14 to_verify, 2 not_tested; max artifact ID 334) is 1 item MORE than the list
+(309) because artifact 244 is kept as a separate open item (folded into ID 216 in the list).
+Reconciliation: list fixed 83 + elite 215 (fixed in the tracker, open in the list) = tracker 84; list
+open 210 + artifact 244 (open) − elite 215 = tracker 210. Tracker P0 open shows 8 (the 7 list
+P0s + elite 49, which is P0 in the tracker but P1 in the list — known delta).
+THE ENGINEERING LOOP — HOW YOU MUST WORK (the
+owner's explicit instruction)
+This is not a one-pass fix list. You work in a LOOP, and you do not report until YOU are genuinely
+satisfied. The owner said it plainly, three times, the last one the operative one: work like an agent,
+not a chat model — analyse everything, fix by debugging, self-analyse after fixing, and keep
+looping until HE is himself really satisfied; no reply until the app is 100% (100000%)
+deployment-ready and 1000% verified by tests + browser tests; no interim reports, no HOLD
+verdict, no technical questions — figure it out from the code, the live site, and the 309-item list.
+"Not reproduced" is not a reason to skip an item — fix the code-level causes and verify with
+controlled/local browser tests. The live retest happens after the owner deploys; your job is to
+prove the fixes locally first. This instruction SUPERSEDES the v14 prompt's Phase 6 READY-or-
+HOLD rule. Here is the loop:
+1. PROVE, THEN ANALYSE (Phase -2, then Phase -1). First prove your v21 work is actually in the
+code (Phase -2) — do not build on claims you have not confirmed. Then reproduce each P0
+before touching it (Phase -1). Write the reproduction log. Do not fix what you have not
+reproduced.
+2. FIX (Phases 0–4). Fix every item, one by one, citing its ID. Add a regression test for every P0
+and P1. Implement each thing properly — no partial fixes, no fixes that only work on one
+input or one language, no "fixed" without evidence. A fix is complete only when the STRICT
+CONTRACT's rule 2 holds (code change + proof + two consecutive runs for flaky items).
+3. SELF-ANALYSE (Phase 5). After fixing, analyse YOUR OWN work as if you were the auditor.
+Re-run the reproduction for every P0 and P1 you fixed. Re-test every fix. Re-run the full test
+suite twice. Re-check the do-not-regress list (77 items). Re-verify the contested items. Hunt
+\n\n--- PAGE 10 ---\nfor: fixes that are incomplete, fixes that only work on one input or one language, fixes that
+introduced a regression, fixes that pass the test but fail the real user flow, and items you
+skipped or marked fixed without evidence.
+4. LOOP. If your self-analysis finds ANY gap, regression, incomplete fix, or unaddressed item —
+go back to step 2, fix it properly, and self-analyse again. Repeat the loop. Do NOT stop at the
+first pass. Do NOT report after the first fix round. Do NOT mark an item fixed on a single run
+— verify each fix twice (two consecutive runs).
+5. ONLY WHEN YOU ARE REALLY SATISFIED — when your self-analysis finds nothing left, every
+P0 is fixed with evidence, the suite passes twice, and the do-not-regress list is clean — only
+then write FINAL-REPORT.md and report READY. If you are not satisfied, keep looping. The
+report comes last, never first. If a specific item is blocked ONLY on an owner step (credential
+rotation, a real payment, a key the owner must supply), finish everything else first and report
+READY with that owner step listed as the final gate — do not let one owner step block the
+other 307 items.
+PHASE -2 — PROVE YOUR v21 WORK IS ACTUALLY IN THE CODE
+(do this FIRST, before Phase -1)
+The owner has not verified that your v21 changes exist. Nothing is deployed; GitHub origin/main
+is still 172afcc; the live site is still 172afcc. Your v21 changes live ONLY in your local working copy
+on your local branch launch-audit-v21 . Before you touch any new item, prove the old work is
+there.
+1. Audit your working copy for EVERY v21 claim above. Open each changed file and confirm
+the fix is present — record file:line for each claim. Do not assume a change is there because
+you remember writing it; open the file and look.
+2. Re-run the full suite twice and confirm the count. You reported 481 passed twice in v21. If
+it is 481, that is the new gate — report it. If it is 477, your 4 new tests are missing — find and
+restore them. Below 477 is a regression — find it and fix it before doing anything else.
+3. Re-implement anything claimed but missing. If a v21 claim is not in the code, re-
+implement it now — do not assume it is there, and do not silently drop it.
+4. Write the audit to reports/launch-audit-v21/V21-CLAIMS-AUDIT.md  (same folder — do NOT
+create a new reports folder) with a table: each v21 claim → found in code (file:line) / missing /
+re-implemented. Also include this table in your FINAL-REPORT.md.
+5. In your final report, list EVERY file you changed in v21 AND in v22 with a one-line
+summary each, so the owner can verify the changes exist before he deploys.
+6. If a v21 claim cannot be found in the code, say so explicitly in the report — do not silently
+re-do it and do not silently drop it.
+7. Do not start Phase -1 until the Phase -2 audit is written. A round that skips Phase -2 is not
+done.
+\n\n--- PAGE 11 ---\nPHASE -1 — ANALYSE FIRST (do this before fixing anything)
+For EACH of the 7 P0s (IDs 101, 1, 2, 4, 102, 98, 93), reproduce it against the current code and
+write a reproduction log at reports/launch-audit-v21/REPRODUCTION-LOG.md  with, per item: the
+ID, the exact reproduction steps you ran, what you observed (with file:line references), the root
+cause in code, and the fix you plan. First line of the log: the count of items in the attached v21
+PDF (must be 309). Do NOT start fixing until the log covers all 7 P0s. If you cannot reproduce a P0
+in code, say so explicitly in the log with the evidence AND the code-level cause you will fix anyway
+— "not reproduced" is not a reason to skip an item. This phase is mandatory; a prompt that skips
+it is not done. Start with the two FLAKY P0s (IDs 1, 4) — the live rounds disagree or flip on each of
+them, so each needs a controlled reproduction that settles the question (see Phase 0 for the exact
+disagreement on each). ID 207 is now VERIFIED FIXED (2nd consecutive clean pass in the v20 P0
+round — real moving progress, 769 pages content-checked) — reproduce its old failure modes in
+code to confirm the fix holds, and add a regression test for it so it never reopens. ID 3 was settled
+FIXED by the v16 clean live run and confirmed again by the v17 sweep, the v18 sweep and the v20
+sweep — reproduce its old failure modes in code to confirm the fix holds, and add a regression
+test for it so it never reopens. ID 49 worked in the v18 sweep AND again in the v20 sweep ('OK
+Edited PDF exported successfully!') — second consecutive clean pass after failing twice in the v17
+sweep — reproduce the v17 'Failed to fetch' failure in code first, fix the fetch path, and prove it
+with TWO consecutive successful exports; the list keeps it open pending the owner's confirm. ID
+184's quota half is FIXED and verified live by Round 11 (signed cookie) — reproduce the OLD
+shared-bucket failure in code to confirm the fix holds, and add a regression test for it; the proxy-
+IP half is a NEW item (ID 296) and is an ENV change, not code. UPDATE (Round 12): an observed
+admin event recorded 74.1.15.117, NOT 172.18.0.4 — ID 296 moved to to_verify (one more admin
+event + spoof check owed). ID 240 is FIXED live by Round 11 (typed visual stamp) — reproduce the
+OLD malformed-content-stream failure in code to confirm the fix holds, and add a regression test
+asserting the signer name appears in the output text layer. ID 283 was VERIFIED FIXED in v18
+(warning) but Round 12 REOPENED it — BOTH presets corrupt image-heavy PDFs; reproduce it
+with a mixed text/image PDF on both presets before fixing.
+UPDATE (v21 round, Nov 2026): Phase -2 comes BEFORE this phase — do not start Phase -1 until
+the Phase -2 audit is written. Your v21 claims that touch the P0s: ID 2 — you claimed a Brief fix;
+Phase -2 must confirm the 12-page ceiling is actually removed in code (the Round 12 24-page
+diagnostic is the acceptance test). ID 1 — you claimed no fix in v21; it still fails both languages
+live. ID 4 — you claimed no fix beyond the error surfacing (already in v20); the testfiles URL is the
+acceptance URL.
+PHASE 0 — P0 LAUNCH BLOCKERS (fix all 7, in this order —
+Round 10's order: 101 first)
+1. ID 101 — Admin secret code: CONFIRMED LIVE EXPOSURE, rotation is the single most
+urgent step (P0). Round 10 (R10-01, CRITICAL) proved the leaked code was never rotated: the
+\n\n--- PAGE 12 ---\npublic commit 8dd50e6 is still fetchable, its title shows the code in plain text, and in the single
+admin attempt the owner allowed the saved key + code + OTP were accepted and the console
+unlocked — the leaked code is still the live one. Anyone on the internet who finds that
+commit owns the admin console (the OTP to the owner's Gmail is the only thing slowing them
+down). server.py now reads the code and key through _required_admin_setting() , which
+raises RuntimeError if the env var is unset — the app refuses to start without them. The
+hardcoded fallback is GONE. What remains: (a) rotate PAPERPLANE_ADMIN_CODE and
+PAPERPLANE_ADMIN_KEY to new random values in the AWS environment — the OWNER does
+this, you must not invent or set real values; (b) rewrite git history (git filter-repo) to purge the
+value from all commits, then force-push — and ask GitHub support to purge cached views; (c)
+add gitleaks (or equivalent) to CI as a pre-commit secret scanner — your v14 note says
+Gitleaks was unavailable locally, so set it up IN CI, not locally; (d) check the Security Audits tab
+for any admin_login_success events the owner did not make. Verify by fetching commit
+8dd50e6 from the public repo afterwards — it should 404, and the old code must be rejected
+by /admin. NEVER print, log, or paste the actual secret value anywhere. NOTE on the history
+mirrors: the reviewed mirror (paperplane-redacted-v14-reviewed.git) exists but excludes the
+uncommitted v14 changes and is NOT ready to publish — do NOT publish it. The BAD mirror
+(paperplane-redacted-v14.git) still contains the historical secret and your deletion was
+blocked by policy — the OWNER deletes that folder himself from his PC. Do not touch either
+mirror; prepare the purge so it can be re-filtered AFTER the v20 work is committed. This item
+is blocked ONLY on the owner steps (a) and the force-push — finish every code part (gitleaks
+CI, purge preparation) first and list the owner steps as the final gate in your report. UPDATE
+15 Nov 2026 (Master Audit Round 11, F-01, CRITICAL — MORE URGENT): the leaked
+credentials STILL WORK — the old stored key + code passed step 1, the owner-email OTP
+passed step 2, and the console opened a full "3-Factor Verified" admin session at 18:56:48 IST.
+The console's lockout absorbed 3 UNKNOWN failed attempts at ~18:43 the same day —
+someone or something is already trying the door. The admin console header also discloses
+the DB path and environment. Round 11 Q1 (owner question): the lockout lifted within ~15
+minutes (18:43 → 18:55), not 24 hours — did the owner reset it, or does the lock timer not
+work as stated? Rotation is now MORE urgent than ever. Also check the Security Audits tab for
+any admin_login_success events the owner did not make — the 3 unknown attempts are
+already there. UPDATE 15 Nov 2026 (v20 retest): NOT tested this round (owner step). Rotation
+is MORE urgent than ever — Round 11 proved the leaked code still works AND logged 3
+unknown admin attempts at ~18:43 on 15 Nov, with the lockout lifting in ~15 min, not 24h
+(owner question Q1, still unanswered). Carry the Round 11 Q1–Q4 owner questions forward
+(see OWNER DECISIONS STILL OPEN). UPDATE 15 Nov 2026 (Master Audit Round 12, F-01,
+CRITICAL): CONFIRMED LIVE AGAIN — the ONE permitted old-credential attempt PASSED at
+~23:08 IST (old key/code + owner-mail OTP), session logged out after. Old commit 8dd50e6
+still reachable. Rotation is now MORE urgent than ever. UPDATE (v21 round, Nov 2026): owner
+step, unchanged — no v21 code change claimed for this item. You prepare (gitleaks CI, purge
+preparation); the owner rotates.
+2. ID 1 — AI Translate: provider is RATE-LIMITED, flaky in BOTH languages (P0, FLAKY).
+Round 10 (R10-07, MEDIUM) gives the root cause the earlier rounds could not see: Translate
+\n\n--- PAGE 13 ---\nfailed 3/3 times over ~30 min — twice with the honest message 'provider is rate limited
+(upstream HTTP 429), please retry shortly', once with a generic 'Something went wrong'
+toast. The v15 rounds agreed Spanish works and Hindi fails ×2. The v16 clean single run (15
+Nov 12:13–12:31 IST, ac27255) found the OPPOSITE: Spanish FAILED in under 1 min
+('Processing failed — The translation provider returned an invalid response. Please retry
+later.', no output); Hindi attempt 1 FAILED ('Translation provider failed during document
+processing'), Hindi retry SUCCEEDED in under 1 min ('Translation complete / hi · translated
+text · 0 warning(s)') — but the Hindi PDF is genuinely Hindi (10 pages, 780 Devanagari chars)
+with garbled/mojibake characters ('प्लेन' renders as 'Đलेन', 'टेस्ट' as 'टेĚट' — new ID 271). The v17
+sweep flipped it AGAIN: EN→ES VERIFIED, EN→HI FAILED. Neither language is clean and the
+provider behaviour flips per language and per run. Fix: (a) automatic retry with exponential
+backoff (2–3 tries) before showing an error; (b) a fallback provider/key configured in the AI
+Settings gateway; (c) consistent error UX — one attempt showed a vague 'Something went
+wrong' instead of the clear 429 message; (d) surface provider quota status in the admin AI
+Settings page. Also fix the font-encoding path that produces the mojibake (embed a
+Devanagari-capable font instead of relying on a fallback that corrupts the text layer). Extend
+the per-operation timeout for translate, and do NOT count quota when a job fails. Test BOTH
+languages on the SAME file, with the LIVE provider: EN→Spanish and EN→Hindi, small file
+and the 69-page file, each TWICE. Do NOT mark this fixed on one language alone. Proof: a live
+translate of a 3-page document to Hindi AND to Spanish, both translated PDFs opened and
+checked, both clean, twice. (Related: translated PDFs keep the original English invisible in the
+content stream, so copy-paste/screen readers extract scrambled interleaved text — rebuild
+the text layer instead of overlaying.) UPDATE 15 Nov 2026 (v18 P0 round, live deployed v18
+build, clean single run, signed-in Pro, 17:00–17:14 IST): Spanish VERIFIED (under 30 s, output
+content-checked — 10 pages, 240,622 bytes, genuinely Spanish); Hindi STILL FAILING
+(attempt 1 'Translation provider failed during document processing'; attempt 2 'provider is
+rate limited (upstream HTTP 429)'). The 429 confirms the provider is still rate-limited — the
+v18 retry/fallback fix is either not implemented or not working. NEW: 'Process Another File'
+resets the target language to the Spanish default (new ID 291). ROOT CAUSE (verified in code,
+ac27255, re-checked against 66cd0cd — fix guide v18-final): the provider is rate-limited
+upstream (HTTP 429 — confirmed live by Round 10, this chat's P0 round AND the parallel
+round) and the retry budget is too small to absorb it. _provider_request (ai_engine.py:641)
+makes EXACTLY 2 attempts, then raises. 66cd0cd improved the delay to Retry-After-aware
+exponential backoff (1 s / 2 s, honouring the provider's Retry-After header) but NOT the count
+— it is STILL only 2 attempts. translate_pdf_layout (ai_engine.py:1775) translates text-block
+batches IN PARALLEL (batch size 8, 3 workers) and ANY batch raising kills the WHOLE
+translation. FIX: (1) raise the retry budget for translation batches to 3 attempts with
+exponential backoff (0.4 s, 2 s, 5 s) and retry on HTTP 429 explicitly; (2) on a batch that still
+fails, preserve those blocks (mark them blocks_preserved with a warning) instead of failing
+the whole document; (3) log which batch/block ids failed; (4) surface the real provider status
+(429 vs empty response) in the error message instead of the generic 'Translation failed.
+Please retry.'; (5) add a fallback provider/key in the AI Settings gateway. Also fix the font-
+encoding path that produces the mojibake (embed a Devanagari-capable font instead of
+\n\n--- PAGE 14 ---\nrelying on a fallback that corrupts the text layer — ID 271 is code-fixed in 66cd0cd, live check
+owed). UPDATE 15 Nov 2026 (Master Audit Round 11): Spanish PASS — real Spanish output,
+layout preserved, 0 warnings. Hindi NOT TESTED by Round 11. UPDATE 15 Nov 2026 (fix guide
+parallel round, 17:03–17:14 IST, ran in parallel with this chat's P0 round): BOTH FAILED
+(Spanish <30 s generic error, Hindi 30–90 s HTTP 429) — CONFLICTS with this chat's clean P0
+round (Spanish VERIFIED, content-checked). ID 1 is FLAKY/CONTESTED on Spanish. Owner
+question to carry in your report: is the AI provider on a free/rate-limited tier? The owner was
+asked this (Q2) and did not answer — he said he did not understand the sheet. Default:
+implement retry + fallback on the free tier (do not wait for the answer); if the owner later says
+paid tier, the fallback is still useful. UPDATE 15 Nov 2026 (v20 P0 round, 172afcc, clean single
+run, signed-in Pro, 22:23–22:43 IST): BOTH FAILED — Spanish after ~2 min and Hindi in under
+1 min, both "Processing failed — No text was translated. No translated PDF was produced."
+Spanish REGRESSED (v18 verified it). Your v20 per-batch isolation / bounded retries (3
+attempts, 0.4 s / 2 s / 5 s, preserve failed blocks) did NOT produce a translation. v20 sweep:
+French PARTIAL ("Partial translation ready — fr · some source text was preserved · 4
+warning(s)"). So Translate is now: ES fail, HI fail, FR partial. The retry budget and the fallback
+provider are still not working — debug the provider path live (check the actual upstream
+response: 429? empty? auth?) instead of adding another retry layer blindly. UPDATE 15 Nov
+2026 (Master Audit Round 12, F-04): CONFIRMS — Spanish AND Hindi on a 4-page input both
+"No text was translated. No translated PDF was produced." (~2 min). Worse than Round 11's
+successful Spanish. UPDATE (v21 round, Nov 2026): you claimed NO fix for Translate in v21,
+and none is verified — it still fails both languages live (Spanish + Hindi 'No text was
+translated'). Your job this round: fix the provider path (see the root cause above) — debug the
+actual upstream response (429? empty? auth?) instead of adding another retry layer blindly.
+3. ID 2 — Brief/Summarize fails on the 69-page document (P0). Small files work (verified by
+the v15 and v16 rounds and the v17 sweep — accurate small-file summaries with citation
+pills). The 69-page file fails: v16, 2 attempts, ~2 min each, identical error 'Processing failed —
+AI service returned an empty or invalid response. Please try again.' The v17 sweep failed
+TWICE again (~2 min each, same error). The v18 P0 round failed TWICE again (both attempts
+<60 s, same error). The fix guide parallel round failed AGAIN in under 60 s (faster than the ~2
+min of earlier rounds — consistent with failing on an early chunk call). 10th round of failure
+on the 69-page file. ROOT CAUSE (verified in code, ac27255, re-checked against 66cd0cd — fix
+guide v18-final): summarize_pdf (ai_engine.py:1114) makes 4 sequential provider calls for a
+69-page document — 3 chunk calls (pages 1-24, 25-48, 49-69, chunk_size 24) + 1 final
+synthesis call — each with a 55 s timeout inside a 275 s total budget. Each call goes through
+_provider_request, which retries only TWICE; if ANY one of the 4 calls fails twice with an
+empty/invalid response, the whole brief fails. summarize_pdf has NO retry and NO fallback
+for a failed chunk. FIX: (1) raise the retry budget for chunk calls to 3 attempts with backoff (0.4
+s, 2 s, 5 s); (2) reduce chunk_size from 24 to 12 pages; (3) log WHICH chunk (page range)
+failed; (4) on a chunk failure, fall back to the offline RAG extractive note for that chunk
+(_offline_rag_fallback already exists, ai_engine.py:820) instead of failing the whole brief; (5)
+raise the per-call timeout for the final synthesis. NOTE: 66cd0cd improved the retry backoff
+but it is STILL only 2 attempts per call. File-size-dependent. Your v14/v15/v16 claims (69-page
+\n\n--- PAGE 15 ---\nbrief rendered with a controlled provider) used a test double — the live provider was NOT
+checked. Fix the timeout/limits path for large documents (same family as ID 1) or honestly
+scope the feature to a page limit and say so in the UI. Proof: a successful executive brief on
+the 69-page file with the LIVE provider. UPDATE 15 Nov 2026 (v20 P0 round, 172afcc, clean
+single run, signed-in Pro, 22:23–22:43 IST): PARTIAL — completed in ~5 min via OFFLINE
+fallback only: "Executive briefing ready — notes_test · formatted Markdown · local/provider
+grounded", output 1,512 bytes, 1 page, explicitly "Executive Summary (Offline Analysis)" by
+the local extraction engine, covering only Pages 1–12 of 69. The AI provider never responded
+— the extractive fallback covered only the first chunk. Your v20 chunk-size reduction (24→12)
+and per-chunk fallback did NOT produce a real AI brief of the full 69 pages. Fix the provider
+path so all chunks are summarised by the provider, or scope the feature honestly. UPDATE 15
+Nov 2026 (Master Audit Round 12, F-03, HIGH): STRONGER — a 24-page diagnostic with
+cancellation, a ₹900,000 no-spend instruction and a 15 Dec 2026 deadline ONLY after page
+12. The brief omitted them and falsely said "No dates, decisions, deadlines, or additional
+themes are present in the text." The verified-page list was only Page 1–12. The 12-page
+ceiling is a hard cap in EVERY brief path including the offline fallback, and the brief actively
+claims absence of facts that exist after page 12. FIX: remove the silent 12-page ceiling in every
+brief path, process ALL chunks, combine decisions/deadlines/contradictions, expose
+processed/total page coverage, never claim absence outside the pages actually analyzed; add
+a 24-page test with cancellation + deadline only on pages 13–24 and require both in the final
+brief. UPDATE (v21 round, Nov 2026): you claimed a Brief fix in v21. Phase -2 must confirm the
+12-page ceiling is actually removed in code — open the file and check. The acceptance test is
+the Round 12 24-page diagnostic: cancellation + ₹900,000 no-spend + 15 Dec 2026 deadline,
+all after page 12 — the brief MUST include them, not claim they are absent. A claim is not a fix
+until Phase -2 confirms it in code AND the owner deploys AND Muse live-retests it.
+4. ID 4 — Cloud Import: Drive /view FLAKY, direct-download ALWAYS FAILS (P0, FLAKY). The
+parallel v15 round found Drive /view WORKS for the first time (a public Sample.pdf imported
+— 'Imported Sample.pdf · 0.11 MB · 1 pages'). This chat's v15 round found BOTH paths FAIL,
+and the v16 clean single run found BOTH paths FAIL again: the owner's Drive /view link
+returned 'Cloud Import accepts PDF files only. This link returned another file type; use its
+matching converter instead.' (the /view link returns an HTML preview page; the importer does
+not convert it to a direct download), and the W3C dummy.pdf direct link failed with 'Cloud file
+sync failed.' The v17 sweep flipped the Drive path again: Drive /view WORKS (a public file, 7.54
+MB imported), direct-download STILL FAILS. The Drive path works in 2 rounds and fails in 3;
+the direct path fails in all 5. The v18 P0 round found BOTH paths fail again (owner's Drive
+/view → 'Cloud Import accepts PDF files only'; W3C direct → 'Cloud file sync failed'). The fix
+guide parallel round found a SPLIT: Drive /view WORKED (3rd consecutive success on the
+public test file), direct FAILED (5th consecutive failure). The Drive path is file-dependent — it
+works on the public test file and fails on the owner's /view link. ROOT CAUSE (verified in code,
+ac27255 — fix guide v18-final): cloud_sync's GENERIC except-Exception branch turns ANY
+unexpected exception into the same message — 'Cloud file sync failed. Check that the link is
+public and points directly to a PDF file.' — and the real error only exists in the server log. The
+fetch itself (converters.safe_fetch_url, converters.py:259, timeout 30 s) can fail with an
+\n\n--- PAGE 16 ---\nHTTPError (403/404), a redirect rejection, or a read failure, and none of those are surfaced.
+FIX: (1) handle HTTPError explicitly in safe_fetch_url/cloud_sync and return the real status; (2)
+surface the actual Google response type (preview vs confirmation vs sign-in) in the Drive
+error message; (3) verify the W3C dummy fetch from the server itself (curl from the EC2 box)
+to see the real status; (4) log the exact fetch error server-side with the URL host and status.
+Fix the direct-download form AND the Drive viewer-URL path (viewer URL → downloadable
+file). Proof: the owner's Drive link imports and opens, and the direct-download form imports
+the W3C dummy.pdf — EACH TWICE. (Use the CORRECT W3C URL:
+https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf — testfiles, NOT
+testsuite.) The owner's Drive link is
+https://drive.google.com/file/d/1dAovOT7FCFaur33cX5_M6SsL6EvZT9rS/view  (file
+SreeVarun_V.pdf , 1 page, 554,620 bytes) — test with THIS exact link. UPDATE 15 Nov 2026
+(v20 P0 round, 172afcc, clean single run, signed-in Pro, 22:23–22:43 IST): PARTIAL — Drive
+/view: "Google Drive returned image/png, not a PDF." (exactly as you claimed — the error
+surfacing works now). W3C dummy.pdf: "The linked host returned HTTP 404" — NOT the
+claimed HTML content-type rejection; that URL 404s. Nothing imported either way. NOTE: the
+owner's exact Drive link returns image/png, not a PDF — the link itself is the problem (see
+OWNER DECISIONS STILL OPEN — the owner must supply a correct Drive PDF link, or the file
+itself, for a real import test). Your error surfacing is fixed; the import itself is still unproven.
+UPDATE 15 Nov 2026 (Master Audit Round 12): CORRECTED — the W3C dummy PDF imported
+successfully (~13 KB, 1 page) via
+https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf (testfiles, NOT
+testsuite — the testsuite URL 404s). Use the testfiles URL as the Cloud Import acceptance
+URL. The owner's exact Drive link is still image/png; the intended Drive PDF is still not
+supplied. UPDATE (v21 round, Nov 2026): you claimed no fix beyond the error surfacing
+(already in v20). The acceptance URL is the W3C testfiles URL above — test with it, twice. The
+owner's exact Drive link returns image/png — the owner must supply a correct Drive PDF link.
+5. ID 207 — Merge 60 MB: VERIFIED FIXED in the v20 P0 round (do not regress). Real moving
+progress (native progress bar 0% → 1% → 34% → 69% → 100%, ~3 min upload, ~1 min
+processing); merged output 57.64 MB, downloaded 60,436,859 bytes and content-checked:
+769 pages, valid PDF. 2nd consecutive controlled clean pass (v18 P0 round + v20 P0 round) —
+the flaky rule is met. The chunked-upload path (5 MiB chunks) + XHR progress from your v20
+work is confirmed live. Do NOT regress the progress bar or the chunked upload — add a
+regression test for the 60 MB merge with a real progress assertion. (The download-capture
+half is ID 224 — fix the toast/download control too.) UPDATE (v21 round, Nov 2026): no
+change claimed; do not regress the chunked upload or the progress bar.
+6. ID 102 — Feedback: submit VERIFIED, delivery-to-admin still unverified (P0). The v16
+clean run SUBMITTED a feedback entry ('v16 live retest test — please ignore', 5 stars, General)
+— the widget showed '🚀 Thank You! Your feedback directly shapes our roadmap.' and auto-
+closed after ~10 s. The submit half is now proven (v16 and v18 both submitted successfully —
+the v18 P0 round submitted again and got the same '🚀 Thank You!'). What remains is the
+delivery half: submissions are accepted with a thank-you and a server 2xx but only
+intermittently appear in admin, because write and read hit different databases; the list also
+\n\n--- PAGE 17 ---\ndoes not auto-refresh. Fix the write/read divergence and add auto-refresh (or a visible refresh
+state). Proof: submit feedback and show it in the admin list without a manual refresh. (The
+v15 and v16 test entries should be deleted from admin by the owner — see the cleanup
+section in the list. Round 10 (R10-18) notes the feedback table still carries 10 rows, mostly test
+submissions from earlier rounds — the owner deletes them via the admin 'Clean Test Probes'
+button; that is cleanup, not a code fix.) UPDATE 15 Nov 2026 (v20 P0 round, 172afcc, clean
+single run, signed-in Pro, 22:23–22:43 IST): SUBMIT VERIFIED again — 5 stars + "v20 live retest
+test — please ignore" → "🚀 Thank You! Your feedback directly shapes our roadmap." Admin
+arrival still NOT checked.
+7. ID 98 — Cashfree: sandbox purchase PROVEN end-to-end, PROD still owed (P0). The full
+sandbox purchase works — /pricing > Pay Rs 49 Student Pro > Cashfree sandbox drop >
+simulator OTP > SUCCESS > "Payment Succeeded! Welcome to the Student & Educator plan"
+modal; the account flipped to tier=student_pro, is_pro=true, remaining=Unlimited, verified
+three times via /api/billing/status. (The v15, v16 and v18 rounds independently confirmed
+checkout OPENS to sandbox with correct amounts, merchant 'testMerchantName', phone
+placeholder — v16: ₹299, +91 9999999999; v18: ₹299, +91 9999999999, email
+mdhammad869@gmail.com.) Your v14/v15 claim (production mode rejects sandbox
+checkout, 503/403) is a gate, not a payment. The P0 now stands ONLY on the PROD side: set
+CASHFREE_ENV=PROD with the real PROD keys (the OWNER supplies the keys in AWS — you
+must not invent them), then the owner runs ONE small REAL payment test himself. You must
+not run a real payment. Do NOT weaken the 403 on the simulation endpoints in production.
+The audit account k5mmx3@mail.instinct.com is now Student Pro via this sandbox purchase
+(no real money) — note it in your report, do not change it. ALSO: set up and PROVE the daily
+synthetic sandbox checkout probe (ID 258) — see Phase 2. UPDATE 15 Nov 2026 (v20 P0
+round, 172afcc, clean single run, signed-in Pro, 22:23–22:43 IST): STILL SANDBOX — ₹299
+checkout opened sandbox.cashfree.com, merchant "testMerchantName", ₹299, phone +91
+9999999999. No payment. UPDATE (v21 round, Nov 2026): owner step, unchanged — no v21
+code change claimed. You must not run a real payment.
+8. ID 93 — Redeploy wipes accounts/data — production DB not persistent across deploys
+(P0, not tested). The formal redeploy-survival test (create account → redeploy → log in
+again) is still not run. Supporting evidence: the audit account survived the redeploy, Round 10
+confirms auth/session survived the Nov 15 redeploy with account data intact, and the v18 P0
+round confirms the Legacy Pro account, plan and session survived the 15 Nov redeploy
+(Settings: 'You are securely authenticated. Your documents and usage quotas are
+synchronized across sessions'; Plans & Billing: 'Legacy Pro', 'No daily operation cap'). Caveat:
+no pre-redeploy saved Studio document was visible, so saved-document survival could not be
+directly verified. Round 11 did not test it. Run the formal test (or document why it cannot be
+run and what evidence substitutes for it). This is the one P0 with no live failure evidence — it
+stays open until the test is run. UPDATE 15 Nov 2026 (v20 P0 round, 172afcc, clean single run,
+signed-in Pro, 22:23–22:43 IST): SUPPORTING EVIDENCE — account/plan/session survived the
+redeploy (Settings "You are securely authenticated", Plans & Billing "Legacy Pro (No daily
+operation cap)"). The formal create→redeploy→login document-survival test is STILL owed.
+\n\n--- PAGE 18 ---\nPHASE 1 — P1 HIGH
+Work through the elite list's P1 table in ID order (60 open). Do not skip any. The headline items
+are:
+ID 49 (P1) — REGRESSION: Studio Export fails with 'Export error: Failed to fetch'
+(REOPENED in the v17 sweep). FIXED in the v13 live retest (toast 'Edited PDF exported
+successfully!' + 7 KB download captured, PyMuPDF-verified 10 pages readable). REGRESSED in
+the v17 sweep (15 Nov 2026, ac27255, clean single run): Export FAILED TWICE with 'Export
+error: Failed to fetch' (screenshots i282, i283), no download. The v18 sweep (15 Nov 2026,
+17:15–17:39 IST, live deployed v18 build, clean single run) found Export WORKED once ('OK
+Edited PDF exported successfully!', no 'Failed to fetch', no '[object Object]'). One clean run —
+the v17 regression needs a second consecutive clean pass to close. The fix guide parallel
+round did NOT retest it (Studio opened empty in a fresh profile — expected per-profile
+storage, NOT a regression). UPDATE 15 Nov 2026 (v20 sweep, 172afcc, clean single run,
+signed-in Pro, 22:45–23:17 IST): Export WORKED again — notes_test.pdf, delete page 1,
+69→68, Export → exactly 'OK Edited PDF exported successfully!' Second consecutive clean
+pass after the v18 sweep. The list keeps it OPEN pending the owner's confirm — your job:
+reproduce the v17 'Failed to fetch' failure in code first (Phase -1), fix the fetch path, and prove
+it with TWO consecutive successful exports of an edited document, downloads content-
+checked, and report the close with proof. UPDATE (v21 round, Nov 2026): the owner has NOT
+yet answered whether to close ID 49 — it stays OPEN in this prompt ('close pending the
+owner's answer'). v18 + v20 sweeps both passed clean, two in a row, so it meets the flaky rule
+on its face — but the close is his call. Your job stands as above.
+ID 283 (P1) — REOPENED in Master Audit Round 12 (was VERIFIED FIXED in the v18
+sweep on the warning alone). notes_test.pdf 5.20 MB → 89.7 KB (98.3% reduction) now
+shows a warning before download. The settled default ('Under 100 KB Govt/SSC') is
+unchanged. The warning must still appear on extreme reductions — but the warning is NOT
+the fix. Round 12 (F-02, HIGH): BOTH presets corrupt image-heavy PDFs — Under 100 KB first
+returned service unavailable, retry completed ~11.8 KB with black image content; Balanced
+~3.68 MB still corrupted the image (6.34 MiB, 5-page mixed text/image input). The warning
+exists, destruction persists on both presets. FIX: reproduce with a mixed text/image PDF
+around 6 MiB using both presets; inspect image decode/colour space, alpha masks and re-
+encoding; add rendered-page regression checks that detect large newly black regions and
+verify all source images; prefer a readable best-effort result with a target-size warning over
+destructive compression; block success if output content is corrupted. NOTE (Round 11, F-16):
+the warning exists but the DEFAULT preset is still destructive — a 530 KB image PDF → 4.6 KB
+of pure black pages. Round 11 suggests making Balanced the default — that CONTRADICTS
+the owner's settled decision (the Under-100KB default is INTENDED). Do NOT change the
+default without the owner's explicit say-so (see OWNER DECISIONS — the owner must
+decide). UPDATE (v21 round, Nov 2026): you claimed a compression fix in v21. Phase -2 must
+confirm it in code. Acceptance is a RENDERED-PAGE comparison on an image-heavy PDF
+(both presets) — the output pages must not be black. Byte size alone is not proof.
+\n\n--- PAGE 19 ---\nID 184 (P1) — VERIFIED FIXED (quota half) in Master Audit Round 11. Strict second-
+browser test: quota is keyed by signed cookie (paperplane_guest_quota); a fresh browser
+used 1 op → 1/10, an independent cookieless client stayed 0/10. Commit message +
+tests/test_guest_quota_v18.py corroborate. Do NOT regress the cookie-keyed quota — it
+must still isolate guests on two clean browsers. The PROXY-IP half is NOT fixed and is split
+into new ID 296 (below).
+ID 296 (P1) — NEW in Round 11: Proxy IP 172.18.0.4 everywhere (the proxy-IP half of ID
+184). The login-alert mail, the admin OTP mail, and every row of the admin Security Audits
+table record IP 172.18.0.4 (the internal Docker proxy). The security audit trail cannot attribute
+anything — including the 3 unknown admin attempts today. ROOT CAUSE (fix guide, verified
+in code): TRUSTED_PROXY_HOSTS defaults to 127.0.0.1 only (server.py:301) while the live
+proxy is the Docker gateway 172.18.0.4. Fix is an ENV change, not code: set
+PAPERPLANE_TRUSTED_PROXY_HOSTS to include the real gateway IP; also configure nginx
+proxy_set_header X-Real-IP / X-Forwarded-For and app.set('trust proxy', true) in Express, then
+use req.ip for login-alert mails, the admin audit log, and rate limiting. Verify: two clean
+browsers show distinct real IPs in the admin security log, and a guest op on one does not
+consume the other's quota. UPDATE 15 Nov 2026 (Master Audit Round 12): an observed
+admin event recorded 74.1.15.117, NOT 172.18.0.4 — the proxy fix works for the observed
+event. Full proxy-chain spoof resistance NOT tested — one more admin event + spoof check
+owed. Moved to to_verify.
+ID 292 (P1) — VERIFIED FIXED in the v20 P0 round (do not regress). Ranges 1-2 and 1
+correct on test-text-10page.pdf, content-checked (correct pages and text). Your duplicate-
+input removal + server-side range check is confirmed live. Do NOT regress it — add a
+regression test asserting split output pages match the requested ranges.
+ID 293 (P1) — NEW in Round 11: Flatten is a no-op. A live Highlight annotation survives
+untouched in the output (small and 5 MB files); output is visually and structurally identical to
+the input. No burn-in happens. CORRECTION: the v18 sweep recorded Flatten as VERIFIED on
+output-existence only (a 7.8 KB output file was produced) — that check is withdrawn; Round
+11's content check is stronger evidence and WINS. Fix: burn annotations into the page
+content stream (render each annotation's appearance stream onto the page and delete the
+/Annots entries), or hide the tool until it works. Verify by content-checking the output
+(annotation present = fail), not by file size. UPDATE 15 Nov 2026 (v20 P0 round, 172afcc, clean
+single run, signed-in Pro, 22:23–22:43 IST): PARTIAL — test-form.pdf flattened instantly → 7.8
+KB; content-checked by Muse: input has 3 form widgets, output has 0 widgets and 0 annots
+— widget removal IS verified. BUT the highlight-annotation bake-in (Round 11 F-04) was NOT
+tested (no annotation was added before flattening). A direct test (add a highlight annotation,
+then flatten, then check the output has no active annotations) is still owed. UPDATE 15 Nov
+2026 (Master Audit Round 12): flatten PASS (core) — no live annotations/widgets, form value
+burned in; sticky note became its icon, popup comment body NOT printed. Product question
+(see OWNER DECISIONS STILL OPEN): should flatten print sticky-note bodies or only their
+visible icons?
+\n\n--- PAGE 20 ---\nID 294 (P1) — VERIFIED FIXED in the v20 P0 round (do not regress). Compress (Balanced)
+→ 2.01 MB, Watermark "CONFIDENTIAL" → 7.17 MB (content-checked, 69 pages), Page
+Numbers → 6.48 MB, all on notes_test.pdf (5.20 MB), each under 1 min. NOTE: the page-
+numbers stamp is still "Page 1", NOT "Page 1 of 69" — ID 241 ({total} placeholder) is STILL
+OPEN. Do NOT regress the 5 MB tool path — add a regression test running all three tools on
+a 5 MB file. NOTE (Round 12, F-02): image-heavy compress quality is tracked separately under
+ID 283 (REOPENED — both presets corrupt image content); ID 294 stands fixed for operations
+completing on the text-heavy 5.2 MB file.
+ID 295 (P1) — VERIFIED FIXED in the v20 sweep (do not regress). DOCX 36 KB, content-
+checked by Muse: 0 embedded images, 32 text runs, 1,527 chars of real editable text —
+genuinely editable, NOT rasterized. Your text-layer extraction is confirmed live. Do NOT
+regress it — add a regression test asserting the DOCX contains editable text and no
+embedded page images. NOTE (Round 12, F-06): the 63 MB rasterization blowup IS fixed (36.1
+KB DOCX, 10 paragraphs, no media — confirmed by Round 12 too); the remaining mixed-
+page fidelity gap (images + tables dropped) is new ID 308.
+ID 168 — First-paint / load-state root cause (P1). Still reproduces, but IMPROVED in v16:
+Home, /compress-pdf, /settings and /studio all flash wrong defaults but correct in ~1–2 s (was
+5–30 s in v15). /settings still shows the FULL guest flash ('Guest Explorer - Free · 10
+operations/day' with 'Sign In ->' / 'Create Account') before settling to the signed-in account;
+/studio shows 'No document open' / 'PAGES (0)' for ~2 s before the restore. The v17 sweep
+confirms ~1–2 s and found a stale 'Guest Explorer' block in the Settings DOM (new ID 276).
+The v18 sweep confirms it AGAIN (~1–2 s; /settings flashes 'Guest Explorer / Free · 10
+operations/day' with Sign In/Create Account; /studio flashes 'PAGES (0)' / 'No document open'
+for ~15 s after reload; Home sidebar account block paints late and the sidebar renders dark
+against light content). Round 11 (F-13) confirms it AGAIN: /settings once rendered the
+Account panel as 'Guest Explorer - Free - 10 operations/day' (did not reproduce on re-check);
+/edit-pdf's header showed 'Log In' + 'Sign Up Free' next to the signed-in account chip. Session
+valid throughout (per /api/billing/status). ROOT CAUSE (fix guide, verified in ac27255): the
+HTML ships the guest shell as the default and checkAuthStatus (app.js:2057) corrects it async
+after /api/auth/me. Fix: server-render the auth state into the first HTML; gate header and
+account panels on the resolved session (loading skeleton until /api/billing/status or the
+session store resolves), never render the logged-out default first. Fix the root cause (serve the
+correct state on first paint — a correct skeleton, not wrong defaults that async-correct). Your
+job: one signed-in, multi-page first-paint check (Home + 3 tool pages + /settings + /compress-
+pdf + /studio) — if no wrong defaults appear anywhere, ID 168 is fixed; if they appear, it
+reopens with your evidence. The v20 sweep (15 Nov 2026, 172afcc, clean single run, signed-in
+Pro, 22:45–23:17 IST) confirms it AGAIN, improved: brief flash on every fresh navigation (~1–
+2s) — sidebar account chip renders as an empty dark rectangle, "Operations Today" shows
+"Checking usage…" and a "Checking plan…" badge appears; all resolve to the signed-in
+account and "No daily operation cap" within ~1–2s. Now an empty/loading state, never a
+guest state. Studio after reload briefly shows "No document open" for a few seconds before
+the restored document renders.
+\n\n--- PAGE 21 ---\nID 211 — Server Mode toggle state is inconsistent across pages (P1). The toggle is ON on
+some pages, OFF on others — the preference does not persist reliably. The parallel v15 round
+found it PERSISTS now (Server Mode stayed off after the merge test) — the persistence half
+looks better; the scope-list mismatch (sidebar 'Merge, Split, Remove, Rotate' vs Settings
+adding Page Organizer and the photo tools) was not re-checked. The v17 sweep found it took
+FOUR clicks to settle Merge into the server configuration; the reliable indicators are the
+unchecked 'Use local processing' checkbox and the 'Temporary server processing' subtext,
+not the switch visuals (new ID 275). Fix the persistence (shared state, not per-page) and
+reconcile the scope lists. Cross-ref IDs 148, 155, 186. The v18 sweep confirms the naming
+confusion persists (new ID 275 NOT VERIFIED — still three names: 'Server Processing', 'Local
+Processing', 'Processing mode').
+ID 137 — Theme inconsistency — dark/light flip, AI Intelligence light (P1). The Tool Desk
+main content renders DARK in one of the owner's screenshots and LIGHT in another taken
+the same day; Studio is dark; tool pages/AI are light. The v17 sweep adds: Studio renders in a
+DARK theme while the account theme is Light Paper. The v18 sweep CONFIRMS it: Studio
+renders DARK even though Settings > Appearance & Theme has 'Light Paper' selected; the
+page itself renders light. The theme is not fixed per surface. Pin down the theme source of
+truth (system setting? user toggle? first-paint default?) and make it consistent: one theme per
+surface, no flip with no action.
+ID 186 — Server Mode toggle (P1, to_verify — the audit claims fixed, verify it). Master
+Audit R8 (F2) claims FIXED: "toggle now persists off; server mode selectable". Muse's v13 live
+round the same night found the state inconsistent across pages (ID 211 — ON on some
+pages, OFF on others). The parallel v15 round found the toggle now PERSISTS across pages
+(Server Mode stayed off after the merge test). Your job: the discriminating check — enable
+server mode on Merge, verify a server job is created and quota decrements; then open Split
+and confirm the toggle is still OFF. If it does not persist across pages, ID 186 stays open and
+ID 211 is the live bug. (Owner decision Q1: if local-only is the intended design for these four
+tools, delete the dead toggle instead — default is to fix it.)
+ID 187 — Exam Photo & Signature Resizer (P1, to_verify — the audit claims resolved,
+verify it). Master Audit R8 (F4) claims RESOLVED: "exam resizer now runs locally (canvas); SSC
+350×450px / 35KB in-browser". Muse's v13 round verified the OUTPUT (exactly 20.0 KB,
+350×450) but did NOT discriminate server vs client. The parallel v15 round verified the output
+again (exactly 20.0 KB, 350×450) but did NOT discriminate server vs client either. The v17
+sweep verified the output again (20.0 KB, 350×450, inside the 20–50 KB SSC range) but did
+NOT discriminate server vs client. Your job: the discriminating check — run the exam resizer
+and confirm NO /api/jobs POST and NO quota decrement. If it still POSTs to /api/jobs, it stays
+open. (Owner decision Q2 default: client-side, free, unlimited.)
+ID 152 — Photo tools server-only (P1) — RESOLVE THE CONFLICT FIRST. The v11 live round
+observed all four photo tools showing 'Server Mode / Local processing is unavailable'. The
+Master Audit Round 7 claims photo compress/resize/merge PASS as client-side. The v13, v15
+and v16 rounds ran the photo tools and verified the outputs but did NOT discriminate local vs
+server processing. Round 10 ran all four photo tools (compress, resize, resizer, merge) and
+\n\n--- PAGE 22 ---\nlists them as passing, but did not discriminate local vs server either. Do NOT mark this fixed
+on any single claim. Determine the truth: does the file upload to the server or process locally?
+If the tools are server-side, either implement the client-side (Canvas) path the briefing
+promises or correct the briefing and the plan copy — and recompute the cost model on
+server-side photo volume. Related: ID 166 (Organize is server-only despite being listed as a
+client-side operation) and ID 163 (Merge claims 'never upload' but lists a 'Stream Upload'
+step).
+ID 240 (P1) — VERIFIED FIXED in Master Audit Round 11. Redesigned to a typed visual
+stamp; output PDF shows "Hammad Test | 2026-11-15 11:39" on page 1; honest copy points
+to Studio for cryptographic signatures. Supporting evidence: Studio's Digital Signatures panel
+produces a real detached PKCS#7 signature (/ByteRange, adbe.pkcs7.detached) with an
+honest self-signed-identity disclosure. Do NOT regress the stamp — the signer name must
+appear in the output text layer. (The old malformed content stream — '[2 2] d' with no phase
+value — is gone.)
+ID 241 (P1) — Add page numbers drops the 'of total' part (Round 9, MEDIUM — wrong
+output). Default format 'Page {n} of {total}' on a 6-page file produces only 'Page 1', 'Page 2' ...
+— the 'of 6' is missing. Round 10 (R10-09) CONFIRMS it is still open: the format dropdown now
+defaults to 'Page {n} of {total}', but the stamped output still reads only 'Page 1'. Fix the
+template replacement so {total} is replaced with the document page count (and any other
+tokens in the format). Add a test: 6-page PDF with format 'Page {n} of {total}' must contain
+'Page 1 of 6' on page 1. UPDATE 15 Nov 2026 (v20 P0 round, 172afcc, clean single run, signed-
+in Pro, 22:23–22:43 IST): STILL OPEN — the page-numbers stamp on the 5.20 MB file is still
+"Page 1", NOT "Page 1 of 69". The {total} placeholder is still not substituted. UPDATE 15 Nov
+2026 (Master Audit Round 12, F-07): CONFIRMS — "Page {n} of {total}" rendered only "Page 1"
+… "Page 5" on all 5 pages.
+ID 242 (P1) — Local processing is OFF by default (Round 9, MEDIUM — plan promise vs
+reality) — NOW CONTESTED. On Merge, Split, Remove and Rotate the 'Use local processing'
+switch loads UNCHECKED and the sidebar says 'Server Mode - Temporary server processing'.
+Pricing says Free = 'Unlimited browser processing: Merge, split, rotate, photo compress &
+resize 100% locally.' Local works well when the switch is turned on, but a first-time guest uses
+the server path and probably counts against the 10/day quota. Round 10 claims FIXED:
+'default is local ("files stay in your browser"), code confirms localStorage!=='server''.
+CONFLICT: live rounds (v15/v16/v17/v18) observe the switch loading UNCHECKED with 'Server
+Mode'. Round 11 says "Local default ON" HOLDS — the conflict persists. Do NOT close this on
+Round 10's or Round 11's claim alone. Fix: reconcile the code default with the UI switch state
+and make them agree — default local to true for the tools that support it (persist the choice
+in localStorage), fall back to server only on local failure, and make sure local runs never touch
+the guest/free cloud quota. Cross-ref IDs 186, 211, 148. The v18 sweep confirms the conflict
+persists (new ID 275 NOT VERIFIED — still three names, and the switch loads OFF while files
+are in fact uploaded).
+ID 210 — Studio Organize Earlier/Later buttons are in the DOM but invisible and
+unclickable by mouse (P1). WORSE in the parallel v15 round: the action panel
+\n\n--- PAGE 23 ---\n(Earlier/Later/OCR/Duplicate/Extract/Delete) exists in the DOM but renders OFF-SCREEN to
+the right at 1920px; clicking 'Later' was refused as 'covered', scrolling right and collapsing the
+Pages panel did not reveal it, and Alt+Right produced NO visible reorder this round (v13's
+Alt+Right/Alt+Left shortcuts DID work). Effectively unreachable by mouse AND keyboard this
+round. Drag-reorder works (ID 47 fixed). Make the buttons visible and clickable by mouse,
+and prove it with a real mouse click in a browser.
+ID 214 — Mobile view cannot be tested from the laptop browser (P1). Three routes failed
+(cloud browser viewport control, local Chromium blocked by the WebGL policy, Playwright
+Chromium cannot use the VM egress proxy). A code-level responsive audit was done instead.
+The visual 390px render, touch targets and pill-vs-CTA overlap still need the owner's phone —
+but note the audit's R8 viewport matrix rendered 390px and 820px CLEAN (screenshots), and
+Round 10 rendered the mobile 390px layouts of Tool Desk, Pricing and Studio. Your job on the
+code side: keep the responsive code correct; the visual check is the owner's.
+ID 222 — No Log In / Sign Up in the topbar at ≤480px (P1). At ≤480px .topbar-right {
+display: none !important; } , and it holds 'View plans', 'Cloud', 'Log In' and 'Sign Up Free'. At
+390px the topbar has NO sign-in entry point; signing in depends entirely on the mobile
+drawer. Verify the drawer shows Log In (code could not confirm it) — if it does not, a phone
+guest cannot find Log In.
+ID 271 (P1) — Hindi translation output has garbled/mojibake Devanagari (NEW in v16 —
+wrong output). The Hindi translation is genuinely Hindi (780 Devanagari chars, 10 pages,
+145,920 bytes) but the rendered text is corrupted — 'प्लेन' renders as 'Đलेन', 'टेस्ट' as 'टेĚट' in the
+extracted text layer. Fix the font-encoding path in the translation output (embed a
+Devanagari-capable font; do not rely on a fallback that corrupts the text layer). Add a test:
+translate a Hindi sample and assert the extracted text contains the correct Devanagari
+strings. Cross-ref ID 1. UPDATE 15 Nov 2026 (v20 retest, 172afcc): NOT TESTED — no Hindi
+output exists to inspect (translation failed, ID 1). Stays to_verify.
+ID 267 (P1) — Studio toolbar 'Delete page' refuses with a bogus toast (NEW in v16). In
+Studio, the toolbar 'Delete page' button refused with 'Cannot delete all pages. The document
+must contain at least one page.' when the document had 10 pages. Deletion only worked via
+the Pages-panel Delete in Organize mode after a reload. Fix the guard (it must count the
+actual pages, not a stale/zero count) and make the toolbar button work. Proof: delete a page
+from the toolbar on a 10-page document in a real browser.
+ID 268 (P1) — Fresh Studio upload shows 'Failed to load PDF in Studio: Cannot read
+properties of null (reading 'style')' (NEW in v16). A fresh Studio upload showed that error;
+the file did load after a reload. Fix the null dereference in the Studio load path (the style read
+must not run before the element exists). Proof: upload a fresh PDF to Studio and confirm no
+error on first load, twice.
+ID 197 + 198 — Sign-out (P1, to_verify — the audit claims fixed, verify it). Muse's live
+round (13 Nov, v11 build) CONFIRMED both: after sign-out there is NO 'Sign in' button
+anywhere, even after a full refresh; the topbar still shows the user's email after refresh while
+/api/auth/me returns 401. Master Audit R8 (v13 build) claims FIXED: after UI sign-out + reload
+the same tab shows Guest/Free and /api/auth/me = 401, and a full re-login was verified
+\n\n--- PAGE 24 ---\n(password + 6-digit email code). Your job: verify on the current build — sign in, sign out,
+reload — the header must show Guest and a working Sign in button; open a second tab and
+confirm it also shows Guest. If the audit's claim is wrong, both items stay open with your
+evidence. Root cause for ID 197 (if still present): the email chip is hydrated from
+sessionStorage key paperplane-last-auth-shell-email , which logout never clears — clear it
+on logout and on any 401 from /api/auth/me, and sync across tabs via the storage event.
+ID 185 — Tab freezes after local ops when navigating away (P1, 4/4 repro — BLOCKED by
+ID 206, retest after the fix). After any local browser-side op (merge/split/rotate/remove)
+completes, navigating away hangs the tab indefinitely — the main thread never goes idle. On
+the v13 build the hang path was unreachable because local ops crashed first (ID 206, now
+fixed in v15). Retest immediately after the ID 206 fix. Audit the local runtime teardown
+(pdf_runtime.js): terminate Web Workers after the job resolves, cancel pending
+requestAnimationFrame loops, resolve/reject all pending promises, and make sure no
+beforeunload handler blocks navigation. Add a test: run a local merge, then immediately
+navigate to / and assert the new page loads within 2 seconds.
+The remaining P1s (work through all of them in ID order — no exceptions): 5, 6, 8, 9, 10,
+11, 12, 13, 14, 15, 16, 30, 32, 34, 42, 45, 52, 53, 60, 61, 62, 64, 69, 70, 94, 97, 103, 106, 110, 114,
+117, 118, 135, 150, 151, 185, 197, 198, 202, 203, 204, 223, 243, 267, 268. (IDs 197, 198 and 185
+are detailed above. ID 243: see the v17 prompt's Phase 1 detail — Student Pro got a working
+live API key despite the 'INCLUDED WITH CYBER CAFE' banner; enforce the tier server-side or
+correct the banner; the discriminating test (a Free/Student Pro account must NOT see
+Generate Key) has not been run — run it. ID 244 is a quota-display contradiction — it is in
+to_verify, see Phase 4. ID 167 is display-font word-spacing — it is in to_verify, see Phase 4. ID
+218 is a P1 — see the ID 218 correction (OWNER DECISIONS STILL OPEN). ID 218 correction:
+treat ID 218 (AI Intelligence load-state race) as P1, not P2 — the tracker carries it P1; the v21
+prompt's P2 listing is a severity error. Fix it in P1 order (same load-state family as ID 168). ID 9:
+Round 11 F-08 — extract-pdf-data's result viewer is race-dependent (dead viewer 2/2, then
+works 18:59); make the modal mount deterministic and point Download File at a real
+blob/route. ID 61: Round 11 F-18 confirms every transactional mail lands in junk — see new
+ID 300. ID 271 is now in to_verify — code-fixed in 66cd0cd, live check owed, see Phase 4.) For
+each remaining P1, the elite list gives the latest evidence; your fix must address that
+evidence, not the original report alone.
+PHASE 2 — P2 MUST FIX
+Work through the elite list's P2 table in ID order (143 open). Do not skip any. The headline items
+are:
+ID 220 (P2) — PDF/A is not real PDF/A. Round 9 (R9-F13, MEDIUM) proved it: the output is a
+plain PDF 1.3 with Producer 'Paperplane PDF/A Archival Engine'; no XMP metadata, no
+pdfaid:part / pdfaid:conformance entry, no OutputIntent. A validator (veraPDF) would reject
+it. Round 10 (R10-05) CONFIRMS it is still open: the output is a plain PDF 1.3 — no pdfaid XMP
+metadata, no OutputIntent, no PDF/A identifier. The v18 sweep (15 Nov 2026, 17:15–17:39 IST)
+\n\n--- PAGE 25 ---\nfound a NEW failure mode: the tool now fails outright with 'PDF/A conversion is unavailable
+because the required sRGB ICC profile is missing.' (Was: plain PDF 1.3 output.) Round 11 (F-
+02, HIGH) confirms it is now FULLY BROKEN: 3/3 conversions across small and 5 MB files fail
+with the same error. The fix guide says the Ghostscript PDF/A-1b conversion is "fixed in code"
+in 66cd0cd — but BOTH the v18 sweep and Round 11 prove it FAILS live. The code change is
+present but the profile is missing at runtime. Fix: bundle a valid sRGB ICC profile with the
+server (e.g. sRGB2014.icc) and pass it to the converter (pikepdf or ghostscript -
+sColorConversionStrategy=RGB -dPDFA); verify the output with a real PDF/A-2b validator
+before shipping. Do NOT mark this fixed on code alone — the live failure proves the code
+change is not enough. Any archive or government portal that validates PDF/A will reject it.
+Validate the result with veraPDF in a test and fail the job if validation fails. UPDATE 15 Nov
+2026 (v20 P0 round, 172afcc, clean single run, signed-in Pro, 22:23–22:43 IST): STILL FAILING
+— "Processing failed — Ghostscript's PDF/A definition does not declare an ICC profile." (under
+1 min). The Dockerfile provisioning change did not fix the live container. Bundle the profile
+INTO the image and verify it is present at runtime — the code change alone is not enough.
+UPDATE 15 Nov 2026 (Master Audit Round 12, F-05): CONFIRMS — small + 6.34 MiB inputs
+both fail "Ghostscript's PDF/A definition does not declare an ICC profile." UPDATE (v21 round,
+Nov 2026): your Windows-host audit still fails (no Ghostscript executable on that host); your
+WSL Ghostscript conversion passed TWICE. The WSL pass does NOT prove the deployed
+container — PDF/A needs a PRODUCTION-IMAGE check: build the actual production image,
+run the conversion inside it, and validate with veraPDF. Do not close this from a Windows-
+host or WSL-only result.
+ID 282 (P2) — NEW in Round 10: Internal job counter leaks into user-facing filenames. A
+global, ever-increasing counter is prepended to (a) upload display names ('3-twenty.pdf'), (b)
+every server-side download name ('8-small_pdf_to_pdfa.pdf', '15-small_watermark.pdf', '16-
+small_compress.pdf', '19-small_compare.txt'), (c) even file content (compare diff contains '---
+19-small.pdf'), (d) the Studio restore toast ('Restored 14-twenty.pdf'). The counter is shared
+across users, so it also leaks how much total traffic the site has processed. Local in-browser
+outputs are clean ('merged-PDF.pdf'). R9-F5 was withdrawn in Round 9 but Round 10
+confirms it is REAL (the withdrawal was wrong). Round 11 (F-10) CONFIRMS it is STILL OPEN
+and pervasive: upload chips ("93-fivemb.pdf"), server download filenames ("93-
+fivemb_compress.pdf"), inside compare diff content, markdown title. Fix: strip the counter
+from every user-facing string; display/download names should be the original filename plus
+operation suffix; keep the counter purely internal. Check the job-name helper used by the
+jobs API, the download endpoint, the Studio session-restore code, and the compare diff
+formatter. UPDATE 15 Nov 2026 (Master Audit Round 12, F-09): CONFIRMED STILL OPEN —
+upload names still show counters like 54-small.pdf and 50-latefacts24.pdf.
+ID 284 (P2) — VERIFIED FIXED in the v20 sweep (do not regress). Stamp "v20 stamp ✓ café
+— APPROVED" applied, output 7.3 KB. Content-checked by Muse: the stamp text IS in the text
+layer (selectable/copyable), including "café". Your Unicode font in overlay() is confirmed live.
+Do NOT regress it — add a regression test asserting stamped text is extractable.
+\n\n--- PAGE 26 ---\nID 285 (P2) — VERIFIED FIXED in the v18 sweep (HTML-to-PDF .html rejection). The tool
+now shows the toast 'HTML to PDF uses a public URL. This tool does not accept uploaded
+.html files; enter the page URL instead.' (Caveat: probed with a JPG upload since no .html file
+was granted; the message names .html specifically.) Do NOT regress the rejection message.
+ID 286 (P2) — NEW in Round 10: AI Chat can't answer document-metadata questions.
+'How many pages does this document have?' on a 4-page text PDF returned 'No relevant
+information found' — page count/metadata is not in the context fed to the model. Content
+questions work. Fix: prepend a small document-metadata header (filename, page count, title)
+to the system/context prompt for every chat job. UPDATE 15 Nov 2026 (v20 sweep, 172afcc,
+clean single run, signed-in Pro, 22:45–23:17 IST): PARTIAL — page count VERIFIED ("This
+document has 69 pages"); title NOT verified ("No relevant information found" —
+notes_test.pdf has no Title metadata, yet Smart Metadata found the on-page title). Stays
+to_verify.
+ID 173 (P2) — Steps promise controls that do not exist pre-upload. PARTIAL in v16: 5/7
+pages fixed (Scan, Summarize, JPG, HTML, Repair now have real step bodies). STILL WRONG:
+/rotate-pdf step 02 heading is word-for-word the OLD copy ('Select pages and a rotation
+angle') with no page selector on the page; /pdf-to-text step 02 heading still promises options
+('Choose page or extraction options') with no such control. /ai-chat and /download have NO
+How-it-works section at all (see IDs 265, 266). The v17 sweep adds SIX more copy items: PDF
+to Markdown step 02 'Choose the pages to convert' (no page chooser); PDF to JPG FAQ 'Can I
+convert only selected PDF pages?' (no selector — the tool exports every page); Translate step
+02 says the language control 'is not shown before upload' but the dropdown IS shown before
+upload; Compare step 03 'Review highlighted differences and export notes' but the output is
+a plain .txt file, not highlighted differences; Annotate subtitle promises 'draw shapes' but only
+text-find highlight/underline/strikeout/note/rect exist; JPG to PDF step 02 'Arrange the image
+page order' has no reorder UI. Fix every promised-but-missing control (add the control or
+change the copy) on every tool page.
+IDs 274–281 (P2) — new v17 sweep defects. 274: Two different Cloud Import dialogs exist
+(one has 'Paste a public link / Continue / Try the sample', the other a single textbox + 'Fetch &
+Import Document →') — use ONE dialog. 275: the processing-mode switch is confusingly
+labelled (three different names: 'Local Processing', 'Server Mode', 'Processing mode') and its
+visuals mislead (Server Mode displayed with the switch grey/off) — use ONE name
+everywhere and make the switch visuals match the actual mode. The v18 sweep found it NOT
+VERIFIED — still THREE names (tool pages 'Server Processing' switch OFF, photo tools 'Local
+Processing' switch ON, Settings/Studio sidebar 'Processing mode' switch OFF); the OFF state
+reads as server-off while files are in fact uploaded. The v20 sweep (15 Nov 2026, 172afcc)
+found it NOT VERIFIED again — still three names: PDF tools 'Server Processing', photo tools
+'Local Processing', Settings/Studio sidebar 'Processing mode' / Studio checkbox 'Local
+processing preference'. UPDATE (v21 round, Nov 2026): you claimed a privacy-copy fix in local
+code only (app.js:2321) — the sidebar now states per selected tool whether files are
+processed in the browser or uploaded temporarily for server processing; local Chromium
+check (Merge + OCR messages correct). Phase -2 must confirm it in code. It counts ONLY
+\n\n--- PAGE 27 ---\nwhen it reaches the deployed site (it is NOT live — the live site is still 172afcc). A local check is
+not a live pass. 276: a stale 'Guest Explorer' block sits in the Settings DOM while signed in —
+remove it (first-paint family: ID 168). 277: Scan to PDF step 02 text is cut off mid-word at the
+card edge — fix the layout. 278: JPG to PDF and Scan to PDF show no Finished/progress bar
+(result card appears directly) — add consistent progress feedback. 279: AI Chat renders the
+same 'Page 3' citation chip three times for one answer — deduplicate citation chips. The v18
+sweep found it NOT VERIFIED: AI Chat 'Page 2' chip ×3 in one answer (two inline + one
+standalone); AI Summarize 'Page 2' ×7 and 'Page 3' ×7 in one summary — Codex's
+uniqueAiCitationPages dedups the chips array but not the inline markers. Fix the inline
+markers too. The v20 sweep (15 Nov 2026, 172afcc) found it NOT VERIFIED again: same chips
+rendered multiple times in one answer — "Page 24" ×3, "Page 25" ×2, "Page 43" ×2, "Page 51"
+×2, "Page 54" ×3, "Page 55" ×3, "Page 56" ×3 — inline plus a repeated summary chip row.
+Deduplicate the inline markers too, not just the chips array. 280: VERIFIED FIXED in the v18
+sweep — no blank-page prompt on empty load or on loading notes_test.pdf. Do NOT regress
+it. 281: navigating to '/' from Studio does not leave Studio (URL stayed /studio); the logo links
+to /tool-desk instead — fix the navigation.
+IDs 287–291 (P2) — new v18 sweep defects. 287: the sidebar theme is inconsistent and
+sticky — UPDATE 15 Nov 2026 (v20 sweep, 172afcc): refined — sidebar is dark on EVERY page
+(consistent, not 'stuck after /pricing'); main content light except Studio (all dark). 288: the
+'Download complete!' toast covers the Download File button — UPDATE 15 Nov 2026 (v20
+sweep, 172afcc): CONFIRMED — toast repeatedly overlays the action row; on Protect, Unlock,
+Sign and Merge Photos the download control reported 'covered' and no file saved until the
+toast faded; this caused 7 failed download captures in the sweep. UPDATE (v21 round, Nov
+2026): you claimed the dialog/toast overlap fixed in v21 (100dvh max-height on dialogs).
+Phase -2 must confirm it in code — the toast must never cover the Download button. 289:
+VERIFIED FIXED in the v20 sweep — 'Operations Today' shows at first paint but always
+resolves to 'No daily operation cap' within ~1–2s; never stuck. Do NOT regress it. 290: moved
+to to_verify — UPDATE 15 Nov 2026 (v20 sweep, 172afcc): tab title updates correctly per page
+('Temporary downloads' is /history's own title); the specific v18 scenario (/history → /privacy)
+was not re-tested. One targeted check owed. 291: Translate 'Process Another File' resets the
+target language to the Spanish default — UPDATE 15 Nov 2026 (v20 sweep, 172afcc):
+CONFIRMED — after 'Process Another File', target reset from fr (French) to the es (Spanish)
+default.
+IDs 297–302 (P2) — new Round 11 defects. 297: the "import from Google Drive / Dropbox"
+button is dead — clicking it does nothing (no popup, dialog or error) although Google GSI JS
+loads; present on every tool page — wire it to the picker flow or remove it until implemented.
+UPDATE 15 Nov 2026 (Master Audit Round 12): NOT tested — Round 12 asked for the
+checklist definitions; this prompt + the v21 list PROVIDE them (see OWNER DECISIONS STILL
+OPEN, item 17). 298: VERIFIED FIXED in the v20 sweep — Highlight on page 4 with comment
+'v20 sweep note', output 7.4 KB; content-checked by Muse: the Highlight annotation's
+Contents = 'v20 sweep note'. The comment persists. Do NOT regress it. 299: Information
+disclosure — PARTIAL fix in the v20 sweep: /api/billing/status no longer includes
+cashfree_environment or cashfree_configured, but still exposes a cashfree_order_id field, plus
+\n\n--- PAGE 28 ---\nhas_payment_customer, subscription_status and usage_today; the admin lock screen still
+discloses the stack (SQLite, Production) and the full security model text; the admin console
+header still shows the DB path; Server header still discloses nginx/1.27.5 — finish the strip
+(remove cashfree_order_id from the public payload too), remove stack/security-model text
+from the admin lock screen, hide the DB path from the admin console header, set nginx
+server_tokens off. UPDATE 15 Nov 2026 (Master Audit Round 12): PARTIAL — DB path absent
+from the admin header; billing config details not observed in the public status check;
+nginx/1.27.5 STILL exposed in response headers; no CSP observed. 300: Mail deliverability —
+every transactional mail lands junk/spam-flagged; the admin OTP mail is sent FROM the
+owner's own Gmail address TO itself — send from a real domain the owner controls with SPF
++ DKIM + DMARC aligned (e.g. via SES/Resend/Mailgun), not self-addressed Gmail-to-Gmail.
+UPDATE 15 Nov 2026 (Master Audit Round 12): NOT tested — Round 12 asked for the
+checklist definitions; this prompt + the v21 list PROVIDE them (see OWNER DECISIONS STILL
+OPEN, item 17). Partial evidence: Round 12 observed the admin OTP in Inbox, not Spam (mail
+deliverability improved). 301: AI Chat deterministic per-file indexing failure — a sparse-text
+24-page PDF gets "No relevant information found" 2/2, even to "What is this document
+about?", while a dense 5 MB file answers correctly with citations; not flaky, deterministic per
+file — fix the indexing path for low-text pages (OCR fallback or page-image embeddings) and
+surface "this document has little extractable text" instead of a wrong "no relevant
+information". UPDATE 15 Nov 2026 (v20 sweep, 172afcc): NOT VERIFIED — sparse
+9._Picture_Gallery.pdf, "What is this document about?" → exactly "No relevant information
+found" — generic, does not state the document is sparse. Dense PDF works with citations.
+Your sparse-text indexing fix did NOT work. UPDATE 15 Nov 2026 (Master Audit Round 12, F-
+10): CONFIRMS — "What is this document about?" → no relevant information; direct budget
+question answered 42000 with Page 1. Broad sampling remains weak on a document with
+explicit topic text. 302: PDF-to-Excel has no column parsing — text preserved but one inline-
+string row per line; no column parsing — detect table columns (cell x-positions / ruling lines)
+and emit real columns, or label the output honestly as text-per-line. UPDATE 15 Nov 2026 (v20
+sweep, 172afcc): NOT VERIFIED — workbook content-checked by Muse: 41 rows × 1 column —
+one inline-string row per line, NO column parsing. Your claimed column derivation (visual line
+positions + x-gaps) did NOT work on this file. The sweep's PARTIAL is withdrawn. UPDATE 15
+Nov 2026 (Master Audit Round 12): TABLE test PASSED — 4 sheets P1_T1–P4_T1, each 3×4
+with expected Item/Quantity/Price/Amount and numeric values. The column derivation works
+on tables; the prose failure stands. One more table-heavy check owed to close it. Moved to
+to_verify.
+IDs 303–307 (P2) — new v20 sweep defects. 303: the sidebar omits Compare PDF and PDF
+Metadata — both are among the 44 tools on Home but in no sidebar category list (sidebar
+lists Sign PDF and Redact PDF twice instead); reachable only from Home or direct URL — add
+both tools to their sidebar categories (and remove the duplicate Sign/Redact entries). 304:
+the AI Summarize panel renders raw markdown literally ("#### Key Findings & Extracted
+Topics", "### Executive Summary (Offline Analysis)" appear as plain text, heading repeated)
+— render the summary panel as markdown (headings, lists), not as literal text. 305: the AI
+Chat title question is inconsistent with Smart Metadata — Chat says "No relevant information
+\n\n--- PAGE 29 ---\nfound" for the title; Smart Metadata extracts the on-page title (related to ID 286) — feed the
+same metadata/title source to Chat that Smart Metadata uses. 306: Studio page delete is slow
+with no progress indicator — 69-page doc: "Deleting 1 page(s)…" toast persisted ~15s before
+PAGES dropped 69→68 (related to ID 13) — show real progress during the delete (or make
+the delete fast) instead of a static toast. 307: a Protect output cannot be fed back into Unlock
+— /history states results are tied to the current tab and server links expire, so Unlock needed
+a separately granted protected file — let a just-produced Protect output be fed into Unlock in
+the same session (or say so plainly in the UI).
+IDs 308–313 (P2/P1) — new Round 12 defects. 308 (P2): PDF-to-Word drops mixed-page
+images and table structure — 6.34 MiB 5-page PDF → 36.1 KB DOCX, editable text, 10
+paragraphs, NO media, NO Word tables; page markers survived but image content omitted;
+table cells became sequential loose text — preserve images on pages that also contain
+editable text; reconstruct simple table rows/columns as DOCX tables; if full fidelity is
+unsupported, expose a clearly named text-only mode and state exactly what will be omitted
+(owner question Q2). 309 (P2): Scan-to-PDF uses raw pixel dimensions as points — 1600×1200
+px photo became a 1600×1200 pt PDF page — explicit A4/Letter/custom-size/DPI choice or a
+clear raw-pixel mode (owner question Q3). 310 (P2): Exam photo resizer KB vs KiB ambiguity
+— SSC output 51,060 bytes, 350×450 px: below 50 KiB (51,200) but above decimal 50 KB
+(50,000); UI says KB — align limit and displayed units with the target portal; enforce the
+actual portal byte limit without rounding ambiguity (owner question Q3). 311 (P1): Settings at
+820px overflows viewport — right side of fields extends to ~x=973 — min-width:0 on flex/grid
+children, stack Settings columns when required. 312 (P1): Studio at 820px sidebar consumes
+first screen — sidebar pushes the main workspace to ~y=1180 — make the Studio sidebar an
+overlay/drawer at tablet width rather than a full-height block above the canvas. 313 (P2):
+Signature dialog clips at right at 390px — bound dialogs to the viewport with internal
+scrolling. (The dialog itself stays in Studio — that part works.) Re-test all three at
+390/820/1366/1920. UPDATE (v21 round, Nov 2026): you claimed all three fixed in v21
+(Settings 820px overflow, Studio tablet sidebar, signature dialog) and reported 176
+route/viewport combinations with no horizontal overflow. Phase -2 must confirm each fix in
+code; after deploy, re-verify at 390/820/1366/1920. Your 176-combination check was a
+ROUTE/layout check, not a per-tool upload workflow — it does not close the per-tool items. ID
+308: you claimed a mixed-page Word fix in v21 — Phase -2 must confirm it in code;
+acceptance is a RENDERED DOCX with images + tables present (not just editable text).
+IDs 263–266 (P2) — v16 SEO-copy residuals. 263: the Scan to PDF subtitle still promises
+'deskewing and contrast optimization' while the fixed step 02 says the page exposes no
+separate enhancement controls — change the subtitle to match the real tool. 264: the JPG to
+PDF intro still promises 'A4, Letter, or auto paper sizes' while the fixed step 02 promises no
+page-size/layout setting — remove the promise. (ID 264 is OPEN again — the targeted check
+read the intro verbatim; the v16 round did not reproduce it. One direct read settles it.) 265:
+/ai-chat (AI Intelligence) has NO How-it-works section at all — add one describing the real
+flow (upload, ask, review with citations). 266: /download has NO How-it-works section — the
+v16 landing-page how_to code renders nowhere on the page; add the section using it.
+\n\n--- PAGE 30 ---\nIDs 269, 270, 272, 273 (P2) — new v16 live defects. 269: Studio restored an unrelated earlier
+document (test-protected_unlock.pdf) on load — fix the stale restore (the restore must load
+the current document, not a previous session's file). 270: Translate 'View in Studio' does
+nothing after a successful Hindi translation — fix the handoff (the button must navigate to
+Studio with the translated document). 272: the recurring toast 'Some temporary tool uploads
+may need to be selected again after reload.' appears on navigations — uploads are lost on
+reload; fix the retention (or stop showing the toast on every navigation). 273: a Home reload
+briefly paints the Tool Desk then auto-navigates to /studio — fix the restore navigation (do
+not navigate away from Home unless the user asked).
+ID 259 (P2) — Studio and AI Intelligence disagree on the page count of the same
+document (Studio 20, AI 10). CONFIRMED again in v16: after the 60 MB merge, Studio
+reports 20 pages while AI Intelligence reports the same document as 10 pages ('Loaded &
+Ready'); on restore Studio 9 vs AI 10. The AI view holds a stale/original state. Make the two
+views agree, or have the AI view say it holds the original.
+ID 260 (P2) — /resize-photo returns a 404 (the real tool is /resize-image-dimensions).
+CONFIRMED again in v16 — /resize-photo returns a 404; /nonexistent-page-xyz shows the
+same bare 404 (dark page, no sidebar/header). The v17 sweep found more 404 slugs: /photo-
+resize, /compress-photo, /add-page-numbers. Confirm no site link points to any of them — a
+guessed URL is not a bug by itself. If no link points to them, add redirects (like the other dead
+slugs, ID 181); if a link does, fix the link. The v20 sweep (15 Nov 2026, 172afcc) confirms it
+AGAIN — all four 404: /resize-photo, /photo-resize, /compress-photo, /add-page-numbers.
+ID 261 (P2) — Footer app version number is gone. STILL OPEN in v16 — the footer shows
+NO app version number anywhere (neither v14 nor v15 nor v16). The v14 build showed
+'Version v14.0.1' in the footer when signed in. Restore the version display so the deployed
+build can be confirmed from the footer. The v20 sweep (15 Nov 2026, 172afcc) confirms it
+AGAIN — no app version number anywhere (footer, Settings, tab titles).
+ID 128 + ID 147 — Feedback pill (P2). No close (X) control; mounts inconsistently; its
+POSITION is not anchored. Owner decision (2026-11-11, still in force): the button must be
+dismissible, shown to first-time users on login/signup, hidden after feedback, and live only in
+Settings. Implement exactly that, and anchor the pill to the viewport bottom-right when it is
+shown. (ID 221: the dismiss × EXISTS in code — feedback.js renders a 28px dismiss button
+with a working handler — but four live rounds report no X visible; one visual check settles it.
+ID 190 is to_verify for the 390px overlap.) NOTE: the v15 and v16 rounds found NO floating
+feedback pill anywhere for the signed-in Pro account (Home 30+ s, /compress-pdf 30+ s,
+/settings ~25 min in v15; Home/compress/settings 20 s each in v16) — only a footer Feedback
+link — while the parallel v15 round found the pill present on tool pages. The pill's presence is
+inconsistent across sessions; determine whether it is session-dependent (signed-in only) and
+make it match the owner's decision either way. The v20 sweep (15 Nov 2026, 172afcc)
+confirms it AGAIN — no floating feedback pill anywhere (home, Studio, Settings); feedback
+only as a footer link.
+IDs 245–254 (P2) — Master Audit Round 9 polish items. 245: Merge page promises
+thumbnail reordering that is not there (add drag-to-reorder + thumbnails, or change the
+\n\n--- PAGE 31 ---\ncopy). 246: No Content-Security-Policy header; Server header shows 'nginx/1.27.5' (add
+'server_tokens off' + a CSP allowing only the site's own origin plus Cashfree and Google sign-
+in). Round 10 (R10-14) CONFIRMS it is still open: HSTS, X-Frame-Options, X-Content-Type-
+Options, Referrer-Policy and Permissions-Policy are all present, and the auth cookie is
+HttpOnly; the one missing header is Content-Security-Policy. Round 11 (F-09) CONFIRMS it
+AGAIN: no CSP; other headers good (HSTS 2yr preload, X-Frame-Options SAMEORIGIN, X-
+Content-Type-Options nosniff, Referrer-Policy, Permissions-Policy); Server header discloses
+nginx/1.27.5. Round 12 CONFIRMS it AGAIN: HSTS, nosniff, SAMEORIGIN, referrer policy,
+permissions policy present; NO Content-Security-Policy observed; nginx/1.27.5 still exposed.
+Fix: add a CSP (start with default-src 'self'; script-src 'self' plus the exact third-party origins
+loaded, e.g. Google GSI; object-src 'none'; base-uri 'self'; frame-ancestors 'self') and set nginx
+server_tokens off. 247: Sitemap and page-structure nits (sitemap lists pages that render the
+generic Tool Desk; /download and /apps show the same page; /privacy, /terms and
+/developers have no h1; /reset-password without a token shows the Tool Desk). 248: Mobile
+header pill text clipped on /pricing at 390px (truncate with ellipsis or use a short label). 249:
+Studio toolbar wraps to two rows at ~1360px (Export PDF alone on a second row). 250: PDF to
+Markdown title contains an internal job id (use the original upload name; only use '##' for
+real headings). Round 10 (R10-11) CONFIRMS it is still open. Round 11 (F-10) CONFIRMS it
+AGAIN: pdf-to-markdown's H1 is the raw job id ("# 673adfe4..._66-fivemb"). 251: Admin
+dashboard numbers do not add up (Developer 1 of 13 shown as 16% — it is 8%; TOTAL JOBS
+RUN equals the 'today' number). Round 9 says the Exam Pass user is missing; Round 10 (R10-
+17) CONFIRMS the math is still wrong but says the STUDENT PRO user is missing (Free 9
+(69%), Pro 2 (15%), Developer 1 (16% — actually 7.7%), 9+2+1 = 12 of 13). The two rounds
+disagree on WHICH plan row is missing — do NOT add only an Exam Pass row. Fix: compute
+percentages from the full tier list (free, exam_pass, student_pro/pro, developer) with count /
+total accounts, RENDER A ROW FOR EVERY PLAN ENUM, verify against the live admin
+dashboard which row is actually missing, and show TOTAL and today as separate numbers.
+(The v18 PDF carried the wrong fix — 'add an Exam Pass row' — and the owner sent it to
+Codex without the correction; this is the corrected instruction.) UPDATE 15 Nov 2026 (Master
+Audit Round 12, F-01 admin data-quality): dashboard shows 13 accounts but plan counts
+9+2+1=12; one Developer account labelled 16% although 1/13 is about 8%; the omitted plan
+needs its own category. (Total jobs and 'processed today' both show 320 — equality alone
+does not prove an error, so verify the query before changing it.) 252: AI summary lines end
+with a run of 'Page 1 Page 2 Page 3...' (collapse consecutive citations into a range like 'pp. 1-
+6'). 253: Scan to PDF page size is huge (2400 x 1800 pt — pixels used as points; set the page
+size from the image at 200 dpi or fit onto A4). Round 10 (R10-10) CONFIRMS it is still open: a
+1200x1600 px photo becomes a 1200x1600-point page. Round 11 (F-12) CONFIRMS it AGAIN:
+output page still 3000x2000 pt (raw pixels), not A4/Letter. 254: HTML to PDF copy promises
+HTML snippets but the tool only has a URL box; a blocked private address gives only
+'Processing failed' with no reason (add the box or change the copy; return a specific error for
+blocked addresses).
+ID 255 (P2) — Photo compress: default Target KB (100) shown but NOT applied on the
+first run (RESTORED from R8). On /compress-image-online the TARGET FILE SIZE (KB) field
+\n\n--- PAGE 32 ---\ndisplays 100 by default. Leaving it untouched and running produced a 228.2 KB file (quality-
+mode output) — the displayed 100 KB target was silently ignored. After actually editing the
+field to 50, the same image came out 48.8 KB — target honored. Fix: initialize the target-KB
+state from the input's default value on mount, or ship the field empty with a placeholder. (The
+v15 rounds hit the 20 KB target when it was edited — edited targets work; the default-inert
+variant is the bug.)
+ID 256 (P2) — Repair tool leaks raw pikepdf error on unrecoverable files (RESTORED from
+R8). A deliberately corrupt PDF (no trailer, unrecoverable even by qpdf) fails with the raw
+library string 'code=4: not a dict (null)'. The failure itself is correct — the file is unrecoverable
+— but the message is a pikepdf internal. The v15 rounds ran Repair on the corrupted test file
+and got a valid 10-page output with no raw error on the happy path — but the R8 error case
+(the specific damaged input that produced the raw error) was not re-run. Fix: catch pikepdf
+exceptions and return a friendly message, e.g. 'This PDF is too damaged to repair
+automatically.' Keep the technical detail in server logs only. (ID 113 Repair itself is
+verified_fixed; this is the error-message half.)
+ID 257 (P2) — Sign-pdf modal opens AND navigates to /sign-pdf in Studio (RESTORED
+from R8). In Studio, the Digital Signatures entry opens the modal (good) but still also
+navigates to /sign-pdf. Remove the navigation so only the modal opens (the modal itself
+works fine). Cross-ref IDs 117, 126.
+ID 258 (P2) — No daily synthetic Cashfree SANDBOX checkout probe (RESTORED from
+R8). Payments reliability is absent from the plan — checkout 503'd across two audit rounds
+before R8 fixed it. The v15 build ADDED a daily Cashfree sandbox probe workflow
+(.github/workflows/cashfree-sandbox-probe.yml) and a cashfree_sandbox_smoke.py --verify-
+drop probe — but CI execution is unverified. PROVE it: make the probe run daily and alert the
+owner on failure. The probe must use the sandbox/test gateway only — never a real
+payment. (Owner to confirm the alert channel.)
+ID 196 — Copy/polish bugs from Master Audit #17 (P2). (a) Remove-pages local output
+downloads as 'extracted_private.pdf' — rename to removed-pages.pdf (NOT re-triggered in
+R8 — local path down under ID 206; retest after the ID 206 fix, now fixed in v15). (b) Split
+range placeholder — FIXED in R8 ('1-3, 5, 8-12'). (d) Photo file inputs accept='' — FIXED in R8
+(accept='image/jpeg,image/png,image/webp'). (f) POST /api/admin/auth/logout returns 401
+via fetch — admin out of scope in R8; align its auth with the UI path.
+IDs 223–239 (P2, open ones only) — v15 live defects. 223: Protect 'View in Studio' button
+blanks the page (2 attempts) — fix the button (the Protect output itself IS genuinely
+encrypted). 224: 'Download complete!' toast covers the result-card action buttons on nearly
+every tool page — fix the toast placement/z-index so it never covers action buttons. (The v16
+round saw the same failure mode: download capture failed 3× on the 60 MB merge and 4× on
+Protect.) 225: Stale error banner persists after the file is removed — clear the error when the
+file is removed. 227: Crop PDF copy 'without resizing the content manual' (should be
+'manually'). 228: Cloud Import toast grammar '1 pages'. 229: Photo Resize Passport preset
+does NOT populate the Width/Height fields (confirmed again in the v17 sweep — verified
+empty by element inspection). 231: /faq has only 3 questions and different content from the
+\n\n--- PAGE 33 ---\nhome page's 4 FAQs (confirmed again in the v17 sweep). 232: Settings Plans tab shows an
+'Upgrade' button on an account that is already Legacy Pro (confirmed again in v16). 233:
+Pricing bullet 'Shop Stamp & Watermark' — odd wording. 234: /pricing plan badges straddle
+the card top borders. 235: 'Operations Today' sidebar widget sometimes shows 'Checking
+usage…' after navigation. 236: Merge page copy truncates in the accessibility tree ('Merge
+supports up to 100 PDF file'). 239: /history is an empty placeholder titled 'Temporary
+downloads'; footer 'Downloads' link naming mismatch (confirmed again in the v17 sweep —
+/history shows no history at all). (IDs 226 and 238 were never assigned. IDs 230 and 237 are
+in to_verify — see Phase 4.)
+IDs 171–183 (P2, open ones only) — v12 pages/layouts items. Headings-only step cards
+(172); steps promise controls that do not exist pre-upload (173 — see above); Studio phantom
+'Page 1 is loading…' (174 — the phantom did NOT reproduce on the empty state in v13; the
+v17 sweep found Studio page 4–9 thumbnails stuck on 'Page N is loading…'); stale toast
+across navigation (176); Photo & Exam suite lands on AI view (178); pale-peach CTA (182);
+footer no copyright/links + hero '100% Private' contradiction (183 — the footer half is FIXED in
+v13; the hero claim half stays open). (IDs 171, 175, 177, 180, 181 are verified_fixed — do not
+regress them; see Phase 5. ID 179 was never assigned.)
+The remaining P2s (work through all of them in ID order — no exceptions): 38, 40, 41, 43,
+50, 51, 55, 56, 72, 73, 75, 77, 80, 82, 84, 85, 86, 87, 92, 104, 105, 107, 109, 111, 112, 115, 119,
+120, 121, 122, 123, 124, 125, 126, 127, 129, 131, 139, 140, 142, 143, 144, 145, 146, 148, 155,
+156, 157, 158, 160, 162, 163, 164, 166, 172, 174, 176, 178, 182, 183, 188, 189, 190, 191, 192,
+193, 194, 195, 200, 201, 212, 213, 215, 216, 217, 224, 225, 227, 228, 229, 231, 232, 233, 234,
+235, 236, 239, 269, 270, 272, 273. (ID 218 moved to P1 — see the ID 218 correction.) (IDs 172,
+174, 176, 178, 182, 183, 224, 225, 227, 228, 229, 231, 232, 233, 234, 235, 236, 239, 269, 270,
+272, 273 are detailed above. ID 218 is the AI Intelligence load-state race — same family as ID
+168. CORRECTION: treat ID 218 as P1, not P2 — the tracker carries it P1; the v21 prompt's P2
+listing was a severity error. Fix it in P1 order. ID 215 is the command-palette API badge — the
+tracker has it verified_fixed on live evidence but the list carries it open on stale v13 evidence;
+do NOT "fix" it by editing the tracker, and do not regress the live behaviour. ID 152 is a P1 —
+see Phase 1. IDs 15, 189, 190 are to_verify — see Phase 4.) For each remaining P2, the elite list
+gives the latest evidence; your fix must address that evidence, not the original report alone.
+ID 284 is now VERIFIED FIXED on live evidence (v20 sweep — stamp text is in the text layer,
+selectable); ID 286 stays to_verify (page count VERIFIED in v20, title NOT verified) — see Phase
+4. ID 279: the v20 sweep found it NOT VERIFIED again — chips still tripled ("Page 24" ×3,
+"Page 25" ×2, etc.) — deduplicate the inline markers too. ID 275: the v20 sweep found it NOT
+VERIFIED again (still THREE names) — use ONE name everywhere and make the switch visuals
+match the actual mode. ID 283 is REOPENED (Round 12, F-02 — both presets corrupt image
+content); IDs 296 and 302 moved to to_verify (see Phase 4).
+PHASE 3 — ADMIN FEATURES (verify live, do not rebuild what
+exists)
+\n\n--- PAGE 34 ---\nMuse verified in the e4a2bd3 code (14 Nov 2026) that these already exist — your job is to VERIFY
+them live via the admin console and finish any missing wiring, not to rebuild them from scratch.
+The owner will log you in / you verify through the console UI. (The audit R8/R9 excluded the
+admin console for write actions, so only API presence was confirmed there; Round 9 did read the
+admin dashboard and found the numbers do not add up — ID 251. Admin was NOT re-checked in
+the v15, v16 or v18 rounds — excluded by the owner, OTP needed. Round 10 did ONE read-only
+admin session and confirmed the plan-breakdown math is still wrong — ID 251. Round 11 did
+ONE authorized admin attempt (old key + code + owner-email OTP opened a full "3-Factor
+Verified" session at 18:56:48 IST, read-only inspection, then logged out) — the leaked credentials
+STILL WORK. The console's lockout absorbed 3 UNKNOWN failed attempts at ~18:43 the same day
+and lifted within ~15 min, not 24 hours (owner question Q1). Admin was NOT re-checked in the
+v15, v16 or v18 rounds — excluded by the owner, OTP needed. Admin was NOT re-checked in the
+v20 round either (excluded by the owner — OTP needed). Round 12 did ONE authorized admin
+attempt (old key/code + owner-mail OTP opened the session at ~23:08 IST, read-only inspection,
+then logged out) — the leaked credentials STILL WORK.)
+ID 204 (P1, to_verify) — Set plan / reset usage per user. Endpoints exist: POST
+/api/admin/users/set-plan and POST /api/admin/users/reset-usage (server.py lines 8049,
+8061). The admin console UI renders "Set plan" and "Reset usage" buttons per user row
+(web/assets/admin.js lines 655–656) with handlers. Verify LIVE: set a test user's plan, reset a
+test user's usage, and confirm both take effect + an audit-log entry is written. This is the top
+admin improvement requested and the owner needs it to unblock quota-gated test accounts.
+ID 202 (P1, to_verify) — Admin session list + logout-others. Endpoints exist: GET
+/api/admin/sessions (lists admin sessions, marks owner sessions with role "superadmin") and
+DELETE /api/admin/sessions/{session_id} (revoke another admin session, 409 if you try to
+revoke your own). The admin console UI fetches and renders them (web/assets/admin.js lines
+436, 472). Verify LIVE: the session list renders, and logging out another admin session works
+from the owner's main email.
+ID 203 (P1, to_verify) — Super admin role: BOTH owner accounts are superadmin. Code
+exists: ADMIN_OWNER_EMAILS = frozenset({mdhammad2906@gmail.com,
+mdhammad29006@gmail.com}) and _require_admin checks membership in it; the sessions
+endpoint marks owner sessions as role "superadmin". (Owner decision 19:29 IST — BOTH
+accounts are superadmin; this supersedes the earlier 'only 1 account' requirement.) Verify
+LIVE: both accounts can log in as admin, both show as superadmin, and the admin OTP works
+for both. The admin login/OTP must work for both accounts.
+ID 201 (P2) — Location on login. When a user logs in, their exact location must display in the
+admin console (city/region from the real client IP, once ID 184 is fixed). Currently only the
+shared proxy IP 172.18.0.4 is shown for every login. Round 10 confirms every Security Audit
+row still shows 172.18.0.4 with location '-'. Round 11 confirms it AGAIN (F-07): the login-alert
+mail, the admin OTP mail and every Security Audits row record 172.18.0.4. Fix ID 296 first —
+location display depends on the real client IP.
+ID 200 (P2) — Admin 'Last Active' always '-'. "Last seen NOT FIXED in R7; admin out of scope
+in R8." Fix it (the Master Audit notes last_seen_at is throttled to 1/minute in auth middleware
+\n\n--- PAGE 35 ---\n— verify and fix).
+ID 107 (P2) — Revenue: real vs sandbox split. Sandbox/test orders are labelled 'Verified
+paid' (₹3,750 gross mixes the owner's own accounts + old sandbox orders; there are no real
+customers yet). Add an environment/order-source column and a real-revenue subtotal.
+ID 251 (P2) — Admin dashboard numbers do not add up (Round 9, confirmed by Round
+10). Plan Breakdown shows Free 9 (69%), Pro Subscribers 2 (15%), Developer Users 1 (16%) of
+13 accounts. Developer 1 of 13 is 8%, not 16%, and the one Exam Pass user is not in the chart
+at all (9+2+1 = 12 of 13). TOTAL JOBS RUN shows 134 with the note '134 processed today', so
+the all-time and today numbers look like the same value. Round 10 (R10-17) confirms: 13 total
+accounts, Free 9 (69%), Pro 2 (15%), Developer 1 (16% — actually 7.7%), Student Pro missing.
+Round 12 (F-01 admin data-quality) confirms AGAIN: dashboard shows 13 accounts but plan
+counts 9+2+1=12; one Developer account labelled 16% although 1/13 is about 8%; the
+omitted plan needs its own category. Fix: compute percentages from the full tier list (free,
+exam_pass, student_pro/pro, developer) with count / total accounts, RENDER A ROW FOR
+EVERY PLAN ENUM — verify against the live admin dashboard which row is actually missing
+(Round 9 says Exam Pass, Round 10 says Student Pro — do NOT add only an Exam Pass row),
+and show TOTAL and today as separate numbers.
+ID 296 (P1) — Proxy IP 172.18.0.4 everywhere (the proxy-IP half of ID 184). See Phase 1.
+The quota half of ID 184 is FIXED (signed cookie, verified live by Round 11); this proxy-IP half
+is an ENV change (PAPERPLANE_TRUSTED_PROXY_HOSTS must include the real gateway IP).
+This one fix repairs the admin security log (every row currently 172.18.0.4 — including the 3
+unknown admin attempts, which cannot be attributed until it is fixed) and rate limits. UPDATE
+(Round 12): an observed admin event recorded 74.1.15.117, NOT 172.18.0.4 — moved to
+to_verify (one more admin event + spoof check owed).
+PHASE 4 — CONTESTED / FLAKY ITEMS (resolve, do not ignore)
+UPDATE (v21 round, Nov 2026): IDs 1, 2 and 4 remain contested/flaky — no v21 fix is verified for
+any of them (nothing is deployed). Live OCR is now INCONCLUSIVE, not failed (see the OCR bullet
+below). PDF/A needs a production-image check, not a Windows-host check (see ID 220 below).
+ID 1 (Translate) — see Phase 0 #2. Spanish works in v15, fails in v16, works in the sweep,
+VERIFIED in the v18 P0 round (content-checked, 10 pages, genuinely Spanish); Hindi fails in
+v15, works on retry in v16 (with mojibake, ID 271), fails in the sweep, fails ×2 in the v18 P0
+round (attempt 1 'failed during document processing', attempt 2 upstream HTTP 429); Round
+10 fails 3/3 with upstream HTTP 429. Round 11: Spanish PASS (real Spanish, layout preserved,
+0 warnings), Hindi NOT TESTED. Fix guide parallel round (17:03–17:14 IST, ran in parallel with
+this chat's P0 round): BOTH FAILED (Spanish <30 s generic error, Hindi 30–90 s HTTP 429).
+Three rounds, three different Spanish outcomes — FLAKY/CONTESTED on Spanish. Test both
+languages on the same file, with the LIVE provider, each twice. Do not close on one language
+or on a controlled test double. UPDATE 15 Nov 2026 (v20 P0 round, 172afcc, clean single run,
+signed-in Pro, 22:23–22:43 IST): BOTH FAILED — Spanish after ~2 min and Hindi in under 1
+\n\n--- PAGE 36 ---\nmin, both "Processing failed — No text was translated." Spanish REGRESSED (v18 verified it).
+v20 sweep: French PARTIAL. So Translate is now: ES fail, HI fail, FR partial. UPDATE 15 Nov
+2026 (Master Audit Round 12, F-04): CONFIRMS — Spanish AND Hindi on a 4-page input both
+"No text was translated. No translated PDF was produced." (~2 min). Worse than Round 11's
+successful Spanish. UPDATE (v21 round, Nov 2026): you claimed no Translate fix in v21 — see
+Phase 0 #2. Still contested/flaky.
+ID 4 (Cloud Import) — see Phase 0 #4. Drive /view works in 2 rounds, fails in 3 clean rounds
+(v16, v18); direct link fails in all 5 rounds; owner's exact file untested in all rounds. Fix guide
+parallel round: SPLIT — Drive /view WORKED (3rd consecutive success on the public test file),
+direct FAILED (5th consecutive failure). The Drive path is file-dependent: it works on the public
+test file and fails on the owner's /view link. Fix both paths and test with the owner's exact
+Drive link, twice each. UPDATE 15 Nov 2026 (v20 P0 round, 172afcc, clean single run, signed-in
+Pro, 22:23–22:43 IST): PARTIAL — Drive /view: "Google Drive returned image/png, not a PDF.";
+W3C direct: HTTP 404. Nothing imported. The owner's exact Drive link returns image/png, not
+a PDF — the link itself is the problem; the owner must supply a correct Drive PDF link (or the
+file itself) for a real import test. UPDATE 15 Nov 2026 (Master Audit Round 12): CORRECTED —
+the W3C dummy PDF imported successfully (~13 KB, 1 page) via
+https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf (testfiles, NOT
+testsuite — the testsuite URL 404s). The owner's exact Drive link is still image/png; the
+intended Drive PDF is still not supplied. UPDATE (v21 round, Nov 2026): you claimed no fix
+beyond the error surfacing (already in v20). Still contested/flaky — see Phase 0 #4.
+Live OCR — INCONCLUSIVE (v21 round, Nov 2026), not failed. Your live OCR upload
+returned 202 Accepted but browser polling saw no completed/failed state within 300
+seconds. The deployed OCR endpoint reports English, German, French, Spanish packs
+installed. The same one-page image-only PDF through LOCAL OCR took 3.93s and extracted
+4,651 characters — that does NOT verify live OCR. After deploy, re-check live OCR with a
+LONGER poll window and a stated timeout (state the timeout in your report); do not close it
+from a local OCR result.
+ID 207 (Merge 60 MB) — SETTLED FIXED (v20). v15 owner's round: stalled at 20% ×2. v15
+parallel round (this chat): COMPLETED 769 pages. v16 clean round: COMPLETED 769 pages.
+v17 sweep (this chat): STALLED at exactly 20% for 3 min, then 'Stopped waiting'. v18 P0 round
+(this chat): COMPLETED in ~4 min (769 pages, content-checked) — 1 consecutive pass. Fix
+guide parallel round (17:03–17:14 IST, same day): STALLED at 20% again (3rd stall vs 2
+completions). v20 P0 round (this chat, 15 Nov 2026, 172afcc, clean single run, signed-in Pro,
+22:23–22:43 IST): COMPLETED — real moving progress (native progress bar 0% → 1% → 34%
+→ 69% → 100%), merged output 57.64 MB, downloaded 60,436,859 bytes and content-
+checked: 769 pages, valid PDF. 2nd consecutive controlled clean pass (v18 P0 round + v20 P0
+round) — the flaky rule is met. SETTLED FIXED. Do not regress the chunked upload or the
+progress bar.
+\n\n--- PAGE 37 ---\nID 3 (Studio retention) — SETTLED FIXED by the v16 clean single run AND the v17 sweep.
+Delete page 1 → PAGES 9 → reload + 30 s → PAGES 9, first page old page 2, counter 1/9. Both
+clean single runs agree; the one contrary round ran concurrently and interfered. The v18
+sweep confirms it AGAIN (69→68 pages survived reload). The v20 sweep (15 Nov 2026,
+172afcc, clean single run, signed-in Pro, 22:45–23:17 IST) confirms it AGAIN (test-text-
+10page.pdf, PAGES 10→9, reload, wait 30 s → PAGES 9 restored). Stays fixed. Reproduce the
+old failure modes in code (Phase -1) to confirm the fix holds and add a regression test so it
+never reopens. The new Studio defects from the same rounds (IDs 267, 268, 269, 280) are
+separate items, not a reason to reopen ID 3.
+ID 128 + ID 147 (Feedback pill) — see Phase 2. The pill was present on tool pages in the
+parallel v15 round but ABSENT everywhere in this chat's v15 round, in the v16 round AND in
+the v18 sweep (signed-in Pro, Home/Merge tool page//settings, 20 s each). Determine
+whether the pill is session-dependent and make it match the owner's decision (dismissible,
+first-time users, hidden after feedback, lives only in Settings).
+ID 168 (first-paint, P1) — see Phase 1. Improved in v16 (~1–2 s) and confirmed ~1–2 s in the
+v17 sweep and the v18 sweep, but still reproduces on /settings (full guest flash) and /studio
+(flashes 'PAGES (0)' / 'No document open' for ~15 s after reload). One signed-in, multi-page
+check settles it. UPDATE 15 Nov 2026 (v20 sweep, 172afcc): STILL OPEN, improved — brief
+flash on every fresh navigation (~1–2s): sidebar account chip renders as an empty dark
+rectangle, "Operations Today" shows "Checking usage…" and a "Checking plan…" badge
+appears; all resolve within ~1–2s. Now an empty/loading state, never a guest state. Studio
+after reload briefly shows "No document open" for a few seconds before the restored
+document renders.
+ID 129 (duplicate Sanitize buttons, to_verify) — v10 and the Master Audit (6:58 PM, post-
+upload panel) both say two identical 'Sanitize Document Now' buttons render. The audit R8
+(F35) claims FIXED: "exactly one Sanitize button renders". Muse's pre-upload checks found
+zero (the duplicates live in the POST-UPLOAD panel, which the v13 round did not reach). The
+v15 and v16 rounds ran Protect/Unlock with uploads and produced outputs, but the Security
+Audit & Sanitize dialog was not surfaced. Your job: reproduce it post-upload (Studio > More
+Tools) and confirm exactly one button renders.
+ID 152 (photo tools server-only) — see Phase 1. Resolve the conflict with a discriminating
+check, not a claim.
+ID 142 ('1 tools' grammar) — the v12 round did NOT find it. Exercise the search filter to
+observe the count string and either fix it or prove it gone.
+ID 15 (sticky pill overlap) — see Phase 2. Verify at 1104px.
+ID 205 (pill nav) — see Phase 2. Resolve against the owner's images.
+\n\n--- PAGE 38 ---\nID 191 (merge-photos grid) — now verified_fixed (two independent observations agree: 4×
+the same photo produces a real 2×2 grid, 2400×1600). Do not regress it. The Master Audit
+case (2400×1800 photos → 2400×7200 strip) was not re-run with those exact inputs — re-run
+it with 2400×1800 photos to settle it.
+ID 194 (photo compress target) — now verified_fixed for edited targets (R8: 50 → 48.8 KB;
+Muse v13/v15: 20 KB target hit). The default-inert variant is the new ID 255. Do not regress
+the edited-target behaviour.
+ID 221 (feedback dismiss ×) — the code renders a 28px dismiss button with a working
+handler; four live rounds report no X visible. One visual check settles it.
+ID 230 (renewal footer) — NARROWED in v16: Settings no longer shows 'Renew on 14 Dec
+2026' and shows no auto-renew wording; /faq says 'One-time purchases. No subscriptions.
+No automatic renewal.' The /pricing footer line 'All plans are billed monthly and renew
+automatically unless cancelled' was seen at 18:05 UTC and absent at 18:37 UTC in the same
+v15 round, and NOT seen in the v16 round. The v17 sweep did NOT observe it either —
+renewal wording was CONSISTENT everywhere (/pricing one-time/no renewal, /terms §4
+agrees, Settings shows no renewal language). One more check to close.
+ID 244 (quota contradiction) — the v15 round saw the sidebar widget transiently show '15 /
+10' (red bar) while the plan badge said 'No daily operation cap'. The v16 round did NOT
+reproduce it and the v17 sweep did NOT observe it (quota display CONSISTENT: 'Checking
+usage…' → 'No daily operation cap' everywhere). One more check to close.
+ID 264 (JPG intro A4/Letter promise, OPEN) — the targeted check (12:21–12:23 IST) saw the
+promise; the v16 live retest (12:33–12:39 IST) did NOT reproduce it (the intro observed
+mentions no paper sizes). A direct verbatim read outweighs a non-reproduction, so it is OPEN
+again — one direct read of the intro settles it.
+ID 242 (local processing default, OPEN — CONFLICT). Round 10 claims FIXED (code default
+is local, localStorage!=='server'); live rounds (v15/v16/v17/v18) observe the switch loading
+UNCHECKED with 'Server Mode' — and the v18 sweep confirms the naming confusion
+persists (ID 275 NOT VERIFIED, still three names). Round 11 says "Local default ON" HOLDS —
+the conflict persists. Do NOT close on Round 10's or Round 11's claim alone — reconcile the
+code default with the UI switch state and make them agree. See Phase 1.
+ID 293 (Flatten — CORRECTION, not a contest). This chat's v18 sweep recorded Flatten as
+VERIFIED on output-existence only (a 7.8 KB output file was produced). Round 11's content
+check (a live Highlight annotation survives untouched in the output) is stronger evidence and
+WINS — Flatten is a no-op. The sweep's output-only check is withdrawn for this tool; future
+checks must content-check (annotation present in output = fail). See Phase 1. UPDATE 15 Nov
+2026 (v20 P0 round, 172afcc): PARTIAL — test-form.pdf flattened instantly → 7.8 KB; content-
+checked by Muse: input has 3 form widgets, output has 0 widgets and 0 annots — widget
+removal IS verified. BUT the highlight-annotation bake-in (Round 11 F-04) was NOT tested (no
+\n\n--- PAGE 39 ---\nannotation was added before flattening). A direct test (add a highlight annotation, then
+flatten, then check the output has no active annotations) is still owed. UPDATE 15 Nov 2026
+(Master Audit Round 12): flatten PASS (core) — no live annotations/widgets, form value
+burned in; sticky note became its icon, popup comment body NOT printed. Product question
+(see OWNER DECISIONS STILL OPEN): should flatten print sticky-note bodies or only their
+visible icons?
+ID 294 (5 MB server failures) — VERIFIED FIXED in the v20 P0 round. Compress,
+Watermark and Page Numbers all complete on the 5.20 MB file, each under 1 min. Do not
+regress. (The page-numbers stamp is still "Page 1" — ID 241 stays open.) NOTE (Round 12, F-
+02): image-heavy compress quality is tracked separately under ID 283 (REOPENED); ID 294
+stands fixed for operations completing on the text-heavy 5.2 MB file.
+ID 283 (Compress — REOPENED in Round 12, was VERIFIED FIXED in v18 on the warning
+alone). The warning works, but BOTH presets corrupt image-heavy PDFs (Under 100 KB →
+~11.8 KB black images; Balanced → ~3.68 MB still corrupted). The warning fix is insufficient;
+the corruption itself is the bug. Do not close on the warning alone — reproduce with a mixed
+text/image PDF on both presets and verify the rendered pages. See Phase 1.
+ID 220 (PDF/A — code-fixed claim vs live failure). The fix guide says the Ghostscript PDF/A-
+1b conversion is "fixed in code" in 66cd0cd — but BOTH this chat's v18 sweep and Round 11
+prove it FAILS live 3/3 ("sRGB ICC profile is missing"). The code change is present but the
+profile is missing at runtime. Do NOT move it to to_verify — live evidence proves it fails.
+Bundle the profile and validate with a real PDF/A-2b validator. See Phase 2. UPDATE 15 Nov
+2026 (v20 P0 round, 172afcc): STILL FAILING — "Ghostscript's PDF/A definition does not
+declare an ICC profile." The Dockerfile provisioning change did not fix the live container.
+UPDATE 15 Nov 2026 (Master Audit Round 12, F-05): CONFIRMS — small + 6.34 MiB inputs
+both fail with the same ICC error. UPDATE (v21 round, Nov 2026): your WSL Ghostscript
+conversion passed twice — that does NOT prove the deployed container. Production-image
+check owed (see Phase 2).
+ID 271, ID 286 (to_verify — code-done in 66cd0cd, live check owed; ID 284 is now
+VERIFIED FIXED). The fix guide verifies in code: ID 271 mojibake — Devanagari font stack +
+rasterized visible text + invisible ReportLab text layer (FreeSans.ttf verified HAS Devanagari
+glyphs); ID 284 stamped text — Unicode font in overlay(); ID 286 AI Chat metadata. UPDATE
+15 Nov 2026 (v20 sweep, 172afcc, clean single run, signed-in Pro, 22:45–23:17 IST): ID 284
+VERIFIED FIXED live — stamp "v20 stamp ✓ café — APPROVED" is in the text layer
+(selectable/copyable), including "café". ID 286 PARTIAL — page count VERIFIED ("This
+document has 69 pages"); title NOT verified ("No relevant information found" —
+notes_test.pdf has no Title metadata, yet Smart Metadata found the on-page title). ID 271
+NOT TESTED — no Hindi output exists to inspect (translation failed, ID 1). Your job: run the
+live check for the remaining two (one Hindi translation with the text layer checked by
+PyMuPDF; one title question) and move each to verified_fixed only on a live pass — or back to
+open with the live evidence if it fails.
+\n\n--- PAGE 40 ---\nID 296, ID 302 (to_verify — moved on Round 12 live evidence). ID 296: an observed admin
+event recorded 74.1.15.117, NOT 172.18.0.4 — one more admin event + spoof check owed. ID
+302: Round 12 table test PASSED (4 sheets, 3×4, Item/Quantity/Price/Amount) — one more
+table-heavy check owed. Move each to verified_fixed only on a live pass — or back to open
+with the live evidence if it fails.
+ID 251 (admin math — CONFLICT). Round 9 says the Exam Pass user is missing from the
+plan breakdown; Round 10 says the Student Pro user is missing. Both sum 12 of 13. Do NOT
+add only an Exam Pass row — render a row for every plan enum and verify against the live
+admin dashboard which row is actually missing. See Phase 2/3. UPDATE (Round 12, F-01
+admin data-quality): dashboard shows 13 accounts but plan counts 9+2+1=12; one Developer
+account labelled 16% although 1/13 is about 8%; the omitted plan needs its own category.
+ID 279 (citation dedup — NOT VERIFIED in v18). Codex's uniqueAiCitationPages dedups the
+chips array but not the inline markers: AI Chat 'Page 2' chip ×3 in one answer (two inline +
+one standalone); AI Summarize 'Page 2' ×7 and 'Page 3' ×7 in one summary. Deduplicate the
+inline markers too, not just the chips array. UPDATE 15 Nov 2026 (v20 sweep, 172afcc): NOT
+VERIFIED again — same chips rendered multiple times in one answer: "Page 24" ×3, "Page 25"
+×2, "Page 43" ×2, "Page 51" ×2, "Page 54" ×3, "Page 55" ×3, "Page 56" ×3 — inline plus a
+repeated summary chip row.
+ID 275 (mode labels — NOT VERIFIED in v18). Still THREE names: tool pages 'Server
+Processing' switch OFF, photo tools 'Local Processing' switch ON, Settings/Studio sidebar
+'Processing mode' switch OFF; the OFF state reads as server-off while files are in fact
+uploaded. Use ONE name everywhere and make the switch visuals match the actual mode.
+UPDATE 15 Nov 2026 (v20 sweep, 172afcc): NOT VERIFIED again — still three names: PDF
+tools "Server Processing", photo tools "Local Processing", Settings/Studio sidebar "Processing
+mode" / Studio checkbox "Local processing preference".
+PHASE 5 — SELF-ANALYSIS LOOP (mandatory — do this after
+fixing, before reporting)
+This is the phase the owner explicitly asked for. Do NOT skip it. Do NOT report before it passes.
+1. Re-test every fix. For every P0 and P1 you fixed, re-run the exact reproduction from your
+Phase -1 log and confirm the fix holds. Then run it a SECOND time (two consecutive runs). A
+fix that works once and fails on the re-run is not a fix — loop back and fix it properly.
+2. Re-run the full test suite twice. It must pass twice (≥477 tests — the floor; you reported 481
+in v21, confirm in Phase -2; if 481 is confirmed, 481 is the gate). Report the count. If it drops,
+find the regression, fix it, and re-run twice again.
+3. Re-check the do-not-regress list (83 verified_fixed items). Verify EACH of the 83 still works,
+on TWO consecutive runs, and list the result per item in your final report. Also re-check the
+Phase -2 audit: every v21 claim you confirmed in code must still be present after your v22
+\n\n--- PAGE 41 ---\nchanges. Pay special attention to: ID 3 (Studio retention — fixed in v16 and confirmed in the
+v17 sweep, the v18 sweep AND the v20 sweep; your fix must hold the deletion-survives-
+reload behaviour), ID 207 (60 MB Merge — VERIFIED FIXED in the v20 P0 round, 2nd
+consecutive clean pass; do NOT regress the chunked upload or the progress bar), ID 292
+(Split — VERIFIED FIXED in the v20 P0 round; output pages must still match the requested
+ranges), ID 294 (5 MB server tools — VERIFIED FIXED in the v20 P0 round; all three tools must
+still complete on a 5 MB file), ID 295 (PDF-to-Word — VERIFIED FIXED in the v20 sweep; the
+DOCX must still contain editable text, no embedded page images), ID 298 (Annotate
+comment — VERIFIED FIXED in the v20 sweep; the comment must still persist in /Contents),
+ID 284 (Unicode stamp — VERIFIED FIXED in the v20 sweep; stamped text must still be in the
+text layer), ID 289 ('Checking usage…' — VERIFIED FIXED in the v20 sweep; it must still resolve
+within ~1–2s), ID 208 (pricing/Terms agreement — newly fixed in v16; all three surfaces must
+still agree one-time), ID 209 (stale plan names — newly fixed in v16 on both surfaces), ID 262
+(upload crash — fixed in v15; the fix must not regress), ID 206 (Merge local — fixed in v15; the
+served runtime must still be the real 2,581-byte file, not the stub), ID 153 (tool counts — fixed
+in v15; all counts must still agree at 44), IDs 141/177 (pricing page — fixed in v15; it must still
+be a full page, not a modal), ID 159 (Home loading flash — fixed in v15), ID 28 (download
+contents — fixed in v15), ID 219 (Excel→PDF — fixed in v15), ID 93 (redeploy persistence —
+the account + API key survived the redeploy), ID 191 (grid), ID 194 (compress target), ID 283
+(Compress — REOPENED in Round 12; BOTH presets corrupt image-heavy PDFs — the
+warning must still appear AND the compression must preserve image content; the DEFAULT
+preset must still be 'Under 100 KB Govt/SSC', see the owner decision below), ID 285 (.html
+rejection — newly fixed in v18), ID 280 (blank-page prompt — newly fixed in v18; the prompt
+must not fire on a fresh load), ID 184 (guest quota cookie — newly fixed, verified live by
+Round 11's strict second-browser test; two clean browsers must still show isolated quotas), ID
+240 (Sign visual stamp — newly fixed, verified live by Round 11; the signer name must appear
+in the output text layer), ID 215 (palette API badge gone — verified absent in v14, v15, v16
+and v20), ID 134 (waitlist form on /download — controls appear only after ~20s), ID 138 (AI
+Intelligence pill opens the AI view in place), ID 68 (drawn signature), ID 99 (AI Chat grounded
++ citation), ID 108 (/api-docs gated), ID 81 (duplicate headers), ID 113 (Repair), ID 116
+(Sanitize), ID 117 Verify part, ID 136 (quota 10/day — re-confirmed live in v14/v15), ID 171
+(footer on every page — re-confirmed live in v14/v15/v16), ID 180 (/developers v1 — re-
+confirmed live in v14/v15/v16), ID 181 (dead slugs redirect — re-confirmed live in
+v14/v15/v16). If any verified_fixed item regresses, it goes back to open in your report with the
+new evidence.
+4. Re-verify the contested/flaky items (Phase 4). If a contested item is still contested after
+your fix, say so with both sides' evidence — do not force it closed.
+5. Hunt for regressions you introduced. Run the full A–Z tool pass once more (all 44 tools, at
+least one real file each, downloads checked). COVERAGE WARNING: the v20 sweep proved
+37 of 38 tools PASSED (1 PARTIAL — AI Translate French, 0 FAILED) — those 37 must all
+still pass, and the partial one must be re-checked. Round 11's 33-tool ~5 MB matrix
+passed 23 clean — those 23 must all still pass, and its 5 hard failures (split, pdf-to-pdfa,
+watermark, page-numbers, flatten) must be re-checked — split, watermark and page-
+\n\n--- PAGE 42 ---\nnumbers are now VERIFIED FIXED in v20; pdf-to-pdfa and flatten are still open.
+CONTENT-CHECK every output: the v18 sweep's output-only check on Flatten was
+WRONG (Round 11 proves it is a no-op) — a file existing is not proof it is correct. The v20
+sweep content-checked the DOCX, XLSX, Annotate PDF and Edit PDF outputs; the other
+31 captured outputs stand on name/size only, and 7 download captures failed because
+the toast covered the button (ID 288) — your A–Z pass must content-check every output
+yourself, including the 7 the sweep could not capture. The Protect→Unlock literal
+roundtrip could not be completed (browser uploads accept only granted files). Round 10
+exercised all 44 tools at least once but did not test payments, drag-and-drop,
+Drive/Dropbox import, tablet/desktop viewports, the feedback XSS probe, Developer
+API keys, or load testing. Do NOT treat any of those rounds as proof for a tool they did
+not content-check — your A–Z pass must cover all 44 yourself. Round 12 (15 Nov 2026,
+22:49–23:23 IST, 172afcc) attempted all 44 tools fresh with synthetic fixtures and 176
+first-view layout captures at 390/820/1366/1920px: Compress FAIL (both presets corrupt
+images), PDF/A FAIL, Translate FAIL (both languages), Summarize FAIL (24p brief covers
+1–12 only); the rest passed or passed-with-caveat on the named fixtures. The original
+Round 11 5.7 MB/image-heavy files were unavailable; the claimed 60 MiB production
+path, cancel/expiry cleanup, replay and ownership enforcement were NOT
+independently verified. Check the first-paint state (ID 168) on every page you touched.
+Check the 390px and 820px renders for every layout change you made. Re-run the
+upload→run→download cycle (ID 262) after every change to the upload path or the account-
+restoration gate.
+6. Check your own work for honesty. For every item you claim fixed, ask: did I verify it live (or
+with a real test), or did I only change the code and assume? Did I test the exact input the bug
+report used (the 69-page file for ID 2, the 60 MB file for ID 207, the 2400×1800 photos for ID
+191, the owner's Drive link for ID 4)? Did I test both languages for ID 1 — and twice each,
+given the v16 flip and the Round 10 rate limit? Did I test the quota-blocked path for ID 193?
+Did I verify the SERVED file for ID 206, or only the local file? Did I check the Hindi output text
+for mojibake (ID 271), not just that a file was produced? Did I check the Compress default
+AND Balanced preset against a mixed text/image PDF and verify the rendered pages are not
+black (ID 283) — and did I respect the owner's settled default instead of silently changing it?
+Did I check Flatten by CONTENT (annotation present in the output = fail), not by file size (ID
+293)? Did I validate the PDF/A output with a real PDF/A-2b validator instead of trusting the
+code change (ID 220)? Did I check Split's output pages against the requested ranges (ID 292)?
+Did I test the three 5 MB-failing tools on the 5.7 MB file twice each (ID 294)? Did I check the
+DOCX contains editable text and no embedded page images (ID 295)? Did I check the
+Annotate comment persists in the annotation's /Contents (ID 298)? Did I check the stamped
+text is in the text layer and selectable, including non-ASCII (ID 284)? Did I check the Merge 60
+MB progress bar moves in real time (ID 207)? Did I check 'Operations Today' resolves within
+~1–2s and never sticks (ID 289)? Did I check the AI Chat sparse-PDF answer states the
+document is sparse instead of a generic 'no relevant information' (ID 301)? Did I check the
+Excel workbook has real columns on a TABLE input (Round 12 passed 4 sheets × 3×4), not just
+prose (ID 302)? Did I confirm every v21 claim in code in Phase -2 before building on it (ID 2's
+\n\n--- PAGE 43 ---\n12-page ceiling actually removed, ID 283's compression preserving image content on both
+presets, ID 308's Word images/tables present, IDs 311/312/313's layouts, ID 288's toast never
+covering Download)? Did I check live OCR with a long enough poll window instead of trusting
+the local OCR result? Did I check PDF/A in the production image, not just WSL? Did I strip the
+counter from every user-facing string (ID 282), including the compare diff content and the
+Studio restore toast? If the answer to any of these is no, the item is NOT done — go back and
+test it.
+7. LOOP. If this self-analysis finds ANY gap, regression, incomplete fix, or unaddressed item —
+return to Phase 0–4, fix it properly, and self-analyse again. Repeat until you are genuinely
+satisfied. Only then go to Phase 6.
+PHASE 6 — FINAL A–Z + FINAL REPORT
+1. Run the full test suite twice. Report the count (must be ≥477 twice — 481 if confirmed in
+Phase -2) and every new regression test you added.
+2. Do a final A–Z pass over the elite list: every open item is either FIXED (with the ID, the fix, and
+the evidence) or NOT FIXED (with the reason and what is still needed). No item may be left
+unaddressed and no item may be marked fixed without evidence. The per-ID table must
+cover ALL 309 items.
+3. Write reports/launch-audit-v21/FINAL-REPORT.md  (same folder — do NOT create a new
+reports folder) with: the verdict (READY — only when every P0 is fixed with evidence and the
+self-analysis loop passes), the Phase -2 audit table (each v21 claim: found in code / missing /
+re-implemented, with file:line), the per-ID results table (all 309 items), the test suite result, the
+reproduction log reference, the self-analysis log (what your Phase 5 found and what you
+looped back to fix), the do-not-regress results, the list of EVERY file you changed in v21 AND
+in v22 with a one-line summary each, and the exact branch (launch-audit-v21, uncommitted
+— continued from origin/main 172afcc) the report covers. Do NOT write a HOLD verdict and
+do NOT send interim reports — the owner's standing instruction is: no reply until you are
+yourself satisfied the app is 100% deployment-ready. If a specific item is blocked ONLY on an
+owner step (credential rotation, a real payment, a key the owner must supply), finish
+everything else first and report READY with that owner step listed as the final gate.
+4. NOTHING is committed, pushed, or deployed by you. The owner reviews the report, commits
++ pushes + deploys himself, and Muse live-retests the deployed build end-to-end. The end-to-
+end plan (owner-decided, 14 Nov 2026 evening): (1) you finish this list + self-analysis and
+report READY; (2) the owner commits + pushes + deploys (your v21 + v22 work together) to
+the test site and shares the new hash; (3) Muse live-retests end-to-end (all 7 P0s + post-
+deployment checks); (4) any remaining gaps come back to you as the next round; (5) when
+the live retest is clean, the owner does the owner steps (credential rotation, real payment
+check, bad-mirror deletion, history publish) and the app is declared launch-ready.
+OWNER DECISIONS (already made — do not re-litigate)
+\n\n--- PAGE 44 ---\nCompress default 'Under 100 KB Govt/SSC' is INTENDED. (ID 283: VERIFIED FIXED in the v18
+sweep on the warning alone — the extreme-reduction warning works; do NOT regress it. The
+settled default is unchanged. Round 11 F-16 notes the default preset still turns a 530 KB
+image PDF into 4.6 KB of pure black pages and suggests Balanced as the default — do NOT
+make that change without the owner's explicit say-so; the owner must decide — see OWNER
+DECISIONS STILL OPEN. Round 12 (F-02) REOPENED ID 283: BOTH presets corrupt image-
+heavy PDFs — the warning alone is not the fix.) Continuous Studio scrolling is a launch MUST.
+Pricing is INR-only. Studio toolbar/tools to be made smaller (ID 125). Feedback button:
+dismissible, first-time users, hidden after feedback, lives only in Settings (ID 128). Super
+admin: BOTH mdhammad2906@gmail.com AND mdhammad29006@gmail.com (ID 203,
+decided 19:29 IST — and already in the code as ADMIN_OWNER_EMAILS). ID 280 (blank-page
+prompt) and ID 285 (.html rejection) are VERIFIED FIXED in the v18 sweep — do not regress
+them. IDs 207, 292, 294, 295, 298, 284, 289 are VERIFIED FIXED in the v20 live retest — do not
+regress them.
+Refer to the images the owner added in this Codex project (see 'How to use this prompt',
+point 2).
+End-to-end deployment plan (decided 14 Nov 2026 evening): the owner wants the app
+end-to-end deployment-ready and WILL deploy it. Sequence: Codex finishes this list + self-
+analysis and reports READY → owner commits + pushes + deploys (v21 + v22 work together)
+→ Muse live-retests end-to-end → any remaining gaps go to Codex as the next round →
+when the live retest is clean, the owner does the owner steps (rotation, real payment, bad-
+mirror deletion, history publish) and the app is declared launch-ready.
+OWNER DECISIONS STILL OPEN (use these defaults unless the
+owner says otherwise)
+Round 11 owner questions Q1–Q4 — UNANSWERED (15 Nov 2026, ~19:00 IST). In plain
+words: (Q1) The admin console logged a 24h lockout at ~18:43 on 15 Nov from 3 consecutive
+failed attempts, and they are NOT the owner's logins (owner successes: 14 Nov 23:44, 23:46,
+15 Nov 12:49). Was that the owner testing, or is someone else trying the leaked code from the
+public commit? The lockout then lifted within ~15 minutes (18:43 → 18:55), not 24 hours —
+did the owner reset it, or does the lock timer not work as stated? (Q2) extract-pdf-data went
+from dead-viewer 2/2 to fully working, and 5 MB compress from 2/2 failures to a success, all
+between ~17:30 and 19:00 on 15 Nov. Did the owner deploy mid-audit, or is this real flakiness
+to chase? (Q3) The 12:48–12:49 IST admin OTP + successful admin login on 15 Nov — was that
+the owner? (Asking because the old code is public; the audit log can't show real IPs until ID
+296 is fixed.) (Q4) Cashfree is still in TEST environment (visible in /api/billing/status).
+Intentional until launch, or should that be on the pre-deploy checklist too? These are for the
+OWNER, not for you to answer — write them in your report as open questions; do not guess.
+UPDATE 15 Nov 2026 (v20 retest): still UNANSWERED. Rotation is now MORE urgent than ever
+— the leaked code still works (Round 11 F-01) and 3 unknown admin attempts were logged at
+~18:43 on 15 Nov. UPDATE 15 Nov 2026 (Master Audit Round 12, F-01): the old credentials
+\n\n--- PAGE 45 ---\nSTILL log in — one permitted attempt PASSED at ~23:08 IST. Rotation is now MORE urgent
+than ever. Round 12 Q4 asks: after rotation, do you want a separately authorized old-value
+rejection check? (see below).
+Compress default preset (ID 283 / Round 11 F-16) — OWNER MUST DECIDE. The warning is
+added and verified live, but the DEFAULT preset is still destructive: a 530 KB image PDF → 4.6
+KB of pure black pages (all 3 pages, mean pixel value 0). Round 11 suggests making Balanced
+the default. That CONTRADICTS the owner's settled decision (the Under-100KB default is
+INTENDED). Do NOT change the default without the owner's explicit say-so. Default until he
+answers: keep the intended default + the warning. UPDATE 15 Nov 2026 (Master Audit Round
+12, F-02): REOPENED — BOTH presets corrupt image-heavy PDFs (Under 100 KB → ~11.8 KB
+black images; Balanced → ~3.68 MB still corrupted). The warning exists, destruction persists
+on both presets. The question stands — and is now sharper: the warning alone does not
+protect image PDFs.
+Round 10 owner questions — UNANSWERED (the owner said he did not understand the
+sheet and to wait, 15 Nov 2026 ~15:04 IST). In plain words: (1) Should the admin secret
+code be rotated first tonight? (2) Is the AI provider free (it keeps hitting a rate limit) or paid?
+(3) Guest quota — one quota per device (a cookie on each device) or must guests sign up
+before they can use server tools? Use these defaults unless the owner says otherwise: (1)
+rotate first — you prepare the code side (gitleaks CI, purge preparation), the owner rotates
+the values; (2) implement retry + fallback on the free tier (do not wait for the answer); (3) per-
+device cookie + IP (as in Phase 1). Codex had to guess on Q2 and Q3 in v18 — that is why
+Translate still fails with 429. UPDATE: Q3 is now effectively answered by the implementation
+— the per-device cookie quota (ID 184) is built and verified live by Round 11 — unless the
+owner says otherwise.
+Master Audit Q1 — Server Mode toggle (ID 186): default FIX the toggle to work two-way
+(users can choose server processing for merge/split/remove/rotate, quota-counted). If the
+owner later says local-only, delete the dead toggle instead.
+Master Audit Q2 — Exam resizer (ID 187): default CLIENT-SIDE (free, unlimited, on-brand) —
+move it to the client-side engine.
+Master Audit Q3 — Guest quota (ID 184): after the IP fix, 10/day per guest for SERVER tools;
+LOCAL tools unlimited for guests. Say so plainly on every surface.
+Master Audit Q4 — Blocked suite re-run: after you build set-plan (ID 204 — already in code,
+verify it live), the owner will unblock the k5mmx3 account (or use the new set-plan action) and
+you re-run the blocked checks (Studio export page-size ID 199, exam resizer end-to-end,
+remaining server tools, paid-tier checks, checkout e2e). Do not run the DB command yourself
+— that is on the AWS box and is the owner's job.
+Audit R8 Q1 — API keys for everyone, or Rs 299-only? (ID 243): default ENFORCE the gating
+(server-side 403 unless the API-including tier) — do not leak paid API access to a Rs 49 tier —
+and fix the banner + the '41 operations' copy either way.
+Audit R8 Q2 — Is 'Cyber Cafe' a retired plan name? (ID 209): RESOLVED on both surfaces
+(ID 209 verified_fixed in the live v15 retest on the pricing surface and in the v16 retest on the
+Settings label too). Check no other surface still uses it; if one does, retire it there too.
+\n\n--- PAGE 46 ---\nAudit R8 Q3 — Guest quota: leave as-is for launch, or fix first? (ID 184): default FIX FIRST
+— new visitors are blocked right now (402 on a fresh guest).
+Audit R8 Q4 — /dashboard redirect or change the footer link? (ID 226 in the old
+numbering): default point the footer link directly at /tool-desk. (The /ai-docs redirect is FIXED
+in v15; the translated-PDFs-keep-English half is carried under ID 1.)
+Audit R8 Q5 — Move OTP/reset/alerts to a transactional sender (SES) with SPF/DKIM? (ID
+61): owner decision — the mail still goes from the owner's personal Gmail as 'Paperplane PDF
+Security', which looks phishy to filters and caps volume. If he says yes, implement the sender
+switch (SES, since the app is on AWS).
+Audit R8 Q6 — TOTP authenticator support for admin? owner decision — the admin OTP
+goes to the owner's email and needed relaying during audits. If he says yes, implement TOTP
+so admin login is not dependent on email delivery (and the 3-attempt/24h lockout).
+Audit R8 Q7 — Do saved Studio/AI documents actually get purged within 24h? (ID 109):
+default IMPLEMENT the purge — the tool pages promise 'Automatically deleted within 24
+hours' — and verify it with a check.
+Round 9 — Cashfree sandbox probe alert channel (ID 258): the probe workflow exists but
+CI execution is unverified; the owner confirms the alert channel (where the daily probe failure
+alert goes).
+Round 10, R10-16 — Cyber Cafe plan (NOT a bug, owner decision): RESOLVED — Cyber
+Cafe is the ₹299 All-in-One Pro / Cyber Café / Developer tier (the owner's 2026-11-13 briefing).
+Admin may keep the internal enum, but do NOT add a 4th public pricing card.
+Round 10, R10-08 — Compress default preset (ID 283): the owner has a SETTLED decision
+that 'Under 100 KB Govt/SSC' is the intended default. ID 283 was VERIFIED FIXED in the v18
+sweep on the warning alone, but Round 12 REOPENED it (both presets corrupt image
+content). KEEP the settled default and do NOT regress the warning — but the warning is not
+the fix; the corruption must be fixed.
+Round 10, R10-07 — AI provider tier (ID 1): is the AI provider on a free/rate-limited tier?
+Translate failed 3/3 with upstream HTTP 429 in Round 10 and STILL fails with 429 in the v18
+P0 round (Hindi attempt 2). The owner was asked (Q2) and did not answer. Default:
+implement retry + fallback on the free tier — do not wait for the answer. UPDATE 15 Nov 2026
+(v20 P0 round): Translate now FAILS in both languages with "No text was translated" —
+Spanish REGRESSED (v18 verified it). The retry + fallback still is not working. Default stands:
+implement retry + fallback on the free tier — do not wait for the answer. UPDATE 15 Nov 2026
+(Master Audit Round 12, F-04): CONFIRMS — Spanish AND Hindi on a 4-page input both "No
+text was translated" (~2 min). Worse than Round 11's successful Spanish.
+Round 10, R10-02 — Guest quota mechanism (ID 184): should guests be quota'd per device
+(signed httpOnly device cookie) or should server ops require signup? Either is fine — today it
+is accidentally "per planet". The owner was asked (Q3) and did not answer. Default: per-device
+cookie + IP, as in Phase 1. UPDATE: implemented and VERIFIED LIVE by Round 11 (strict
+second-browser test) — the quota half of ID 184 is now verified_fixed. The proxy-IP half is new
+ID 296 (ENV change).
+\n\n--- PAGE 47 ---\nDrive link for Cloud Import (ID 4, P0) — OWNER MUST SUPPLY A CORRECT LINK. The
+owner's exact Drive link returns image/png, not a PDF (v20 P0 round, 15 Nov 2026) — the link
+itself is the problem, and no real import test is possible until it is fixed. Owner: share a Drive
+link that points to the PDF itself (anyone-with-the-link, PDF file — not an image, not a folder),
+or send the PDF file itself. The W3C dummy.pdf URL is now CORRECTED:
+https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf (testfiles, NOT
+testsuite — Round 12 proved the testfiles URL imports; the testsuite URL 404s). The owner's
+exact Drive link is still image/png — the intended Drive PDF is still not supplied. This is for the
+OWNER, not for you to fix in code — write it in your report as an open question; do not guess
+a different link.
+Round 12 owner question Q1 — ANSWERED by this v21 package. Round 12 asked for the
+original 298-row checklist with definitions for IDs 297 and 300, and the original Round 11 5.7
+MB/image-heavy files. The v21 single PDF IS that checklist (309 items, every ID defined — ID
+297 is the dead Drive/Dropbox button, ID 300 is mail deliverability + self-addressed admin
+OTP). The original Round 11 5.7 MB/image-heavy files are still unavailable (Round 12 used
+synthetic equivalents) — if the owner still has them, send them for the next retest.
+Round 12 owner question Q2 (ID 308) — OWNER MUST DECIDE. Should PDF-to-Word
+preserve mixed-page images and tables, or is an explicitly labelled text-only mode
+acceptable? The current output silently drops them (6.34 MiB 5-page PDF → 36.1 KB DOCX,
+editable text, no media, no Word tables).
+Round 12 owner question Q3 (IDs 310, 309, 293) — OWNER MUST DECIDE. (a) For exam
+photos, is the portal limit 50,000 bytes or 51,200 bytes? (b) For Scan-to-PDF, should the
+default be A4 or source pixels? (c) For flattening, should sticky-note bodies print or only their
+visible icons?
+Round 12 owner question Q4 (ID 101) — OWNER MUST DECIDE. After you rotate the admin
+credentials, do you want a separately authorized old-value rejection check (one login attempt
+with the old values, expecting rejection)? No additional admin login was attempted in Round
+12.
+ID 218 CORRECTION — TREAT AS P1, NOT P2. ID 218 correction: treat ID 218 (AI Intelligence
+load-state race) as P1, not P2 — the tracker carries it P1; the v21 prompt's P2 listing is a
+severity error. Fix it in P1 order (same load-state family as ID 168). (This correction is also in
+the Phase 1 and Phase 2 ordering notes.)
+ID 49 (Studio Export) — CLOSE PENDING THE OWNER'S ANSWER. v18 + v20 sweeps both
+passed clean, two in a row — ID 49 meets the flaky rule on its face. The owner has NOT yet
+answered whether to close it. It stays OPEN in this prompt; do NOT flip it yourself — your job
+is the fetch-path fix + two consecutive successful exports with proof (see Phase 1).
+ROADMAP REVIEW (from the audit, Section D — for the owner
+and for you)
+PWA offline mode first: ship the local runtime as a PWA — 80% of the offline story at 5% of
+the cost of the Tauri client; it validates demand before the multi-week Tauri+PDFium work.
+\n\n--- PAGE 48 ---\n(The dual-ecosystem decision — web + Tauri offline client, not a shared runtime — is right,
+and the offline plan is unusually thorough.)
+Funnel analytics: tool start/complete, quota wall, upgrade modal, checkout events — the
+owner is blind on conversion today. Add the events.
+Daily checkout probe (ID 258): a daily synthetic sandbox checkout probe outranks every
+Phase 2-5 item.
+Security Phase 1.5: the admin-code purge, proxy IPs, and secret-scanning CI deserve a
+Phase 1.5 with feature-level weight — do not leave them unscheduled.
+Gate 'Complete' on a real-device viewport matrix, not on code existing. (Phase 1 items
+were marked 'Complete' while broken live — the tablet header.)
+Competitor note (ihatepdf.cv): free, open-source, 46–60+ tools running 100% client-side via
+WebAssembly, no upload, no account, no limits, works offline. Where they still win: their
+whole catalog is unlimited; guest friction ('no signup ever' vs the shared 10/day guest bucket,
+which a visitor can find already exhausted — live right now); true offline. Where Paperplane
+wins: accounts/sync/history, 500MB server muscle vs their ~150MB ceiling, Advanced Studio,
+PKCS#7 signing, developer API, AI without a user-supplied key — and the Rs 19 Exam Pass is
+a genuinely sharp wedge they have no answer to. The hybrid rebuild already closed their #1
+gap (local ops quota-free) — which is exactly why the ID 206 local-ops outage hurts double: it
+reopens that gap on launch day.
+RULES
+One fix per ID, cited by ID. No drive-by refactors. No changes to unrelated files.
+Every P0 and P1 fix gets a regression test. Every fix gets a before/after note in your final
+report.
+Never print, log, or paste a secret, key, code, OTP, or password value — not in code, tests,
+logs, or your report. Use placeholders.
+Never run a real payment. Never create, delete, or modify a live user account, feedback entry,
+or admin session.
+If an item cannot be fixed (needs an owner decision, a key, or live access), say so in the report
+with the exact blocker — do not silently skip it and do not mark it fixed.
+The elite list is the authority. If this prompt and the elite list disagree on an ID, follow the elite
+list and note the disagreement.
+The self-analysis loop (Phase 5) is mandatory. A report written before the loop passes is not a
+report — it is a draft.
+List every file you changed in v21 AND in v22 in your final report (one line each) — the owner
+verifies the changes exist before he deploys.
+Do NOT create a new branch or a new reports folder — continue on your local launch-audit-
+v21 branch and update reports/launch-audit-v21/FINAL-REPORT.md.
+\n\n--- PAGE 49 ---\nDo not reply until you are yourself satisfied the app is 100% deployment-ready. No interim
+reports, no HOLD verdict — the owner's standing instruction.
+Do not bump a version string and call an asset fixed. Verify the SERVED file by HTTP and the
+behaviour in a real browser.
+Do not close a contested item on one round's evidence. A contested item (IDs 1, 4, 242,
+128/147, 220, 279, 275, 293) is closed only when a controlled test settles it. ID 3 was settled
+FIXED by the v16 clean single run and confirmed by the v17 sweep, the v18 sweep AND the
+v20 sweep — do not reopen it without new live evidence. ID 207 is now VERIFIED FIXED (2nd
+consecutive clean pass in the v20 P0 round) — do not regress it. ID 294 is now VERIFIED FIXED
+in the v20 P0 round — do not regress it. ID 293 is a CORRECTION, not a contest: the v18
+sweep's output-only Flatten check is withdrawn — Round 11's content check wins; the v20 P0
+round verified widget removal (3→0) but the highlight-annotation bake-in is still owed. A file
+existing is not proof it is correct — content-check every output. ID 283 is REOPENED on
+Round 12 live evidence — do not close it on the warning alone; the compression must
+preserve image content on both presets.
+The STRICT IMPLEMENTATION CONTRACT at the top of this prompt overrides any looser
+reading of the phases below. If a phase says "fix" and the contract says "fix completely, with
+proof, twice for flaky items", the contract wins.

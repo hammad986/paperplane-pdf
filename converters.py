@@ -889,16 +889,41 @@ def pdf_to_word(source: Path, output: Path, pages: str = "all") -> Path:
     for page in doc:
         text = page.get_text("text").strip()
         if text:
-            for line in text.split("\n\n"):
-                if line.strip():
-                    out_docx.add_paragraph(line.strip())
+            tables = page.find_tables().tables
+            table_boxes = [fitz.Rect(table.bbox) for table in tables]
+            for block in page.get_text("blocks", sort=True):
+                if block[6] != 0 or any(box.contains(fitz.Rect(block[:4])) for box in table_boxes):
+                    continue
+                if block[4].strip():
+                    out_docx.add_paragraph(block[4].strip())
+            for table in tables:
+                rows = table.extract()
+                if not rows:
+                    continue
+                target = out_docx.add_table(rows=len(rows), cols=max(map(len, rows)))
+                target.style = "Table Grid"
+                for row_index, row in enumerate(rows):
+                    for column_index, value in enumerate(row):
+                        target.cell(row_index, column_index).text = str(value or "")
+            section = out_docx.sections[-1]
+            max_width = section.page_width - section.left_margin - section.right_margin
+            for block in page.get_text("dict")["blocks"]:
+                if block["type"] != 1:
+                    continue
+                image = Image.open(io.BytesIO(block["image"])).convert("RGB")
+                image.thumbnail((1600, 2000), Image.Resampling.LANCZOS)
+                buffer = io.BytesIO()
+                image.save(buffer, format="JPEG", quality=85)
+                buffer.seek(0)
+                out_docx.add_picture(buffer, width=min(max_width, docx.shared.Pt(block["bbox"][2] - block["bbox"][0])))
         else:
             pixmap = page.get_pixmap(matrix=fitz.Matrix(150 / 72, 150 / 72), alpha=False)
             image = io.BytesIO(pixmap.tobytes("png"))
             section = out_docx.sections[-1]
             max_width = section.page_width - section.left_margin - section.right_margin
             out_docx.add_picture(image, width=max_width)
-        out_docx.add_page_break()
+        if page.number < doc.page_count - 1:
+            out_docx.add_page_break()
     out_docx.save(str(output))
     doc.close()
     return output
@@ -1431,16 +1456,20 @@ def pdf_to_pdfa(source: Path, output: Path) -> Path:
     with tempfile.TemporaryDirectory(prefix="paperplane-pdfa-") as temp_dir:
         definition_copy = Path(temp_dir) / "PDFA_def.ps"
         definition_text = definition.read_text(encoding="latin-1")
-        profile_declaration = re.compile(r"(?m)^\s*/ICCProfile\s*\([^\r\n]*\)\s*def\s*$")
-        replacement = f"/ICCProfile ({icc_profile.resolve().as_posix()}) def"
+        # Distro templates put a comment and newline before `def`.
+        # Replace only the string operand so both template forms remain valid.
+        profile_declaration = re.compile(r"(?m)^[ \t]*/ICCProfile[ \t]*\([^\r\n]*?\)")
+        profile_path = icc_profile.resolve().as_posix().replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+        replacement = f"/ICCProfile ({profile_path})"
         if not profile_declaration.search(definition_text):
             raise RuntimeError("Ghostscript's PDF/A definition does not declare an ICC profile.")
-        definition_copy.write_text(profile_declaration.sub(replacement, definition_text, count=1), encoding="latin-1")
+        definition_copy.write_text(profile_declaration.sub(lambda match: replacement, definition_text, count=1), encoding="latin-1")
         try:
             subprocess.run(
                 [gs, "-dPDFA=1", "-dBATCH", "-dNOPAUSE", "-dNOOUTERSAVE",
                  "-sProcessColorModel=DeviceRGB", "-sColorConversionStrategy=RGB",
                  "-sDEVICE=pdfwrite", "-dPDFACompatibilityPolicy=2",
+                 f"--permit-file-read={icc_profile.resolve()}",
                  f"-sOutputFile={output}", str(definition_copy), str(source)],
                 check=True, timeout=180, capture_output=True, text=True,
             )
@@ -1919,17 +1948,24 @@ def compress_pdf(
     def _execute_compression_pass(active_cfg: dict) -> Path:
         doc = fitz.open(str(source))
         if active_cfg["downsample"]:
+            processed_xrefs = set()
             for page in doc:
                 for img_info in page.get_images(full=True):
                     xref = img_info[0]
+                    if xref in processed_xrefs or img_info[1]:
+                        continue
+                    processed_xrefs.add(xref)
                     try:
                         base_image = doc.extract_image(xref)
                         if not base_image:
                             continue
                         image_bytes = base_image["image"]
                         with Image.open(io.BytesIO(image_bytes)) as pil_img:
-                            if pil_img.mode in ("RGBA", "P"):
-                                pil_img = pil_img.convert("RGB")
+                            # Replacing an image xref with a JPEG drops soft masks and
+                            # palette transparency. Keep these streams intact; shrinking
+                            # them is not worth turning transparent regions black.
+                            if pil_img.mode in ("RGBA", "LA", "P", "CMYK") or "transparency" in pil_img.info:
+                                continue
                             w, h = pil_img.size
                             if w > active_cfg["max_w"] or h > active_cfg["max_h"]:
                                 scale = min(active_cfg["max_w"] / w, active_cfg["max_h"] / h)
@@ -1938,7 +1974,7 @@ def compress_pdf(
                             pil_img.save(buf, format="JPEG", quality=active_cfg["quality"], optimize=True)
                             compressed = buf.getvalue()
                             if len(compressed) < len(image_bytes):
-                                doc.update_stream(xref, compressed)
+                                page.replace_image(xref, stream=compressed)
                     except Exception:
                         continue
 
@@ -1963,15 +1999,7 @@ def compress_pdf(
         if current_size > target_size_bytes:
             # Progressive aggressive passes — each tries from source (original)
             # sorted from most aggressive to least (we stop when target met)
-            aggressive_passes = [
-                {"max_w": 300, "max_h": 400, "quality": 15, "downsample": True, "garbage": 4},
-                {"max_w": 350, "max_h": 450, "quality": 18, "downsample": True, "garbage": 4},
-                {"max_w": 400, "max_h": 500, "quality": 22, "downsample": True, "garbage": 4},
-                {"max_w": 480, "max_h": 640, "quality": 28, "downsample": True, "garbage": 4},
-                {"max_w": 550, "max_h": 700, "quality": 33, "downsample": True, "garbage": 4},
-                {"max_w": 600, "max_h": 800, "quality": 38, "downsample": True, "garbage": 4},
-                {"max_w": 650, "max_h": 900, "quality": 42, "downsample": True, "garbage": 4},
-            ]
+            aggressive_passes = []  # Keep the selected quality rather than degrading further to meet a size.
             best_size = current_size
             best_tmp = temp_res
             for pass_cfg in aggressive_passes:
@@ -1993,77 +2021,44 @@ def compress_pdf(
                 temp_res = best_tmp
             current_size = best_size
             if current_size > target_size_bytes:
-                # Guaranteed convergence: rasterize multi-page / stubborn vector documents to exact KB limit
-                try:
-                    doc_src = fitz.open(str(source))
-                    num_pages = len(doc_src)
-                    # reserve ~350 bytes per page for PDF xref and object overhead
-                    net_target = max(5000, target_size_bytes - (num_pages * 350))
-                    target_per_page = net_target // max(1, num_pages)
-
-                    if target_per_page < 1500:
-                        dpis_to_try = [30, 24, 20]
-                    elif target_per_page < 3000:
-                        dpis_to_try = [45, 36, 30, 24, 20]
-                    elif target_per_page < 7000:
-                        dpis_to_try = [60, 45, 36, 30]
-                    elif target_per_page < 15000:
-                        dpis_to_try = [72, 60, 45]
-                    else:
-                        dpis_to_try = [100, 72, 60, 45]
-
-                    for dpi in dpis_to_try:
-                        use_gray = target_per_page < 4000
-                        new_doc = fitz.open()
-                        for p in doc_src:
-                            if use_gray:
-                                pix = p.get_pixmap(dpi=dpi, colorspace=fitz.csGRAY)
-                                img = Image.frombytes("L", [pix.width, pix.height], pix.samples)
-                            else:
-                                pix = p.get_pixmap(dpi=dpi)
-                                img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-
-                            chosen_bytes = None
-                            for q in (50, 35, 25, 18, 12, 8):
-                                buf = io.BytesIO()
-                                img.save(buf, format="JPEG", quality=q, optimize=True)
-                                val = buf.getvalue()
-                                if len(val) <= target_per_page or q == 8:
-                                    chosen_bytes = val
-                                    break
-
-                            img_doc = fitz.open("jpeg", chosen_bytes)
-                            p_pdf = fitz.open("pdf", img_doc.convert_to_pdf())
-                            new_doc.insert_pdf(p_pdf)
-                            img_doc.close()
-                            p_pdf.close()
-
-                        temp_raster = output.with_name(f"{output.stem}_rast_{os.getpid()}_{uuid.uuid4().hex[:6]}.pdf")
-                        new_doc.save(str(temp_raster), garbage=4, deflate=True)
-                        new_doc.close()
-
-                        if temp_raster.stat().st_size < current_size:
-                            temp_res.unlink(missing_ok=True)
-                            temp_res = temp_raster
-                            current_size = temp_res.stat().st_size
-                            if current_size <= target_size_bytes:
-                                target_achieved = True
-                                reason = "Target size achieved."
-                                break
-                        else:
-                            temp_raster.unlink(missing_ok=True)
-                    doc_src.close()
-                except Exception:
-                    pass
-
-            if current_size > target_size_bytes:
                 target_achieved = False
-                reason = f"Compressed to {round(current_size / 1024, 1)} KB (target {round(target_size_bytes / 1024, 1)} KB for {num_pages} pages reached at maximum readable compression)."
+                reason = (f"Compressed to {round(current_size / 1024, 1)} KB; "
+                          "the requested target could not be reached while preserving document content.")
 
     if not temp_res.exists() or temp_res.stat().st_size < 50:
         if temp_res.exists():
             temp_res.unlink(missing_ok=True)
         raise RuntimeError("Compression produced an invalid or empty output file.")
+
+    # Guard against codecs or unusual color spaces producing a syntactically valid
+    # PDF whose rendered pages have acquired large black regions. In that case keep
+    # the original readable PDF as the best-effort result instead of shipping damage.
+    def _black_pixel_ratio(document: fitz.Document, page_index: int) -> float:
+        pix = document[page_index].get_pixmap(colorspace=fitz.csRGB, alpha=False, matrix=fitz.Matrix(0.35, 0.35))
+        samples = memoryview(pix.samples)
+        # Sampling every tenth pixel keeps validation cheap for large documents.
+        total = (pix.width * pix.height + 9) // 10
+        black = sum(1 for i in range(0, len(samples), 30)
+                    if samples[i] < 18 and samples[i + 1] < 18 and samples[i + 2] < 18)
+        return black / total if total else 0.0
+
+    visual_regression = False
+    with fitz.open(str(source)) as original_doc, fitz.open(str(temp_res)) as compressed_doc:
+        if len(original_doc) != len(compressed_doc):
+            visual_regression = True
+        else:
+            for page_index in range(len(original_doc)):
+                before_black = _black_pixel_ratio(original_doc, page_index)
+                after_black = _black_pixel_ratio(compressed_doc, page_index)
+                if after_black >= 0.25 and after_black - before_black >= 0.18:
+                    visual_regression = True
+                    break
+    if visual_regression:
+        temp_res.unlink(missing_ok=True)
+        temp_res = output.with_name(f"{output.stem}_preserved_{uuid.uuid4().hex[:6]}.pdf")
+        shutil.copyfile(source, temp_res)
+        reason = "Compression would have damaged rendered page content; the readable original was preserved."
+        target_achieved = False
 
     temp_res.replace(output)
     output_size = output.stat().st_size
@@ -2083,7 +2078,8 @@ def compress_pdf(
         "page_count": out_pages,
         "target_size_requested": target_size_bytes,
         "target_achieved": target_achieved,
-        "note": reason if target_size_bytes else None,
+        "note": reason if target_size_bytes or visual_regression else None,
+        "content_preserved_original": visual_regression,
         "validation_passed": True
     }
 
@@ -2246,8 +2242,8 @@ def repair_pdf_advanced(source: Path, output: Path, mode: str = "automatic") -> 
     raise ValueError(f"Unable to recover document: {'; '.join(detected_issues)}")
 
 
-def scan_to_pdf(images: list[Path], output: Path, enhance: bool = True) -> Path:
-    """Enhances scanned photos/documents (contrast, deskew) and compiles into a clean PDF."""
+def scan_to_pdf(images: list[Path], output: Path, enhance: bool = True, page_size: str = "a4") -> Path:
+    """Enhance scanned images and place them on selected physical-size PDF pages."""
     processed_images: list[Image.Image] = []
 
     for img_path in images:
@@ -2263,9 +2259,33 @@ def scan_to_pdf(images: list[Path], output: Path, enhance: bool = True) -> Path:
     if not processed_images:
         raise ValueError("No images provided for Scan to PDF.")
 
-    first = processed_images[0]
-    rest = processed_images[1:] if len(processed_images) > 1 else []
-    first.save(output, format="PDF", save_all=True, append_images=rest)
+    sizes = {"a4": (595.28, 841.89), "letter": (612.0, 792.0)}
+    selected_size = str(page_size or "a4").strip().lower()
+    if selected_size not in {*sizes, "original"}:
+        raise ValueError("Choose A4, Letter, or original image size for the PDF pages.")
+
+    document = fitz.open()
+    try:
+        for image in processed_images:
+            if selected_size == "original":
+                # Interpret source pixels at 200 DPI so the printed size is useful;
+                # raw pixel dimensions must never become PDF points.
+                page_width, page_height = image.width * 72 / 200, image.height * 72 / 200
+            else:
+                page_width, page_height = sizes[selected_size]
+                if image.width > image.height:
+                    page_width, page_height = page_height, page_width
+            page = document.new_page(width=page_width, height=page_height)
+            scale = min(page_width / image.width, page_height / image.height)
+            image_width, image_height = image.width * scale, image.height * scale
+            left, top = (page_width - image_width) / 2, (page_height - image_height) / 2
+            image_rect = fitz.Rect(left, top, left + image_width, top + image_height)
+            encoded = io.BytesIO()
+            image.save(encoded, format="JPEG", quality=95)
+            page.insert_image(image_rect, stream=encoded.getvalue())
+        document.save(str(output), garbage=3, deflate=True)
+    finally:
+        document.close()
     return output
 
 

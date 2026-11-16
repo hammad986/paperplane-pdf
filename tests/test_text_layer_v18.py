@@ -53,6 +53,22 @@ def test_page_number_default_includes_total_on_six_page_pdf(tmp_path):
         assert "Page 1 of 6" in output[0].get_text().replace("\u00a0", " ")
 
 
+def test_page_number_literal_ui_template_substitutes_both_tokens(tmp_path):
+    source = tmp_path / "six-page-ui-template.pdf"
+    with fitz.open() as document:
+        for _ in range(6):
+            document.new_page()
+        document.save(source)
+
+    output_path = server.process(
+        "page_numbers", [source], {"format": "Page {n} of {total}"}, tmp_path
+    )
+
+    with fitz.open(output_path) as output:
+        assert "Page 1 of 6" in output[0].get_text().replace("\u00a0", " ")
+        assert "Page 6 of 6" in output[5].get_text().replace("\u00a0", " ")
+
+
 def test_sign_pdf_typed_name_is_visible_and_extractable(tmp_path):
     source = _pdf(tmp_path / "unsigned.pdf")
     output = tmp_path / "signed.pdf"

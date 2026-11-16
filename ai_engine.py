@@ -796,21 +796,24 @@ def test_bluesminds_connectivity() -> dict:
         }
 
     try:
-        answer = _provider_request("Reply with the word connected.", "ping", credentials, timeout_seconds=12)
+        answer, fallback_active = _call_selected_provider_with_status(
+            "Reply with the word connected.", "ping", timeout_seconds=12, max_attempts=2
+        )
         return {
             "status": "inference_succeeded",
             "http_status": 200,
             "message": "AI connected successfully.",
-            "fallback_active": False,
+            "fallback_active": fallback_active,
         }
-    except RuntimeError as error:
+    except Exception as error:
         match = re.search(r"HTTP (\d{3})", str(error))
         status_code = int(match.group(1)) if match else 502
+        safe_message = f"AI provider request failed ({_safe_provider_failure_label(error)})."
         return {
             "status": "connection_error",
             "http_status": status_code,
-            "message": str(error),
-            "advice": str(error),
+            "message": safe_message,
+            "advice": safe_message,
             "fallback_active": False,
         }
 
@@ -840,8 +843,39 @@ def _call_selected_provider(
     timeout_seconds: float | None = None,
     max_attempts: int = 2,
 ) -> str:
+    answer, _ = _call_selected_provider_with_status(
+        system_prompt,
+        user_prompt,
+        model=model,
+        timeout_seconds=timeout_seconds,
+        max_attempts=max_attempts,
+    )
+    return answer
+
+
+def _safe_provider_failure_label(error: BaseException) -> str:
+    """Return useful upstream failure metadata without exposing response bodies or credentials."""
+    statuses = re.findall(r"\bHTTP\s+(\d{3})\b", str(error), re.IGNORECASE)
+    if statuses:
+        unique = list(dict.fromkeys(statuses))
+        return "; ".join(f"upstream HTTP {status}" for status in unique)
+    if re.search(r"timeout|timed out|could not be reached|connection error", str(error), re.IGNORECASE):
+        return "network timeout or connection error"
+    if re.search(r"empty|invalid|structured response", str(error), re.IGNORECASE):
+        return "empty or invalid provider response"
+    return type(error).__name__
+
+
+def _call_selected_provider_with_status(
+    system_prompt: str,
+    user_prompt: str,
+    model: str | None = None,
+    timeout_seconds: float | None = None,
+    max_attempts: int = 2,
+) -> tuple[str, bool]:
+    """Run the selected provider and report whether the configured fallback succeeded."""
     if AI_KILL_SWITCH:
-        return _offline_rag_fallback(system_prompt, user_prompt)
+        return _offline_rag_fallback(system_prompt, user_prompt), False
     credentials = _runtime_ai_config()
     if credentials.get("configuration_error"):
         raise RuntimeError(credentials["configuration_error"])
@@ -853,7 +887,7 @@ def _call_selected_provider(
     try:
         return _provider_request(
             system_prompt, user_prompt, credentials, timeout_seconds=timeout_seconds, max_attempts=max_attempts
-        )
+        ), False
     except Exception as primary_error:
         fallback = credentials.get("fallback")
         if not isinstance(fallback, dict) or not fallback.get("api_key") or not fallback.get("model"):
@@ -862,24 +896,30 @@ def _call_selected_provider(
             "Primary AI provider failed; trying configured fallback provider host=%s",
             urllib.parse.urlsplit(str(fallback.get("base_url", ""))).hostname or "unknown",
         )
-        return _provider_request(
-            system_prompt, user_prompt, fallback, timeout_seconds=timeout_seconds, max_attempts=max_attempts
-        )
+        try:
+            answer = _provider_request(
+                system_prompt, user_prompt, fallback, timeout_seconds=timeout_seconds, max_attempts=max_attempts
+            )
+            return answer, True
+        except Exception as fallback_error:
+            primary_label = _safe_provider_failure_label(primary_error)
+            fallback_label = _safe_provider_failure_label(fallback_error)
+            raise RuntimeError(
+                f"Primary AI provider failed ({primary_label}); configured fallback provider failed ({fallback_label})."
+            ) from fallback_error
 
 
 def _offline_rag_fallback(system_prompt: str, user_prompt: str) -> str:
     """Intelligent local deterministic answer builder (Offline RAG mode)."""
     if "Executive Summary" in system_prompt or "summariz" in system_prompt.lower():
         doc_text = user_prompt.replace("DOCUMENT CONTENT:\n\n", "")
-        pages = doc_text.split("--- Page ")
+        pages = re.split(r"--- Page (\d+) ---", doc_text)
         summary_points = []
-        for p in pages:
-            if not p.strip():
-                continue
-            lines = [l.strip() for l in p.splitlines() if l.strip() and not l.startswith("---")]
-            for l in lines:
-                if len(l) >= 10 and not any(l.startswith(prefix) for prefix in ("---", "Page")) and len(summary_points) < 8:
-                    summary_points.append(l)
+        for index in range(1, len(pages) - 1, 2):
+            number, page_text = pages[index], pages[index + 1]
+            lines = [line.strip() for line in page_text.splitlines() if len(line.strip()) >= 10]
+            if lines:
+                summary_points.append(f"{lines[0][:300]} [Page {number}]")
 
         pts = "\n".join(f"- {pt}" for pt in summary_points) if summary_points else "- General document overview available."
         return (
@@ -1257,10 +1297,10 @@ def summarize_pdf(pdf_path: Path, max_pages: int | None = None) -> str:
                 "Ground each item in the supplied text and preserve its [Page N] citation. Do not invent facts."
             )
             remaining_calls = chunk_count - chunk_index + 1
-            timeout = _bounded_document_timeout(
-                deadline, SUMMARY_CALL_TIMEOUT_SECONDS, remaining_calls=remaining_calls
-            )
             try:
+                timeout = _bounded_document_timeout(
+                    deadline, SUMMARY_CALL_TIMEOUT_SECONDS, remaining_calls=remaining_calls
+                )
                 note = call_llm(system_prompt, chunk_prompt, timeout_seconds=timeout, max_attempts=4).strip()
             except Exception as error:
                 logger.warning("Executive Brief provider failed for pages %d-%d; using local extractive fallback (%s)",
@@ -1276,12 +1316,16 @@ def summarize_pdf(pdf_path: Path, max_pages: int | None = None) -> str:
             "the most useful key takeaways. Preserve source citations from the notes exactly and do not "
             "introduce facts that the notes do not support.\n\n" + "\n\n".join(chunk_notes)
         )
-        timeout = _bounded_document_timeout(deadline, SUMMARY_CALL_TIMEOUT_SECONDS)
         try:
+            if any("Executive Summary (Offline Analysis)" in note for note in chunk_notes):
+                raise RuntimeError("One or more sections used local extraction")
+            timeout = _bounded_document_timeout(deadline, SUMMARY_CALL_TIMEOUT_SECONDS)
             summary = call_llm(system_prompt, final_prompt, timeout_seconds=timeout, max_attempts=4)
+            if not summary.strip() or "Executive Summary (Offline Analysis)" in summary:
+                raise RuntimeError("Synthesis did not produce a provider summary")
         except Exception as error:
             logger.warning("Executive Brief synthesis failed; using local extractive fallback (%s)", type(error).__name__)
-            summary = _offline_rag_fallback(system_prompt, "DOCUMENT CONTENT:\n\n" + "\n\n".join(chunk_notes))
+            summary = "### Executive Brief (section notes)\n\n" + "\n\n".join(chunk_notes)
 
     summary = _guard_ai_output(summary)
     eligible_pages = {page_number for page_number, _ in page_texts}
@@ -2028,6 +2072,17 @@ def translate_pdf_layout(
         if not report_data["blocks_translated"]:
             report_data["fallback_used"] = True
             report_data["warnings"].append("No text blocks were translated.")
+            if batch_failures:
+                failure_labels = list(dict.fromkeys(
+                    _safe_provider_failure_label(RuntimeError(reason))
+                    for _, _, reason in batch_failures
+                ))
+                report_data["failure_class"] = failure_labels
+                failure_summary = "; ".join(failure_labels[:3])
+                raise RuntimeError(
+                    f"Translation failed for all text batches ({failure_summary}). "
+                    "No text was translated; no translated PDF was produced."
+                )
             raise RuntimeError("No text was translated. The translation service did not produce a translated PDF; please retry later.")
         rendered_pdf = output_path.with_name(f"{output_path.stem}_rendered.pdf")
         out_doc.save(str(rendered_pdf), garbage=4, deflate=True)

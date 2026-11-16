@@ -115,6 +115,37 @@ def test_bluesminds_429_retry_honors_bounded_retry_after(monkeypatch):
     sleep.assert_called_once_with(5.0)
 
 
+def test_ai_connection_check_uses_configured_fallback_after_primary_rate_limit(monkeypatch):
+    monkeypatch.setattr(ai_engine, "AI_KILL_SWITCH", False)
+    monkeypatch.setattr(ai_engine, "_runtime_ai_config", lambda: {
+        "provider": "openai_compatible",
+        "base_url": "https://primary.example/v1",
+        "model": "primary-model",
+        "api_key": "primary-test-key",
+        "fallback": {
+            "provider": "openrouter",
+            "base_url": "https://fallback.example/v1",
+            "model": "fallback-model",
+            "api_key": "fallback-test-key",
+        },
+    })
+    calls = []
+
+    def provider_request(_system, _user, credentials, **_kwargs):
+        calls.append(credentials["provider"])
+        if credentials["provider"] == "openai_compatible":
+            raise RuntimeError("AI service returned HTTP 429. Please try again.")
+        return "connected"
+
+    monkeypatch.setattr(ai_engine, "_provider_request", provider_request)
+    result = ai_engine.test_bluesminds_connectivity()
+
+    assert calls == ["openai_compatible", "openrouter"]
+    assert result["status"] == "inference_succeeded"
+    assert result["fallback_active"] is True
+    assert "fallback.example" not in result["message"]
+
+
 def test_hindi_translation_embeds_extractable_devanagari_text(tmp_path, monkeypatch):
     source = tmp_path / "hindi-source.pdf"
     output = tmp_path / "hindi-translated.pdf"
@@ -564,6 +595,29 @@ def test_translation_zero_result_fails_without_emitting_source_disguised_as_tran
     assert "No text blocks were translated" in report["warnings"][-1]
 
 
+def test_translation_reports_upstream_rate_limit_when_all_batches_fail(tmp_path, monkeypatch):
+    import server
+
+    source = tmp_path / "rate-limited-source.pdf"
+    output = tmp_path / "rate-limited-output.pdf"
+    make_pdf(source)
+    monkeypatch.setattr(ai_engine, "AI_KILL_SWITCH", False)
+    monkeypatch.setattr(ai_engine, "_current_bluesminds_api_key", lambda: "configured-test-key")
+
+    def rate_limited(*_args, **_kwargs):
+        raise RuntimeError("Translation provider failed (upstream HTTP 429).")
+
+    monkeypatch.setattr(ai_engine, "_translate_text_batch", rate_limited)
+    report = {}
+    with pytest.raises(RuntimeError, match="upstream HTTP 429") as failure:
+        ai_engine.translate_pdf_layout(source, output, target_lang="es", report=report)
+
+    assert "No text was translated" in str(failure.value)
+    assert report["failure_class"] == ["upstream HTTP 429"]
+    assert server.translation_failure_response(failure.value)[0] == 429
+    assert not output.exists()
+
+
 def test_short_document_chat_uses_full_context_but_keeps_unsupported_queries_uncited(tmp_path, monkeypatch):
     source = tmp_path / "income-certificate.pdf"
     doc = fitz.open()
@@ -643,7 +697,7 @@ def test_ai_chat_and_summarize_endpoints(tmp_path, monkeypatch):
 
     # 2. When BLUESMINDS_API_KEY is present and upstream succeeds -> HTTP 200 with result
     monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "valid-test-key")
-    monkeypatch.setattr(ai_engine, "call_llm", lambda sys, usr, timeout_seconds=None: "October 25, 2026 is the deadline [Page 1].")
+    monkeypatch.setattr(ai_engine, "call_llm", lambda sys, usr, timeout_seconds=None, **kwargs: "October 25, 2026 is the deadline [Page 1].")
 
     with open(pdf_path, "rb") as f:
         res = client.post("/api/ai/chat", data={"question": "What is the deadline?"}, files={"file": ("test.pdf", f, "application/pdf")})

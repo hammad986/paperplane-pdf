@@ -2321,7 +2321,7 @@ function syncClientSideControls() {
   state.clientSideMode = localOnly || (canSwitch && preferLocalProcessing);
   const label = state.operations[state.operation]?.label || 'this tool';
   const help = state.clientSideMode
-    ? label + ' runs in your browser without using your server quota.'
+    ? label + ' runs in your browser; files stay on this device and are not uploaded.'
     : label + ' uploads files for temporary server processing.';
   const sidebarToggle = $('#client-privacy-toggle');
   if (sidebarToggle) {
@@ -2336,7 +2336,7 @@ function syncClientSideControls() {
     settingsToggle.setAttribute('aria-label', 'Prefer local processing for supported PDF tools');
   }
   if ($('#privacy-mode-label')) $('#privacy-mode-label').textContent = state.clientSideMode ? 'Local Processing' : 'Server Processing';
-  if ($('#privacy-mode-support')) $('#privacy-mode-support').textContent = state.clientSideMode ? 'Files stay in your browser' : 'Temporary server processing';
+  if ($('#privacy-mode-support')) $('#privacy-mode-support').textContent = help;
   if ($('#settings-client-privacy-support')) {
     $('#settings-client-privacy-support').textContent = 'Default for Merge, Split, Remove, Rotate, and Page Organizer. Photo tools run in your browser.';
   }
@@ -3522,6 +3522,13 @@ function renderOptions() {
 
   if (state.operation === 'merge') {
     fields += field('password', 'File Password (optional, if any file is encrypted)', 'password', 'Password for protected files');
+  } else if (state.operation === 'scan_pdf') {
+    fields += selectField('page_size', 'PDF page size', [
+      { value: 'a4', label: 'A4 paper (recommended)' },
+      { value: 'letter', label: 'US Letter paper' },
+      { value: 'original', label: 'Original photo size at 200 DPI' }
+    ]);
+    fields += '<small class="option-help option-field-wide">Photos are fitted without stretching. Original size uses 200 DPI; pixel dimensions are not treated as PDF points.</small>';
   } else if (['split', 'remove'].includes(state.operation)) {
     if (state.operation === 'split') {
       const pageCount = state.splitPageCount;

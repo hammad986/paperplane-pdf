@@ -1,4 +1,5 @@
 limit_req_zone $binary_remote_addr zone=paperplane_api:10m rate=30r/s;
+server_tokens off;
 
 # ----------------------------------------------------------------------
 # Compression and transfer performance

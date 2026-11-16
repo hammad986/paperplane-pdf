@@ -3078,7 +3078,7 @@ body.dark-mode .btn-cancel:hover {
   background: rgba(0, 0, 0, 0.85) !important;
   backdrop-filter: blur(8px) !important;
   -webkit-backdrop-filter: blur(8px) !important;
-  z-index: 1000;
+  z-index: 2000;
   display: grid;
   place-items: center;
   padding: 24px;
@@ -9789,66 +9789,11 @@ html.footer-revealed .app-global-footer { visibility: visible; opacity: 1; point
   .sidebar-sticky-footer #quota-container .quota-label-row > * { min-width: 0; white-space: nowrap; }
 }
 
-/* Tablets retain the two-column workspace and narrow desktop navigation. */
-@media (min-width: 768px) and (max-width: 900px) {
-  #app-shell, #app-shell.sidebar-collapsed, #app-shell.studio-active, #app-shell.ai-active {
-    display: grid !important;
-    grid-template-columns: minmax(210px, 220px) minmax(0, 1fr) !important;
-    width: 100% !important;
-    height: 100dvh !important;
-    min-height: 0 !important;
-    overflow: hidden !important;
-    padding: 0 !important;
-  }
-  #app-shell.sidebar-collapsed { grid-template-columns: 76px minmax(0, 1fr) !important; }
-  #sidebar, #app-shell .sidebar {
-    display: flex !important;
-    position: sticky !important;
-    inset: 0 auto auto 0 !important;
-    width: auto !important;
-    height: 100dvh !important;
-    max-height: 100dvh !important;
-    transform: none !important;
-    transition: none !important;
-    z-index: 40 !important;
-  }
-  #app-shell .sidebar.mobile-open { left: auto !important; }
-  #app-shell .main-area, #app-shell .main-area.studio-active, #app-shell.ai-active .main-area {
-    display: flex !important;
-    flex-direction: column !important;
-    width: auto !important;
-    max-width: none !important;
-    height: 100dvh !important;
-    min-height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-  }
-  #app-shell .mobile-menu-btn, #app-shell .mobile-brand, #app-shell .mobile-view-pill { display: none !important; }
-  .mobile-workspace-bar { display: none !important; }
-  #app-shell .topbar { position: sticky !important; top: 0 !important; flex: 0 0 64px !important; min-width: 0; padding-inline: 12px !important; }
-  #app-shell .topbar-left, #app-shell .topbar-right { min-width: 0; gap: 8px; }
-  #app-shell .dynamic-workspace, #app-shell .studio-active .dynamic-workspace {
-    flex: 1 0 auto !important;
-    width: 100% !important;
-    max-width: none !important;
-    height: auto !important;
-    min-height: 0 !important;
-    margin: 0 !important;
-    padding: 18px 14px 32px !important;
-    overflow: visible !important;
-    box-sizing: border-box !important;
-  }
-  #app-shell .app-global-footer { display: flex !important; margin: 24px 14px 0 !important; }
-  #app-shell.studio-active .main-area { overflow-y: auto !important; }
-}
-
 @media (max-width: 767px) {
   .mobile-nav-btn { font-size: 11px !important; line-height: 1.15; }
   .result-actions { display: flex; flex-wrap: wrap; gap: 8px; }
   .result-actions > * { flex: 1 1 140px; min-width: 0; max-width: 100%; box-sizing: border-box; justify-content: center; white-space: normal; text-align: center; }
-  .toast-notice { bottom: calc(86px + env(safe-area-inset-bottom, 0px)) !important; z-index: 1101 !important; }
+  .toast-notice { bottom: calc(86px + env(safe-area-inset-bottom, 0px)) !important; z-index: 1990 !important; }
   .settings-modal-card {
     width: min(96vw, 620px) !important;
     max-width: 96vw !important;
@@ -9993,8 +9938,11 @@ body.dark-mode .adsense-banner-container {
   border-radius: 10px;
 }
 .workspace-inline-panel > .modal-card {
-  width: 100%;
-  max-width: none;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0;
+  flex-basis: auto;
+  box-sizing: border-box;
   max-height: none;
   margin: 20px 0;
   overflow: visible;
@@ -10036,3 +9984,34 @@ h1, h2, h3, .tool-hero-title { word-spacing: .08em; }
 @media (max-width: 480px) {
   .workspace-inline-panel .pricing-tiers-grid { grid-template-columns: minmax(0, 1fr) !important; }
 }
+
+/* Layouts follow available space on phones and tablets; dialogs stay usable
+   with the software keyboard open and long labels wrap inside their controls. */
+@media (max-width: 900px) {
+  .settings-modal-card .settings-layout { flex-direction: column; min-width: 0; }
+  .settings-modal-card .settings-tabs {
+    flex: 0 0 auto; width: 100%; box-sizing: border-box;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
+    padding: 10px; gap: 6px;
+  }
+  .settings-modal-card .settings-content { min-width: 0; width: 100%; box-sizing: border-box; padding: 16px; }
+  .workspace-inline-panel > .settings-modal-card { height: auto !important; max-height: none !important; }
+}
+.modal-backdrop > .editor-sig-modal-card,
+.modal-backdrop > .sign-modal-card,
+.modal-backdrop > .security-modal-card {
+  box-sizing: border-box;
+  width: min(600px, calc(100% - 24px));
+  min-width: 0;
+  max-width: calc(100% - 24px);
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.editor-sig-tabs, .editor-sig-footer, .editor-sig-footer > div { flex-wrap: wrap; gap: 8px; }
+.editor-sig-tab-btn { min-width: 0; white-space: normal; flex: 1 1 120px; }
+.editor-sig-canvas { display: block; box-sizing: border-box; }
+.editor-sig-modal-card .modal-header > div,
+.sign-modal-card .modal-header > div,
+.security-modal-card .modal-header > div { min-width: 0; overflow-wrap: anywhere; }
+.modal-close { flex-shrink: 0; }

@@ -1,0 +1,179 @@
+[
+  {
+    "operation": "merge",
+    "inputs": [
+      "public-sample-5p.pdf",
+      "public-sample-5p.pdf"
+    ],
+    "http": 200,
+    "job_id": "06ebb751cd66492abfa6b2b1e8a8dc89",
+    "status": "completed",
+    "download": 200,
+    "output": "reports\\launch-audit-v21\\live-downloads\\merge\\merged-PDF.pdf",
+    "bytes": 1045029,
+    "signature": "255044462d312e350a25e2e3",
+    "content": {
+      "pages": 10,
+      "text_chars": 70944,
+      "first_text": "A Vision on Open Science for the Evolution of Software\nEngineering Research and Practice\nEdson OliveiraJr\nState University of Maringá\nMaring"
+    },
+    "content_checked": true,
+    "seconds": 10.04
+  },
+  {
+    "operation": "split",
+    "inputs": [
+      "public-sample-5p.pdf"
+    ],
+    "http": 200,
+    "job_id": "f4bd3e09fee149df8f9cfa0008225639",
+    "status": "completed",
+    "download": 200,
+    "output": "reports\\launch-audit-v21\\live-downloads\\split\\public-sample-5p_split.pdf",
+    "bytes": 473848,
+    "signature": "255044462d312e350a25e2e3",
+    "content": {
+      "pages": 2,
+      "text_chars": 11959,
+      "first_text": "A Vision on Open Science for the Evolution of Software\nEngineering Research and Practice\nEdson OliveiraJr\nState University of Maringá\nMaring"
+    },
+    "content_checked": true,
+    "seconds": 6.11
+  },
+  {
+    "operation": "rotate",
+    "inputs": [
+      "public-sample-5p.pdf"
+    ],
+    "http": 200,
+    "job_id": "12739c9e06d346baa850ca45e61a05d9",
+    "status": "completed",
+    "download": 200,
+    "output": "reports\\launch-audit-v21\\live-downloads\\rotate\\public-sample-5p_rotate.pdf",
+    "bytes": 525263,
+    "signature": "255044462d312e350a25e2e3",
+    "content": {
+      "pages": 5,
+      "text_chars": 35472,
+      "first_text": "A Vision on Open Science for the Evolution of Software\nEngineering Research and Practice\nEdson OliveiraJr\nState University of Maringá\nMaring"
+    },
+    "content_checked": true,
+    "seconds": 5.35
+  },
+  {
+    "operation": "compress",
+    "inputs": [
+      "public-sample-5p.pdf"
+    ],
+    "http": 200,
+    "job_id": "250a895235064757a86ae48b2a7a20d4",
+    "status": "completed",
+    "download": 200,
+    "output": "reports\\launch-audit-v21\\live-downloads\\compress\\public-sample-5p_compress.pdf",
+    "bytes": 558897,
+    "signature": "255044462d312e350a25c2b5",
+    "content": {
+      "pages": 5,
+      "text_chars": 35472,
+      "first_text": "A Vision on Open Science for the Evolution of Software\nEngineering Research and Practice\nEdson OliveiraJr\nState University of Maringá\nMaring"
+    },
+    "content_checked": true,
+    "seconds": 5.53
+  },
+  {
+    "operation": "pdf_to_text",
+    "inputs": [
+      "public-sample-5p.pdf"
+    ],
+    "http": 200,
+    "job_id": "5778db219122497789fa548e7a53fc2d",
+    "status": "completed",
+    "download": 200,
+    "output": "reports\\launch-audit-v21\\live-downloads\\pdf_to_text\\public-sample-5p_pdf_to_text.txt",
+    "bytes": 35675,
+    "signature": "2d2d2d20506167652031202d",
+    "content_checked": true,
+    "seconds": 4.43
+  },
+  {
+    "operation": "pdf_to_word",
+    "inputs": [
+      "public-sample-5p.pdf"
+    ],
+    "http": 200,
+    "job_id": "a33d6bc0a2154156b62610ffe00c342c",
+    "status": "completed",
+    "download": 200,
+    "output": "reports\\launch-audit-v21\\live-downloads\\pdf_to_word\\public-sample-5p_pdf_to_word.docx",
+    "bytes": 50623,
+    "signature": "504b0304140000000800f22a",
+    "content": {
+      "paragraphs": [
+        "A Vision on Open Science for the Evolution of Software\nEngineering Research and Practice\nEdson OliveiraJr\nState University of Maringá\nMaringá, Brazil\nedson@din.uem.br\nFernanda Madeiral\nVrije Universiteit Amsterdam\nAmsterdam, Netherlands\nfer.madeiral@gmail.com\nAlcemir Rodrigues Santos\nState University of Piauí\nPiripiri, Brazil\nalcemir@prp.uespi.br\nChristina von Flach\nFederal University of Bahia\nSalvador, Brazil\nflach@ufba.br\nSergio Soares\nFederal University of Pernambuco\nRecife, Brazil\nscbs@cin.ufpe.br\nABSTRACT\nOpen Science aims to foster openness and collaboration in research,\nleading to more significant scientific and social impact. However,\npracticing Open Science comes with several challenges and is cur-\nrently not properly rewarded. In this paper, we share our vision\nfor addressing those challenges through a conceptual framework\nthat connects essential building blocks for a change in the Soft-\nware Engineering community, both culturally and technically. The\nidea behind this framework is that Open Science is treated as a\nfirst-class requirement for better Software Engineering research,\npractice, recognition, and relevant social impact. There is a long\nroad for us, as a community, to truly embrace and gain from the\nbenefits of Open Science. Nevertheless, we shed light on the direc-\ntions for promoting the necessary culture shift and empowering\nthe Software Engineering community.\nCCS CONCEPTS\n• Software and its engineering;\nKEYWORDS\nOpen Science, artifacts, research software, education, culture shift\nACM Reference Format:\nEdson OliveiraJr, Fernanda Madeiral, Alcemir Rodrigues Santos, Christina\nvon Flach, and Sergio Soares. 2024. A Vision on Open Science for the Evolu-\ntion of Software Engineering Research and Practice. In Companion Proceed-\nings of the 32nd ACM International Conference on the Foundations of Software\nEngineering (FSE Companion ’24), July 15–19, 2024, Porto de Galinhas, Brazil.\nACM, New York, NY, USA, 5 pages. https://doi.org/10.1145/3663529.3663788\n1\nINTRODUCTION\nIn the 21st century, the Open Science movement is a significant\nparadigmatic transformation entailing a systemic change in sci-\nence and research in all disciplines. It designates the practice of\nPermission to make digital or hard copies of all or part of this work for personal or\nclassroom use is granted without fee provided that copies are not made or distributed\nfor profit or commercial advantage and that copies bear this notice and the full citation\non the first page. Copyrights for components of this work owned by others than the\nauthor(s) must be honored. Abstracting with credit is permitted. To copy otherwise, or\nrepublish, to post on servers or to redistribute to lists, requires prior specific permission\nand/or a fee. Request permissions from permissions@acm.org.\nFSE Companion ’24, July 15–19, 2024, Porto de Galinhas, Brazil\n© 2024 Copyright held by the owner/author(s). Publication rights licensed to ACM.\nACM ISBN 979-8-4007-0658-5/24/07\nhttps://doi.org/10.1145/3663529.3663788\nscience in a way that (i) others can collaborate and contribute,\nand (ii) publications, data, software, and other research artifacts\nare made available, reusable, and reproducible [25, 38]. In addi-\ntion, Open Science practices combat fraud and improve research\nrigorousness [37].\nHowever, as many significant transformations and innovations in\nthe history of science had to deal with multiple challenges and bar-\nriers [26], Open Science benefits also come with their own. Bartling\nand Friesike [3] defined the transition towards Open Science as a\ncomplex cultural change, and Guzzo et al. [17] stressed some incom-\npatibilities between Open Science principles and scientific progress\nthrough applied research. This suggests no straightforward recipe\nfor embracing Open Science, but a series of actions should be taken.\nIn Software Engineering, there has been some discussion about\nOpen Science. For instance, Mendez et al. [24] discuss Open Science\npractices, e.g., open materials and registered reports, and how the\nEmpirical Software Engineering community can adopt them. With\nregard to education and training, researchers and representatives\nfor research laboratories and funding agencies have joined meetings\nand workshops to discuss the need for Research Software Engineers\nand possible actions [21, 39, 42].\nAlthough preliminary discussion exists in the literature, it still\nlacks an answer to the question: “How can our Software Engineering\ncommunity adopt the Open Science movement?” [24]. Researchers\ncan no longer ignore or treat Open Science issues as incidental\nbut adopt them as a first-class research requirement. For instance,\nseveral universities are currently restructuring their research ca-\nreer assessment process, shifting careers from a paper-based model\nto a social-contribution-based one [5]. Such a change comes with\nOpen Science principles and practices attached [26], and Software\nEngineering researchers will increasingly need to work their way\ntoward putting those into practice. Accordingly, research artifacts\nare present in any research project and should, therefore, be recog-\nnized, evaluated, and published together with the associated papers\nfor the sake of Open Science.\nIn this paper, we share our reflections and visions about Open\nScience, with a focus on research artifacts, as an attempt to structure\nfuture research to answer Mendez et al. [24]’s question. Artifacts\nare the backbone of research projects and, consequently, of research\npapers. Although creating and sharing reusable research artifacts\nis challenging, they allow transparency, replications, and reuse in\nnew research projects, making it possible for a research community\narXiv:2405.12132v1  [cs.SE]  20 May 2024",
+        "FSE Companion ’24, July 15–19, 2024, Porto de Galinhas, Brazil\nEdson OliveiraJr, Fernanda Madeiral, Alcemir Rodrigues Santos, Christina von Flach, and Sergio Soares\nto mature. We present our vision as a framework relating actions\nthat should be taken toward Open Science in Software Engineering.\n2\nOUR VISION\nFigure 1 shows an overview of our vision for addressing the chal-\nlenges in adopting Open Science practices, where building blocks\nthat support each other are connected. First, the modern Software\nEngineering research career has to rely on Open Science principles\nand practices in its recognition and reward system [19]. Research\nartifacts should be considered as a part of research publication, just\nlike papers are. Moreover, research software should be accompa-\nnied by infrastructure-as-code to improve the Empirical Software\nEngineering practice, as well as to support artifact evaluation dur-\ning paper or artifact review. To realize those, we need to address\nOpen Science education and training so that the research community\nfollows Open Science principles by design [26] in their research.\nFinally, Open Science tooling is required to support researchers with\nseveral tasks in several contexts. We elaborate on each building\nblock in the following sections.\nrequires\nOpen Science Education and Training\nOpen Science\nEducation by Design\nResearch Software\nEngineers\nOpen Science 101\nResearch Software\nEducation and\nTraining\nRecognition and Reward System\nValuing Artifacts in the Science Ecosystem\nResearcher Assessment\nOpen Science\nTooling\nrequires\nuses\nuses\nuses\nuses\nrequires\nResearch Publication\nsupports\nInfrastructure-as-Code\nfor Research Software\nPaper Review\nArtifact\nEvaluation\nTracks\nuses\nEmpirical Software Engineering\nRegistered\nReports\nWidely Evidence\nDissemination\nSustainability\nReproducibility\nbuilds upon\nbuilds upon\nFigure 1: Our vision on Open Science for Software Engineer-\ning research and practice.\n2.1\nRecognition and Reward System\nPublished papers and citations are the coins to pay for the re-\nsearchers’ work [19]. However, source code, curated datasets, evi-\ndence briefings, and research software all have value in the construc-\ntion of Software Engineering knowledge. Preparing and sharing\nthem is challenging and time-consuming, which might be seen as\nnot worth it if such an effort is not properly recognized and re-\nwarded. Therefore, we need more space to produce, cite, and get\nrecognition from different types of research artifacts. We argue that\nsuch recognition should go beyond paper badging through Arti-\nfact Evaluation Tracks, which is how researchers get some reward\nfor producing and sharing good artifacts. In our vision, artifacts\nshould be valued in the science ecosystem, and researchers should\nbe assessed by taking their Open Science practices into account.\n2.1.1\nValuing Artifacts in the Science Ecosystem. Research software\nexists in many kinds of research due to the need for automated\ndata analyses. In Software Engineering, it is also often the case\nof prototypes that serve as proof for proposed approaches that\nwould ideally be used by developers in the industry. Sharing them\nis important for scientific advancement because several research\nprojects rely on research software from previous work. However,\nthey end up hidden in the results of a research publication. This is\nbecause research papers are the ultimate concrete object consid-\nered as the result of a research project. Research software and other\nartifacts, on the other hand, are not. Because of their importance,\nbeyond software citation [22], there should exist additional mech-\nanisms for recognizing and valuing research software and other\nartifacts in the science ecosystem, e.g., a Google Scholar for research\nsoftware, other artifacts, and open reviews with blockchain-based\ntoken rewards [36].\n2.1.2\nResearcher Assessment. Any assessment of researchers, e.g.,\nPh.D. evaluation for obtaining the degree, hiring processes, and\ncareer assessment for promotions [9], considers publications but\nrarely research artifacts. Preparing and sharing research software\nis challenging and time-consuming, and researchers might neglect\nit due to a lack of recognition and reward. While researcher as-\nsessment is mainly done over publications, Open Science practices\nhave started to be required by funding agencies, e.g., in the Nether-\nlands [5]. This is due to initiatives for more research openness and\nsustainable software, which should be expanded in all events as-\nsessing researchers. The adoption of Open Science principles and\npractices in Software Engineering research may change incentive\nand reward systems [19, 20], promoting balanced recognition of\npapers and research artifacts.\n2.2\nResearch Publication\nResearch papers are the main, and sometimes only, concrete out-\ncome of a research project. This is how research has been published\nand disseminated. However, research artifacts are part of any re-\nsearch project and, therefore, should be published together with\nthe associated papers for the sake of Open Science.\n2.2.1\nPaper Review. Researchers submit their papers to journals\nand conferences, which are evaluated based on a series of criteria.\nThese criteria usually include relevance, novelty, soundness, and\nclarity. However, compliance with Open Science policies is often\nneglected. Even though some conferences have defined evaluation\ncriteria for verifiability and transparency, artifact evaluation is still\noptional. For instance, the call for papers for the ICSE 2024 research\ntrack includes the following criteria: “Verifiability and Transparency:\nThe extent to which the paper includes sufficient information to under-\nstand how an innovation works; to understand how data was obtained,\nanalyzed, and interpreted; and how the paper supports independent\nverification or replication of the paper’s claimed contributions. Any\nartifacts attached to or linked from the paper may be checked by one\nreviewer”. Moreover, although one reviewer may check artifacts,\nacceptance is not conditional to artifact sharing. In our vision, arti-\nfact sharing, or a compelling justification for not doing so, should\nbe a requirement for acceptance, independent of other reviewing",
+        "A Vision on Open Science for the Evolution of Software Engineering Research and Practice\nFSE Companion ’24, July 15–19, 2024, Porto de Galinhas, Brazil\ncriteria. If not enforced, changing the current practice will be diffi-\ncult because researchers will naturally prefer to focus their time on\nother activities than on an optional task.\n2.2.2\nArtifact Evaluation Tracks. Artifact Evaluation Tracks call for\nsubmissions of artifacts produced for already accepted papers. The\ncalls include a set of badges that are supposed to stamp papers indi-\ncating the availability or quality of the artifacts related to the papers.\nResearchers submit artifacts claiming for specific badges, which\nare evaluated according to the reward criteria. Even though paper\nbadging is the current way researchers are rewarded for producing\nand sharing good research artifacts, the existence of Artifact Evalu-\nation Tracks also means that creating and sharing reusable artifacts\nis not the default expected outcome from researchers. This does\nnot comply with the idea of the Open Science movement. There-\nfore, artifact evaluation should be either directly incorporated in\nthe paper reviewing process (when the community has the proper\nresources for that, see Section 2.4 and Section 2.6), or should exist\nonly for advanced recognition (e.g., for the ACM “Results Validated”\nbadges [1]).\n2.3\nEmpirical Software Engineering\nEmpirical Software Engineering has played a central role in the last\ndecades as an effective way to provide reliable evidence for various\nresearch topics. However, such studies have not practically evolved\nconcerning reproducibility, transparency, and openness [16]. Open\nScience practices and principles might contribute to effectively\nevolving Software Engineering empirical studies in the following\nfour perspectives.\n2.3.1\nReproducibility. The reproducibility of empirical studies might\nbe reached by defining open data life cycles and providing a detailed\ndescription of artifact provenance, preservation, and curation. Such\nOpen Science characteristics make empirical studies able to be au-\ndited and reproducible, thus allowing one to understand the whole\ndata and artifacts cycle, provenance, and prospective traceability\nof evidence [6, 11, 12, 27, 31, 32]. Open replication packages also\ncontribute to reproducibility. They should include all analyzed data\n(open data), research software (e.g., scripts), workflows, and other\nresearch artifacts necessary to comprehend and run the study. In\naddition, they should follow the FAIR [41] principles for findable,\naccessible, interoperable, and reusable data. Provenance techniques\nmust support such packages to guarantee their traceability over\ntime, derivation, and manipulation techniques that might affect\nprevious and prospective studies and curation procedures.\n2.3.2\nSustainability. As the research evolves, new replication pack-\nages are made available, thus demanding preservation techniques\naimed at keeping data and other artifacts conserved and maintained.\nIn addition, such techniques must consider policies for Green Com-\nputing [30] most related to energy consumption to the long-term\nkeeping of artifacts deposited in repositories.\n2.3.3\nRegistered Reports. Registered reports are essential for rig-\norous empirical research. They contribute to avoiding misconduct\nand planning to deviate by establishing a peer-reviewed protocol\nbefore an empirical study is conducted [26]. Although they are little\nexplored in the Software Engineering literature [14], they repre-\nsent a way of putting Open Science into practice by, for instance,\ndemanding them for artifacts provenance and preservation, encom-\npassing a Data Management Plan (DMP) for peer reviewing of such\nreport, thus a fair operation.\n2.3.4\nWidely Evidence Dissemination. Most empirical studies in\nSoftware Engineering lack proper dissemination of their findings,\nespecially their artifacts. Finding documented study protocols or\neven their data for reproducibility is not trivial. Therefore, open\nempirical portals might effectively aid researchers and practitioners\nin localizing such artifacts. Such portals must encompass formal\ndescriptions of empirical studies from ontologies, for instance, with\nproper metadata, as well as implementing features to facilitate\nusers to perform Open Science practices such as provenance and\ncuration [12]. These portals might integrate with open repositories\nsuch as Zenodo or FigShare via APIs to deposit large artifacts and\nreceive a unique identification as a DOI [35].\n2.4\nInfrastructure-as-Code for Research\nSoftware\nResearch software supports studies reported in scientific papers [8].\nSeveral kinds of studies that build upon previous research, e.g.,\nreplications and empirical comparisons, would require access to\nresearch software produced in previous research, as well as clear\nand complete documentation to properly execute it. However, shar-\ning reusable research software is challenging due to its dynamic\nnature [40]. Sharing also involves knowledge about several steps\nto execute and operate software, such as installation and config-\nuration, a challenge also faced by professionals who develop or\noperate software systems in the industry.\nEven if authors can make research software available with proper\ndocumentation, it might be challenging for researchers to follow\nall the instructions to execute it and reproduce results. As with\nreplications and reuse of software in new research projects, artifact\nevaluation also requires executing research software, depending on\nthe artifact kind. This comes with additional challenges, including\nthe lack of knowledge from reviewers on the research software, the\npotential need for familiarity with the research topic it belongs to,\nand limited time to read a full paper and execute many steps to\nverify if the software produces what it should.\nIn our vision, researchers should make research software avail-\nable accompanied by infrastructure-as-code. Infrastructure-as-code\nis the practice of preparing an infrastructure for running a software\nsystem by means of executable code. In such a format, whoever\nruns the software system would not need to read and understand\ndocumentation and then manually create and prepare the infras-\ntructure. Instead, a script would do this task, allowing the successful\nexecution of research software in an easier way. In combination\nwith automated pipelines, if research software is made available\nwith infrastructure-as-code, one could execute one single command\nthat would result in a table or figure reported in a paper, for instance.\nSuch a feature would make reproducing results and evaluating arti-\nfacts so easy that paper-related tracks could incorporate Artifact\nEvaluation as a criterion for accepting a paper."
+      ]
+    },
+    "content_checked": true,
+    "seconds": 4.95
+  },
+  {
+    "operation": "word_to_pdf",
+    "inputs": [
+      "live-fixture.docx"
+    ],
+    "http": 200,
+    "job_id": "4de5a8f39d684694a32ebb208affebcb",
+    "status": "completed",
+    "download": 200,
+    "output": "reports\\launch-audit-v21\\live-downloads\\word_to_pdf\\live-fixture_word_to_pdf.pdf",
+    "bytes": 18868,
+    "signature": "255044462d312e370a25c3a4",
+    "content": {
+      "pages": 1,
+      "text_chars": 108,
+      "first_text": "Paperplane live upload smoke \ntest\nThis synthetic public audit fixture verifies DOCX upload and conversion.\n"
+    },
+    "content_checked": true,
+    "seconds": 5.07
+  },
+  {
+    "operation": "scan_pdf",
+    "inputs": [
+      "live-fixture.png"
+    ],
+    "status": "exception",
+    "error": "Error('Page.evaluate: SyntaxError: Unexpected token \\'<\\', \"<html>\\r\\n<h\"... is not valid JSON')",
+    "seconds": 8.04
+  },
+  {
+    "operation": "ai_extract",
+    "inputs": [
+      "public-sample-5p.pdf"
+    ],
+    "http": 200,
+    "job_id": "b347075a1ab4498c85c9f0ad5e3c4236",
+    "status": "completed",
+    "download": 200,
+    "output": "reports\\launch-audit-v21\\live-downloads\\ai_extract\\public-sample-5p_ai_extract.json",
+    "bytes": 1873,
+    "signature": "7b0a202022646f63756d656e",
+    "content_checked": true,
+    "seconds": 15.69
+  },
+  {
+    "operation": "summarize",
+    "inputs": [
+      "public-sample-5p.pdf"
+    ],
+    "http": 200,
+    "job_id": "1f3fdd0d4ed94ccca242f3e40ddb4df9",
+    "status": "completed",
+    "download": 200,
+    "output": "reports\\launch-audit-v21\\live-downloads\\summarize\\public-sample-5p_summarize.txt",
+    "bytes": 2401,
+    "signature": "2a2a45786563757469766520",
+    "content_checked": true,
+    "seconds": 39.98
+  }
+]

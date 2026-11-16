@@ -82,6 +82,7 @@ def init_db() -> None:
                 status TEXT NOT NULL,
                 progress INTEGER NOT NULL DEFAULT 0,
                 error TEXT,
+                warning TEXT,
                 output_name TEXT,
                 output_size INTEGER,
                 created_at REAL NOT NULL,
@@ -239,6 +240,10 @@ def init_db() -> None:
                 pass
         try:
             connection.execute("ALTER TABLE jobs ADD COLUMN guest_token TEXT")
+        except sqlite3.OperationalError:
+            pass
+        try:
+            connection.execute("ALTER TABLE jobs ADD COLUMN warning TEXT")
         except sqlite3.OperationalError:
             pass
 
@@ -1072,7 +1077,7 @@ def update_job(job_id: str, **values) -> None:
     allowed = {
         key: value
         for key, value in values.items()
-        if key in {"status", "progress", "error", "output_name", "output_size"}
+        if key in {"status", "progress", "error", "warning", "output_name", "output_size"}
     }
     if not allowed:
         return

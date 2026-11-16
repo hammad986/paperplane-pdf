@@ -1,0 +1,649 @@
+--- Page 1 ---
+A Vision on Open Science for the Evolution of Software
+Engineering Research and Practice
+Edson OliveiraJr
+State University of Maringá
+Maringá, Brazil
+edson@din.uem.br
+Fernanda Madeiral
+Vrije Universiteit Amsterdam
+Amsterdam, Netherlands
+fer.madeiral@gmail.com
+Alcemir Rodrigues Santos
+State University of Piauí
+Piripiri, Brazil
+alcemir@prp.uespi.br
+Christina von Flach
+Federal University of Bahia
+Salvador, Brazil
+flach@ufba.br
+Sergio Soares
+Federal University of Pernambuco
+Recife, Brazil
+scbs@cin.ufpe.br
+ABSTRACT
+Open Science aims to foster openness and collaboration in research,
+leading to more significant scientific and social impact. However,
+practicing Open Science comes with several challenges and is cur-
+rently not properly rewarded. In this paper, we share our vision
+for addressing those challenges through a conceptual framework
+that connects essential building blocks for a change in the Soft-
+ware Engineering community, both culturally and technically. The
+idea behind this framework is that Open Science is treated as a
+first-class requirement for better Software Engineering research,
+practice, recognition, and relevant social impact. There is a long
+road for us, as a community, to truly embrace and gain from the
+benefits of Open Science. Nevertheless, we shed light on the direc-
+tions for promoting the necessary culture shift and empowering
+the Software Engineering community.
+CCS CONCEPTS
+• Software and its engineering;
+KEYWORDS
+Open Science, artifacts, research software, education, culture shift
+ACM Reference Format:
+Edson OliveiraJr, Fernanda Madeiral, Alcemir Rodrigues Santos, Christina
+von Flach, and Sergio Soares. 2024. A Vision on Open Science for the Evolu-
+tion of Software Engineering Research and Practice. In Companion Proceed-
+ings of the 32nd ACM International Conference on the Foundations of Software
+Engineering (FSE Companion ’24), July 15–19, 2024, Porto de Galinhas, Brazil.
+ACM, New York, NY, USA, 5 pages. https://doi.org/10.1145/3663529.3663788
+1
+INTRODUCTION
+In the 21st century, the Open Science movement is a significant
+paradigmatic transformation entailing a systemic change in sci-
+ence and research in all disciplines. It designates the practice of
+Permission to make digital or hard copies of all or part of this work for personal or
+classroom use is granted without fee provided that copies are not made or distributed
+for profit or commercial advantage and that copies bear this notice and the full citation
+on the first page. Copyrights for components of this work owned by others than the
+author(s) must be honored. Abstracting with credit is permitted. To copy otherwise, or
+republish, to post on servers or to redistribute to lists, requires prior specific permission
+and/or a fee. Request permissions from permissions@acm.org.
+FSE Companion ’24, July 15–19, 2024, Porto de Galinhas, Brazil
+© 2024 Copyright held by the owner/author(s). Publication rights licensed to ACM.
+ACM ISBN 979-8-4007-0658-5/24/07
+https://doi.org/10.1145/3663529.3663788
+science in a way that (i) others can collaborate and contribute,
+and (ii) publications, data, software, and other research artifacts
+are made available, reusable, and reproducible [25, 38]. In addi-
+tion, Open Science practices combat fraud and improve research
+rigorousness [37].
+However, as many significant transformations and innovations in
+the history of science had to deal with multiple challenges and bar-
+riers [26], Open Science benefits also come with their own. Bartling
+and Friesike [3] defined the transition towards Open Science as a
+complex cultural change, and Guzzo et al. [17] stressed some incom-
+patibilities between Open Science principles and scientific progress
+through applied research. This suggests no straightforward recipe
+for embracing Open Science, but a series of actions should be taken.
+In Software Engineering, there has been some discussion about
+Open Science. For instance, Mendez et al. [24] discuss Open Science
+practices, e.g., open materials and registered reports, and how the
+Empirical Software Engineering community can adopt them. With
+regard to education and training, researchers and representatives
+for research laboratories and funding agencies have joined meetings
+and workshops to discuss the need for Research Software Engineers
+and possible actions [21, 39, 42].
+Although preliminary discussion exists in the literature, it still
+lacks an answer to the question: “How can our Software Engineering
+community adopt the Open Science movement?” [24]. Researchers
+can no longer ignore or treat Open Science issues as incidental
+but adopt them as a first-class research requirement. For instance,
+several universities are currently restructuring their research ca-
+reer assessment process, shifting careers from a paper-based model
+to a social-contribution-based one [5]. Such a change comes with
+Open Science principles and practices attached [26], and Software
+Engineering researchers will increasingly need to work their way
+toward putting those into practice. Accordingly, research artifacts
+are present in any research project and should, therefore, be recog-
+nized, evaluated, and published together with the associated papers
+for the sake of Open Science.
+In this paper, we share our reflections and visions about Open
+Science, with a focus on research artifacts, as an attempt to structure
+future research to answer Mendez et al. [24]’s question. Artifacts
+are the backbone of research projects and, consequently, of research
+papers. Although creating and sharing reusable research artifacts
+is challenging, they allow transparency, replications, and reuse in
+new research projects, making it possible for a research community
+arXiv:2405.12132v1  [cs.SE]  20 May 2024
+
+--- Page 2 ---
+FSE Companion ’24, July 15–19, 2024, Porto de Galinhas, Brazil
+Edson OliveiraJr, Fernanda Madeiral, Alcemir Rodrigues Santos, Christina von Flach, and Sergio Soares
+to mature. We present our vision as a framework relating actions
+that should be taken toward Open Science in Software Engineering.
+2
+OUR VISION
+Figure 1 shows an overview of our vision for addressing the chal-
+lenges in adopting Open Science practices, where building blocks
+that support each other are connected. First, the modern Software
+Engineering research career has to rely on Open Science principles
+and practices in its recognition and reward system [19]. Research
+artifacts should be considered as a part of research publication, just
+like papers are. Moreover, research software should be accompa-
+nied by infrastructure-as-code to improve the Empirical Software
+Engineering practice, as well as to support artifact evaluation dur-
+ing paper or artifact review. To realize those, we need to address
+Open Science education and training so that the research community
+follows Open Science principles by design [26] in their research.
+Finally, Open Science tooling is required to support researchers with
+several tasks in several contexts. We elaborate on each building
+block in the following sections.
+requires
+Open Science Education and Training
+Open Science
+Education by Design
+Research Software
+Engineers
+Open Science 101
+Research Software
+Education and
+Training
+Recognition and Reward System
+Valuing Artifacts in the Science Ecosystem
+Researcher Assessment
+Open Science
+Tooling
+requires
+uses
+uses
+uses
+uses
+requires
+Research Publication
+supports
+Infrastructure-as-Code
+for Research Software
+Paper Review
+Artifact
+Evaluation
+Tracks
+uses
+Empirical Software Engineering
+Registered
+Reports
+Widely Evidence
+Dissemination
+Sustainability
+Reproducibility
+builds upon
+builds upon
+Figure 1: Our vision on Open Science for Software Engineer-
+ing research and practice.
+2.1
+Recognition and Reward System
+Published papers and citations are the coins to pay for the re-
+searchers’ work [19]. However, source code, curated datasets, evi-
+dence briefings, and research software all have value in the construc-
+tion of Software Engineering knowledge. Preparing and sharing
+them is challenging and time-consuming, which might be seen as
+not worth it if such an effort is not properly recognized and re-
+warded. Therefore, we need more space to produce, cite, and get
+recognition from different types of research artifacts. We argue that
+such recognition should go beyond paper badging through Arti-
+fact Evaluation Tracks, which is how researchers get some reward
+for producing and sharing good artifacts. In our vision, artifacts
+should be valued in the science ecosystem, and researchers should
+be assessed by taking their Open Science practices into account.
+2.1.1
+Valuing Artifacts in the Science Ecosystem. Research software
+exists in many kinds of research due to the need for automated
+data analyses. In Software Engineering, it is also often the case
+of prototypes that serve as proof for proposed approaches that
+would ideally be used by developers in the industry. Sharing them
+is important for scientific advancement because several research
+projects rely on research software from previous work. However,
+they end up hidden in the results of a research publication. This is
+because research papers are the ultimate concrete object consid-
+ered as the result of a research project. Research software and other
+artifacts, on the other hand, are not. Because of their importance,
+beyond software citation [22], there should exist additional mech-
+anisms for recognizing and valuing research software and other
+artifacts in the science ecosystem, e.g., a Google Scholar for research
+software, other artifacts, and open reviews with blockchain-based
+token rewards [36].
+2.1.2
+Researcher Assessment. Any assessment of researchers, e.g.,
+Ph.D. evaluation for obtaining the degree, hiring processes, and
+career assessment for promotions [9], considers publications but
+rarely research artifacts. Preparing and sharing research software
+is challenging and time-consuming, and researchers might neglect
+it due to a lack of recognition and reward. While researcher as-
+sessment is mainly done over publications, Open Science practices
+have started to be required by funding agencies, e.g., in the Nether-
+lands [5]. This is due to initiatives for more research openness and
+sustainable software, which should be expanded in all events as-
+sessing researchers. The adoption of Open Science principles and
+practices in Software Engineering research may change incentive
+and reward systems [19, 20], promoting balanced recognition of
+papers and research artifacts.
+2.2
+Research Publication
+Research papers are the main, and sometimes only, concrete out-
+come of a research project. This is how research has been published
+and disseminated. However, research artifacts are part of any re-
+search project and, therefore, should be published together with
+the associated papers for the sake of Open Science.
+2.2.1
+Paper Review. Researchers submit their papers to journals
+and conferences, which are evaluated based on a series of criteria.
+These criteria usually include relevance, novelty, soundness, and
+clarity. However, compliance with Open Science policies is often
+neglected. Even though some conferences have defined evaluation
+criteria for verifiability and transparency, artifact evaluation is still
+optional. For instance, the call for papers for the ICSE 2024 research
+track includes the following criteria: “Verifiability and Transparency:
+The extent to which the paper includes sufficient information to under-
+stand how an innovation works; to understand how data was obtained,
+analyzed, and interpreted; and how the paper supports independent
+verification or replication of the paper’s claimed contributions. Any
+artifacts attached to or linked from the paper may be checked by one
+reviewer”. Moreover, although one reviewer may check artifacts,
+acceptance is not conditional to artifact sharing. In our vision, arti-
+fact sharing, or a compelling justification for not doing so, should
+be a requirement for acceptance, independent of other reviewing
+
+--- Page 3 ---
+A Vision on Open Science for the Evolution of Software Engineering Research and Practice
+FSE Companion ’24, July 15–19, 2024, Porto de Galinhas, Brazil
+criteria. If not enforced, changing the current practice will be diffi-
+cult because researchers will naturally prefer to focus their time on
+other activities than on an optional task.
+2.2.2
+Artifact Evaluation Tracks. Artifact Evaluation Tracks call for
+submissions of artifacts produced for already accepted papers. The
+calls include a set of badges that are supposed to stamp papers indi-
+cating the availability or quality of the artifacts related to the papers.
+Researchers submit artifacts claiming for specific badges, which
+are evaluated according to the reward criteria. Even though paper
+badging is the current way researchers are rewarded for producing
+and sharing good research artifacts, the existence of Artifact Evalu-
+ation Tracks also means that creating and sharing reusable artifacts
+is not the default expected outcome from researchers. This does
+not comply with the idea of the Open Science movement. There-
+fore, artifact evaluation should be either directly incorporated in
+the paper reviewing process (when the community has the proper
+resources for that, see Section 2.4 and Section 2.6), or should exist
+only for advanced recognition (e.g., for the ACM “Results Validated”
+badges [1]).
+2.3
+Empirical Software Engineering
+Empirical Software Engineering has played a central role in the last
+decades as an effective way to provide reliable evidence for various
+research topics. However, such studies have not practically evolved
+concerning reproducibility, transparency, and openness [16]. Open
+Science practices and principles might contribute to effectively
+evolving Software Engineering empirical studies in the following
+four perspectives.
+2.3.1
+Reproducibility. The reproducibility of empirical studies might
+be reached by defining open data life cycles and providing a detailed
+description of artifact provenance, preservation, and curation. Such
+Open Science characteristics make empirical studies able to be au-
+dited and reproducible, thus allowing one to understand the whole
+data and artifacts cycle, provenance, and prospective traceability
+of evidence [6, 11, 12, 27, 31, 32]. Open replication packages also
+contribute to reproducibility. They should include all analyzed data
+(open data), research software (e.g., scripts), workflows, and other
+research artifacts necessary to comprehend and run the study. In
+addition, they should follow the FAIR [41] principles for findable,
+accessible, interoperable, and reusable data. Provenance techniques
+must support such packages to guarantee their traceability over
+time, derivation, and manipulation techniques that might affect
+previous and prospective studies and curation procedures.
+2.3.2
+Sustainability. As the research evolves, new replication pack-
+ages are made available, thus demanding preservation techniques
+aimed at keeping data and other artifacts conserved and maintained.
+In addition, such techniques must consider policies for Green Com-
+puting [30] most related to energy consumption to the long-term
+keeping of artifacts deposited in repositories.
+2.3.3
+Registered Reports. Registered reports are essential for rig-
+orous empirical research. They contribute to avoiding misconduct
+and planning to deviate by establishing a peer-reviewed protocol
+before an empirical study is conducted [26]. Although they are little
+explored in the Software Engineering literature [14], they repre-
+sent a way of putting Open Science into practice by, for instance,
+demanding them for artifacts provenance and preservation, encom-
+passing a Data Management Plan (DMP) for peer reviewing of such
+report, thus a fair operation.
+2.3.4
+Widely Evidence Dissemination. Most empirical studies in
+Software Engineering lack proper dissemination of their findings,
+especially their artifacts. Finding documented study protocols or
+even their data for reproducibility is not trivial. Therefore, open
+empirical portals might effectively aid researchers and practitioners
+in localizing such artifacts. Such portals must encompass formal
+descriptions of empirical studies from ontologies, for instance, with
+proper metadata, as well as implementing features to facilitate
+users to perform Open Science practices such as provenance and
+curation [12]. These portals might integrate with open repositories
+such as Zenodo or FigShare via APIs to deposit large artifacts and
+receive a unique identification as a DOI [35].
+2.4
+Infrastructure-as-Code for Research
+Software
+Research software supports studies reported in scientific papers [8].
+Several kinds of studies that build upon previous research, e.g.,
+replications and empirical comparisons, would require access to
+research software produced in previous research, as well as clear
+and complete documentation to properly execute it. However, shar-
+ing reusable research software is challenging due to its dynamic
+nature [40]. Sharing also involves knowledge about several steps
+to execute and operate software, such as installation and config-
+uration, a challenge also faced by professionals who develop or
+operate software systems in the industry.
+Even if authors can make research software available with proper
+documentation, it might be challenging for researchers to follow
+all the instructions to execute it and reproduce results. As with
+replications and reuse of software in new research projects, artifact
+evaluation also requires executing research software, depending on
+the artifact kind. This comes with additional challenges, including
+the lack of knowledge from reviewers on the research software, the
+potential need for familiarity with the research topic it belongs to,
+and limited time to read a full paper and execute many steps to
+verify if the software produces what it should.
+In our vision, researchers should make research software avail-
+able accompanied by infrastructure-as-code. Infrastructure-as-code
+is the practice of preparing an infrastructure for running a software
+system by means of executable code. In such a format, whoever
+runs the software system would not need to read and understand
+documentation and then manually create and prepare the infras-
+tructure. Instead, a script would do this task, allowing the successful
+execution of research software in an easier way. In combination
+with automated pipelines, if research software is made available
+with infrastructure-as-code, one could execute one single command
+that would result in a table or figure reported in a paper, for instance.
+Such a feature would make reproducing results and evaluating arti-
+facts so easy that paper-related tracks could incorporate Artifact
+Evaluation as a criterion for accepting a paper.
+
+--- Page 4 ---
+FSE Companion ’24, July 15–19, 2024, Porto de Galinhas, Brazil
+Edson OliveiraJr, Fernanda Madeiral, Alcemir Rodrigues Santos, Christina von Flach, and Sergio Soares
+2.5
+Open Science Education and Training
+A short-term concern for Software Engineering research and prac-
+tice is the need for education and training on Open Science and
+Research Software. This involves the development, adaptation, or
+systematization of the openness definition [23], open methodolo-
+gies, courses, and workshops mainly based on Open Educational
+Resources (e.g., syllabi, materials, web portals, and MOOCs).
+2.5.1
+Open Science Education by Design. Open Science by Design
+refers to principles and practices to foster openness throughout the
+entire research life cycle by making research artifacts associated
+with their publications openly available under the FAIR princi-
+ples [26]. We envision Open Science Education by Design as a set
+of strategies for introducing Open Science principles and practices
+in formal education as early as possible. In Software Engineering
+Education, potential strategies may address them in one discipline
+or as topics that crosscut several disciplines. Students’ comprehen-
+sion can be assessed by direct application in an authentic research
+context, such as graduate and undergraduate theses.
+2.5.2
+Open Science 101. Open Science may be introduced in Soft-
+ware Engineering curricula as Open Science 101, an introductory
+course addressing core Open Science concepts, the fundamentals
+of methods, practices, and tools for reproducible research [29], and
+recommending them for undergraduate research projects. An up-
+date to the Software Engineering curriculum guidelines [2], for
+instance, could include these topics in a new knowledge unit called
+“Open Science Foundations for Software”.
+2.5.3
+Research Software Education and Training. Scientists often
+develop domain software [18] to support their research, and repro-
+ducibility requires it to be open and sustainable. Still, researchers
+need to be aware of Software Engineering best practices, including
+licenses, version control, coding standards, code documentation,
+testing, and release engineering [4, 15]. Basic training on such
+practices is vital for fostering reproducible research. Alternatively,
+research software engineers can provide professional support con-
+cerning research software to domain scientists.
+2.5.4
+Research Software Engineers. A research software engineer
+combines professional Software Engineering expertise with an un-
+derstanding of research [33] to work as an integral member of
+research groups or institutions, addressing the challenges of devel-
+oping high-quality complex and customized software systems under
+Open Science principles for various scientific domains [10, 34].
+We envision at least two practical approaches to supporting such
+knowledge and skills: a 4-year Software Engineering undergraduate
+degree with specialized or intensive research-focused courses at the
+4th year level (honors degree) and new graduate programs (e.g., Mas-
+ters in Research Software) with fundamentals from Open Science 101
+and new knowledge units. These should include (1) Open and FAIR
+Research Data; (2) Open, FAIR, and Sustainable Research Software;
+(3) Software Engineering for Research Software (quality attributes,
+open licenses, documentation, life cycle models, development and
+maintenance, testing and analysis, and CI/CD); (4) Recognition,
+Curation, and Preservation of Research Software; (5) Infrastructure-
+as-Code for Research Software; (6) HPC and AI applications for
+large and complex tasks; and (7) Open Science tools.
+2.6
+Open Science Tooling
+One challenge in practicing Open Science is the scarcity of tools
+to aid researchers in producing, assessing, and making research
+artifacts available and reusable in compliance with Open Science
+principles. For instance, FAIR guiding principles for Data [41] and
+Research Software [7] help researchers think about their research
+artifacts and how to make them available and reusable. However,
+tool support is needed for researchers and artifact reviewers to
+assess how compliant such artifacts are with Open Science and
+FAIR principles. One well-known challenge is to deal with sensitive
+data. Researchers may not share sensitive data because preparing
+the data to avoid leaking confidential information is difficult and
+time-consuming. Tools for aiding researchers in handling such cases
+would foster data sharing.
+Our vision is that more specific tooling is needed to help re-
+searchers with several tasks, considering several conditions, for
+the openness and assessment of research artifacts. One such exam-
+ple is Anonymous GitHub [13], proposed and extensively used for
+anonymizing GitHub repositories, allowing researchers to share
+their artifacts during the double-anonymous review process. Other
+useful tools include the set of tools of the OpenAire initiative for
+promoting Open Science, such as EOSC and FAIRCORE4EOSC, the
+European Open Science Cloud [28], Reprozip [6], ReproServer [32],
+and NoWorkflow [31].
+3
+FINAL REMARKS
+To situate the adoption of Open Science in Software Engineer-
+ing research and practice, we use an analogy to the adoption of
+Empirical Software Engineering practices 20 years ago. Empirical
+Software Engineering has played a central role in the last decades
+as an effective way to provide reliable evidence for various research
+topics. However, its broad adoption began when Software Engi-
+neering venues enforced its principles and evaluation methods in
+their calls for papers and review processes, and graduate programs
+promoted education in Empirical Software Engineering. In our vi-
+sion, a similar culture shift is underway in the context of Open
+Science adoption in Software Engineering research and practice.
+This adoption requires efforts on Open Science education and train-
+ing, valuing openness in Empirical Software Engineering, better
+infrastructures and tools to support Open Science practices, Open
+Science-aware paper reviewing and artifact evaluation tracks, and
+changes in the current recognition and reward systems.
+The Software Engineering community should not treat Open Sci-
+ence as incidental and start seamlessly adopting its principles and
+practices, for instance, while writing papers, sharing research arti-
+facts, rewarding artifacts and papers that share them, or evaluating
+a CV for a research position.
+ACKNOWLEDGMENTS
+Edson OliveiraJr thanks CNPq grant #311503/2022-5. Fernanda
+Madeiral is partially supported by the European Commission grant
+101120393 (Sec4AI4Sec) and the Dutch Research Council (NWO).
+Sergio Soares is partially supported by CNPq grant 306000/2022-9.
+This work is partially supported by INES 2.0 (www.ines.org.br),
+CNPq grant 465614/2014-0, FACEPE grants APQ-0399-1.03/17 and
+APQ/0388-1.03/14, CAPES grant 88887.136410/2017-00.
+
+--- Page 5 ---
+A Vision on Open Science for the Evolution of Software Engineering Research and Practice
+FSE Companion ’24, July 15–19, 2024, Porto de Galinhas, Brazil
+REFERENCES
+[1] ACM. 2020. Artifact Review and Badging. https://www.acm.org/publications/
+policies/artifact-review-badging. [Online; accessed 2024-01-25].
+[2] Mark Ardis, David Budgen, Gregory W. Hislop, Jeff Offutt, Mark Sebern, and
+Willem Visser. 2015. SE 2014: Curriculum Guidelines for Undergraduate Degree
+Programs in Software Engineering. Computer 48, 11 (2015), 106–109.
+https:
+//doi.org/10.1109/MC.2015.345
+[3] Sönke Bartling and Sascha Friesike. 2014. Towards Another Scientific Revolution.
+Springer International Publishing, Cham, 3–15. https://doi.org/10.1007/978-3-
+319-00026-8_1
+[4] The Carpentries. 2023. The Carpentries. https://carpentries.org/.
+[Online;
+accessed 2024-01-25].
+[5] Dalmeet
+Singh
+Chawla.
+2021.
+Nature
+Index:
+“Scientists
+at
+odds
+on
+Utrecht
+University
+reforms
+to
+hiring
+and
+promotion
+criteria”.
+https://www.nature.com/nature-index/news/scientists-argue-over-use-
+of-impact-factors-for-evaluating-research. [Online; accessed 2024-01-25].
+[6] Fernando Chirigati, Rémi Rampin, Dennis Shasha, and Juliana Freire. 2016. Re-
+proZip: Computational Reproducibility With Ease. In Proc. the 2016 International
+Conference on Management of Data (SIGMOD ’16) (San Francisco, USA). ACM,
+New York, NY, USA, 2085–2088. https://doi.org/10.1145/2882903.2899401
+[7] Neil P. Chue Hong, Daniel S. Katz, Michelle Barker, et al. 2022. FAIR Principles
+for Research Software (FAIR4RS Principles). https://doi.org/10.15497/RDA00068
+[8] Jeremy Cohen, Daniel S. Katz, Michelle Barker, Neil Chue Hong, Robert Haines,
+and Caroline Jay. 2021. The Four Pillars of Research Software Engineering. IEEE
+Software 38, 1 (2021), 97–105. https://doi.org/10.1109/MS.2020.2973362
+[9] European Commission, Directorate-General for Research and Innovation, Ce-
+cili Cabello Valdes, Bernard Rentier, Eeva Kaunismaa, et al. 2017. Evaluation of
+research careers fully acknowledging Open Science practices: Rewards, incentives
+and/or recognition for researchers practicing Open Science. Publications Office,
+Europe. https://doi.org/10.2777/75255
+[10] RCP Consortium. 2024. Princeton Research Computing – Research Software En-
+gineering. https://researchcomputing.princeton.edu/services/research-software-
+engineering [Online; accessed 2024-01-27].
+[11] André Cordeiro and Edson OliveiraJr. 2021. Open Science Practices for Software
+Engineering Controlled Experiments and Quasi-Experiments. In Proc. of the 1st
+Workshop on Open Science Practices for Software Engineering (OpenScienSE ’21).
+SBC, Porto Alegre, Brazil, 19–21. https://doi.org/10.5753/opensciense.2021.17140
+[12] André Felipe R. Cordeiro. 2022. An Open Science-Based Framework for Managing
+Experimental Data in Software Engineering. In Proc. of the 26th International
+Conference on Evaluation and Assessment in Software Engineering (EASE ’22)
+(Gothenburg, Sweden). ACM, New York, NY, USA, 342–346. https://doi.org/10.
+1145/3530019.3535348
+[13] Thomas Durieux. 2023. Anonymous GitHub. https://anonymous.4open.science/.
+[Online; accessed 2024-01-25].
+[14] Neil A. Ernst and Maria Teresa Baldassarre. 2023. Registered reports in software
+engineering. Empirical Software Engineering 28, 2 (mar 2023), 11 pages. https:
+//doi.org/10.1007/s10664-022-10277-5
+[15] FOSTER. 2023. The FOSTER Portal: Open Science Training Courses. https:
+//www.fosteropenscience.eu/toolkit. [Online; accessed 2024-01-25].
+[16] Jesus M. Gonzalez-Barahona and Gregorio Robles. 2023. Revisiting the repro-
+ducibility of empirical software engineering studies based on data retrieved
+from development repositories. Information and Software Technology 164 (2023),
+107318. https://doi.org/10.1016/j.infsof.2023.107318
+[17] Richard A. Guzzo, Benjamin Schneider, and Haig R. Nalbantian. 2022. Open
+science, closed doors: The perils and potential of open science for research in
+practice. Industrial and Organizational Psychology 15, 4 (2022), 495–515. https:
+//doi.org/10.1017/iop.2022.61
+[18] Simon Hettrick, Mario Antonioletti, Les Carr, Neil Chue Hong, Stephen Crouch,
+David De Roure, Iain Emsley, Carole Goble, Alexander Hay, Devasena Inupaku-
+tika, Mike Jackson, Aleksandra Nenadic, Tim Parkinson, Mark I Parsons, Alek-
+sandra Pawlik, Giacomo Peru, Arno Proeme, John Robinson, and Shoaib Sufi.
+2015. UK Research Software Survey 2014. https://doi.org/10.5281/zenodo.14809
+[19] James Howison and James D. Herbsleb. 2011. Scientific software production:
+incentives and collaboration. In Proc. of the ACM 2011 Conference on Computer
+Supported Cooperative Work (CSCW ’11) (Hangzhou, China). Association for
+Computing Machinery, New York, NY, USA, 513–522. https://doi.org/10.1145/
+1958824.1958904
+[20] James Howison and James D. Herbsleb. 2013. Incentives and integration in
+scientific software production. In Proc. of the 2013 Conference on Computer Sup-
+ported Cooperative Work (CSCW ’13) (San Antonio, Texas, USA). Association for
+Computing Machinery, New York, NY, USA, 459–470. https://doi.org/10.1145/
+2441776.2441828
+[21] D. S. Katz and S. Hettrick. 2023. Research Software Engineering in 2030. In 2023
+IEEE Conference on eScience. IEEE, New York, 1–2.
+https://doi.org/10.1109/e-
+Science58273.2023.10254813
+[22] Daniel S. Katz, Neil P. Chue Hong, Tim Clark, et al. 2021. Recognizing the
+value of software: a software citation guide [version 2; peer review: 2 approved].
+F1000Research 9, 1257 (2021), 13 pages. https://doi.org/10.12688/f1000research.
+26932.2
+[23] Nadine Levin, Sabina Leonelli, Dagmara Weckowska, David Castle, and John
+Dupré. 2016. How Do Scientists Define Openness? Exploring the Relationship Be-
+tween Open Science Policies and Research Practice. Bulletin of Science, Technology
+& Society 36, 2 (2016), 128–141. https://doi.org/10.1177/0270467616668760
+[24] Daniel Mendez, Daniel Graziotin, Stefan Wagner, and Heidi Seibold. 2020. Open
+Science in Software Engineering. Springer International Publishing, Cham, 477–
+501. https://doi.org/10.1007/978-3-030-32489-6_17
+[25] Marcus R. Munafò, Brian A. Nosek, Dorothy V. M. Bishop, et al. 2017. A manifesto
+for reproducible science. Nature Human Behaviour 1, 1 (2017), 1–9.
+https:
+//doi.org/10.1038/s41562-016-0021
+[26] National Academies of Sciences, Engineering, and Medicine. 2018. Open Science
+by Design: Realizing a Vision for 21st Century Research. The National Academies
+Press, Washington, USA. https://doi.org/10.17226/25116
+[27] Edson OliveiraJr, Viviane Furtado, Henrique Vignando, Carlos Luz, André
+Cordeiro, Igor Steinmacher, and Avelino Zorzo. 2021. Towards Improving Experi-
+mentation in Software Engineering. In Proc. of the XXXV Brazilian Symposium on
+Software Engineering (SBES ’21) (Joinville, Brazil). Association for Computing Ma-
+chinery, New York, NY, USA, 335–340. https://doi.org/10.1145/3474624.3477073
+[28] OpenAire. 2024. OpenAire - Open Science in Europe. https://www.openaire.eu/
+projects [Online; accessed 2024-01-25].
+[29] OpenSciency Contributors. 2023. Opensciency - A core open science curriculum
+by and for the research community. Zenodo.
+https://doi.org/10.5281/zenodo.
+7662732
+[30] Showmick Guha Paul, Arpa Saha, Mohammad Shamsul Arefin, Touhid Bhuiyan,
+Al Amin Biswas, Ahmed Wasif Reza, Naif M. Alotaibi, Salem A. Alyami, and
+Mohammad Ali Moni. 2023. A Comprehensive Review of Green Computing:
+Past, Present, and Future Research. IEEE Access 11 (2023), 87445–87494. https:
+//doi.org/10.1109/ACCESS.2023.3304332
+[31] João Felipe Pimentel, Leonardo Murta, Vanessa Braganholo, and Juliana Freire.
+2017. noWorkflow: a tool for collecting, analyzing, and managing provenance
+from python scripts. Proc. of the VLDB Endowment 10, 12 (aug 2017), 1841–1844.
+https://doi.org/10.14778/3137765.3137789
+[32] Remi Rampin, Fernando Chirigati, Vicky Steeves, and Juliana Freire. 2018. ReproS-
+erver: Making Reproducibility Easier and Less Intensive. arXiv:1808.01406 [cs.SE]
+[33] RSE.org. 2024. Society of Research Software Engineering. https://society-rse.org
+[Online; accessed 2024-01-27].
+[34] RSE.Shef. 2024. Research Software Engineering Sheffield. https://rse.shef.ac.uk
+[Online; accessed 2024-01-27].
+[35] Filipe Santana, André Cordeiro, and Edson OliveiraJr. 2023. Use of the Dublin
+Core Standard to Express Open Metadata Related to Software Engineering
+Experiments. In Proc. of the 3rd Workshop on Open Science Practices for Soft-
+ware Engineering (OpenScienSE ’23). SBC, Porto Alegre, Brazil, 1–5.
+https:
+//doi.org/10.5753/opensciense.2023.235672
+[36] Alcemir Santos. 2021.
+Open scientist in the wonderland: advocating for
+blockchain-based decentralized applications for science. In Proc. of the 1st Work-
+shop on Open Science Practices for Software Engineering (OpenScienSE ’21). SBC,
+Porto Alegre, Brazil, 34–36. https://doi.org/10.5753/opensciense.2021.17143
+[37] Heidi Seibold. 2024. Avoiding fraud and improving rigor through Open Science.
+https://doi.org/10.34734/FZJ-2024-00813 Blog post.
+[38] Scientific United Nations Educational and Cultural Organization (UNESCO). 2021.
+UNESCO Recommendation on Open Science. https://doi.org/10.5281/zenodo.
+5834767
+[39] US-RSE.org. 2022. Education and Training for Research Software Engineers.
+https://us-rse.org/2022-08-01-education-training/ [Online; accessed 2024-01-
+25].
+[40] Igor Wiese, Ivanilton Polato, and Gustavo Pinto. 2020. Naming the Pain in
+Developing Scientific Software. IEEE Software 37, 4 (2020), 75–82. https://doi.
+org/10.1109/MS.2019.2899838
+[41] Mark D. Wilkinson, Michel Dumontier, IJsbrand Jan Aalbersberg, et al. 2016.
+The FAIR Guiding Principles for Scientific Data Management and Stewardship.
+Scientific Data 3 (2016), 9 pages. https://doi.org/10.1038/sdata.2016.18
+[42] WOSSS. 2024. Workshop on Sustainable Software Sustainability (WoSSS). https:
+//wosss.org [Online; accessed 2024-01-25].
+Received 2024-01-29; accepted 2024-04-09

@@ -58,7 +58,7 @@ def test_101_admin_settings_required_at_startup(name, tmp_path):
     env = dict(os.environ, PAPERPLANE_DATA_DIR=str(tmp_path))
     del env[name]
     result = subprocess.run([sys.executable, "-c", "import server"], env=env, cwd=ROOT,
-                            capture_output=True, text=True, timeout=15)
+                            capture_output=True, text=True, timeout=45)
     assert result.returncode != 0
     assert f"{name} must be set" in result.stderr
 

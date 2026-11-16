@@ -524,7 +524,7 @@ OPERATIONS = {
     "remove": {"label": "Remove pages", "category": "Organize PDF", "accept": "pdf", "implemented": True, "description": "Delete unwanted pages from any PDF document."},
     "rotate": {"label": "Rotate PDF", "category": "Organize PDF", "accept": "pdf", "implemented": True, "description": "Rotate pages 90, 180, or 270 degrees clockwise."},
     "organize": {"label": "Page Organizer", "category": "Organize PDF", "accept": "pdf", "implemented": True, "description": "Reorder pages by entering their page numbers in the desired output order."},
-    "scan_pdf": {"label": "Scan to PDF", "category": "Organize PDF", "accept": "image", "implemented": True, "description": "Enhance photos or scans with deskewing and contrast optimization."},
+    "scan_pdf": {"label": "Scan to PDF", "category": "Organize PDF", "accept": "image", "implemented": True, "description": "Convert scanned photos to A4, Letter, or 200-DPI original-size PDF pages with optional contrast and sharpness enhancement."},
 
     # 2. Optimize PDF
     "compress": {"label": "Compress PDF", "category": "Optimize PDF", "accept": "pdf", "implemented": True, "description": "True lossy & lossless compression optimizing image streams and deflating structures."},
@@ -677,7 +677,7 @@ SEO_CATALOG = {
         "description": "Rotate one page or an entire PDF by 90, 180, or 270 degrees and download the corrected document with Paperplane.",
         "heading": "Rotate PDF pages to the correct orientation",
         "intro": "Fix sideways scans, mixed landscape pages, and presentation documents with a visual page-by-page rotation workflow.",
-        "how_to": ("Upload the PDF", "Select pages and a rotation angle", "Download the reoriented PDF"),
+        "how_to": ("Upload the PDF", "Choose the rotation angle", "Download the reoriented PDF"),
         "faqs": (
             ("Can I rotate only one page in a PDF?", "Yes. Choose a single thumbnail or page number and apply 90, 180, or 270 degrees without rotating the rest of the document."),
             ("Does rotation reduce image quality?", "No. Rotation updates the page orientation metadata and layout rather than re-encoding the page as a lower-quality image."),
@@ -752,12 +752,12 @@ SEO_CATALOG = {
     },
     "jpg_to_pdf": {
         "title": "JPG to PDF Converter — Convert Images to PDF Free | Paperplane",
-        "description": "Convert JPG, PNG, TIFF, and WebP images into a single PDF with page ordering and privacy-first processing.",
+        "description": "Convert selected JPG, PNG, TIFF, and WebP images into a PDF in the order you choose them.",
         "heading": "Convert images into one PDF",
         "intro": "Build a shareable PDF from photos, receipts, scans, or design exports without opening a full desktop office suite.",
-        "how_to": ("Select JPG or other supported images", "Arrange the image page order", "Download the generated PDF"),
+        "how_to": ("Select JPG or other supported images", "Upload them in the order you want in the PDF", "Download the generated PDF"),
         "faqs": (
-            ("Can I convert several JPG files into one PDF?", "Yes. Add multiple images, reorder their thumbnails, and export them as pages in one PDF document."),
+            ("Can I convert several JPG files into one PDF?", "Yes. Select multiple images in the order you want them to appear, then export them as pages in one PDF document."),
             ("What happens to image resolution?", "The converter preserves the source pixel data where practical and maps it to a PDF page. Very large images may be normalized to keep the output manageable."),
             ("Can I create a PDF from phone photos?", "Yes. Mobile browsers can select images from the device file picker, and the responsive workflow supports touch-first ordering."),
         ),
@@ -885,7 +885,7 @@ SEO_CATALOG = {
         "description": "Extract selectable text from PDF pages into a plain text file for search, copying, indexing, or downstream processing.",
         "heading": "Extract text from a PDF",
         "intro": "Turn a text-based PDF into a clean text stream when you need content without page styling or visual layout.",
-        "how_to": ("Select a text-based PDF", "Choose page or extraction options", "Download the plain text result"),
+        "how_to": ("Select a text-based PDF", "Extract text from the full document", "Download the plain text result"),
         "faqs": (
             ("Can PDF to Text extract text from scanned pages?", "Scanned pages contain images rather than characters. Run OCR PDF first to create a searchable text layer, then extract the recognized text."),
             ("Does extraction keep the original formatting?", "Plain text preserves reading order and line content where possible, but it does not retain fonts, colors, exact columns, or page graphics."),
@@ -898,7 +898,7 @@ SEO_CATALOG = {
         "description": "Convert PDF content into structured Markdown with headings, paragraphs, lists, and readable text blocks.",
         "heading": "Convert PDF content to Markdown",
         "intro": "Create a portable, developer-friendly text representation for documentation, notes, repositories, and knowledge bases.",
-        "how_to": ("Upload a text-based or OCR PDF", "Choose the pages to convert", "Download the generated Markdown file"),
+        "how_to": ("Upload a text-based or OCR PDF", "Convert the full document to Markdown", "Download the generated Markdown file"),
         "faqs": (
             ("Does PDF to Markdown preserve headings?", "The converter infers structure from text positioning and typography. Clear heading styles and consistent spacing improve the resulting Markdown hierarchy."),
             ("Can images be included in Markdown output?", "Text conversion focuses on document structure. Image extraction behavior depends on the source PDF and the selected export options."),
@@ -1028,7 +1028,7 @@ SEO_CATALOG = {
         "description": "Compare two PDF versions and highlight text or page differences to speed up review, redlining, and change control.",
         "heading": "Compare two PDF versions side by side",
         "intro": "Find changes between drafts, signed versions, and revised reports without manually switching between separate viewer windows.",
-        "how_to": ("Upload the original and revised PDFs", "Run the page and text comparison", "Review highlighted differences and export notes"),
+        "how_to": ("Upload the original and revised PDFs", "Run the page and text comparison", "Download the plain-text comparison report"),
         "faqs": (
             ("Can Compare PDF detect layout changes?", "The comparison can identify page-level and text-level differences. Visual shifts, font substitutions, or complex graphics may require human review of the rendered pages."),
             ("Do both PDFs need the same page count?", "No. Added, removed, or reordered pages are useful comparison results and are reported as structural differences."),
@@ -1472,8 +1472,8 @@ def render_seo_content(context: dict) -> str:
         ),
         "scan_pdf": (
             "Select photos or scans in the sequence you want them in the PDF.",
-            "The selected images are combined in that sequence; this page does not expose separate enhancement controls.",
-            "Download the PDF and check page order and readability.",
+            "Choose A4, US Letter, or the photo's original printed size at 200 DPI. Images are fitted without stretching.",
+            "Download the PDF and check page size, order, and readability.",
         ),
         "watermark": (
             "Select a PDF in the upload area above.",
@@ -2366,7 +2366,7 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
         target_size_bytes = _safe_int(target_size_kb, 0) * 1024 if target_size_kb else None
         quality = _safe_int(options.get("quality"), 65)
         max_dpi = _safe_int(options.get("dpi"), 150)
-        run_converter_with_timeout(
+        compression_result = run_converter_with_timeout(
             converters.compress_pdf,
             source, output,
             quality=quality, max_dpi=max_dpi,
@@ -2377,6 +2377,11 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
             output_path=output,
             retry_hint="The file may contain high complexity or dense raster assets. Try choosing a lower resolution preset or compressing a smaller page range."
         )
+        if compression_result.get("content_preserved_original"):
+            (output_dir / ".job-warning").write_text(
+                "Compression could have damaged page content, so the readable original was preserved. The requested file-size target was not reached.",
+                encoding="utf-8",
+            )
         return output
 
     if operation == "repair":
@@ -2391,7 +2396,7 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
             raise ValueError("This PDF is too damaged to repair automatically.") from error
 
     if operation == "scan_pdf":
-        return converters.scan_to_pdf(inputs, output, enhance=True)
+        return converters.scan_to_pdf(inputs, output, enhance=True, page_size=str(options.get("page_size", "a4")))
 
     if operation == "photo_resizer":
         preset = options.get("preset", "ssc_photo")
@@ -2687,10 +2692,16 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
                     writer.add_page(page)
                     continue
                 curr = start_number + (number - start_page)
-                if format_pattern == "page_n" or "page {n}" in format_pattern:
-                    lbl = f"Page {curr}"
-                elif format_pattern == "number_only" or "number only" in format_pattern:
+                if format_pattern in {"number_only", "number only", "{n}"}:
                     lbl = str(curr)
+                elif "{n}" in format_pattern or "{total}" in format_pattern:
+                    # The UI sends its literal template (for example, "Page {n} of {total}").
+                    # Preserve the chosen wording and substitute both tokens instead of
+                    # treating every template containing {n} as the shorter preset.
+                    lbl = re.sub(r"\{n\}", str(curr), str(options.get("format", "")), flags=re.IGNORECASE)
+                    lbl = re.sub(r"\{total\}", str(total_pages), lbl, flags=re.IGNORECASE)
+                elif format_pattern == "page_n":
+                    lbl = f"Page {curr}"
                 else:
                     lbl = f"Page {curr} of {total_pages}"
 
@@ -3813,7 +3824,6 @@ def billing_status(request: Request, user_id: str | None = Depends(current_user)
         "pricing": public_pricing_catalog(),
         "subscription_status": user.get("subscription_status", "inactive") if user else "inactive",
         "has_payment_customer": bool(user and user.get("payment_customer_id")),
-        "cashfree_order_id": user.get("cashfree_order_id") if user else None,
     }
 
 
@@ -4407,7 +4417,7 @@ def general_ai_test_connection():
         return {
             "status": "connected",
             "message": "Short AI connection check passed. Full PDF workflows can still fail or time out.",
-            "fallback_active": False,
+            "fallback_active": bool(result.get("fallback_active")),
         }
     if status == "configuration_missing":
         return {"status": status, "message": "AI provider is not configured", "fallback_active": False}
@@ -6314,6 +6324,8 @@ def run_job(
             job_id,
             status="completed",
             progress=100,
+            warning=(job_dir / ".job-warning").read_text(encoding="utf-8")
+            if (job_dir / ".job-warning").exists() else None,
             output_name=result.name,
             output_size=result.stat().st_size
         )

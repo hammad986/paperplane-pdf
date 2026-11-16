@@ -206,7 +206,6 @@ def test_currency_defaults_to_inr_and_rejects_usd_before_gateway_call(monkeypatc
         "email": "local@example.test",
         "tier": "free",
         "subscription_status": "inactive",
-        "cashfree_order_id": None,
     })
     monkeypatch.setattr(server, "CASHFREE_APP_ID", "local-test-app")
     monkeypatch.setattr(server, "CASHFREE_SECRET_KEY", "local-test-secret")
