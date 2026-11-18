@@ -1,0 +1,31 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "http_status": 200,
+      "summary_mode": "offline_extractive",
+      "citations_count": 69,
+      "citation_min": 1,
+      "citation_max": 69,
+      "page_24_decision_preserved": true,
+      "page_69_condition_preserved": true,
+      "offline_badge": "Offline Analysis",
+      "ui_contains_final_condition": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "http_status": 200,
+      "summary_mode": "offline_extractive",
+      "citations_count": 69,
+      "citation_min": 1,
+      "citation_max": 69,
+      "page_24_decision_preserved": true,
+      "page_69_condition_preserved": true,
+      "offline_badge": "Offline Analysis",
+      "ui_contains_final_condition": true,
+      "page_errors": []
+    }
+  ],
+  "provider": "unconfigured local test environment; expected deterministic fallback"
+}

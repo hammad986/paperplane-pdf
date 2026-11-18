@@ -396,7 +396,7 @@
       setElText("m-today-active", metrics.today_active ?? 0);
       setElText("m-total-waitlist", metrics.total_waitlist ?? 0);
       setElText("m-total-jobs", metrics.total_jobs ?? 0);
-      setElText("m-jobs-today", `${metrics.jobs_today ?? 0} processed today`);
+      setElText("m-jobs-today", `${metrics.jobs_today ?? 0} jobs created today (UTC)`);
 
       // System Banner
       setElText("live-env-name", (metrics.environment || "production").toUpperCase());
@@ -514,26 +514,44 @@
 
   // --- Visual Analytics: Tier Meter ---
   function renderTierMeter(m) {
-    const total = m.total_users || 1;
-    const free = m.free_users || 0;
-    const pro = m.pro_users || 0;
-    const dev = m.dev_users || 0;
-
-    const freePct = Math.round((free / total) * 100);
-    const proPct = Math.round((pro / total) * 100);
-    const devPct = Math.max(0, 100 - freePct - proPct);
-
-    const mFree = document.getElementById("meter-free");
-    const mPro = document.getElementById("meter-pro");
-    const mDev = document.getElementById("meter-dev");
-
-    if (mFree) mFree.style.width = `${freePct}%`;
-    if (mPro) mPro.style.width = `${proPct}%`;
-    if (mDev) mDev.style.width = `${devPct}%`;
-
-    setElText("legend-free-val", `${free} (${freePct}%)`);
-    setElText("legend-pro-val", `${pro} (${proPct}%)`);
-    setElText("legend-dev-val", `${dev} (${devPct}%)`);
+    const total = Number(m.total_users) || 0;
+    const knownNames = {
+      free: "Free Accounts", exam_pass: "Exam Pass", student_pro: "Student & Educator",
+      pro: "Pro Subscribers", developer: "Developer Users", dev: "Developer Users (legacy)",
+      cyber_cafe: "Cyber Cafe",
+    };
+    const colors = ["#6b8f71", "#d5a84b", "#5996a8", "#8a75c7", "#d17c61", "#9aabb1", "#aa78a1"];
+    const counts = m.tier_breakdown && typeof m.tier_breakdown === "object" ? m.tier_breakdown : {};
+    const tiers = Object.entries(counts).sort(([a], [b]) => a.localeCompare(b));
+    const meter = document.getElementById("meter-plan-segments");
+    const rows = document.getElementById("plan-breakdown-rows");
+    if (!meter || !rows) return;
+    meter.replaceChildren();
+    rows.replaceChildren();
+    tiers.forEach(([tier, rawCount], index) => {
+      const count = Number(rawCount) || 0;
+      const percent = total ? Math.round((count / total) * 100) : 0;
+      const label = knownNames[tier] || `${tier.replaceAll("_", " ")} (other)`;
+      const color = colors[index % colors.length];
+      if (count > 0) {
+        const segment = document.createElement("div");
+        segment.className = "meter-seg-plan";
+        segment.style.cssText = `background:${color};height:100%;width:${(count / Math.max(total, 1)) * 100}%`;
+        segment.title = `${label}: ${count} (${percent}%)`;
+        meter.append(segment);
+      }
+      const row = document.createElement("div");
+      row.className = "legend-item";
+      const name = document.createElement("span");
+      const dot = document.createElement("span");
+      dot.className = "legend-dot";
+      dot.style.backgroundColor = color;
+      name.append(dot, document.createTextNode(label));
+      const value = document.createElement("strong");
+      value.textContent = `${count} (${percent}%)`;
+      row.append(name, value);
+      rows.append(row);
+    });
     setElText("tier-ratio-label", `${total} total accounts`);
   }
 
@@ -961,14 +979,25 @@
           statusEl.textContent = `✅ Connected (${latency}ms) — Model: ${data.result.model || "Active"}`;
           statusEl.style.color = "var(--green)";
         }
-        renderAiHealth({ status: "configured", message: `AI provider reachable (${latency} ms).` });
+        renderAiHealth({
+          status: "configured",
+          message: data.result.fallback_active
+            ? `Primary provider was unavailable; the configured fallback is reachable (${latency} ms).`
+            : `AI provider reachable (${latency} ms).`
+        });
       } else {
         const msg = (data.result && data.result.message) || data.detail || "Connection failed";
         if (statusEl) {
           statusEl.textContent = `❌ ${msg} (${latency}ms)`;
           statusEl.style.color = "#f87171";
         }
-        renderAiHealth({ status: "unreachable", message: `AI provider connection failed: ${msg}` });
+        const rateLimited = data.result && data.result.http_status === 429;
+        renderAiHealth({
+          status: rateLimited ? "rate_limited" : "unreachable",
+          message: rateLimited
+            ? `AI provider is rate limited (HTTP 429). Check provider quota or configure a fallback. ${msg}`
+            : `AI provider connection failed: ${msg}`
+        });
       }
     } catch (err) {
       if (statusEl) {

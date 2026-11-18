@@ -1,0 +1,29 @@
+{
+  "base": "https://127.0.0.1:18443",
+  "image": "pdf_splitter-paperplane:latest",
+  "nginx_template": "deploy/nginx.conf.template",
+  "test_certificate": "ephemeral self-signed certificate",
+  "rounds": [
+    {
+      "round": 1,
+      "statuses": {
+        "home": 200,
+        "asset": 200,
+        "api-error": 404
+      },
+      "headers_once_on_success_asset_and_404": true,
+      "server_version_hidden": true
+    },
+    {
+      "round": 2,
+      "statuses": {
+        "home": 200,
+        "asset": 200,
+        "api-error": 404
+      },
+      "headers_once_on_success_asset_and_404": true,
+      "server_version_hidden": true
+    }
+  ],
+  "page_errors": []
+}

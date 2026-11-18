@@ -1,0 +1,1668 @@
+{
+  "runtime": "isolated production image; four workers; dummy local account; no AI provider or real payment",
+  "base": "http://127.0.0.1:18501",
+  "health": {
+    "status": "ok",
+    "service": "paperplane-pdf",
+    "version": "2.0.0",
+    "auth_required": false,
+    "workers": 4,
+    "max_file_size_mb": 500,
+    "job_ttl_hours": 2
+  },
+  "rounds": [
+    {
+      "round": 1,
+      "results": [
+        {
+          "operation": "merge",
+          "status": "completed",
+          "bytes": 4984736,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 4984736,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 71,
+            "text_chars": 127219,
+            "text_sample": "Page 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machine learning is the\nstudy of computer algorithms that improve automatically through experience. It is",
+            "first_text": "Page 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machi",
+            "last_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORIGINAL\nSYNTHETIC ONLY - NOT A R"
+          },
+          "seconds": 3.947
+        },
+        {
+          "operation": "split",
+          "status": "completed",
+          "bytes": 1373,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 1373,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 1,
+            "text_chars": 1836,
+            "text_sample": "Page 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machine learning is the\nstudy of computer algorithms that improve automatically through experience. It is",
+            "first_text": "Page 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machi",
+            "last_text": "Page 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machi"
+          },
+          "seconds": 1.941
+        },
+        {
+          "operation": "remove",
+          "status": "completed",
+          "bytes": 4980702,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 4980702,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 68,
+            "text_chars": 125035,
+            "text_sample": "Page 2 of 69\nSection 2. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machine learning is the\nstudy of computer algorithms that improve automatically through experience. It is",
+            "first_text": "Page 2 of 69\nSection 2. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machi",
+            "last_text": "Page 69 of 69\nSection 69. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Mac"
+          },
+          "seconds": 3.848
+        },
+        {
+          "operation": "rotate",
+          "status": "completed",
+          "bytes": 4981662,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 4981662,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 69,
+            "text_chars": 126872,
+            "text_sample": "Page 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machine learning is the\nstudy of computer algorithms that improve automatically through experience. It is",
+            "rotations": [
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90
+            ],
+            "first_text": "Page 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machi",
+            "last_text": "Page 69 of 69\nSection 69. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Mac"
+          },
+          "seconds": 3.226
+        },
+        {
+          "operation": "organize",
+          "status": "completed",
+          "bytes": 2492,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 2492,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 2,
+            "text_chars": 346,
+            "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORIGINAL\nSYNTHETIC ONLY - NOT A REAL ID - test pattern: [synthetic ID redacted]PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]",
+            "first_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORIGINAL\nSYNTHETIC ONLY - NOT A R",
+            "last_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\n"
+          },
+          "seconds": 0.959
+        },
+        {
+          "operation": "scan_pdf",
+          "status": "completed",
+          "bytes": 78371,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 78371,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 1,
+            "text_chars": 0,
+            "text_sample": "",
+            "first_page_dimensions": [
+              596,
+              842
+            ],
+            "first_text": "",
+            "last_text": ""
+          },
+          "seconds": 3.315
+        },
+        {
+          "operation": "compress",
+          "status": "completed",
+          "bytes": 122556,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 122556,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 69,
+            "text_chars": 126872,
+            "text_sample": "Page 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machine learning is the\nstudy of computer algorithms that improve automatically through experience. It is",
+            "source_bytes": 4980286,
+            "first_text": "Page 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machi",
+            "last_text": "Page 69 of 69\nSection 69. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Mac",
+            "output_not_larger": true
+          },
+          "seconds": 4.635
+        },
+        {
+          "operation": "repair",
+          "status": "completed",
+          "bytes": 4960484,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 4960484,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 69,
+            "text_chars": 126872,
+            "text_sample": "Page 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machine learning is the\nstudy of computer algorithms that improve automatically through experience. It is",
+            "first_text": "Page 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machi",
+            "last_text": "Page 69 of 69\nSection 69. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Mac"
+          },
+          "seconds": 3.715
+        },
+        {
+          "operation": "ocr",
+          "status": "completed",
+          "bytes": 2493,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 2493,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 2,
+            "text_chars": 346,
+            "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORI",
+            "first_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\n",
+            "last_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORIGINAL\nSYNTHETIC ONLY - NOT A R"
+          },
+          "seconds": 1.16
+        },
+        {
+          "operation": "jpg_to_pdf",
+          "status": "completed",
+          "bytes": 148292,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 148292,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 2,
+            "text_chars": 1,
+            "text_sample": "\n",
+            "first_page_dimensions": [
+              596,
+              842
+            ],
+            "first_text": "",
+            "last_text": ""
+          },
+          "seconds": 3.45
+        },
+        {
+          "operation": "word_to_pdf",
+          "status": "completed",
+          "bytes": 28667,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 28667,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 1,
+            "text_chars": 128,
+            "text_sample": "PAPERPLANE_DOCX_AUDIT\nSynthetic office source for local converter verification.\nExpected text marker: AUDIT_OFFICE_WORD_OUTPUT.\n",
+            "expected_marker": "audit_office_word_output",
+            "first_text": "PAPERPLANE_DOCX_AUDIT\nSynthetic office source for local converter verification.\nExpected text marker: AUDIT_OFFICE_WORD_OUTPUT.\n",
+            "last_text": "PAPERPLANE_DOCX_AUDIT\nSynthetic office source for local converter verification.\nExpected text marker: AUDIT_OFFICE_WORD_OUTPUT.\n"
+          },
+          "seconds": 16.983
+        },
+        {
+          "operation": "excel_to_pdf",
+          "status": "completed",
+          "bytes": 2018,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 2018,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 1,
+            "text_chars": 122,
+            "text_sample": "Sheet: Audit Data\nItem\nAmount\nStatus\nApplication\n19\nPaid\nProcessing\n49\nPending\nMarker\nAUDIT_OFFICE_EXCEL_OUTPUT\nSynthetic\n",
+            "expected_marker": "audit_office_excel_output",
+            "first_text": "Sheet: Audit Data\nItem\nAmount\nStatus\nApplication\n19\nPaid\nProcessing\n49\nPending\nMarker\nAUDIT_OFFICE_EXCEL_OUTPUT\nSynthetic\n",
+            "last_text": "Sheet: Audit Data\nItem\nAmount\nStatus\nApplication\n19\nPaid\nProcessing\n49\nPending\nMarker\nAUDIT_OFFICE_EXCEL_OUTPUT\nSynthetic\n"
+          },
+          "seconds": 0.392
+        },
+        {
+          "operation": "powerpoint_to_pdf",
+          "status": "completed",
+          "bytes": 16348,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 16348,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 1,
+            "text_chars": 54,
+            "text_sample": "PAPERPLANE_PPTX_AUDIT\nAUDIT_OFFICE_POWERPOINT_\nOUTPUT\n",
+            "expected_marker": "audit_office_powerpoint_output",
+            "first_text": "PAPERPLANE_PPTX_AUDIT\nAUDIT_OFFICE_POWERPOINT_\nOUTPUT\n",
+            "last_text": "PAPERPLANE_PPTX_AUDIT\nAUDIT_OFFICE_POWERPOINT_\nOUTPUT\n"
+          },
+          "seconds": 5.601
+        },
+        {
+          "operation": "html_to_pdf",
+          "status": "ssrf_blocked",
+          "seconds": 0.731
+        },
+        {
+          "operation": "pdf_to_jpg",
+          "status": "completed",
+          "bytes": 59541,
+          "checks": {
+            "extension": ".zip",
+            "bytes": 59541,
+            "verified": true,
+            "archive_entries": [
+              "page_001.jpg",
+              "page_002.jpg"
+            ],
+            "image_entries": 2,
+            "valid_jpegs": 2
+          },
+          "seconds": 3.237
+        },
+        {
+          "operation": "pdf_to_word",
+          "status": "completed",
+          "bytes": 1274716,
+          "checks": {
+            "extension": ".docx",
+            "bytes": 1274716,
+            "verified": true,
+            "paragraph_count": 207,
+            "text_sample": "Page 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machine learning is the\nstudy of computer algorithms that improve automatically through experience. It is seen as a\nsubset of artificial intelligence. Machine learning is the study of computer algorithms that\nimprove automatically through experience. It is seen as a subset of artificial intelligence.\nMachine learning is the study of computer algorithms that improve automatically through\nexperience. It is seen as a subset ",
+            "first_page_marker": true
+          },
+          "seconds": 8.026
+        },
+        {
+          "operation": "pdf_to_excel",
+          "status": "completed",
+          "bytes": 16632,
+          "checks": {
+            "extension": ".xlsx",
+            "bytes": 16632,
+            "verified": true,
+            "sheet_count": 1,
+            "cell_values": [
+              "Page 1 of 69",
+              "Section 1. Machine learning is the study of computer algorithms that improve automatically",
+              "through experience. It is seen as a subset of artificial intelligence. Machine learning is the",
+              "study of computer algorithms that improve automatically through experience. It is seen as a",
+              "subset of artificial intelligence. Machine learning is the study of computer algorithms that",
+              "improve automatically through experience. It is seen as a subset of artificial intelligence.",
+              "Machine learning is the study of computer algorithms that improve automatically through",
+              "experience. It is seen as a subset of artificial intelligence. Machine learning is the study of",
+              "computer algorithms that improve automatically through experience. It is seen as a subset of",
+              "artificial intelligence. Machine learning is the study of computer algorithms that improve",
+              "automatically through experience. It is seen as a subset of artificial intelligence. Machine",
+              "learning is the study of computer algorithms that improve automatically through experience.",
+              "It is seen as a subset of artificial intelligence. Machine learning is the study of computer",
+              "algorithms that improve automatically through experience. It is seen as a subset of artificial",
+              "intelligence. Machine learning is the study of computer algorithms that improve automatically",
+              "through experience. It is seen as a subset of artificial intelligence. Machine learning is the",
+              "study of computer algorithms that improve automatically through experience. It is seen as a",
+              "subset of artificial intelligence. Machine learning is the study of computer algorithms that",
+              "improve automatically through experience. It is seen as a subset of artificial intelligence.",
+              "Machine learning is the study of computer algorithms that improve automatically through"
+            ],
+            "page_one_marker": true
+          },
+          "seconds": 6.069
+        },
+        {
+          "operation": "pdf_to_powerpoint",
+          "status": "completed",
+          "bytes": 13649786,
+          "checks": {
+            "extension": ".pptx",
+            "bytes": 13649786,
+            "verified": true,
+            "slide_count": 69,
+            "text_sample": "",
+            "slides_with_full_page_images": 69,
+            "page_one_marker": false
+          },
+          "seconds": 9.732
+        },
+        {
+          "operation": "pdf_to_pdfa",
+          "status": "completed",
+          "bytes": 777219,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 777219,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 69,
+            "text_chars": 126872,
+            "text_sample": "Page 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machine learning is the\nstudy of computer algorithms that improve automatically through experience. It is",
+            "archival_marker_present": false,
+            "first_text": "Page 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machi",
+            "last_text": "Page 69 of 69\nSection 69. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Mac"
+          },
+          "seconds": 2.714
+        },
+        {
+          "operation": "pdf_to_text",
+          "status": "completed",
+          "bytes": 127967,
+          "checks": {
+            "extension": ".txt",
+            "bytes": 127967,
+            "verified": true,
+            "text_sample": "--- Page 1 ---\nPage 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machine learning is the\nstudy of computer algorithms that improve automatically through experience. It is seen as a\nsubset of artificial intelligence. Machine learning is the study of computer algorithms that\nimprove automatically through experience. It is seen as a subset of artificial intelligence.\nMachine learning is the study of computer algorithms that improve automatically through\nexperience. It is se",
+            "page_one_marker": true,
+            "text_chars": 127967
+          },
+          "seconds": 1.568
+        },
+        {
+          "operation": "pdf_to_markdown",
+          "status": "completed",
+          "bytes": 128392,
+          "checks": {
+            "extension": ".md",
+            "bytes": 128392,
+            "verified": true,
+            "text_sample": "# notes-69page\n\n## Page 1\n\n\n## Page 1 of 69\n\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machine learning is the\nstudy of computer algorithms that improve automatically through experience. It is seen as a\nsubset of artificial intelligence. Machine learning is the study of computer algorithms that\nimprove automatically through experience. It is seen as a subset of artificial intelligence.\nMachine learning is the study of computer algorithms that improve automatically through\nexp",
+            "page_one_marker": true,
+            "text_chars": 128392
+          },
+          "seconds": 7.24
+        },
+        {
+          "operation": "edit",
+          "status": "completed",
+          "bytes": 2688,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 2688,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 2,
+            "text_chars": 369,
+            "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nPAPERPLANE_EDITED_TEXT\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]",
+            "expected_marker": "PAPERPLANE_EDITED_TEXT",
+            "first_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nPAPERPLANE_EDITED_TEXT\n",
+            "last_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORIGINAL\nSYNTHETIC ONLY - NOT A R"
+          },
+          "seconds": 0.366
+        },
+        {
+          "operation": "annotate",
+          "status": "completed",
+          "bytes": 453386,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 453386,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 2,
+            "text_chars": 368,
+            "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nANNOTATION_AUDIT_NOTE\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]",
+            "expected_marker": "ANNOTATION_AUDIT_NOTE",
+            "first_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nANNOTATION_AUDIT_NOTE\n",
+            "last_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORIGINAL\nSYNTHETIC ONLY - NOT A R"
+          },
+          "seconds": 3.344
+        },
+        {
+          "operation": "crop",
+          "status": "completed",
+          "bytes": 2539,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 2539,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 2,
+            "text_chars": 346,
+            "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORI",
+            "page_sizes": [
+              [
+                559.0,
+                806.0
+              ],
+              [
+                559.0,
+                806.0
+              ]
+            ],
+            "first_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\n",
+            "last_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORIGINAL\nSYNTHETIC ONLY - NOT A R"
+          },
+          "seconds": 3.05
+        },
+        {
+          "operation": "redact",
+          "status": "completed",
+          "bytes": 1586,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 1586,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 2,
+            "text_chars": 310,
+            "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nSYNTHETIC ONLY - NOT A REAL ID",
+            "redacted_term_remaining": false,
+            "first_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\n",
+            "last_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nSYNTHETIC ONLY - NOT A REAL ID - test patt"
+          },
+          "seconds": 3.185
+        },
+        {
+          "operation": "watermark",
+          "status": "completed",
+          "bytes": 24229,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 24229,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 2,
+            "text_chars": 378,
+            "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_WATERMARK\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT",
+            "expected_marker": "AUDIT_WATERMARK",
+            "first_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_WATERMARK\n",
+            "last_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORIGINAL\nSYNTHETIC ONLY - NOT A R"
+          },
+          "seconds": 3.235
+        },
+        {
+          "operation": "page_numbers",
+          "status": "completed",
+          "bytes": 14367,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 14367,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 2,
+            "text_chars": 370,
+            "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nPage 1 of 2\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SEC",
+            "expected_marker": "Page 1 of 2",
+            "first_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nPage 1 of 2\n",
+            "last_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORIGINAL\nSYNTHETIC ONLY - NOT A R"
+          },
+          "seconds": 3.186
+        },
+        {
+          "operation": "protect",
+          "status": "completed",
+          "bytes": 3290,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 3290,
+            "opened_as_pdf": true,
+            "encrypted": true,
+            "password_accepted": true,
+            "page_count": 2,
+            "verified": true
+          },
+          "seconds": 3.248
+        },
+        {
+          "operation": "unlock",
+          "status": "completed",
+          "bytes": 1430,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 1430,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 2,
+            "text_chars": 346,
+            "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORI",
+            "encrypted": false,
+            "first_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\n",
+            "last_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORIGINAL\nSYNTHETIC ONLY - NOT A R"
+          },
+          "seconds": 3.247
+        },
+        {
+          "operation": "sign",
+          "status": "completed",
+          "bytes": 3234,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 3234,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 2,
+            "text_chars": 409,
+            "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nPAPERPLANE AUDIT\nPAPERPLANE AUDIT SIGNATURE | 2026-11-18 01:02\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026",
+            "signer_marker_present": true,
+            "first_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nPAPERPLANE AUDIT\nPAPERPLANE AUDIT SIGNATURE | 2026-",
+            "last_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORIGINAL\nSYNTHETIC ONLY - NOT A R"
+          },
+          "seconds": 3.131
+        },
+        {
+          "operation": "compare",
+          "status": "completed",
+          "bytes": 282,
+          "checks": {
+            "extension": ".txt",
+            "bytes": 282,
+            "verified": true,
+            "text_sample": "--- audit-sample.pdf\n+++ audit-sample-changed.pdf\n@@ -9,5 +9,5 @@\n Applicant: [synthetic details redacted]\n Document date: 2026-11-07\n [synthetic marker redacted]\n-AUDIT_SECOND_PAGE_ORIGINAL\n SYNTHETIC ONLY - NOT A REAL ID - test pattern: [synthetic ID redacted]+AUDIT_SECOND_PAGE_CHANGED_DELTA"
+          },
+          "seconds": 3.195
+        },
+        {
+          "operation": "forms",
+          "status": "completed",
+          "bytes": 2994,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 2994,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 1,
+            "text_chars": 143,
+            "text_sample": "Paperplane Synthetic Form Audit\nAudit Applicant\naudit@example.test\nPaperplane Output Audit\nSynthetic form value for local output verification.\n",
+            "widget_values": {
+              "ApplicantName": "Audit Applicant",
+              "ContactEmail": "audit@example.test",
+              "ProgramTitle": "Paperplane Output Audit",
+              "Statement": "Synthetic form value for local output verification."
+            },
+            "first_text": "Paperplane Synthetic Form Audit\nAudit Applicant\naudit@example.test\nPaperplane Output Audit\nSynthetic form value for local output verification.\n",
+            "last_text": "Paperplane Synthetic Form Audit\nAudit Applicant\naudit@example.test\nPaperplane Output Audit\nSynthetic form value for local output verification.\n"
+          },
+          "seconds": 3.241
+        },
+        {
+          "operation": "metadata",
+          "status": "completed",
+          "bytes": 3474,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 3474,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 2,
+            "text_chars": 346,
+            "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORI",
+            "metadata": {
+              "/Producer": "pypdf",
+              "/Title": "PAPERPLANE_AUDIT_METADATA",
+              "/Author": "Synthetic Audit"
+            },
+            "first_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\n",
+            "last_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORIGINAL\nSYNTHETIC ONLY - NOT A R"
+          },
+          "seconds": 3.125
+        },
+        {
+          "operation": "ai_chat",
+          "status": "completed",
+          "bytes": 286,
+          "checks": {
+            "extension": ".json",
+            "bytes": 286,
+            "verified": true,
+            "json_keys": [
+              "answer",
+              "citations",
+              "retrieval_method",
+              "fallback_used",
+              "relevant_passages"
+            ]
+          },
+          "seconds": 3.191
+        },
+        {
+          "operation": "ai_extract",
+          "status": "completed",
+          "bytes": 653,
+          "checks": {
+            "extension": ".json",
+            "bytes": 653,
+            "verified": true,
+            "json_keys": [
+              "document_type",
+              "total_pages",
+              "contact",
+              "source_pages",
+              "warnings",
+              "retrieval_method",
+              "general_data",
+              "csv_export"
+            ]
+          },
+          "seconds": 3.203
+        },
+        {
+          "operation": "summarize",
+          "status": "unavailable",
+          "reason": "Requires the Paperplane AI service to be configured and enabled"
+        },
+        {
+          "operation": "translate",
+          "status": "unavailable",
+          "reason": "Requires the Paperplane AI translation service to be configured and enabled"
+        },
+        {
+          "operation": "photo_resizer",
+          "status": "completed",
+          "bytes": 35840,
+          "checks": {
+            "dimensions": [
+              350,
+              450
+            ],
+            "verified": true
+          },
+          "seconds": 3.236
+        },
+        {
+          "operation": "photo_compress",
+          "status": "completed",
+          "bytes": 50087,
+          "checks": {
+            "dimensions": [
+              900,
+              1200
+            ],
+            "verified": true
+          },
+          "seconds": 3.203
+        },
+        {
+          "operation": "photo_resize",
+          "status": "completed",
+          "bytes": 8872,
+          "checks": {
+            "dimensions": [
+              350,
+              450
+            ],
+            "verified": true
+          },
+          "seconds": 3.171
+        },
+        {
+          "operation": "photo_merge",
+          "status": "completed",
+          "bytes": 87292,
+          "checks": {
+            "dimensions": [
+              1800,
+              1200
+            ],
+            "verified": true
+          },
+          "seconds": 3.193
+        },
+        {
+          "operation": "mask_aadhaar",
+          "status": "completed",
+          "bytes": 2492,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 2492,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 2,
+            "text_chars": 349,
+            "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORI",
+            "masked_prefix_present": true,
+            "original_prefix_present": false,
+            "last_four_present": false,
+            "first_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\n",
+            "last_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORIGINAL\nSYNTHETIC ONLY - NOT A R",
+            "synthetic_marker_preserved": true,
+            "number_masked": true
+          },
+          "seconds": 3.207
+        },
+        {
+          "operation": "grayscale",
+          "status": "completed",
+          "bytes": 7162310,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 7162310,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 69,
+            "text_chars": 68,
+            "text_sample": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+            "colored_pixel_mismatches": 0,
+            "first_text": "",
+            "last_text": ""
+          },
+          "seconds": 16.151
+        },
+        {
+          "operation": "flatten",
+          "status": "completed",
+          "bytes": 1118,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 1118,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 1,
+            "text_chars": 32,
+            "text_sample": "Paperplane Synthetic Form Audit\n",
+            "active_widgets": 0,
+            "first_text": "Paperplane Synthetic Form Audit\n",
+            "last_text": "Paperplane Synthetic Form Audit\n"
+          },
+          "seconds": 0.375
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "results": [
+        {
+          "operation": "merge",
+          "status": "completed",
+          "bytes": 4984734,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 4984734,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 71,
+            "text_chars": 127219,
+            "text_sample": "Page 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machine learning is the\nstudy of computer algorithms that improve automatically through experience. It is",
+            "first_text": "Page 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machi",
+            "last_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORIGINAL\nSYNTHETIC ONLY - NOT A R"
+          },
+          "seconds": 1.841
+        },
+        {
+          "operation": "split",
+          "status": "completed",
+          "bytes": 1373,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 1373,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 1,
+            "text_chars": 1836,
+            "text_sample": "Page 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machine learning is the\nstudy of computer algorithms that improve automatically through experience. It is",
+            "first_text": "Page 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machi",
+            "last_text": "Page 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machi"
+          },
+          "seconds": 2.277
+        },
+        {
+          "operation": "remove",
+          "status": "completed",
+          "bytes": 4980702,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 4980702,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 68,
+            "text_chars": 125035,
+            "text_sample": "Page 2 of 69\nSection 2. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machine learning is the\nstudy of computer algorithms that improve automatically through experience. It is",
+            "first_text": "Page 2 of 69\nSection 2. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machi",
+            "last_text": "Page 69 of 69\nSection 69. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Mac"
+          },
+          "seconds": 4.222
+        },
+        {
+          "operation": "rotate",
+          "status": "completed",
+          "bytes": 4981662,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 4981662,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 69,
+            "text_chars": 126872,
+            "text_sample": "Page 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machine learning is the\nstudy of computer algorithms that improve automatically through experience. It is",
+            "rotations": [
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90,
+              90
+            ],
+            "first_text": "Page 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machi",
+            "last_text": "Page 69 of 69\nSection 69. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Mac"
+          },
+          "seconds": 3.92
+        },
+        {
+          "operation": "organize",
+          "status": "completed",
+          "bytes": 2490,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 2490,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 2,
+            "text_chars": 346,
+            "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORIGINAL\nSYNTHETIC ONLY - NOT A REAL ID - test pattern: [synthetic ID redacted]PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]",
+            "first_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORIGINAL\nSYNTHETIC ONLY - NOT A R",
+            "last_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\n"
+          },
+          "seconds": 0.886
+        },
+        {
+          "operation": "scan_pdf",
+          "status": "completed",
+          "bytes": 78371,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 78371,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 1,
+            "text_chars": 0,
+            "text_sample": "",
+            "first_page_dimensions": [
+              596,
+              842
+            ],
+            "first_text": "",
+            "last_text": ""
+          },
+          "seconds": 3.639
+        },
+        {
+          "operation": "compress",
+          "status": "completed",
+          "bytes": 122556,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 122556,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 69,
+            "text_chars": 126872,
+            "text_sample": "Page 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machine learning is the\nstudy of computer algorithms that improve automatically through experience. It is",
+            "source_bytes": 4980286,
+            "first_text": "Page 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machi",
+            "last_text": "Page 69 of 69\nSection 69. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Mac",
+            "output_not_larger": true
+          },
+          "seconds": 4.201
+        },
+        {
+          "operation": "repair",
+          "status": "completed",
+          "bytes": 4960484,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 4960484,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 69,
+            "text_chars": 126872,
+            "text_sample": "Page 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machine learning is the\nstudy of computer algorithms that improve automatically through experience. It is",
+            "first_text": "Page 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machi",
+            "last_text": "Page 69 of 69\nSection 69. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Mac"
+          },
+          "seconds": 3.938
+        },
+        {
+          "operation": "ocr",
+          "status": "completed",
+          "bytes": 2490,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 2490,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 2,
+            "text_chars": 346,
+            "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORI",
+            "first_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\n",
+            "last_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORIGINAL\nSYNTHETIC ONLY - NOT A R"
+          },
+          "seconds": 1.038
+        },
+        {
+          "operation": "jpg_to_pdf",
+          "status": "completed",
+          "bytes": 148292,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 148292,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 2,
+            "text_chars": 1,
+            "text_sample": "\n",
+            "first_page_dimensions": [
+              596,
+              842
+            ],
+            "first_text": "",
+            "last_text": ""
+          },
+          "seconds": 3.253
+        },
+        {
+          "operation": "word_to_pdf",
+          "status": "completed",
+          "bytes": 28667,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 28667,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 1,
+            "text_chars": 128,
+            "text_sample": "PAPERPLANE_DOCX_AUDIT\nSynthetic office source for local converter verification.\nExpected text marker: AUDIT_OFFICE_WORD_OUTPUT.\n",
+            "expected_marker": "audit_office_word_output",
+            "first_text": "PAPERPLANE_DOCX_AUDIT\nSynthetic office source for local converter verification.\nExpected text marker: AUDIT_OFFICE_WORD_OUTPUT.\n",
+            "last_text": "PAPERPLANE_DOCX_AUDIT\nSynthetic office source for local converter verification.\nExpected text marker: AUDIT_OFFICE_WORD_OUTPUT.\n"
+          },
+          "seconds": 19.549
+        },
+        {
+          "operation": "excel_to_pdf",
+          "status": "completed",
+          "bytes": 2018,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 2018,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 1,
+            "text_chars": 122,
+            "text_sample": "Sheet: Audit Data\nItem\nAmount\nStatus\nApplication\n19\nPaid\nProcessing\n49\nPending\nMarker\nAUDIT_OFFICE_EXCEL_OUTPUT\nSynthetic\n",
+            "expected_marker": "audit_office_excel_output",
+            "first_text": "Sheet: Audit Data\nItem\nAmount\nStatus\nApplication\n19\nPaid\nProcessing\n49\nPending\nMarker\nAUDIT_OFFICE_EXCEL_OUTPUT\nSynthetic\n",
+            "last_text": "Sheet: Audit Data\nItem\nAmount\nStatus\nApplication\n19\nPaid\nProcessing\n49\nPending\nMarker\nAUDIT_OFFICE_EXCEL_OUTPUT\nSynthetic\n"
+          },
+          "seconds": 0.362
+        },
+        {
+          "operation": "powerpoint_to_pdf",
+          "status": "completed",
+          "bytes": 16348,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 16348,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 1,
+            "text_chars": 54,
+            "text_sample": "PAPERPLANE_PPTX_AUDIT\nAUDIT_OFFICE_POWERPOINT_\nOUTPUT\n",
+            "expected_marker": "audit_office_powerpoint_output",
+            "first_text": "PAPERPLANE_PPTX_AUDIT\nAUDIT_OFFICE_POWERPOINT_\nOUTPUT\n",
+            "last_text": "PAPERPLANE_PPTX_AUDIT\nAUDIT_OFFICE_POWERPOINT_\nOUTPUT\n"
+          },
+          "seconds": 5.598
+        },
+        {
+          "operation": "html_to_pdf",
+          "status": "ssrf_blocked",
+          "seconds": 0.815
+        },
+        {
+          "operation": "pdf_to_jpg",
+          "status": "completed",
+          "bytes": 59314,
+          "checks": {
+            "extension": ".zip",
+            "bytes": 59314,
+            "verified": true,
+            "archive_entries": [
+              "page_001.jpg",
+              "page_002.jpg"
+            ],
+            "image_entries": 2,
+            "valid_jpegs": 2
+          },
+          "seconds": 3.191
+        },
+        {
+          "operation": "pdf_to_word",
+          "status": "completed",
+          "bytes": 1274718,
+          "checks": {
+            "extension": ".docx",
+            "bytes": 1274718,
+            "verified": true,
+            "paragraph_count": 207,
+            "text_sample": "Page 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machine learning is the\nstudy of computer algorithms that improve automatically through experience. It is seen as a\nsubset of artificial intelligence. Machine learning is the study of computer algorithms that\nimprove automatically through experience. It is seen as a subset of artificial intelligence.\nMachine learning is the study of computer algorithms that improve automatically through\nexperience. It is seen as a subset ",
+            "first_page_marker": true
+          },
+          "seconds": 8.715
+        },
+        {
+          "operation": "pdf_to_excel",
+          "status": "completed",
+          "bytes": 16632,
+          "checks": {
+            "extension": ".xlsx",
+            "bytes": 16632,
+            "verified": true,
+            "sheet_count": 1,
+            "cell_values": [
+              "Page 1 of 69",
+              "Section 1. Machine learning is the study of computer algorithms that improve automatically",
+              "through experience. It is seen as a subset of artificial intelligence. Machine learning is the",
+              "study of computer algorithms that improve automatically through experience. It is seen as a",
+              "subset of artificial intelligence. Machine learning is the study of computer algorithms that",
+              "improve automatically through experience. It is seen as a subset of artificial intelligence.",
+              "Machine learning is the study of computer algorithms that improve automatically through",
+              "experience. It is seen as a subset of artificial intelligence. Machine learning is the study of",
+              "computer algorithms that improve automatically through experience. It is seen as a subset of",
+              "artificial intelligence. Machine learning is the study of computer algorithms that improve",
+              "automatically through experience. It is seen as a subset of artificial intelligence. Machine",
+              "learning is the study of computer algorithms that improve automatically through experience.",
+              "It is seen as a subset of artificial intelligence. Machine learning is the study of computer",
+              "algorithms that improve automatically through experience. It is seen as a subset of artificial",
+              "intelligence. Machine learning is the study of computer algorithms that improve automatically",
+              "through experience. It is seen as a subset of artificial intelligence. Machine learning is the",
+              "study of computer algorithms that improve automatically through experience. It is seen as a",
+              "subset of artificial intelligence. Machine learning is the study of computer algorithms that",
+              "improve automatically through experience. It is seen as a subset of artificial intelligence.",
+              "Machine learning is the study of computer algorithms that improve automatically through"
+            ],
+            "page_one_marker": true
+          },
+          "seconds": 5.951
+        },
+        {
+          "operation": "pdf_to_powerpoint",
+          "status": "completed",
+          "bytes": 13649786,
+          "checks": {
+            "extension": ".pptx",
+            "bytes": 13649786,
+            "verified": true,
+            "slide_count": 69,
+            "text_sample": "",
+            "slides_with_full_page_images": 69,
+            "page_one_marker": false
+          },
+          "seconds": 10.318
+        },
+        {
+          "operation": "pdf_to_pdfa",
+          "status": "completed",
+          "bytes": 777219,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 777219,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 69,
+            "text_chars": 126872,
+            "text_sample": "Page 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machine learning is the\nstudy of computer algorithms that improve automatically through experience. It is",
+            "archival_marker_present": false,
+            "first_text": "Page 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machi",
+            "last_text": "Page 69 of 69\nSection 69. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Mac"
+          },
+          "seconds": 2.367
+        },
+        {
+          "operation": "pdf_to_text",
+          "status": "completed",
+          "bytes": 127967,
+          "checks": {
+            "extension": ".txt",
+            "bytes": 127967,
+            "verified": true,
+            "text_sample": "--- Page 1 ---\nPage 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machine learning is the\nstudy of computer algorithms that improve automatically through experience. It is seen as a\nsubset of artificial intelligence. Machine learning is the study of computer algorithms that\nimprove automatically through experience. It is seen as a subset of artificial intelligence.\nMachine learning is the study of computer algorithms that improve automatically through\nexperience. It is se",
+            "page_one_marker": true,
+            "text_chars": 127967
+          },
+          "seconds": 2.09
+        },
+        {
+          "operation": "pdf_to_markdown",
+          "status": "completed",
+          "bytes": 128392,
+          "checks": {
+            "extension": ".md",
+            "bytes": 128392,
+            "verified": true,
+            "text_sample": "# notes-69page\n\n## Page 1\n\n\n## Page 1 of 69\n\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machine learning is the\nstudy of computer algorithms that improve automatically through experience. It is seen as a\nsubset of artificial intelligence. Machine learning is the study of computer algorithms that\nimprove automatically through experience. It is seen as a subset of artificial intelligence.\nMachine learning is the study of computer algorithms that improve automatically through\nexp",
+            "page_one_marker": true,
+            "text_chars": 128392
+          },
+          "seconds": 7.387
+        },
+        {
+          "operation": "edit",
+          "status": "completed",
+          "bytes": 2686,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 2686,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 2,
+            "text_chars": 369,
+            "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nPAPERPLANE_EDITED_TEXT\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]",
+            "expected_marker": "PAPERPLANE_EDITED_TEXT",
+            "first_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nPAPERPLANE_EDITED_TEXT\n",
+            "last_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORIGINAL\nSYNTHETIC ONLY - NOT A R"
+          },
+          "seconds": 0.335
+        },
+        {
+          "operation": "annotate",
+          "status": "completed",
+          "bytes": 453384,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 453384,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 2,
+            "text_chars": 368,
+            "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nANNOTATION_AUDIT_NOTE\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]",
+            "expected_marker": "ANNOTATION_AUDIT_NOTE",
+            "first_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nANNOTATION_AUDIT_NOTE\n",
+            "last_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORIGINAL\nSYNTHETIC ONLY - NOT A R"
+          },
+          "seconds": 3.283
+        },
+        {
+          "operation": "crop",
+          "status": "completed",
+          "bytes": 2537,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 2537,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 2,
+            "text_chars": 346,
+            "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORI",
+            "page_sizes": [
+              [
+                559.0,
+                806.0
+              ],
+              [
+                559.0,
+                806.0
+              ]
+            ],
+            "first_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\n",
+            "last_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORIGINAL\nSYNTHETIC ONLY - NOT A R"
+          },
+          "seconds": 3.136
+        },
+        {
+          "operation": "redact",
+          "status": "completed",
+          "bytes": 1586,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 1586,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 2,
+            "text_chars": 310,
+            "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nSYNTHETIC ONLY - NOT A REAL ID",
+            "redacted_term_remaining": false,
+            "first_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\n",
+            "last_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nSYNTHETIC ONLY - NOT A REAL ID - test patt"
+          },
+          "seconds": 3.242
+        },
+        {
+          "operation": "watermark",
+          "status": "completed",
+          "bytes": 24227,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 24227,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 2,
+            "text_chars": 378,
+            "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_WATERMARK\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT",
+            "expected_marker": "AUDIT_WATERMARK",
+            "first_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_WATERMARK\n",
+            "last_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORIGINAL\nSYNTHETIC ONLY - NOT A R"
+          },
+          "seconds": 3.189
+        },
+        {
+          "operation": "page_numbers",
+          "status": "completed",
+          "bytes": 14365,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 14365,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 2,
+            "text_chars": 370,
+            "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nPage 1 of 2\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SEC",
+            "expected_marker": "Page 1 of 2",
+            "first_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nPage 1 of 2\n",
+            "last_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORIGINAL\nSYNTHETIC ONLY - NOT A R"
+          },
+          "seconds": 3.158
+        },
+        {
+          "operation": "protect",
+          "status": "completed",
+          "bytes": 3290,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 3290,
+            "opened_as_pdf": true,
+            "encrypted": true,
+            "password_accepted": true,
+            "page_count": 2,
+            "verified": true
+          },
+          "seconds": 3.262
+        },
+        {
+          "operation": "unlock",
+          "status": "completed",
+          "bytes": 1430,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 1430,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 2,
+            "text_chars": 346,
+            "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORI",
+            "encrypted": false,
+            "first_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\n",
+            "last_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORIGINAL\nSYNTHETIC ONLY - NOT A R"
+          },
+          "seconds": 3.223
+        },
+        {
+          "operation": "sign",
+          "status": "completed",
+          "bytes": 3231,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 3231,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 2,
+            "text_chars": 409,
+            "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nPAPERPLANE AUDIT\nPAPERPLANE AUDIT SIGNATURE | 2026-11-18 01:05\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026",
+            "signer_marker_present": true,
+            "first_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nPAPERPLANE AUDIT\nPAPERPLANE AUDIT SIGNATURE | 2026-",
+            "last_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORIGINAL\nSYNTHETIC ONLY - NOT A R"
+          },
+          "seconds": 3.154
+        },
+        {
+          "operation": "compare",
+          "status": "completed",
+          "bytes": 282,
+          "checks": {
+            "extension": ".txt",
+            "bytes": 282,
+            "verified": true,
+            "text_sample": "--- audit-sample.pdf\n+++ audit-sample-changed.pdf\n@@ -9,5 +9,5 @@\n Applicant: [synthetic details redacted]\n Document date: 2026-11-07\n [synthetic marker redacted]\n-AUDIT_SECOND_PAGE_ORIGINAL\n SYNTHETIC ONLY - NOT A REAL ID - test pattern: [synthetic ID redacted]+AUDIT_SECOND_PAGE_CHANGED_DELTA"
+          },
+          "seconds": 3.169
+        },
+        {
+          "operation": "forms",
+          "status": "completed",
+          "bytes": 2994,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 2994,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 1,
+            "text_chars": 143,
+            "text_sample": "Paperplane Synthetic Form Audit\nAudit Applicant\naudit@example.test\nPaperplane Output Audit\nSynthetic form value for local output verification.\n",
+            "widget_values": {
+              "ApplicantName": "Audit Applicant",
+              "ContactEmail": "audit@example.test",
+              "ProgramTitle": "Paperplane Output Audit",
+              "Statement": "Synthetic form value for local output verification."
+            },
+            "first_text": "Paperplane Synthetic Form Audit\nAudit Applicant\naudit@example.test\nPaperplane Output Audit\nSynthetic form value for local output verification.\n",
+            "last_text": "Paperplane Synthetic Form Audit\nAudit Applicant\naudit@example.test\nPaperplane Output Audit\nSynthetic form value for local output verification.\n"
+          },
+          "seconds": 3.273
+        },
+        {
+          "operation": "metadata",
+          "status": "completed",
+          "bytes": 3472,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 3472,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 2,
+            "text_chars": 346,
+            "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORI",
+            "metadata": {
+              "/Producer": "pypdf",
+              "/Title": "PAPERPLANE_AUDIT_METADATA",
+              "/Author": "Synthetic Audit"
+            },
+            "first_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\n",
+            "last_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORIGINAL\nSYNTHETIC ONLY - NOT A R"
+          },
+          "seconds": 3.133
+        },
+        {
+          "operation": "ai_chat",
+          "status": "completed",
+          "bytes": 286,
+          "checks": {
+            "extension": ".json",
+            "bytes": 286,
+            "verified": true,
+            "json_keys": [
+              "answer",
+              "citations",
+              "retrieval_method",
+              "fallback_used",
+              "relevant_passages"
+            ]
+          },
+          "seconds": 3.185
+        },
+        {
+          "operation": "ai_extract",
+          "status": "completed",
+          "bytes": 653,
+          "checks": {
+            "extension": ".json",
+            "bytes": 653,
+            "verified": true,
+            "json_keys": [
+              "document_type",
+              "total_pages",
+              "contact",
+              "source_pages",
+              "warnings",
+              "retrieval_method",
+              "general_data",
+              "csv_export"
+            ]
+          },
+          "seconds": 3.276
+        },
+        {
+          "operation": "summarize",
+          "status": "unavailable",
+          "reason": "Requires the Paperplane AI service to be configured and enabled"
+        },
+        {
+          "operation": "translate",
+          "status": "unavailable",
+          "reason": "Requires the Paperplane AI translation service to be configured and enabled"
+        },
+        {
+          "operation": "photo_resizer",
+          "status": "completed",
+          "bytes": 35840,
+          "checks": {
+            "dimensions": [
+              350,
+              450
+            ],
+            "verified": true
+          },
+          "seconds": 3.144
+        },
+        {
+          "operation": "photo_compress",
+          "status": "completed",
+          "bytes": 50087,
+          "checks": {
+            "dimensions": [
+              900,
+              1200
+            ],
+            "verified": true
+          },
+          "seconds": 3.194
+        },
+        {
+          "operation": "photo_resize",
+          "status": "completed",
+          "bytes": 8872,
+          "checks": {
+            "dimensions": [
+              350,
+              450
+            ],
+            "verified": true
+          },
+          "seconds": 3.206
+        },
+        {
+          "operation": "photo_merge",
+          "status": "completed",
+          "bytes": 87292,
+          "checks": {
+            "dimensions": [
+              1800,
+              1200
+            ],
+            "verified": true
+          },
+          "seconds": 3.198
+        },
+        {
+          "operation": "mask_aadhaar",
+          "status": "completed",
+          "bytes": 2491,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 2491,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 2,
+            "text_chars": 349,
+            "text_sample": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\n\nPAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORI",
+            "masked_prefix_present": true,
+            "original_prefix_present": false,
+            "last_four_present": false,
+            "first_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_1\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\n",
+            "last_text": "PAPERPLANE_AUDIT_SAMPLE\nAUDIT_PAGE_2\nApplicant: [synthetic details redacted]\nDocument date: 2026-11-07\n[synthetic marker redacted]\nAUDIT_SECOND_PAGE_ORIGINAL\nSYNTHETIC ONLY - NOT A R",
+            "synthetic_marker_preserved": true,
+            "number_masked": true
+          },
+          "seconds": 3.216
+        },
+        {
+          "operation": "grayscale",
+          "status": "completed",
+          "bytes": 7162310,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 7162310,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 69,
+            "text_chars": 68,
+            "text_sample": "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+            "colored_pixel_mismatches": 0,
+            "first_text": "",
+            "last_text": ""
+          },
+          "seconds": 16.606
+        },
+        {
+          "operation": "flatten",
+          "status": "completed",
+          "bytes": 1118,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 1118,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 1,
+            "text_chars": 32,
+            "text_sample": "Paperplane Synthetic Form Audit\n",
+            "active_widgets": 0,
+            "first_text": "Paperplane Synthetic Form Audit\n",
+            "last_text": "Paperplane Synthetic Form Audit\n"
+          },
+          "seconds": 0.348
+        }
+      ]
+    }
+  ],
+  "page_errors": []
+}

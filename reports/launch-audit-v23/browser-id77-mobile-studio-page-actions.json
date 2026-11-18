@@ -1,0 +1,94 @@
+{
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "before_toggle": {
+    "mobile": true,
+    "button": "<button type=\"button\" id=\"studio-mobile-pages-btn\" class=\"studio-mobile-dock-btn\" aria-expanded=\"true\" aria-controls=\"studio-thumbnails-bar\">\n                <span aria-hidden=\"true\">\u25a4</span><span>Pages</span>\n              </button>",
+    "hidden": false,
+    "rect": {
+      "x": 5,
+      "y": 725,
+      "w": 46,
+      "h": 44
+    },
+    "view": false,
+    "errors": "\n                \n                Rendering page 1\u2026\n              "
+  },
+  "after_toggle": {
+    "expanded": "true",
+    "shell": "app-shell studio-active studio-pages-open"
+  },
+  "page_actions_visible": true,
+  "action_row": {
+    "scrollWidth": 356,
+    "clientWidth": 356,
+    "scrollLeft": 0,
+    "overflowX": "visible",
+    "scrollHeight": 228,
+    "clientHeight": 228,
+    "rect": {
+      "x": 17,
+      "y": 312,
+      "width": 356,
+      "height": 228,
+      "right": 373
+    }
+  },
+  "buttons": {
+    "batch-resize-btn": {
+      "visible": true,
+      "rect": {
+        "x": 24,
+        "y": 364,
+        "width": 68,
+        "height": 44
+      },
+      "within_viewport": true,
+      "within_action_panel": true
+    },
+    "batch-move-up-btn": {
+      "visible": true,
+      "rect": {
+        "x": 116.234375,
+        "y": 426,
+        "width": 68,
+        "height": 44
+      },
+      "within_viewport": true,
+      "within_action_panel": true
+    },
+    "batch-move-down-btn": {
+      "visible": true,
+      "rect": {
+        "x": 188.234375,
+        "y": 426,
+        "width": 68,
+        "height": 44
+      },
+      "within_viewport": true,
+      "within_action_panel": true
+    },
+    "batch-ocr-btn": {
+      "visible": true,
+      "rect": {
+        "x": 260.234375,
+        "y": 426,
+        "width": 68,
+        "height": 44
+      },
+      "within_viewport": true,
+      "within_action_panel": true
+    }
+  },
+  "zoom_value": "100%",
+  "zoom_rect": {
+    "x": 196,
+    "y": 727,
+    "width": 76,
+    "height": 40
+  },
+  "document_scroll_width": 390,
+  "page_errors": []
+}

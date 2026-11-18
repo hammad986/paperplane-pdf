@@ -1,0 +1,92 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "operation": "merge",
+      "download_name": "merged-PDF.pdf",
+      "download_pages": 4,
+      "source_content_checked": true,
+      "studio_route": true,
+      "studio_rendered_before_reload": true,
+      "studio_restored_after_reload": true,
+      "page_errors": []
+    },
+    {
+      "round": 1,
+      "operation": "rotate",
+      "download_name": "rotated.pdf",
+      "download_pages": 2,
+      "source_content_checked": true,
+      "studio_route": true,
+      "studio_rendered_before_reload": true,
+      "studio_restored_after_reload": true,
+      "page_errors": []
+    },
+    {
+      "round": 1,
+      "operation": "split",
+      "download_name": "extracted-pages.pdf",
+      "download_pages": 1,
+      "source_content_checked": true,
+      "studio_route": true,
+      "studio_rendered_before_reload": true,
+      "studio_restored_after_reload": true,
+      "page_errors": []
+    },
+    {
+      "round": 1,
+      "operation": "remove",
+      "download_name": "removed-pages.pdf",
+      "download_pages": 1,
+      "source_content_checked": true,
+      "studio_route": true,
+      "studio_rendered_before_reload": true,
+      "studio_restored_after_reload": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "operation": "merge",
+      "download_name": "merged-PDF.pdf",
+      "download_pages": 4,
+      "source_content_checked": true,
+      "studio_route": true,
+      "studio_rendered_before_reload": true,
+      "studio_restored_after_reload": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "operation": "rotate",
+      "download_name": "rotated.pdf",
+      "download_pages": 2,
+      "source_content_checked": true,
+      "studio_route": true,
+      "studio_rendered_before_reload": true,
+      "studio_restored_after_reload": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "operation": "split",
+      "download_name": "extracted-pages.pdf",
+      "download_pages": 1,
+      "source_content_checked": true,
+      "studio_route": true,
+      "studio_rendered_before_reload": true,
+      "studio_restored_after_reload": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "operation": "remove",
+      "download_name": "removed-pages.pdf",
+      "download_pages": 1,
+      "source_content_checked": true,
+      "studio_route": true,
+      "studio_rendered_before_reload": true,
+      "studio_restored_after_reload": true,
+      "page_errors": []
+    }
+  ]
+}

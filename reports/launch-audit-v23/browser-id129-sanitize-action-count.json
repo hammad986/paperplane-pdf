@@ -1,0 +1,40 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "routes": [
+        {
+          "route": "/protect-pdf",
+          "button_count": 1,
+          "one_visible_action": true,
+          "label": "Sanitize Document Now \u2192"
+        },
+        {
+          "route": "/unlock-pdf",
+          "button_count": 1,
+          "one_visible_action": true,
+          "label": "Sanitize Document Now \u2192"
+        }
+      ],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "routes": [
+        {
+          "route": "/protect-pdf",
+          "button_count": 1,
+          "one_visible_action": true,
+          "label": "Sanitize Document Now \u2192"
+        },
+        {
+          "route": "/unlock-pdf",
+          "button_count": 1,
+          "one_visible_action": true,
+          "label": "Sanitize Document Now \u2192"
+        }
+      ],
+      "page_errors": []
+    }
+  ]
+}

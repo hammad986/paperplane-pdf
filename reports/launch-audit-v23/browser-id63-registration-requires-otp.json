@@ -1,0 +1,30 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "http_status": 200,
+      "response_status": "otp_required",
+      "auth_state": {
+        "otpPaneVisible": true,
+        "tokenInResponse": false,
+        "storedToken": null,
+        "authCookie": false,
+        "confirmationEmail": "id63-1-a9aad5d4@example.invalid"
+      },
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "http_status": 200,
+      "response_status": "otp_required",
+      "auth_state": {
+        "otpPaneVisible": true,
+        "tokenInResponse": false,
+        "storedToken": null,
+        "authCookie": false,
+        "confirmationEmail": "id63-2-d10b53c3@example.invalid"
+      },
+      "page_errors": []
+    }
+  ]
+}

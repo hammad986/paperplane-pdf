@@ -1,0 +1,19 @@
+{
+  "mobile_drawer_closes_on_escape": true,
+  "stacked_overlays_before": {
+    "upgradeHidden": false,
+    "authHidden": false,
+    "upgradeZ": "2000",
+    "authZ": "2000"
+  },
+  "after_first_escape": {
+    "upgradeHidden": true,
+    "authHidden": false
+  },
+  "exactly_one_overlay_remains_after_first_escape": true,
+  "after_second_escape": {
+    "upgradeHidden": true,
+    "authHidden": true
+  },
+  "page_errors": []
+}

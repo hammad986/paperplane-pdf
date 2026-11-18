@@ -1,0 +1,19 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "job_status": "failed",
+      "failure": "{'id': '3e8690c6905f436ca91e4078ce1aec0f', 'operation': 'html_to_pdf', 'status': 'failed', 'progress': 100, 'error': \"Security Guard: Access to host '127.0.0.1' is forbidden.\", 'warning': None, 'output_name': None, 'output_size': None, 'cre",
+      "canary_http_hits": 0,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "job_status": "failed",
+      "failure": "{'id': 'b1fdcd68f0714d83b1ec36f8558721e5', 'operation': 'html_to_pdf', 'status': 'failed', 'progress': 100, 'error': \"Security Guard: Access to host '127.0.0.1' is forbidden.\", 'warning': None, 'output_name': None, 'output_size': None, 'cre",
+      "canary_http_hits": 0,
+      "page_errors": []
+    }
+  ],
+  "canary_hits": []
+}

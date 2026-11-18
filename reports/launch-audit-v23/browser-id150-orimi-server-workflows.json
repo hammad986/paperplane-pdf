@@ -1,0 +1,56 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "operations": [
+        {
+          "route": "/merge-pdf",
+          "download_name": "merged-PDF.pdf",
+          "bytes": 26793,
+          "pages": 2,
+          "rotation": 0,
+          "source_marker": true,
+          "server_mode": "server",
+          "error_text": ""
+        },
+        {
+          "route": "/rotate-pdf",
+          "download_name": "orimi-pdf-test_rotate.pdf",
+          "bytes": 13549,
+          "pages": 1,
+          "rotation": 90,
+          "source_marker": true,
+          "server_mode": "server",
+          "error_text": ""
+        }
+      ],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "operations": [
+        {
+          "route": "/merge-pdf",
+          "download_name": "merged-PDF.pdf",
+          "bytes": 26793,
+          "pages": 2,
+          "rotation": 0,
+          "source_marker": true,
+          "server_mode": "server",
+          "error_text": ""
+        },
+        {
+          "route": "/rotate-pdf",
+          "download_name": "orimi-pdf-test_rotate.pdf",
+          "bytes": 13549,
+          "pages": 1,
+          "rotation": 90,
+          "source_marker": true,
+          "server_mode": "server",
+          "error_text": ""
+        }
+      ],
+      "page_errors": []
+    }
+  ]
+}

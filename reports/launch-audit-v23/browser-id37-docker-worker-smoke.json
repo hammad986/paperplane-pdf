@@ -1,0 +1,34 @@
+{
+  "base": "http://127.0.0.1:18502",
+  "results": [
+    {
+      "operation": "fill_forms",
+      "output_bytes": 1711,
+      "field_value_checked": true,
+      "source_text_checked": true
+    },
+    {
+      "operation": "edit_metadata",
+      "output_bytes": 985,
+      "updated_json_checked": true,
+      "preserved_metadata_checked": true,
+      "source_text_checked": true
+    },
+    {
+      "operation": "crop",
+      "output_bytes": 974,
+      "page_dimensions_checked": [
+        270,
+        160
+      ],
+      "source_text_checked": true
+    }
+  ],
+  "api_job_posts": [],
+  "page_errors": [],
+  "image_id": "sha256:bf351677501c81d75ba163d954f96eb12e911a5952b963931423c1ce03a390a1",
+  "health": "ok",
+  "workers": 4,
+  "tmpfs_only": true,
+  "container_stopped": true
+}

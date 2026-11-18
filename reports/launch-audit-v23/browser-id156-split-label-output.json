@@ -1,0 +1,52 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "option_label": "All 3 pages as PDFs (ZIP)",
+      "download_name": "split-pages.zip",
+      "zip_member_count": 3,
+      "members": [
+        {
+          "name": "page-1.pdf",
+          "pages": 1,
+          "text": "SPLIT-PAGE-MARKER-1"
+        },
+        {
+          "name": "page-2.pdf",
+          "pages": 1,
+          "text": "SPLIT-PAGE-MARKER-2"
+        },
+        {
+          "name": "page-3.pdf",
+          "pages": 1,
+          "text": "SPLIT-PAGE-MARKER-3"
+        }
+      ],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "option_label": "All 3 pages as PDFs (ZIP)",
+      "download_name": "split-pages.zip",
+      "zip_member_count": 3,
+      "members": [
+        {
+          "name": "page-1.pdf",
+          "pages": 1,
+          "text": "SPLIT-PAGE-MARKER-1"
+        },
+        {
+          "name": "page-2.pdf",
+          "pages": 1,
+          "text": "SPLIT-PAGE-MARKER-2"
+        },
+        {
+          "name": "page-3.pdf",
+          "pages": 1,
+          "text": "SPLIT-PAGE-MARKER-3"
+        }
+      ],
+      "page_errors": []
+    }
+  ]
+}

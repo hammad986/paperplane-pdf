@@ -1,0 +1,404 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "viewport": {
+        "width": 320,
+        "height": 844
+      },
+      "operations": [
+        {
+          "slug": "split-pdf",
+          "download": "split-pages.zip",
+          "content_checked": true,
+          "result_metrics": {
+            "result": {
+              "left": 8,
+              "right": 312,
+              "top": 313,
+              "bottom": 519,
+              "width": 304,
+              "height": 206
+            },
+            "actions": [
+              {
+                "text": "Download File",
+                "rect": {
+                  "left": 118,
+                  "right": 287,
+                  "top": 338,
+                  "bottom": 382,
+                  "width": 169,
+                  "height": 44
+                },
+                "withinViewport": true,
+                "notCovered": true,
+                "minHeight": 44
+              },
+              {
+                "text": "Process Another File",
+                "rect": {
+                  "left": 118,
+                  "right": 287,
+                  "top": 390,
+                  "bottom": 438,
+                  "width": 169,
+                  "height": 48
+                },
+                "withinViewport": true,
+                "notCovered": true,
+                "minHeight": 48
+              },
+              {
+                "text": "All Tools",
+                "rect": {
+                  "left": 118,
+                  "right": 287,
+                  "top": 446,
+                  "bottom": 494,
+                  "width": 169,
+                  "height": 48
+                },
+                "withinViewport": true,
+                "notCovered": true,
+                "minHeight": 48
+              }
+            ],
+            "nav": {
+              "left": 0,
+              "right": 320,
+              "top": 778,
+              "bottom": 844,
+              "width": 320,
+              "height": 66
+            },
+            "run": {
+              "left": 16,
+              "right": 304,
+              "top": 720,
+              "bottom": 768,
+              "width": 288,
+              "height": 48
+            },
+            "documentWidth": 320
+          },
+          "toast_geometry": {
+            "rect": {
+              "left": 12,
+              "right": 308,
+              "top": 82.36542510986328,
+              "bottom": 125.36542510986328,
+              "width": 296,
+              "height": 43
+            },
+            "overlapsNav": false,
+            "overlapsRun": false
+          }
+        },
+        {
+          "slug": "rotate-pdf",
+          "download": "rotated.pdf",
+          "content_checked": true,
+          "result_metrics": {
+            "result": {
+              "left": 8,
+              "right": 312,
+              "top": 285,
+              "bottom": 547,
+              "width": 304,
+              "height": 262
+            },
+            "actions": [
+              {
+                "text": "Download File",
+                "rect": {
+                  "left": 118,
+                  "right": 287,
+                  "top": 310,
+                  "bottom": 354,
+                  "width": 169,
+                  "height": 44
+                },
+                "withinViewport": true,
+                "notCovered": true,
+                "minHeight": 44
+              },
+              {
+                "text": "View in Studio",
+                "rect": {
+                  "left": 118,
+                  "right": 287,
+                  "top": 362,
+                  "bottom": 410,
+                  "width": 169,
+                  "height": 48
+                },
+                "withinViewport": true,
+                "notCovered": true,
+                "minHeight": 48
+              },
+              {
+                "text": "Process Another File",
+                "rect": {
+                  "left": 118,
+                  "right": 287,
+                  "top": 418,
+                  "bottom": 466,
+                  "width": 169,
+                  "height": 48
+                },
+                "withinViewport": true,
+                "notCovered": true,
+                "minHeight": 48
+              },
+              {
+                "text": "All Tools",
+                "rect": {
+                  "left": 118,
+                  "right": 287,
+                  "top": 474,
+                  "bottom": 522,
+                  "width": 169,
+                  "height": 48
+                },
+                "withinViewport": true,
+                "notCovered": true,
+                "minHeight": 48
+              }
+            ],
+            "nav": {
+              "left": 0,
+              "right": 320,
+              "top": 778,
+              "bottom": 844,
+              "width": 320,
+              "height": 66
+            },
+            "run": {
+              "left": 16,
+              "right": 304,
+              "top": 720,
+              "bottom": 768,
+              "width": 288,
+              "height": 48
+            },
+            "documentWidth": 320
+          },
+          "toast_geometry": {
+            "rect": {
+              "left": 12,
+              "right": 308,
+              "top": 86.18086242675781,
+              "bottom": 129.1808624267578,
+              "width": 296,
+              "height": 43
+            },
+            "overlapsNav": false,
+            "overlapsRun": false
+          }
+        }
+      ],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "operations": [
+        {
+          "slug": "split-pdf",
+          "download": "split-pages.zip",
+          "content_checked": true,
+          "result_metrics": {
+            "result": {
+              "left": 8,
+              "right": 382,
+              "top": 313,
+              "bottom": 519,
+              "width": 374,
+              "height": 206
+            },
+            "actions": [
+              {
+                "text": "Download File",
+                "rect": {
+                  "left": 132.6875,
+                  "right": 357,
+                  "top": 338,
+                  "bottom": 382,
+                  "width": 224.3125,
+                  "height": 44
+                },
+                "withinViewport": true,
+                "notCovered": true,
+                "minHeight": 44
+              },
+              {
+                "text": "Process Another File",
+                "rect": {
+                  "left": 132.6875,
+                  "right": 357,
+                  "top": 390,
+                  "bottom": 438,
+                  "width": 224.3125,
+                  "height": 48
+                },
+                "withinViewport": true,
+                "notCovered": true,
+                "minHeight": 48
+              },
+              {
+                "text": "All Tools",
+                "rect": {
+                  "left": 132.6875,
+                  "right": 357,
+                  "top": 446,
+                  "bottom": 494,
+                  "width": 224.3125,
+                  "height": 48
+                },
+                "withinViewport": true,
+                "notCovered": true,
+                "minHeight": 48
+              }
+            ],
+            "nav": {
+              "left": 0,
+              "right": 390,
+              "top": 778,
+              "bottom": 844,
+              "width": 390,
+              "height": 66
+            },
+            "run": {
+              "left": 16,
+              "right": 374,
+              "top": 720,
+              "bottom": 768,
+              "width": 358,
+              "height": 48
+            },
+            "documentWidth": 390
+          },
+          "toast_geometry": {
+            "rect": {
+              "left": 12,
+              "right": 378,
+              "top": 86.3248519897461,
+              "bottom": 129.32485961914062,
+              "width": 366,
+              "height": 43.00000762939453
+            },
+            "overlapsNav": false,
+            "overlapsRun": false
+          }
+        },
+        {
+          "slug": "rotate-pdf",
+          "download": "rotated.pdf",
+          "content_checked": true,
+          "result_metrics": {
+            "result": {
+              "left": 8,
+              "right": 382,
+              "top": 285,
+              "bottom": 547,
+              "width": 374,
+              "height": 262
+            },
+            "actions": [
+              {
+                "text": "Download File",
+                "rect": {
+                  "left": 118,
+                  "right": 357,
+                  "top": 310,
+                  "bottom": 354,
+                  "width": 239,
+                  "height": 44
+                },
+                "withinViewport": true,
+                "notCovered": true,
+                "minHeight": 44
+              },
+              {
+                "text": "View in Studio",
+                "rect": {
+                  "left": 118,
+                  "right": 357,
+                  "top": 362,
+                  "bottom": 410,
+                  "width": 239,
+                  "height": 48
+                },
+                "withinViewport": true,
+                "notCovered": true,
+                "minHeight": 48
+              },
+              {
+                "text": "Process Another File",
+                "rect": {
+                  "left": 118,
+                  "right": 357,
+                  "top": 418,
+                  "bottom": 466,
+                  "width": 239,
+                  "height": 48
+                },
+                "withinViewport": true,
+                "notCovered": true,
+                "minHeight": 48
+              },
+              {
+                "text": "All Tools",
+                "rect": {
+                  "left": 118,
+                  "right": 357,
+                  "top": 474,
+                  "bottom": 522,
+                  "width": 239,
+                  "height": 48
+                },
+                "withinViewport": true,
+                "notCovered": true,
+                "minHeight": 48
+              }
+            ],
+            "nav": {
+              "left": 0,
+              "right": 390,
+              "top": 778,
+              "bottom": 844,
+              "width": 390,
+              "height": 66
+            },
+            "run": {
+              "left": 16,
+              "right": 374,
+              "top": 720,
+              "bottom": 768,
+              "width": 358,
+              "height": 48
+            },
+            "documentWidth": 390
+          },
+          "toast_geometry": {
+            "rect": {
+              "left": 12,
+              "right": 378,
+              "top": 92,
+              "bottom": 135,
+              "width": 366,
+              "height": 43
+            },
+            "overlapsNav": false,
+            "overlapsRun": false
+          }
+        }
+      ],
+      "page_errors": []
+    }
+  ]
+}

@@ -1,0 +1,150 @@
+{
+  "runs": [
+    {
+      "round": 1,
+      "cloud": {
+        "topbar": [
+          [
+            "BUTTON",
+            "close-cloud-modal",
+            null,
+            ""
+          ],
+          [
+            "INPUT",
+            "cloud-url",
+            null,
+            ""
+          ],
+          [
+            "BUTTON",
+            "cloud-submit-btn",
+            null,
+            "Fetch & Import Document \u2192"
+          ]
+        ],
+        "dropzone": [
+          [
+            "BUTTON",
+            "close-cloud-modal",
+            null,
+            ""
+          ],
+          [
+            "INPUT",
+            "cloud-url",
+            null,
+            ""
+          ],
+          [
+            "BUTTON",
+            "cloud-submit-btn",
+            null,
+            "Fetch & Import Document \u2192"
+          ]
+        ],
+        "single_visible_dialog": true
+      },
+      "browser_mode": {
+        "label": "Use browser processing",
+        "checked": true,
+        "aria": "Browser processing is on for Merge PDF; files stay on this device.",
+        "support": "Merge PDF runs in your browser; files stay on this device and are not uploaded.",
+        "engine": null
+      },
+      "server_mode": {
+        "checked": false,
+        "aria": "Browser processing is off for Merge PDF; files use temporary server processing.",
+        "support": "Merge PDF uploads files for temporary server processing.",
+        "engine": null
+      },
+      "settings": {
+        "heading": "Browser processing",
+        "checked": false,
+        "aria": "Prefer browser processing for supported tools",
+        "support": "Temporary server processing is preferred. Browser processing remains available for Merge, Split, Remove, Rotate, and Page Organizer; photo tools always run in your browser."
+      },
+      "photo_mode": {
+        "label": "Use browser processing",
+        "checked": true,
+        "disabled": true,
+        "support": "Compress Photo / Image runs in your browser; files stay on this device and are not uploaded.",
+        "engine": null
+      },
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "cloud": {
+        "topbar": [
+          [
+            "BUTTON",
+            "close-cloud-modal",
+            null,
+            ""
+          ],
+          [
+            "INPUT",
+            "cloud-url",
+            null,
+            ""
+          ],
+          [
+            "BUTTON",
+            "cloud-submit-btn",
+            null,
+            "Fetch & Import Document \u2192"
+          ]
+        ],
+        "dropzone": [
+          [
+            "BUTTON",
+            "close-cloud-modal",
+            null,
+            ""
+          ],
+          [
+            "INPUT",
+            "cloud-url",
+            null,
+            ""
+          ],
+          [
+            "BUTTON",
+            "cloud-submit-btn",
+            null,
+            "Fetch & Import Document \u2192"
+          ]
+        ],
+        "single_visible_dialog": true
+      },
+      "browser_mode": {
+        "label": "Use browser processing",
+        "checked": true,
+        "aria": "Browser processing is on for Merge PDF; files stay on this device.",
+        "support": "Merge PDF runs in your browser; files stay on this device and are not uploaded.",
+        "engine": null
+      },
+      "server_mode": {
+        "checked": false,
+        "aria": "Browser processing is off for Merge PDF; files use temporary server processing.",
+        "support": "Merge PDF uploads files for temporary server processing.",
+        "engine": null
+      },
+      "settings": {
+        "heading": "Browser processing",
+        "checked": false,
+        "aria": "Prefer browser processing for supported tools",
+        "support": "Temporary server processing is preferred. Browser processing remains available for Merge, Split, Remove, Rotate, and Page Organizer; photo tools always run in your browser."
+      },
+      "photo_mode": {
+        "label": "Use browser processing",
+        "checked": true,
+        "disabled": true,
+        "support": "Compress Photo / Image runs in your browser; files stay on this device and are not uploaded.",
+        "engine": null
+      },
+      "page_errors": []
+    }
+  ]
+}

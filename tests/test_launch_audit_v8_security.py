@@ -35,7 +35,8 @@ def test_registration_accepts_json_but_stays_pending_until_otp(isolated_jobs):
     assert registration.status_code == 200
     assert registration.json()["status"] == "otp_required"
     assert "paperplane_token" not in registration.cookies
-    assert client.get("/api/auth/me").status_code == 401
+    guest_profile = client.get("/api/auth/me")
+    assert guest_profile.status_code == 200 and guest_profile.json() == {"authenticated": False}
 
     verification = client.post("/api/auth/verify-signup-otp", json={
         "email": email,

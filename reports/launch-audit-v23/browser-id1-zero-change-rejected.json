@@ -1,0 +1,21 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "http_status": 422,
+      "title": "Processing failed",
+      "message": "Only 0% of source text changed during translation (minimum 10%). No translated PDF was produced.",
+      "download_available": false,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "http_status": 422,
+      "title": "Processing failed",
+      "message": "Only 0% of source text changed during translation (minimum 10%). No translated PDF was produced.",
+      "download_available": false,
+      "page_errors": []
+    }
+  ],
+  "mock": "server returned the actual 422 message for provider echo under 10% content change"
+}

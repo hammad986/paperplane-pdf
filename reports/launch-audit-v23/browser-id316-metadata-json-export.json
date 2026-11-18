@@ -1,0 +1,37 @@
+{
+  "route": "http://127.0.0.1:56070/pdf-metadata",
+  "job_http_status": 202,
+  "json_download_name": "metadata-source.metadata.json",
+  "json_download_bytes": 316,
+  "json": {
+    "file_name": "metadata-source.pdf",
+    "title": "Metadata JSON roundtrip",
+    "author": "Paperplane Test Author",
+    "subject": "Metadata export verification",
+    "keywords": "",
+    "creator": "Original creator",
+    "producer": "Original producer",
+    "creation_date": "",
+    "modification_date": "",
+    "page_count": 1
+  },
+  "pdf_download_name": "metadata-source_metadata.pdf",
+  "pdf_download_bytes": 990,
+  "pdf_pages": 1,
+  "pdf_metadata": {
+    "format": "PDF 1.7",
+    "title": "Metadata JSON roundtrip",
+    "author": "Paperplane Test Author",
+    "subject": "Metadata export verification",
+    "keywords": "",
+    "creator": "Original creator",
+    "producer": "Original producer",
+    "creationDate": "",
+    "modDate": "",
+    "trapped": "",
+    "encryption": null
+  },
+  "metadata_fields_match_downloaded_pdf": true,
+  "json_preview_matches_download": true,
+  "page_errors": []
+}

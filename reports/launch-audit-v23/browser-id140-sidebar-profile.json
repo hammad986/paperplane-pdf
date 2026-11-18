@@ -1,0 +1,96 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "routes": [
+        {
+          "route": "/apps",
+          "status": 200,
+          "first_paint_visible": false,
+          "first_paint_text": "",
+          "after_1100ms_visible": true,
+          "settled_text": "G\nGuest Explorer\nFree"
+        },
+        {
+          "route": "/download",
+          "status": 200,
+          "first_paint_visible": true,
+          "first_paint_text": "G\nGuest Explorer\nFree",
+          "after_1100ms_visible": true,
+          "settled_text": "G\nGuest Explorer\nFree"
+        },
+        {
+          "route": "/privacy",
+          "status": 200,
+          "first_paint_visible": true,
+          "first_paint_text": "G\nGuest Explorer\nFree",
+          "after_1100ms_visible": true,
+          "settled_text": "G\nGuest Explorer\nFree"
+        },
+        {
+          "route": "/terms",
+          "status": 200,
+          "first_paint_visible": true,
+          "first_paint_text": "G\nGuest Explorer\nFree",
+          "after_1100ms_visible": true,
+          "settled_text": "G\nGuest Explorer\nFree"
+        },
+        {
+          "route": "/faq",
+          "status": 200,
+          "first_paint_visible": false,
+          "first_paint_text": "",
+          "after_1100ms_visible": true,
+          "settled_text": "G\nGuest Explorer\nFree"
+        }
+      ],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "routes": [
+        {
+          "route": "/apps",
+          "status": 200,
+          "first_paint_visible": true,
+          "first_paint_text": "G\nGuest Explorer\nFree",
+          "after_1100ms_visible": true,
+          "settled_text": "G\nGuest Explorer\nFree"
+        },
+        {
+          "route": "/download",
+          "status": 200,
+          "first_paint_visible": true,
+          "first_paint_text": "G\nGuest Explorer\nFree",
+          "after_1100ms_visible": true,
+          "settled_text": "G\nGuest Explorer\nFree"
+        },
+        {
+          "route": "/privacy",
+          "status": 200,
+          "first_paint_visible": true,
+          "first_paint_text": "G\nGuest Explorer\nFree",
+          "after_1100ms_visible": true,
+          "settled_text": "G\nGuest Explorer\nFree"
+        },
+        {
+          "route": "/terms",
+          "status": 200,
+          "first_paint_visible": false,
+          "first_paint_text": "",
+          "after_1100ms_visible": true,
+          "settled_text": "G\nGuest Explorer\nFree"
+        },
+        {
+          "route": "/faq",
+          "status": 200,
+          "first_paint_visible": false,
+          "first_paint_text": "",
+          "after_1100ms_visible": true,
+          "settled_text": "G\nGuest Explorer\nFree"
+        }
+      ],
+      "page_errors": []
+    }
+  ]
+}

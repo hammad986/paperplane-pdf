@@ -1,0 +1,44 @@
+[
+  {
+    "round": 1,
+    "views": [
+      {
+        "route": "/pricing",
+        "no_auto_renew_contradiction": true,
+        "one_time_claim_present": true
+      },
+      {
+        "route": "/terms",
+        "no_auto_renew_contradiction": true,
+        "one_time_claim_present": false
+      },
+      {
+        "route": "/settings",
+        "no_auto_renew_contradiction": true,
+        "one_time_claim_present": false
+      }
+    ],
+    "page_errors": []
+  },
+  {
+    "round": 2,
+    "views": [
+      {
+        "route": "/pricing",
+        "no_auto_renew_contradiction": true,
+        "one_time_claim_present": true
+      },
+      {
+        "route": "/terms",
+        "no_auto_renew_contradiction": true,
+        "one_time_claim_present": false
+      },
+      {
+        "route": "/settings",
+        "no_auto_renew_contradiction": true,
+        "one_time_claim_present": false
+      }
+    ],
+    "page_errors": []
+  }
+]

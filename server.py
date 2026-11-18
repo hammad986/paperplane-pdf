@@ -46,6 +46,7 @@ from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 from fastapi import BackgroundTasks, Body, Depends, FastAPI, File, Form, Header, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse, Response, RedirectResponse
+from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 from fastapi.staticfiles import StaticFiles
 from starlette.background import BackgroundTask
 from starlette.middleware.trustedhost import TrustedHostMiddleware
@@ -224,6 +225,7 @@ GRAYSCALE_TIMEOUT_SECONDS = 45.0   # 150-DPI monochrome rasterization per page
 MERGE_TIMEOUT_SECONDS = 840.0       # large image-heavy jobs; Nginx allows 900s
 AI_SUMMARY_REQUEST_TIMEOUT_SECONDS = 300.0  # up to four chunked large-document requests with one bounded retry each
 AI_TRANSLATION_REQUEST_TIMEOUT_SECONDS = 300.0  # bounded batches for documents up to the current text-block cap
+PDF_TO_MARKDOWN_TIMEOUT_SECONDS = 480.0  # typography/table extraction for long PDFs; no automatic retry
 
 _CONVERTER_POOL = ThreadPoolExecutor(
     max_workers=min(32, max(4, (os.cpu_count() or 4) * 2)),
@@ -291,7 +293,7 @@ def _should_disable_docs(environment: str, configured_enable: str | None = None)
 DISABLE_DOCS = _should_disable_docs(ENVIRONMENT)
 app = FastAPI(
     title="Paperplane PDF Enterprise API",
-    version="2.0.0",
+    version=os.getenv("PAPERPLANE_RELEASE_VERSION", "2.0.0").strip() or "2.0.0",
     docs_url=None if DISABLE_DOCS else "/api-docs",
     redoc_url=None if DISABLE_DOCS else "/redoc",
     openapi_url=None if DISABLE_DOCS else "/openapi.json",
@@ -524,7 +526,7 @@ OPERATIONS = {
     "remove": {"label": "Remove pages", "category": "Organize PDF", "accept": "pdf", "implemented": True, "description": "Delete unwanted pages from any PDF document."},
     "rotate": {"label": "Rotate PDF", "category": "Organize PDF", "accept": "pdf", "implemented": True, "description": "Rotate pages 90, 180, or 270 degrees clockwise."},
     "organize": {"label": "Page Organizer", "category": "Organize PDF", "accept": "pdf", "implemented": True, "description": "Reorder pages by entering their page numbers in the desired output order."},
-    "scan_pdf": {"label": "Scan to PDF", "category": "Organize PDF", "accept": "image", "implemented": True, "description": "Convert scanned photos to A4, Letter, or 200-DPI original-size PDF pages with optional contrast and sharpness enhancement."},
+    "scan_pdf": {"label": "Scan to PDF", "category": "Organize PDF", "accept": "image", "implemented": True, "description": "Create PDF pages from scanned photos in A4, US Letter, or original photo size at 200 DPI. Automatic contrast and sharpness enhancement is applied."},
 
     # 2. Optimize PDF
     "compress": {"label": "Compress PDF", "category": "Optimize PDF", "accept": "pdf", "implemented": True, "description": "True lossy & lossless compression optimizing image streams and deflating structures."},
@@ -536,7 +538,7 @@ OPERATIONS = {
     "word_to_pdf": {"label": "Word to PDF", "category": "Convert to PDF", "accept": "office", "implemented": True, "description": "Convert Microsoft Word (.docx) documents to PDF."},
     "excel_to_pdf": {"label": "Excel to PDF", "category": "Convert to PDF", "accept": "office", "implemented": True, "description": "Convert Excel spreadsheets (.xlsx) to formatted landscape PDF."},
     "powerpoint_to_pdf": {"label": "PowerPoint to PDF", "category": "Convert to PDF", "accept": "office", "implemented": True, "description": "Convert PowerPoint presentations (.pptx) to PDF slides."},
-    "html_to_pdf": {"label": "HTML to PDF", "category": "Convert to PDF", "accept": "url", "implemented": True, "description": "Render web pages or HTML snippets directly into PDF."},
+    "html_to_pdf": {"label": "HTML to PDF", "category": "Convert to PDF", "accept": "url", "implemented": True, "description": "Convert a publicly reachable web page URL to PDF; this form does not accept pasted HTML snippets."},
 
     # 4. Convert from PDF
     "pdf_to_jpg": {"label": "PDF to JPG", "category": "Convert from PDF", "accept": "pdf", "implemented": True, "description": "Export all pages as high-resolution images bundled in a ZIP archive."},
@@ -548,20 +550,20 @@ OPERATIONS = {
     "pdf_to_markdown": {"label": "PDF to Markdown", "category": "Convert from PDF", "accept": "pdf", "implemented": True, "description": "Convert formatted documents into structured Markdown."},
 
     # 5. Edit PDF
-    "edit": {"label": "Edit PDF", "category": "Edit PDF", "accept": "pdf", "implemented": True, "description": "Add text, stamps, and coordinates directly onto pages."},
-    "annotate": {"label": "Annotate PDF", "category": "Edit PDF", "accept": "pdf", "implemented": True, "description": "Highlight, underline, add sticky notes, and draw shapes on pages."},
+    "edit": {"label": "Add Text & Stamps", "category": "Edit PDF", "accept": "pdf", "implemented": True, "description": "Add text, stamps, and positioned content over PDF pages. Existing PDF text cannot be selected or replaced."},
+    "annotate": {"label": "Annotate PDF", "category": "Edit PDF", "accept": "pdf", "implemented": True, "description": "Highlight, underline, strike through, add sticky notes, or place rectangles on PDF pages."},
     "crop": {"label": "Crop PDF", "category": "Edit PDF", "accept": "pdf", "implemented": True, "description": "Trim page margins from top, bottom, left, and right."},
     "redact": {"label": "Redact PDF", "category": "Edit PDF", "accept": "pdf", "implemented": True, "description": "Permanently sanitize and black-out confidential keywords."},
     "watermark": {"label": "Watermark PDF", "category": "Edit PDF", "accept": "pdf", "implemented": True, "description": "Overlay dynamic text or image watermarks with custom opacity."},
     "page_numbers": {"label": "Page Numbers", "category": "Edit PDF", "accept": "pdf", "implemented": True, "description": "Add customizable page numbers to headers or footers."},
 
     # 6. Security
-    "protect": {"label": "Protect PDF", "category": "Security", "accept": "pdf", "implemented": True, "description": "Encrypt PDF with high-strength AES-256 and custom passwords."},
+    "protect": {"label": "Protect PDF", "category": "Security", "accept": "pdf", "implemented": True, "description": "Encrypt a PDF with one password using AES-256; separate owner-password and permission controls are not provided."},
     "unlock": {"label": "Unlock PDF", "category": "Security", "accept": "pdf", "implemented": True, "description": "Remove password protection and permission restrictions."},
     "sign": {"label": "Sign PDF", "category": "Security", "accept": "pdf", "implemented": True, "description": "Place a typed signature stamp. Use Studio's Digital Signatures panel for draw/type marks and signature verification."},
 
     # 7. Advanced & AI Tools
-    "compare": {"label": "Compare PDF", "category": "Advanced", "accept": "pdf", "implemented": True, "description": "Result: a text file listing the differences between two versions."},
+    "compare": {"label": "Compare PDF", "category": "Advanced", "accept": "pdf", "implemented": True, "description": "Compare downloads a .txt diff file listing differences between two versions."},
     "forms": {"label": "Fill PDF Form", "category": "Advanced", "accept": "pdf", "implemented": True, "description": "Populate interactive PDF form fields from JSON data."},
     "metadata": {"label": "PDF Metadata", "category": "Advanced", "accept": "pdf", "implemented": True, "description": "View and modify document metadata (Title, Author, Subject)."},
     "ai_chat": {"label": "AI PDF Chat", "category": "AI tools", "accept": "pdf", "implemented": True, "description": "Ask questions to your document with RAG and exact page citations."},
@@ -635,14 +637,14 @@ SLUG_TO_OPERATION = {slug: operation for operation, slug in OPERATION_SLUGS.item
 SEO_CATALOG = {
     "merge": {
         "title": "Merge PDF Files Online — Combine PDFs Free | Paperplane",
-        "description": "Merge PDF files in the order you choose, rearrange thumbnails, and download one clean document with Paperplane's private PDF merger.",
+        "description": "Merge PDF files in the order you add them, then download one clean document with Paperplane's private PDF merger.",
         "heading": "Merge PDF files in your preferred order",
-        "intro": "Combine contracts, scans, invoices, or reports into one PDF while keeping page order visible before you export.",
-        "how_to": ("Upload PDFs in the desired order", "Rearrange thumbnails before processing", "Download the merged document"),
+        "intro": "Combine contracts, scans, invoices, or reports into one PDF. Files are merged in the order you add them.",
+        "how_to": ("Choose the PDFs to merge", "Check the file list; files merge in the order added", "Download the merged document"),
         "faqs": (
-            ("Can I merge PDF files without uploading them?", "Yes. Choose Local Processing to merge supported files in your browser. Larger or unsupported files can use temporary server processing; expired job files are removed on the configured cleanup schedule (2-hour retention by default)."),
+            ("Can I merge PDF files without uploading them?", "Yes. Choose browser processing to merge supported files in your browser. Larger or unsupported files can use temporary server processing; expired job files are removed on the configured cleanup schedule (2-hour retention by default)."),
             ("Does merging change page quality?", "Merging copies the source page objects into one document. It does not rasterize pages, so selectable text, vector artwork, and embedded images retain their source quality."),
-            ("How many PDFs can I combine at once?", "The web workflow accepts batch uploads within the configured file and request limits. The thumbnail organizer shows the final sequence before the merge job starts."),
+            ("How many PDFs can I combine at once?", "The web workflow accepts batch uploads within the configured file and request limits. PDFs merge in the order you add them; remove files and add them again to change the order."),
         ),
         "related": ("split", "compress", "organize", "rotate"),
     },
@@ -673,15 +675,15 @@ SEO_CATALOG = {
         "related": ("organize", "split", "redact", "merge"),
     },
     "rotate": {
-        "title": "Rotate PDF Pages Online — Turn Pages 90° or 180° | Paperplane",
-        "description": "Rotate one page or an entire PDF by 90, 180, or 270 degrees and download the corrected document with Paperplane.",
-        "heading": "Rotate PDF pages to the correct orientation",
-        "intro": "Fix sideways scans, mixed landscape pages, and presentation documents with a visual page-by-page rotation workflow.",
+        "title": "Rotate an Entire PDF Online — Turn Pages 90° or 180° | Paperplane",
+        "description": "Rotate every page in a PDF by 90, 180, or 270 degrees and download the corrected document with Paperplane.",
+        "heading": "Rotate the entire PDF document",
+        "intro": "Apply one rotation angle to every page in the document. To rotate selected pages independently, open Page Organizer.",
         "how_to": ("Upload the PDF", "Choose the rotation angle", "Download the reoriented PDF"),
         "faqs": (
-            ("Can I rotate only one page in a PDF?", "Yes. Choose a single thumbnail or page number and apply 90, 180, or 270 degrees without rotating the rest of the document."),
+            ("Can I rotate only one page in a PDF?", "This tool applies one angle to the entire document. Open Page Organizer to rotate individual pages."),
             ("Does rotation reduce image quality?", "No. Rotation updates the page orientation metadata and layout rather than re-encoding the page as a lower-quality image."),
-            ("Can I rotate mixed portrait and landscape pages?", "Yes. Each selected page can be rotated independently, which is useful for scanned packets with inconsistent orientation."),
+            ("Can I rotate mixed portrait and landscape pages?", "Use Page Organizer to rotate selected pages independently. Rotate PDF applies one angle to all pages."),
         ),
         "related": ("organize", "crop", "merge", "pdf_to_jpg"),
     },
@@ -700,7 +702,7 @@ SEO_CATALOG = {
     },
     "scan_pdf": {
         "title": "Scan to PDF Online — Convert Photos & Scans | Paperplane",
-        "description": "Turn photographed pages into a cleaner PDF with scan enhancement, contrast adjustment, and local privacy controls.",
+        "description": "Turn photographed pages into PDF with automatic contrast and sharpness improvement, plus A4, US Letter, or original photo-size output.",
         "heading": "Turn photos and scans into a readable PDF",
         "intro": "Prepare receipts, whiteboard photos, and paper documents for sharing with a focused scan-to-PDF workflow.",
         "how_to": ("Upload images in the order they should appear", "Check the selected image files", "Export the optimized PDF"),
@@ -768,7 +770,7 @@ SEO_CATALOG = {
         "description": "Convert DOCX and Word documents to PDF with layout-aware rendering and a verified download.",
         "heading": "Convert Word documents to PDF",
         "intro": "Turn editable DOCX files into shareable PDFs while preserving headings, tables, images, and page layout as faithfully as the installed converter allows.",
-        "how_to": ("Choose a DOC or DOCX file", "Review conversion and page settings", "Download the rendered PDF"),
+        "how_to": ("Choose a DOC or DOCX file", "Convert with the available document renderer", "Download the rendered PDF"),
         "faqs": (
             ("Will Word formatting be preserved in the PDF?", "The conversion uses the available document renderer and preserves supported styles, tables, images, headers, and footers. Complex fonts or unsupported features may vary by renderer."),
             ("Can I convert Word to PDF without Microsoft Word?", "Yes. Paperplane uses a local or configured document conversion engine, so Microsoft Word does not need to be installed on the browser device."),
@@ -794,7 +796,7 @@ SEO_CATALOG = {
         "description": "Convert PowerPoint presentations to PDF slide decks while retaining supported text, images, shapes, and slide order.",
         "heading": "Convert PowerPoint slides to PDF",
         "intro": "Share a stable, device-independent version of a presentation without asking recipients to install PowerPoint.",
-        "how_to": ("Select a PPT or PPTX presentation", "Check slide orientation and output options", "Download the PDF slide deck"),
+        "how_to": ("Select a PPT or PPTX presentation", "Convert the slides with the available renderer", "Download the PDF slide deck"),
         "faqs": (
             ("Does PowerPoint to PDF keep the slide order?", "Yes. Slides are rendered in their source sequence unless you reorganize the exported PDF afterward with Page Organizer."),
             ("Are animations included in a PDF?", "PDF is a static format, so animations and transitions are represented by the slide's static content rather than playable motion."),
@@ -804,12 +806,12 @@ SEO_CATALOG = {
     },
     "html_to_pdf": {
         "title": "HTML to PDF Converter — Render Web Pages to PDF | Paperplane",
-        "description": "Render trusted HTML content or a public page into a PDF with controlled page sizing and a verified output file.",
+        "description": "Render trusted HTML content or a public page into a PDF, then review the generated page breaks and layout.",
         "heading": "Convert HTML content into a PDF",
-        "intro": "Create a portable PDF from HTML snippets, print-ready pages, or an allowed public URL without manually printing from a browser.",
+        "intro": "Create a portable PDF from a publicly reachable web page URL. This form accepts a URL, not pasted HTML snippets.",
         "how_to": ("Enter an allowed public URL", "Review the URL and start the conversion", "Download the rendered PDF"),
         "faqs": (
-            ("Can HTML to PDF access private network URLs?", "No. Server-side URL imports enforce SSRF protections and reject loopback, private-network, and metadata endpoints. Prefer supplying HTML directly for sensitive content."),
+            ("Can HTML to PDF access private network URLs?", "No. The URL form blocks loopback, private-network, and metadata destinations. It accepts public URLs only and does not provide an HTML paste field."),
             ("Will CSS styles render in the PDF?", "Supported CSS is rendered by the configured browser engine. Highly dynamic scripts, cross-origin assets, and unsupported browser features may not reproduce exactly."),
             ("Can I use HTML to PDF for invoices?", "Yes, if the HTML is trusted and the page layout is designed for print. Validate fonts, page breaks, and external assets before using the output operationally."),
         ),
@@ -819,11 +821,11 @@ SEO_CATALOG = {
         "title": "PDF to JPG Converter — Convert PDF Pages to Images | Paperplane",
         "description": "Convert PDF pages to high-resolution JPG images in a ZIP bundle for previews, publishing, or image-based workflows.",
         "heading": "Convert PDF pages to JPG images",
-        "intro": "Rasterize selected document pages for sharing in systems that accept images instead of PDF files.",
+        "intro": "Rasterize every document page for sharing in systems that accept images instead of PDF files.",
         "how_to": ("Upload the source PDF", "After upload, choose an export resolution", "Download the JPG image bundle"),
         "faqs": (
             ("Is PDF to JPG conversion lossless?", "JPG is a lossy image format. Choose an appropriate quality setting, or use a lossless image workflow when text and line art must remain pixel-perfect."),
-            ("Can I convert only selected PDF pages?", "Yes. Configure the page range or selected pages before rendering so you do not need to export the entire document."),
+            ("Can I convert only selected PDF pages?", "PDF to JPG currently exports every page. To convert a subset, first use Split to extract the pages you need, then convert that smaller PDF."),
             ("Why is the result downloaded as a ZIP file?", "A multi-page PDF produces multiple image files. Packaging them in a ZIP keeps the page set together and avoids ambiguous browser downloads."),
         ),
         "related": ("jpg_to_pdf", "pdf_to_text", "compress", "split"),
@@ -889,7 +891,7 @@ SEO_CATALOG = {
         "faqs": (
             ("Can PDF to Text extract text from scanned pages?", "Scanned pages contain images rather than characters. Run OCR PDF first to create a searchable text layer, then extract the recognized text."),
             ("Does extraction keep the original formatting?", "Plain text preserves reading order and line content where possible, but it does not retain fonts, colors, exact columns, or page graphics."),
-            ("Can I extract only certain pages?", "Yes. Use the page-range controls to limit extraction to the relevant pages and avoid processing unrelated sections."),
+            ("Can I extract only certain pages?", "PDF to Text currently exports the full document. To extract a subset, use Split / extract first, then run PDF to Text on the resulting file."),
         ),
         "related": ("ocr", "pdf_to_markdown", "pdf_to_word", "split"),
     },
@@ -907,26 +909,26 @@ SEO_CATALOG = {
         "related": ("pdf_to_text", "ocr", "html_to_pdf", "pdf_to_word"),
     },
     "edit": {
-        "title": "Edit PDF Online — Add Text, Stamps & Shapes | Paperplane",
-        "description": "Edit PDF pages online by adding text, stamps, shapes, and positioned content in a responsive PDF studio.",
-        "heading": "Edit PDF pages without rebuilding the document",
-        "intro": "Make practical edits to an existing PDF when you need to add a label, date, stamp, or visual correction before sharing.",
-        "how_to": ("Open the PDF in the editor", "Choose an editing tool and place it on the page", "Apply changes and export the edited PDF"),
+        "title": "Add Text and Stamps to PDF Pages Online | Paperplane",
+        "description": "Add new text, stamps, and positioned content over PDF pages. Existing PDF text cannot be selected or replaced.",
+        "heading": "Add Text, Stamps & Shapes to PDF Pages",
+        "intro": "Place new labels, dates, stamps, and visual marks over a PDF page. This workspace does not edit or replace text already in the PDF.",
+        "how_to": ("Open a PDF in the add-content workspace", "Choose an available tool and place new content on the page", "Apply the overlays and export the updated PDF"),
         "faqs": (
-            ("Can I edit existing PDF text?", "The editor is designed for adding positioned content and annotations. Direct replacement of arbitrary existing glyphs depends on the page structure and tool support."),
-            ("Are PDF edits applied to the file or only displayed?", "Exporting writes the positioned edits into the output PDF so they remain visible when the file is opened elsewhere."),
-            ("Can I edit a PDF on a phone?", "Yes. The editor adapts its controls for touch screens, although precise text placement is easier on a larger display."),
+            ("Can I edit existing PDF text?", "No. Existing text cannot currently be selected, replaced, or rewritten. This tool adds new content over the page."),
+            ("Are added marks applied to the file or only displayed?", "Exporting writes the new positioned content into the output PDF so it remains visible when the file is opened elsewhere."),
+            ("Can I add content to a PDF on a phone?", "Yes. The controls adapt for touch screens, although precise placement is easier on a larger display."),
         ),
         "related": ("annotate", "watermark", "sign", "redact"),
     },
     "annotate": {
         "title": "Annotate PDF Online — Highlight, Draw & Comment | Paperplane",
-        "description": "Annotate PDF documents with highlights, underlines, notes, freehand drawings, and shapes in a browser-based workspace.",
+        "description": "Annotate PDF text with highlights, underlines, or strikeouts; add sticky notes or place rectangle marks in the browser-based workspace.",
         "heading": "Annotate PDF pages for review",
         "intro": "Mark up contracts, research papers, proofs, and drafts without changing the original page text underneath your review layer.",
         "how_to": ("Upload the PDF", "Choose an annotation type and its available options", "Save the annotated PDF for review"),
         "faqs": (
-            ("Can I highlight text in a PDF?", "Yes, when the page contains selectable text. Image-only pages can still receive visual drawing or rectangle annotations."),
+            ("Can I highlight text in a PDF?", "Yes, when the page contains selectable text. Image-only pages can still receive a rectangle mark, but text highlighting requires selectable text."),
             ("Are annotations permanent?", "Annotations are written into the exported PDF. Use Sanitize or flattening controls when a review copy must become a fixed visual document."),
             ("Can collaborators see my comments in another PDF viewer?", "Standard PDF annotation compatibility varies by viewer. Export and verify the result in the target review application before relying on a specific annotation type."),
         ),
@@ -934,13 +936,13 @@ SEO_CATALOG = {
     },
     "crop": {
         "title": "Crop PDF Online — Trim Margins & Page Size | Paperplane",
-        "description": "Crop PDF pages to remove excess margins, scanner edges, or unwanted whitespace with page-by-page preview controls.",
+        "description": "Crop every PDF page by removing the same top, bottom, left, and right margins from the document.",
         "heading": "Crop PDF pages to the content area",
         "intro": "Trim inconsistent scan borders and improve document presentation without resizing the content manually in a design tool.",
-        "how_to": ("Open the PDF crop tool", "Set the crop box for one or more pages", "Preview and download the cropped document"),
+        "how_to": ("Open the PDF crop tool", "Enter the margins to remove from every page", "Download and verify the cropped document"),
         "faqs": (
             ("Does cropping delete the hidden content outside the box?", "Cropping changes the visible page area. For sensitive information, use hardened redaction or page deletion because cropping alone may not remove underlying objects."),
-            ("Can I crop all pages with the same margins?", "Yes. Apply a crop rectangle to the selected page scope when the source document uses consistent page geometry."),
+            ("Can I crop all pages with the same margins?", "Yes. This tool applies the same top, bottom, left, and right margins to every page. It does not set a different crop box for selected pages."),
             ("Can crop fix a sideways scan?", "Crop controls trim the page boundary. Use Rotate PDF first or afterward when the problem is page orientation rather than excess margins."),
         ),
         "related": ("rotate", "redact", "scan_pdf", "organize"),
@@ -960,7 +962,7 @@ SEO_CATALOG = {
     },
     "watermark": {
         "title": "Watermark PDF Online — Add Text or Image Watermarks | Paperplane",
-        "description": "Add a transparent text or image watermark to PDF pages with adjustable placement, opacity, and rotation.",
+        "description": "Add a transparent text or image watermark to PDF pages with adjustable opacity and the tool's built-in placement.",
         "heading": "Watermark PDF pages for ownership or status",
         "intro": "Label drafts, approvals, confidential copies, and branded documents with a watermark that stays visible in the exported PDF.",
         "how_to": ("Choose a PDF", "Enter watermark text or select an image, then set opacity", "Apply the watermark and download"),
@@ -986,14 +988,14 @@ SEO_CATALOG = {
     },
     "protect": {
         "title": "Protect PDF Online — Password Encrypt with AES-256 | Paperplane",
-        "description": "Protect a PDF with password-based AES-256 encryption and configurable permissions using Paperplane's privacy-first security tools.",
+        "description": "Protect a PDF with password-based AES-256 encryption. This tool does not provide separate owner-password or permission controls.",
         "heading": "Protect a PDF with strong password encryption",
-        "intro": "Add document-open and owner controls before sharing a PDF that contains private, regulated, or commercially sensitive information.",
+        "intro": "Add a document-open password before sharing a PDF that contains private, regulated, or commercially sensitive information.",
         "how_to": ("Upload the PDF to the security tool", "Enter a password for the protected copy", "Encrypt and download the protected PDF"),
         "faqs": (
             ("What encryption does Protect PDF use?", "The security workflow targets AES-256 PDF encryption through the native PDF security engine when the required capability is available. Passwords are not stored after processing."),
             ("What is the difference between a user and owner password?", "The user password controls opening the document. The owner password controls permission changes and administrative operations supported by the PDF security handler."),
-            ("Can I prevent copying or printing?", "Yes. Permission flags can restrict printing, copying, editing, annotations, or form filling, although PDF permissions should be treated as policy signals rather than absolute DRM."),
+            ("Can I prevent copying or printing?", "This tool does not offer permission controls. It encrypts the PDF with the password you enter; use a PDF application with permission settings if you need viewer-level print or copy restrictions."),
         ),
         "related": ("unlock", "sign", "redact", "metadata"),
     },
@@ -1025,7 +1027,7 @@ SEO_CATALOG = {
     },
     "compare": {
         "title": "Compare PDF Files Online — Find Document Differences | Paperplane",
-        "description": "Compare two PDF versions and highlight text or page differences to speed up review, redlining, and change control.",
+        "description": "Compare two PDF versions and download a plain-text report of text and page-structure differences for review and change control.",
         "heading": "Compare two PDF versions side by side",
         "intro": "Find changes between drafts, signed versions, and revised reports without manually switching between separate viewer windows.",
         "how_to": ("Upload the original and revised PDFs", "Run the page and text comparison", "Download the plain-text comparison report"),
@@ -1051,12 +1053,12 @@ SEO_CATALOG = {
     },
     "metadata": {
         "title": "Edit PDF Metadata Online — Change Author, Title & Subject | Paperplane",
-        "description": "View and update PDF metadata such as title, author, subject, keywords, and creator before publishing or archiving a document.",
+        "description": "View and update supported PDF metadata such as title, author, and subject before publishing or archiving a document.",
         "heading": "Inspect and edit PDF metadata",
         "intro": "Clean up document identity fields and remove accidental author or application details before you share a PDF externally.",
         "how_to": ("Upload the PDF", "Review or update its title, author, and subject", "Save the updated metadata and download"),
         "faqs": (
-            ("What PDF metadata can I change?", "Common fields include title, author, subject, keywords, creator, producer, and creation or modification dates when the source permits updates."),
+            ("What PDF metadata can I change?", "The current editor updates the title, author, and subject fields. Other document properties can be inspected in some readers but are not editable here."),
             ("Does metadata editing change visible page content?", "No. Metadata is document-level information. It does not rewrite the visible page content unless you choose another editing or sanitization operation."),
             ("How do I remove metadata completely?", "Use the sanitize workflow to strip private metadata and related embedded content according to the selected cleanup policy."),
         ),
@@ -1106,7 +1108,7 @@ SEO_CATALOG = {
         "description": "Translate PDF text into another language with layout-aware assistance when the configured translation engine is available.",
         "heading": "Translate PDF content for multilingual review",
         "intro": "Create a translated working copy while keeping the original document available for legal and editorial comparison.",
-        "how_to": ("Upload a text-based or OCR PDF", "After upload, choose the target language", "Review and download the translated copy"),
+        "how_to": ("Upload a text-based or OCR PDF", "Choose the target language in the visible selector", "Review and download the translated copy"),
         "faqs": (
             ("Does translation preserve the exact PDF layout?", "Layout preservation depends on text length, fonts, columns, and the translation engine. Longer translated phrases may reflow or require manual review."),
             ("Is the translated PDF legally certified?", "No. Machine translation is not a certified legal translation. Use a qualified translator for contracts, filings, or regulated communications."),
@@ -1215,7 +1217,7 @@ WORKSPACE_PAGES = {
     "pricing": ("Paperplane Pricing", "Compare free browser tools and INR plans for exam, student, and high-volume PDF work."),
     "faq": ("Frequently asked questions", "Learn how browser processing, server limits, and file retention work."),
     "feedback": ("Feedback", "Send an idea, report a bug, or tell Paperplane about your experience."),
-    "history": ("Temporary downloads", "Find recent results in the tool where you ran them. Paperplane does not keep a permanent history of your files."),
+    "history": ("Temporary results — no saved history", "Paperplane does not keep a job or download history list. Open the tool where you created a result to access its temporary download; server links expire automatically."),
     "ai-intelligence": ("AI Document Intelligence", "Work with your PDF using chat, Smart Metadata, and Executive Brief."),
 }
 
@@ -1253,19 +1255,19 @@ SEO_LANDING_PAGES = {
         "related": ("protect", "unlock", "sign", "redact"),
     },
     "download": {
-        "title": "Paperplane PDF Apps — Early Access Waitlist | Paperplane",
-        "description": "Join the Paperplane PDF apps waitlist. Native desktop and mobile installers are not available yet.",
-        "heading": "Join the Paperplane Apps Early Access Waitlist",
-        "category": "Apps Waitlist",
-        "intro": "Native desktop and mobile apps are not available to download yet. Request updates for your platform.",
+        "title": "Download Paperplane — Available Apps & Web App | Paperplane",
+        "description": "Check current Paperplane downloads. Native installers are not available yet; use the full PDF workspace in your browser.",
+        "heading": "Paperplane Downloads",
+        "category": "Downloads",
+        "intro": "There are no desktop or mobile installers to download yet. The Paperplane PDF workspace is available now in your browser.",
         "related": ("merge", "split", "compress", "edit"),
     },
     "apps": {
-        "title": "Paperplane PDF Apps — Early Access Waitlist | Paperplane",
-        "description": "Join the Paperplane PDF apps waitlist. Native desktop and mobile installers are not available yet.",
-        "heading": "Join the Paperplane Apps Early Access Waitlist",
-        "category": "Apps Waitlist",
-        "intro": "Native desktop and mobile apps are not available to download yet. Request updates for your platform.",
+        "title": "Paperplane PDF Apps — Platform Availability | Paperplane",
+        "description": "See Paperplane's desktop and mobile app availability and request release updates for your platform.",
+        "heading": "Paperplane Apps for Desktop and Mobile",
+        "category": "Platform Availability",
+        "intro": "Native apps are in development. Choose a platform below to join its release-update waitlist; no installer is available yet.",
         "related": ("merge", "split", "compress", "edit"),
     },
     "privacy": {
@@ -1283,6 +1285,30 @@ SEO_LANDING_PAGES = {
         "category": "Compliance",
         "intro": "Review the conditions governing use of Paperplane PDF platform, API access, and enterprise billing.",
         "related": ("protect", "sign", "forms", "unlock"),
+    },
+    "refund": {
+        "title": "Refund and Tax Information — Draft | Paperplane",
+        "description": "Draft refund, GST, and support terms requiring Paperplane owner approval before publication.",
+        "heading": "Refund, Tax & Billing Information",
+        "category": "Billing · draft",
+        "intro": "DRAFT — refund eligibility, time limits, GST/tax treatment, and payment-dispute handling require owner approval. Contact support@paperplane.qd.je with an order ID while these terms are being confirmed.",
+        "related": ("protect", "sign", "metadata", "redact"),
+    },
+    "contact": {
+        "title": "Contact Paperplane Support — Draft | Paperplane",
+        "description": "Draft Paperplane support contact information; mailbox monitoring and response expectations require owner confirmation.",
+        "heading": "Contact Paperplane Support",
+        "category": "Support · draft",
+        "intro": "DRAFT — email support@paperplane.qd.je with a concise description and, for billing questions, the order ID. The owner must confirm mailbox monitoring and a response expectation before launch.",
+        "related": ("ai_chat", "summarize", "translate", "ocr"),
+    },
+    "status": {
+        "title": "Paperplane Service Status — Draft | Paperplane",
+        "description": "Paperplane service status page. Live incident monitoring and update subscriptions are not yet available.",
+        "heading": "Paperplane Service Status",
+        "category": "Service status · draft",
+        "intro": "No live uptime monitor or incident feed is connected to this page yet. It cannot confirm current service availability. Contact support@paperplane.qd.je for a service issue; the owner must approve the incident and update process before launch.",
+        "related": ("merge", "compress", "repair", "ocr"),
     },
     "reset-password": {
         "title": "Reset Account Password | Paperplane",
@@ -1369,7 +1395,7 @@ def seo_page_context(operation: str | None, landing_slug: str | None = None) -> 
             "related": landing["related"],
             "how_to": how_to,
             "faqs": (
-                ("Is Paperplane free to use?", "Paperplane includes free workflows for everyday PDF tasks. Browser-local processing is available for Merge, Split / extract, Remove pages, and Rotate PDF."),
+                ("Is Paperplane free to use?", "Paperplane includes free workflows for everyday PDF tasks. Browser-local processing is available for Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Crop PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Page Numbers, and photo tools."),
                 ("Are files stored permanently?", "No. Server-mode job files use isolated storage and an automatic lifecycle cleanup policy."),
                 ("Can I use these tools on mobile?", "Yes. The web workspace adapts to Android and iOS browsers with touch-friendly controls."),
             ),
@@ -1387,7 +1413,7 @@ def seo_page_context(operation: str | None, landing_slug: str | None = None) -> 
             "related": ("merge", "compress", "pdf_to_word", "sign"),
             "how_to": ("Choose a PDF tool", "Add the source document", "Download the verified output"),
             "faqs": (
-                ("Where are files processed?", "Merge, Split / extract, Remove pages, and Rotate PDF can run in your browser when Local Processing is selected. Other tasks use temporary server processing; expired job files are removed on the configured cleanup schedule (2-hour retention by default)."),
+                ("Where are files processed?", "Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Crop PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Page Numbers, and photo tools can run in your browser when browser processing is selected. Other tasks use temporary server processing; expired job files are removed on the configured cleanup schedule (2-hour retention by default)."),
                 ("What PDF operations are available?", "The catalog covers organizing, compression, conversion, editing, security, and document intelligence workflows."),
                 ("Does Paperplane work on phones?", "Yes. The public web workspace is responsive and uses touch-sized controls on mobile browsers."),
             ),
@@ -1437,7 +1463,7 @@ def render_seo_content(context: dict) -> str:
         ),
         "translate": (
             "Select a text PDF or an OCR-processed scan in the upload area above.",
-            "After selecting the PDF, choose a target language from the available options; that control is not shown before upload.",
+            "The target-language selector is available before upload; choose a language before starting the translation.",
             "Review the translated pages and text layer before sharing the output.",
         ),
         "html_to_pdf": (
@@ -1464,6 +1490,16 @@ def render_seo_content(context: dict) -> str:
             "Select the PDF whose pages should become images.",
             "After selecting the PDF, choose an export resolution from the available control; the tool exports every page.",
             "Download the ZIP and review the page images at the selected resolution.",
+        ),
+        "word_to_pdf": (
+            "Select a DOC or DOCX file in the upload area above.",
+            "The installed document renderer converts the file; this page has no OCR or page-layout controls.",
+            "Open the PDF output and check headings, tables, images, and page breaks.",
+        ),
+        "powerpoint_to_pdf": (
+            "Select a PPT or PPTX presentation in the upload area above.",
+            "The installed presentation renderer converts the slides; this page has no orientation or output-options controls.",
+            "Open the PDF and check slide order, text, and images.",
         ),
         "excel_to_pdf": (
             "Select an Excel workbook in the upload area above.",
@@ -1535,6 +1571,7 @@ def render_seo_content(context: dict) -> str:
           {''.join(f'<article class="seo-howto-step"><span>{index:02d}</span><h3>{html_escape(step)}</h3><p>{html_escape(step_details[index - 1] if index - 1 < len(step_details) else "Follow the on-screen steps to complete this action.")}</p></article>' for index, step in enumerate(context['how_to'], 1))}
         </div>
 
+        <p class="seo-limits-link"><a href="/pricing#pricing-limits-table">View per-tool file-size, batch, page, and daily-use limits on Pricing</a></p>
         <div class="seo-faq"><h3>Frequently asked questions</h3>{faq_html}</div>
         <nav class="seo-related" aria-label="Related PDF tools"><strong>Related tools</strong>{related_html}</nav>
       </div>
@@ -1599,6 +1636,7 @@ def render_web_page(request: Request, operation: str | None = None, landing_slug
     for token, value in {
         "%%FREE_DAILY%%": plan_limits["free_operations_per_day"],
         "%%COPYRIGHT_YEAR%%": date.today().year,
+        "%%APP_VERSION%%": app.version,
         "%%TOOL_COUNT%%": len(OPERATIONS),
         "%%EXAM_PRICE%%": EXAM_PASS_PRICE_INR,
         "%%STUDENT_PRICE%%": STUDENT_PRO_PRICE_INR,
@@ -1633,6 +1671,19 @@ def render_web_page(request: Request, operation: str | None = None, landing_slug
   """
     html = html.replace("<!-- SEO_META_SLOT -->", meta)
     html = html.replace("<!-- SEO_CONTENT_SLOT -->", render_seo_content(context) if landing_slug not in WORKSPACE_PAGES else "")
+    if landing_slug in SEO_LANDING_PAGES and landing_slug not in {"privacy", "terms", "developers", "reset-password"}:
+        # These are focused landing pages that share the SPA shell. Keep a
+        # route-specific page heading available for the initial browser view.
+        html = html.replace("<h1>Tool Desk</h1>", f"<h1>{html_escape(context['heading'])}</h1>", 1)
+    if landing_slug in {"privacy", "terms"}:
+        html = html.replace("<h2>Paperplane Legal & Privacy Center</h2>", f"<h1 id=\"legal-page-title\">{html_escape(context['heading'])}</h1>", 1)
+    elif landing_slug == "developers":
+        html = html.replace("<h2>Developer REST API v1 reference</h2>", f"<h1>{html_escape(context['heading'])}</h1>", 1)
+    elif landing_slug == "reset-password":
+        reset_heading = html_escape(context["heading"])
+        html = html.replace('<h3 id="reset-password-title">Create New Password</h3>', f'<h1 id="reset-password-title">{reset_heading}</h1>', 1)
+    elif landing_slug in {"download", "apps"}:
+        html = html.replace("<h3>Native PDF Apps, Coming Soon</h3>", f"<h1>{html_escape(context['heading'])}</h1>", 1)
     if landing_slug in WORKSPACE_PAGES:
         title, description = WORKSPACE_PAGES[landing_slug]
         html = html.replace('<div id="view-home" class="home-container">', '<div id="view-home" class="home-container" hidden>', 1)
@@ -1938,15 +1989,22 @@ def parse_options(raw: str) -> dict:
 
 UPLOAD_CHUNK_SIZE = 64 * 1024
 MAX_BATCH_FILES = 100
+STANDARD_BATCH_FILES = 10
 
 
-def plan_limits_payload() -> dict[str, int]:
+def max_batch_files_for_tier(tier: str | None = None) -> int:
+    """Large 100-file batches are reserved for the full Pro/Developer offer."""
+    normalized = str(tier or "free").strip().lower()
+    return MAX_BATCH_FILES if normalized in {"pro", "developer", "cyber_cafe"} else STANDARD_BATCH_FILES
+
+
+def plan_limits_payload(tier: str | None = None) -> dict[str, int]:
     """Public plan limits used by both the upload guard and client copy."""
     return {
         "free_operations_per_day": FREE_TIER_DAILY_LIMIT,
         "free_max_file_size_mb": FREE_TIER_MAX_FILE_SIZE_MB,
         "pro_max_file_size_mb": MAX_FILE_SIZE // (1024 * 1024),
-        "max_batch_files": MAX_BATCH_FILES,
+        "max_batch_files": max_batch_files_for_tier(tier),
     }
 
 
@@ -2267,27 +2325,44 @@ def overlay(width: float, height: float, text: str, kind: str, options: dict) ->
     output = io.BytesIO()
     pdf = canvas.Canvas(output, pagesize=(width, height))
     size = int(options.get("font_size", 11))
-    font_path = converters.unicode_font_path(bold=kind == "watermark")
+    font_path = converters.unicode_font_path(bold=kind == "watermark", text=text)
     font_name = "PaperplaneUnicodeBold" if kind == "watermark" else "PaperplaneUnicode"
     if font_name not in pdfmetrics.getRegisteredFontNames():
         pdfmetrics.registerFont(TTFont(font_name, font_path))
     render_size = size if kind != "watermark" else min(44, max(20, width / 12))
     pdf.setFont(font_name, render_size)
+    mark_color = str(options.get("mark_color", "#243b53"))
+    if not re.fullmatch(r"#[0-9a-fA-F]{6}", mark_color):
+        mark_color = "#243b53"
+    red, green, blue = (int(mark_color[i:i + 2], 16) / 255 for i in (1, 3, 5))
+    background = str(options.get("mark_background", "unknown")).lower()
+    outline = (1, 1, 1) if background == "dark" else (0, 0, 0)
 
     if kind == "watermark":
         pdf.saveState()
         pdf.setFillAlpha(float(options.get("opacity", 0.18)))
-        pdf.setFillColorRGB(0.2, 0.22, 0.25)
+        pdf.setFillColorRGB(red, green, blue)
+        pdf.setStrokeColorRGB(*outline)
+        pdf.setLineWidth(max(0.8, render_size / 18))
         pdf.translate(width / 2, height / 2)
         pdf.rotate(35)
-        pdf.drawString(-pdf.stringWidth(text, font_name, render_size) / 2, 0, text)
+        mark = pdf.beginText(-pdf.stringWidth(text, font_name, render_size) / 2, 0)
+        mark.setTextRenderMode(2)
+        mark.textOut(text)
+        pdf.drawText(mark)
         pdf.restoreState()
     else:
         position = options.get("position", "Footer center")
         text_width = pdf.stringWidth(text, font_name, size)
         x = 28 if position.endswith("left") else width - text_width - 28 if position.endswith("right") else (width - text_width) / 2
         y = 24 if position.startswith("Footer") else height - 34
-        pdf.drawString(x, y, text)
+        pdf.setFillColorRGB(red, green, blue)
+        pdf.setStrokeColorRGB(*outline)
+        pdf.setLineWidth(max(0.8, size / 10))
+        mark = pdf.beginText(x, y)
+        mark.setTextRenderMode(2)
+        mark.textOut(text)
+        pdf.drawText(mark)
 
     pdf.save()
     return output.getvalue()
@@ -2381,6 +2456,10 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
             (output_dir / ".job-warning").write_text(
                 "Compression could have damaged page content, so the readable original was preserved. The requested file-size target was not reached.",
                 encoding="utf-8",
+            )
+        elif not compression_result.get("target_achieved", True) and compression_result.get("note"):
+            (output_dir / ".job-warning").write_text(
+                str(compression_result["note"]), encoding="utf-8"
             )
         return output
 
@@ -2682,32 +2761,32 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
         format_pattern = str(options.get("format", "page_of_total")).lower()
         start_number = _safe_int(options.get("start_number"), 1)
         start_page = _safe_int(options.get("start_page"), 1)
-        total_pages = len(reader.pages)
-
-        for number, page in enumerate(reader.pages, 1):
-            if operation == "watermark":
-                lbl = label
-            else:
-                if number < start_page:
-                    writer.add_page(page)
-                    continue
-                curr = start_number + (number - start_page)
-                if format_pattern in {"number_only", "number only", "{n}"}:
-                    lbl = str(curr)
-                elif "{n}" in format_pattern or "{total}" in format_pattern:
-                    # The UI sends its literal template (for example, "Page {n} of {total}").
-                    # Preserve the chosen wording and substitute both tokens instead of
-                    # treating every template containing {n} as the shorter preset.
-                    lbl = re.sub(r"\{n\}", str(curr), str(options.get("format", "")), flags=re.IGNORECASE)
-                    lbl = re.sub(r"\{total\}", str(total_pages), lbl, flags=re.IGNORECASE)
-                elif format_pattern == "page_n":
-                    lbl = f"Page {curr}"
+        with fitz.open(str(source)) as overlay_document:
+            total_pages = overlay_document.page_count
+            for number, page in enumerate(overlay_document, 1):
+                if operation == "watermark":
+                    lbl = label
                 else:
-                    lbl = f"Page {curr} of {total_pages}"
+                    if number < start_page:
+                        continue
+                    curr = start_number + (number - start_page)
+                    if format_pattern in {"number_only", "number only", "{n}"}:
+                        lbl = str(curr)
+                    elif "{n}" in format_pattern or "{total}" in format_pattern:
+                        # Preserve the selected template and substitute both tokens.
+                        lbl = re.sub(r"\{n\}", str(curr), str(options.get("format", "")), flags=re.IGNORECASE)
+                        lbl = re.sub(r"\{total\}", str(total_pages), lbl, flags=re.IGNORECASE)
+                    elif format_pattern == "page_n":
+                        lbl = f"Page {curr}"
+                    else:
+                        lbl = f"Page {curr} of {total_pages}"
 
-            ov = PdfReader(io.BytesIO(overlay(float(page.mediabox.width), float(page.mediabox.height), lbl, operation, options)))
-            writer.add_page(page)
-            writer.pages[-1].merge_page(ov.pages[0])
+                overlay_bytes = overlay(float(page.rect.width), float(page.rect.height), lbl, operation, options)
+                with fitz.open(stream=overlay_bytes, filetype="pdf") as overlay_doc:
+                    page.show_pdf_page(page.rect, overlay_doc, 0, overlay=True)
+
+            overlay_document.save(str(output), garbage=4, deflate=True)
+        return output
 
     elif operation == "protect":
         password = (options.get("password") or options.get("user_password") or "").strip()
@@ -2761,7 +2840,17 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
     elif operation == "metadata":
         for page in reader.pages:
             writer.add_page(page)
-        metadata = {f"/{key.title()}": str(value) for key, value in options.items() if key in {"title", "author", "subject", "creator"} and value}
+        # Preserve provenance and dates when editing only selected fields. pypdf
+        # otherwise replaces the whole document-information dictionary.
+        metadata = {
+            str(key): str(value)
+            for key, value in (reader.metadata or {}).items()
+            if key and value is not None
+        }
+        editable_fields = {"title": "/Title", "author": "/Author", "subject": "/Subject", "creator": "/Creator"}
+        for option_name, pdf_name in editable_fields.items():
+            if option_name in options:
+                metadata[pdf_name] = str(options[option_name] or "")
         if metadata:
             writer.add_metadata(metadata)
 
@@ -2779,7 +2868,9 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
         else:
             return security_forms_engine.add_visual_signature(
                 source, output, sig_data or signer_name,
-                signer_name=signer_name
+                signer_name=signer_name,
+                signature_color=options.get("signature_color", "#243b53"),
+                page_background=options.get("mark_background", "unknown")
             )
 
     elif operation == "pdf_to_text":
@@ -2788,7 +2879,18 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
 
     elif operation == "pdf_to_markdown":
         md_output = output.with_suffix(".md")
-        return converters.pdf_to_markdown(source, md_output, pages=options.get("pages", "all"))
+        return run_converter_with_timeout(
+            converters.pdf_to_markdown,
+            source,
+            md_output,
+            pages=options.get("pages", "all"),
+            document_name=options.get("_original_filename"),
+            timeout_seconds=PDF_TO_MARKDOWN_TIMEOUT_SECONDS,
+            tool_name="PDF to Markdown",
+            source_path=source,
+            output_path=md_output,
+            retry_hint="If this long document still exceeds the processing budget, split it into smaller page ranges and try again.",
+        )
 
     elif operation == "pdf_to_html":
         html_output = output.with_suffix(".html")
@@ -2850,6 +2952,12 @@ def translation_failure_response(error: RuntimeError) -> tuple[int, str, dict[st
         return 502, "The translation provider returned an invalid response. Please retry later.", {"Retry-After": "5"}
     if "no text was translated" in message.lower():
         return 422, "No text was translated. No translated PDF was produced.", {}
+    if "minimum 50%" in message.lower() and re.search(
+        r"only \d+% of text blocks.*minimum 50%", message, re.IGNORECASE
+    ):
+        return 422, message, {}
+    if "minimum 10%" in message.lower() and re.search(r"only \d+% of source text changed", message, re.IGNORECASE):
+        return 422, message, {}
     return 502, "Translation provider failed during document processing. Please retry later.", {"Retry-After": "5"}
 
 
@@ -2874,6 +2982,11 @@ def get_operations():
             info["available"] = tesseract_ok
             info["status"] = "AVAILABLE" if tesseract_ok else "DEPENDENCY_MISSING"
             info["prerequisite"] = None if tesseract_ok else "Requires Tesseract OCR engine installed"
+        elif op_id == "pdf_to_pdfa":
+            prerequisite = converters.pdfa_dependency_issue()
+            info["available"] = prerequisite is None
+            info["status"] = "AVAILABLE" if prerequisite is None else "DEPENDENCY_MISSING"
+            info["prerequisite"] = prerequisite
         elif op_id in ("ai_chat", "ai_extract", "summarize"):
             info["available"] = ai_ok or op_id == "ai_extract"
             info["status"] = "AVAILABLE" if info["available"] else "SERVICE_UNAVAILABLE"
@@ -3055,15 +3168,30 @@ async def register(
 
 
 @app.post("/api/auth/login")
-def login(
+async def login(
     response: Response,
     request: Request,
     background_tasks: BackgroundTasks,
-    email: str = Form(...),
-    password: str = Form(...),
+    email: str | None = Form(None),
+    password: str | None = Form(None),
     otp: str | None = Form(None),
     require_otp: str | None = Form(None)
 ):
+    if "application/json" in request.headers.get("content-type", ""):
+        try:
+            payload = await request.json()
+        except Exception as exc:
+            raise HTTPException(400, "Login JSON must be a valid object.") from exc
+        if not isinstance(payload, dict):
+            raise HTTPException(400, "Login JSON must be an object.")
+        email = payload.get("email", email)
+        password = payload.get("password", password)
+        otp = payload.get("otp", otp)
+        require_otp = payload.get("require_otp", require_otp)
+
+    if not isinstance(email, str) or not isinstance(password, str) or not email or not password:
+        raise HTTPException(400, "Email and password are required.")
+
     client_ip = get_client_ip(request)
     user_agent = request.headers.get("user-agent", "")
     enforce_rate_limit(f"login:{client_ip}", limit=25)
@@ -3645,13 +3773,13 @@ async def join_waitlist(request: Request, background_tasks: BackgroundTasks):
 @app.get("/api/auth/me")
 def get_current_user_profile(request: Request, user_id: str | None = Depends(current_user)):
     if not user_id:
-        raise HTTPException(status_code=401, detail="Authentication is required.")
+        return {"authenticated": False}
     all_pricing = public_pricing_catalog()
-    plan_limits = plan_limits_payload()
+    tier = get_user_tier(user_id)
+    plan_limits = plan_limits_payload(tier)
     user = get_user(user_id)
     if not user:
-        raise HTTPException(status_code=401, detail="Authentication is required.")
-    tier = get_user_tier(user_id)
+        return {"authenticated": False}
     paid_tiers = ("pro", "developer", "student_pro", "cyber_cafe", "exam_pass")
     is_pro = tier in paid_tiers
     is_dev = tier in {"developer", "cyber_cafe"}
@@ -3661,7 +3789,7 @@ def get_current_user_profile(request: Request, user_id: str | None = Depends(cur
         "pro": "Legacy Pro",
         "student_pro": "Student & Educator",
         "cyber_cafe": "All-In-One Pro & Developer",
-        "exam_pass": "Exam",
+        "exam_pass": "Exam Pass",
         "free": "Free",
     }
     label = tier_labels.get(tier, "Free")
@@ -3809,7 +3937,7 @@ def billing_status(request: Request, user_id: str | None = Depends(current_user)
         "pro": "Legacy Pro",
         "student_pro": "Student & Educator",
         "cyber_cafe": "All-In-One Pro & Developer",
-        "exam_pass": "Exam",
+        "exam_pass": "Exam Pass",
         "free": "Free",
     }
     label = tier_labels.get(tier, "Free")
@@ -4122,8 +4250,8 @@ async def ai_chat_stream(
             if file is not None:
                 temp_pdf = temp_dir / "chat_stream.pdf"
                 await save_upload_spooled_async(file, temp_pdf, max_bytes=upload_limit_bytes_for_user(user_id))
-                if re.search(r"\b(how many pages?|page count|number of pages|document title|pdf title|file name|filename)\b", question, re.IGNORECASE):
-                    metadata_result = await asyncio.to_thread(ai_engine.chat_with_pdf, temp_pdf, question)
+                if re.search(r"\b(how many pages?|page count|number of pages|document title|pdf title|file name|filename|title of (?:this|the) (?:document|pdf)|what(?:'s| is) (?:the )?(?:document )?title)\b", question, re.IGNORECASE):
+                    metadata_result = await asyncio.to_thread(ai_engine.chat_with_pdf, temp_pdf, question, file.filename)
                     yield frame("replace", text=metadata_result["answer"])
                     yield frame("done", citations=metadata_result.get("citations", []), mode="document_metadata")
                     return
@@ -4289,7 +4417,9 @@ async def ai_summarize(
             defer_temp_cleanup = True
             summary_task.add_done_callback(lambda _task: shutil.rmtree(temp_dir, ignore_errors=True))
             raise
-        return {"status": "success", "summary": summary, "citations": citations}
+        offline = "Executive Summary (Offline Analysis)" in summary
+        return {"status": "success", "summary": summary, "citations": citations,
+                "summary_mode": "offline_extractive" if offline else "provider_synthesized"}
     except ValueError as ve:
         status = 422 if str(ve).startswith("Executive Brief accepts") else 503
         raise HTTPException(status_code=status, detail=str(ve)) from ve
@@ -4369,7 +4499,9 @@ async def ai_translate_endpoint(
             media_type="application/pdf",
             headers={
                 "Content-Disposition": f'attachment; filename="translated_{target_language}.pdf"',
-                "X-Paperplane-Translation-Mode": "translated" if translation_report.get("blocks_translated") and not translation_report.get("blocks_preserved") else "partial" if translation_report.get("blocks_translated") else "failed",
+                "X-Paperplane-Translation-Mode": translation_report.get("translation_status", "failed"),
+                "X-Paperplane-Translated-Fraction": f"{translation_report.get('translated_fraction', 0):.4f}",
+                "X-Paperplane-Translated-Block-Fraction": f"{translation_report.get('translated_block_fraction', 0):.4f}",
                 "X-Paperplane-Translation-Warnings": str(len(translation_report.get("warnings", []))),
             }
         )
@@ -6348,6 +6480,50 @@ def job_status(
     res = dict(row)
     res.pop("guest_token", None)
     res.pop("user_id", None)
+    if res.get("status") == "completed" and str(res.get("output_name") or "").lower().endswith(".pdf"):
+        job_dir = (JOBS / job_id).resolve()
+        output_path = (job_dir / str(res["output_name"])).resolve()
+        if output_path.parent == job_dir and output_path.is_file():
+            try:
+                with fitz.open(str(output_path)) as output_pdf:
+                    if not output_pdf.needs_pass:
+                        res["page_count"] = output_pdf.page_count
+                    else:
+                        # Encryption tools preserve source pages. The output
+                        # count is not readable without the user's password.
+                        source_candidates = [
+                            path for path in job_dir.glob("*.pdf")
+                            if path.resolve() != output_path and path.is_file()
+                        ]
+                        for source_path in source_candidates[:1]:
+                            with fitz.open(str(source_path)) as source_pdf:
+                                res["page_count"] = source_pdf.page_count
+                            break
+            except Exception as error:
+                logger.warning("Could not count completed PDF pages for job %s (%s)", job_id, type(error).__name__)
+    if res.get("operation") == "metadata" and res.get("status") == "completed" and res.get("output_name"):
+        job_dir = (JOBS / job_id).resolve()
+        output_path = (job_dir / str(res["output_name"])).resolve()
+        if output_path.parent == job_dir and output_path.is_file():
+            try:
+                output_reader = PdfReader(str(output_path))
+                info = output_reader.metadata or {}
+                def info_value(key: str) -> str:
+                    value = info.get(key)
+                    return str(value) if value is not None else ""
+                res["output_metadata"] = {
+                    "title": info_value("/Title"),
+                    "author": info_value("/Author"),
+                    "subject": info_value("/Subject"),
+                    "keywords": info_value("/Keywords"),
+                    "creator": info_value("/Creator"),
+                    "producer": info_value("/Producer"),
+                    "creation_date": info_value("/CreationDate"),
+                    "modification_date": info_value("/ModDate"),
+                    "page_count": len(output_reader.pages),
+                }
+            except Exception as error:
+                logger.warning("Could not summarize completed metadata job %s (%s)", job_id, type(error).__name__)
     return res
 
 
@@ -6390,6 +6566,45 @@ def _cleanup_expired_chunked_uploads(now: float | None = None) -> None:
             shutil.rmtree(session_dir, ignore_errors=True)
 
 
+def _app_job_submission_subject(request: Request, user_id: str | None) -> str:
+    if user_id:
+        return f"user:{user_id}"
+    guest_hash = hashlib.sha256(quota_client_identity(request).encode("utf-8")).hexdigest()
+    return f"guest:{guest_hash}"
+
+
+def _existing_idempotent_app_job(request: Request, response: Response, user_id: str | None,
+                                 idempotency_key: str | None) -> dict | None:
+    if not idempotency_key:
+        return None
+    if not re.fullmatch(r"[A-Za-z0-9._:-]{16,128}", idempotency_key):
+        raise HTTPException(400, "Idempotency-Key must contain 16–128 safe characters.")
+    existing = persistence.get_app_job_submission(
+        idempotency_key, _app_job_submission_subject(request, user_id)
+    )
+    if not existing:
+        return None
+    if existing.get("key_conflict"):
+        raise HTTPException(409, "This Idempotency-Key belongs to another account or guest session.")
+    job = get_job(existing["job_id"], user_id=user_id, guest_token=existing.get("guest_token"))
+    if not job:
+        persistence.delete_app_job_submission(idempotency_key)
+        return None
+    if existing.get("guest_token"):
+        response.set_cookie(
+            key=f"guest_job_{existing['job_id']}", value=existing["guest_token"],
+            max_age=JOB_TTL_SECONDS, httponly=True, secure=SECURE_COOKIES,
+            samesite=COOKIE_SAMESITE, path="/",
+        )
+    response.status_code = 200
+    return {
+        "job_id": existing["job_id"], "operation": job["operation"],
+        "status": job["status"], "idempotent": True,
+        "status_url": f"/api/jobs/{existing['job_id']}",
+        "download_url": f"/api/jobs/{existing['job_id']}/download",
+    }
+
+
 @app.post("/api/uploads/chunked", status_code=201)
 async def start_chunked_upload(request: Request, user_id: str | None = Depends(current_user)):
     _cleanup_expired_chunked_uploads()
@@ -6407,7 +6622,8 @@ async def start_chunked_upload(request: Request, user_id: str | None = Depends(c
         raise HTTPException(400, "Choose an available operation before uploading.")
     if not isinstance(files, list) or not files:
         raise HTTPException(400, "Select at least one file to upload.")
-    max_files = MAX_BATCH_FILES if operation in {"merge", "jpg_to_pdf", "scan_pdf"} else {"compare": 2, "photo_merge": 12}.get(operation, 1)
+    batch_limit = max_batch_files_for_tier(get_user_tier(user_id))
+    max_files = batch_limit if operation in {"merge", "jpg_to_pdf", "scan_pdf"} else {"compare": 2, "photo_merge": min(12, batch_limit)}.get(operation, 1)
     if len(files) > max_files:
         raise HTTPException(400, f"This operation accepts at most {max_files} files.")
     tier = get_user_tier(user_id)
@@ -6502,8 +6718,12 @@ async def commit_chunked_upload(
     upload_id: str,
     request: Request,
     response: Response,
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
     user_id: str | None = Depends(current_user),
 ):
+    existing = _existing_idempotent_app_job(request, response, user_id, idempotency_key)
+    if existing:
+        return existing
     session_dir, manifest = _load_chunked_upload_session(upload_id, request, user_id)
     if any(not all(item["received"]) for item in manifest["files"]):
         raise HTTPException(409, "The upload is incomplete. Retry the missing parts before continuing.")
@@ -6535,7 +6755,10 @@ async def commit_chunked_upload(
             uploads.append(UploadFile(filename=file_data["name"], file=assembled.open("rb")))
         logger.info("job_upload phase=chunked_assembled upload_id=%s operation=%s file_count=%d total_bytes=%d",
                     upload_id, operation, len(uploads), sum(item["size"] for item in manifest["files"]))
-        result = create_job_endpoint(request, response, operation, json.dumps(options, ensure_ascii=False), uploads, user_id)
+        result = create_job_endpoint(
+            request, response, operation, json.dumps(options, ensure_ascii=False), uploads,
+            user_id=user_id, idempotency_key=idempotency_key,
+        )
         response.status_code = 202
         return result
     finally:
@@ -6553,8 +6776,12 @@ def create_job_endpoint(
     operation: str = Form(...),
     options: str = Form("{}"),
     files: list[UploadFile] = File(default=[]),
-    user_id: str | None = Depends(current_user)
+    user_id: str | None = Depends(current_user),
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ):
+    existing = _existing_idempotent_app_job(request, response, user_id, idempotency_key)
+    if existing:
+        return existing
     upload_started_at = time.monotonic()
     # Freemium Tier & Daily Quota Check
     client_ip = get_client_ip(request)
@@ -6587,6 +6814,9 @@ def create_job_endpoint(
 
     parsed_options = parse_options(options)
 
+    if operation == "pdf_to_markdown" and files:
+        parsed_options["_original_filename"] = Path((files[0].filename or "document.pdf").replace("\\", "/")).name
+
     # Allow url conversion without files
     if operation == "html_to_pdf":
         files = []
@@ -6594,7 +6824,8 @@ def create_job_endpoint(
         raise HTTPException(400, "Please select at least one file to process.")
 
     # Batch limits (up to 100 for merge/scan/images)
-    max_files = MAX_BATCH_FILES if operation in {"merge", "jpg_to_pdf", "scan_pdf"} else {"compare": 2, "photo_merge": 12}.get(operation, 1)
+    batch_limit = max_batch_files_for_tier(get_user_tier(user_id))
+    max_files = batch_limit if operation in {"merge", "jpg_to_pdf", "scan_pdf"} else {"compare": 2, "photo_merge": min(12, batch_limit)}.get(operation, 1)
     if operation == "photo_merge" and len(files) < 2:
         raise HTTPException(400, "Select at least two photos to merge.")
     if len(files) > max_files:
@@ -6654,10 +6885,30 @@ def create_job_endpoint(
             limit_response = _quota_limit_response(get_daily_usage(subject), user_tier, bool(user_id))
             raise HTTPException(402, json.loads(limit_response.body)["detail"])
         reservation = (subject, usage_day) if operation in {"translate", "summarize", "ai_extract", "ai_chat"} else None
+        usage_refunded = False
+        submission_recorded = False
         try:
+            if idempotency_key:
+                submission_recorded = persistence.record_app_job_submission(
+                    idempotency_key, _app_job_submission_subject(request, user_id), job_id,
+                    guest_token, ttl=JOB_TTL_SECONDS,
+                )
+            if idempotency_key and not submission_recorded:
+                persistence.refund_daily_usage(subject, usage_day)
+                usage_refunded = True
+                update_job(job_id, status="failed", error="Duplicate idempotent submission discarded.")
+                shutil.rmtree(job_dir, ignore_errors=True)
+                delete_job_record(job_id)
+                existing = _existing_idempotent_app_job(request, response, user_id, idempotency_key)
+                if existing:
+                    return existing
+                raise HTTPException(409, "The submission key was already claimed. Retry with a new key.")
             executor.submit(run_job, job_id, operation, paths, parsed_options, user_id, reservation)
         except Exception:
-            persistence.refund_daily_usage(subject, usage_day)
+            if not usage_refunded:
+                persistence.refund_daily_usage(subject, usage_day)
+            if submission_recorded:
+                persistence.delete_app_job_submission(idempotency_key)
             raise
         logger.info(
             "job_upload phase=enqueued job_id=%s operation=%s file_count=%d total_bytes=%d elapsed_ms=%d",
@@ -6833,7 +7084,8 @@ async def create_v1_job(
     if operation != "html_to_pdf" and not files:
         raise HTTPException(400, "Please supply at least one input file in the 'files' multipart form field.")
 
-    max_files = MAX_BATCH_FILES if operation in {"merge", "jpg_to_pdf", "scan_pdf"} else {"compare": 2, "photo_merge": 12}.get(operation, 1)
+    batch_limit = max_batch_files_for_tier(get_user_tier(user_id))
+    max_files = batch_limit if operation in {"merge", "jpg_to_pdf", "scan_pdf"} else {"compare": 2, "photo_merge": min(12, batch_limit)}.get(operation, 1)
     if operation == "photo_merge" and len(files) < 2:
         raise HTTPException(400, "Select at least two photos to merge.")
     if len(files) > max_files:
@@ -6877,6 +7129,11 @@ async def create_v1_job(
         shutil.rmtree(staging_dir, ignore_errors=True)
         refund_developer_quota(user_id, is_ai=is_ai)
         raise HTTPException(400, f"Invalid options JSON: {parse_err}") from parse_err
+
+    if operation == "pdf_to_markdown" and staged_files:
+        # Preserve the user-visible upload name for the Markdown H1; staged
+        # paths include random job identifiers and must not leak into exports.
+        parsed_options["_original_filename"] = Path(staged_files[0][0].replace("\\", "/")).name
 
     # 6. Create Job and Disk Directory
     job_id, _ = persist_job(operation, user_id, JOB_TTL_SECONDS)
@@ -7145,7 +7402,8 @@ def index(request: Request):
 @app.get("/download", response_class=HTMLResponse, tags=["Web Pages"])
 @app.get("/apps", response_class=HTMLResponse, tags=["Web Pages"])
 def download_page(request: Request):
-    return render_web_page(request, landing_slug="download")
+    page_slug = request.url.path.strip("/").lower()
+    return render_web_page(request, landing_slug=page_slug if page_slug in {"download", "apps"} else "download")
 
 
 @app.get("/tool-desk", response_class=HTMLResponse, include_in_schema=False)
@@ -7155,7 +7413,12 @@ def tool_desk_page(request: Request):
 
 @app.get("/tools", include_in_schema=False)
 def legacy_tools_redirect():
-    return RedirectResponse(url="/", status_code=301)
+    return RedirectResponse(url="/tool-desk", status_code=301)
+
+
+@app.get("/all-tools", include_in_schema=False)
+def all_tools_redirect():
+    return RedirectResponse(url="/tool-desk", status_code=301)
 
 
 @app.get("/studio", response_class=HTMLResponse, include_in_schema=False)
@@ -7208,12 +7471,53 @@ def reset_password_page(request: Request):
 
 @app.get("/docs", include_in_schema=False)
 def docs_redirect():
-    return RedirectResponse(url="/api-docs" if not DISABLE_DOCS else "/developers")
+    return RedirectResponse(url="/spec/swagger")
 
 
 @app.get("/api-docs", include_in_schema=False)
 def api_docs_help_fallback():
-    return RedirectResponse(url="/developers")
+    return RedirectResponse(url="/spec/swagger")
+
+
+@app.get("/spec/openapi.json", include_in_schema=False)
+def public_openapi_schema():
+    """Publish the generated API contract without exposing application data or credentials."""
+    return JSONResponse(app.openapi())
+
+
+@app.get("/spec/swagger", response_class=HTMLResponse, include_in_schema=False)
+def public_swagger_reference():
+    response = get_swagger_ui_html(
+        openapi_url="/spec/openapi.json",
+        title="Paperplane API — Swagger UI",
+        swagger_favicon_url="/favicon.ico",
+    )
+    html = response.body.decode("utf-8")
+    html, replaced = re.subn(
+        r"<script>\s*const ui = SwaggerUIBundle\(.*?</script>",
+        '<script src="/assets/swagger-init.js"></script>',
+        html,
+        count=1,
+        flags=re.DOTALL,
+    )
+    if replaced != 1:
+        raise RuntimeError("Swagger UI initialization template changed unexpectedly.")
+    return HTMLResponse(html, headers={"Cache-Control": "public, max-age=300"})
+
+
+@app.get("/spec/redoc", response_class=HTMLResponse, include_in_schema=False)
+def public_redoc_reference():
+    return get_redoc_html(
+        openapi_url="/spec/openapi.json",
+        title="Paperplane API — ReDoc",
+        redoc_favicon_url="/favicon.ico",
+    )
+
+
+if DISABLE_DOCS:
+    @app.get("/redoc", include_in_schema=False)
+    def redoc_redirect():
+        return RedirectResponse(url="/spec/redoc")
 
 
 @app.get("/health")
@@ -7224,6 +7528,30 @@ def health_check():
         "version": "2.0.0",
         "timestamp": time.time(),
     }
+
+
+@app.get("/manifest.webmanifest", include_in_schema=False)
+def web_app_manifest():
+    manifest_path = ROOT / "web" / "assets" / "manifest.webmanifest"
+    if not manifest_path.is_file():
+        raise HTTPException(status_code=404, detail="Web app manifest is unavailable.")
+    return FileResponse(
+        manifest_path,
+        media_type="application/manifest+json",
+        headers={"Cache-Control": "public, max-age=3600"},
+    )
+
+
+@app.get("/service-worker.js", include_in_schema=False)
+def service_worker_script():
+    worker_path = ROOT / "web" / "assets" / "service-worker.js"
+    if not worker_path.is_file():
+        raise HTTPException(status_code=404, detail="App shell worker is unavailable.")
+    return FileResponse(
+        worker_path,
+        media_type="application/javascript",
+        headers={"Cache-Control": "no-cache", "Service-Worker-Allowed": "/"},
+    )
 
 
 @app.get("/api/health/persistence", include_in_schema=False)
@@ -7278,6 +7606,9 @@ def sitemap_xml(request: Request):
 
 LEGACY_SLUG_REDIRECTS = {
     "metadata": "pdf-metadata",
+    "resize-photo": "resize-image-dimensions",
+    "photo-resize": "resize-image-dimensions",
+    "compress-photo": "compress-image-online",
     "photo-compress": "compress-image-online",
     "compress-photos": "compress-image-online",
     "ai-chat": "ai-pdf-chat",
@@ -7294,6 +7625,7 @@ LEGACY_SLUG_REDIRECTS = {
     "mask-aadhaar": "mask-aadhaar-card-online",
     "flatten-pdf-forms": "flatten-pdf",
     "page-numbers": "add-page-numbers-to-pdf",
+    "add-page-numbers": "add-page-numbers-to-pdf",
     "smart-metadata": "extract-pdf-data",
     "extract-metadata": "extract-pdf-data",
     "compress": "compress-pdf",
@@ -7960,7 +8292,7 @@ def admin_portal_page():
         <div class="metric-card">
           <div class="title">Total Jobs Run</div>
           <div class="value" id="m-total-jobs">-</div>
-          <div class="sub" id="m-jobs-today">0 processed today</div>
+          <div class="sub" id="m-jobs-today">0 jobs created today (UTC)</div>
         </div>
       </div>
 
@@ -7984,23 +8316,9 @@ def admin_portal_page():
             <span style="font-size: 11px; font-weight: normal; color: var(--text-muted);" id="tier-ratio-label">Ratio</span>
           </h3>
           <div class="meter-bar">
-            <div id="meter-free" class="meter-seg-free" style="width: 70%;" title="Free"></div>
-            <div id="meter-pro" class="meter-seg-pro" style="width: 20%;" title="Pro"></div>
-            <div id="meter-dev" class="meter-seg-dev" style="width: 10%;" title="Dev"></div>
+            <div id="meter-plan-segments" style="display:flex;width:100%;height:100%;"></div>
           </div>
-          <div class="legend-list">
-            <div class="legend-item">
-              <span><span class="legend-dot" style="background: var(--free-color);"></span>Free Accounts</span>
-              <strong id="legend-free-val">0 (0%)</strong>
-            </div>
-            <div class="legend-item">
-              <span><span class="legend-dot" style="background: var(--pro-color);"></span>Pro Subscribers</span>
-              <strong id="legend-pro-val" style="color: var(--pro-color);">0 (0%)</strong>
-            </div>
-            <div class="legend-item">
-              <span><span class="legend-dot" style="background: var(--dev-color);"></span>Developer Users</span>
-              <strong id="legend-dev-val" style="color: var(--dev-color);">0 (0%)</strong>
-            </div>
+          <div class="legend-list" id="plan-breakdown-rows">
           </div>
         </div>
       </div>
@@ -8266,7 +8584,7 @@ def admin_portal_page():
     </div>
   </main>
 
-  <script src="/assets/admin.js?v=14" defer></script>
+  <script src="/assets/admin.js?v=16" defer></script>
 </body>
 </html>""")
 
@@ -8852,8 +9170,16 @@ async def custom_404_handler(request: Request, exc: HTTPException):
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>404 Page Not Found — Paperplane PDF</title>
   <style>
-    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; min-height: 100dvh; background: #0d1416; color: #f0f5f4; font-family: system-ui, -apple-system, sans-serif; margin: 0; text-align: center; }
-    .box { max-width: 480px; padding: 40px 24px; background: #141e21; border: 1px solid #28393d; border-radius: 16px; box-shadow: 0 20px 48px rgba(0,0,0,0.4); margin: 20px; }
+    * { box-sizing: border-box; }
+    body { display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; background: #0d1416; color: #f0f5f4; font-family: system-ui, -apple-system, sans-serif; margin: 0; text-align: center; }
+    .site-nav { width: 100%; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 20px; padding: 14px clamp(16px, 4vw, 48px); border-bottom: 1px solid #26363a; background: #121a1c; }
+    .site-brand { color: #f0f5f4; font-size: 17px; font-weight: 800; letter-spacing: -.03em; text-decoration: none; }
+    .site-brand span { color: #ff4b26; }
+    .site-nav-links { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px 18px; }
+    .site-nav-links a { min-height: 36px; display: inline-flex; align-items: center; color: #d8e2df; font-size: 13px; font-weight: 650; text-decoration: none; }
+    .site-nav-links a:hover, .site-nav-links a:focus-visible { color: #ff6a48; text-decoration: underline; text-underline-offset: 3px; }
+    main { flex: 1; display: grid; place-items: center; padding: 20px 12px; }
+    .box { width: min(100%, 480px); padding: 40px 24px; background: #141e21; border: 1px solid #28393d; border-radius: 16px; box-shadow: 0 20px 48px rgba(0,0,0,0.4); margin: 0; }
     h1 { font-size: 72px; margin: 0; color: #ff4b26; font-weight: 800; line-height: 1; }
     h2 { font-size: 22px; margin: 16px 0 12px; }
     p { color: #94a3b8; font-size: 14px; line-height: 1.6; margin-bottom: 24px; }
@@ -8862,12 +9188,23 @@ async def custom_404_handler(request: Request, exc: HTTPException):
   </style>
 </head>
 <body>
+  <header class="site-nav">
+    <a class="site-brand" href="/tool-desk" aria-label="Paperplane Tool Desk">paperplane<span>.</span></a>
+    <nav class="site-nav-links" aria-label="Main navigation">
+      <a href="/tool-desk">Tool Desk</a>
+      <a href="/studio">Studio</a>
+      <a href="/ai-intelligence">AI Intelligence</a>
+      <a href="/pricing">Pricing</a>
+    </nav>
+  </header>
+  <main>
   <div class="box">
     <h1>404</h1>
     <h2>Page Not Found</h2>
     <p>The PDF tool or resource you are looking for does not exist or may have been moved.</p>
     <a href="/" class="btn">← Return to All Tools</a>
   </div>
+  </main>
 </body>
 </html>"""
         )

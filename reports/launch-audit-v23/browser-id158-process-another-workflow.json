@@ -1,0 +1,42 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "url_after_restart": "http://127.0.0.1:49341/merge-pdf",
+      "first_and_second_results": [
+        {
+          "filename": "merged-PDF.pdf",
+          "pages": 2,
+          "markers": "FIRST-ROUND-A\n\nFIRST-ROUND-B\n"
+        },
+        {
+          "filename": "merged-PDF.pdf",
+          "pages": 2,
+          "markers": "SECOND-ROUND-A\n\nSECOND-ROUND-B\n"
+        }
+      ],
+      "file_list_empty_after_restart": true,
+      "result_hidden_after_restart": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "url_after_restart": "http://127.0.0.1:49341/merge-pdf",
+      "first_and_second_results": [
+        {
+          "filename": "merged-PDF.pdf",
+          "pages": 2,
+          "markers": "FIRST-ROUND-A\n\nFIRST-ROUND-B\n"
+        },
+        {
+          "filename": "merged-PDF.pdf",
+          "pages": 2,
+          "markers": "SECOND-ROUND-A\n\nSECOND-ROUND-B\n"
+        }
+      ],
+      "file_list_empty_after_restart": true,
+      "result_hidden_after_restart": true,
+      "page_errors": []
+    }
+  ]
+}

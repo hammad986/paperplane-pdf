@@ -1,0 +1,29 @@
+{
+  "scenario": "Gmail From configured with SMTP and Resend credentials; registration must fail closed before dispatch",
+  "rounds": [
+    {
+      "round": 1,
+      "status": 503,
+      "detail": "Email delivery is unavailable. Please try again later or contact support.",
+      "auth_state": {
+        "token": null,
+        "authCookie": false,
+        "message": ""
+      },
+      "no_otp_pane": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "status": 503,
+      "detail": "Email delivery is unavailable. Please try again later or contact support.",
+      "auth_state": {
+        "token": null,
+        "authCookie": false,
+        "message": ""
+      },
+      "no_otp_pane": true,
+      "page_errors": []
+    }
+  ]
+}

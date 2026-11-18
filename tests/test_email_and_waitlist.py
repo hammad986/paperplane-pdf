@@ -1,8 +1,33 @@
 import pytest
 from pathlib import Path
 import persistence
+import email_service
 from persistence import init_db, add_waitlist_entry, get_waitlist_count
 from email_service import send_login_notification, send_password_reset_email, send_password_changed_notification
+
+
+def test_transactional_dispatch_rejects_consumer_sender_even_with_provider(monkeypatch):
+    monkeypatch.setattr(email_service, "SMTP_FROM_EMAIL", "owner@gmail.com")
+    monkeypatch.setattr(email_service, "RESEND_API_KEY", "re_test_mock_key")
+    monkeypatch.setattr(email_service, "SMTP_ENABLED", True)
+    monkeypatch.setattr(email_service, "SMTP_HOST", "smtp.example.test")
+    monkeypatch.setattr(email_service, "_send_resend_api", lambda *args: pytest.fail("must not dispatch"))
+    monkeypatch.setattr(email_service, "_send_smtp", lambda *args: pytest.fail("must not dispatch"))
+
+    assert email_service._dispatch_email("owner@gmail.com", "OTP", "<p>code</p>", "code", allow_simulated=True) is False
+
+
+def test_transactional_dispatch_prefers_resend_before_smtp(monkeypatch):
+    monkeypatch.setattr(email_service, "SMTP_FROM_EMAIL", "security@paperplane.example")
+    monkeypatch.setattr(email_service, "RESEND_API_KEY", "re_test_mock_key")
+    monkeypatch.setattr(email_service, "SMTP_ENABLED", True)
+    monkeypatch.setattr(email_service, "SMTP_HOST", "smtp.example.test")
+    calls = []
+    monkeypatch.setattr(email_service, "_send_resend_api", lambda *args: calls.append("resend") or True)
+    monkeypatch.setattr(email_service, "_send_smtp", lambda *args: calls.append("smtp") or True)
+
+    assert email_service._dispatch_email("user@example.test", "OTP", "<p>code</p>", "code") is True
+    assert calls == ["resend"]
 
 def test_email_service_fallback(monkeypatch):
     """No transactional notification claims delivery without a configured provider."""

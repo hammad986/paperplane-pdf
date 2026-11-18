@@ -1,0 +1,34 @@
+{
+  "route": "/studio",
+  "action": "Settings > Storage & Privacy > Clear saved PDFs, AI chat, and page position",
+  "rounds": [
+    {
+      "round": 1,
+      "stored_before": [
+        "guest:studio-pdf",
+        "guest:studio-position"
+      ],
+      "after_reload": {
+        "pageCount": "0",
+        "canvasRendered": false,
+        "canvasText": null,
+        "storageKeys": []
+      },
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "stored_before": [
+        "guest:studio-pdf",
+        "guest:studio-position"
+      ],
+      "after_reload": {
+        "pageCount": "0",
+        "canvasRendered": false,
+        "canvasText": null,
+        "storageKeys": []
+      },
+      "page_errors": []
+    }
+  ]
+}

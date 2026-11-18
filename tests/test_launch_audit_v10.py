@@ -157,6 +157,35 @@ def test_admin_lockout_status_ignores_untrusted_forwarded_for():
     assert "ip" not in response_locked.json()
 
 
+def test_trusted_proxy_ip_is_attributed_and_untrusted_forwarding_is_ignored(tmp_path, monkeypatch):
+    monkeypatch.setattr(persistence, "DATABASE", tmp_path / "trusted-proxy-audit.sqlite3")
+    persistence.init_db()
+    trusted_proxy = TestClient(server.app, client=("127.0.0.1", 50110), raise_server_exceptions=False)
+    expected_forwarded_ips = ("198.51.100.61", "198.51.100.62")
+    for suffix, forwarded_ip in enumerate(expected_forwarded_ips, start=1):
+        response = trusted_proxy.post(
+            "/api/auth/login",
+            data={"email": f"proxy-audit-{suffix}@example.test", "password": "invalid"},
+            headers={"X-Forwarded-For": forwarded_ip},
+        )
+        assert response.status_code == 401
+
+    direct_client_ip = "203.0.113.71"
+    untrusted_client = TestClient(server.app, client=(direct_client_ip, 50111), raise_server_exceptions=False)
+    spoofed = untrusted_client.post(
+        "/api/auth/login",
+        data={"email": "proxy-audit-untrusted@example.test", "password": "invalid"},
+        headers={"X-Forwarded-For": "198.51.100.63"},
+    )
+    assert spoofed.status_code == 401
+
+    audit_rows = persistence.get_recent_audit_logs(limit=20)
+    by_email = {row["email"]: row["ip_address"] for row in audit_rows if row.get("email", "").startswith("proxy-audit-")}
+    assert by_email["proxy-audit-1@example.test"] == expected_forwarded_ips[0]
+    assert by_email["proxy-audit-2@example.test"] == expected_forwarded_ips[1]
+    assert by_email["proxy-audit-untrusted@example.test"] == direct_client_ip
+
+
 def test_compose_trusts_only_the_static_nginx_peer_for_forwarded_headers():
     root = Path(__file__).resolve().parents[1]
     compose = (root / "docker-compose.yml").read_text(encoding="utf-8")
@@ -282,6 +311,8 @@ def test_feedback_dismissal_submission_and_settings_reopen_are_wired():
     assert 'id="settings-feedback-open"' in markup
     assert '.pp-feedback-btn[hidden] { display: none !important; }' in source
     assert 'body:has(.modal-backdrop:not([hidden])) #pp-feedback-container' in source
+    assert 'promptVisible = currentScope !== "guest" && !hasSubmitted() && !isDismissed();' in source
+    assert 'promptVisible = scope !== "guest" && !hasSubmitted() && !isDismissed();' in source
 
 
 def test_retention_copy_matches_configurable_job_ttl_and_saved_browser_work():
@@ -339,8 +370,12 @@ def test_standalone_protect_and_unlock_tools_link_to_security_audit():
 
 def test_standalone_sign_tool_explains_visual_stamp_and_studio_signatures():
     source = (Path(__file__).resolve().parents[1] / "web" / "assets" / "app.js").read_text(encoding="utf-8")
-    assert "This tool places a typed visual stamp." in source
-    assert "Studio → More Tools → Digital Signatures" in source
+    styles = (Path(__file__).resolve().parents[1] / "web" / "assets" / "styles.css").read_text(encoding="utf-8")
+    assert "Draw your signature" in source
+    assert "Printed signer name (optional)" in source
+    assert "does not verify the signer’s identity" in source
+    assert "Studio → Digital Signatures" in source
+    assert "#sign-draw-canvas" in styles and "touch-action: none;" in styles
 
 
 def test_tool_cards_are_crawlable_links_and_legacy_routes_redirect():
@@ -352,7 +387,7 @@ def test_tool_cards_are_crawlable_links_and_legacy_routes_redirect():
     assert "color: inherit;\n  text-decoration: none;" in styles
     response = TestClient(server.app).get("/tools", follow_redirects=False)
     assert response.status_code == 301
-    assert response.headers["location"] == "/"
+    assert response.headers["location"] == "/tool-desk"
     scan_response = TestClient(server.app).get("/scan-pdf", follow_redirects=False)
     assert scan_response.status_code == 301
     assert scan_response.headers["location"] == "/scan-to-pdf"

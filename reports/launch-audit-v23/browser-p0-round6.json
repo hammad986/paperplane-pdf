@@ -1,0 +1,252 @@
+{
+  "results": [
+    {
+      "case": "per_tool_limits_and_draft_billing_support_pages",
+      "operations": 44,
+      "draft_routes": [
+        "/privacy",
+        "/refund",
+        "/contact",
+        "/status"
+      ]
+    },
+    {
+      "case": "mobile_action_uncovered",
+      "path": "/split-pdf",
+      "viewport": [
+        846,
+        712
+      ],
+      "button": [
+        8,
+        330,
+        838,
+        380
+      ],
+      "nav": [
+        0,
+        646,
+        846,
+        712
+      ],
+      "intersects": false
+    },
+    {
+      "case": "mobile_action_uncovered",
+      "path": "/merge-pdf",
+      "viewport": [
+        846,
+        712
+      ],
+      "button": [
+        8,
+        332,
+        838,
+        380
+      ],
+      "nav": [
+        0,
+        646,
+        846,
+        712
+      ],
+      "intersects": false
+    },
+    {
+      "case": "mobile_action_uncovered",
+      "path": "/compress-pdf",
+      "viewport": [
+        846,
+        712
+      ],
+      "button": [
+        8,
+        332,
+        838,
+        380
+      ],
+      "nav": [
+        0,
+        646,
+        846,
+        712
+      ],
+      "intersects": false
+    },
+    {
+      "case": "breadcrumb",
+      "viewport": [
+        1280,
+        800
+      ],
+      "text": "Paperplane\n/\nWorkspace\n/\nAI Document Intelligence",
+      "items": [
+        {
+          "text": "Paperplane",
+          "client": 66,
+          "scroll": 66
+        },
+        {
+          "text": "/",
+          "client": 5,
+          "scroll": 5
+        },
+        {
+          "text": "Workspace",
+          "client": 66,
+          "scroll": 66
+        },
+        {
+          "text": "/",
+          "client": 5,
+          "scroll": 5
+        },
+        {
+          "text": "AI Document Intelligence",
+          "client": 144,
+          "scroll": 144
+        }
+      ]
+    },
+    {
+      "case": "breadcrumb",
+      "viewport": [
+        1024,
+        768
+      ],
+      "text": "Paperplane\n/\nWorkspace\n/\nAI Document Intelligence",
+      "items": [
+        {
+          "text": "Paperplane",
+          "client": 66,
+          "scroll": 66
+        },
+        {
+          "text": "/",
+          "client": 5,
+          "scroll": 5
+        },
+        {
+          "text": "Workspace",
+          "client": 66,
+          "scroll": 66
+        },
+        {
+          "text": "/",
+          "client": 5,
+          "scroll": 5
+        },
+        {
+          "text": "AI Document Intelligence",
+          "client": 144,
+          "scroll": 144
+        }
+      ]
+    },
+    {
+      "case": "guest_daily_server_operation_cap_enforced",
+      "evidence": {
+        "statuses": [
+          202,
+          202,
+          202,
+          202,
+          202,
+          202,
+          202,
+          202,
+          202,
+          202
+        ],
+        "usageToday": 10,
+        "remaining": 0,
+        "eleventhStatus": 402,
+        "capCode": "TIER_LIMIT_REACHED",
+        "capUsage": 10
+      }
+    },
+    {
+      "case": "metadata_browser_output_preserves_provenance",
+      "content_checked": true
+    },
+    {
+      "case": "pdf_to_markdown_browser_output_content_checked",
+      "output_name": "a5e7074e4bb844cdb8a39a50783e06b5_browser-download_pdf_to_markdown.md"
+    },
+    {
+      "case": "photo_resize_browser_output_aspect_preserved",
+      "size": [
+        100,
+        100
+      ]
+    },
+    {
+      "case": "compression_missed_target_warning_content_checked",
+      "output_bytes": 114074,
+      "warning": "Compressed to 111.4 KB; the requested target could not be reached while preserving document content."
+    },
+    {
+      "case": "progress_consistency_and_toast_hit_target",
+      "evidence": {
+        "determinate": {
+          "value": 10,
+          "label": "10%"
+        },
+        "indeterminate": {
+          "hasValue": false,
+          "label": "Working"
+        },
+        "toastPointerEvents": "none",
+        "underlyingTargetReceivesPointer": true
+      }
+    },
+    {
+      "case": "/protect-pdf",
+      "round": 1,
+      "bytes": 1479,
+      "pages": 1,
+      "content_checked": true
+    },
+    {
+      "case": "/protect-pdf",
+      "round": 2,
+      "bytes": 1479,
+      "pages": 1,
+      "content_checked": true
+    },
+    {
+      "case": "/sign-pdf",
+      "round": 1,
+      "bytes": 1554,
+      "pages": 1,
+      "content_checked": true
+    },
+    {
+      "case": "/sign-pdf",
+      "round": 2,
+      "bytes": 1554,
+      "pages": 1,
+      "content_checked": true
+    },
+    {
+      "case": "executive_brief_pdf_download",
+      "bytes": 1241,
+      "pages": 1,
+      "content_checked": true
+    },
+    {
+      "case": "local_blob_open_in_studio",
+      "pages": 1,
+      "rendered_canvas": [
+        595,
+        842
+      ]
+    },
+    {
+      "case": "first_and_subsequent_studio_open_tool_activation",
+      "pages": 1,
+      "text_tool_active": true
+    }
+  ],
+  "page_errors": []
+}

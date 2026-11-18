@@ -26,7 +26,7 @@ def test_tool_how_to_steps_render_once_without_generic_claims():
     assert "Zero-Upload Client Privacy Mode" not in markup
 
 
-def test_browser_local_processing_is_limited_to_the_implemented_operations():
+def test_browser_local_processing_lists_only_the_implemented_operations():
     root = Path(__file__).resolve().parent.parent
     app_js = (root / "web" / "assets" / "app.js").read_text(encoding="utf-8")
     index_html = (root / "web" / "index.html").read_text(encoding="utf-8")
@@ -34,12 +34,12 @@ def test_browser_local_processing_is_limited_to_the_implemented_operations():
     match = re.search(r"CLIENT_SIDE_SUPPORTED_OPERATIONS\s*=\s*new Set\(\[([^\]]+)\]\)", app_js)
     assert match
     supported = set(re.findall(r"'([^']+)'", match.group(1)))
-    assert supported == {"merge", "split", "remove", "rotate", "organize"}
+    assert supported == {"merge", "split", "remove", "rotate", "organize", "forms", "flatten", "metadata", "pdf_to_text", "page_numbers", "crop"}
     assert "sidebarToggle.disabled = !canSwitch" in app_js
     assert "if (!CLIENT_SIDE_SUPPORTED_OPERATIONS.has(state.operation))" in app_js
     assert "100% Client-Side Privacy Mode Activated" not in app_js
     assert "Zero-Upload Client Privacy Mode" not in index_html
-    assert "Browser-local processing is available for Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, and the photo tools." in index_html
+    assert "Browser-local processing is available for Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Crop PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Page Numbers, and the photo tools." in index_html
 
     assert set(server.OPERATION_SLUGS) == set(server.SEO_CATALOG)
 
@@ -50,7 +50,7 @@ def test_ai_metadata_uses_a_dash_for_missing_values_and_privacy_copy_is_qualifie
     index_html = (root / "web" / "index.html").read_text(encoding="utf-8")
 
     assert "'Not detected'" not in app_js
-    assert "Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, and the photo tools can run in your browser. Other tools use temporary server processing." in index_html
+    assert "Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Crop PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Page Numbers, and the photo tools can run in your browser. Other tools use temporary server processing." in index_html
     assert "ephemeral and zero-upload" not in index_html.lower()
 
     for operation in server.OPERATION_SLUGS:

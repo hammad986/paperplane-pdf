@@ -1,0 +1,44 @@
+{
+  "base": "http://127.0.0.1:18501",
+  "fixture": "totpdf-sample-5-pages.pdf",
+  "results": [
+    {
+      "operation": "merge",
+      "pages": 5,
+      "download_bytes": 5325,
+      "page_content_checked": true
+    },
+    {
+      "operation": "split-all-pages",
+      "output_files": 5,
+      "page_markers": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "download_bytes": 6209
+    },
+    {
+      "operation": "pdf-to-pdfa",
+      "pages": 5,
+      "pdfa_identification": true,
+      "output_intent": "GTS_PDFA1",
+      "content_checked": true,
+      "download_bytes": 14275
+    },
+    {
+      "operation": "ocr",
+      "pages": 1,
+      "recognized_phrases": [
+        "PAPERPLANE OCR GOLDEN CHECK",
+        "Invoice 54821",
+        "Total: $124.50"
+      ],
+      "content_checked": true,
+      "download_bytes": 111761
+    }
+  ],
+  "page_errors": []
+}

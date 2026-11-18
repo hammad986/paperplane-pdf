@@ -1,0 +1,53 @@
+{
+  "combobox_measurements": [
+    {
+      "viewport_width": 390,
+      "split_option": "All 10 pages as PDFs (ZIP)",
+      "split_text_fit": true,
+      "split_widths": {
+        "available": 266,
+        "label": 159
+      },
+      "ssc_option": "\ud83d\udcf8 SSC Photo (3.5\u00d74.5 cm \u00b7 20\u201350 KB)",
+      "ssc_text_fit": true,
+      "ssc_widths": {
+        "available": 266,
+        "label": 239
+      }
+    },
+    {
+      "viewport_width": 1366,
+      "split_option": "All 10 pages as PDFs (ZIP)",
+      "split_text_fit": true,
+      "split_widths": {
+        "available": 256,
+        "label": 159
+      },
+      "ssc_option": "\ud83d\udcf8 SSC Photo (3.5\u00d74.5 cm \u00b7 20\u201350 KB)",
+      "ssc_text_fit": true,
+      "ssc_widths": {
+        "available": 421,
+        "label": 251
+      }
+    }
+  ],
+  "indeterminate_processing": [
+    {
+      "tool": "flatten-pdf",
+      "processing_text": "Upload complete. Processing your document\u2026",
+      "bar_has_fabricated_percent": false,
+      "status_responses_held": 0
+    },
+    {
+      "tool": "sign-pdf",
+      "processing_text": "Upload complete. Processing your document\u2026",
+      "bar_has_fabricated_percent": false,
+      "status_responses_held": 0
+    }
+  ],
+  "exam_resizer_processing": {
+    "processing_text": "Processing in your browser\u2026",
+    "bar_has_fabricated_percent": false
+  },
+  "page_errors": []
+}

@@ -1,0 +1,15 @@
+{
+  "command": "pytest -q",
+  "result": "PASS",
+  "suite_runs": [
+    {"run": 1, "passed": 580, "failed": 0, "warnings": 4, "elapsed_seconds": 109.08},
+    {"run": 2, "passed": 580, "failed": 0, "warnings": 4, "elapsed_seconds": 107.85}
+  ],
+  "focused_regressions": {"passed": 4, "failed": 0, "tests": ["test_browser_local_processing_lists_only_the_implemented_operations", "test_ai_metadata_uses_a_dash_for_missing_values_and_privacy_copy_is_qualified", "test_browser_processing_support_copy_matches_between_sidebar_and_settings", "test_pdf_to_text_is_available_as_zero_upload_browser_processing"]},
+  "browser": {
+    "id37": {"rounds": 2, "routes_per_round": 44, "local_operations_per_round": 10, "content_checked": true, "jobs_during_local_runs": 0, "page_errors": 0},
+    "id357_service_worker": {"rounds": 2, "shell_cache": "paperplane-shell-v2", "current_app_asset": "/assets/app.js?v=76", "offline_shell_status": 200, "page_errors": 0}
+  },
+  "static_checks": {"git_diff_check": "PASS", "node_check_app_js": "PASS", "browser_harness_py_compile": "PASS"},
+  "warnings_note": "Four existing Starlette/httpx deprecation warnings per full-suite run."
+}

@@ -113,6 +113,7 @@
       this.sourceFile = null;
       this.sourceName = 'document.pdf';
       this.observer = null;
+      this.thumbnailRenderEpoch = 0;
       this.draggedPage = null;
       this.pointerDrag = null;
       this.isCropping = false;
@@ -395,7 +396,7 @@
 
           // Render secondary thumbnails
           if (thumbGrid) {
-            thumbGrid.innerHTML = '';
+            thumbGrid.replaceChildren();
             secondarySelectedPages.clear();
             for (let i = 1; i <= numPages; i++) {
               secondarySelectedPages.add(i); // default: all checked
@@ -544,10 +545,11 @@
       this._updateBatchToolbar();
     }
 
-    renderThumbnails() {
+    async renderThumbnails() {
       const container = document.getElementById('studio-thumbnails-container');
       if (!container) return;
-      container.innerHTML = '';
+      const renderEpoch = ++this.thumbnailRenderEpoch;
+      container.replaceChildren();
 
       if (this.state.totalCount === 0) {
         container.innerHTML = '<div class="organizer-empty-msg">No pages loaded</div>';
@@ -581,7 +583,14 @@
       dropIndicator.style.display = 'none';
       grid.appendChild(dropIndicator);
 
-      this.state.pages.forEach((p, index) => {
+      container.appendChild(topBar);
+      container.appendChild(grid);
+      this._bindSubnavEvents();
+
+      let batch = document.createDocumentFragment();
+      let batchDeadline = performance.now() + 40;
+      for (let index = 0; index < this.state.pages.length; index += 1) {
+        const p = this.state.pages[index];
         const pageNum = index + 1;
         const card = document.createElement('div');
         card.className = `organizer-thumb-card ${pageNum === this.state.activePage ? 'active' : ''} ${this.state.isSelected(pageNum) ? 'selected' : ''}`;
@@ -631,16 +640,24 @@
         // Bind Card Events
         this._bindCardEvents(card, pageNum);
 
-        grid.appendChild(card);
+        batch.appendChild(card);
 
         // Observe card for lazy loading
         if (this.observer) {
           this.observer.observe(card);
         }
-      });
-
-      container.appendChild(grid);
-      this._bindSubnavEvents();
+        if (performance.now() >= batchDeadline || index === this.state.pages.length - 1) {
+          if (renderEpoch !== this.thumbnailRenderEpoch) return;
+          grid.appendChild(batch);
+          batch = document.createDocumentFragment();
+          if (index < this.state.pages.length - 1) {
+            if (typeof window.scheduler?.yield === 'function') await window.scheduler.yield();
+            else await new Promise(resolve => setTimeout(resolve, 0));
+            if (renderEpoch !== this.thumbnailRenderEpoch) return;
+            batchDeadline = performance.now() + 40;
+          }
+        }
+      }
     }
 
     async _renderCardCanvas(card, pageNum) {
@@ -653,8 +670,7 @@
         const cachedImg = document.createElement('img');
         cachedImg.className = 'thumb-rendered-img';
         cachedImg.src = this.state.thumbnailCache.get(cacheKey);
-        previewWrap.innerHTML = '';
-        previewWrap.appendChild(cachedImg);
+        previewWrap.replaceChildren(cachedImg);
         return;
       }
 
@@ -677,12 +693,11 @@
         const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
         this.state.thumbnailCache.set(cacheKey, dataUrl);
 
-        previewWrap.innerHTML = '';
         const img = document.createElement('img');
         img.className = 'thumb-rendered-img';
         img.src = dataUrl;
         img.alt = `Page ${pageNum}`;
-        previewWrap.appendChild(img);
+        previewWrap.replaceChildren(img);
       } catch (err) {
         previewWrap.innerHTML = `<div class="thumb-err">Error</div>`;
       }

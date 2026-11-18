@@ -783,6 +783,7 @@ body.light-mode .topbar {
 
 .breadcrumb-trail span,
 .breadcrumb-trail b {
+  flex: 0 0 auto;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -802,6 +803,8 @@ body.light-mode .breadcrumb-trail .crumb-sep {
 }
 
 .breadcrumb-trail b {
+  flex: 0 1 auto;
+  min-width: 0;
   color: #ffffff;
   font-weight: 700;
 }
@@ -1342,6 +1345,58 @@ textarea::placeholder {
 
 .option-field-wide { grid-column: 1 / -1; }
 
+#install-app-btn[hidden],
+#scan-camera-control[hidden] { display: none !important; }
+
+.scan-camera-control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  width: 100%;
+  justify-content: center;
+  margin-block: 8px 4px;
+}
+
+.scan-camera-control .btn-secondary-action {
+  min-width: 44px;
+  min-height: 44px;
+  touch-action: manipulation;
+}
+
+.scan-camera-control small {
+  flex-basis: 100%;
+  max-width: 42ch;
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+@media (max-width: 600px) {
+  .pwa-install-btn { min-width: 44px; min-height: 44px; padding-inline: 10px; }
+  .scan-camera-control .btn-secondary-action { width: 100%; }
+}
+
+.mark-contrast-preview {
+  --mark-color: #243b53;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  color: var(--mark-color);
+  font-weight: 700;
+  -webkit-text-stroke: 0.35px Canvas;
+  paint-order: stroke fill;
+  background: linear-gradient(90deg, #f4f5f6 0 50%, #20252b 50% 100%);
+  text-shadow: 0 1px 2px #fff, 0 -1px 2px #111;
+}
+
+.mark-contrast-preview[data-page-background="light"] { background: #f4f5f6; text-shadow: 0 1px 2px #fff; }
+.mark-contrast-preview[data-page-background="dark"] { background: #20252b; text-shadow: 0 1px 2px #111; }
+.mark-contrast-preview[data-page-background="unknown"] { background: linear-gradient(90deg, #f4f5f6 0 50%, #20252b 50% 100%); }
+
 .option-engine-badge {
   flex-direction: row;
   align-items: center;
@@ -1556,6 +1611,36 @@ textarea::placeholder {
 
 .ai-result-card .result-info { margin-bottom: 16px; }
 .result-content { width: 100%; margin-bottom: 16px; }
+.metadata-json-result {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  background: var(--bg-panel);
+}
+.metadata-json-result__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.metadata-json-result__header h3 { margin: 0; font-size: 14px; color: var(--text-main); }
+.metadata-json-result__status { margin: 9px 0; color: var(--text-muted); font-size: 12px; }
+.metadata-json-result__output {
+  width: 100%;
+  max-height: 280px;
+  margin: 0;
+  padding: 12px;
+  overflow: auto;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  background: var(--bg-panel-alt);
+  color: var(--text-main);
+  font: 12px/1.55 ui-monospace, SFMono-Regular, Consolas, monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 .ai-result-answer,
 .ai-result-markdown,
 .ai-markdown-output {
@@ -2316,6 +2401,7 @@ textarea::placeholder {
   border-radius: 8px;
   padding: 10px 16px;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -2347,6 +2433,7 @@ textarea::placeholder {
   font-size: 11.5px;
   color: var(--text-muted);
 }
+.ai-doc-source-note { display: block; flex: 1 0 100%; order: 3; max-width: 100%; color: var(--text-muted); font-size: 10px; line-height: 1.35; white-space: normal; overflow-wrap: anywhere; }
 
 .ai-doc-status-badge {
   background: rgba(16, 185, 129, 0.12);
@@ -3232,7 +3319,7 @@ body.dark-mode .btn-cancel:hover {
 /* Toast Notification / Tooltip Feedback */
 .toast-notice {
   position: fixed;
-  bottom: 24px;
+  top: 76px;
   right: 24px;
   background: var(--text-main);
   color: #fff;
@@ -3242,6 +3329,7 @@ body.dark-mode .btn-cancel:hover {
   font-weight: 600;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
   z-index: 250;
+  pointer-events: none;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -3438,6 +3526,38 @@ body.dark-mode .btn-cancel:hover {
   background: rgba(59, 130, 246, 0.1) !important;
   border: 1px solid rgba(59, 130, 246, 0.3) !important;
   margin-bottom: 16px;
+}
+
+.tool-desk-ai-workspace-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin: 0 0 18px;
+  padding: 14px 16px;
+  border: 1px solid rgba(236, 72, 153, 0.28);
+  border-radius: 12px;
+  background: rgba(236, 72, 153, 0.07);
+  color: var(--text-main);
+  line-height: 1.45;
+}
+
+.tool-desk-ai-workspace-note strong {
+  flex: 0 0 auto;
+}
+
+.tool-desk-ai-workspace-note span {
+  flex: 1 1 22rem;
+  min-width: 0;
+  font-size: 0.9rem;
+}
+
+.tool-desk-ai-workspace-note a {
+  flex: 0 0 auto;
+  color: #9d174d;
+  font-weight: 700;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
 }
 
 .api-info-icon {
@@ -3783,7 +3903,7 @@ body.dark-mode .btn-google-social:hover {
 }
 
 /* ==========================================================================
-   Multi-Tier Pricing Modal Grid (₹250 Pro vs ₹750 Developer)
+   Multi-Tier Pricing Modal Grid
    ========================================================================== */
 
 .pricing-modal-card {
@@ -3799,6 +3919,48 @@ body.dark-mode .btn-google-social:hover {
   margin-bottom: 20px;
 }
 
+.pricing-limits-section {
+  margin-top: 24px;
+  padding: 18px;
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  background: var(--surface-2, rgba(255,255,255,0.025));
+}
+.pricing-limits-section h3 { margin: 0 0 8px; }
+.pricing-limits-section > p { max-width: 900px; color: var(--text-muted); font-size: 13px; line-height: 1.55; }
+.pricing-limits-scroll { max-width: 100%; overflow: auto; border: 1px solid var(--border-light); border-radius: 10px; }
+.pricing-limits-scroll table { width: 100%; min-width: 760px; border-collapse: collapse; font-size: 12px; }
+.pricing-limits-scroll th, .pricing-limits-scroll td { padding: 9px 11px; border-bottom: 1px solid var(--border-light); text-align: left; vertical-align: top; }
+.pricing-limits-scroll thead th { position: sticky; top: 0; background: var(--surface-1, #162024); }
+.pricing-limits-scroll tbody th { font-weight: 650; white-space: nowrap; }
+.seo-limits-link { margin: 16px 0; font-weight: 650; }
+
+@media (max-width: 600px) {
+  .pricing-limits-scroll { overflow: visible; border: 0; }
+  .pricing-limits-scroll table { display: block; width: 100%; min-width: 0; font-size: 12px; }
+  .pricing-limits-scroll thead {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+  }
+  .pricing-limits-scroll tbody { display: grid; gap: 10px; }
+  .pricing-limits-scroll tbody tr {
+    display: grid; gap: 0; min-width: 0; padding: 4px 10px;
+    border: 1px solid var(--border-light); border-radius: 10px;
+    background: var(--bg-panel-alt, #f8faf9);
+  }
+  .pricing-limits-scroll tbody th,
+  .pricing-limits-scroll tbody td {
+    display: grid; grid-template-columns: minmax(82px, .75fr) minmax(0, 1.25fr);
+    gap: 10px; min-width: 0; padding: 9px 0; border-bottom: 1px solid var(--border-light);
+    white-space: normal; overflow-wrap: anywhere;
+  }
+  .pricing-limits-scroll tbody tr > :last-child { border-bottom: 0; }
+  .pricing-limits-scroll tbody :is(th, td)::before {
+    content: attr(data-label); color: var(--text-muted); font-size: 10px;
+    font-weight: 750; line-height: 1.4; text-transform: uppercase; letter-spacing: .03em;
+  }
+}
+
 @media (max-width: 760px) {
   .pricing-tiers-grid {
     grid-template-columns: 1fr;
@@ -3809,7 +3971,7 @@ body.dark-mode .btn-google-social:hover {
   background: #1f2937 !important;
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
   border-radius: 14px;
-  padding: 24px;
+  padding: 42px 24px 24px;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -3836,8 +3998,8 @@ body.dark-mode .btn-google-social:hover {
 
 .tier-popular-tag {
   position: absolute;
-  top: -11px;
-  right: 20px;
+  top: 12px;
+  right: 16px;
   background: linear-gradient(135deg, var(--accent) 0%, #ff7a59 100%);
   color: #fff;
   font-size: 10px;
@@ -3850,8 +4012,8 @@ body.dark-mode .btn-google-social:hover {
 
 .tier-developer-tag {
   position: absolute;
-  top: -11px;
-  right: 20px;
+  top: 12px;
+  right: 16px;
   background: #2563eb;
   color: #fff;
   font-size: 10px;
@@ -4561,12 +4723,12 @@ body.dark-mode .btn-secondary-action {
 }
 
 .organizer-order-status { min-height: 20px; margin: 4px 0 8px; color: var(--text-muted); font-size: 12px; line-height: 1.4; }
-.organizer-order-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 10px; max-height: min(52vh, 520px); overflow: auto; padding: 2px 4px 8px 2px; overscroll-behavior: contain; }
+.organizer-order-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; max-height: min(52vh, 520px); overflow: auto; padding: 2px 4px 8px 2px; overscroll-behavior: contain; }
 .organizer-order-card { display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto; align-items: center; gap: 6px 8px; min-width: 0; padding: 7px; border: 1px solid var(--border-light); border-radius: 10px; background: var(--bg-panel); cursor: grab; touch-action: pan-y; }
 .organizer-order-card.dragging { opacity: .45; }
 .organizer-order-card.drop-target { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 20%, transparent); }
 .organizer-order-thumbnail { display: block; grid-column: 1 / -1; width: 100%; height: 118px; object-fit: contain; border: 1px solid var(--border-light); border-radius: 5px; background: white; }
-.organizer-order-card strong { min-width: 0; color: var(--text-main); font-size: 12px; }
+.organizer-order-card strong { min-width: 0; color: var(--text-main); font-size: 12px; white-space: nowrap; }
 .organizer-order-move-controls { display: flex; gap: 4px; }
 .organizer-order-move-controls button { width: 36px; min-height: 36px; border: 1px solid var(--border-light); border-radius: 7px; color: var(--text-main); background: var(--bg-panel-alt); font-size: 17px; cursor: pointer; }
 .organizer-order-move-controls button:disabled { opacity: .4; cursor: not-allowed; }
@@ -4578,6 +4740,7 @@ body.dark-mode .btn-secondary-action {
   .organizer-order-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; max-height: 44dvh; }
   .organizer-order-thumbnail { height: 104px; }
   .organizer-order-move-controls button { width: 40px; min-height: 40px; }
+  .organizer-order-card strong { white-space: normal; }
 }
 
 .api-meta-item {
@@ -5342,14 +5505,16 @@ body:not(.light-mode) .editor-select option {
 .organizer-grid .thumb-card, .organizer-grid .page-card { min-width: 0; max-width: 100%; }
 .auth-pending #topbar-auth-guest, .auth-pending #topbar-auth-user,
 .auth-pending #topbar-upgrade-btn, .auth-pending #sidebar-upgrade-btn,
-.auth-pending .profile-card,
 .auth-pending #settings-user-email, .auth-pending #settings-user-avatar,
 .auth-pending #settings-user-badge, .auth-pending #settings-guest-actions,
 .auth-pending #settings-user-actions { visibility: hidden; }
+.auth-pending #user-name, .auth-pending #user-role-badge,
+.auth-restoring #user-name, .auth-restoring #user-role-badge { visibility: hidden; }
+.auth-pending .profile-card, .auth-restoring .profile-card { visibility: visible; }
+body.auth-pending #tool-tier-badge { visibility: hidden; }
 .auth-restoring #topbar-auth-guest,
 .auth-restoring #topbar-upgrade-btn,
 .auth-restoring #sidebar-upgrade-btn,
-.auth-restoring .profile-card,
 .auth-restoring #settings-user-email, .auth-restoring #settings-user-avatar,
 .auth-restoring #settings-user-badge, .auth-restoring #settings-guest-actions,
 .auth-restoring #settings-user-actions { visibility: hidden; }
@@ -7697,15 +7862,50 @@ body:not(.dark-mode) .waitlist-email-input {
     transform: translateY(-2px);
   }
 
+  .breadcrumb-trail { display: none !important; }
+  .mobile-view-pill { flex: 0 1 auto; max-width: min(34vw, 140px); min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Give the primary workflow action its own dock above the workspace navigation. */
+  body:not(.studio-active):not(.ai-active) .action-bar {
+    position: static;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  body:not(.studio-active):not(.ai-active) #run-button {
+    position: fixed;
+    inset-inline: 16px;
+    bottom: calc(62px + env(safe-area-inset-bottom, 0px) + 12px);
+    z-index: 999;
+    width: auto;
+    max-width: none;
+  }
+
+  body:not(.studio-active):not(.ai-active) .secure-assurance {
+    display: none;
+  }
+
+  body:not(.studio-active):not(.ai-active) .main-area {
+    padding-bottom: calc(142px + env(safe-area-inset-bottom, 0px));
+  }
+
   .dynamic-workspace,
   .main-content {
     padding-bottom: 74px !important;
   }
 
+  /* Keep the final tool actions above the fixed workspace navigation. */
+  body:not(.studio-active):not(.ai-active) .main-area {
+    padding-bottom: calc(74px + env(safe-area-inset-bottom, 0px));
+    box-sizing: border-box;
+  }
+
   .toast-notice {
     left: 12px;
     right: 12px;
-    bottom: calc(74px + env(safe-area-inset-bottom, 0px));
+    top: 72px;
     z-index: 1101;
     max-width: calc(100vw - 24px);
     box-sizing: border-box;
@@ -8881,6 +9081,41 @@ section, h1, h2, h3 { scroll-margin-top: 104px; }
   padding-bottom: 12px;
 }
 #app-shell.ai-active .ai-studio-topbar { min-width: 0; gap: 8px; }
+.ai-howto-section {
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  background: var(--bg-panel);
+}
+.ai-howto-section h2 {
+  margin: 0 0 10px;
+  font-size: 15px;
+  line-height: 1.35;
+  text-wrap: balance;
+}
+.ai-howto-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ai-howto-steps li {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--bg-panel-alt);
+}
+.ai-howto-steps li strong { font-size: 12.5px; }
+.ai-howto-steps li span { color: var(--text-muted); font-size: 12px; line-height: 1.45; }
+@media (max-width: 700px) {
+  .ai-howto-steps { grid-template-columns: minmax(0, 1fr); }
+}
 #app-shell.ai-active .ai-active-doc-strip { min-width: 0; flex-wrap: wrap; }
 #app-shell.ai-active .ai-doc-info-group { min-width: 0; flex: 1 1 360px; flex-wrap: wrap; }
 #app-shell.ai-active .ai-doc-details { min-width: 0; overflow-wrap: anywhere; }
@@ -9008,6 +9243,10 @@ section, h1, h2, h3 { scroll-margin-top: 104px; }
     min-height: 0;
     padding-bottom: 8px;
   }
+  /* Keep the primary conversation and upload action in the first phone
+     viewport; the explanatory/how-to panel remains available after the tools. */
+  #app-shell.ai-active .ai-studio-container { order: 0; }
+  #app-shell.ai-active .ai-howto-section { order: 1; }
   #app-shell.ai-active .ai-studio-container {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) !important;
@@ -9170,7 +9409,8 @@ section, h1, h2, h3 { scroll-margin-top: 104px; }
     flex: 0 0 auto;
     width: 100%;
     max-height: 30dvh;
-    overflow: hidden;
+    overflow: auto;
+    overscroll-behavior: contain;
     border-bottom: 1px solid var(--studio-border);
     background: var(--studio-bg);
   }
@@ -9182,27 +9422,25 @@ section, h1, h2, h3 { scroll-margin-top: 104px; }
     justify-content: flex-start;
     gap: 8px;
     width: 100%;
-    max-height: 30dvh;
+    max-height: none;
     padding: 8px;
     border: 0;
     border-radius: 0;
     box-shadow: none;
-    overflow: hidden !important;
+    overflow: visible !important;
     animation: none;
   }
   html.studio-active body #studio-mobile-batch-slot .selection-panel-summary { justify-content: space-between; gap: 6px; }
   html.studio-active body #studio-mobile-batch-slot .selection-action-clusters {
     width: 100%;
     min-width: 0;
-    overflow-x: auto;
-    overflow-y: hidden;
-    flex-wrap: nowrap !important;
+    overflow: visible;
+    flex-wrap: wrap !important;
     padding-bottom: 4px;
     overscroll-behavior-inline: contain;
-    scrollbar-width: thin;
   }
-  html.studio-active body #studio-mobile-batch-slot .action-cluster { flex: 0 0 auto; flex-wrap: nowrap; }
-  html.studio-active body #studio-mobile-batch-slot .cluster-btn { white-space: nowrap; }
+  html.studio-active body #studio-mobile-batch-slot .action-cluster { flex: 1 1 100%; min-width: 0; flex-wrap: wrap; }
+  html.studio-active body #studio-mobile-batch-slot .cluster-btn { flex: 0 1 auto; min-width: 68px; white-space: nowrap; }
   html.studio-active body .studio-thumbnails-scroll {
     flex: 1 1 auto !important;
     width: 100% !important;
@@ -9362,7 +9600,7 @@ section, h1, h2, h3 { scroll-margin-top: 104px; }
     overflow: visible !important;
     gap: 12px !important;
   }
-  html.studio-active body .studio-page-sheet { max-width: calc(100vw - 48px) !important; }
+  html.studio-active body .studio-page-sheet { max-width: calc(100dvw - 72px) !important; }
   html.studio-active body .studio-page-sheet .pdf-page-canvas { display: block; max-width: 100% !important; height: auto !important; }
   html.studio-active body .studio-mobile-dock {
     display: flex !important;
@@ -9554,7 +9792,8 @@ html.studio-active body .studio-main-viewport { min-width: 0; max-width: 100%; b
     max-height: min(32dvh, 300px);
   }
   html.studio-active body .toast-notice {
-    bottom: calc(174px + env(safe-area-inset-bottom, 0px));
+    top: calc(64px + env(safe-area-inset-top, 0px));
+    bottom: auto;
     z-index: 940;
   }
   #app-shell.ai-active .ai-chat-card {
@@ -9771,6 +10010,73 @@ html.studio-active body .studio-main-viewport { min-width: 0; max-width: 100%; b
 .app-global-footer { visibility: hidden; opacity: 0; pointer-events: none; transition: opacity .18s ease; }
 html.footer-revealed .app-global-footer { visibility: visible; opacity: 1; pointer-events: auto; }
 
+/* Keep the advanced desktop tool ribbons compact while preserving their
+   two clear rows and leaving mobile touch targets at their larger size. */
+@media (min-width: 1200px) {
+  html.studio-active body .studio-toolbar .studio-primary-ribbon,
+  html.studio-active body .studio-toolbar .studio-sub-ribbon {
+    gap: 3px !important;
+    padding: 2px 6px !important;
+  }
+  html.studio-active body .studio-toolbar .studio-tool-btn {
+    min-height: 25px !important;
+    padding: 2px 5px !important;
+    gap: 2px !important;
+    font-size: 9px !important;
+  }
+  html.studio-active body .studio-toolbar .studio-tool-btn svg {
+    width: 13px;
+    height: 13px;
+  }
+  html.studio-active body .studio-toolbar .studio-mode-btn {
+    min-height: 25px !important;
+    padding: 2px 6px !important;
+    font-size: 9px !important;
+  }
+  html.studio-active body .studio-toolbar .studio-page-badge,
+  html.studio-active body .studio-toolbar .zoom-select {
+    min-height: 25px !important;
+  }
+}
+
+/* Keep Studio's primary ribbon on one toolbar row at laptop widths. Its
+   controls remain reachable through horizontal scrolling if the workspace
+   column is narrower than the complete command set. */
+@media (min-width: 901px) {
+  html.studio-active body .studio-toolbar .studio-primary-ribbon {
+    flex-flow: row nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    white-space: nowrap !important;
+    overscroll-behavior-inline: contain;
+  }
+  html.studio-active body .studio-toolbar .studio-primary-ribbon > *,
+  html.studio-active body .studio-toolbar .studio-primary-ribbon > .studio-tool-group {
+    flex: 0 0 auto !important;
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1450px) {
+  html.studio-active body .studio-toolbar .studio-primary-ribbon {
+    gap: 0 !important;
+    padding-inline: 2px !important;
+  }
+  html.studio-active body .studio-toolbar .studio-primary-ribbon .tool-btn-text {
+    display: none !important;
+  }
+  html.studio-active body .studio-toolbar .studio-primary-ribbon .studio-tool-btn,
+  html.studio-active body .studio-toolbar .studio-primary-ribbon .studio-mode-btn {
+    padding-inline: 2px !important;
+  }
+  html.studio-active body .studio-toolbar .studio-primary-ribbon .studio-export-group {
+    margin-left: 0 !important;
+  }
+  html.studio-active body .studio-toolbar .studio-primary-ribbon .zoom-select {
+    width: 48px !important;
+    min-width: 48px !important;
+  }
+}
+
 /* Switching between the AI empty and uploaded-document states must not trigger
    browser scroll anchoring that shifts the whole workspace under its header. */
 #app-shell.ai-active #view-ai-studio,
@@ -9793,10 +10099,12 @@ html.footer-revealed .app-global-footer { visibility: visible; opacity: 1; point
   .mobile-nav-btn { font-size: 11px !important; line-height: 1.15; }
   .result-actions { display: flex; flex-wrap: wrap; gap: 8px; }
   .result-actions > * { flex: 1 1 140px; min-width: 0; max-width: 100%; box-sizing: border-box; justify-content: center; white-space: normal; text-align: center; }
-  .toast-notice { bottom: calc(86px + env(safe-area-inset-bottom, 0px)) !important; z-index: 1990 !important; }
+  .result-actions .btn-download { min-height: 44px; box-sizing: border-box; }
+  .toast-notice { top: 76px !important; bottom: auto !important; z-index: 1990 !important; }
   .settings-modal-card {
-    width: min(96vw, 620px) !important;
-    max-width: 96vw !important;
+    width: min(96vw, 620px, calc(100vw - 48px)) !important;
+    max-width: min(96vw, calc(100vw - 48px)) !important;
+    flex: 0 1 auto !important;
     min-width: 0 !important;
     min-height: 0 !important;
     height: min(88dvh, 760px) !important;
@@ -9804,30 +10112,36 @@ html.footer-revealed .app-global-footer { visibility: visible; opacity: 1; point
     padding: 14px !important;
     overflow: hidden;
   }
-  .settings-modal-card .settings-layout { min-width: 0; min-height: 0; overflow: auto; }
+  .settings-modal-card .settings-layout { min-width: 0; min-height: 0; overflow: hidden; }
   .settings-modal-card .settings-tabs {
     width: 100%;
     flex: 0 0 auto;
-    flex-wrap: wrap;
-    overflow: visible;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
     padding: 8px;
     gap: 6px;
     box-sizing: border-box;
   }
   .settings-modal-card .settings-tab-btn {
-    flex: 1 1 130px;
+    flex: 0 0 128px;
     min-width: 0 !important;
-    min-height: 46px !important;
-    padding: 7px !important;
+    min-height: 44px !important;
+    padding: 7px 9px !important;
     white-space: normal;
     overflow-wrap: anywhere;
   }
+  .settings-modal-card .settings-tab-btn small { display: none; }
   .settings-modal-card .settings-tab-btn > span:last-child { min-width: 0; }
   .settings-modal-card .settings-tab-btn strong,
   .settings-modal-card .settings-tab-btn small { overflow-wrap: anywhere; }
   .settings-modal-card .settings-content,
   .settings-modal-card .settings-pane { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; }
-  .settings-modal-card .settings-content { padding: 12px 8px !important; overflow-x: hidden; overflow-y: auto; }
+  .settings-modal-card .settings-content { flex: 1 1 auto; min-height: 0; padding: 12px 8px !important; overflow-x: hidden; overflow-y: auto; overscroll-behavior-y: contain; }
   .settings-modal-card .settings-card-item,
   .settings-modal-card .billing-status-summary,
   .settings-modal-card .api-info-callout { min-width: 0; max-width: 100%; box-sizing: border-box; padding: 14px; }
@@ -9957,20 +10271,142 @@ body.dark-mode .adsense-banner-container {
     overflow: visible;
   }
 }
-.app-global-footer { visibility: visible; opacity: 1; pointer-events: auto; }
 .app-global-footer .footer-right { flex-wrap: wrap; }
 
 :root[data-paperplane-theme="dark"] { color-scheme: dark; background: #0e1416; }
 :root[data-paperplane-theme="dark"] body.light-mode.auth-pending { background: #0e1416; }
+
+/* Keep the Studio palette in sync with the account theme. The dark canvas used
+   to ignore the saved Light Paper preference and made /studio look like a
+   different theme from every other workspace. */
+:root[data-paperplane-theme="light"] {
+  --studio-bg: #edf1ef;
+  --studio-panel: #ffffff;
+  --studio-border: #d3ded8;
+  --studio-page-shadow: 0 12px 32px rgba(20, 32, 35, 0.16);
+}
+
+:root[data-paperplane-theme="light"] .studio-thumbnails-bar,
+:root[data-paperplane-theme="light"] .studio-main-viewport,
+:root[data-paperplane-theme="light"] .studio-canvas-area,
+:root[data-paperplane-theme="light"] .studio-toolbar,
+:root[data-paperplane-theme="light"] .studio-primary-ribbon,
+:root[data-paperplane-theme="light"] .studio-sub-ribbon,
+:root[data-paperplane-theme="light"] .studio-thumbnails-scroll,
+:root[data-paperplane-theme="light"] .studio-mode-switcher,
+:root[data-paperplane-theme="light"] .studio-dropdown-menu,
+:root[data-paperplane-theme="light"] .studio-context-menu {
+  background-color: #f8faf9;
+  color: #142023;
+}
+
+:root[data-paperplane-theme="light"] .studio-tool-btn {
+  background: #ffffff;
+  border-color: #cbd7cf;
+  box-shadow: 0 1px 3px rgba(20, 32, 35, 0.08);
+}
+
+:root[data-paperplane-theme="light"] .studio-mode-btn {
+  color: #526367;
+}
+
+:root[data-paperplane-theme="light"] .studio-mode-btn.active {
+  color: #ffffff;
+}
+
+:root[data-paperplane-theme="light"] .studio-dropdown-item {
+  color: #26373a;
+}
+
+:root[data-paperplane-theme="light"] .studio-dropdown-item:hover {
+  color: #142023;
+  background: #e9efeb;
+}
+
+:root[data-paperplane-theme="light"] .studio-loading-overlay {
+  background: rgba(248, 250, 249, 0.92);
+  color: #142023;
+}
+
+:root[data-paperplane-theme="light"] .studio-empty-state {
+  color: #26373a;
+}
+
+:root[data-paperplane-theme="light"] .studio-empty-state p {
+  color: #5e6f72;
+}
+
+:root[data-paperplane-theme="light"] .studio-empty-state button {
+  border-color: #cbd7cf;
+  background: #ffffff;
+  color: #142023;
+}
+
+:root[data-paperplane-theme="light"] .studio-thumbnails-header,
+:root[data-paperplane-theme="light"] .studio-tool-btn,
+:root[data-paperplane-theme="light"] .studio-mode-btn,
+:root[data-paperplane-theme="light"] .studio-page-badge,
+:root[data-paperplane-theme="light"] .thumb-card-footer,
+:root[data-paperplane-theme="light"] .thumb-action-btn {
+  color: #26373a;
+}
+
+:root[data-paperplane-theme="light"] .studio-tool-btn:hover,
+:root[data-paperplane-theme="light"] .studio-mode-btn:hover,
+:root[data-paperplane-theme="light"] .thumb-action-btn:hover {
+  color: #142023;
+  background-color: #e9efeb;
+}
+
+:root[data-paperplane-theme="light"] .studio-tool-btn.active,
+:root[data-paperplane-theme="light"] .studio-mode-btn.active {
+  color: #142023;
+  background-color: #e5ece8;
+}
+
+/* Studio controls can be moved between ribbons and mobile slots. Keep the
+   light-theme foreground explicit after those moves, including inline legacy
+   toolbar styles that otherwise leave light text on the pale ribbon. */
+html[data-paperplane-theme="light"] body.studio-active .studio-toolbar .studio-tool-btn:not(.active),
+html[data-paperplane-theme="light"] body.studio-active .studio-toolbar .studio-mode-btn:not(.active) {
+  color: #26373a !important;
+}
+html[data-paperplane-theme="light"] body.studio-active .studio-toolbar .studio-tool-btn.active,
+html[data-paperplane-theme="light"] body.studio-active .studio-toolbar .studio-mode-btn.active {
+  color: #142023 !important;
+}
+
+:root[data-paperplane-theme="light"] .thumb-card {
+  background: #ffffff;
+  border-color: #d3ded8;
+}
+
+:root[data-paperplane-theme="light"] .thumb-card.active {
+  border-color: var(--accent);
+}
+
+/* Studio feedback must clear its variable-height ribbon before it appears. */
+html.studio-active body .toast-notice {
+  top: var(--studio-toast-top, 76px) !important;
+}
 h1, h2, h3, .tool-hero-title { word-spacing: .08em; }
 
 .quota-label-row { gap: 6px 10px; flex-wrap: wrap; }
 #quota-text, #settings-quota-text { white-space: normal; }
-#run-button:disabled {
-  opacity: 1;
-  color: var(--text-muted);
-  background: var(--bg-panel-alt);
-  border: 1px solid var(--border-light);
+body:not(.dark-mode):not(.high-contrast) #run-button:disabled {
+  opacity: 1 !important;
+  color: #34464a !important;
+  background: #f8faf9 !important;
+  background-image: none !important;
+  border: 1px solid #cbd7cf !important;
+}
+body.dark-mode #run-button:disabled,
+body.high-contrast #run-button:disabled {
+  opacity: 1 !important;
+  color: #f0f5f4 !important;
+  background: #1a2528 !important;
+  background-image: none !important;
+  border: 1px solid #475569 !important;
 }
 @media (min-width: 1024px) and (max-width: 1200px) {
   #app-shell .topbar { position: relative !important; top: auto !important; }
@@ -9988,14 +10424,29 @@ h1, h2, h3, .tool-hero-title { word-spacing: .08em; }
 /* Layouts follow available space on phones and tablets; dialogs stay usable
    with the software keyboard open and long labels wrap inside their controls. */
 @media (max-width: 900px) {
-  .settings-modal-card .settings-layout { flex-direction: column; min-width: 0; }
+  .settings-modal-card {
+    width: min(96vw, 620px, calc(100vw - 48px)) !important;
+    max-width: min(96vw, calc(100vw - 48px)) !important;
+    flex: 0 1 auto !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: min(88dvh, 760px) !important;
+    max-height: calc(100dvh - 24px) !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+  .settings-modal-card .settings-layout { flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; }
   .settings-modal-card .settings-tabs {
     flex: 0 0 auto; width: 100%; box-sizing: border-box;
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
-    padding: 10px; gap: 6px;
+    display: flex; flex-direction: row; flex-wrap: nowrap;
+    overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch; touch-action: pan-x;
+    padding: 8px; gap: 6px;
   }
-  .settings-modal-card .settings-content { min-width: 0; width: 100%; box-sizing: border-box; padding: 16px; }
-  .workspace-inline-panel > .settings-modal-card { height: auto !important; max-height: none !important; }
+  .settings-modal-card .settings-tab-btn { flex: 0 0 128px; width: auto; min-width: 0 !important; min-height: 44px !important; padding: 7px 9px !important; white-space: normal; overflow-wrap: anywhere; }
+  .settings-modal-card .settings-tab-btn small { display: none; }
+  .settings-modal-card .settings-content { flex: 1 1 auto; min-height: 0; min-width: 0; width: 100%; box-sizing: border-box; padding: 12px 8px; overflow-x: hidden; overflow-y: auto; overscroll-behavior-y: contain; }
+  .workspace-inline-panel > .settings-modal-card { height: auto !important; max-height: none !important; overflow: visible !important; }
 }
 .modal-backdrop > .editor-sig-modal-card,
 .modal-backdrop > .sign-modal-card,
@@ -10015,3 +10466,101 @@ h1, h2, h3, .tool-hero-title { word-spacing: .08em; }
 .sign-modal-card .modal-header > div,
 .security-modal-card .modal-header > div { min-width: 0; overflow-wrap: anywhere; }
 .modal-close { flex-shrink: 0; }
+
+@media (max-width: 480px) {
+  .app-global-footer .footer-left {
+    min-width: 0;
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+}
+.sign-draw-field { min-width: 0; }
+#sign-draw-canvas {
+  display: block;
+  width: min(100%, 560px);
+  height: 144px;
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  background: #fff;
+  cursor: crosshair;
+  touch-action: none;
+}
+.sign-draw-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+#sign-draw-status { color: var(--text-muted); font-size: 12px; }
+@media (max-width: 600px) {
+  #sign-draw-canvas { height: 128px; }
+  .sign-draw-actions button { min-height: 44px; }
+}
+
+@media (max-width: 480px) {
+  #app-shell.ai-active .ai-stage-timeline {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    overflow-y: visible;
+    gap: 5px;
+    padding-bottom: 2px;
+  }
+}
+
+/* Keep Studio's phone toolbars compact: make each command ribbon a single
+   horizontally scrollable row instead of wrapping every tool onto the page. */
+@media (max-width: 900px) {
+  html.studio-active body .sidebar.mobile-open {
+    z-index: 1200 !important;
+  }
+  html.studio-active body .studio-toolbar {
+    gap: 0 !important;
+    overflow: hidden !important;
+  }
+  html.studio-active body .studio-toolbar .studio-primary-ribbon,
+  html.studio-active body .studio-toolbar .studio-sub-ribbon {
+    display: flex !important;
+    flex: 0 0 58px !important;
+    flex-flow: row nowrap !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 58px !important;
+    max-height: 58px !important;
+    height: 58px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding: 4px 6px !important;
+    gap: 5px !important;
+    white-space: nowrap !important;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+    touch-action: pan-x;
+    box-sizing: border-box !important;
+  }
+  html.studio-active body .studio-toolbar .studio-primary-ribbon > *,
+  html.studio-active body .studio-toolbar .studio-sub-ribbon > *,
+  html.studio-active body .studio-toolbar .studio-primary-ribbon .studio-tool-group,
+  html.studio-active body .studio-toolbar .studio-sub-ribbon .studio-tool-group {
+    flex: 0 0 auto !important;
+    flex-wrap: nowrap !important;
+    width: max-content;
+    max-width: none !important;
+  }
+  html.studio-active body .studio-toolbar .studio-tool-btn,
+  html.studio-active body .studio-toolbar .studio-mode-btn {
+    flex: 0 0 56px !important;
+    min-width: 56px !important;
+    min-height: 48px !important;
+    height: 48px !important;
+  }
+  html.studio-active body .studio-toolbar .studio-divider { display: none !important; }
+  html.studio-active body .studio-toolbar .studio-sub-ribbon > .studio-tool-group[title="Annotation Tools"],
+  html.studio-active body .studio-toolbar .studio-sub-ribbon > .studio-tool-group[title="Shapes & Media"] {
+    flex: 0 0 auto !important;
+    width: max-content !important;
+    max-width: none !important;
+  }
+}

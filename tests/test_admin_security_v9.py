@@ -264,6 +264,14 @@ def test_admin_lockout_is_per_ip_and_proxy_header_is_overwritten(admin_audit_db)
     assert persistence.get_admin_lockout_remaining("198.51.100.11") == 0
     assert source_a.get("/api/admin/auth/status").json()["locked"] is True
     assert source_b.get("/api/admin/auth/status").json()["locked"] is False
+    # An untrusted peer cannot rotate its effective client address by spoofing
+    # the forwarding header; lockout status must follow the socket peer.
+    assert source_b.get(
+        "/api/admin/auth/status", headers={"X-Forwarded-For": "198.51.100.10"}
+    ).json()["locked"] is False
+    assert source_a.get(
+        "/api/admin/auth/status", headers={"X-Forwarded-For": "198.51.100.11"}
+    ).json()["locked"] is True
 
     nginx = (Path(__file__).resolve().parents[1] / "deploy" / "nginx.conf.template").read_text(encoding="utf-8")
     assert "proxy_set_header X-Forwarded-For $remote_addr;" in nginx

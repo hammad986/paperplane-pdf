@@ -1,0 +1,60 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "tool_cards": 41,
+      "anchor_cards": 41,
+      "unique_routes": 41,
+      "non_200_routes": [],
+      "legacy_aliases": [
+        {
+          "path": "/scan-pdf",
+          "status": 301,
+          "location": "/scan-to-pdf",
+          "expected_location": "/scan-to-pdf"
+        },
+        {
+          "path": "/tools",
+          "status": 301,
+          "location": "/tool-desk",
+          "expected_location": "/tool-desk"
+        },
+        {
+          "path": "/all-tools",
+          "status": 301,
+          "location": "/tool-desk",
+          "expected_location": "/tool-desk"
+        }
+      ],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "tool_cards": 41,
+      "anchor_cards": 41,
+      "unique_routes": 41,
+      "non_200_routes": [],
+      "legacy_aliases": [
+        {
+          "path": "/scan-pdf",
+          "status": 301,
+          "location": "/scan-to-pdf",
+          "expected_location": "/scan-to-pdf"
+        },
+        {
+          "path": "/tools",
+          "status": 301,
+          "location": "/tool-desk",
+          "expected_location": "/tool-desk"
+        },
+        {
+          "path": "/all-tools",
+          "status": 301,
+          "location": "/tool-desk",
+          "expected_location": "/tool-desk"
+        }
+      ],
+      "page_errors": []
+    }
+  ]
+}

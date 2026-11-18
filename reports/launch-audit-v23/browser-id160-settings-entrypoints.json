@@ -1,0 +1,62 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "modes": [
+        {
+          "mode": "local",
+          "tabs_match": {
+            "account": true,
+            "appearance": true,
+            "billing": true,
+            "api": true,
+            "privacy": true
+          },
+          "privacy_copy": "Local processing is the default for Merge, Split, Remove, Rotate, and Page Organizer. Photo tools run in your browser.\nRETENTION\nAutomatic cleanup\n\nUp",
+          "page_errors": []
+        },
+        {
+          "mode": "server",
+          "tabs_match": {
+            "account": true,
+            "appearance": true,
+            "billing": true,
+            "api": true,
+            "privacy": true
+          },
+          "privacy_copy": "Server processing is the default. Local processing remains available for Merge, Split, Remove, Rotate, and Page Organizer; photo tools run in your bro",
+          "page_errors": []
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "modes": [
+        {
+          "mode": "local",
+          "tabs_match": {
+            "account": true,
+            "appearance": true,
+            "billing": true,
+            "api": true,
+            "privacy": true
+          },
+          "privacy_copy": "Local processing is the default for Merge, Split, Remove, Rotate, and Page Organizer. Photo tools run in your browser.\nRETENTION\nAutomatic cleanup\n\nUp",
+          "page_errors": []
+        },
+        {
+          "mode": "server",
+          "tabs_match": {
+            "account": true,
+            "appearance": true,
+            "billing": true,
+            "api": true,
+            "privacy": true
+          },
+          "privacy_copy": "Server processing is the default. Local processing remains available for Merge, Split, Remove, Rotate, and Page Organizer; photo tools run in your bro",
+          "page_errors": []
+        }
+      ]
+    }
+  ]
+}

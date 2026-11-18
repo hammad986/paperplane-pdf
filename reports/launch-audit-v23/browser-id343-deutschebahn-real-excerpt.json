@@ -1,0 +1,69 @@
+{
+  "item": 343,
+  "source": "Deutsche Bahn Group 2025 Annual Report, official 355-page PDF",
+  "source_url": "https://ibir.deutschebahn.com/2025/fileadmin/downloads/DB_GB25_e_web_01.pdf",
+  "source_sha256": "4534789638d96aae2e0b6a9671e2a5a666ae36f8af6ba35607d5cdbdcdae8438",
+  "excerpt_sha256": "a79be7e77f728ee357ebc70810164dd03e9a87cff794335afe55a38fd15f430d",
+  "excerpt_pages": 12,
+  "excerpt_size_bytes": 388934,
+  "rounds": [
+    {
+      "round": 1,
+      "http_status": 200,
+      "source_page_count": 12,
+      "download_name": "deutschebahn-2025-annual-report-excerpt-12p_pdf_to_word.docx",
+      "docx_bytes": 138196,
+      "paragraph_count": 382,
+      "table_count": 4,
+      "table_row_count": 62,
+      "media_file_count": 11,
+      "xml_parts_utf8_readable": 13,
+      "expected_text_markers": [
+        "At a glance",
+        "Overview",
+        "SALE AND LEASEBACK",
+        "Development of the economic and",
+        "The data collection methods",
+        "Support funds for rail transport"
+      ],
+      "matched_text_markers": [
+        "At a glance",
+        "Overview",
+        "SALE AND LEASEBACK",
+        "Development of the economic and",
+        "The data collection methods",
+        "Support funds for rail transport"
+      ],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "http_status": 200,
+      "source_page_count": 12,
+      "download_name": "deutschebahn-2025-annual-report-excerpt-12p_pdf_to_word.docx",
+      "docx_bytes": 138196,
+      "paragraph_count": 382,
+      "table_count": 4,
+      "table_row_count": 62,
+      "media_file_count": 11,
+      "xml_parts_utf8_readable": 13,
+      "expected_text_markers": [
+        "At a glance",
+        "Overview",
+        "SALE AND LEASEBACK",
+        "Development of the economic and",
+        "The data collection methods",
+        "Support funds for rail transport"
+      ],
+      "matched_text_markers": [
+        "At a glance",
+        "Overview",
+        "SALE AND LEASEBACK",
+        "Development of the economic and",
+        "The data collection methods",
+        "Support funds for rail transport"
+      ],
+      "page_errors": []
+    }
+  ]
+}

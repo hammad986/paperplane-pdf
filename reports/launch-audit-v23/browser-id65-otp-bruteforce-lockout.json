@@ -1,0 +1,122 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "challengeStatus": 200,
+      "challenge": "otp_required",
+      "hasDevOtp": true,
+      "attempts": [
+        {
+          "number": 1,
+          "status": 400,
+          "body": {
+            "detail": "Invalid or expired verification code."
+          },
+          "retryAfter": null
+        },
+        {
+          "number": 2,
+          "status": 400,
+          "body": {
+            "detail": "Invalid or expired verification code."
+          },
+          "retryAfter": null
+        },
+        {
+          "number": 3,
+          "status": 400,
+          "body": {
+            "detail": "Invalid or expired verification code."
+          },
+          "retryAfter": null
+        },
+        {
+          "number": 4,
+          "status": 400,
+          "body": {
+            "detail": "Invalid or expired verification code."
+          },
+          "retryAfter": null
+        },
+        {
+          "number": 5,
+          "status": 400,
+          "body": {
+            "detail": "Invalid or expired verification code."
+          },
+          "retryAfter": null
+        },
+        {
+          "number": 6,
+          "status": 429,
+          "body": {
+            "detail": "Too many incorrect verification codes. Request a new code after the lock expires."
+          },
+          "retryAfter": "900"
+        }
+      ],
+      "correctWhileLocked": 429,
+      "correctRetryAfter": "900",
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "challengeStatus": 200,
+      "challenge": "otp_required",
+      "hasDevOtp": true,
+      "attempts": [
+        {
+          "number": 1,
+          "status": 400,
+          "body": {
+            "detail": "Invalid or expired verification code."
+          },
+          "retryAfter": null
+        },
+        {
+          "number": 2,
+          "status": 400,
+          "body": {
+            "detail": "Invalid or expired verification code."
+          },
+          "retryAfter": null
+        },
+        {
+          "number": 3,
+          "status": 400,
+          "body": {
+            "detail": "Invalid or expired verification code."
+          },
+          "retryAfter": null
+        },
+        {
+          "number": 4,
+          "status": 400,
+          "body": {
+            "detail": "Invalid or expired verification code."
+          },
+          "retryAfter": null
+        },
+        {
+          "number": 5,
+          "status": 400,
+          "body": {
+            "detail": "Invalid or expired verification code."
+          },
+          "retryAfter": null
+        },
+        {
+          "number": 6,
+          "status": 429,
+          "body": {
+            "detail": "Too many incorrect verification codes. Request a new code after the lock expires."
+          },
+          "retryAfter": "900"
+        }
+      ],
+      "correctWhileLocked": 429,
+      "correctRetryAfter": "900",
+      "page_errors": []
+    }
+  ]
+}

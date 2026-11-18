@@ -1,0 +1,93 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "routes": [
+        {
+          "route": "/privacy",
+          "status": 200,
+          "title": "Privacy Policy | Paperplane",
+          "markers_present": [
+            "AI provider configured for this deployment",
+            "Draft \u2014 owner review required"
+          ]
+        },
+        {
+          "route": "/terms",
+          "status": 200,
+          "title": "Terms of Service | Paperplane",
+          "markers_present": [
+            "Cashfree",
+            "refund"
+          ]
+        },
+        {
+          "route": "/refund",
+          "status": 200,
+          "title": "Refund and Tax Information \u2014 Draft | Paperplane",
+          "markers_present": [
+            "DRAFT",
+            "support"
+          ]
+        },
+        {
+          "route": "/contact",
+          "status": 200,
+          "title": "Contact Paperplane Support \u2014 Draft | Paperplane",
+          "markers_present": [
+            "response expectation",
+            "support@paperplane.qd.je"
+          ]
+        }
+      ],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "routes": [
+        {
+          "route": "/privacy",
+          "status": 200,
+          "title": "Privacy Policy | Paperplane",
+          "markers_present": [
+            "AI provider configured for this deployment",
+            "Draft \u2014 owner review required"
+          ]
+        },
+        {
+          "route": "/terms",
+          "status": 200,
+          "title": "Terms of Service | Paperplane",
+          "markers_present": [
+            "Cashfree",
+            "refund"
+          ]
+        },
+        {
+          "route": "/refund",
+          "status": 200,
+          "title": "Refund and Tax Information \u2014 Draft | Paperplane",
+          "markers_present": [
+            "DRAFT",
+            "support"
+          ]
+        },
+        {
+          "route": "/contact",
+          "status": 200,
+          "title": "Contact Paperplane Support \u2014 Draft | Paperplane",
+          "markers_present": [
+            "response expectation",
+            "support@paperplane.qd.je"
+          ]
+        }
+      ],
+      "page_errors": []
+    }
+  ],
+  "owner_review_required": [
+    "confirm AI provider name and data retention/training terms",
+    "confirm operator identity and refund terms",
+    "verify support mailbox is monitored and response expectations"
+  ]
+}

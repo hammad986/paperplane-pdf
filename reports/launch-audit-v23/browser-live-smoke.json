@@ -1,0 +1,32 @@
+{
+  "site": "https://paperplane.qd.je",
+  "fixture": "TotPDF public 5-page sample",
+  "checks": [
+    {
+      "operation": "merge",
+      "source_pages": 5,
+      "inputs": 2,
+      "output_pages": 10,
+      "download_bytes": 10377,
+      "content_checked": true,
+      "http_result": "browser completed server-backed job"
+    },
+    {
+      "operation": "split-all-pages",
+      "source_pages": 5,
+      "output_files": 5,
+      "output_page_order": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "download_bytes": 6219,
+      "content_checked": true,
+      "http_result": "browser completed server-backed job"
+    }
+  ],
+  "page_errors": [],
+  "quota_cost": "two server job submissions from an isolated guest browser"
+}

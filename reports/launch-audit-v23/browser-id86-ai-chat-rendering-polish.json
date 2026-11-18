@@ -1,0 +1,161 @@
+{
+  "stream": "controlled SSE through the real UI event handler; no external provider request",
+  "rounds": [
+    {
+      "round": 1,
+      "route_status": 200,
+      "empty_state": {
+        "visible": true,
+        "message": "What can I help with?\nAsk a general question, or choose a PDF for answers with page citations."
+      },
+      "source_filename": "annual-report.pdf",
+      "chat_area_height": 292,
+      "in_flight_stage_chips": {
+        "clientWidth": 245,
+        "scrollWidth": 245,
+        "clientHeight": 51,
+        "scrollHeight": 51,
+        "flexWrap": "wrap",
+        "count": 5,
+        "items": [
+          {
+            "label": "Thinking",
+            "left": 42,
+            "right": 97,
+            "top": 309.796875,
+            "bottom": 331.796875,
+            "inside": true
+          },
+          {
+            "label": "Extracting",
+            "left": 102,
+            "right": 167,
+            "top": 309.796875,
+            "bottom": 331.796875,
+            "inside": true
+          },
+          {
+            "label": "Analysing",
+            "left": 172,
+            "right": 234,
+            "top": 309.796875,
+            "bottom": 331.796875,
+            "inside": true
+          },
+          {
+            "label": "Searching",
+            "left": 42,
+            "right": 106,
+            "top": 336.796875,
+            "bottom": 358.796875,
+            "inside": true
+          },
+          {
+            "label": "Generating",
+            "left": 111,
+            "right": 181,
+            "top": 336.796875,
+            "bottom": 358.796875,
+            "inside": true
+          }
+        ]
+      },
+      "final_answer": {
+        "text": "The total is 42000 Page 2.",
+        "rawMarkers": false,
+        "inlineCitations": [
+          {
+            "text": "Page 2",
+            "page": "2"
+          }
+        ],
+        "verifiedCitations": [
+          {
+            "text": "Page 2",
+            "page": "2"
+          }
+        ],
+        "stageCount": 5
+      },
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "route_status": 200,
+      "empty_state": {
+        "visible": true,
+        "message": "What can I help with?\nAsk a general question, or choose a PDF for answers with page citations."
+      },
+      "source_filename": "annual-report.pdf",
+      "chat_area_height": 292,
+      "in_flight_stage_chips": {
+        "clientWidth": 245,
+        "scrollWidth": 245,
+        "clientHeight": 51,
+        "scrollHeight": 51,
+        "flexWrap": "wrap",
+        "count": 5,
+        "items": [
+          {
+            "label": "Thinking",
+            "left": 42,
+            "right": 96,
+            "top": 297.40625,
+            "bottom": 319.40625,
+            "inside": true
+          },
+          {
+            "label": "Extracting",
+            "left": 101,
+            "right": 160,
+            "top": 297.40625,
+            "bottom": 319.40625,
+            "inside": true
+          },
+          {
+            "label": "Analysing",
+            "left": 165,
+            "right": 223,
+            "top": 297.40625,
+            "bottom": 319.40625,
+            "inside": true
+          },
+          {
+            "label": "Searching",
+            "left": 42,
+            "right": 101,
+            "top": 324.40625,
+            "bottom": 346.40625,
+            "inside": true
+          },
+          {
+            "label": "Generating",
+            "left": 106,
+            "right": 170,
+            "top": 324.40625,
+            "bottom": 346.40625,
+            "inside": true
+          }
+        ]
+      },
+      "final_answer": {
+        "text": "The total is 42000 Page 2.",
+        "rawMarkers": false,
+        "inlineCitations": [
+          {
+            "text": "Page 2",
+            "page": "2"
+          }
+        ],
+        "verifiedCitations": [
+          {
+            "text": "Page 2",
+            "page": "2"
+          }
+        ],
+        "stageCount": 5
+      },
+      "page_errors": []
+    }
+  ]
+}

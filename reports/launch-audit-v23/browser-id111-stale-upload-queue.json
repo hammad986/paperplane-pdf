@@ -1,0 +1,25 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "merge_queue_before_switch": 2,
+      "word_queue_after_switch": 0,
+      "word_inputs_after_upload": 1,
+      "word_job_http_status": 202,
+      "stale_batch_limit_error": false,
+      "detail": "{'job_id': '5652b4e6c15d4d50a2420d0e9cee1041', 'status': 'queued', 'status_url': '/api/jobs/5652b4e6c15d4d50a2420d0e9cee1041', 'download_url': '/api/jobs/5652b4e6c15d4d50a2420d0e9c",
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "merge_queue_before_switch": 2,
+      "word_queue_after_switch": 0,
+      "word_inputs_after_upload": 1,
+      "word_job_http_status": 202,
+      "stale_batch_limit_error": false,
+      "detail": "{'job_id': '39cc03cc2431438293b837a607204d52', 'status': 'queued', 'status_url': '/api/jobs/39cc03cc2431438293b837a607204d52', 'download_url': '/api/jobs/39cc03cc2431438293b837a607",
+      "page_errors": []
+    }
+  ],
+  "note": "This verifies stale Merge files are not sent with the single-file Word operation. Local Word conversion provider availability is reported separately."
+}

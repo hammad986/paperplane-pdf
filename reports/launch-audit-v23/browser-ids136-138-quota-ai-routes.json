@@ -1,0 +1,134 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "routes": [
+        {
+          "route": "/",
+          "status": 200,
+          "final_path": "",
+          "body_contains_404": false,
+          "free_daily_claim": false,
+          "stale_quota_claims": []
+        },
+        {
+          "route": "/faq",
+          "status": 200,
+          "final_path": "faq",
+          "body_contains_404": false,
+          "free_daily_claim": false,
+          "stale_quota_claims": []
+        },
+        {
+          "route": "/terms",
+          "status": 200,
+          "final_path": "terms",
+          "body_contains_404": false,
+          "free_daily_claim": false,
+          "stale_quota_claims": []
+        },
+        {
+          "route": "/settings",
+          "status": 200,
+          "final_path": "settings",
+          "body_contains_404": false,
+          "free_daily_claim": false,
+          "stale_quota_claims": []
+        },
+        {
+          "route": "/pricing",
+          "status": 200,
+          "final_path": "pricing",
+          "body_contains_404": false,
+          "free_daily_claim": false,
+          "stale_quota_claims": []
+        },
+        {
+          "route": "/developers",
+          "status": 200,
+          "final_path": "developers",
+          "body_contains_404": false,
+          "free_daily_claim": true,
+          "stale_quota_claims": [],
+          "developer_quota_copy": "GET\t/api/v1/account/usage\tBearer Token\tDeveloper API sandbox quota (10 calls/day, including up to 3 AI calls), consumed counts, active jobs, and UTC reset. The free app workflow quota is 10 operations/day."
+        },
+        {
+          "route": "/ai-intelligence",
+          "status": 200,
+          "final_path": "ai-intelligence",
+          "body_contains_404": false,
+          "free_daily_claim": false,
+          "stale_quota_claims": [],
+          "ai_view_visible": true,
+          "ai_heading_present": true
+        }
+      ],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "routes": [
+        {
+          "route": "/",
+          "status": 200,
+          "final_path": "",
+          "body_contains_404": false,
+          "free_daily_claim": false,
+          "stale_quota_claims": []
+        },
+        {
+          "route": "/faq",
+          "status": 200,
+          "final_path": "faq",
+          "body_contains_404": false,
+          "free_daily_claim": false,
+          "stale_quota_claims": []
+        },
+        {
+          "route": "/terms",
+          "status": 200,
+          "final_path": "terms",
+          "body_contains_404": false,
+          "free_daily_claim": false,
+          "stale_quota_claims": []
+        },
+        {
+          "route": "/settings",
+          "status": 200,
+          "final_path": "settings",
+          "body_contains_404": false,
+          "free_daily_claim": false,
+          "stale_quota_claims": []
+        },
+        {
+          "route": "/pricing",
+          "status": 200,
+          "final_path": "pricing",
+          "body_contains_404": false,
+          "free_daily_claim": false,
+          "stale_quota_claims": []
+        },
+        {
+          "route": "/developers",
+          "status": 200,
+          "final_path": "developers",
+          "body_contains_404": false,
+          "free_daily_claim": true,
+          "stale_quota_claims": [],
+          "developer_quota_copy": "GET\t/api/v1/account/usage\tBearer Token\tDeveloper API sandbox quota (10 calls/day, including up to 3 AI calls), consumed counts, active jobs, and UTC reset. The free app workflow quota is 10 operations/day."
+        },
+        {
+          "route": "/ai-intelligence",
+          "status": 200,
+          "final_path": "ai-intelligence",
+          "body_contains_404": false,
+          "free_daily_claim": false,
+          "stale_quota_claims": [],
+          "ai_view_visible": true,
+          "ai_heading_present": true
+        }
+      ],
+      "page_errors": []
+    }
+  ]
+}

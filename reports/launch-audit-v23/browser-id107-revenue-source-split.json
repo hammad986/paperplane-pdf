@@ -1,0 +1,26 @@
+[
+  {
+    "round": 1,
+    "production_gross": "\u20b9299",
+    "source_subtotals": "Verified production INR orders only. Sandbox and unclassified history are shown separately. Estimates exclude refunds, disputes, and settlement adjustments. Sandbox: \u20b93,750. Unclassified: \u20b9125.",
+    "environment_column": true,
+    "rows": [
+      "unknown@example.test\tFREE\torder-unknown\t\u20b9125\tUNKNOWN\t11/18/2026, 12:28:47 AM\t\u25cf Paid",
+      "test@example.test\tPRO\torder-test\t\u20b93,750\tTEST\t11/18/2026, 12:28:47 AM\t\u25cf Paid",
+      "prod@example.test\tPRO\torder-prod\t\u20b9299\tPROD\t11/18/2026, 12:28:47 AM\t\u25cf Paid"
+    ],
+    "page_errors": []
+  },
+  {
+    "round": 2,
+    "production_gross": "\u20b9299",
+    "source_subtotals": "Verified production INR orders only. Sandbox and unclassified history are shown separately. Estimates exclude refunds, disputes, and settlement adjustments. Sandbox: \u20b93,750. Unclassified: \u20b9125.",
+    "environment_column": true,
+    "rows": [
+      "unknown@example.test\tFREE\torder-unknown\t\u20b9125\tUNKNOWN\t11/18/2026, 12:28:47 AM\t\u25cf Paid",
+      "test@example.test\tPRO\torder-test\t\u20b93,750\tTEST\t11/18/2026, 12:28:47 AM\t\u25cf Paid",
+      "prod@example.test\tPRO\torder-prod\t\u20b9299\tPROD\t11/18/2026, 12:28:47 AM\t\u25cf Paid"
+    ],
+    "page_errors": []
+  }
+]

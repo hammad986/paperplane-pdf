@@ -1,0 +1,18 @@
+{
+  "id": "/",
+  "name": "Paperplane PDF",
+  "short_name": "Paperplane",
+  "description": "A mobile-friendly workspace to scan, edit, and manage PDF documents.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "theme_color": "#142023",
+  "background_color": "#f5f7f6",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {"src": "/assets/app-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "/assets/app-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}

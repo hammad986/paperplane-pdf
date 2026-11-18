@@ -1,0 +1,32 @@
+{
+  "base": "http://127.0.0.1:18501",
+  "fixture": "live-fixture.docx",
+  "rounds": [
+    {
+      "round": 1,
+      "image_runtime": "paperplane-v23-audit:local",
+      "queue_cleared_after_route_switch": true,
+      "job_http_status": 200,
+      "download_bytes": 18868,
+      "output_pages": 1,
+      "content_markers": [
+        "Paperplane live upload smoke test",
+        "synthetic public audit fixture"
+      ],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "image_runtime": "paperplane-v23-audit:local",
+      "queue_cleared_after_route_switch": true,
+      "job_http_status": 200,
+      "download_bytes": 18868,
+      "output_pages": 1,
+      "content_markers": [
+        "Paperplane live upload smoke test",
+        "synthetic public audit fixture"
+      ],
+      "page_errors": []
+    }
+  ]
+}

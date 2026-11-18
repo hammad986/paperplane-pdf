@@ -1,0 +1,25 @@
+{
+  "route": "/mask-aadhaar-card-online",
+  "rounds": [
+    {
+      "round": 1,
+      "status": 200,
+      "accept": "application/pdf,image/jpeg,image/png,image/webp",
+      "download": "masked-round1.png",
+      "download_bytes": 6586,
+      "masked_first_eight": true,
+      "last_four_preserved": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "status": 200,
+      "accept": "application/pdf,image/jpeg,image/png,image/webp",
+      "download": "masked-round2.png",
+      "download_bytes": 6586,
+      "masked_first_eight": true,
+      "last_four_preserved": true,
+      "page_errors": []
+    }
+  ]
+}

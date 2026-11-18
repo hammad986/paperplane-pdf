@@ -1,0 +1,112 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "settings": {
+        "url": "http://127.0.0.1:54605/settings",
+        "heading": "Paperplane Settings",
+        "tabs": [
+          "Account & Profile",
+          "Appearance & Theme",
+          "Plans & Billing",
+          "Developer API Keys",
+          "Storage & Privacy"
+        ],
+        "privacy_tab_content_visible": true
+      },
+      "routes": [
+        {
+          "route": "/dashboard",
+          "status": 200,
+          "final_url": "http://127.0.0.1:54605/tool-desk",
+          "expected_url_suffix": "/tool-desk",
+          "body_expected": null,
+          "body_snip": "P\npaperplane.\nFind any tool...\nCtrl+K\nTOOL SUITES\nOrganize PDF\n7\nConvert to / from\n12\nEdit PDF\n8\nSign & Protec",
+          "redirect_check": true
+        },
+        {
+          "route": "/history",
+          "status": 200,
+          "final_url": "http://127.0.0.1:54605/history",
+          "expected_url_suffix": null,
+          "body_expected": true,
+          "body_snip": "P\npaperplane.\nFind any tool...\nCtrl+K\nTOOL SUITES\nOrganize PDF\n7\nConvert to / from\n12\nEdit PDF\n8\nSign & Protec"
+        },
+        {
+          "route": "/faq",
+          "status": 200,
+          "final_url": "http://127.0.0.1:54605/faq",
+          "expected_url_suffix": null,
+          "body_expected": true,
+          "body_snip": "P\npaperplane.\nFind any tool...\nCtrl+K\nTOOL SUITES\nOrganize PDF\n7\nConvert to / from\n12\nEdit PDF\n8\nSign & Protec"
+        },
+        {
+          "route": "/feedback",
+          "status": 200,
+          "final_url": "http://127.0.0.1:54605/feedback",
+          "expected_url_suffix": null,
+          "body_expected": true,
+          "body_snip": "P\npaperplane.\nFind any tool...\nCtrl+K\nTOOL SUITES\nOrganize PDF\n7\nConvert to / from\n12\nEdit PDF\n8\nSign & Protec"
+        }
+      ],
+      "waitlist_visible_now": true,
+      "waitlist_visible_after_20s": true,
+      "waitlist_visible_ms": 273,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "settings": {
+        "url": "http://127.0.0.1:54605/settings",
+        "heading": "Paperplane Settings",
+        "tabs": [
+          "Account & Profile",
+          "Appearance & Theme",
+          "Plans & Billing",
+          "Developer API Keys",
+          "Storage & Privacy"
+        ],
+        "privacy_tab_content_visible": true
+      },
+      "routes": [
+        {
+          "route": "/dashboard",
+          "status": 200,
+          "final_url": "http://127.0.0.1:54605/tool-desk",
+          "expected_url_suffix": "/tool-desk",
+          "body_expected": null,
+          "body_snip": "P\npaperplane.\nFind any tool...\nCtrl+K\nTOOL SUITES\nOrganize PDF\n7\nConvert to / from\n12\nEdit PDF\n8\nSign & Protec",
+          "redirect_check": true
+        },
+        {
+          "route": "/history",
+          "status": 200,
+          "final_url": "http://127.0.0.1:54605/history",
+          "expected_url_suffix": null,
+          "body_expected": true,
+          "body_snip": "P\npaperplane.\nFind any tool...\nCtrl+K\nTOOL SUITES\nOrganize PDF\n7\nConvert to / from\n12\nEdit PDF\n8\nSign & Protec"
+        },
+        {
+          "route": "/faq",
+          "status": 200,
+          "final_url": "http://127.0.0.1:54605/faq",
+          "expected_url_suffix": null,
+          "body_expected": true,
+          "body_snip": "P\npaperplane.\nFind any tool...\nCtrl+K\nTOOL SUITES\nOrganize PDF\n7\nConvert to / from\n12\nEdit PDF\n8\nSign & Protec"
+        },
+        {
+          "route": "/feedback",
+          "status": 200,
+          "final_url": "http://127.0.0.1:54605/feedback",
+          "expected_url_suffix": null,
+          "body_expected": true,
+          "body_snip": "P\npaperplane.\nFind any tool...\nCtrl+K\nTOOL SUITES\nOrganize PDF\n7\nConvert to / from\n12\nEdit PDF\n8\nSign & Protec"
+        }
+      ],
+      "waitlist_visible_now": true,
+      "waitlist_visible_after_20s": true,
+      "waitlist_visible_ms": 288,
+      "page_errors": []
+    }
+  ]
+}

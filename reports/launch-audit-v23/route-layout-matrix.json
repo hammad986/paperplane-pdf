@@ -1,0 +1,4321 @@
+{
+  "route_viewports": 176,
+  "copy_routes": [
+    {
+      "route": "/",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/pricing",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/merge-pdf",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/split-pdf",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/remove-pages-pdf",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/rotate-pdf",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/organize-pdf",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/scan-to-pdf",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/compress-pdf",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/repair-pdf",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/ocr-pdf",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/jpg-to-pdf",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/word-to-pdf",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/excel-to-pdf",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/powerpoint-to-pdf",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/html-to-pdf",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/pdf-to-jpg",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/pdf-to-word",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/pdf-to-excel",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/pdf-to-powerpoint",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/pdf-to-pdfa",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/pdf-to-text",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/pdf-to-markdown",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/edit-pdf",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/annotate-pdf",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/crop-pdf",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/redact-pdf",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/watermark-pdf",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/add-page-numbers-to-pdf",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/protect-pdf",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/unlock-pdf",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/sign-pdf",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/compare-pdf",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/fill-pdf-form",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/pdf-metadata",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/ai-pdf-chat",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/extract-pdf-data",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/summarize-pdf",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/translate-pdf",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/ssc-photo-resizer",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/compress-image-online",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/resize-image-dimensions",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/merge-photos-online",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/mask-aadhaar-card-online",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/convert-pdf-to-grayscale",
+      "status": 200,
+      "bad_phrases": []
+    },
+    {
+      "route": "/flatten-pdf",
+      "status": 200,
+      "bad_phrases": []
+    }
+  ],
+  "heading_checks": [
+    {
+      "route": "/merge-pdf",
+      "status": 200,
+      "headings": [
+        {
+          "text": "Merge PDF",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Merge PDF files in your preferred order",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Choose the PDFs to merge",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Check the file list; files merge in the order added",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Download the merged document",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/split-pdf",
+      "status": 200,
+      "headings": [
+        {
+          "text": "Split / extract",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Split a PDF by pages or ranges",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Choose the source PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Enter page numbers or ranges",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Download the extracted PDF files",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/remove-pages-pdf",
+      "status": 200,
+      "headings": [
+        {
+          "text": "Remove pages",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Remove unwanted pages from a PDF",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Open the PDF page organizer",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Select pages to delete",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Confirm and download the cleaned PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/rotate-pdf",
+      "status": 200,
+      "headings": [
+        {
+          "text": "Rotate PDF",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Rotate the entire PDF document",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Upload the PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Choose the rotation angle",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Download the reoriented PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/organize-pdf",
+      "status": 200,
+      "headings": [
+        {
+          "text": "Page Organizer",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Reorder PDF pages by page number",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Load the PDF into Page Organizer",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Enter the complete output order as comma-separated page numbers",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Download and review the organized PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/scan-to-pdf",
+      "status": 200,
+      "headings": [
+        {
+          "text": "Scan to PDF",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Turn photos and scans into a readable PDF",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Upload images in the order they should appear",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Check the selected image files",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Export the optimized PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/compress-pdf",
+      "status": 200,
+      "headings": [
+        {
+          "text": "Compress PDF",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Compress a PDF without guesswork",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Upload a PDF and inspect its size",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Choose lossless or quality-based compression",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Download the smaller verified PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/repair-pdf",
+      "status": 200,
+      "headings": [
+        {
+          "text": "Repair PDF",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Repair a damaged or unreadable PDF",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Select the damaged PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Run structural recovery",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Download and verify the repaired file",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/ocr-pdf",
+      "status": 200,
+      "headings": [
+        {
+          "text": "OCR PDF",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Make a scanned PDF searchable with OCR",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Upload a scanned PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "After upload, select an available OCR language",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Download the searchable PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/jpg-to-pdf",
+      "status": 200,
+      "headings": [
+        {
+          "text": "JPG/PNG to PDF",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Convert images into one PDF",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Select JPG or other supported images",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Upload them in the order you want in the PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Download the generated PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/word-to-pdf",
+      "status": 200,
+      "headings": [
+        {
+          "text": "Word to PDF",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Convert Word documents to PDF",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Choose a DOC or DOCX file",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Review conversion and page settings",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Download the rendered PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/excel-to-pdf",
+      "status": 200,
+      "headings": [
+        {
+          "text": "Excel to PDF",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Convert Excel spreadsheets to PDF",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Upload an XLS or XLSX workbook",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Convert the workbook and review its pages",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Download the formatted PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/powerpoint-to-pdf",
+      "status": 200,
+      "headings": [
+        {
+          "text": "PowerPoint to PDF",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Convert PowerPoint slides to PDF",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Select a PPT or PPTX presentation",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Check slide orientation and output options",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Download the PDF slide deck",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/html-to-pdf",
+      "status": 200,
+      "headings": [
+        {
+          "text": "HTML to PDF",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Convert HTML content into a PDF",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Enter an allowed public URL",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Review the URL and start the conversion",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Download the rendered PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/pdf-to-jpg",
+      "status": 200,
+      "headings": [
+        {
+          "text": "PDF to JPG",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Convert PDF pages to JPG images",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Upload the source PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "After upload, choose an export resolution",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Download the JPG image bundle",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/pdf-to-word",
+      "status": 200,
+      "headings": [
+        {
+          "text": "PDF to Word",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Convert PDF files to editable Word documents",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Select a text-based PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Convert the document and review its text layout",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Download the editable DOCX file",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/pdf-to-excel",
+      "status": 200,
+      "headings": [
+        {
+          "text": "PDF to Excel",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Convert PDF tables to Excel",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Upload a table-containing PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Convert the extracted content, then review the workbook",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Download the XLSX workbook",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/pdf-to-powerpoint",
+      "status": 200,
+      "headings": [
+        {
+          "text": "PDF to PowerPoint",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Convert a PDF into PowerPoint slides",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Choose the source PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Convert the pages into slides",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Download and review the PPTX presentation",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/pdf-to-pdfa",
+      "status": 200,
+      "headings": [
+        {
+          "text": "PDF to PDF/A",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Convert a PDF to archive-ready PDF/A",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Upload the source PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Choose PDF/A conversion settings",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Download the archive-ready document",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/pdf-to-text",
+      "status": 200,
+      "headings": [
+        {
+          "text": "PDF to Text",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Extract text from a PDF",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Select a text-based PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Extract text from the full document",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Download the plain text result",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/pdf-to-markdown",
+      "status": 200,
+      "headings": [
+        {
+          "text": "PDF to Markdown",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Convert PDF content to Markdown",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Upload a text-based or OCR PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Convert the full document to Markdown",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Download the generated Markdown file",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/edit-pdf",
+      "status": 200,
+      "headings": [
+        {
+          "text": "Edit PDF",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Edit PDF pages without rebuilding the document",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Open the PDF in the editor",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Choose an editing tool and place it on the page",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Apply changes and export the edited PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/annotate-pdf",
+      "status": 200,
+      "headings": [
+        {
+          "text": "Annotate PDF",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Annotate PDF pages for review",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Upload the PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Choose an annotation type and its available options",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Save the annotated PDF for review",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/crop-pdf",
+      "status": 200,
+      "headings": [
+        {
+          "text": "Crop PDF",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Crop PDF pages to the content area",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Open the PDF crop tool",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Set the crop box for one or more pages",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Preview and download the cropped document",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/redact-pdf",
+      "status": 200,
+      "headings": [
+        {
+          "text": "Redact PDF",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Permanently redact sensitive PDF content",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Upload the source PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Identify text or regions to redact",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Apply hardened redaction and verify the result",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/watermark-pdf",
+      "status": 200,
+      "headings": [
+        {
+          "text": "Watermark PDF",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Watermark PDF pages for ownership or status",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Choose a PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Enter watermark text or select an image, then set opacity",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Apply the watermark and download",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/add-page-numbers-to-pdf",
+      "status": 200,
+      "headings": [
+        {
+          "text": "Page Numbers",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Add page numbers to a PDF",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Upload the PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Choose position, format, and starting number",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Apply numbering and download",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/protect-pdf",
+      "status": 200,
+      "headings": [
+        {
+          "text": "Protect PDF",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Protect a PDF with strong password encryption",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Upload the PDF to the security tool",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Enter a password for the protected copy",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Encrypt and download the protected PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/unlock-pdf",
+      "status": 200,
+      "headings": [
+        {
+          "text": "Unlock PDF",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Unlock a PDF with the correct password",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Choose the protected PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Enter the valid user or owner password",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Download the authorized unencrypted copy",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/sign-pdf",
+      "status": 200,
+      "headings": [
+        {
+          "text": "Sign PDF",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Sign a PDF for approval or integrity",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Upload the document and enter the printed signer name",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Run Sign PDF to place a typed stamp",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Open Studio for drawn or certificate-backed signature workflows",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/compare-pdf",
+      "status": 200,
+      "headings": [
+        {
+          "text": "Compare PDF",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Compare two PDF versions side by side",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Upload the original and revised PDFs",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Run the page and text comparison",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Download the plain-text comparison report",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/fill-pdf-form",
+      "status": 200,
+      "headings": [
+        {
+          "text": "Fill PDF Form",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Fill and prepare interactive PDF forms",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Open the interactive PDF form",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Fill fields or import JSON data",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Save, flatten, and download the completed form",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/pdf-metadata",
+      "status": 200,
+      "headings": [
+        {
+          "text": "PDF Metadata",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Inspect and edit PDF metadata",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Upload the PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Review or update its title, author, and subject",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Save the updated metadata and download",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/ai-pdf-chat",
+      "status": 200,
+      "headings": [
+        {
+          "text": "AI Document Intelligence",
+          "wordSpacing": "2.56px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "How AI Intelligence works",
+          "wordSpacing": "1.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Ask questions about a PDF with citations",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Upload a supported PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Ask a question about its contents",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Review the answer and cited pages",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/extract-pdf-data",
+      "status": 200,
+      "headings": [
+        {
+          "text": "Smart Metadata",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Extract structured data from a PDF",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Upload an invoice, resume, or supported PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Choose the extraction schema",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Review and export JSON or CSV",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/summarize-pdf",
+      "status": 200,
+      "headings": [
+        {
+          "text": "AI Summarize",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Summarize a PDF into its key points",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Upload the source PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Generate the executive summary",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Review the brief with source references",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/translate-pdf",
+      "status": 200,
+      "headings": [
+        {
+          "text": "AI Translate",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Translate PDF content for multilingual review",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Upload a text-based or OCR PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Choose the target language in the visible selector",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Review and download the translated copy",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/ssc-photo-resizer",
+      "status": 200,
+      "headings": [
+        {
+          "text": "Exam Photo & Signature Resizer",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Exam Photo & Signature Resizer for SSC & UPSC",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Upload candidate photo or signature image",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Choose the exam preset (SSC, UPSC, IBPS)",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Download the verified resized image or PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/compress-image-online",
+      "status": 200,
+      "headings": [
+        {
+          "text": "Compress Photo / Image",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Compress Photos & Images Online",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Upload your image file",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Choose target file size (KB) or quality",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Download your optimized image",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/resize-image-dimensions",
+      "status": 200,
+      "headings": [
+        {
+          "text": "Resize Photo Dimensions",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Resize Photo & Image Dimensions",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Upload photo or image",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Set custom dimensions or pick a preset",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Download your resized image",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/merge-photos-online",
+      "status": 200,
+      "headings": [
+        {
+          "text": "Merge Photos into One",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Merge Multiple Photos into One Image",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Select 2 or more photos",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Choose layout (vertical, horizontal, grid)",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Download your merged image",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/mask-aadhaar-card-online",
+      "status": 200,
+      "headings": [
+        {
+          "text": "Mask Aadhaar Card",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Mask Aadhaar Card PDF & Image Online",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Upload Aadhaar PDF or scan image",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Click Mask Aadhaar Now",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Download your UIDAI-compliant masked PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/convert-pdf-to-grayscale",
+      "status": 200,
+      "headings": [
+        {
+          "text": "Convert to Grayscale",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Convert PDF to Grayscale",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Upload your color PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Click Convert to Grayscale",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Download your grayscale PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    },
+    {
+      "route": "/flatten-pdf",
+      "status": 200,
+      "headings": [
+        {
+          "text": "Flatten PDF Forms",
+          "wordSpacing": "1.92px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Drop your document here",
+          "wordSpacing": "1.44px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Flatten PDF Form Fields",
+          "wordSpacing": "3.2px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Upload your fillable PDF form",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Click Flatten Form Fields",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Download the permanently flattened PDF",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        },
+        {
+          "text": "Frequently asked questions",
+          "wordSpacing": "1.28px",
+          "fontFamily": "\"Plus Jakarta Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
+        }
+      ],
+      "joined_word_matches": []
+    }
+  ],
+  "dialog_checks": [
+    {
+      "selector": "#editor-signature-modal",
+      "viewportWidth": 390,
+      "left": 42.36000061035156,
+      "right": 347.64002990722656,
+      "top": 116.08000183105469,
+      "bottom": 623.9199676513672,
+      "width": 305.280029296875,
+      "height": 507.8399658203125,
+      "scrollHeight": 527,
+      "clientHeight": 527
+    },
+    {
+      "selector": "#security-modal",
+      "viewportWidth": 390,
+      "left": 42.36000061035156,
+      "right": 347.64002990722656,
+      "top": 26.32000732421875,
+      "bottom": 713.6799926757812,
+      "width": 305.280029296875,
+      "height": 687.3599853515625,
+      "scrollHeight": 776,
+      "clientHeight": 714
+    },
+    {
+      "selector": "#editor-signature-modal",
+      "viewportWidth": 820,
+      "left": 122,
+      "right": 698,
+      "top": 163.60000610351562,
+      "bottom": 576.4000244140625,
+      "width": 576,
+      "height": 412.8000183105469,
+      "scrollHeight": 428,
+      "clientHeight": 428
+    },
+    {
+      "selector": "#security-modal",
+      "viewportWidth": 820,
+      "left": 122,
+      "right": 698,
+      "top": 104.55999755859375,
+      "bottom": 635.4400024414062,
+      "width": 576,
+      "height": 530.8800048828125,
+      "scrollHeight": 551,
+      "clientHeight": 551
+    },
+    {
+      "selector": "#editor-signature-modal",
+      "viewportWidth": 1366,
+      "left": 395,
+      "right": 971,
+      "top": 163.60000610351562,
+      "bottom": 576.4000244140625,
+      "width": 576,
+      "height": 412.8000183105469,
+      "scrollHeight": 428,
+      "clientHeight": 428
+    },
+    {
+      "selector": "#security-modal",
+      "viewportWidth": 1366,
+      "left": 395,
+      "right": 971,
+      "top": 104.55999755859375,
+      "bottom": 635.4400024414062,
+      "width": 576,
+      "height": 530.8800048828125,
+      "scrollHeight": 551,
+      "clientHeight": 551
+    },
+    {
+      "selector": "#editor-signature-modal",
+      "viewportWidth": 1920,
+      "left": 672,
+      "right": 1248,
+      "top": 163.60000610351562,
+      "bottom": 576.4000244140625,
+      "width": 576,
+      "height": 412.8000183105469,
+      "scrollHeight": 428,
+      "clientHeight": 428
+    },
+    {
+      "selector": "#security-modal",
+      "viewportWidth": 1920,
+      "left": 672,
+      "right": 1248,
+      "top": 104.55999755859375,
+      "bottom": 635.4400024414062,
+      "width": 576,
+      "height": 530.8800048828125,
+      "scrollHeight": 551,
+      "clientHeight": 551
+    }
+  ],
+  "feedback_prompt_check": {
+    "x": 352,
+    "y": 678,
+    "width": 28,
+    "height": 28,
+    "label": "Dismiss feedback prompt",
+    "visible": true,
+    "dismissed": true
+  },
+  "workspace_nav_check": {
+    "labels": [
+      "Tool Desk",
+      "Advanced Studio",
+      "AI Intelligence",
+      "Apps Waitlist"
+    ],
+    "x": 722.5,
+    "width": 564,
+    "centerDelta": 44.5,
+    "background": "rgb(238, 242, 236)",
+    "radius": "9px",
+    "visible": true
+  },
+  "failed_checks": [],
+  "results": [
+    {
+      "operation": "merge",
+      "slug": "merge-pdf",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Merge PDF Files Online \u2014 Combine PDFs Free | Paperplane"
+      }
+    },
+    {
+      "operation": "split",
+      "slug": "split-pdf",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Split PDF Online \u2014 Extract Pages & Ranges Free | Paperplane"
+      }
+    },
+    {
+      "operation": "remove",
+      "slug": "remove-pages-pdf",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Remove Pages from PDF Online \u2014 Delete PDF Pages | Paperplane"
+      }
+    },
+    {
+      "operation": "rotate",
+      "slug": "rotate-pdf",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Rotate an Entire PDF Online \u2014 Turn Pages 90\u00b0 or 180\u00b0 | Paperplane"
+      }
+    },
+    {
+      "operation": "organize",
+      "slug": "organize-pdf",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Organize PDF Pages Online \u2014 Reorder, Rotate & Delete | Paperplane"
+      }
+    },
+    {
+      "operation": "scan_pdf",
+      "slug": "scan-to-pdf",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Scan to PDF Online \u2014 Convert Photos & Scans | Paperplane"
+      }
+    },
+    {
+      "operation": "compress",
+      "slug": "compress-pdf",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Compress PDF Online \u2014 Reduce PDF File Size | Paperplane"
+      }
+    },
+    {
+      "operation": "repair",
+      "slug": "repair-pdf",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Repair PDF Online \u2014 Fix Corrupted PDF Files | Paperplane"
+      }
+    },
+    {
+      "operation": "ocr",
+      "slug": "ocr-pdf",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "OCR PDF Online \u2014 Make Scanned PDFs Searchable | Paperplane"
+      }
+    },
+    {
+      "operation": "jpg_to_pdf",
+      "slug": "jpg-to-pdf",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "JPG to PDF Converter \u2014 Convert Images to PDF Free | Paperplane"
+      }
+    },
+    {
+      "operation": "word_to_pdf",
+      "slug": "word-to-pdf",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Word to PDF Converter \u2014 Convert DOCX to PDF | Paperplane"
+      }
+    },
+    {
+      "operation": "excel_to_pdf",
+      "slug": "excel-to-pdf",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Excel to PDF Converter \u2014 Convert XLSX Spreadsheets | Paperplane"
+      }
+    },
+    {
+      "operation": "powerpoint_to_pdf",
+      "slug": "powerpoint-to-pdf",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "PowerPoint to PDF Converter \u2014 Convert PPTX Slides | Paperplane"
+      }
+    },
+    {
+      "operation": "html_to_pdf",
+      "slug": "html-to-pdf",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "HTML to PDF Converter \u2014 Render Web Pages to PDF | Paperplane"
+      }
+    },
+    {
+      "operation": "pdf_to_jpg",
+      "slug": "pdf-to-jpg",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "PDF to JPG Converter \u2014 Convert PDF Pages to Images | Paperplane"
+      }
+    },
+    {
+      "operation": "pdf_to_word",
+      "slug": "pdf-to-word",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "PDF to Word Converter \u2014 Convert PDF to DOCX | Paperplane"
+      }
+    },
+    {
+      "operation": "pdf_to_excel",
+      "slug": "pdf-to-excel",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "PDF to Excel Converter \u2014 Extract Tables to XLSX | Paperplane"
+      }
+    },
+    {
+      "operation": "pdf_to_powerpoint",
+      "slug": "pdf-to-powerpoint",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "PDF to PowerPoint Converter \u2014 Convert PDF to PPTX | Paperplane"
+      }
+    },
+    {
+      "operation": "pdf_to_pdfa",
+      "slug": "pdf-to-pdfa",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "PDF to PDF/A Converter \u2014 Create Archive-Ready PDFs | Paperplane"
+      }
+    },
+    {
+      "operation": "pdf_to_text",
+      "slug": "pdf-to-text",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "PDF to Text Converter \u2014 Extract Text from PDF | Paperplane"
+      }
+    },
+    {
+      "operation": "pdf_to_markdown",
+      "slug": "pdf-to-markdown",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "PDF to Markdown Converter \u2014 Export Structured Text | Paperplane"
+      }
+    },
+    {
+      "operation": "edit",
+      "slug": "edit-pdf",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Edit PDF Online \u2014 Add Text, Stamps & Shapes | Paperplane"
+      }
+    },
+    {
+      "operation": "annotate",
+      "slug": "annotate-pdf",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Annotate PDF Online \u2014 Highlight, Draw & Comment | Paperplane"
+      }
+    },
+    {
+      "operation": "crop",
+      "slug": "crop-pdf",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Crop PDF Online \u2014 Trim Margins & Page Size | Paperplane"
+      }
+    },
+    {
+      "operation": "redact",
+      "slug": "redact-pdf",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Redact PDF Online \u2014 Permanently Remove Sensitive Text | Paperplane"
+      }
+    },
+    {
+      "operation": "watermark",
+      "slug": "watermark-pdf",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Watermark PDF Online \u2014 Add Text or Image Watermarks | Paperplane"
+      }
+    },
+    {
+      "operation": "page_numbers",
+      "slug": "add-page-numbers-to-pdf",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Add Page Numbers to PDF Online \u2014 Header & Footer | Paperplane"
+      }
+    },
+    {
+      "operation": "protect",
+      "slug": "protect-pdf",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Protect PDF Online \u2014 Password Encrypt with AES-256 | Paperplane"
+      }
+    },
+    {
+      "operation": "unlock",
+      "slug": "unlock-pdf",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Unlock PDF Online \u2014 Remove Password Protection | Paperplane"
+      }
+    },
+    {
+      "operation": "sign",
+      "slug": "sign-pdf",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Sign PDF Online \u2014 Add Visual or Digital Signatures | Paperplane"
+      }
+    },
+    {
+      "operation": "compare",
+      "slug": "compare-pdf",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Compare PDF Files Online \u2014 Find Document Differences | Paperplane"
+      }
+    },
+    {
+      "operation": "forms",
+      "slug": "fill-pdf-form",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Fill PDF Forms Online \u2014 Populate & Flatten PDF Forms | Paperplane"
+      }
+    },
+    {
+      "operation": "metadata",
+      "slug": "pdf-metadata",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Edit PDF Metadata Online \u2014 Change Author, Title & Subject | Paperplane"
+      }
+    },
+    {
+      "operation": "ai_chat",
+      "slug": "ai-pdf-chat",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "AI PDF Chat \u2014 Ask Questions with Page Citations | Paperplane"
+      }
+    },
+    {
+      "operation": "ai_extract",
+      "slug": "extract-pdf-data",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Extract Data from PDF \u2014 AI Invoice & Resume Extraction | Paperplane"
+      }
+    },
+    {
+      "operation": "summarize",
+      "slug": "summarize-pdf",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Summarize PDF Online \u2014 Generate an Executive Brief | Paperplane"
+      }
+    },
+    {
+      "operation": "translate",
+      "slug": "translate-pdf",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Translate PDF Online \u2014 Convert Document Language | Paperplane"
+      }
+    },
+    {
+      "operation": "photo_resizer",
+      "slug": "ssc-photo-resizer",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Exam Photo & Signature Resizer for SSC & UPSC (20KB - 50KB) | Paperplane"
+      }
+    },
+    {
+      "operation": "photo_compress",
+      "slug": "compress-image-online",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Compress Photo & Image Online Free (Target KB) | Paperplane"
+      }
+    },
+    {
+      "operation": "photo_resize",
+      "slug": "resize-image-dimensions",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Resize Photo Dimensions Online Free | Paperplane"
+      }
+    },
+    {
+      "operation": "photo_merge",
+      "slug": "merge-photos-online",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Merge Photos into One Online Free | Paperplane"
+      }
+    },
+    {
+      "operation": "mask_aadhaar",
+      "slug": "mask-aadhaar-card-online",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Mask Aadhaar Card Online Free \u2014 UIDAI Compliant First 8 Digits Redaction | Paperplane"
+      }
+    },
+    {
+      "operation": "grayscale",
+      "slug": "convert-pdf-to-grayscale",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Convert PDF to Grayscale for Printing | Paperplane"
+      }
+    },
+    {
+      "operation": "flatten",
+      "slug": "flatten-pdf",
+      "viewport": 390,
+      "status": 200,
+      "layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "title": "Flatten PDF Forms Online Free | Paperplane"
+      }
+    },
+    {
+      "operation": "merge",
+      "slug": "merge-pdf",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Merge PDF Files Online \u2014 Combine PDFs Free | Paperplane"
+      }
+    },
+    {
+      "operation": "split",
+      "slug": "split-pdf",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Split PDF Online \u2014 Extract Pages & Ranges Free | Paperplane"
+      }
+    },
+    {
+      "operation": "remove",
+      "slug": "remove-pages-pdf",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Remove Pages from PDF Online \u2014 Delete PDF Pages | Paperplane"
+      }
+    },
+    {
+      "operation": "rotate",
+      "slug": "rotate-pdf",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Rotate an Entire PDF Online \u2014 Turn Pages 90\u00b0 or 180\u00b0 | Paperplane"
+      }
+    },
+    {
+      "operation": "organize",
+      "slug": "organize-pdf",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Organize PDF Pages Online \u2014 Reorder, Rotate & Delete | Paperplane"
+      }
+    },
+    {
+      "operation": "scan_pdf",
+      "slug": "scan-to-pdf",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Scan to PDF Online \u2014 Convert Photos & Scans | Paperplane"
+      }
+    },
+    {
+      "operation": "compress",
+      "slug": "compress-pdf",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Compress PDF Online \u2014 Reduce PDF File Size | Paperplane"
+      }
+    },
+    {
+      "operation": "repair",
+      "slug": "repair-pdf",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Repair PDF Online \u2014 Fix Corrupted PDF Files | Paperplane"
+      }
+    },
+    {
+      "operation": "ocr",
+      "slug": "ocr-pdf",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "OCR PDF Online \u2014 Make Scanned PDFs Searchable | Paperplane"
+      }
+    },
+    {
+      "operation": "jpg_to_pdf",
+      "slug": "jpg-to-pdf",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "JPG to PDF Converter \u2014 Convert Images to PDF Free | Paperplane"
+      }
+    },
+    {
+      "operation": "word_to_pdf",
+      "slug": "word-to-pdf",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Word to PDF Converter \u2014 Convert DOCX to PDF | Paperplane"
+      }
+    },
+    {
+      "operation": "excel_to_pdf",
+      "slug": "excel-to-pdf",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Excel to PDF Converter \u2014 Convert XLSX Spreadsheets | Paperplane"
+      }
+    },
+    {
+      "operation": "powerpoint_to_pdf",
+      "slug": "powerpoint-to-pdf",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "PowerPoint to PDF Converter \u2014 Convert PPTX Slides | Paperplane"
+      }
+    },
+    {
+      "operation": "html_to_pdf",
+      "slug": "html-to-pdf",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "HTML to PDF Converter \u2014 Render Web Pages to PDF | Paperplane"
+      }
+    },
+    {
+      "operation": "pdf_to_jpg",
+      "slug": "pdf-to-jpg",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "PDF to JPG Converter \u2014 Convert PDF Pages to Images | Paperplane"
+      }
+    },
+    {
+      "operation": "pdf_to_word",
+      "slug": "pdf-to-word",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "PDF to Word Converter \u2014 Convert PDF to DOCX | Paperplane"
+      }
+    },
+    {
+      "operation": "pdf_to_excel",
+      "slug": "pdf-to-excel",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "PDF to Excel Converter \u2014 Extract Tables to XLSX | Paperplane"
+      }
+    },
+    {
+      "operation": "pdf_to_powerpoint",
+      "slug": "pdf-to-powerpoint",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "PDF to PowerPoint Converter \u2014 Convert PDF to PPTX | Paperplane"
+      }
+    },
+    {
+      "operation": "pdf_to_pdfa",
+      "slug": "pdf-to-pdfa",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "PDF to PDF/A Converter \u2014 Create Archive-Ready PDFs | Paperplane"
+      }
+    },
+    {
+      "operation": "pdf_to_text",
+      "slug": "pdf-to-text",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "PDF to Text Converter \u2014 Extract Text from PDF | Paperplane"
+      }
+    },
+    {
+      "operation": "pdf_to_markdown",
+      "slug": "pdf-to-markdown",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "PDF to Markdown Converter \u2014 Export Structured Text | Paperplane"
+      }
+    },
+    {
+      "operation": "edit",
+      "slug": "edit-pdf",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Edit PDF Online \u2014 Add Text, Stamps & Shapes | Paperplane"
+      }
+    },
+    {
+      "operation": "annotate",
+      "slug": "annotate-pdf",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Annotate PDF Online \u2014 Highlight, Draw & Comment | Paperplane"
+      }
+    },
+    {
+      "operation": "crop",
+      "slug": "crop-pdf",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Crop PDF Online \u2014 Trim Margins & Page Size | Paperplane"
+      }
+    },
+    {
+      "operation": "redact",
+      "slug": "redact-pdf",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Redact PDF Online \u2014 Permanently Remove Sensitive Text | Paperplane"
+      }
+    },
+    {
+      "operation": "watermark",
+      "slug": "watermark-pdf",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Watermark PDF Online \u2014 Add Text or Image Watermarks | Paperplane"
+      }
+    },
+    {
+      "operation": "page_numbers",
+      "slug": "add-page-numbers-to-pdf",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Add Page Numbers to PDF Online \u2014 Header & Footer | Paperplane"
+      }
+    },
+    {
+      "operation": "protect",
+      "slug": "protect-pdf",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Protect PDF Online \u2014 Password Encrypt with AES-256 | Paperplane"
+      }
+    },
+    {
+      "operation": "unlock",
+      "slug": "unlock-pdf",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Unlock PDF Online \u2014 Remove Password Protection | Paperplane"
+      }
+    },
+    {
+      "operation": "sign",
+      "slug": "sign-pdf",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Sign PDF Online \u2014 Add Visual or Digital Signatures | Paperplane"
+      }
+    },
+    {
+      "operation": "compare",
+      "slug": "compare-pdf",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Compare PDF Files Online \u2014 Find Document Differences | Paperplane"
+      }
+    },
+    {
+      "operation": "forms",
+      "slug": "fill-pdf-form",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Fill PDF Forms Online \u2014 Populate & Flatten PDF Forms | Paperplane"
+      }
+    },
+    {
+      "operation": "metadata",
+      "slug": "pdf-metadata",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Edit PDF Metadata Online \u2014 Change Author, Title & Subject | Paperplane"
+      }
+    },
+    {
+      "operation": "ai_chat",
+      "slug": "ai-pdf-chat",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "AI PDF Chat \u2014 Ask Questions with Page Citations | Paperplane"
+      }
+    },
+    {
+      "operation": "ai_extract",
+      "slug": "extract-pdf-data",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Extract Data from PDF \u2014 AI Invoice & Resume Extraction | Paperplane"
+      }
+    },
+    {
+      "operation": "summarize",
+      "slug": "summarize-pdf",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Summarize PDF Online \u2014 Generate an Executive Brief | Paperplane"
+      }
+    },
+    {
+      "operation": "translate",
+      "slug": "translate-pdf",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Translate PDF Online \u2014 Convert Document Language | Paperplane"
+      }
+    },
+    {
+      "operation": "photo_resizer",
+      "slug": "ssc-photo-resizer",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Exam Photo & Signature Resizer for SSC & UPSC (20KB - 50KB) | Paperplane"
+      }
+    },
+    {
+      "operation": "photo_compress",
+      "slug": "compress-image-online",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Compress Photo & Image Online Free (Target KB) | Paperplane"
+      }
+    },
+    {
+      "operation": "photo_resize",
+      "slug": "resize-image-dimensions",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Resize Photo Dimensions Online Free | Paperplane"
+      }
+    },
+    {
+      "operation": "photo_merge",
+      "slug": "merge-photos-online",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Merge Photos into One Online Free | Paperplane"
+      }
+    },
+    {
+      "operation": "mask_aadhaar",
+      "slug": "mask-aadhaar-card-online",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Mask Aadhaar Card Online Free \u2014 UIDAI Compliant First 8 Digits Redaction | Paperplane"
+      }
+    },
+    {
+      "operation": "grayscale",
+      "slug": "convert-pdf-to-grayscale",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Convert PDF to Grayscale for Printing | Paperplane"
+      }
+    },
+    {
+      "operation": "flatten",
+      "slug": "flatten-pdf",
+      "viewport": 820,
+      "status": 200,
+      "layout": {
+        "width": 820,
+        "documentWidth": 820,
+        "bodyWidth": 820,
+        "title": "Flatten PDF Forms Online Free | Paperplane"
+      }
+    },
+    {
+      "operation": "merge",
+      "slug": "merge-pdf",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Merge PDF Files Online \u2014 Combine PDFs Free | Paperplane"
+      }
+    },
+    {
+      "operation": "split",
+      "slug": "split-pdf",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Split PDF Online \u2014 Extract Pages & Ranges Free | Paperplane"
+      }
+    },
+    {
+      "operation": "remove",
+      "slug": "remove-pages-pdf",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Remove Pages from PDF Online \u2014 Delete PDF Pages | Paperplane"
+      }
+    },
+    {
+      "operation": "rotate",
+      "slug": "rotate-pdf",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Rotate an Entire PDF Online \u2014 Turn Pages 90\u00b0 or 180\u00b0 | Paperplane"
+      }
+    },
+    {
+      "operation": "organize",
+      "slug": "organize-pdf",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Organize PDF Pages Online \u2014 Reorder, Rotate & Delete | Paperplane"
+      }
+    },
+    {
+      "operation": "scan_pdf",
+      "slug": "scan-to-pdf",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Scan to PDF Online \u2014 Convert Photos & Scans | Paperplane"
+      }
+    },
+    {
+      "operation": "compress",
+      "slug": "compress-pdf",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Compress PDF Online \u2014 Reduce PDF File Size | Paperplane"
+      }
+    },
+    {
+      "operation": "repair",
+      "slug": "repair-pdf",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Repair PDF Online \u2014 Fix Corrupted PDF Files | Paperplane"
+      }
+    },
+    {
+      "operation": "ocr",
+      "slug": "ocr-pdf",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "OCR PDF Online \u2014 Make Scanned PDFs Searchable | Paperplane"
+      }
+    },
+    {
+      "operation": "jpg_to_pdf",
+      "slug": "jpg-to-pdf",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "JPG to PDF Converter \u2014 Convert Images to PDF Free | Paperplane"
+      }
+    },
+    {
+      "operation": "word_to_pdf",
+      "slug": "word-to-pdf",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Word to PDF Converter \u2014 Convert DOCX to PDF | Paperplane"
+      }
+    },
+    {
+      "operation": "excel_to_pdf",
+      "slug": "excel-to-pdf",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Excel to PDF Converter \u2014 Convert XLSX Spreadsheets | Paperplane"
+      }
+    },
+    {
+      "operation": "powerpoint_to_pdf",
+      "slug": "powerpoint-to-pdf",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "PowerPoint to PDF Converter \u2014 Convert PPTX Slides | Paperplane"
+      }
+    },
+    {
+      "operation": "html_to_pdf",
+      "slug": "html-to-pdf",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "HTML to PDF Converter \u2014 Render Web Pages to PDF | Paperplane"
+      }
+    },
+    {
+      "operation": "pdf_to_jpg",
+      "slug": "pdf-to-jpg",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "PDF to JPG Converter \u2014 Convert PDF Pages to Images | Paperplane"
+      }
+    },
+    {
+      "operation": "pdf_to_word",
+      "slug": "pdf-to-word",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "PDF to Word Converter \u2014 Convert PDF to DOCX | Paperplane"
+      }
+    },
+    {
+      "operation": "pdf_to_excel",
+      "slug": "pdf-to-excel",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "PDF to Excel Converter \u2014 Extract Tables to XLSX | Paperplane"
+      }
+    },
+    {
+      "operation": "pdf_to_powerpoint",
+      "slug": "pdf-to-powerpoint",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "PDF to PowerPoint Converter \u2014 Convert PDF to PPTX | Paperplane"
+      }
+    },
+    {
+      "operation": "pdf_to_pdfa",
+      "slug": "pdf-to-pdfa",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "PDF to PDF/A Converter \u2014 Create Archive-Ready PDFs | Paperplane"
+      }
+    },
+    {
+      "operation": "pdf_to_text",
+      "slug": "pdf-to-text",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "PDF to Text Converter \u2014 Extract Text from PDF | Paperplane"
+      }
+    },
+    {
+      "operation": "pdf_to_markdown",
+      "slug": "pdf-to-markdown",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "PDF to Markdown Converter \u2014 Export Structured Text | Paperplane"
+      }
+    },
+    {
+      "operation": "edit",
+      "slug": "edit-pdf",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Edit PDF Online \u2014 Add Text, Stamps & Shapes | Paperplane"
+      }
+    },
+    {
+      "operation": "annotate",
+      "slug": "annotate-pdf",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Annotate PDF Online \u2014 Highlight, Draw & Comment | Paperplane"
+      }
+    },
+    {
+      "operation": "crop",
+      "slug": "crop-pdf",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Crop PDF Online \u2014 Trim Margins & Page Size | Paperplane"
+      }
+    },
+    {
+      "operation": "redact",
+      "slug": "redact-pdf",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Redact PDF Online \u2014 Permanently Remove Sensitive Text | Paperplane"
+      }
+    },
+    {
+      "operation": "watermark",
+      "slug": "watermark-pdf",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Watermark PDF Online \u2014 Add Text or Image Watermarks | Paperplane"
+      }
+    },
+    {
+      "operation": "page_numbers",
+      "slug": "add-page-numbers-to-pdf",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Add Page Numbers to PDF Online \u2014 Header & Footer | Paperplane"
+      }
+    },
+    {
+      "operation": "protect",
+      "slug": "protect-pdf",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Protect PDF Online \u2014 Password Encrypt with AES-256 | Paperplane"
+      }
+    },
+    {
+      "operation": "unlock",
+      "slug": "unlock-pdf",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Unlock PDF Online \u2014 Remove Password Protection | Paperplane"
+      }
+    },
+    {
+      "operation": "sign",
+      "slug": "sign-pdf",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Sign PDF Online \u2014 Add Visual or Digital Signatures | Paperplane"
+      }
+    },
+    {
+      "operation": "compare",
+      "slug": "compare-pdf",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Compare PDF Files Online \u2014 Find Document Differences | Paperplane"
+      }
+    },
+    {
+      "operation": "forms",
+      "slug": "fill-pdf-form",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Fill PDF Forms Online \u2014 Populate & Flatten PDF Forms | Paperplane"
+      }
+    },
+    {
+      "operation": "metadata",
+      "slug": "pdf-metadata",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Edit PDF Metadata Online \u2014 Change Author, Title & Subject | Paperplane"
+      }
+    },
+    {
+      "operation": "ai_chat",
+      "slug": "ai-pdf-chat",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "AI PDF Chat \u2014 Ask Questions with Page Citations | Paperplane"
+      }
+    },
+    {
+      "operation": "ai_extract",
+      "slug": "extract-pdf-data",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Extract Data from PDF \u2014 AI Invoice & Resume Extraction | Paperplane"
+      }
+    },
+    {
+      "operation": "summarize",
+      "slug": "summarize-pdf",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Summarize PDF Online \u2014 Generate an Executive Brief | Paperplane"
+      }
+    },
+    {
+      "operation": "translate",
+      "slug": "translate-pdf",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Translate PDF Online \u2014 Convert Document Language | Paperplane"
+      }
+    },
+    {
+      "operation": "photo_resizer",
+      "slug": "ssc-photo-resizer",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Exam Photo & Signature Resizer for SSC & UPSC (20KB - 50KB) | Paperplane"
+      }
+    },
+    {
+      "operation": "photo_compress",
+      "slug": "compress-image-online",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Compress Photo & Image Online Free (Target KB) | Paperplane"
+      }
+    },
+    {
+      "operation": "photo_resize",
+      "slug": "resize-image-dimensions",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Resize Photo Dimensions Online Free | Paperplane"
+      }
+    },
+    {
+      "operation": "photo_merge",
+      "slug": "merge-photos-online",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Merge Photos into One Online Free | Paperplane"
+      }
+    },
+    {
+      "operation": "mask_aadhaar",
+      "slug": "mask-aadhaar-card-online",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Mask Aadhaar Card Online Free \u2014 UIDAI Compliant First 8 Digits Redaction | Paperplane"
+      }
+    },
+    {
+      "operation": "grayscale",
+      "slug": "convert-pdf-to-grayscale",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Convert PDF to Grayscale for Printing | Paperplane"
+      }
+    },
+    {
+      "operation": "flatten",
+      "slug": "flatten-pdf",
+      "viewport": 1366,
+      "status": 200,
+      "layout": {
+        "width": 1366,
+        "documentWidth": 1366,
+        "bodyWidth": 1366,
+        "title": "Flatten PDF Forms Online Free | Paperplane"
+      }
+    },
+    {
+      "operation": "merge",
+      "slug": "merge-pdf",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Merge PDF Files Online \u2014 Combine PDFs Free | Paperplane"
+      }
+    },
+    {
+      "operation": "split",
+      "slug": "split-pdf",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Split PDF Online \u2014 Extract Pages & Ranges Free | Paperplane"
+      }
+    },
+    {
+      "operation": "remove",
+      "slug": "remove-pages-pdf",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Remove Pages from PDF Online \u2014 Delete PDF Pages | Paperplane"
+      }
+    },
+    {
+      "operation": "rotate",
+      "slug": "rotate-pdf",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Rotate an Entire PDF Online \u2014 Turn Pages 90\u00b0 or 180\u00b0 | Paperplane"
+      }
+    },
+    {
+      "operation": "organize",
+      "slug": "organize-pdf",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Organize PDF Pages Online \u2014 Reorder, Rotate & Delete | Paperplane"
+      }
+    },
+    {
+      "operation": "scan_pdf",
+      "slug": "scan-to-pdf",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Scan to PDF Online \u2014 Convert Photos & Scans | Paperplane"
+      }
+    },
+    {
+      "operation": "compress",
+      "slug": "compress-pdf",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Compress PDF Online \u2014 Reduce PDF File Size | Paperplane"
+      }
+    },
+    {
+      "operation": "repair",
+      "slug": "repair-pdf",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Repair PDF Online \u2014 Fix Corrupted PDF Files | Paperplane"
+      }
+    },
+    {
+      "operation": "ocr",
+      "slug": "ocr-pdf",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "OCR PDF Online \u2014 Make Scanned PDFs Searchable | Paperplane"
+      }
+    },
+    {
+      "operation": "jpg_to_pdf",
+      "slug": "jpg-to-pdf",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "JPG to PDF Converter \u2014 Convert Images to PDF Free | Paperplane"
+      }
+    },
+    {
+      "operation": "word_to_pdf",
+      "slug": "word-to-pdf",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Word to PDF Converter \u2014 Convert DOCX to PDF | Paperplane"
+      }
+    },
+    {
+      "operation": "excel_to_pdf",
+      "slug": "excel-to-pdf",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Excel to PDF Converter \u2014 Convert XLSX Spreadsheets | Paperplane"
+      }
+    },
+    {
+      "operation": "powerpoint_to_pdf",
+      "slug": "powerpoint-to-pdf",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "PowerPoint to PDF Converter \u2014 Convert PPTX Slides | Paperplane"
+      }
+    },
+    {
+      "operation": "html_to_pdf",
+      "slug": "html-to-pdf",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "HTML to PDF Converter \u2014 Render Web Pages to PDF | Paperplane"
+      }
+    },
+    {
+      "operation": "pdf_to_jpg",
+      "slug": "pdf-to-jpg",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "PDF to JPG Converter \u2014 Convert PDF Pages to Images | Paperplane"
+      }
+    },
+    {
+      "operation": "pdf_to_word",
+      "slug": "pdf-to-word",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "PDF to Word Converter \u2014 Convert PDF to DOCX | Paperplane"
+      }
+    },
+    {
+      "operation": "pdf_to_excel",
+      "slug": "pdf-to-excel",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "PDF to Excel Converter \u2014 Extract Tables to XLSX | Paperplane"
+      }
+    },
+    {
+      "operation": "pdf_to_powerpoint",
+      "slug": "pdf-to-powerpoint",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "PDF to PowerPoint Converter \u2014 Convert PDF to PPTX | Paperplane"
+      }
+    },
+    {
+      "operation": "pdf_to_pdfa",
+      "slug": "pdf-to-pdfa",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "PDF to PDF/A Converter \u2014 Create Archive-Ready PDFs | Paperplane"
+      }
+    },
+    {
+      "operation": "pdf_to_text",
+      "slug": "pdf-to-text",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "PDF to Text Converter \u2014 Extract Text from PDF | Paperplane"
+      }
+    },
+    {
+      "operation": "pdf_to_markdown",
+      "slug": "pdf-to-markdown",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "PDF to Markdown Converter \u2014 Export Structured Text | Paperplane"
+      }
+    },
+    {
+      "operation": "edit",
+      "slug": "edit-pdf",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Edit PDF Online \u2014 Add Text, Stamps & Shapes | Paperplane"
+      }
+    },
+    {
+      "operation": "annotate",
+      "slug": "annotate-pdf",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Annotate PDF Online \u2014 Highlight, Draw & Comment | Paperplane"
+      }
+    },
+    {
+      "operation": "crop",
+      "slug": "crop-pdf",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Crop PDF Online \u2014 Trim Margins & Page Size | Paperplane"
+      }
+    },
+    {
+      "operation": "redact",
+      "slug": "redact-pdf",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Redact PDF Online \u2014 Permanently Remove Sensitive Text | Paperplane"
+      }
+    },
+    {
+      "operation": "watermark",
+      "slug": "watermark-pdf",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Watermark PDF Online \u2014 Add Text or Image Watermarks | Paperplane"
+      }
+    },
+    {
+      "operation": "page_numbers",
+      "slug": "add-page-numbers-to-pdf",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Add Page Numbers to PDF Online \u2014 Header & Footer | Paperplane"
+      }
+    },
+    {
+      "operation": "protect",
+      "slug": "protect-pdf",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Protect PDF Online \u2014 Password Encrypt with AES-256 | Paperplane"
+      }
+    },
+    {
+      "operation": "unlock",
+      "slug": "unlock-pdf",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Unlock PDF Online \u2014 Remove Password Protection | Paperplane"
+      }
+    },
+    {
+      "operation": "sign",
+      "slug": "sign-pdf",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Sign PDF Online \u2014 Add Visual or Digital Signatures | Paperplane"
+      }
+    },
+    {
+      "operation": "compare",
+      "slug": "compare-pdf",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Compare PDF Files Online \u2014 Find Document Differences | Paperplane"
+      }
+    },
+    {
+      "operation": "forms",
+      "slug": "fill-pdf-form",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Fill PDF Forms Online \u2014 Populate & Flatten PDF Forms | Paperplane"
+      }
+    },
+    {
+      "operation": "metadata",
+      "slug": "pdf-metadata",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Edit PDF Metadata Online \u2014 Change Author, Title & Subject | Paperplane"
+      }
+    },
+    {
+      "operation": "ai_chat",
+      "slug": "ai-pdf-chat",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "AI PDF Chat \u2014 Ask Questions with Page Citations | Paperplane"
+      }
+    },
+    {
+      "operation": "ai_extract",
+      "slug": "extract-pdf-data",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Extract Data from PDF \u2014 AI Invoice & Resume Extraction | Paperplane"
+      }
+    },
+    {
+      "operation": "summarize",
+      "slug": "summarize-pdf",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Summarize PDF Online \u2014 Generate an Executive Brief | Paperplane"
+      }
+    },
+    {
+      "operation": "translate",
+      "slug": "translate-pdf",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Translate PDF Online \u2014 Convert Document Language | Paperplane"
+      }
+    },
+    {
+      "operation": "photo_resizer",
+      "slug": "ssc-photo-resizer",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Exam Photo & Signature Resizer for SSC & UPSC (20KB - 50KB) | Paperplane"
+      }
+    },
+    {
+      "operation": "photo_compress",
+      "slug": "compress-image-online",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Compress Photo & Image Online Free (Target KB) | Paperplane"
+      }
+    },
+    {
+      "operation": "photo_resize",
+      "slug": "resize-image-dimensions",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Resize Photo Dimensions Online Free | Paperplane"
+      }
+    },
+    {
+      "operation": "photo_merge",
+      "slug": "merge-photos-online",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Merge Photos into One Online Free | Paperplane"
+      }
+    },
+    {
+      "operation": "mask_aadhaar",
+      "slug": "mask-aadhaar-card-online",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Mask Aadhaar Card Online Free \u2014 UIDAI Compliant First 8 Digits Redaction | Paperplane"
+      }
+    },
+    {
+      "operation": "grayscale",
+      "slug": "convert-pdf-to-grayscale",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Convert PDF to Grayscale for Printing | Paperplane"
+      }
+    },
+    {
+      "operation": "flatten",
+      "slug": "flatten-pdf",
+      "viewport": 1920,
+      "status": 200,
+      "layout": {
+        "width": 1920,
+        "documentWidth": 1920,
+        "bodyWidth": 1920,
+        "title": "Flatten PDF Forms Online Free | Paperplane"
+      }
+    }
+  ]
+}

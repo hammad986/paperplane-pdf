@@ -1,0 +1,53 @@
+{
+  "base": "http://127.0.0.1:8765",
+  "rounds": [
+    {
+      "round": 1,
+      "operation": "watermark",
+      "http": 200,
+      "download": "id345-watermark-round1.pdf",
+      "pdf_text": "DARK PAGE SOURCE MARKER\nDARK REPORT",
+      "red_mark": true
+    },
+    {
+      "round": 1,
+      "operation": "page_numbers",
+      "http": 200,
+      "download": "id345-page_numbers-round1.pdf",
+      "pdf_text": "DARK PAGE SOURCE MARKER\nPage 1 of 1",
+      "red_mark": true
+    },
+    {
+      "round": 1,
+      "operation": "sign",
+      "http": 200,
+      "download": "id345-sign-round1.pdf",
+      "pdf_text": "DARK PAGE SOURCE MARKER\nAudit Signer\nAudit Signer | 2026-11-18 02:48",
+      "red_mark": true
+    },
+    {
+      "round": 2,
+      "operation": "watermark",
+      "http": 200,
+      "download": "id345-watermark-round2.pdf",
+      "pdf_text": "DARK PAGE SOURCE MARKER\nDARK REPORT",
+      "red_mark": true
+    },
+    {
+      "round": 2,
+      "operation": "page_numbers",
+      "http": 200,
+      "download": "id345-page_numbers-round2.pdf",
+      "pdf_text": "DARK PAGE SOURCE MARKER\nPage 1 of 1",
+      "red_mark": true
+    },
+    {
+      "round": 2,
+      "operation": "sign",
+      "http": 200,
+      "download": "id345-sign-round2.pdf",
+      "pdf_text": "DARK PAGE SOURCE MARKER\nAudit Signer\nAudit Signer | 2026-11-18 02:48",
+      "red_mark": true
+    }
+  ]
+}

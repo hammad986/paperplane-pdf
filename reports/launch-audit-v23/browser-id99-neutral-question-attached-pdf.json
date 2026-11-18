@@ -1,0 +1,30 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "question": "What is the value for Item B?",
+      "response": {
+        "text": "Item A value: 100 Item B value: 200 Item C value: 300 Page 1(Extracted via deterministic local BM25 keyword matching)",
+        "html": "<p>Item A value: 100 Item B value: 200 Item C value: 300 <span class=\"ai-citation-tag\" role=\"button\" tabindex=\"0\" data-ai-page=\"1\" title=\"Open page 1 in Studio\">Page 1</span></p><p><em>(Extracted via deterministic local BM25 keyword matching)</em></p>",
+        "citations": [
+          1
+        ],
+        "mode": "Local document extract \u00b7 AI provider is disabled"
+      },
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "question": "What is the value for Item B?",
+      "response": {
+        "text": "Item A value: 100 Item B value: 200 Item C value: 300 Page 1(Extracted via deterministic local BM25 keyword matching)",
+        "html": "<p>Item A value: 100 Item B value: 200 Item C value: 300 <span class=\"ai-citation-tag\" role=\"button\" tabindex=\"0\" data-ai-page=\"1\" title=\"Open page 1 in Studio\">Page 1</span></p><p><em>(Extracted via deterministic local BM25 keyword matching)</em></p>",
+        "citations": [
+          1
+        ],
+        "mode": "Local document extract \u00b7 AI provider is disabled"
+      },
+      "page_errors": []
+    }
+  ]
+}

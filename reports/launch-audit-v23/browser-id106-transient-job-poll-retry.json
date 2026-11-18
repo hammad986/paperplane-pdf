@@ -1,0 +1,23 @@
+{
+  "scenario": "authenticated-free-safe local server job with a single transient 502 on GET status polling",
+  "rounds": [
+    {
+      "round": 1,
+      "status_poll_http_502_injected": true,
+      "status_poll_attempts": 2,
+      "output_pages": 1,
+      "output_rotation": 90,
+      "expected_marker": "ID106 RETRY OUTPUT MARKER",
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "status_poll_http_502_injected": true,
+      "status_poll_attempts": 2,
+      "output_pages": 1,
+      "output_rotation": 90,
+      "expected_marker": "ID106 RETRY OUTPUT MARKER",
+      "page_errors": []
+    }
+  ]
+}

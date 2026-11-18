@@ -1,0 +1,218 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "routes": [
+        {
+          "route": "/rotate-pdf",
+          "status": 200,
+          "step_copy": [
+            "01Choose a toolSearch for a task or filter the directory by category to open the matching workflow.",
+            "02Add your sourceSelect a file or complete the inputs shown for that tool. Review its available options before running it.",
+            "03Review the resultCheck the result details and download the generated file from the result panel.",
+            "01Choose a platformSelect the desktop or mobile platform you want updates about.",
+            "02Enter your emailProvide an address where Paperplane can send app availability updates.",
+            "03Join the waitlistSubmit the form to register interest. No app installer is available to download yet.",
+            "01\nUpload the PDF\n\nThe upload area above lists the supported file types and limits for this tool.",
+            "02\nChoose the rotation angle\n\nUse only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+            "03\nDownload the reoriented PDF\n\nReview the result details, then download and open the output to check it."
+          ],
+          "page_range_control": 0,
+          "selected_pages_claim": false,
+          "plain_text_report_copy": false,
+          "rotate_selector": 0
+        },
+        {
+          "route": "/pdf-to-text",
+          "status": 200,
+          "step_copy": [
+            "01Choose a toolSearch for a task or filter the directory by category to open the matching workflow.",
+            "02Add your sourceSelect a file or complete the inputs shown for that tool. Review its available options before running it.",
+            "03Review the resultCheck the result details and download the generated file from the result panel.",
+            "01Choose a platformSelect the desktop or mobile platform you want updates about.",
+            "02Enter your emailProvide an address where Paperplane can send app availability updates.",
+            "03Join the waitlistSubmit the form to register interest. No app installer is available to download yet.",
+            "01\nSelect a text-based PDF\n\nThe upload area above lists the supported file types and limits for this tool.",
+            "02\nExtract text from the full document\n\nUse only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+            "03\nDownload the plain text result\n\nReview the result details, then download and open the output to check it."
+          ],
+          "page_range_control": 0,
+          "selected_pages_claim": false,
+          "plain_text_report_copy": false,
+          "rotate_selector": 0
+        },
+        {
+          "route": "/pdf-to-jpg",
+          "status": 200,
+          "step_copy": [
+            "01Choose a toolSearch for a task or filter the directory by category to open the matching workflow.",
+            "02Add your sourceSelect a file or complete the inputs shown for that tool. Review its available options before running it.",
+            "03Review the resultCheck the result details and download the generated file from the result panel.",
+            "01Choose a platformSelect the desktop or mobile platform you want updates about.",
+            "02Enter your emailProvide an address where Paperplane can send app availability updates.",
+            "03Join the waitlistSubmit the form to register interest. No app installer is available to download yet.",
+            "01\nUpload the source PDF\n\nSelect the PDF whose pages should become images.",
+            "02\nAfter upload, choose an export resolution\n\nAfter selecting the PDF, choose an export resolution from the available control; the tool exports every page.",
+            "03\nDownload the JPG image bundle\n\nDownload the ZIP and review the page images at the selected resolution."
+          ],
+          "page_range_control": 0,
+          "selected_pages_claim": false,
+          "plain_text_report_copy": false,
+          "rotate_selector": 0,
+          "resolution_control_count": 1
+        },
+        {
+          "route": "/compare-pdf",
+          "status": 200,
+          "step_copy": [
+            "01Choose a toolSearch for a task or filter the directory by category to open the matching workflow.",
+            "02Add your sourceSelect a file or complete the inputs shown for that tool. Review its available options before running it.",
+            "03Review the resultCheck the result details and download the generated file from the result panel.",
+            "01Choose a platformSelect the desktop or mobile platform you want updates about.",
+            "02Enter your emailProvide an address where Paperplane can send app availability updates.",
+            "03Join the waitlistSubmit the form to register interest. No app installer is available to download yet.",
+            "01\nUpload the original and revised PDFs\n\nThe upload area above lists the supported file types and limits for this tool.",
+            "02\nRun the page and text comparison\n\nUse only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+            "03\nDownload the plain-text comparison report\n\nReview the result details, then download and open the output to check it."
+          ],
+          "page_range_control": 0,
+          "selected_pages_claim": false,
+          "plain_text_report_copy": true,
+          "rotate_selector": 0
+        },
+        {
+          "route": "/pdf-metadata",
+          "status": 200,
+          "step_copy": [
+            "01Choose a toolSearch for a task or filter the directory by category to open the matching workflow.",
+            "02Add your sourceSelect a file or complete the inputs shown for that tool. Review its available options before running it.",
+            "03Review the resultCheck the result details and download the generated file from the result panel.",
+            "01Choose a platformSelect the desktop or mobile platform you want updates about.",
+            "02Enter your emailProvide an address where Paperplane can send app availability updates.",
+            "03Join the waitlistSubmit the form to register interest. No app installer is available to download yet.",
+            "01\nUpload the PDF\n\nSelect the PDF whose document properties you want to update.",
+            "02\nReview or update its title, author, and subject\n\nReview or edit only the title, author, and subject fields shown above.",
+            "03\nSave the updated metadata and download\n\nDownload the updated PDF and check its properties in a PDF reader."
+          ],
+          "page_range_control": 0,
+          "selected_pages_claim": false,
+          "plain_text_report_copy": false,
+          "rotate_selector": 0,
+          "metadata_controls": [
+            "#title",
+            "#author",
+            "#subject"
+          ]
+        }
+      ],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "routes": [
+        {
+          "route": "/rotate-pdf",
+          "status": 200,
+          "step_copy": [
+            "01Choose a toolSearch for a task or filter the directory by category to open the matching workflow.",
+            "02Add your sourceSelect a file or complete the inputs shown for that tool. Review its available options before running it.",
+            "03Review the resultCheck the result details and download the generated file from the result panel.",
+            "01Choose a platformSelect the desktop or mobile platform you want updates about.",
+            "02Enter your emailProvide an address where Paperplane can send app availability updates.",
+            "03Join the waitlistSubmit the form to register interest. No app installer is available to download yet.",
+            "01\nUpload the PDF\n\nThe upload area above lists the supported file types and limits for this tool.",
+            "02\nChoose the rotation angle\n\nUse only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+            "03\nDownload the reoriented PDF\n\nReview the result details, then download and open the output to check it."
+          ],
+          "page_range_control": 0,
+          "selected_pages_claim": false,
+          "plain_text_report_copy": false,
+          "rotate_selector": 0
+        },
+        {
+          "route": "/pdf-to-text",
+          "status": 200,
+          "step_copy": [
+            "01Choose a toolSearch for a task or filter the directory by category to open the matching workflow.",
+            "02Add your sourceSelect a file or complete the inputs shown for that tool. Review its available options before running it.",
+            "03Review the resultCheck the result details and download the generated file from the result panel.",
+            "01Choose a platformSelect the desktop or mobile platform you want updates about.",
+            "02Enter your emailProvide an address where Paperplane can send app availability updates.",
+            "03Join the waitlistSubmit the form to register interest. No app installer is available to download yet.",
+            "01\nSelect a text-based PDF\n\nThe upload area above lists the supported file types and limits for this tool.",
+            "02\nExtract text from the full document\n\nUse only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+            "03\nDownload the plain text result\n\nReview the result details, then download and open the output to check it."
+          ],
+          "page_range_control": 0,
+          "selected_pages_claim": false,
+          "plain_text_report_copy": false,
+          "rotate_selector": 0
+        },
+        {
+          "route": "/pdf-to-jpg",
+          "status": 200,
+          "step_copy": [
+            "01Choose a toolSearch for a task or filter the directory by category to open the matching workflow.",
+            "02Add your sourceSelect a file or complete the inputs shown for that tool. Review its available options before running it.",
+            "03Review the resultCheck the result details and download the generated file from the result panel.",
+            "01Choose a platformSelect the desktop or mobile platform you want updates about.",
+            "02Enter your emailProvide an address where Paperplane can send app availability updates.",
+            "03Join the waitlistSubmit the form to register interest. No app installer is available to download yet.",
+            "01\nUpload the source PDF\n\nSelect the PDF whose pages should become images.",
+            "02\nAfter upload, choose an export resolution\n\nAfter selecting the PDF, choose an export resolution from the available control; the tool exports every page.",
+            "03\nDownload the JPG image bundle\n\nDownload the ZIP and review the page images at the selected resolution."
+          ],
+          "page_range_control": 0,
+          "selected_pages_claim": false,
+          "plain_text_report_copy": false,
+          "rotate_selector": 0,
+          "resolution_control_count": 1
+        },
+        {
+          "route": "/compare-pdf",
+          "status": 200,
+          "step_copy": [
+            "01Choose a toolSearch for a task or filter the directory by category to open the matching workflow.",
+            "02Add your sourceSelect a file or complete the inputs shown for that tool. Review its available options before running it.",
+            "03Review the resultCheck the result details and download the generated file from the result panel.",
+            "01Choose a platformSelect the desktop or mobile platform you want updates about.",
+            "02Enter your emailProvide an address where Paperplane can send app availability updates.",
+            "03Join the waitlistSubmit the form to register interest. No app installer is available to download yet.",
+            "01\nUpload the original and revised PDFs\n\nThe upload area above lists the supported file types and limits for this tool.",
+            "02\nRun the page and text comparison\n\nUse only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+            "03\nDownload the plain-text comparison report\n\nReview the result details, then download and open the output to check it."
+          ],
+          "page_range_control": 0,
+          "selected_pages_claim": false,
+          "plain_text_report_copy": true,
+          "rotate_selector": 0
+        },
+        {
+          "route": "/pdf-metadata",
+          "status": 200,
+          "step_copy": [
+            "01Choose a toolSearch for a task or filter the directory by category to open the matching workflow.",
+            "02Add your sourceSelect a file or complete the inputs shown for that tool. Review its available options before running it.",
+            "03Review the resultCheck the result details and download the generated file from the result panel.",
+            "01Choose a platformSelect the desktop or mobile platform you want updates about.",
+            "02Enter your emailProvide an address where Paperplane can send app availability updates.",
+            "03Join the waitlistSubmit the form to register interest. No app installer is available to download yet.",
+            "01\nUpload the PDF\n\nSelect the PDF whose document properties you want to update.",
+            "02\nReview or update its title, author, and subject\n\nReview or edit only the title, author, and subject fields shown above.",
+            "03\nSave the updated metadata and download\n\nDownload the updated PDF and check its properties in a PDF reader."
+          ],
+          "page_range_control": 0,
+          "selected_pages_claim": false,
+          "plain_text_report_copy": false,
+          "rotate_selector": 0,
+          "metadata_controls": [
+            "#title",
+            "#author",
+            "#subject"
+          ]
+        }
+      ],
+      "page_errors": []
+    }
+  ]
+}

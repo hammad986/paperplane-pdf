@@ -1,0 +1,520 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "tool_runs": [
+        {
+          "route": "jpg-to-pdf",
+          "operation": "jpg_to_pdf",
+          "instructions": [
+            {
+              "text": "JPG/PNG to PDF",
+              "scroll": 476,
+              "client": 476,
+              "rect": {
+                "left": 335,
+                "right": 811.328125
+              }
+            },
+            {
+              "text": "Convert JPG, PNG, and TIFF images into a high-quality PDF.",
+              "scroll": 476,
+              "client": 476,
+              "rect": {
+                "left": 335,
+                "right": 811.328125
+              }
+            },
+            {
+              "text": "Drop your document here",
+              "scroll": 964,
+              "client": 964,
+              "rect": {
+                "left": 336,
+                "right": 1300
+              }
+            },
+            {
+              "text": "or browse files or import from Google Drive / Dropbox",
+              "scroll": 964,
+              "client": 964,
+              "rect": {
+                "left": 336,
+                "right": 1300
+              }
+            }
+          ],
+          "scan_responsive_layouts": [],
+          "progress_events": [
+            {
+              "percent": "Working",
+              "title": "Uploading files\u2026"
+            },
+            {
+              "percent": "100%",
+              "title": "Uploading files\u2026"
+            },
+            {
+              "percent": "Working",
+              "title": "Upload complete. Processing your document\u2026"
+            },
+            {
+              "percent": "100%",
+              "title": "Finished!"
+            }
+          ],
+          "download": {
+            "pages": 1,
+            "bytes": 25475,
+            "text": "",
+            "dark_pixels": 353,
+            "raster_min": 126,
+            "raster_max": 255,
+            "raster_mean": 254.83478933188798,
+            "raster_size": [
+              298,
+              421
+            ]
+          },
+          "page_errors": []
+        },
+        {
+          "route": "scan-to-pdf",
+          "operation": "scan_pdf",
+          "instructions": [
+            {
+              "text": "Scan to PDF",
+              "scroll": 650,
+              "client": 650,
+              "rect": {
+                "left": 335,
+                "right": 985
+              }
+            },
+            {
+              "text": "Create PDF pages from scanned photos in A4, US Letter, or original photo size at 200 DPI. Automatic contrast and sharpness enhancement is applied.",
+              "scroll": 650,
+              "client": 650,
+              "rect": {
+                "left": 335,
+                "right": 985
+              }
+            },
+            {
+              "text": "Drop your document here",
+              "scroll": 964,
+              "client": 964,
+              "rect": {
+                "left": 334.69390869140625,
+                "right": 1301.30615234375
+              }
+            },
+            {
+              "text": "or browse files or import from Google Drive / Dropbox",
+              "scroll": 964,
+              "client": 964,
+              "rect": {
+                "left": 334.69390869140625,
+                "right": 1301.30615234375
+              }
+            }
+          ],
+          "scan_responsive_layouts": [
+            {
+              "viewport": 320,
+              "body": 320,
+              "copy": [
+                {
+                  "text": "Scan to PDF",
+                  "scroll": 274,
+                  "client": 274,
+                  "left": 23,
+                  "right": 297
+                },
+                {
+                  "text": "Create PDF pages from scanned photos in A4, US Letter, or original photo size at 200 DPI. Automatic contrast and sharpness enhancement is applied.",
+                  "scroll": 274,
+                  "client": 274,
+                  "left": 23,
+                  "right": 297
+                },
+                {
+                  "text": "Drop your document here",
+                  "scroll": 272,
+                  "client": 272,
+                  "left": 24,
+                  "right": 296
+                },
+                {
+                  "text": "or browse files or import from Google Drive / Dropbox",
+                  "scroll": 272,
+                  "client": 272,
+                  "left": 24,
+                  "right": 296
+                }
+              ]
+            },
+            {
+              "viewport": 390,
+              "body": 390,
+              "copy": [
+                {
+                  "text": "Scan to PDF",
+                  "scroll": 344,
+                  "client": 344,
+                  "left": 23,
+                  "right": 367
+                },
+                {
+                  "text": "Create PDF pages from scanned photos in A4, US Letter, or original photo size at 200 DPI. Automatic contrast and sharpness enhancement is applied.",
+                  "scroll": 344,
+                  "client": 344,
+                  "left": 23,
+                  "right": 367
+                },
+                {
+                  "text": "Drop your document here",
+                  "scroll": 342,
+                  "client": 342,
+                  "left": 24,
+                  "right": 366
+                },
+                {
+                  "text": "or browse files or import from Google Drive / Dropbox",
+                  "scroll": 342,
+                  "client": 342,
+                  "left": 24,
+                  "right": 366
+                }
+              ]
+            },
+            {
+              "viewport": 1366,
+              "body": 1366,
+              "copy": [
+                {
+                  "text": "Scan to PDF",
+                  "scroll": 650,
+                  "client": 650,
+                  "left": 335,
+                  "right": 985
+                },
+                {
+                  "text": "Create PDF pages from scanned photos in A4, US Letter, or original photo size at 200 DPI. Automatic contrast and sharpness enhancement is applied.",
+                  "scroll": 650,
+                  "client": 650,
+                  "left": 335,
+                  "right": 985
+                },
+                {
+                  "text": "Drop your document here",
+                  "scroll": 964,
+                  "client": 964,
+                  "left": 334.6943664550781,
+                  "right": 1301.3056945800781
+                },
+                {
+                  "text": "or browse files or import from Google Drive / Dropbox",
+                  "scroll": 964,
+                  "client": 964,
+                  "left": 334.6943664550781,
+                  "right": 1301.3056945800781
+                }
+              ]
+            }
+          ],
+          "progress_events": [
+            {
+              "percent": "Working",
+              "title": "Uploading files\u2026"
+            },
+            {
+              "percent": "100%",
+              "title": "Uploading files\u2026"
+            },
+            {
+              "percent": "Working",
+              "title": "Upload complete. Processing your document\u2026"
+            },
+            {
+              "percent": "100%",
+              "title": "Finished!"
+            }
+          ],
+          "download": {
+            "pages": 1,
+            "bytes": 25650,
+            "text": "",
+            "dark_pixels": 359,
+            "raster_min": 118,
+            "raster_max": 255,
+            "raster_mean": 254.82048972564525,
+            "raster_size": [
+              298,
+              421
+            ]
+          },
+          "page_errors": []
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "tool_runs": [
+        {
+          "route": "jpg-to-pdf",
+          "operation": "jpg_to_pdf",
+          "instructions": [
+            {
+              "text": "JPG/PNG to PDF",
+              "scroll": 476,
+              "client": 476,
+              "rect": {
+                "left": 335,
+                "right": 811.328125
+              }
+            },
+            {
+              "text": "Convert JPG, PNG, and TIFF images into a high-quality PDF.",
+              "scroll": 476,
+              "client": 476,
+              "rect": {
+                "left": 335,
+                "right": 811.328125
+              }
+            },
+            {
+              "text": "Drop your document here",
+              "scroll": 964,
+              "client": 964,
+              "rect": {
+                "left": 336,
+                "right": 1300
+              }
+            },
+            {
+              "text": "or browse files or import from Google Drive / Dropbox",
+              "scroll": 964,
+              "client": 964,
+              "rect": {
+                "left": 336,
+                "right": 1300
+              }
+            }
+          ],
+          "scan_responsive_layouts": [],
+          "progress_events": [
+            {
+              "percent": "Working",
+              "title": "Uploading files\u2026"
+            },
+            {
+              "percent": "100%",
+              "title": "Uploading files\u2026"
+            },
+            {
+              "percent": "Working",
+              "title": "Upload complete. Processing your document\u2026"
+            },
+            {
+              "percent": "100%",
+              "title": "Finished!"
+            }
+          ],
+          "download": {
+            "pages": 1,
+            "bytes": 25475,
+            "text": "",
+            "dark_pixels": 353,
+            "raster_min": 126,
+            "raster_max": 255,
+            "raster_mean": 254.83478933188798,
+            "raster_size": [
+              298,
+              421
+            ]
+          },
+          "page_errors": []
+        },
+        {
+          "route": "scan-to-pdf",
+          "operation": "scan_pdf",
+          "instructions": [
+            {
+              "text": "Scan to PDF",
+              "scroll": 650,
+              "client": 650,
+              "rect": {
+                "left": 335,
+                "right": 985
+              }
+            },
+            {
+              "text": "Create PDF pages from scanned photos in A4, US Letter, or original photo size at 200 DPI. Automatic contrast and sharpness enhancement is applied.",
+              "scroll": 650,
+              "client": 650,
+              "rect": {
+                "left": 335,
+                "right": 985
+              }
+            },
+            {
+              "text": "Drop your document here",
+              "scroll": 964,
+              "client": 964,
+              "rect": {
+                "left": 334.69464111328125,
+                "right": 1301.305419921875
+              }
+            },
+            {
+              "text": "or browse files or import from Google Drive / Dropbox",
+              "scroll": 964,
+              "client": 964,
+              "rect": {
+                "left": 334.69464111328125,
+                "right": 1301.305419921875
+              }
+            }
+          ],
+          "scan_responsive_layouts": [
+            {
+              "viewport": 320,
+              "body": 320,
+              "copy": [
+                {
+                  "text": "Scan to PDF",
+                  "scroll": 274,
+                  "client": 274,
+                  "left": 23,
+                  "right": 297
+                },
+                {
+                  "text": "Create PDF pages from scanned photos in A4, US Letter, or original photo size at 200 DPI. Automatic contrast and sharpness enhancement is applied.",
+                  "scroll": 274,
+                  "client": 274,
+                  "left": 23,
+                  "right": 297
+                },
+                {
+                  "text": "Drop your document here",
+                  "scroll": 272,
+                  "client": 272,
+                  "left": 24,
+                  "right": 296
+                },
+                {
+                  "text": "or browse files or import from Google Drive / Dropbox",
+                  "scroll": 272,
+                  "client": 272,
+                  "left": 24,
+                  "right": 296
+                }
+              ]
+            },
+            {
+              "viewport": 390,
+              "body": 390,
+              "copy": [
+                {
+                  "text": "Scan to PDF",
+                  "scroll": 344,
+                  "client": 344,
+                  "left": 23,
+                  "right": 367
+                },
+                {
+                  "text": "Create PDF pages from scanned photos in A4, US Letter, or original photo size at 200 DPI. Automatic contrast and sharpness enhancement is applied.",
+                  "scroll": 344,
+                  "client": 344,
+                  "left": 23,
+                  "right": 367
+                },
+                {
+                  "text": "Drop your document here",
+                  "scroll": 342,
+                  "client": 342,
+                  "left": 24,
+                  "right": 366
+                },
+                {
+                  "text": "or browse files or import from Google Drive / Dropbox",
+                  "scroll": 342,
+                  "client": 342,
+                  "left": 24,
+                  "right": 366
+                }
+              ]
+            },
+            {
+              "viewport": 1366,
+              "body": 1366,
+              "copy": [
+                {
+                  "text": "Scan to PDF",
+                  "scroll": 650,
+                  "client": 650,
+                  "left": 335,
+                  "right": 985
+                },
+                {
+                  "text": "Create PDF pages from scanned photos in A4, US Letter, or original photo size at 200 DPI. Automatic contrast and sharpness enhancement is applied.",
+                  "scroll": 650,
+                  "client": 650,
+                  "left": 335,
+                  "right": 985
+                },
+                {
+                  "text": "Drop your document here",
+                  "scroll": 964,
+                  "client": 964,
+                  "left": 334.6943664550781,
+                  "right": 1301.3056945800781
+                },
+                {
+                  "text": "or browse files or import from Google Drive / Dropbox",
+                  "scroll": 964,
+                  "client": 964,
+                  "left": 334.6943664550781,
+                  "right": 1301.3056945800781
+                }
+              ]
+            }
+          ],
+          "progress_events": [
+            {
+              "percent": "Working",
+              "title": "Uploading files\u2026"
+            },
+            {
+              "percent": "100%",
+              "title": "Uploading files\u2026"
+            },
+            {
+              "percent": "Working",
+              "title": "Upload complete. Processing your document\u2026"
+            },
+            {
+              "percent": "100%",
+              "title": "Finished!"
+            }
+          ],
+          "download": {
+            "pages": 1,
+            "bytes": 25650,
+            "text": "",
+            "dark_pixels": 359,
+            "raster_min": 118,
+            "raster_max": 255,
+            "raster_mean": 254.82048972564525,
+            "raster_size": [
+              298,
+              421
+            ]
+          },
+          "page_errors": []
+        }
+      ]
+    }
+  ]
+}

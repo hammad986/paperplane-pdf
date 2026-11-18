@@ -1,0 +1,18 @@
+{
+  "command": "pytest -q",
+  "runs": [
+    {
+      "run": 1,
+      "passed": 578,
+      "warnings": 4,
+      "duration_seconds": 115.38
+    },
+    {
+      "run": 2,
+      "passed": 578,
+      "warnings": 4,
+      "duration_seconds": 110.73
+    }
+  ],
+  "outcome": "both complete runs exited successfully"
+}

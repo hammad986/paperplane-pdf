@@ -1,0 +1,65 @@
+{
+  "route_count": 44,
+  "views": 88,
+  "visible_button_views": 86,
+  "separate_workspace_views": 2,
+  "failure_count": 0,
+  "failures": [],
+  "sample": [
+    {
+      "operation": "merge",
+      "slug": "merge-pdf",
+      "width": 390,
+      "status": 200,
+      "disabled": true,
+      "color": "rgb(87, 102, 106)",
+      "background": "rgba(248, 250, 249, 0.827)",
+      "opacity": "1",
+      "text": "Select files to continue\n\u2192",
+      "rect": {
+        "x": 16,
+        "y": 776,
+        "width": 358,
+        "height": 50
+      },
+      "contrast": 5.701
+    },
+    {
+      "operation": "split",
+      "slug": "split-pdf",
+      "width": 390,
+      "status": 200,
+      "disabled": true,
+      "color": "rgb(52, 70, 74)",
+      "background": "rgba(248, 250, 249, 0.996)",
+      "opacity": "1",
+      "text": "Select files to continue\n\u2192",
+      "rect": {
+        "x": 24,
+        "y": 608.0017700195312,
+        "width": 342,
+        "height": 50
+      },
+      "contrast": 9.445
+    },
+    {
+      "operation": "remove",
+      "slug": "remove-pages-pdf",
+      "width": 390,
+      "status": 200,
+      "disabled": true,
+      "color": "rgb(55, 73, 77)",
+      "background": "rgba(248, 250, 249, 0.984)",
+      "opacity": "1",
+      "text": "Enter pages to remove\n\u2192",
+      "rect": {
+        "x": 24,
+        "y": 614.1110229492188,
+        "width": 342,
+        "height": 50
+      },
+      "contrast": 9.013
+    }
+  ],
+  "page_errors": []
+}

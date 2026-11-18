@@ -1,0 +1,59 @@
+{
+  "network_subnet": "192.168.254.0/24",
+  "app_image": "paperplane-v23-audit:local",
+  "nginx_image": "nginx:1.27-alpine",
+  "html_status": 200,
+  "asset_status": 200,
+  "api_status": 200,
+  "http_redirect_status": 301,
+  "http_redirect_location": "https://localhost/",
+  "spoofed_xff_values": [
+    "203.0.113.99",
+    "198.51.100.77"
+  ],
+  "failed_login_statuses": [
+    401,
+    401
+  ],
+  "audit_ips_recorded_by_app": [
+    "192.168.254.1",
+    "192.168.254.1"
+  ],
+  "forwarded_ip_spoof_rejected": true,
+  "admin_lockout_spoof_values": [
+    "192.0.2.44",
+    "198.51.100.19",
+    "203.0.113.72"
+  ],
+  "admin_step1_statuses": [
+    401,
+    401,
+    423
+  ],
+  "admin_lockout_status_with_new_spoof": {
+    "locked": true,
+    "remaining_seconds": 86400.0
+  },
+  "admin_lockout_rows": [
+    [
+      "192.168.254.1",
+      3
+    ]
+  ],
+  "lockout_bucket_bound_to_actual_proxy_peer": true,
+  "checks": {
+    "html_hsts": true,
+    "html_csp": true,
+    "html_nosniff": true,
+    "html_frame_options": true,
+    "html_permissions_policy": true,
+    "html_server_version_hidden": true,
+    "asset_hsts": true,
+    "asset_csp": true,
+    "asset_cache_control": true,
+    "api_hsts": true,
+    "api_csp": true,
+    "health_json": true
+  },
+  "page_errors": []
+}

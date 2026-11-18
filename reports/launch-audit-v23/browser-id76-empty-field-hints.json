@@ -1,0 +1,46 @@
+{
+  "cases": [
+    {
+      "round": 1,
+      "operation": "remove",
+      "run_disabled": true,
+      "hint": "Enter one or more pages to remove, for example 2, 4-6.",
+      "aria_invalid": "true"
+    },
+    {
+      "round": 1,
+      "operation": "watermark",
+      "run_disabled": true,
+      "hint": "Enter watermark text or choose a watermark image.",
+      "aria_invalid": "true"
+    },
+    {
+      "round": 1,
+      "operation": "redact",
+      "run_disabled": true,
+      "hint": "Enter a word or phrase to redact.",
+      "aria_invalid": "true"
+    },
+    {
+      "round": 2,
+      "operation": "remove",
+      "run_disabled": true,
+      "hint": "Enter one or more pages to remove, for example 2, 4-6.",
+      "aria_invalid": "true"
+    },
+    {
+      "round": 2,
+      "operation": "watermark",
+      "run_disabled": true,
+      "hint": "Enter watermark text or choose a watermark image.",
+      "aria_invalid": "true"
+    },
+    {
+      "round": 2,
+      "operation": "redact",
+      "run_disabled": true,
+      "hint": "Enter a word or phrase to redact.",
+      "aria_invalid": "true"
+    }
+  ]
+}

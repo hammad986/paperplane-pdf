@@ -1,0 +1,55 @@
+{
+  "fixture": "totpdf-sample-5-pages.pdf",
+  "rounds": [
+    {
+      "round": 1,
+      "account": "audit-9ffc9568@example.invalid",
+      "routes": [
+        {
+          "route": "/summarize-pdf",
+          "status": 200,
+          "file_dropped_and_listed": true,
+          "cloud_modal_open": false
+        },
+        {
+          "route": "/compare-pdf",
+          "status": 200,
+          "file_dropped_and_listed": true,
+          "cloud_modal_open": false
+        },
+        {
+          "route": "/edit-pdf",
+          "status": 200,
+          "file_dropped_and_listed": true,
+          "cloud_modal_open": false
+        }
+      ],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "account": "audit-9ffc9568@example.invalid",
+      "routes": [
+        {
+          "route": "/summarize-pdf",
+          "status": 200,
+          "file_dropped_and_listed": true,
+          "cloud_modal_open": false
+        },
+        {
+          "route": "/compare-pdf",
+          "status": 200,
+          "file_dropped_and_listed": true,
+          "cloud_modal_open": false
+        },
+        {
+          "route": "/edit-pdf",
+          "status": 200,
+          "file_dropped_and_listed": true,
+          "cloud_modal_open": false
+        }
+      ],
+      "page_errors": []
+    }
+  ]
+}

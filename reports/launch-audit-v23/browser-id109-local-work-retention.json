@@ -1,0 +1,31 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "saved_studio_and_ai_records_before_clear": [
+        "guest:ai-conversation",
+        "guest:ai-pdf",
+        "guest:studio-pdf",
+        "guest:studio-position"
+      ],
+      "records_after_clear": [],
+      "reload_empty": true,
+      "privacy_disclosure": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "saved_studio_and_ai_records_before_clear": [
+        "guest:ai-conversation",
+        "guest:ai-pdf",
+        "guest:studio-pdf",
+        "guest:studio-position"
+      ],
+      "records_after_clear": [],
+      "reload_empty": true,
+      "privacy_disclosure": true,
+      "page_errors": []
+    }
+  ],
+  "scope": "local IndexedDB records are not covered by server job expiry; explicit Clear Studio removes Studio and AI saved work"
+}

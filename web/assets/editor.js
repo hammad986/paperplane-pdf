@@ -76,7 +76,7 @@ function genId() {
 // Utility: Deep clone
 // ---------------------------------------------------------------------------
 function cloneDeep(obj) {
-  return JSON.parse(JSON.stringify(obj));
+  return structuredClone(obj);
 }
 
 // ---------------------------------------------------------------------------
@@ -1773,11 +1773,28 @@ class PaperplaneEditorController {
     if (btn) { btn.disabled = true; btn.innerHTML = 'Exporting…'; }
 
     try {
-      const resp = await fetch('/api/studio/apply-edits', {
-        method: 'POST',
-        credentials: 'same-origin',
-        body: form,
-      });
+      let resp = null;
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          resp = await fetch('/api/studio/apply-edits', {
+            method: 'POST',
+            credentials: 'same-origin',
+            body: form,
+          });
+        } catch (error) {
+          if (attempt === 0 && error instanceof TypeError) {
+            window.showToast('Connection interrupted. Retrying export…', 'info');
+            continue;
+          }
+          throw error;
+        }
+        if (attempt === 0 && [502, 503, 504].includes(resp.status)) {
+          window.showToast('Export service is temporarily unavailable. Retrying…', 'info');
+          continue;
+        }
+        break;
+      }
+      if (!resp) throw new Error('Export did not return a response. Please try again.');
 
       if (!resp.ok) {
         const message = await window.readStudioResponseError(resp, 'Export failed');
@@ -1798,7 +1815,8 @@ class PaperplaneEditorController {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `edited_${this.editorState.sourceName || 'document.pdf'}`;
+      const outputFilename = `edited_${this.editorState.sourceName || 'document.pdf'}`;
+      a.download = outputFilename;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -1807,7 +1825,7 @@ class PaperplaneEditorController {
       this.editorState.markClean();
       this._unsaved = false;
       this._updateUnsavedIndicator();
-      window.showToast('Edited PDF exported successfully!', 'success');
+      window.showToast(`Edited PDF exported successfully: ${outputFilename}`, 'success');
       return blob;
     } catch (err) {
       window.showToast(err instanceof TypeError

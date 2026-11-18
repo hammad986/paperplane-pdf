@@ -1,0 +1,27 @@
+ID 247 verification record
+Date: 2026-11-18
+
+Implementation
+- Four previously generic sitemap routes now show their route-specific main heading.
+- /download and /apps have distinct titles, descriptions, headings, and truthful copy.
+- /privacy, /terms, and /developers render page-level H1 headings.
+- /reset-password without a token opens an accessible named modal dialog with the password form; closing it returns to Tool Desk.
+- Switching legal tabs updates the visible H1.
+
+Focused regression
+Command: pytest -q tests/test_launch_audit_v23.py -k "seo_landing_routes or legal_developer_and_password_reset_routes"
+Result: 2 passed, 63 deselected.
+
+Browser verification
+Command: python reports/launch-audit-v23/browser_id247_sitemap_pages.py
+Result: two real Chromium rounds over all 10 routes; round 1 at 1366x900 and round 2 at 390x844. All returned HTTP 200; each had exactly one relevant visible H1; no horizontal overflow and no browser page errors. /download and /apps returned different HTML and both are present in the 61-path sitemap. Reset form open/close and legal-tab heading update passed in both rounds.
+Evidence: browser-id247-sitemap-pages.json; id247-reset-password-no-token-round1.png; id247-reset-password-no-token-round2.png.
+
+Full regression suite after the final code change
+Command: pytest -q
+Run 1: 568 passed, 4 existing deprecation warnings, 110.86s.
+Run 2: 568 passed, 4 existing deprecation warnings, 104.39s.
+JavaScript syntax: node --check web/assets/app.js passed.
+
+Scope note
+This closes ID 247 against the current local build. It does not prove the live deployment has the updated source; recheck these routes after the owner deploys.

@@ -4,11 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="color-scheme" content="light dark" />
+  <meta name="theme-color" content="#142023" />
   <title>Paperplane PDF - Online PDF Tools &amp; Editor</title>
   <!-- SEO_META_SLOT -->
   <!-- WORKSPACE_BOOTSTRAP_SLOT -->
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
   <link rel="alternate icon" href="/favicon.ico" />
+  <link rel="manifest" href="/manifest.webmanifest" />
   
   <!-- Google Identity Services (GIS) for Official Sign In with Google -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -16,7 +18,7 @@
   <script src="https://sdk.cashfree.com/js/v3/cashfree.js" defer></script>
 
   <script src="/assets/theme-init.js?v=13"></script>
-  <link rel="stylesheet" href="/assets/styles.css?v=22" />
+  <link rel="stylesheet" href="/assets/styles.css?v=51" />
 
 </head>
 <body class="light-mode auth-pending">
@@ -66,13 +68,23 @@
           </button>
           <button class="nav-category-tab" data-category="Edit" aria-label="Edit and sign PDF" title="Edit and sign PDF">
             <span class="nav-cat-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
-            <span>Edit & Sign</span>
+            <span>Edit PDF</span>
             <span class="nav-cat-badge">8</span>
           </button>
-          <button class="nav-category-tab" data-category="AI" aria-label="AI and PDF security tools" title="AI and PDF security tools">
+          <button class="nav-category-tab" data-category="Security" aria-label="Sign and protect PDF tools" title="Sign and protect PDF tools">
             <span class="nav-cat-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
-            <span>AI & Security</span>
-            <span class="nav-cat-badge">13</span>
+            <span>Sign &amp; Protect</span>
+            <span class="nav-cat-badge">6</span>
+          </button>
+          <button class="nav-category-tab" data-category="AI" aria-label="PDF intelligence tools" title="PDF intelligence tools">
+            <span class="nav-cat-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a6 6 0 0 0-3.8 10.64c.84.68 1.3 1.38 1.3 2.36h5c0-.98.46-1.68 1.3-2.36A6 6 0 0 0 12 3z"/><path d="M10 19h4m-3 3h2"/></svg></span>
+            <span>PDF Intelligence</span>
+            <span class="nav-cat-badge">4</span>
+          </button>
+          <button class="nav-category-tab" data-category="Optimize" aria-label="Optimize PDF tools" title="Optimize PDF tools">
+            <span class="nav-cat-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 17 6-6 4 4 8-9"/><path d="M15 6h6v6"/></svg></span>
+            <span>Optimize PDF</span>
+            <span class="nav-cat-badge">3</span>
           </button>
           <button class="nav-category-tab" data-category="Photo" aria-label="Photo & Image tools" title="Photo & Image tools">
             <span class="nav-cat-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></span>
@@ -95,18 +107,18 @@
            ==================================================================== -->
       <div class="sidebar-sticky-footer">
         
-        <!-- Browser-local processing toggle; unavailable for server-only tools. -->
+        <!-- Browser-local processing toggle; server-only tools use temporary jobs. -->
         <div class="footer-privacy-row">
           <div class="footer-privacy-label">
             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            <span id="privacy-mode-label">Processing mode</span>
+            <span id="privacy-mode-label">Use browser processing</span>
           </div>
           <label class="toggle-switch-sm">
-            <input type="checkbox" id="client-privacy-toggle" aria-label="Local processing preference" aria-describedby="privacy-mode-support" />
+            <input type="checkbox" id="client-privacy-toggle" aria-label="Use browser processing for the current tool" aria-describedby="privacy-mode-support" />
             <span class="toggle-slider-sm"></span>
           </label>
         </div>
-        <small id="privacy-mode-support" class="privacy-mode-support">Available for Merge, Split, Remove, Rotate</small>
+        <small id="privacy-mode-support" class="privacy-mode-support">Available for Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Crop PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Page Numbers, and photo tools</small>
 
         <!-- Freemium Daily Quota Tracker -->
         <div class="quota-container" id="quota-container">
@@ -188,6 +200,8 @@
         </div>
 
         <div class="topbar-right">
+          <button type="button" class="topbar-action-btn pwa-install-btn" id="install-app-btn" hidden aria-describedby="install-app-status">Install</button>
+          <span id="install-app-status" class="visually-hidden" role="status" aria-live="polite"></span>
           <button type="button" class="topbar-upgrade-pill" id="topbar-upgrade-btn">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
             <span>View plans</span>
@@ -228,9 +242,10 @@
         </section>
         <section id="view-faq" class="workspace-page" hidden>
           <h1>Frequently asked questions</h1>
-          <details><summary>Which tools keep my files on this device?</summary><p>Tools marked Local Processing run in your browser when that mode is selected. Server Processing uploads the files for processing.</p></details>
-          <details><summary>How many server operations are included?</summary><p>Guests and Free accounts can run %%FREE_DAILY%% server operations per day. Browser processing has no daily operation limit. See <a href="/pricing">plans and limits</a>.</p></details>
-          <details><summary>How long are files kept?</summary><p>Server downloads expire on the configured cleanup schedule. Workspace files saved by your browser can be cleared in <a href="/settings">Settings</a>. See the <a href="/privacy">Privacy Policy</a>.</p></details>
+          <details><summary>Where are files processed?</summary><p>Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Crop PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Page Numbers, and photo tools can run in your browser when browser processing is selected. Other tasks use temporary server processing; expired job files are removed on the configured cleanup schedule (2-hour retention by default).</p></details>
+          <details><summary>What PDF operations are available?</summary><p>The catalog covers organizing, compression, conversion, editing, security, and document intelligence workflows.</p></details>
+          <details><summary>Does Paperplane work on phones?</summary><p>Yes. The public web workspace is responsive and uses touch-sized controls on mobile browsers.</p></details>
+          <details><summary>Does Paperplane keep a job history?</summary><p>No. This version does not provide a recent-files or job-history page. Download the result when processing finishes; temporary server job files are removed by the retention cleanup.</p></details>
         </section>
         <section id="view-feedback" class="workspace-page" hidden>
           <h1>Feedback</h1>
@@ -238,8 +253,8 @@
           <button type="button" class="btn-primary-action" id="feedback-page-open">Open feedback form</button>
         </section>
         <section id="view-history" class="workspace-page" hidden>
-          <h1>Temporary downloads</h1>
-          <p>Open the tool where you created a result to download it. Browser results are tied to the current tab. Server download links expire automatically.</p>
+          <h1>Temporary results — no saved history</h1>
+          <p>Paperplane does not keep a job or download history list. Open the tool where you created a result to download it; browser results are tied to the current tab, and server download links expire automatically.</p>
           <a href="/tool-desk">Return to Tool Desk</a>
         </section>
         
@@ -262,6 +277,12 @@
               <button type="button" class="filter-pill" data-desk-category="photo">Photo &amp; Exam</button>
               <button type="button" class="filter-pill" data-desk-category="ai">AI</button>
             </div>
+          </section>
+
+          <section class="seo-howto-grid tool-desk-quick-steps" aria-label="How to use Paperplane tools">
+            <article class="seo-howto-step"><span>01</span><h3>Choose a tool</h3><p>Search for a task or filter the directory by category to open the matching workflow.</p></article>
+            <article class="seo-howto-step"><span>02</span><h3>Add your source</h3><p>Select a file or complete the inputs shown for that tool. Review its available options before running it.</p></article>
+            <article class="seo-howto-step"><span>03</span><h3>Review the result</h3><p>Check the result details and download the generated file from the result panel.</p></article>
           </section>
 
           <div id="tool-desk-search-meta" class="home-search-meta" aria-live="polite"></div>
@@ -316,6 +337,11 @@
                 or <button type="button" class="browse-link" id="browse">browse files</button>
                 or <button type="button" class="browse-link" id="cloud-drop-btn">import from Google Drive / Dropbox</button>
               </p>
+              <div class="scan-camera-control" id="scan-camera-control" hidden>
+                <input id="scan-camera-input" class="visually-hidden-file-input" type="file" accept="image/*" capture="environment" aria-label="Take a document photo with your camera" />
+                <button type="button" class="btn-secondary-action" id="scan-camera-btn">Take a document photo</button>
+                <small>Use your rear camera to capture a page, then add more photos or choose existing images.</small>
+              </div>
               <small id="file-hint">PDF tools · file size and batch limits are shown for the selected tool</small>
             </div>
 
@@ -813,6 +839,7 @@
                 <button type="button" class="btn-demo-upgrade" id="ai-change-doc-btn" style="padding: 5px 12px; font-size: 12px;">Change PDF</button>
                 <button type="button" class="btn-demo-upgrade" id="ai-clear-doc-btn" style="padding: 5px 12px; font-size: 12px;">Clear</button>
               </div>
+              <span id="ai-doc-source-note" class="ai-doc-source-note">AI Docs analyzes its own PDF copy. Studio edits are not reflected; reopen the edited PDF here to refresh its page count and analysis.</span>
             </div>
 
             <!-- Provider & Retrieval Transparency Notice -->
@@ -826,6 +853,15 @@
               </div>
             </div>
           </div>
+
+          <section class="ai-howto-section" aria-labelledby="ai-howto-title">
+            <h2 id="ai-howto-title">How AI Intelligence works</h2>
+            <ol class="ai-howto-steps">
+              <li><strong>Choose a task</strong><span>Ask a general question, get cited answers from a PDF, extract structured fields, or create an executive summary.</span></li>
+              <li><strong>Add a document when needed</strong><span>Upload a PDF for citations, extraction, and summaries. General chat can be used without a document.</span></li>
+              <li><strong>Review the response</strong><span>Check cited pages and extracted values. Run OCR first when a scanned PDF has no searchable text.</span></li>
+            </ol>
+          </section>
 
           <!-- Main AI Workspace Grid -->
           <div class="ai-studio-container">
@@ -848,7 +884,7 @@
                     <input type="file" id="ai-file-input" class="visually-hidden-file-input" accept="application/pdf,.pdf" aria-label="Choose a PDF to chat about" />
                     <div class="ai-upload-content" id="ai-browse-trigger">
                       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                      <span><strong>Upload a PDF</strong><span>For cited answers, extraction, and summaries. General chat works without a document.</span></span>
+                      <span><strong>Upload PDF to chat</strong><span>For cited answers, extraction, and summaries. General chat works without a document.</span></span>
                       <button type="button" class="btn-primary-action" id="ai-upload-btn">Choose PDF</button>
                     </div>
                   </div>
@@ -903,7 +939,7 @@
                     <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
                     Executive Summarizer
                   </h4>
-                  <span class="view-header-badge" style="font-size: 10.5px; padding: 2px 6px;">Synthesis</span>
+                  <span id="summary-mode-badge" class="view-header-badge" aria-live="polite" aria-atomic="true" style="font-size: 10.5px; padding: 2px 6px;">Summary</span>
                 </div>
                 <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
                   Synthesizes documents into an executive overview, critical decisions, key numbers, and deadlines.
@@ -948,7 +984,7 @@
             </button>
             <div class="view-header-title">
               <h2>Paperplane Legal & Privacy Center</h2>
-              <span class="view-header-badge">Official Policy</span>
+              <span class="view-header-badge">Draft — owner review required</span>
             </div>
             <div class="legal-view-tabs">
               <button type="button" class="legal-view-tab-btn active" id="full-legal-tab-privacy">Privacy Policy</button>
@@ -965,38 +1001,39 @@
                 </div>
                 <div>
                   <h3>Data Privacy & Temporary Processing</h3>
-                  <p>Server-powered job files expire after the configured retention period (2 hours by default). Browser-saved Studio and AI Docs work remains on this device until you clear it. Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, and the photo tools can run in your browser. Other tools use temporary server processing.</p>
+                  <p><strong>DRAFT — do not treat this as approved legal wording.</strong> Server-powered job files are scheduled for removal after the configured retention period (2 hours by default). Browser-saved Studio and AI Docs work remains on this device until you clear it. Confirm the production settings and statements below before launch.</p>
+                  <p>Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Crop PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Page Numbers, and the photo tools can run in your browser. Other tools use temporary server processing.</p>
                 </div>
               </div>
 
               <article class="legal-article">
                 <section>
                   <h3>1. Information We Collect</h3>
-                  <p>Paperplane PDF operates under data-minimization practices. We collect only information required to execute user-requested document tasks:</p>
+                  <p>This draft describes the information flows visible in the current application. The owner must confirm the production configuration and legal wording before publication:</p>
                   <ul>
                     <li><strong>Account Credentials:</strong> When signing in with email or Google OAuth, we store your email address, verification status, and an encrypted session token. Passwords are salted and hashed with PBKDF2 (210,000 iterations).</li>
                     <li><strong>Temporary Job Files:</strong> Uploaded files and generated results are stored in temporary server job directories. A cleanup task removes expired job directories according to the configured retention period (2 hours by default). Browser-saved Studio and AI Docs work remains on this device until you clear it.</li>
-                    <li><strong>Usage Counters:</strong> Daily operation counts are tracked per account or IP address to enforce fair use limits and prevent denial-of-service abuse.</li>
+                    <li><strong>Usage Counters:</strong> Daily server-operation counts are tracked per account or signed guest browser identifier and network address to enforce the published allowance.</li>
                   </ul>
                 </section>
 
                 <section>
                   <h3>2. How Files and Data Are Handled</h3>
                   <ul>
-                    <li><strong>No Artificial Intelligence Training:</strong> Your uploaded documents, text contents, and OCR outputs are never used to train, retrain, or improve public machine-learning models.</li>
+                    <li><strong>AI Processing:</strong> When you use an AI feature, document text or other required input may be sent to the AI provider configured for this deployment. The provider name, retention, and model-training settings depend on that configuration and provider terms; review them before submitting sensitive material.</li>
                     <li><strong>Scheduled Cleanup:</strong> A server-side cleanup task deletes job directories and temporary files after they exceed the configured retention period.</li>
-                    <li><strong>Third-Party Processors:</strong> Payment processing is handled by Cashfree Payment Gateway. Sign-in authentication may use Google Identity Services. We do not sell user data to advertising brokers.</li>
+                    <li><strong>Other Processors:</strong> Payment processing uses Cashfree. Sign-in may use Google Identity Services. The owner must confirm the complete current processor list for the deployed environment.</li>
                   </ul>
                 </section>
 
                 <section>
                   <h3>3. Security Architecture</h3>
-                  <p>Traffic is encrypted in transit over HTTPS. Security headers include Content-Security-Policy, X-Content-Type-Options: nosniff, X-Frame-Options: SAMEORIGIN, and Referrer-Policy. Server job files are deleted by scheduled cleanup after the configured retention period; browser-saved Studio and AI Docs work remains until it is cleared on this device.</p>
+                  <p>HTTPS and security headers are configured in the deployment templates; verify the live domain and proxy configuration. At-rest encryption for temporary server files has not been established by this draft. Browser-saved Studio and AI Docs work remains on this device until cleared.</p>
                 </section>
 
                 <section>
                   <h3>4. User Rights and Data Deletion</h3>
-                  <p>You may request deletion of your account and associated session records at any time. For privacy inquiries or deletion requests, contact <code>support@paperplane.qd.je</code>.</p>
+                  <p>For account deletion or privacy requests, contact <code>support@paperplane.qd.je</code>. The owner must confirm that this mailbox is monitored and specify the applicable India DPDP Act / GDPR rights, process, and response time before publication. This draft does not claim a legal-compliance determination.</p>
                 </section>
               </article>
             </div>
@@ -1009,7 +1046,7 @@
                 </div>
                 <div>
                   <h3>Document Ownership & Service Conditions</h3>
-                  <p>You retain 100% of the copyright, intellectual property rights, and ownership of all files and content uploaded to or generated by Paperplane PDF.</p>
+                  <p>DRAFT — owner review required before launch. Confirm the final ownership, service, billing, and legal wording before relying on this page.</p>
                 </div>
               </div>
 
@@ -1031,7 +1068,7 @@
 
                 <section>
                   <h3>4. Subscriptions and Cancellation</h3>
-                  <p>Paid plans are purchased through Cashfree payment orders. This version does not provide automatic renewals or an in-app subscription cancellation control. For payment, refund, or account billing questions, contact <a href="mailto:support@paperplane.qd.je">support@paperplane.qd.je</a> and include your order ID. Payment disputes remain subject to Cashfree and applicable consumer rules.</p>
+                  <p>Paid plans are purchased through Cashfree payment orders. This version does not provide automatic renewals or an in-app subscription cancellation control. A refund policy, GST/tax treatment, support response expectation, and cancellation conditions have not been approved in this draft. Confirm those terms and the monitored support mailbox <a href="mailto:support@paperplane.qd.je">support@paperplane.qd.je</a> before accepting payment.</p>
                 </section>
 
                 <section>
@@ -1060,10 +1097,10 @@
               <span class="view-header-badge">Enterprise Microservices</span>
             </div>
             <div class="view-header-actions">
-              <a href="/docs" target="_blank" class="btn-spec-link swagger-link">
+              <a href="/spec/swagger" target="_blank" class="btn-spec-link swagger-link">
                 <span>API</span> Swagger OpenAPI ↗
               </a>
-              <a href="/redoc" target="_blank" class="btn-spec-link redoc-link">
+              <a href="/spec/redoc" target="_blank" class="btn-spec-link redoc-link">
                 <span>Doc</span> ReDoc Specifications ↗
               </a>
             </div>
@@ -1293,7 +1330,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
                       <td><span class="http-badge get">GET</span></td>
                       <td><code>/api/v1/account/usage</code></td>
                       <td>Bearer Token</td>
-                      <td>Developer API sandbox quota (10 calls/day, including up to 3 AI calls), consumed counts, active jobs, and UTC reset. The free app workflow quota is 100 operations/day.</td>
+                      <td>Developer API sandbox quota (10 calls/day, including up to 3 AI calls), consumed counts, active jobs, and UTC reset. The free app workflow quota is %%FREE_DAILY%% operations/day.</td>
                     </tr>
                     <tr>
                       <td><span class="http-badge post">POST</span></td>
@@ -1397,9 +1434,18 @@ async function convertFileInBrowser(file, operation = 'compress') {
               </div>
               <div class="download-hero-text">
                 <h3>Native PDF Apps, Coming Soon</h3>
-                  <p>Desktop and mobile apps are planned. No installers are available yet; join the waitlist for release updates.</p>
+                  <p>Use Paperplane’s browser-based PDF tools while native desktop and mobile apps are in development. No installers are available yet; join the waitlist for release updates.</p>
               </div>
             </div>
+
+            <section class="download-howto-section" aria-labelledby="download-howto-title">
+              <h3 id="download-howto-title">How the apps waitlist works</h3>
+              <div class="seo-howto-grid">
+                <article class="seo-howto-step"><span>01</span><h3>Choose a platform</h3><p>Select the desktop or mobile platform you want updates about.</p></article>
+                <article class="seo-howto-step"><span>02</span><h3>Enter your email</h3><p>Provide an address where Paperplane can send app availability updates.</p></article>
+                <article class="seo-howto-step"><span>03</span><h3>Join the waitlist</h3><p>Submit the form to register interest. No app installer is available to download yet.</p></article>
+              </div>
+            </section>
 
             <!-- Waitlist Form Card -->
             <div class="waitlist-card">
@@ -1567,24 +1613,30 @@ async function convertFileInBrowser(file, operation = 'compress') {
         <div class="footer-left">
           <span>© %%COPYRIGHT_YEAR%% Paperplane PDF</span>
           <span class="footer-sep">·</span>
+          <span id="app-version">Version %%APP_VERSION%%</span>
+          <span class="footer-sep">·</span>
           <span>Temporary server files expire on schedule</span>
           <span class="footer-sep">·</span>
           <span>Configured file retention</span>
         </div>
         <div class="footer-right">
           <a class="footer-link" href="/tool-desk">Tool Desk</a>
-          <a class="footer-link" href="/history">Downloads</a>
+          <a class="footer-link" href="/dashboard">Dashboard</a>
+          <a class="footer-link" href="/history">Temporary results</a>
           <a class="footer-link" href="/pricing">Pricing</a>
           <a class="footer-link" href="/faq">FAQ</a>
           <a class="footer-link" href="/download">Apps</a>
           <a class="footer-link" href="/feedback">Feedback</a>
+          <a class="footer-link" href="/contact">Contact · draft</a>
+          <a class="footer-link" href="/refund">Refunds · draft</a>
+          <a class="footer-link" href="/status">Status · draft</a>
           <button type="button" class="footer-link-btn" id="footer-link-developers">Developers</button>
           <span class="footer-sep">·</span>
           <button type="button" class="footer-link-btn" id="footer-link-privacy">Privacy Policy</button>
           <span class="footer-sep">·</span>
           <button type="button" class="footer-link-btn" id="footer-link-terms">Terms of Service</button>
           <span class="footer-sep">·</span>
-          <a href="/api-docs" target="_blank" class="footer-link" id="footer-link-api-docs">API Docs ↗</a>
+          <a href="/spec/swagger" target="_blank" class="footer-link" id="footer-link-api-docs">API Docs ↗</a>
         </div>
       </footer>
 
@@ -1708,14 +1760,14 @@ async function convertFileInBrowser(file, operation = 'compress') {
         <div class="settings-pane" id="pane-appearance" hidden>
           <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">Select your preferred workspace visual theme and contrast level.</p>
           <div class="theme-options-grid">
-            <button type="button" class="theme-choice-card active" id="theme-dark-btn">
+            <button type="button" class="theme-choice-card" id="theme-dark-btn">
               <span class="theme-swatch dark-swatch"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span>
-              <strong>Dark Engine (Default)</strong>
+              <strong>Dark Engine</strong>
               <small>Sleek dark theme optimized for OLED & extended focus</small>
             </button>
-            <button type="button" class="theme-choice-card" id="theme-light-btn">
+            <button type="button" class="theme-choice-card active" id="theme-light-btn">
               <span class="theme-swatch light-swatch"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></span>
-              <strong>Light Paper</strong>
+              <strong>Light Paper (Default)</strong>
               <small>Crisp white and high-contrast daytime paper workspace</small>
             </button>
           </div>
@@ -1769,7 +1821,9 @@ async function convertFileInBrowser(file, operation = 'compress') {
 
           <div id="settings-new-key-alert" class="result-card" hidden style="margin-bottom: 14px; padding: 12px;"></div>
 
-          <form id="settings-create-key-form" style="display: flex; gap: 8px; margin-bottom: 16px;">
+          <p id="settings-api-key-upgrade-hint" class="settings-helper-text" role="status" hidden>API keys are included with the All-In-One Pro &amp; Developer plan. Choose that plan to generate and use REST API keys.</p>
+
+          <form id="settings-create-key-form" hidden style="display: flex; gap: 8px; margin-bottom: 16px;">
             <input type="text" id="settings-key-name" aria-label="API key name" placeholder="Key name (e.g. Production Pipeline)" style="flex: 1; border: 1px solid var(--border-light); border-radius: 8px; padding: 10px 14px; font-size: 13px; background: var(--bg-panel); color: var(--text-main);" required />
             <button type="submit" class="btn-primary-action" style="padding: 10px 18px; font-size: 12.5px;">Generate Key</button>
           </form>
@@ -1796,14 +1850,14 @@ async function convertFileInBrowser(file, operation = 'compress') {
            <div class="settings-card-item privacy-settings-card">
              <span class="settings-eyebrow">DATA CONTROL</span>
              <h4>Ephemeral encrypted storage</h4>
-             <p>Temporary server job files expire after the configured retention period (2 hours by default). Browser-saved Studio and AI Docs work remains on this device until you clear it. Browser-local processing is available for Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, and the photo tools.</p>
+             <p>Temporary server job files expire after the configured retention period (2 hours by default). Browser-saved Studio and AI Docs work remains on this device until you clear it. Browser-local processing is available for Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Crop PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Page Numbers, and the photo tools.</p>
              <div class="settings-privacy-toggle-row">
                <div>
-                 <strong>Local Processing</strong>
-                 <small id="settings-client-privacy-support">Available for Merge, Split / extract, Remove pages, and Rotate PDF.</small>
+                 <strong>Browser processing</strong>
+                 <small id="settings-client-privacy-support">Available for Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Crop PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Page Numbers, and photo tools.</small>
                </div>
                <label class="toggle-switch-sm">
-                 <input type="checkbox" id="settings-client-privacy-toggle" aria-label="Local processing preference" aria-describedby="settings-client-privacy-support" />
+                 <input type="checkbox" id="settings-client-privacy-toggle" aria-label="Prefer browser processing for supported tools" aria-describedby="settings-client-privacy-support" />
                  <span class="toggle-slider-sm"></span>
                </label>
              </div>
@@ -1948,9 +2002,9 @@ async function convertFileInBrowser(file, operation = 'compress') {
 
   <!-- Modal: Password Reset Confirmation -->
   <div class="modal-backdrop" id="reset-password-modal" hidden>
-    <div class="modal-card auth-modal-card">
+    <div class="modal-card auth-modal-card" role="dialog" aria-modal="true" aria-labelledby="reset-password-title">
       <div class="modal-header">
-        <h3>Create New Password</h3>
+        <h3 id="reset-password-title">Create New Password</h3>
         <button type="button" class="close-modal-btn" id="close-reset-modal" aria-label="Close reset password dialog"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
       </div>
       <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5;">Enter and confirm your new account password (at least 8 characters).</p>
@@ -2022,14 +2076,14 @@ async function convertFileInBrowser(file, operation = 'compress') {
       <div id="upgrade-context-alert" class="result-card error" hidden style="margin-bottom: 14px; padding: 10px; font-size: 12.5px;"></div>
 
       <!-- Multi-Tier Pricing Grid -->
-      <div class="pricing-tiers-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+      <div class="pricing-tiers-grid">
         <!-- Free plan and limits are shown alongside paid offers. -->
         <div class="pricing-tier-card" data-plan-tier="free">
           <span class="tier-current-plan" hidden>Current plan</span>
           <div class="tier-card-header"><span style="font-size: 20px;">🆓</span><div><h4 class="tier-title">Free</h4><span class="tier-subtitle">Everyday PDF &amp; Photo tools</span></div></div>
           <div class="tier-price-box"><div class="tier-price-main"><span class="tier-price-val">₹0</span><span class="tier-price-period">/ always</span></div><span class="tier-price-alt">No payment required</span></div>
           <ul class="tier-features-list">
-            <li><span>✓</span><strong>Unlimited browser processing:</strong> Merge, split, rotate, photo compress &amp; resize 100% locally.</li>
+            <li><span>✓</span><strong>Browser processing for supported tools:</strong> Merge, split, rotate, photo compress &amp; resize run in your browser when browser processing is selected.</li>
             <li><span>✓</span><strong>%%FREE_DAILY%% Cloud &amp; AI operations per day:</strong> Word to PDF, OCR, Aadhaar mask &amp; AI.</li>
             <li><span>✓</span>Files up to %%FREE_MB%% MB each with instant download.</li>
           </ul>
@@ -2043,7 +2097,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <div class="tier-card-header">
             <span style="font-size: 20px;">⚡</span>
             <div>
-              <h4 class="tier-title">Exam &amp; 24h Pass</h4>
+              <h4 class="tier-title">Exam Pass</h4>
               <span class="tier-subtitle">For SSC, UPSC, NEET &amp; Urgent tasks</span>
             </div>
           </div>
@@ -2073,7 +2127,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <div class="tier-card-header">
             <span style="font-size: 20px;">🎓</span>
             <div>
-              <h4 class="tier-title">Student Pro</h4>
+              <h4 class="tier-title">Student &amp; Educator</h4>
               <span class="tier-subtitle">For schools, colleges &amp; coaching</span>
             </div>
           </div>
@@ -2103,7 +2157,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <div class="tier-card-header">
             <span style="font-size: 20px;">🏪</span>
             <div>
-              <h4 class="tier-title">All-in-One Pro &amp; Developer</h4>
+              <h4 class="tier-title">All-In-One Pro &amp; Developer</h4>
               <span class="tier-subtitle">High volume tools and Developer API access</span>
             </div>
           </div>
@@ -2116,7 +2170,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
           </div>
           <ul class="tier-features-list">
             <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Batch up to 100 Files:</strong> High-speed multi-form queue.</li>
-            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Shop Stamp &amp; Watermark:</strong> Center branding and seals.</li>
+            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Document Stamps &amp; Watermarks:</strong> Center branding and seals.</li>
             <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Developer REST API Keys (`sk_live_...`):</strong> Full programmatic SDK access included.</li>
             <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>100% Ad-Free &amp; Priority Queue:</strong> Zero waiting time.</li>
           </ul>
@@ -3400,21 +3454,21 @@ async function convertFileInBrowser(file, operation = 'compress') {
   </nav>
 
   <!-- PDF engines are loaded on demand by the first feature that needs them. -->
-  <script src="/assets/pdf_runtime.js?v=14" defer></script>
+  <script src="/assets/pdf_runtime.js?v=18" defer></script>
 
   <!-- Phase 6 PDF Forms, Signing & Security Engine -->
-  <script src="/assets/security_forms.js?v=6.2.1" defer></script>
+  <script src="/assets/security_forms.js?v=6.2.2" defer></script>
   <!-- Phase 5 Professional PDF Conversion Engine -->
   <script src="/assets/conversion_engine.js?v=5.2.0" defer></script>
   <!-- Phase 4 Compression, Repair & OCR Engine -->
   <script src="/assets/optimization_engine.js?v=4.2.0" defer></script>
   <!-- Phase 3 Professional Page Management Engine -->
-  <script src="/assets/page_organizer.js?v=13" defer></script>
+  <script src="/assets/page_organizer.js?v=14" defer></script>
   <!-- Phase 2 Professional Editor Engine -->
-<script src="/assets/editor.js?v=13" defer></script>
+<script src="/assets/editor.js?v=14" defer></script>
   <!-- Application Controller -->
-  <script src="/assets/app.js?v=22" defer></script>
+  <script src="/assets/app.js?v=91" defer></script>
   <!-- Floating Customer Feedback Widget -->
-  <script src="/assets/feedback.js?v=13" defer></script>
+  <script src="/assets/feedback.js?v=17" defer></script>
 </body>
 </html>

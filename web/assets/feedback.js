@@ -10,6 +10,7 @@
   let dismissedInMemory = false;
   let submittedInMemory = false;
   let promptVisible = false;
+  let launcherLayoutFrame = 0;
 
   const storageKey = (kind, scope = currentScope) => `paperplane-feedback-${kind}:v1:${scope}`;
 
@@ -39,6 +40,35 @@
     if (launcher) launcher.hidden = hidden;
     const card = document.getElementById("pp-feedback-popover");
     if (hidden && card && !keepCardOpen) card.style.display = "none";
+    scheduleLauncherOverlapCheck();
+  }
+
+  function updateLauncherOverlap() {
+    launcherLayoutFrame = 0;
+    const launcher = document.getElementById("pp-feedback-launcher");
+    if (!launcher || launcher.hidden || launcher.style.display === "none") return;
+    if (launcher.contains(document.activeElement)) return;
+    const launcherRect = launcher.getBoundingClientRect();
+    const protectedContent = document.querySelectorAll(
+      ".main-area h1, .main-area h2, .main-area h3, #file-list .file-row-card, .home-tool-title, .home-tool-desc"
+    );
+    const overlaps = Array.from(protectedContent).some(element => {
+      const style = getComputedStyle(element);
+      if (style.display === "none" || style.visibility === "hidden") return false;
+      const rect = element.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0 || rect.bottom <= 0 || rect.top >= window.innerHeight) return false;
+      return rect.left < launcherRect.right && rect.right > launcherRect.left &&
+        rect.top < launcherRect.bottom && rect.bottom > launcherRect.top;
+    });
+    launcher.style.visibility = overlaps ? "hidden" : "";
+    launcher.style.pointerEvents = overlaps ? "none" : "";
+    launcher.setAttribute("aria-hidden", overlaps ? "true" : "false");
+    launcher.inert = overlaps;
+  }
+
+  function scheduleLauncherOverlapCheck() {
+    if (launcherLayoutFrame) return;
+    launcherLayoutFrame = window.requestAnimationFrame(updateLauncherOverlap);
   }
 
   function openFeedback() {
@@ -298,7 +328,7 @@
         .pp-feedback-btn > span:last-child { display: none; }
       }
       @media (max-width: 1023px) {
-        .pp-feedback-launcher { bottom: calc(78px + env(safe-area-inset-bottom, 0px)); }
+        .pp-feedback-launcher { bottom: calc(132px + env(safe-area-inset-bottom, 0px)); }
       }
       @media (max-width: 480px) {
         .pp-feedback-launcher { right: calc(10px + env(safe-area-inset-right, 0px)); }
@@ -356,6 +386,14 @@
       </div>
     `;
     document.body.appendChild(container);
+    const mainArea = document.querySelector(".main-area");
+    mainArea?.addEventListener("scroll", scheduleLauncherOverlapCheck, { passive: true });
+    window.addEventListener("scroll", scheduleLauncherOverlapCheck, { passive: true });
+    window.addEventListener("resize", scheduleLauncherOverlapCheck, { passive: true });
+    const contentRoot = document.querySelector(".dynamic-workspace") || document.body;
+    const layoutObserver = new MutationObserver(scheduleLauncherOverlapCheck);
+    layoutObserver.observe(contentRoot, { childList: true, subtree: true, attributes: true, attributeFilter: ["hidden", "class", "style"] });
+    scheduleLauncherOverlapCheck();
   }
 
   function bindFeedbackEvents() {
@@ -396,8 +434,8 @@
       currentScope = scope;
       dismissedInMemory = false;
       submittedInMemory = false;
-      promptVisible = scope !== "guest" && !readFlag("seen") && !hasSubmitted() && !isDismissed();
-      if (promptVisible) writeFlag("seen");
+      promptVisible = scope !== "guest" && !hasSubmitted() && !isDismissed();
+      if (promptVisible && !readFlag("seen")) writeFlag("seen");
       syncVisibility();
     });
 
@@ -484,8 +522,8 @@
     }
 
     currentScope = feedbackScope();
-    promptVisible = currentScope !== "guest" && !readFlag("seen") && !hasSubmitted() && !isDismissed();
-    if (promptVisible) writeFlag("seen");
+    promptVisible = currentScope !== "guest" && !hasSubmitted() && !isDismissed();
+    if (promptVisible && !readFlag("seen")) writeFlag("seen");
     syncVisibility();
   }
 })();

@@ -1,0 +1,29 @@
+{
+  "image": "paperplane-v23-audit:final-current",
+  "image_id": "sha256:fe12cd487a4e276329db9dc2b6df26e517bb666efda59089c65fbd0eda4273a6",
+  "fixture": "C:\\Users\\mdham\\Downloads\\notes.pdf",
+  "fixture_pages": 69,
+  "cpu_throttle_rate": 4,
+  "rounds": [
+    {
+      "round": 1,
+      "http_status": 200,
+      "elapsed_seconds": 6.8,
+      "output_bytes": 5535231,
+      "pages": 69,
+      "all_page_text_and_order_preserved": true,
+      "document_width": 390,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "http_status": 200,
+      "elapsed_seconds": 7.13,
+      "output_bytes": 5535231,
+      "pages": 69,
+      "all_page_text_and_order_preserved": true,
+      "document_width": 390,
+      "page_errors": []
+    }
+  ]
+}

@@ -295,6 +295,8 @@ def test_93_refuses_to_switch_existing_volume():
 @pytest.mark.parametrize("path,location", [
     ("/dashboard", "/tool-desk"), ("/plans", "/pricing"), ("/billing", "/pricing"),
     ("/metadata", "/pdf-metadata"), ("/photo-compress", "/compress-image-online"),
+    ("/resize-photo", "/resize-image-dimensions"), ("/photo-resize", "/resize-image-dimensions"),
+    ("/compress-photo", "/compress-image-online"), ("/add-page-numbers", "/add-page-numbers-to-pdf"),
     ("/compress-photos", "/compress-image-online"), ("/ai-chat", "/ai-pdf-chat"),
     ("/chat-pdf", "/ai-pdf-chat"), ("/pdf-chat", "/ai-pdf-chat"), ("/tools/merge", "/merge-pdf"),
 ])
@@ -307,7 +309,7 @@ def test_132_181_route_aliases_resolve(path, location):
 
 @pytest.mark.parametrize("path,heading", [
     ("/settings", "Paperplane Settings"), ("/pricing", "Paperplane Pricing"),
-    ("/history", "Temporary downloads"), ("/feedback", "Feedback"),
+    ("/history", "Temporary results — no saved history"), ("/feedback", "Feedback"),
     ("/faq", "Frequently asked questions"),
 ])
 def test_132_133_page_matches_its_url(path, heading):

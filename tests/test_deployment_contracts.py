@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import sqlite3
+import os
+import subprocess
+import sys
 from pathlib import Path
 
 import persistence
@@ -48,6 +51,35 @@ def test_sqlite_retention_and_native_backup(tmp_path, monkeypatch):
     assert backup.exists()
     with sqlite3.connect(backup) as connection:
         assert connection.execute("SELECT COUNT(*) FROM jobs").fetchone()[0] == 0
+
+
+def test_parallel_worker_database_initialization_is_serialized(tmp_path):
+    data_dir = tmp_path / "cold-start-data"
+    data_dir.mkdir()
+    environment = os.environ.copy()
+    environment.update({
+        "PAPERPLANE_SKIP_DOTENV": "1",
+        "PAPERPLANE_ENV": "development",
+        "PAPERPLANE_DATA_DIR": str(data_dir),
+    })
+    initializer = "import persistence; persistence.init_db(); print('initialized')"
+    processes = [
+        subprocess.Popen(
+            [sys.executable, "-c", initializer],
+            cwd=ROOT,
+            env=environment,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        for _ in range(6)
+    ]
+    outcomes = [process.communicate(timeout=60) + (process.returncode,) for process in processes]
+    assert all(code == 0 and "initialized" in stdout for stdout, stderr, code in outcomes), outcomes
+
+    with sqlite3.connect(data_dir / "paperplane.sqlite3") as connection:
+        table_names = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+    assert {"users", "jobs", "user_feedbacks", "admin_sessions"} <= table_names
 
 
 def test_deployment_and_ssl_scripts_are_idempotent_contracts():

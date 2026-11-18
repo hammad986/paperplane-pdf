@@ -1,0 +1,148 @@
+{
+  "checks": [
+    {
+      "round": 1,
+      "scope": "guest",
+      "status": 200,
+      "body": {
+        "tier": "free",
+        "tier_label": "Free",
+        "is_pro": false,
+        "is_dev": false,
+        "daily_limit": 10,
+        "usage_today": 0,
+        "remaining_today": 10,
+        "pricing": {
+          "free": {
+            "inr": 0,
+            "label": "Free"
+          },
+          "exam_pass": {
+            "inr": 19,
+            "label": "Exam Pass"
+          },
+          "student_pro": {
+            "inr": 49,
+            "label": "Student & Educator"
+          },
+          "cyber_cafe": {
+            "inr": 299,
+            "label": "All-In-One Pro & Developer"
+          }
+        },
+        "subscription_status": "inactive",
+        "has_payment_customer": false
+      },
+      "order_identifiers_absent": true,
+      "page_errors": []
+    },
+    {
+      "round": 1,
+      "scope": "authenticated",
+      "status": 200,
+      "body": {
+        "tier": "student_pro",
+        "tier_label": "Student & Educator",
+        "is_pro": true,
+        "is_dev": false,
+        "daily_limit": null,
+        "usage_today": 0,
+        "remaining_today": "Unlimited",
+        "pricing": {
+          "free": {
+            "inr": 0,
+            "label": "Free"
+          },
+          "exam_pass": {
+            "inr": 19,
+            "label": "Exam Pass"
+          },
+          "student_pro": {
+            "inr": 49,
+            "label": "Student & Educator"
+          },
+          "cyber_cafe": {
+            "inr": 299,
+            "label": "All-In-One Pro & Developer"
+          }
+        },
+        "subscription_status": "active",
+        "has_payment_customer": false
+      },
+      "order_identifiers_absent": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "scope": "guest",
+      "status": 200,
+      "body": {
+        "tier": "free",
+        "tier_label": "Free",
+        "is_pro": false,
+        "is_dev": false,
+        "daily_limit": 10,
+        "usage_today": 0,
+        "remaining_today": 10,
+        "pricing": {
+          "free": {
+            "inr": 0,
+            "label": "Free"
+          },
+          "exam_pass": {
+            "inr": 19,
+            "label": "Exam Pass"
+          },
+          "student_pro": {
+            "inr": 49,
+            "label": "Student & Educator"
+          },
+          "cyber_cafe": {
+            "inr": 299,
+            "label": "All-In-One Pro & Developer"
+          }
+        },
+        "subscription_status": "inactive",
+        "has_payment_customer": false
+      },
+      "order_identifiers_absent": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "scope": "authenticated",
+      "status": 200,
+      "body": {
+        "tier": "student_pro",
+        "tier_label": "Student & Educator",
+        "is_pro": true,
+        "is_dev": false,
+        "daily_limit": null,
+        "usage_today": 0,
+        "remaining_today": "Unlimited",
+        "pricing": {
+          "free": {
+            "inr": 0,
+            "label": "Free"
+          },
+          "exam_pass": {
+            "inr": 19,
+            "label": "Exam Pass"
+          },
+          "student_pro": {
+            "inr": 49,
+            "label": "Student & Educator"
+          },
+          "cyber_cafe": {
+            "inr": 299,
+            "label": "All-In-One Pro & Developer"
+          }
+        },
+        "subscription_status": "active",
+        "has_payment_customer": false
+      },
+      "order_identifiers_absent": true,
+      "page_errors": []
+    }
+  ]
+}

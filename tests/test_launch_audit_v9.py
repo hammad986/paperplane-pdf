@@ -160,7 +160,7 @@ def test_production_config_rejects_unusable_public_origins(tmp_path, public_url)
 
 
 def test_cashfree_demo_activation_is_blocked_in_production_without_credentials(monkeypatch):
-    user_id = persistence.create_user("billing-probe@example.test", secrets.token_urlsafe(24))
+    user_id = persistence.create_user(f"billing-probe-{secrets.token_hex(8)}@example.test", secrets.token_urlsafe(24))
     monkeypatch.setattr(server, "CASHFREE_APP_ID", "")
     monkeypatch.setattr(server, "CASHFREE_SECRET_KEY", "")
     monkeypatch.setattr(server, "ENVIRONMENT", "production")
@@ -175,7 +175,7 @@ def test_cashfree_demo_activation_is_blocked_in_production_without_credentials(m
 
 
 def test_cashfree_production_rejects_sandbox_gateway_even_with_credentials(monkeypatch):
-    user_id = persistence.create_user("sandbox-prod-probe@example.test", secrets.token_urlsafe(24))
+    user_id = persistence.create_user(f"sandbox-prod-probe-{secrets.token_hex(8)}@example.test", secrets.token_urlsafe(24))
     monkeypatch.setattr(server, "CASHFREE_APP_ID", secrets.token_urlsafe(24))
     monkeypatch.setattr(server, "CASHFREE_SECRET_KEY", secrets.token_urlsafe(32))
     monkeypatch.setattr(server, "CASHFREE_ENV", "TEST")
@@ -193,7 +193,7 @@ def test_cashfree_production_rejects_sandbox_gateway_even_with_credentials(monke
 
 
 def test_cashfree_demo_activation_requires_explicit_development_opt_in(monkeypatch):
-    user_id = persistence.create_user("billing-dev-probe@example.test", secrets.token_urlsafe(24))
+    user_id = persistence.create_user(f"billing-dev-probe-{secrets.token_hex(8)}@example.test", secrets.token_urlsafe(24))
     monkeypatch.setattr(server, "CASHFREE_APP_ID", "")
     monkeypatch.setattr(server, "CASHFREE_SECRET_KEY", "")
     monkeypatch.setattr(server, "ENVIRONMENT", "development")

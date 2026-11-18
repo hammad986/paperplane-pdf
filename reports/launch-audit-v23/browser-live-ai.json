@@ -1,0 +1,94 @@
+{
+  "site": "https://paperplane.qd.je",
+  "fixture_pages": 5,
+  "providers": {
+    "capabilities": {
+      "http_status": 200,
+      "executive_brief_available": true,
+      "reason": null
+    },
+    "summary": {
+      "http_status": 200,
+      "mode": null,
+      "nonempty": true,
+      "citations": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "provider_synthesis_proven": false
+    },
+    "translations": {
+      "es": [
+        {
+          "attempt": 1,
+          "http_status": 200,
+          "content_type": "application/pdf",
+          "pages": 5,
+          "download_bytes": 192117,
+          "source_phrase_absent": true,
+          "content_checked": true,
+          "sample_text": "1\nMuestra TotPDF - página 1 de 5\nHerramientas PDF locales gratuitas: nada sale de tu dispositivo.\nEsta página existe solo para probar una herramienta. Fusiona, divide, gírala o comprímela.\nCada archivo de muestra está creado por TotPDF y es gratuito para usar en pruebas, demostraciones y tutoriales.\nNo cuenta, no carga, no seguimiento.\n 2\nMuestra TotPDF - página 2 de 5\nHerramientas PDF locales gratuitas: nada sale de tu dispositivo.\nEsta página existe solo para probar una herramienta. Fusiona, d",
+          "translated_marker_pages": 5,
+          "total_pages": 5,
+          "translated_marker_pages_by_page": [
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        {
+          "attempt": 2,
+          "http_status": 200,
+          "content_type": "application/pdf",
+          "pages": 5,
+          "download_bytes": 152256,
+          "source_phrase_absent": false,
+          "content_checked": true,
+          "sample_text": "TotPDF sample - page 1 of 5\nFree local PDF tools: nothing leaves your device.\nThis page exists only to test a tool. Merge it, split it, rotate it or compress it.\nEvery sample file is made by TotPDF and free to use for tests, demos and tutorials.\nNo account, no upload, no tracking.\n1\n TotPDF sample - page 2 of 5\nFree local PDF tools: nothing leaves your device.\nThis page exists only to test a tool. Merge it, split it, rotate it or compress it.\n2\nCada archivo de muestra está creado por TotPDF y es",
+          "translated_marker_pages": 3,
+          "total_pages": 5,
+          "translated_marker_pages_by_page": [
+            false,
+            false,
+            true,
+            true,
+            true
+          ]
+        }
+      ],
+      "hi": [
+        {
+          "attempt": 1,
+          "http_status": 429,
+          "content_type": "application/json",
+          "error": "The translation provider is rate limited (upstream HTTP 429). Please retry shortly."
+        },
+        {
+          "attempt": 2,
+          "http_status": 200,
+          "content_type": "application/pdf",
+          "pages": 5,
+          "download_bytes": 36406,
+          "source_phrase_absent": false,
+          "content_checked": true,
+          "sample_text": "TotPDF sample - page 1 of 5\nFree local PDF tools: nothing leaves your device.\nThis page exists only to test a tool. Merge it, split it, rotate it or compress it.\nEvery sample file is made by TotPDF and free to use for tests, demos and tutorials.\nNo account, no upload, no tracking.\n1\n TotPDF sample - page 2 of 5\nFree local PDF tools: nothing leaves your device.\nThis page exists only to test a tool. Merge it, split it, rotate it or compress it.\nEvery sample file is made by TotPDF and free to use f",
+          "translated_marker_pages": 1,
+          "total_pages": 5,
+          "translated_marker_pages_by_page": [
+            false,
+            false,
+            false,
+            false,
+            true
+          ]
+        }
+      ]
+    }
+  },
+  "browser_page_errors": []
+}

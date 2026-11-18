@@ -1,0 +1,50 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "routes": [
+        {
+          "route": "/protect-pdf",
+          "entry_button_visible": true,
+          "modal_visible": true,
+          "audit_tab_active": true,
+          "security_controller_received_uploaded_file": true,
+          "current_file_name": "audit.pdf",
+          "page_errors": []
+        },
+        {
+          "route": "/unlock-pdf",
+          "entry_button_visible": true,
+          "modal_visible": true,
+          "audit_tab_active": true,
+          "security_controller_received_uploaded_file": true,
+          "current_file_name": "audit.pdf",
+          "page_errors": []
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "routes": [
+        {
+          "route": "/protect-pdf",
+          "entry_button_visible": true,
+          "modal_visible": true,
+          "audit_tab_active": true,
+          "security_controller_received_uploaded_file": true,
+          "current_file_name": "audit.pdf",
+          "page_errors": []
+        },
+        {
+          "route": "/unlock-pdf",
+          "entry_button_visible": true,
+          "modal_visible": true,
+          "audit_tab_active": true,
+          "security_controller_received_uploaded_file": true,
+          "current_file_name": "audit.pdf",
+          "page_errors": []
+        }
+      ]
+    }
+  ]
+}

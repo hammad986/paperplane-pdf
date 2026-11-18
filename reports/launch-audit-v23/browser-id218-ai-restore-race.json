@@ -1,0 +1,38 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "before_reload": {
+        "file": "test-text-10page.pdf",
+        "ready": "4.2 KB \u2022 PDF Document",
+        "emptyVisible": false,
+        "greetings": 1
+      },
+      "after_reload": {
+        "file": "test-text-10page.pdf",
+        "ready": "4.2 KB \u2022 10 pages",
+        "emptyVisible": false,
+        "greetings": 1,
+        "documentWidth": 1366
+      },
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "before_reload": {
+        "file": "test-text-10page.pdf",
+        "ready": "4.2 KB \u2022 PDF Document",
+        "emptyVisible": false,
+        "greetings": 1
+      },
+      "after_reload": {
+        "file": "test-text-10page.pdf",
+        "ready": "4.2 KB \u2022 10 pages",
+        "emptyVisible": false,
+        "greetings": 1,
+        "documentWidth": 1366
+      },
+      "page_errors": []
+    }
+  ]
+}

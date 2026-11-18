@@ -1,0 +1,47 @@
+{
+  "workflow": "Generate API key in signed-in Developer Settings, then authenticate a public API request with the generated key",
+  "rounds": [
+    {
+      "round": 1,
+      "generation_status": 200,
+      "key_prefix_only": "sk_live_4Ri3",
+      "usage_api_status": 200,
+      "usage_fields": [
+        "active_jobs",
+        "ai_limit",
+        "ai_remaining",
+        "ai_used",
+        "calls_remaining",
+        "calls_used",
+        "concurrent_jobs_limit",
+        "daily_limit",
+        "max_file_size_mb",
+        "reset_time_utc",
+        "reset_timestamp",
+        "user_id"
+      ],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "generation_status": 200,
+      "key_prefix_only": "sk_live_mEd_",
+      "usage_api_status": 200,
+      "usage_fields": [
+        "active_jobs",
+        "ai_limit",
+        "ai_remaining",
+        "ai_used",
+        "calls_remaining",
+        "calls_used",
+        "concurrent_jobs_limit",
+        "daily_limit",
+        "max_file_size_mb",
+        "reset_time_utc",
+        "reset_timestamp",
+        "user_id"
+      ],
+      "page_errors": []
+    }
+  ]
+}

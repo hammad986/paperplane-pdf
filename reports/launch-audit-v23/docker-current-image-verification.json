@@ -1,0 +1,29 @@
+{
+  "command": "docker build --tag paperplane-v23-audit:local-current-20261118 .",
+  "result": "success",
+  "image_tag": "paperplane-v23-audit:local-current-20261118",
+  "image_id": "sha256:49d941c8498f98a81b9f42c43764b61cb244f6d1fb8c92e7da5c7b7b68ce76c3",
+  "docker_server_version": "29.6.2",
+  "runtime_verification": [
+    "browser-id28-current-image-catalog.json",
+    "browser-id90-current-image-concurrency.json"
+  ],
+  "runtime": {
+    "isolated_volume": "paperplane-v23-audit-current-20261118",
+    "workers": 4,
+    "health": "healthy",
+    "auth_mode": "guest routes enabled for synthetic catalog tests",
+    "payments": "disabled",
+    "real_credentials_or_payment": false,
+    "container_after_test": "stopped"
+  },
+  "browser_catalog_rounds": [
+    {"round": 1, "content_checked_completed": 41, "ssrf_blocked": 1, "provider_unavailable": 2, "page_errors": 0},
+    {"round": 2, "content_checked_completed": 41, "ssrf_blocked": 1, "provider_unavailable": 2, "page_errors": 0}
+  ],
+  "parallel_job_rounds": [
+    {"round": 1, "concurrent_merge_jobs": 4, "completed": 4, "content_checked_downloads": 4},
+    {"round": 2, "concurrent_merge_jobs": 4, "completed": 4, "content_checked_downloads": 4}
+  ],
+  "build_lint_warning": "Docker's SecretsUsedInArgOrEnv rule flagged the non-secret variable name PAPERPLANE_REQUIRE_AUTH, whose image value is false. No secret value was supplied to the build."
+}

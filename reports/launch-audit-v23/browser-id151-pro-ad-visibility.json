@@ -1,0 +1,96 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "routes": [
+        {
+          "status": 200,
+          "state": {
+            "route": "/",
+            "user": {
+              "tier": "student_pro",
+              "role": null,
+              "email": "audit-1f2ce487@example.invalid"
+            },
+            "adContainers": [],
+            "sponsoredCopy": false
+          }
+        },
+        {
+          "status": 200,
+          "state": {
+            "route": "/compress-pdf",
+            "user": {
+              "tier": "student_pro",
+              "role": null,
+              "email": "audit-1f2ce487@example.invalid"
+            },
+            "adContainers": [],
+            "sponsoredCopy": false
+          }
+        },
+        {
+          "status": 200,
+          "state": {
+            "route": "/settings",
+            "user": {
+              "tier": "student_pro",
+              "role": null,
+              "email": "audit-1f2ce487@example.invalid"
+            },
+            "adContainers": [],
+            "sponsoredCopy": false
+          }
+        }
+      ],
+      "third_party_ad_requests": [],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "routes": [
+        {
+          "status": 200,
+          "state": {
+            "route": "/",
+            "user": {
+              "tier": "student_pro",
+              "role": null,
+              "email": "audit-1f2ce487@example.invalid"
+            },
+            "adContainers": [],
+            "sponsoredCopy": false
+          }
+        },
+        {
+          "status": 200,
+          "state": {
+            "route": "/compress-pdf",
+            "user": {
+              "tier": "student_pro",
+              "role": null,
+              "email": "audit-1f2ce487@example.invalid"
+            },
+            "adContainers": [],
+            "sponsoredCopy": false
+          }
+        },
+        {
+          "status": 200,
+          "state": {
+            "route": "/settings",
+            "user": {
+              "tier": "student_pro",
+              "role": null,
+              "email": "audit-1f2ce487@example.invalid"
+            },
+            "adContainers": [],
+            "sponsoredCopy": false
+          }
+        }
+      ],
+      "third_party_ad_requests": [],
+      "page_errors": []
+    }
+  ]
+}

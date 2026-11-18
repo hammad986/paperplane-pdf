@@ -1,0 +1,42 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "upload_names": [
+        "\n      \n        \n        \n          tiny-a.pdf\n          \u00b7 814 B\n        \n      \n      \n        \n      \n    ",
+        "\n      \n        \n        \n          tiny-b.pdf\n          \u00b7 814 B\n        \n      \n      \n        \n      \n    "
+      ],
+      "merge_filename": "merged-PDF.pdf",
+      "merge_pages": 2,
+      "compare_upload_names": [
+        "\n      \n        \n        \n          tiny-a.pdf\n          \u00b7 814 B\n        \n      \n      \n        \n      \n    ",
+        "\n      \n        \n        \n          tiny-b.pdf\n          \u00b7 814 B\n        \n      \n      \n        \n      \n    "
+      ],
+      "compare_filename": "tiny-a_compare.txt",
+      "compare_text": "--- tiny-a.pdf\n+++ tiny-b.pdf\n@@ -1 +1 @@\n-Counter fixture A\n+Counter fixture B",
+      "studio_restore_toasts": [
+        "OK Restored tiny-a.pdf on page 1"
+      ],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "upload_names": [
+        "\n      \n        \n        \n          tiny-a.pdf\n          \u00b7 814 B\n        \n      \n      \n        \n      \n    ",
+        "\n      \n        \n        \n          tiny-b.pdf\n          \u00b7 814 B\n        \n      \n      \n        \n      \n    "
+      ],
+      "merge_filename": "merged-PDF.pdf",
+      "merge_pages": 2,
+      "compare_upload_names": [
+        "\n      \n        \n        \n          tiny-a.pdf\n          \u00b7 814 B\n        \n      \n      \n        \n      \n    ",
+        "\n      \n        \n        \n          tiny-b.pdf\n          \u00b7 814 B\n        \n      \n      \n        \n      \n    "
+      ],
+      "compare_filename": "tiny-a_compare.txt",
+      "compare_text": "--- tiny-a.pdf\n+++ tiny-b.pdf\n@@ -1 +1 @@\n-Counter fixture A\n+Counter fixture B",
+      "studio_restore_toasts": [
+        "OK Restored tiny-a.pdf on page 1"
+      ],
+      "page_errors": []
+    }
+  ]
+}

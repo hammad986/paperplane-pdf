@@ -1,0 +1,97 @@
+{
+  "mode": "local controlled provider; no external AI call",
+  "browser": "Chrome via Playwright",
+  "rounds": 2,
+  "matrix": "3-page and 69-page source × Spanish and Hindi",
+  "results": [
+    {
+      "round": 1,
+      "source_pages": 3,
+      "language": "Spanish",
+      "http_status": 200,
+      "download_bytes": 65256,
+      "output_pages": 3,
+      "searchable_marker": "Página",
+      "original_source_text_removed": true,
+      "page_errors": []
+    },
+    {
+      "round": 1,
+      "source_pages": 3,
+      "language": "Hindi",
+      "http_status": 200,
+      "download_bytes": 65407,
+      "output_pages": 3,
+      "searchable_marker": "पृष्ठ",
+      "original_source_text_removed": true,
+      "page_errors": []
+    },
+    {
+      "round": 1,
+      "source_pages": 69,
+      "language": "Spanish",
+      "http_status": 200,
+      "download_bytes": 964791,
+      "output_pages": 69,
+      "searchable_marker": "Página",
+      "original_source_text_removed": true,
+      "page_errors": []
+    },
+    {
+      "round": 1,
+      "source_pages": 69,
+      "language": "Hindi",
+      "http_status": 200,
+      "download_bytes": 948266,
+      "output_pages": 69,
+      "searchable_marker": "पृष्ठ",
+      "original_source_text_removed": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "source_pages": 3,
+      "language": "Spanish",
+      "http_status": 200,
+      "download_bytes": 65256,
+      "output_pages": 3,
+      "searchable_marker": "Página",
+      "original_source_text_removed": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "source_pages": 3,
+      "language": "Hindi",
+      "http_status": 200,
+      "download_bytes": 65407,
+      "output_pages": 3,
+      "searchable_marker": "पृष्ठ",
+      "original_source_text_removed": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "source_pages": 69,
+      "language": "Spanish",
+      "http_status": 200,
+      "download_bytes": 964791,
+      "output_pages": 69,
+      "searchable_marker": "Página",
+      "original_source_text_removed": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "source_pages": 69,
+      "language": "Hindi",
+      "http_status": 200,
+      "download_bytes": 948266,
+      "output_pages": 69,
+      "searchable_marker": "पृष्ठ",
+      "original_source_text_removed": true,
+      "page_errors": []
+    }
+  ],
+  "case_count": 8
+}

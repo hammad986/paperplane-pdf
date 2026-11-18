@@ -1,0 +1,30 @@
+{
+  "fixture": "synthetic one-page A4 PDF",
+  "target": "US Letter 612 \u00d7 792 pt",
+  "rounds": [
+    {
+      "round": 1,
+      "resize_width_points": 612.0,
+      "resize_height_points": 792.0,
+      "export_http_status": 200,
+      "output_pages": 1,
+      "width_points": 612.0,
+      "height_points": 792.0,
+      "marker_retained": true,
+      "download_bytes": 1362,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "resize_width_points": 612.0,
+      "resize_height_points": 792.0,
+      "export_http_status": 200,
+      "output_pages": 1,
+      "width_points": 612.0,
+      "height_points": 792.0,
+      "marker_retained": true,
+      "download_bytes": 1362,
+      "page_errors": []
+    }
+  ]
+}

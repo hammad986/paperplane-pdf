@@ -1,0 +1,27 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "json_button_visible": true,
+      "csv_button_visible": true,
+      "json_filename": "invoice-95-fixture_extracted.json",
+      "json_content_checked": true,
+      "csv_filename": "invoice-95-fixture_extracted.csv",
+      "csv_content_checked": true,
+      "controlled_extraction_requests": 1,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "json_button_visible": true,
+      "csv_button_visible": true,
+      "json_filename": "invoice-95-fixture_extracted.json",
+      "json_content_checked": true,
+      "csv_filename": "invoice-95-fixture_extracted.csv",
+      "csv_content_checked": true,
+      "controlled_extraction_requests": 1,
+      "page_errors": []
+    }
+  ],
+  "provider_mode": "controlled browser response; export UI/downloads exercised"
+}

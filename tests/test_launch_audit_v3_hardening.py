@@ -185,7 +185,7 @@ def test_disabled_provider_document_chat_returns_labeled_local_extract(tmp_path,
     assert '"citations": [2]' in body
 
 
-def test_docs_are_fail_closed_and_developer_page_has_no_dead_spec_links(monkeypatch):
+def test_default_fastapi_docs_are_hidden_but_developer_spec_links_work(monkeypatch):
     monkeypatch.delenv("PAPERPLANE_ENABLE_DOCS", raising=False)
     assert server._should_disable_docs("production", "true") is True
     assert server._should_disable_docs("staging") is True
@@ -193,10 +193,12 @@ def test_docs_are_fail_closed_and_developer_page_has_no_dead_spec_links(monkeypa
 
     client = TestClient(server.app)
     html = client.get("/developers").text
-    assert 'href="/developers" class="btn-spec-link swagger-link"' not in html
+    assert 'href="/spec/swagger"' in html and 'class="btn-spec-link swagger-link"' in html
+    assert 'href="/spec/redoc"' in html and 'class="btn-spec-link redoc-link"' in html
     assert 'href="/docs"' not in html
     assert 'href="/redoc"' not in html
-    assert client.get("/api-docs", follow_redirects=False).headers["location"] == "/developers"
+    assert client.get("/api-docs", follow_redirects=False).headers["location"] == "/spec/swagger"
+    assert client.get("/spec/openapi.json").status_code == 200
 
 
 def test_currency_defaults_to_inr_and_rejects_usd_before_gateway_call(monkeypatch):

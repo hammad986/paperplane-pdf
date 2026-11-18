@@ -14,6 +14,7 @@ import urllib.error
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import logging
+import threading
 from pathlib import Path
 from typing import Any, Iterator
 from reportlab.pdfbase import pdfmetrics
@@ -22,6 +23,61 @@ from reportlab.pdfgen import canvas as reportlab_canvas
 from pypdf import PdfReader, PdfWriter
 
 logger = logging.getLogger("paperplane")
+
+_AI_PROVIDER_STATUS_LOCK = threading.Lock()
+_AI_PROVIDER_STATUS: dict[str, Any] = {
+    "last_request_at": None,
+    "last_status": "not_checked",
+    "last_provider": None,
+    "fallback_active": False,
+    "last_failure": None,
+}
+
+
+def _record_ai_provider_status(
+    status: str,
+    provider: str | None,
+    *,
+    fallback_active: bool = False,
+    failure: str | None = None,
+) -> None:
+    """Keep a process-local, credential-free snapshot for the admin health panel."""
+    safe_statuses = {"available", "rate_limited", "unavailable", "invalid_response"}
+    safe_status = status if status in safe_statuses else "unavailable"
+    with _AI_PROVIDER_STATUS_LOCK:
+        previous = tuple(_AI_PROVIDER_STATUS.get(key) for key in (
+            "last_status", "last_provider", "fallback_active", "last_failure",
+        ))
+        _AI_PROVIDER_STATUS.update({
+            "last_request_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
+            "last_status": safe_status,
+            "last_provider": (str(provider or "")[:40] or None),
+            "fallback_active": bool(fallback_active),
+            "last_failure": failure if failure in {"rate_limit", "network", "invalid_response", "provider_error"} else None,
+        })
+        snapshot = dict(_AI_PROVIDER_STATUS)
+        current = tuple(snapshot.get(key) for key in (
+            "last_status", "last_provider", "fallback_active", "last_failure",
+        ))
+    if current == previous:
+        return
+    try:
+        import persistence
+        persistence.set_ai_provider_health_status(snapshot)
+    except Exception as error:
+        logger.debug("Could not persist sanitized AI provider health: %s", type(error).__name__)
+
+
+def _get_ai_provider_status() -> dict[str, Any]:
+    try:
+        import persistence
+        persisted = persistence.get_ai_provider_health_status()
+        if persisted:
+            return persisted
+    except Exception as error:
+        logger.debug("Could not read persisted AI provider health: %s", type(error).__name__)
+    with _AI_PROVIDER_STATUS_LOCK:
+        return dict(_AI_PROVIDER_STATUS)
 
 import fitz  # PyMuPDF
 from config import (
@@ -304,6 +360,47 @@ def _pdf_metadata_facts(pdf_path: Path) -> tuple[int, dict[str, str]]:
         doc.close()
 
 
+def _pdf_first_page_title(pdf_path: Path) -> str | None:
+    """Find a conservative title candidate from a prominent first-page heading."""
+    try:
+        with fitz.open(str(pdf_path)) as document:
+            if not document.page_count:
+                return None
+            page = document[0]
+            page_center = page.rect.width / 2
+            boilerplate = re.compile(
+                r"(?:provided proper attribution|hereby grants permission|all rights reserved|copyright|terms of use|license)",
+                re.IGNORECASE,
+            )
+            candidates = []
+            for block in page.get_text("dict").get("blocks", []):
+                if block.get("type") != 0:
+                    continue
+                text = " ".join(
+                    span.get("text", "") for line in block.get("lines", [])
+                    for span in line.get("spans", [])
+                ).strip()
+                if not text or len(text) > 180 or boilerplate.search(text):
+                    continue
+                sizes = [float(span.get("size", 0)) for line in block.get("lines", [])
+                         for span in line.get("spans", []) if span.get("text", "").strip()]
+                if not sizes:
+                    continue
+                rect = fitz.Rect(block.get("bbox", (0, 0, 0, 0)))
+                prominence = max(sizes) + (2 if abs(rect.x0 + rect.width / 2 - page_center) < page.rect.width * .12 else 0)
+                candidates.append((prominence, text))
+            if candidates:
+                prominence, title = max(candidates, key=lambda item: item[0])
+                if prominence >= 14:
+                    return title[:100]
+            first_line = next((line.strip() for line in page.get_text("text").splitlines() if line.strip()), "")
+            if first_line and len(first_line) <= 100 and not boilerplate.search(first_line):
+                return first_line
+    except Exception:
+        return None
+    return None
+
+
 def _metadata_year(value: str) -> str | None:
     match = re.search(r"(?:19|20)\d{2}", value or "")
     return match.group(0) if match else None
@@ -430,8 +527,25 @@ def align_answer_citations(answer: str, eligible_pages: list[int] | set[int]) ->
         if not kept:
             return ""
         cited_pages.update(kept)
+        ranges: list[tuple[int, int]] = []
+        for page in kept:
+            if ranges and page == ranges[-1][1] + 1:
+                ranges[-1] = (ranges[-1][0], page)
+            else:
+                ranges.append((page, page))
+        parts = [str(start) if start == end else f"{start}-{end}" for start, end in ranges]
         label = "Page" if len(kept) == 1 else "Pages"
-        return f"[{label} {', '.join(map(str, kept))}]"
+        citation = f"[{label} {', '.join(parts)}]"
+        # Keep inline citations readable for very scattered provider output.
+        # The complete verified page set is still returned for the separate
+        # source chips; the suffix makes omitted inline ranges explicit.
+        if len(citation) > 120:
+            visible = parts[:8]
+            omitted = len(kept) - sum(
+                (end - start + 1) for start, end in ranges[:len(visible)]
+            )
+            citation = f"[{label} {', '.join(visible)}, … +{omitted} more pages]"
+        return citation
 
     text = answer or ""
     # Remove literal prompt templates before normalizing real page references.
@@ -616,31 +730,43 @@ def _runtime_ai_config() -> dict[str, str]:
     return config
 
 
-def get_ai_configuration_health() -> dict[str, str | bool]:
+def get_ai_configuration_health() -> dict[str, Any]:
     """Return a startup/admin-safe configuration check without making a request."""
     credentials = _runtime_ai_config()
     provider = str(credentials.get("provider") or "unavailable").lower()
     if credentials.get("configuration_error"):
-        return {
+        health = {
             "status": "configuration_error",
             "provider": provider,
             "configured": False,
             "message": "The saved AI configuration could not be loaded. Check the server encryption configuration.",
         }
-    configured = bool(credentials.get("api_key") and credentials.get("model"))
-    if not configured:
-        return {
+    elif not (credentials.get("api_key") and credentials.get("model")):
+        health = {
             "status": "configuration_missing",
             "provider": provider,
             "configured": False,
             "message": "AI provider credentials or model are not configured; AI document tools are unavailable.",
         }
-    return {
-        "status": "configured",
-        "provider": provider,
-        "configured": True,
-        "message": "AI provider configuration is present. Run Test Connection to check upstream reachability.",
-    }
+    else:
+        health = {
+            "status": "configured",
+            "provider": provider,
+            "configured": True,
+            "message": "AI provider configuration is present. Run Test Connection to check upstream reachability.",
+        }
+    runtime_status = _get_ai_provider_status()
+    runtime_status["applies_to_current_provider"] = runtime_status["last_provider"] == provider
+    health["runtime_status"] = runtime_status
+    if runtime_status["applies_to_current_provider"] and runtime_status["last_status"] == "rate_limited" and runtime_status["fallback_active"]:
+        health["message"] = "The primary AI provider was rate limited; the configured fallback handled the last request. Check primary provider quota."
+    elif runtime_status["applies_to_current_provider"] and runtime_status["last_status"] == "rate_limited":
+        health["message"] = "The last AI request was rate limited. Check provider quota or use the configured fallback provider."
+    elif runtime_status["applies_to_current_provider"] and runtime_status["last_status"] == "unavailable":
+        health["message"] = "The last AI request could not reach a provider. Check provider availability and the configured fallback."
+    elif runtime_status["applies_to_current_provider"] and runtime_status["last_status"] == "available" and runtime_status["fallback_active"]:
+        health["message"] = "The primary provider failed; the configured fallback handled the last AI request."
+    return health
 
 
 def _provider_request(
@@ -649,6 +775,7 @@ def _provider_request(
     credentials: dict[str, str],
     timeout_seconds: float | None = None,
     max_attempts: int = 2,
+    temperature: float = 0.2,
 ) -> str:
     """Make one non-streaming request using the selected provider's native wire format."""
     provider = str(credentials.get("provider") or "bluesminds").lower()
@@ -663,6 +790,10 @@ def _provider_request(
         raise ValueError("AI provider requires a validated HTTPS endpoint.")
 
     total_timeout = max(5, min(120, float(timeout_seconds or BLUESMINDS_TIMEOUT_SECONDS)))
+    try:
+        response_temperature = min(2.0, max(0.0, float(temperature)))
+    except (TypeError, ValueError):
+        response_temperature = 0.2
     attempts = max(1, min(4, int(max_attempts)))
     retry_delays = (0.4, 2.0, 5.0)
     total_backoff = sum(retry_delays[:max(0, attempts - 1)])
@@ -682,7 +813,7 @@ def _provider_request(
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
-            "temperature": 0.2,
+            "temperature": response_temperature,
             "max_tokens": BLUESMINDS_MAX_OUTPUT_TOKENS or 4096,
         }
     elif provider == "anthropic":
@@ -694,7 +825,7 @@ def _provider_request(
             "system": system_prompt,
             "messages": [{"role": "user", "content": user_prompt}],
             "max_tokens": BLUESMINDS_MAX_OUTPUT_TOKENS or 4096,
-            "temperature": 0.2,
+            "temperature": response_temperature,
         }
     elif provider == "gemini":
         endpoint = f"{base_url}/models/{urllib.parse.quote(model, safe='')}:generateContent" if base_url.endswith("/v1beta") else f"{base_url}/v1beta/models/{urllib.parse.quote(model, safe='')}:generateContent"
@@ -702,7 +833,7 @@ def _provider_request(
         payload = {
             "systemInstruction": {"parts": [{"text": system_prompt}]},
             "contents": [{"role": "user", "parts": [{"text": user_prompt}]}],
-            "generationConfig": {"temperature": 0.2, "maxOutputTokens": BLUESMINDS_MAX_OUTPUT_TOKENS or 4096},
+            "generationConfig": {"temperature": response_temperature, "maxOutputTokens": BLUESMINDS_MAX_OUTPUT_TOKENS or 4096},
         }
     else:
         raise ValueError("Unsupported AI provider.")
@@ -829,10 +960,12 @@ def call_llm(
     timeout_seconds: float | None = None,
     model: str | None = None,
     max_attempts: int = 2,
+    temperature: float = 0.2,
 ) -> str:
     """Dispatch inference using the selected provider's native API contract."""
     return _call_selected_provider(
-        system_prompt, user_prompt, model=model, timeout_seconds=timeout_seconds, max_attempts=max_attempts
+        system_prompt, user_prompt, model=model, timeout_seconds=timeout_seconds, max_attempts=max_attempts,
+        temperature=temperature,
     )
 
 
@@ -842,6 +975,7 @@ def _call_selected_provider(
     model: str | None = None,
     timeout_seconds: float | None = None,
     max_attempts: int = 2,
+    temperature: float = 0.2,
 ) -> str:
     answer, _ = _call_selected_provider_with_status(
         system_prompt,
@@ -849,6 +983,7 @@ def _call_selected_provider(
         model=model,
         timeout_seconds=timeout_seconds,
         max_attempts=max_attempts,
+        temperature=temperature,
     )
     return answer
 
@@ -872,6 +1007,7 @@ def _call_selected_provider_with_status(
     model: str | None = None,
     timeout_seconds: float | None = None,
     max_attempts: int = 2,
+    temperature: float = 0.2,
 ) -> tuple[str, bool]:
     """Run the selected provider and report whether the configured fallback succeeded."""
     if AI_KILL_SWITCH:
@@ -884,13 +1020,23 @@ def _call_selected_provider_with_status(
     if model:
         credentials = dict(credentials)
         credentials["model"] = model
+    primary_provider = str(credentials.get("provider") or "unavailable")
     try:
-        return _provider_request(
-            system_prompt, user_prompt, credentials, timeout_seconds=timeout_seconds, max_attempts=max_attempts
-        ), False
+        answer = _provider_request(
+            system_prompt, user_prompt, credentials, timeout_seconds=timeout_seconds, max_attempts=max_attempts,
+            temperature=temperature,
+        )
+        _record_ai_provider_status("available", primary_provider)
+        return answer, False
     except Exception as primary_error:
+        primary_failure_label = _safe_provider_failure_label(primary_error)
+        primary_failure = "rate_limit" if "429" in str(primary_error) else (
+            "network" if "network" in primary_failure_label or "timeout" in primary_failure_label else "provider_error"
+        )
         fallback = credentials.get("fallback")
         if not isinstance(fallback, dict) or not fallback.get("api_key") or not fallback.get("model"):
+            status = "rate_limited" if primary_failure == "rate_limit" else "unavailable"
+            _record_ai_provider_status(status, primary_provider, failure=primary_failure)
             raise
         logger.warning(
             "Primary AI provider failed; trying configured fallback provider host=%s",
@@ -898,12 +1044,22 @@ def _call_selected_provider_with_status(
         )
         try:
             answer = _provider_request(
-                system_prompt, user_prompt, fallback, timeout_seconds=timeout_seconds, max_attempts=max_attempts
+                system_prompt, user_prompt, fallback, timeout_seconds=timeout_seconds, max_attempts=max_attempts,
+                temperature=temperature,
             )
+            status = "rate_limited" if primary_failure == "rate_limit" else "unavailable"
+            _record_ai_provider_status(status, primary_provider, fallback_active=True, failure=primary_failure)
             return answer, True
         except Exception as fallback_error:
-            primary_label = _safe_provider_failure_label(primary_error)
             fallback_label = _safe_provider_failure_label(fallback_error)
+            fallback_failure = "rate_limit" if "429" in str(fallback_error) else (
+                "network" if "network" in fallback_label or "timeout" in fallback_label else "provider_error"
+            )
+            _record_ai_provider_status(
+                "rate_limited" if fallback_failure == "rate_limit" else "unavailable",
+                str(fallback.get("provider") or primary_provider), failure=fallback_failure,
+            )
+            primary_label = _safe_provider_failure_label(primary_error)
             raise RuntimeError(
                 f"Primary AI provider failed ({primary_label}); configured fallback provider failed ({fallback_label})."
             ) from fallback_error
@@ -917,9 +1073,18 @@ def _offline_rag_fallback(system_prompt: str, user_prompt: str) -> str:
         summary_points = []
         for index in range(1, len(pages) - 1, 2):
             number, page_text = pages[index], pages[index + 1]
-            lines = [line.strip() for line in page_text.splitlines() if len(line.strip()) >= 10]
-            if lines:
-                summary_points.append(f"{lines[0][:300]} [Page {number}]")
+            lines = [
+                line.strip() for line in page_text.splitlines()
+                if len(line.strip()) >= 10
+                and not re.search(
+                    r"\b(?:attribution|copyright|all rights reserved|generated automatically|"
+                    r"local extractive notes|confidentiality notice)\b",
+                    line,
+                    re.IGNORECASE,
+                )
+            ]
+            for line in lines:
+                summary_points.append(f"{line[:300]} [Page {number}]")
 
         pts = "\n".join(f"- {pt}" for pt in summary_points) if summary_points else "- General document overview available."
         return (
@@ -963,7 +1128,9 @@ def _offline_rag_fallback(system_prompt: str, user_prompt: str) -> str:
                     continue
                 if len(page_text) > 240:
                     page_text = page_text[:237].rsplit(" ", 1)[0].rstrip(" ,;:") + "…"
-                page_notes.append(f"Page {page_number}: {page_text} [Page {page_number}]")
+                # The visible `Page N:` prefix is citation-aligned downstream;
+                # appending a second `[Page N]` generated duplicate chat chips.
+                page_notes.append(f"Page {page_number}: {page_text}")
             if page_notes:
                 return "Document overview from sampled pages:\n\n" + "\n\n".join(page_notes)
 
@@ -996,11 +1163,72 @@ def _offline_rag_fallback(system_prompt: str, user_prompt: str) -> str:
 
 
 
+_SUMMARY_CURRENCY_AMOUNT = re.compile(
+    r"(?:(?P<prefix>[$€£₹¥]\s*|\b(?:USD|EUR|GBP|INR|JPY|CAD|AUD|RMB|CNY|Rs\.?|rupees?|dollars?|euros?|pounds?)\s+)"
+    r"(?P<prefix_amount>\d(?:[\d,]*\d)?(?:\.\d+)?)|"
+    r"(?P<suffix_amount>\d(?:[\d,]*\d)?(?:\.\d+)?)\s*(?P<suffix>[$€£₹¥]|\b(?:USD|EUR|GBP|INR|JPY|CAD|AUD|RMB|CNY|Rs\.?|rupees?|dollars?|euros?|pounds?)\b))",
+    re.IGNORECASE,
+)
+_SUMMARY_SOURCE_NUMBER = re.compile(r"(?<![\w.])\d(?:[\d,]*\d)?(?:\.\d+)?(?![\w.])")
+_SUMMARY_CURRENCY_PREFIX = re.compile(
+    r"(?:[$€£₹¥]|\b(?:USD|EUR|GBP|INR|JPY|CAD|AUD|RMB|CNY|Rs\.?|rupees?|dollars?|euros?|pounds?)\b)\s*$",
+    re.IGNORECASE,
+)
+_SUMMARY_CURRENCY_SUFFIX = re.compile(
+    r"^\s*[\(\[]?\s*(?:[$€£₹¥]|\b(?:USD|EUR|GBP|INR|JPY|CAD|AUD|RMB|CNY|Rs\.?|rupees?|dollars?|euros?|pounds?)\b)\s*[\)\]]?(?!\s*\d)",
+    re.IGNORECASE,
+)
+
+
+def _numeric_amount_key(amount: str) -> str:
+    """Normalize grouping separators without changing the represented amount."""
+    return amount.replace(",", "").lstrip("0") or "0"
+
+
+def _source_amount_has_currency(source_text: str, amount: str) -> bool:
+    amount_key = _numeric_amount_key(amount)
+    for source_match in _SUMMARY_SOURCE_NUMBER.finditer(source_text):
+        if _numeric_amount_key(source_match.group()) != amount_key:
+            continue
+        prefix = source_text[max(0, source_match.start() - 24):source_match.start()]
+        suffix = source_text[source_match.end():source_match.end() + 24]
+        if _SUMMARY_CURRENCY_PREFIX.search(prefix) or _SUMMARY_CURRENCY_SUFFIX.search(suffix):
+            return True
+    return False
+
+
+def _remove_unsupported_summary_currency(summary: str, source_text: str) -> str:
+    """Require nearby source evidence for each currency assigned to a number."""
+    def replace_if_unsupported(match: re.Match[str]) -> str:
+        amount = match.group("prefix_amount") or match.group("suffix_amount")
+        if _source_amount_has_currency(source_text, amount):
+            return match.group()
+        return f"{amount} (currency unspecified)"
+
+    return _SUMMARY_CURRENCY_AMOUNT.sub(replace_if_unsupported, summary)
+
+
+def _remove_unsupported_summary_absence_claims(summary: str, source_text: str) -> str:
+    """Drop document-wide absence claims unless the source states that claim."""
+    claim = re.compile(
+        r"(?i)\b(?:the\s+document\s+)?(?:contains?\s+|shows?\s+|identifies?\s+)?"
+        r"(?:no|none\s+of\s+the|not\s+any)\s+(?:additional\s+|further\s+|other\s+)?"
+        r"(?:dates?|deadlines?|risks?|decisions?|requirements?|obligations?|milestones?)\b[^.!?\n]*[.!?]?"
+    )
+    normalized_source = re.sub(r"\s+", " ", source_text).casefold()
+
+    def keep_if_supported(match: re.Match[str]) -> str:
+        sentence = re.sub(r"\s+", " ", match.group()).strip().casefold()
+        return match.group() if sentence and sentence in normalized_source else ""
+
+    return claim.sub(keep_if_supported, summary)
+
+
 # ----------------------------------------------------------------------
 # PUBLIC AI CAPABILITIES
 # ----------------------------------------------------------------------
 
-def chat_with_pdf(pdf_path: Path, question: str) -> dict:
+def chat_with_pdf(pdf_path: Path, question: str, filename: str | None = None) -> dict:
     """Queries the PDF via RAG with BM25 probabilistic keyword retrieval and verified page citations."""
     greeting = _simple_greeting_reply(question)
     if greeting:
@@ -1014,15 +1242,18 @@ def chat_with_pdf(pdf_path: Path, question: str) -> dict:
         return {"answer": _PAPERPLANE_IDENTITY, "citations": [], "retrieval_method": None, "fallback_used": False}
     chunks = extract_chunks_from_pdf(pdf_path)
     document_page_count, document_metadata = _pdf_metadata_facts(pdf_path)
-    document_title = document_metadata.get("title") or pdf_path.name
+    display_filename = Path(str(filename or pdf_path.name).replace("\\", "/")).name or pdf_path.name
+    document_title = document_metadata.get("title") or _pdf_first_page_title(pdf_path) or Path(display_filename).stem
     metadata_header = (
         "DOCUMENT METADATA\n"
-        f"Filename: {pdf_path.name}\n"
+        f"Filename: {display_filename}\n"
         f"Page count: {document_page_count}\n"
         f"Title: {document_title}\n"
     )
+
+
     metadata_question = bool(re.search(
-        r"\b(how many pages?|page count|number of pages|document title|pdf title|file name|filename)\b",
+        r"\b(how many pages?|page count|number of pages|document title|pdf title|file name|filename|title of (?:this|the) (?:document|pdf)|what(?:'s| is) (?:the )?(?:document )?title)\b",
         question,
         re.IGNORECASE,
     ))
@@ -1031,7 +1262,7 @@ def chat_with_pdf(pdf_path: Path, question: str) -> dict:
         if re.search(r"\b(how many pages?|page count|number of pages)\b", normalized_question):
             answer = f"This document has {document_page_count} pages."
         elif re.search(r"\b(title|name|filename)\b", normalized_question):
-            answer = f"The document title is \"{document_title}\". The file name is \"{pdf_path.name}\"."
+            answer = f"The document title is \"{document_title}\". The file name is \"{display_filename}\"."
         else:
             answer = metadata_header.strip()
         return {
@@ -1094,6 +1325,21 @@ def chat_with_pdf(pdf_path: Path, question: str) -> dict:
         question,
         re.IGNORECASE,
     ))
+    extracted_chars = sum(len(re.sub(r"\s+", "", chunk.text)) for chunk in chunks)
+    sparse_text_limit = max(240, document_page_count * 50)
+    if broad_document_question and extracted_chars < sparse_text_limit:
+        return {
+            "answer": (
+                f"This PDF has very little searchable text ({extracted_chars} characters across "
+                f"{document_page_count} pages), so I cannot reliably identify its subject. It may "
+                "contain scanned pages or a photo gallery. Run OCR to make its text searchable, "
+                "then ask again."
+            ),
+            "citations": [],
+            "retrieval_method": "Sparse PDF Text Check",
+            "fallback_used": True,
+            "relevant_passages": [],
+        }
     if broad_document_question and chunks:
         context_chunks = chunks[:24]
         citation_chunks = context_chunks
@@ -1266,7 +1512,10 @@ def summarize_pdf(pdf_path: Path, max_pages: int | None = None) -> str:
     system_prompt = (
         "You are an executive document synthesizer. Provide an insightful Executive Summary followed by "
         "bullet points of key details, decisions, numbers, and deadlines. Ground every document fact in the "
-        "provided text and append a page citation in the exact form [Page N] or [Pages N-M]. Do not invent citations."
+        "provided text and append a page citation in the exact form [Page N] or [Pages N-M]. Do not invent citations. "
+        "Preserve every numeric value exactly as written, including its units and surrounding symbols. "
+        "Return exactly one document-level Executive Summary. Never add a currency, unit, date, decision, "
+        "or absence claim not explicitly supported by the cited source text."
     )
     if len(page_texts) <= 12:
         full_text = "\n\n".join(f"--- Page {number} ---\n{text}" for number, text in page_texts)
@@ -1276,6 +1525,7 @@ def summarize_pdf(pdf_path: Path, max_pages: int | None = None) -> str:
                 f"DOCUMENT CONTENT:\n\n{full_text}",
                 timeout_seconds=_bounded_document_timeout(deadline, SUMMARY_CALL_TIMEOUT_SECONDS),
                 max_attempts=4,
+                temperature=0.0,
             )
         except Exception as error:
             logger.warning("Executive Brief provider failed for pages 1-%d; using local extractive fallback (%s)",
@@ -1301,7 +1551,8 @@ def summarize_pdf(pdf_path: Path, max_pages: int | None = None) -> str:
                 timeout = _bounded_document_timeout(
                     deadline, SUMMARY_CALL_TIMEOUT_SECONDS, remaining_calls=remaining_calls
                 )
-                note = call_llm(system_prompt, chunk_prompt, timeout_seconds=timeout, max_attempts=4).strip()
+                note = call_llm(system_prompt, chunk_prompt, timeout_seconds=timeout, max_attempts=4,
+                                temperature=0.0).strip()
             except Exception as error:
                 logger.warning("Executive Brief provider failed for pages %d-%d; using local extractive fallback (%s)",
                                first_page, last_page, type(error).__name__)
@@ -1312,7 +1563,7 @@ def summarize_pdf(pdf_path: Path, max_pages: int | None = None) -> str:
                 note = f"Local extractive notes from [Pages {first_page}-{last_page}]:\n{local_note}"
             chunk_notes.append(note)
         final_prompt = (
-            "Synthesize these page-grounded section notes into one concise executive summary followed by "
+            "Synthesize these page-grounded section notes into exactly one concise document-level executive summary followed by "
             "the most useful key takeaways. Preserve source citations from the notes exactly and do not "
             "introduce facts that the notes do not support.\n\n" + "\n\n".join(chunk_notes)
         )
@@ -1320,14 +1571,43 @@ def summarize_pdf(pdf_path: Path, max_pages: int | None = None) -> str:
             if any("Executive Summary (Offline Analysis)" in note for note in chunk_notes):
                 raise RuntimeError("One or more sections used local extraction")
             timeout = _bounded_document_timeout(deadline, SUMMARY_CALL_TIMEOUT_SECONDS)
-            summary = call_llm(system_prompt, final_prompt, timeout_seconds=timeout, max_attempts=4)
+            summary = call_llm(system_prompt, final_prompt, timeout_seconds=timeout, max_attempts=4,
+                               temperature=0.0)
             if not summary.strip() or "Executive Summary (Offline Analysis)" in summary:
                 raise RuntimeError("Synthesis did not produce a provider summary")
         except Exception as error:
             logger.warning("Executive Brief synthesis failed; using local extractive fallback (%s)", type(error).__name__)
-            summary = "### Executive Brief (section notes)\n\n" + "\n\n".join(chunk_notes)
+            # The local fallback must be explicit about its source and have one
+            # document-level heading. Per-section extractive notes may contain
+            # their own headings; remove those to avoid presenting several
+            # competing executive summaries as a single synthesis.
+            section_notes = []
+            for index, note in enumerate(chunk_notes):
+                clean_note = re.sub(r"^\s*#{1,6}\s*Executive Summary[^\n]*\n+", "", note, flags=re.I | re.M)
+                clean_note = re.sub(r"^\s*\*?\(Generated from local document text analysis\.\)\*?\s*$", "", clean_note, flags=re.M)
+                page_range = chunk_notes[index].split("Local extractive notes from ", 1)
+                label = page_range[1].split(":", 1)[0] if len(page_range) == 2 else f"Section {index + 1}"
+                section_notes.append(f"#### {label}\n\n{clean_note.strip()}")
+            summary = (
+                "### Executive Summary (Offline Analysis)\n\n"
+                "The AI provider did not return a complete synthesis. These are local extractive notes, "
+                "organized by the pages analyzed; they do not establish that a fact is absent elsewhere.\n\n"
+                + "\n\n".join(section_notes)
+            )
 
-    summary = _guard_ai_output(summary)
+    source_text = "\n".join(text for _page_number, text in page_texts)
+    executive_summary_headings = re.findall(
+        r"(?im)^\s*#{1,6}\s*Executive Summary\b[^\n]*", summary
+    )
+    if len(executive_summary_headings) > 1:
+        # Repeated section summaries are not a document-level synthesis. Fall
+        # back to labelled local extraction so contradictory or duplicate
+        # summaries never appear as a single authoritative brief.
+        logger.warning("Executive Brief returned repeated summary headings; using local extractive fallback")
+        full_text = "\n\n".join(f"--- Page {number} ---\n{text}" for number, text in page_texts)
+        summary = _offline_rag_fallback(system_prompt, f"DOCUMENT CONTENT:\n\n{full_text}")
+    summary = _remove_unsupported_summary_absence_claims(summary, source_text)
+    summary = _remove_unsupported_summary_currency(_guard_ai_output(summary), source_text)
     eligible_pages = {page_number for page_number, _ in page_texts}
     return align_answer_citations(summary, eligible_pages)[0]
 
@@ -1795,6 +2075,41 @@ def extract_metadata_entities(pdf_path: Path, doc_type: str = "auto") -> dict:
     else:  # general document
         lines = [l.strip() for l in full_text.splitlines() if l.strip()]
         title = lines[0][:100] if lines else "Untitled Document"
+        title_boilerplate = re.compile(
+            r"(?:provided proper attribution|hereby grants permission|all rights reserved|copyright|terms of use|license)",
+            re.IGNORECASE,
+        )
+        if title_boilerplate.search(title):
+            title = ""
+        if not title or len(title) > 100:
+            title = "Untitled Document"
+        # Prefer a visually prominent, centered heading over the first extracted
+        # text block, which is often a running notice or attribution paragraph.
+        with fitz.open(str(pdf_path)) as title_doc:
+            if title_doc:
+                page = title_doc[0]
+                candidates = []
+                page_center = page.rect.width / 2
+                for block in page.get_text("dict").get("blocks", []):
+                    if block.get("type") != 0:
+                        continue
+                    text = " ".join(
+                        span.get("text", "") for line in block.get("lines", [])
+                        for span in line.get("spans", [])
+                    ).strip()
+                    if not text or len(text) > 180 or title_boilerplate.search(text):
+                        continue
+                    sizes = [float(span.get("size", 0)) for line in block.get("lines", [])
+                             for span in line.get("spans", []) if span.get("text", "").strip()]
+                    if not sizes:
+                        continue
+                    rect = fitz.Rect(block.get("bbox", (0, 0, 0, 0)))
+                    prominence = max(sizes) + (2 if abs(rect.x0 + rect.width / 2 - page_center) < page.rect.width * .12 else 0)
+                    candidates.append((prominence, text))
+                if candidates:
+                    prominent = max(candidates, key=lambda item: item[0])
+                    if prominent[0] >= 14:
+                        title = prominent[1][:100]
 
         doc_date = _extract_valid_document_date(full_text)
 
@@ -1936,6 +2251,17 @@ def _translate_text_batch(
     return translations
 
 
+def _translation_change_fraction(source_text: str, translated_text: str) -> float:
+    """Estimate substantive translation change from Unicode word tokens."""
+    source_tokens = Counter(re.findall(r"\w+", source_text.casefold(), flags=re.UNICODE))
+    translated_tokens = Counter(re.findall(r"\w+", translated_text.casefold(), flags=re.UNICODE))
+    total = max(sum(source_tokens.values()), sum(translated_tokens.values()))
+    if not total:
+        return 0.0
+    unchanged = sum((source_tokens & translated_tokens).values())
+    return max(0.0, 1.0 - unchanged / total)
+
+
 def translate_pdf_layout(
     pdf_path: Path,
     output_path: Path,
@@ -2027,8 +2353,11 @@ def translate_pdf_layout(
         out_doc.insert_pdf(doc, links=True, annots=True)
 
         placed: list[tuple[int, fitz.Rect, str, int]] = []
+        placed_block_ids: set[int] = set()
+        placed_source_chars = 0
+        changed_source_chars = 0.0
         for index, translation in translated.items():
-            number, bounds, _ = blocks[index]
+            number, bounds, source_text = blocks[index]
             bounds &= out_doc[number].rect
             if bounds.is_empty:
                 continue
@@ -2044,6 +2373,9 @@ def translate_pdf_layout(
             if spare < 0:
                 continue
             placed.append((number, bounds, translation, overlay.number))
+            placed_block_ids.add(index)
+            placed_source_chars += len(blocks[index][2])
+            changed_source_chars += len(source_text) * _translation_change_fraction(source_text, translation)
 
         # Redact only blocks for which a replacement fitted. Keep images and
         # vector artwork, and leave failed/untranslated blocks intact.
@@ -2064,6 +2396,80 @@ def translate_pdf_layout(
             report_data["blocks_translated"] += 1
 
         report_data["blocks_preserved"] = report_data["blocks_seen"] - report_data["blocks_translated"]
+        total_source_chars = sum(len(source_text) for _, _, source_text in blocks)
+        translated_source_chars = placed_source_chars
+        report_data["source_characters_seen"] = total_source_chars
+        report_data["source_characters_translated"] = translated_source_chars
+        report_data["translated_fraction"] = (
+            translated_source_chars / total_source_chars if total_source_chars else 0.0
+        )
+        report_data["text_segments_seen"] = len(segments)
+        report_data["text_segments_translated"] = sum(
+            len(block_segments[index]) for index in placed_block_ids
+        )
+        report_data["translated_segment_fraction"] = (
+            report_data["text_segments_translated"] / len(segments) if segments else 0.0
+        )
+        report_data["translated_block_fraction"] = (
+            report_data["blocks_translated"] / report_data["blocks_seen"]
+            if report_data["blocks_seen"] else 0.0
+        )
+        report_data["minimum_acceptable_fraction"] = 0.5
+        block_fraction = report_data["translated_block_fraction"]
+        segment_fraction = report_data["translated_segment_fraction"]
+        character_fraction = report_data["translated_fraction"]
+        if not report_data["blocks_translated"]:
+            report_data["translation_status"] = "failed"
+            report_data["fallback_used"] = True
+            report_data["warnings"].append("No text blocks were translated.")
+            if batch_failures:
+                failure_labels = list(dict.fromkeys(
+                    _safe_provider_failure_label(RuntimeError(reason))
+                    for _, _, reason in batch_failures
+                ))
+                report_data["failure_class"] = failure_labels
+                failure_summary = "; ".join(failure_labels[:3])
+                raise RuntimeError(
+                    f"Translation failed for all text batches ({failure_summary}). "
+                    "No text was translated; no translated PDF was produced."
+                )
+            raise RuntimeError(
+                "No text was translated. The translation service did not produce a translated PDF; please retry later."
+            )
+        if (block_fraction < report_data["minimum_acceptable_fraction"]
+                or character_fraction < report_data["minimum_acceptable_fraction"]):
+            report_data["translation_status"] = "failed"
+            block_percent = round(block_fraction * 100)
+            segment_percent = round(segment_fraction * 100)
+            character_percent = round(character_fraction * 100)
+            report_data["warnings"].append(
+                f"Only {block_percent}% of text blocks, {segment_percent}% of text segments, and "
+                f"{character_percent}% of source characters were translated; block and character "
+                "coverage must each reach at least 50%."
+            )
+            raise RuntimeError(
+                f"Only {block_percent}% of text blocks, {segment_percent}% of text segments, and "
+                f"{character_percent}% of source characters were translated (minimum 50% for "
+                "blocks and characters). No translated PDF was produced."
+            )
+        report_data["translation_change_fraction"] = (
+            changed_source_chars / total_source_chars if total_source_chars else 0.0
+        )
+        report_data["minimum_change_fraction"] = 0.1
+        if report_data["blocks_translated"] and report_data["translation_change_fraction"] < report_data["minimum_change_fraction"]:
+            report_data["translation_status"] = "failed"
+            change_percent = report_data["translation_change_fraction"]
+            report_data["warnings"].append(
+                f"Only {change_percent:.0%} of source text changed in the translation; "
+                "at least 10% is required to provide a translated PDF."
+            )
+            raise RuntimeError(
+                f"Only {change_percent:.0%} of source text changed during translation "
+                "(minimum 10%). No translated PDF was produced."
+            )
+        report_data["translation_status"] = (
+            "translated" if report_data["blocks_preserved"] == 0 else "partial"
+        )
         if report_data["blocks_preserved"]:
             report_data["fallback_used"] = True
             report_data["warnings"].append(

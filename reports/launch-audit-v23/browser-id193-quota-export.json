@@ -1,0 +1,26 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "status": 200,
+      "intercepted": [
+        "http://127.0.0.1:56280/api/studio/apply-edits"
+      ],
+      "quota_modal_visible": true,
+      "message": "Daily operation limit reached. Upgrade your plan or use Local Processing where available.",
+      "object_string_leaked": false,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "status": 200,
+      "intercepted": [
+        "http://127.0.0.1:56280/api/studio/apply-edits"
+      ],
+      "quota_modal_visible": true,
+      "message": "Daily operation limit reached. Upgrade your plan or use Local Processing where available.",
+      "object_string_leaked": false,
+      "page_errors": []
+    }
+  ]
+}

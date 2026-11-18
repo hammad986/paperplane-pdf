@@ -1,0 +1,32 @@
+{
+  "item": 173,
+  "verdict": "FIXED LOCALLY",
+  "full_suite": [
+    {
+      "command": "pytest -q",
+      "result": "580 passed",
+      "warnings": 4,
+      "elapsed_seconds": 113.52
+    },
+    {
+      "command": "pytest -q",
+      "result": "580 passed",
+      "warnings": 4,
+      "elapsed_seconds": 107.45
+    }
+  ],
+  "browser": {
+    "evidence": "browser-id173-full-route-copy-inventory.json",
+    "rounds": 2,
+    "tool_routes_per_round": 44,
+    "route_views": 88,
+    "http_failures": 0,
+    "page_errors": 0,
+    "assertions": [
+      "Rotate copy describes whole-document rotation and does not promise page-by-page control.",
+      "The remaining specifically flagged option/capability claims match the rendered copy and available controls."
+    ]
+  },
+  "focused_regressions": "tests/test_web_seo.py::test_conversion_and_annotation_copy_matches_available_controls and related how-to/FAQ copy checks passed in the full suite.",
+  "scope_limit": "Local code and browser behavior verified. Deployment-specific content is covered separately by live retest requirements in the canonical report."
+}

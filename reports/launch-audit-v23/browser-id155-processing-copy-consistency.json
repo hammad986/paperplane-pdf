@@ -1,0 +1,90 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "routes": [
+        {
+          "route": "/merge-pdf",
+          "status": 200,
+          "sidebar_support": "Merge PDF runs in your browser; files stay on this device and are not uploaded.",
+          "toggle_checked": true
+        },
+        {
+          "route": "/split-pdf",
+          "status": 200,
+          "sidebar_support": "Split / extract runs in your browser; files stay on this device and are not uploaded.",
+          "toggle_checked": true
+        },
+        {
+          "route": "/remove-pages-pdf",
+          "status": 200,
+          "sidebar_support": "Remove pages runs in your browser; files stay on this device and are not uploaded.",
+          "toggle_checked": true
+        },
+        {
+          "route": "/rotate-pdf",
+          "status": 200,
+          "sidebar_support": "Rotate PDF runs in your browser; files stay on this device and are not uploaded.",
+          "toggle_checked": true
+        },
+        {
+          "route": "/organize-pdf",
+          "status": 200,
+          "sidebar_support": "Page Organizer runs in your browser; files stay on this device and are not uploaded.",
+          "toggle_checked": true
+        },
+        {
+          "route": "/merge-photos-online",
+          "status": 200,
+          "sidebar_support": "Merge Photos into One runs in your browser; files stay on this device and are not uploaded.",
+          "toggle_checked": true
+        }
+      ],
+      "settings_support": "Browser processing is preferred for Merge, Split, Remove, Rotate, and Page Organizer. Photo tools always run in your browser.",
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "routes": [
+        {
+          "route": "/merge-pdf",
+          "status": 200,
+          "sidebar_support": "Merge PDF runs in your browser; files stay on this device and are not uploaded.",
+          "toggle_checked": true
+        },
+        {
+          "route": "/split-pdf",
+          "status": 200,
+          "sidebar_support": "Split / extract runs in your browser; files stay on this device and are not uploaded.",
+          "toggle_checked": true
+        },
+        {
+          "route": "/remove-pages-pdf",
+          "status": 200,
+          "sidebar_support": "Remove pages runs in your browser; files stay on this device and are not uploaded.",
+          "toggle_checked": true
+        },
+        {
+          "route": "/rotate-pdf",
+          "status": 200,
+          "sidebar_support": "Rotate PDF runs in your browser; files stay on this device and are not uploaded.",
+          "toggle_checked": true
+        },
+        {
+          "route": "/organize-pdf",
+          "status": 200,
+          "sidebar_support": "Page Organizer runs in your browser; files stay on this device and are not uploaded.",
+          "toggle_checked": true
+        },
+        {
+          "route": "/merge-photos-online",
+          "status": 200,
+          "sidebar_support": "Merge Photos into One runs in your browser; files stay on this device and are not uploaded.",
+          "toggle_checked": true
+        }
+      ],
+      "settings_support": "Browser processing is preferred for Merge, Split, Remove, Rotate, and Page Organizer. Photo tools always run in your browser.",
+      "page_errors": []
+    }
+  ]
+}

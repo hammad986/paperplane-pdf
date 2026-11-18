@@ -1,0 +1,31 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "first_time_signed_in_launcher_visible": true,
+      "dismiss_hid_launcher": true,
+      "feedback_local_flags": [
+        "paperplane-feedback-dismissed:v1:account-9773e2665a3349039f7945f3e66d894f",
+        "paperplane-feedback-seen:v1:account-9773e2665a3349039f7945f3e66d894f"
+      ],
+      "settings_reopen_button_visible": true,
+      "settings_reopened_feedback": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "first_time_signed_in_launcher_visible": true,
+      "submit_success_visible": true,
+      "launcher_hidden_after_submit": true,
+      "local_feedback_api": [
+        {
+          "url": "http://127.0.0.1:57736/api/feedback",
+          "status": 200
+        }
+      ],
+      "settings_reopen_button_visible": true,
+      "settings_reopened_feedback": true,
+      "page_errors": []
+    }
+  ]
+}

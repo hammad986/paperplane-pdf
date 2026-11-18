@@ -418,7 +418,9 @@ def add_visual_signature(
     page_num: int = 0,
     rect: tuple[float, float, float, float] | None = None,
     signer_name: str = "Signed",
-    date_str: str = ""
+    date_str: str = "",
+    signature_color: str = "#243b53",
+    page_background: str = "unknown"
 ) -> Path:
     """Places a visual/electronic signature mark (drawn strokes, typed signature, or stamp) on a PDF page."""
     if not source.exists():
@@ -460,20 +462,42 @@ def add_visual_signature(
                     is_image = False
 
         if is_image and img_bytes:
-            page.insert_image(target_rect, stream=img_bytes)
+            try:
+                from PIL import Image, ImageFilter
+                with Image.open(io.BytesIO(img_bytes)).convert("RGBA") as mark:
+                    alpha = mark.getchannel("A")
+                    outline_alpha = alpha.filter(ImageFilter.MaxFilter(9))
+                    outline_rgb = (255, 255, 255) if str(page_background).lower() == "dark" else (0, 0, 0)
+                    outline = Image.new("RGBA", mark.size, (*outline_rgb, 0))
+                    outline.putalpha(outline_alpha)
+                    outlined = Image.alpha_composite(outline, mark)
+                    encoded = io.BytesIO()
+                    outlined.save(encoded, format="PNG")
+                    page.insert_image(target_rect, stream=encoded.getvalue())
+            except Exception:
+                page.insert_image(target_rect, stream=img_bytes)
         else:
             text_val = str(signature_data)
+            if not re.fullmatch(r"#[0-9a-fA-F]{6}", str(signature_color)):
+                signature_color = "#243b53"
+            pen = tuple(int(signature_color[index:index + 2], 16) / 255 for index in (1, 3, 5))
+            edge = (1, 1, 1) if str(page_background).lower() == "dark" else (0, 0, 0)
             page.draw_rect(target_rect, color=(0.7, 0.7, 0.7), width=0.5, dashes="[2 2]")
             page.insert_text(
                 fitz.Point(target_rect.x0 + 8, target_rect.y0 + target_rect.height * 0.6),
                 text_val,
                 fontsize=max(14.0, min(24.0, target_rect.height * 0.4)),
-                color=(0.1, 0.2, 0.5)
+                color=edge,
+                fill=pen,
+                render_mode=2,
+                border_width=0.7,
+                morph=(fitz.Point(0, 0), fitz.Matrix(1, 1)),
+                overlay=True
             )
             page.draw_line(
                 fitz.Point(target_rect.x0 + 6, target_rect.y1 - 6),
                 fitz.Point(target_rect.x1 - 6, target_rect.y1 - 6),
-                color=(0.1, 0.2, 0.5),
+                color=pen if edge == (1, 1, 1) else edge,
                 width=1.0
             )
 

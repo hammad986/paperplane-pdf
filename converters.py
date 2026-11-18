@@ -38,27 +38,38 @@ from reportlab.lib.pagesizes import letter, landscape, A4
 logger = logging.getLogger(__name__)
 
 
-def unicode_font_path(bold: bool = False) -> str:
+def unicode_font_path(bold: bool = False, text: str = "") -> str:
     """Find an embeddable Unicode font so generated text has a ToUnicode map."""
     repo_font = Path(__file__).resolve().parent / "deploy" / "fonts" / "FreeSans.ttf"
     candidates = (
         [
             Path("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"),
             Path("/usr/share/fonts/truetype/freefont/FreeSansBold.ttf"),
+            Path("/usr/share/fonts/truetype/noto/NotoSansSymbols2-Regular.ttf"),
+            Path(r"C:\Windows\Fonts\seguisym.ttf"),
             Path(r"C:\Windows\Fonts\arialbd.ttf"),
             Path("/Library/Fonts/Arial Bold.ttf"),
         ] if bold else [
             repo_font,
             Path("/usr/share/fonts/truetype/freefont/FreeSans.ttf"),
             Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
+            Path("/usr/share/fonts/truetype/noto/NotoSansSymbols2-Regular.ttf"),
+            Path(r"C:\Windows\Fonts\seguisym.ttf"),
             Path(r"C:\Windows\Fonts\arial.ttf"),
             Path("/Library/Fonts/Arial.ttf"),
         ]
     )
     for candidate in candidates:
         if candidate.is_file():
+            if text:
+                try:
+                    font = fitz.Font(fontfile=str(candidate))
+                    if any(not char.isspace() and not font.has_glyph(ord(char)) for char in text):
+                        continue
+                except Exception:
+                    continue
             return str(candidate)
-    raise RuntimeError("Unicode text embedding is unavailable because a supported TrueType font is missing.")
+    raise RuntimeError("Unicode text embedding is unavailable because no installed TrueType font supports all requested characters.")
 
 # LibreOffice is a heavyweight process: bound the number of simultaneous
 # profiles so queued requests cannot multiply CPU and resident memory usage.
@@ -880,6 +891,18 @@ li {{ margin-bottom: 4px; }}
 # 2. CONVERT FROM PDF (PHASE 5 ENGINE)
 # ----------------------------------------------------------------------
 
+def _sanitize_xml_text(value: Any) -> str:
+    """Remove code points forbidden by XML 1.0 while preserving valid Unicode."""
+    text = str(value or "")
+    return "".join(
+        char for char in text
+        if char in "\t\n\r"
+        or 0x20 <= ord(char) <= 0xD7FF
+        or 0xE000 <= ord(char) <= 0xFFFD
+        or 0x10000 <= ord(char) <= 0x10FFFF
+    )
+
+
 def pdf_to_word(source: Path, output: Path, pages: str = "all") -> Path:
     """Converts a PDF into an editable Microsoft Word (.docx) document."""
     # Prefer real editable text. pdf2docx may rasterize complex pages into huge
@@ -895,7 +918,7 @@ def pdf_to_word(source: Path, output: Path, pages: str = "all") -> Path:
                 if block[6] != 0 or any(box.contains(fitz.Rect(block[:4])) for box in table_boxes):
                     continue
                 if block[4].strip():
-                    out_docx.add_paragraph(block[4].strip())
+                    out_docx.add_paragraph(_sanitize_xml_text(block[4].strip()))
             for table in tables:
                 rows = table.extract()
                 if not rows:
@@ -904,7 +927,7 @@ def pdf_to_word(source: Path, output: Path, pages: str = "all") -> Path:
                 target.style = "Table Grid"
                 for row_index, row in enumerate(rows):
                     for column_index, value in enumerate(row):
-                        target.cell(row_index, column_index).text = str(value or "")
+                        target.cell(row_index, column_index).text = _sanitize_xml_text(value)
             section = out_docx.sections[-1]
             max_width = section.page_width - section.left_margin - section.right_margin
             for block in page.get_text("dict")["blocks"]:
@@ -924,6 +947,12 @@ def pdf_to_word(source: Path, output: Path, pages: str = "all") -> Path:
             out_docx.add_picture(image, width=max_width)
         if page.number < doc.page_count - 1:
             out_docx.add_page_break()
+    properties = out_docx.core_properties
+    properties.title = _sanitize_xml_text(source.stem)
+    for field_name in ("author", "subject", "keywords", "comments", "category", "identifier", "language", "last_modified_by"):
+        value = getattr(properties, field_name, None)
+        if isinstance(value, str):
+            setattr(properties, field_name, _sanitize_xml_text(value))
     out_docx.save(str(output))
     doc.close()
     return output
@@ -1175,7 +1204,12 @@ def pdf_to_text(source: Path, output: Path, pages: str = "all") -> Path:
     return output
 
 
-def pdf_to_markdown(source: Path, output: Path, pages: str = "all") -> Path:
+def pdf_to_markdown(
+    source: Path,
+    output: Path,
+    pages: str = "all",
+    document_name: str | None = None,
+) -> Path:
     """Converts PDF document into structured Markdown preserving headings, lists, and tables."""
     doc = fitz.open(str(source))
     total_pages = len(doc)
@@ -1216,17 +1250,28 @@ def pdf_to_markdown(source: Path, output: Path, pages: str = "all") -> Path:
                 table_rects.append(fitz.Rect(tab.bbox))
                 rows = tab.extract()
                 if rows and len(rows) > 0:
+                    valid_cols = [
+                        col_idx for col_idx in range(len(rows[0]))
+                        if any(str(r[col_idx] or "").strip() for r in rows if col_idx < len(r))
+                    ]
+                    if valid_cols:
+                        cleaned_rows = [
+                            [r[col_idx] if col_idx < len(r) else "" for col_idx in valid_cols]
+                            for r in rows
+                        ]
+                    else:
+                        cleaned_rows = rows
                     lines = []
-                    header = [str(c or "").strip().replace("|", "\\|") for c in rows[0]]
+                    header = [str(c or "").strip().replace("|", "\\|") for c in cleaned_rows[0]]
                     lines.append("| " + " | ".join(header) + " |")
                     lines.append("| " + " | ".join(["---"] * len(header)) + " |")
-                    for r in rows[1:]:
+                    for r in cleaned_rows[1:]:
                         r_data = [str(c or "").strip().replace("|", "\\|") for c in r]
                         lines.append("| " + " | ".join(r_data) + " |")
                     table_md_list.append("\n".join(lines))
 
         # Extract structured blocks outside tables
-        d = page.get_text("dict")
+        d = page.get_text("rawdict")
         for b in d.get("blocks", []):
             if b.get("type") == 0:
                 bbox = fitz.Rect(b.get("bbox"))
@@ -1238,10 +1283,26 @@ def pdf_to_markdown(source: Path, output: Path, pages: str = "all") -> Path:
                     max_size = 0.0
                     is_bold = False
                     for s in l.get("spans", []):
-                        t = s.get("text", "")
+                        t = s.get("text", "") or "".join(char.get("c", "") for char in s.get("chars", []))
                         if t.strip():
-                            span_texts.append(t)
                             sz = float(s.get("size", 10.0))
+                            chars = s.get("chars") or []
+                            if chars:
+                                previous_char = None
+                                for char in chars:
+                                    char_text = char.get("c", "")
+                                    if not char_text:
+                                        continue
+                                    if previous_char is not None and not char_text.isspace():
+                                        prev_end = float(previous_char.get("bbox", [0, 0, 0, 0])[2])
+                                        this_start = float(char.get("bbox", [0, 0, 0, 0])[0])
+                                        threshold = max(0.5, sz * 0.08)
+                                        if this_start - prev_end > threshold and not span_texts[-1].endswith((" ", "-", "\u2010")):
+                                            span_texts.append(" ")
+                                    span_texts.append(char_text)
+                                    previous_char = char
+                            else:
+                                span_texts.append(t)
                             if sz > max_size:
                                 max_size = sz
                             if s.get("flags", 0) & 16:
@@ -1252,8 +1313,6 @@ def pdf_to_markdown(source: Path, output: Path, pages: str = "all") -> Path:
                             line_str = f"# {line_str}"
                         elif max_size >= 14 or (max_size >= 12 and is_bold):
                             line_str = f"## {line_str}"
-                        elif max_size >= 12:
-                            line_str = f"### {line_str}"
                         elif line_str.startswith(("- ", "* ", "• ")):
                             line_str = "- " + line_str.lstrip("-*• ")
                         block_lines.append(line_str)
@@ -1265,7 +1324,15 @@ def pdf_to_markdown(source: Path, output: Path, pages: str = "all") -> Path:
 
         md_sections.append("\n\n".join(page_md))
 
-    final_md = f"# {source.stem}\n\n" + "\n\n---\n\n".join(md_sections) + "\n"
+    metadata_title = (doc.metadata or {}).get("title", "").strip()
+    # Storage/job identifiers are not document titles. Leave the heading absent
+    # when the PDF has no trustworthy title rather than exposing an internal name.
+    safe_title = metadata_title if metadata_title and not re.match(r"^[a-f0-9]{20,}(?:_|$)", metadata_title, re.I) else ""
+    if not safe_title and document_name:
+        safe_title = Path(document_name.replace("\\", "/")).name
+        safe_title = re.sub(r"\.(?:pdf)$", "", safe_title, flags=re.I).strip()
+    heading = f"# {safe_title}\n\n" if safe_title else ""
+    final_md = heading + "\n\n---\n\n".join(md_sections) + "\n"
     output.write_text(final_md, encoding="utf-8")
     doc.close()
     return output
@@ -1428,6 +1495,27 @@ def _find_srgb_icc_profile() -> Path | None:
                 return candidate.resolve()
         except OSError:
             continue
+    return None
+
+
+def pdfa_dependency_issue() -> str | None:
+    """Return a user-facing prerequisite when PDF/A conversion cannot run here."""
+    gs = shutil.which("gs") or shutil.which("gswin64c") or shutil.which("gswin32c")
+    if not gs:
+        return "Requires Ghostscript to create PDF/A-1b output"
+    if _find_srgb_icc_profile() is None:
+        return "Requires an sRGB ICC profile for PDF/A-1b output"
+
+    gs_path = Path(gs).resolve()
+    roots = [Path("/usr/share/ghostscript")]
+    if gs_path.parent.name.lower() == "bin":
+        roots.insert(0, gs_path.parent.parent / "share" / "ghostscript")
+    definition = next(
+        (candidate for root in roots if root.exists() for candidate in root.glob("*/lib/PDFA_def.ps")),
+        None,
+    )
+    if definition is None:
+        return "Requires Ghostscript's PDF/A definition file"
     return None
 
 
@@ -2395,22 +2483,43 @@ def compress_photo(
         
         if target_kb and int(target_kb) > 0:
             target_bytes = int(target_kb) * 1024
-            low_q, high_q = 10, 95
+            candidate = rgb_img
             best_data = None
-            while low_q <= high_q:
-                mid_q = (low_q + high_q) // 2
-                buf = io.BytesIO()
-                rgb_img.save(buf, format="JPEG", quality=mid_q, optimize=True)
-                data = buf.getvalue()
-                if len(data) > target_bytes:
-                    high_q = mid_q - 1
-                else:
-                    best_data = data
-                    low_q = mid_q + 1
+            for _ in range(32):
+                low_q, high_q = 10, 95
+                scale_best = None
+                smallest_quality = None
+                while low_q <= high_q:
+                    mid_q = (low_q + high_q) // 2
+                    buf = io.BytesIO()
+                    candidate.save(buf, format="JPEG", quality=mid_q, optimize=True)
+                    data = buf.getvalue()
+                    if mid_q == 10:
+                        smallest_quality = data
+                    if len(data) > target_bytes:
+                        high_q = mid_q - 1
+                    else:
+                        scale_best = data
+                        low_q = mid_q + 1
+                if scale_best is not None:
+                    best_data = scale_best
+                    break
+
+                # A quality-only search cannot meet the requested size. Reduce
+                # dimensions proportionally and retry instead of silently
+                # returning a JPEG that exceeds the user's target.
+                if candidate.width <= 1 and candidate.height <= 1:
+                    break
+                min_quality_bytes = len(smallest_quality or b"")
+                scale = min(0.85, (target_bytes / max(min_quality_bytes, 1)) ** 0.5 * 0.9)
+                scale = max(0.25, scale)
+                next_size = (max(1, int(candidate.width * scale)), max(1, int(candidate.height * scale)))
+                if next_size == candidate.size:
+                    next_size = (max(1, candidate.width - 1), max(1, candidate.height - 1))
+                candidate = candidate.resize(next_size, Image.Resampling.LANCZOS)
+
             if best_data is None:
-                buf = io.BytesIO()
-                rgb_img.save(buf, format="JPEG", quality=10, optimize=True)
-                best_data = buf.getvalue()
+                raise ValueError(f"The image cannot be reduced to the requested {int(target_kb)} KB target. Choose a larger target size.")
             out_file.write_bytes(best_data)
         else:
             q = max(10, min(100, int(quality or 75)))
@@ -2454,7 +2563,20 @@ def resize_photo(
         else:
             rgb_img = img
 
-        resized = rgb_img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+        if width and height and not scale_percent:
+            # Keep the full image visible at the requested canvas size. Stretching
+            # both axes independently distorts faces and documents.
+            canvas_mode = "RGBA" if rgb_img.mode == "RGBA" else "RGB"
+            background = (255, 255, 255, 0) if canvas_mode == "RGBA" else (255, 255, 255)
+            canvas = Image.new(canvas_mode, (new_w, new_h), background)
+            fitted = min(new_w / orig_w, new_h / orig_h)
+            fit_size = (max(1, round(orig_w * fitted)), max(1, round(orig_h * fitted)))
+            fit_source = rgb_img.convert("RGBA" if canvas_mode == "RGBA" else "RGB")
+            resized = fit_source.resize(fit_size, Image.Resampling.LANCZOS)
+            canvas.paste(resized, ((new_w - fit_size[0]) // 2, (new_h - fit_size[1]) // 2), resized if canvas_mode == "RGBA" else None)
+            resized = canvas
+        else:
+            resized = rgb_img.resize((new_w, new_h), Image.Resampling.LANCZOS)
         resized.save(str(out_file), format=fmt, quality=90, optimize=True)
         return out_file
 

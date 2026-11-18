@@ -1,0 +1,2074 @@
+{
+  "tool_route_count": 44,
+  "tool_views": [
+    {
+      "operation": "merge",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Upload PDFs in the desired order",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Rearrange thumbnails before processing",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download the merged document",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "split",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Choose the source PDF",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Enter page numbers or ranges",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download the extracted PDF files",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "remove",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Open the PDF page organizer",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Select pages to delete",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Confirm and download the cleaned PDF",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "rotate",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Upload the PDF",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Choose the rotation angle",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download the reoriented PDF",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "organize",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Load the PDF into Page Organizer",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Enter the complete output order as comma-separated page numbers",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download and review the organized PDF",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "scan_pdf",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Upload images in the order they should appear",
+          "body": "Select photos or scans in the sequence you want them in the PDF.",
+          "visible": true
+        },
+        {
+          "heading": "Check the selected image files",
+          "body": "Choose A4, US Letter, or the photo's original printed size at 200 DPI. Images are fitted without stretching.",
+          "visible": true
+        },
+        {
+          "heading": "Export the optimized PDF",
+          "body": "Download the PDF and check page size, order, and readability.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "compress",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Upload a PDF and inspect its size",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Choose lossless or quality-based compression",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download the smaller verified PDF",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "repair",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Select the damaged PDF",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Run structural recovery",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download and verify the repaired file",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "ocr",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Upload a scanned PDF",
+          "body": "Select a scanned PDF in the upload area; supported size limits are shown beside it.",
+          "visible": true
+        },
+        {
+          "heading": "After upload, select an available OCR language",
+          "body": "After selecting the file, choose a language from the available control before recognition; no quality setting is shown.",
+          "visible": true
+        },
+        {
+          "heading": "Download the searchable PDF",
+          "body": "Download the searchable copy and check several pages for recognition quality.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "jpg_to_pdf",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Select JPG or other supported images",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Upload them in the order you want in the PDF",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download the generated PDF",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "word_to_pdf",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Choose a DOC or DOCX file",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Review conversion and page settings",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download the rendered PDF",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "excel_to_pdf",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Upload an XLS or XLSX workbook",
+          "body": "Select an Excel workbook in the upload area above.",
+          "visible": true
+        },
+        {
+          "heading": "Convert the workbook and review its pages",
+          "body": "The converter uses its built-in sheet and page-layout behavior; no sheet selector is shown.",
+          "visible": true
+        },
+        {
+          "heading": "Download the formatted PDF",
+          "body": "Open the PDF and check the rendered pages and page breaks.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "powerpoint_to_pdf",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Select a PPT or PPTX presentation",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Check slide orientation and output options",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download the PDF slide deck",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "html_to_pdf",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Enter an allowed public URL",
+          "body": "Enter a public web address in the URL field above; private network destinations are blocked.",
+          "visible": true
+        },
+        {
+          "heading": "Review the URL and start the conversion",
+          "body": "Check the URL you entered, then run the conversion. This form does not offer separate page-size controls.",
+          "visible": true
+        },
+        {
+          "heading": "Download the rendered PDF",
+          "body": "Open the generated PDF and review its page breaks, fonts, and images.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "pdf_to_jpg",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Upload the source PDF",
+          "body": "Select the PDF whose pages should become images.",
+          "visible": true
+        },
+        {
+          "heading": "After upload, choose an export resolution",
+          "body": "After selecting the PDF, choose an export resolution from the available control; the tool exports every page.",
+          "visible": true
+        },
+        {
+          "heading": "Download the JPG image bundle",
+          "body": "Download the ZIP and review the page images at the selected resolution.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "pdf_to_word",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Select a text-based PDF",
+          "body": "Select a text-based PDF. Scanned documents need OCR before conversion.",
+          "visible": true
+        },
+        {
+          "heading": "Convert the document and review its text layout",
+          "body": "The converter uses its built-in layout reconstruction; this page has no OCR settings selector.",
+          "visible": true
+        },
+        {
+          "heading": "Download the editable DOCX file",
+          "body": "Open the DOCX output and check paragraphs, tables, and page layout.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "pdf_to_excel",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Upload a table-containing PDF",
+          "body": "Select a PDF that contains tables or aligned text.",
+          "visible": true
+        },
+        {
+          "heading": "Convert the extracted content, then review the workbook",
+          "body": "The conversion extracts available tabular content; it does not show table-region previews before running.",
+          "visible": true
+        },
+        {
+          "heading": "Download the XLSX workbook",
+          "body": "Open the XLSX output and check row and column alignment in a spreadsheet app.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "pdf_to_powerpoint",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Choose the source PDF",
+          "body": "Select the PDF whose pages you want to reuse as slides.",
+          "visible": true
+        },
+        {
+          "heading": "Convert the pages into slides",
+          "body": "The converter creates slides from the source pages using its built-in reconstruction behavior.",
+          "visible": true
+        },
+        {
+          "heading": "Download and review the PPTX presentation",
+          "body": "Open the PPTX output and review text, images, and slide order.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "pdf_to_pdfa",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Upload the source PDF",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Choose PDF/A conversion settings",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download the archive-ready document",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "pdf_to_text",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Select a text-based PDF",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Extract text from the full document",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download the plain text result",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "pdf_to_markdown",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Upload a text-based or OCR PDF",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Convert the full document to Markdown",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download the generated Markdown file",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "edit",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Open the PDF in the editor",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Choose an editing tool and place it on the page",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Apply changes and export the edited PDF",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "annotate",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Upload the PDF",
+          "body": "Select a PDF to annotate in the workspace above.",
+          "visible": true
+        },
+        {
+          "heading": "Choose an annotation type and its available options",
+          "body": "After selecting the PDF, choose an annotation type and enter only the options displayed for that type.",
+          "visible": true
+        },
+        {
+          "heading": "Save the annotated PDF for review",
+          "body": "Export the PDF, then reopen it to confirm the annotations appear as expected.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "crop",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Open the PDF crop tool",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Set the crop box for one or more pages",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Preview and download the cropped document",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "redact",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Upload the source PDF",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Identify text or regions to redact",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Apply hardened redaction and verify the result",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "watermark",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Choose a PDF",
+          "body": "Select a PDF in the upload area above.",
+          "visible": true
+        },
+        {
+          "heading": "Enter watermark text or select an image, then set opacity",
+          "body": "Enter watermark text or select an image, then set opacity. Placement uses the tool's built-in layout.",
+          "visible": true
+        },
+        {
+          "heading": "Apply the watermark and download",
+          "body": "Download the watermarked PDF and check that the mark is legible without obscuring content.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "page_numbers",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Upload the PDF",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Choose position, format, and starting number",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Apply numbering and download",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "protect",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Upload the PDF to the security tool",
+          "body": "Select the PDF you are authorized to protect.",
+          "visible": true
+        },
+        {
+          "heading": "Enter a password for the protected copy",
+          "body": "Enter the password requested by the form; this tool does not expose separate owner-password or permission controls.",
+          "visible": true
+        },
+        {
+          "heading": "Encrypt and download the protected PDF",
+          "body": "Download the encrypted copy and verify it opens with the password you entered.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "unlock",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Choose the protected PDF",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Enter the valid user or owner password",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download the authorized unencrypted copy",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "sign",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Upload the document and enter the printed signer name",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Run Sign PDF to place a typed stamp",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Open Studio for drawn or certificate-backed signature workflows",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "compare",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Upload the original and revised PDFs",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Run the page and text comparison",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download the plain-text comparison report",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "forms",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Open the interactive PDF form",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Fill fields or import JSON data",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Save, flatten, and download the completed form",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "metadata",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Upload the PDF",
+          "body": "Select the PDF whose document properties you want to update.",
+          "visible": true
+        },
+        {
+          "heading": "Review or update its title, author, and subject",
+          "body": "Review or edit only the title, author, and subject fields shown above.",
+          "visible": true
+        },
+        {
+          "heading": "Save the updated metadata and download",
+          "body": "Download the updated PDF and check its properties in a PDF reader.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "ai_chat",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Upload a supported PDF",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Ask a question about its contents",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Review the answer and cited pages",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "ai_extract",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Upload an invoice, resume, or supported PDF",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Choose the extraction schema",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Review and export JSON or CSV",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "summarize",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Upload the source PDF",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Generate the executive summary",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Review the brief with source references",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "translate",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Upload a text-based or OCR PDF",
+          "body": "Select a text PDF or an OCR-processed scan in the upload area above.",
+          "visible": true
+        },
+        {
+          "heading": "After upload, choose the target language",
+          "body": "After selecting the PDF, choose a target language from the available options; that control is not shown before upload.",
+          "visible": true
+        },
+        {
+          "heading": "Review and download the translated copy",
+          "body": "Review the translated pages and text layer before sharing the output.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "photo_resizer",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Upload candidate photo or signature image",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Choose the exam preset (SSC, UPSC, IBPS)",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download the verified resized image or PDF",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "photo_compress",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Upload your image file",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Choose target file size (KB) or quality",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download your optimized image",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "photo_resize",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Upload photo or image",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Set custom dimensions or pick a preset",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download your resized image",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "photo_merge",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Select 2 or more photos",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Choose layout (vertical, horizontal, grid)",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download your merged image",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "mask_aadhaar",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Upload Aadhaar PDF or scan image",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Click Mask Aadhaar Now",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download your UIDAI-compliant masked PDF",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "grayscale",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Upload your color PDF",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Click Convert to Grayscale",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download your grayscale PDF",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "flatten",
+      "width": 390,
+      "status": 200,
+      "layout_width": 390,
+      "steps": [
+        {
+          "heading": "Upload your fillable PDF form",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Click Flatten Form Fields",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download the permanently flattened PDF",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "merge",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Upload PDFs in the desired order",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Rearrange thumbnails before processing",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download the merged document",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "split",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Choose the source PDF",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Enter page numbers or ranges",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download the extracted PDF files",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "remove",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Open the PDF page organizer",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Select pages to delete",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Confirm and download the cleaned PDF",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "rotate",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Upload the PDF",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Choose the rotation angle",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download the reoriented PDF",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "organize",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Load the PDF into Page Organizer",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Enter the complete output order as comma-separated page numbers",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download and review the organized PDF",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "scan_pdf",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Upload images in the order they should appear",
+          "body": "Select photos or scans in the sequence you want them in the PDF.",
+          "visible": true
+        },
+        {
+          "heading": "Check the selected image files",
+          "body": "Choose A4, US Letter, or the photo's original printed size at 200 DPI. Images are fitted without stretching.",
+          "visible": true
+        },
+        {
+          "heading": "Export the optimized PDF",
+          "body": "Download the PDF and check page size, order, and readability.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "compress",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Upload a PDF and inspect its size",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Choose lossless or quality-based compression",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download the smaller verified PDF",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "repair",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Select the damaged PDF",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Run structural recovery",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download and verify the repaired file",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "ocr",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Upload a scanned PDF",
+          "body": "Select a scanned PDF in the upload area; supported size limits are shown beside it.",
+          "visible": true
+        },
+        {
+          "heading": "After upload, select an available OCR language",
+          "body": "After selecting the file, choose a language from the available control before recognition; no quality setting is shown.",
+          "visible": true
+        },
+        {
+          "heading": "Download the searchable PDF",
+          "body": "Download the searchable copy and check several pages for recognition quality.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "jpg_to_pdf",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Select JPG or other supported images",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Upload them in the order you want in the PDF",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download the generated PDF",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "word_to_pdf",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Choose a DOC or DOCX file",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Review conversion and page settings",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download the rendered PDF",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "excel_to_pdf",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Upload an XLS or XLSX workbook",
+          "body": "Select an Excel workbook in the upload area above.",
+          "visible": true
+        },
+        {
+          "heading": "Convert the workbook and review its pages",
+          "body": "The converter uses its built-in sheet and page-layout behavior; no sheet selector is shown.",
+          "visible": true
+        },
+        {
+          "heading": "Download the formatted PDF",
+          "body": "Open the PDF and check the rendered pages and page breaks.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "powerpoint_to_pdf",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Select a PPT or PPTX presentation",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Check slide orientation and output options",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download the PDF slide deck",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "html_to_pdf",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Enter an allowed public URL",
+          "body": "Enter a public web address in the URL field above; private network destinations are blocked.",
+          "visible": true
+        },
+        {
+          "heading": "Review the URL and start the conversion",
+          "body": "Check the URL you entered, then run the conversion. This form does not offer separate page-size controls.",
+          "visible": true
+        },
+        {
+          "heading": "Download the rendered PDF",
+          "body": "Open the generated PDF and review its page breaks, fonts, and images.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "pdf_to_jpg",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Upload the source PDF",
+          "body": "Select the PDF whose pages should become images.",
+          "visible": true
+        },
+        {
+          "heading": "After upload, choose an export resolution",
+          "body": "After selecting the PDF, choose an export resolution from the available control; the tool exports every page.",
+          "visible": true
+        },
+        {
+          "heading": "Download the JPG image bundle",
+          "body": "Download the ZIP and review the page images at the selected resolution.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "pdf_to_word",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Select a text-based PDF",
+          "body": "Select a text-based PDF. Scanned documents need OCR before conversion.",
+          "visible": true
+        },
+        {
+          "heading": "Convert the document and review its text layout",
+          "body": "The converter uses its built-in layout reconstruction; this page has no OCR settings selector.",
+          "visible": true
+        },
+        {
+          "heading": "Download the editable DOCX file",
+          "body": "Open the DOCX output and check paragraphs, tables, and page layout.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "pdf_to_excel",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Upload a table-containing PDF",
+          "body": "Select a PDF that contains tables or aligned text.",
+          "visible": true
+        },
+        {
+          "heading": "Convert the extracted content, then review the workbook",
+          "body": "The conversion extracts available tabular content; it does not show table-region previews before running.",
+          "visible": true
+        },
+        {
+          "heading": "Download the XLSX workbook",
+          "body": "Open the XLSX output and check row and column alignment in a spreadsheet app.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "pdf_to_powerpoint",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Choose the source PDF",
+          "body": "Select the PDF whose pages you want to reuse as slides.",
+          "visible": true
+        },
+        {
+          "heading": "Convert the pages into slides",
+          "body": "The converter creates slides from the source pages using its built-in reconstruction behavior.",
+          "visible": true
+        },
+        {
+          "heading": "Download and review the PPTX presentation",
+          "body": "Open the PPTX output and review text, images, and slide order.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "pdf_to_pdfa",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Upload the source PDF",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Choose PDF/A conversion settings",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download the archive-ready document",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "pdf_to_text",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Select a text-based PDF",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Extract text from the full document",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download the plain text result",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "pdf_to_markdown",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Upload a text-based or OCR PDF",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Convert the full document to Markdown",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download the generated Markdown file",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "edit",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Open the PDF in the editor",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Choose an editing tool and place it on the page",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Apply changes and export the edited PDF",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "annotate",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Upload the PDF",
+          "body": "Select a PDF to annotate in the workspace above.",
+          "visible": true
+        },
+        {
+          "heading": "Choose an annotation type and its available options",
+          "body": "After selecting the PDF, choose an annotation type and enter only the options displayed for that type.",
+          "visible": true
+        },
+        {
+          "heading": "Save the annotated PDF for review",
+          "body": "Export the PDF, then reopen it to confirm the annotations appear as expected.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "crop",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Open the PDF crop tool",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Set the crop box for one or more pages",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Preview and download the cropped document",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "redact",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Upload the source PDF",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Identify text or regions to redact",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Apply hardened redaction and verify the result",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "watermark",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Choose a PDF",
+          "body": "Select a PDF in the upload area above.",
+          "visible": true
+        },
+        {
+          "heading": "Enter watermark text or select an image, then set opacity",
+          "body": "Enter watermark text or select an image, then set opacity. Placement uses the tool's built-in layout.",
+          "visible": true
+        },
+        {
+          "heading": "Apply the watermark and download",
+          "body": "Download the watermarked PDF and check that the mark is legible without obscuring content.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "page_numbers",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Upload the PDF",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Choose position, format, and starting number",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Apply numbering and download",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "protect",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Upload the PDF to the security tool",
+          "body": "Select the PDF you are authorized to protect.",
+          "visible": true
+        },
+        {
+          "heading": "Enter a password for the protected copy",
+          "body": "Enter the password requested by the form; this tool does not expose separate owner-password or permission controls.",
+          "visible": true
+        },
+        {
+          "heading": "Encrypt and download the protected PDF",
+          "body": "Download the encrypted copy and verify it opens with the password you entered.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "unlock",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Choose the protected PDF",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Enter the valid user or owner password",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download the authorized unencrypted copy",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "sign",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Upload the document and enter the printed signer name",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Run Sign PDF to place a typed stamp",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Open Studio for drawn or certificate-backed signature workflows",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "compare",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Upload the original and revised PDFs",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Run the page and text comparison",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download the plain-text comparison report",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "forms",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Open the interactive PDF form",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Fill fields or import JSON data",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Save, flatten, and download the completed form",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "metadata",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Upload the PDF",
+          "body": "Select the PDF whose document properties you want to update.",
+          "visible": true
+        },
+        {
+          "heading": "Review or update its title, author, and subject",
+          "body": "Review or edit only the title, author, and subject fields shown above.",
+          "visible": true
+        },
+        {
+          "heading": "Save the updated metadata and download",
+          "body": "Download the updated PDF and check its properties in a PDF reader.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "ai_chat",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Upload a supported PDF",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Ask a question about its contents",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Review the answer and cited pages",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "ai_extract",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Upload an invoice, resume, or supported PDF",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Choose the extraction schema",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Review and export JSON or CSV",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "summarize",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Upload the source PDF",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Generate the executive summary",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Review the brief with source references",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "translate",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Upload a text-based or OCR PDF",
+          "body": "Select a text PDF or an OCR-processed scan in the upload area above.",
+          "visible": true
+        },
+        {
+          "heading": "After upload, choose the target language",
+          "body": "After selecting the PDF, choose a target language from the available options; that control is not shown before upload.",
+          "visible": true
+        },
+        {
+          "heading": "Review and download the translated copy",
+          "body": "Review the translated pages and text layer before sharing the output.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "photo_resizer",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Upload candidate photo or signature image",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Choose the exam preset (SSC, UPSC, IBPS)",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download the verified resized image or PDF",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "photo_compress",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Upload your image file",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Choose target file size (KB) or quality",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download your optimized image",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "photo_resize",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Upload photo or image",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Set custom dimensions or pick a preset",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download your resized image",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "photo_merge",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Select 2 or more photos",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Choose layout (vertical, horizontal, grid)",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download your merged image",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "mask_aadhaar",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Upload Aadhaar PDF or scan image",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Click Mask Aadhaar Now",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download your UIDAI-compliant masked PDF",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "grayscale",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Upload your color PDF",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Click Convert to Grayscale",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download your grayscale PDF",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    },
+    {
+      "operation": "flatten",
+      "width": 820,
+      "status": 200,
+      "layout_width": 820,
+      "steps": [
+        {
+          "heading": "Upload your fillable PDF form",
+          "body": "The upload area above lists the supported file types and limits for this tool.",
+          "visible": true
+        },
+        {
+          "heading": "Click Flatten Form Fields",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed.",
+          "visible": true
+        },
+        {
+          "heading": "Download the permanently flattened PDF",
+          "body": "Review the result details, then download and open the output to check it.",
+          "visible": true
+        }
+      ]
+    }
+  ],
+  "other_pages": [
+    {
+      "route": "/tool-desk",
+      "status": 200,
+      "width": 820,
+      "viewport": 820,
+      "heading": "41 PDF TOOLS\nTool Desk\n\nPick a task, add your file, and follow the steps. Search by the job you need done.\n\nAll tools\nOrganize\nOptimize\nConvert\nEdit\nSign & Protect\nPhoto & Exam\nAI",
+      "cards": [
+        {
+          "title": "Choose a tool",
+          "body": "Search for a task or filter the directory by category to open the matching workflow."
+        },
+        {
+          "title": "Add your source",
+          "body": "Select a file or complete the inputs shown for that tool. Review its available options before running it."
+        },
+        {
+          "title": "Review the result",
+          "body": "Check the result details and download the generated file from the result panel."
+        }
+      ]
+    },
+    {
+      "route": "/download",
+      "status": 200,
+      "width": 820,
+      "viewport": 820,
+      "heading": "How the apps waitlist works",
+      "cards": [
+        {
+          "title": "Choose a platform",
+          "body": "Select the desktop or mobile platform you want updates about."
+        },
+        {
+          "title": "Enter your email",
+          "body": "Provide an address where Paperplane can send app availability updates."
+        },
+        {
+          "title": "Join the waitlist",
+          "body": "Submit the form to register interest. No app installer is available to download yet."
+        }
+      ]
+    }
+  ],
+  "page_errors": []
+}

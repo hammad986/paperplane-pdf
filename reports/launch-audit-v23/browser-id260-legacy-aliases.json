@@ -1,0 +1,58 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "redirects": [
+        {
+          "legacy_path": "/resize-photo",
+          "canonical_path": "/resize-image-dimensions",
+          "final_status": 200
+        },
+        {
+          "legacy_path": "/photo-resize",
+          "canonical_path": "/resize-image-dimensions",
+          "final_status": 200
+        },
+        {
+          "legacy_path": "/compress-photo",
+          "canonical_path": "/compress-image-online",
+          "final_status": 200
+        },
+        {
+          "legacy_path": "/add-page-numbers",
+          "canonical_path": "/add-page-numbers-to-pdf",
+          "final_status": 200
+        }
+      ],
+      "obsolete_home_links": [],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "redirects": [
+        {
+          "legacy_path": "/resize-photo",
+          "canonical_path": "/resize-image-dimensions",
+          "final_status": 200
+        },
+        {
+          "legacy_path": "/photo-resize",
+          "canonical_path": "/resize-image-dimensions",
+          "final_status": 200
+        },
+        {
+          "legacy_path": "/compress-photo",
+          "canonical_path": "/compress-image-online",
+          "final_status": 200
+        },
+        {
+          "legacy_path": "/add-page-numbers",
+          "canonical_path": "/add-page-numbers-to-pdf",
+          "final_status": 200
+        }
+      ],
+      "obsolete_home_links": [],
+      "page_errors": []
+    }
+  ]
+}

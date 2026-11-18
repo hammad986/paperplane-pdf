@@ -1,0 +1,42 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "chat": {
+        "pages": [
+          "Page 3",
+          "Page 2"
+        ],
+        "labels": [
+          "3",
+          "2"
+        ],
+        "mode": "Document-grounded answer"
+      },
+      "summary_pages": [
+        "Page 2",
+        "Page 3"
+      ],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "chat": {
+        "pages": [
+          "Page 3",
+          "Page 2"
+        ],
+        "labels": [
+          "3",
+          "2"
+        ],
+        "mode": "Document-grounded answer"
+      },
+      "summary_pages": [
+        "Page 2",
+        "Page 3"
+      ],
+      "page_errors": []
+    }
+  ]
+}

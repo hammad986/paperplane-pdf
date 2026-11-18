@@ -1,0 +1,78 @@
+{
+  "image": "paperplane-v23-audit:local-current-20261118",
+  "container": "paperplane-v23-smoke",
+  "rounds": [
+    {
+      "round": 1,
+      "submitted": 4,
+      "completed": 4,
+      "downloads": [
+        {
+          "status": 200,
+          "pages": 1,
+          "content_checked": true,
+          "bytes": 829
+        },
+        {
+          "status": 200,
+          "pages": 1,
+          "content_checked": true,
+          "bytes": 829
+        },
+        {
+          "status": 200,
+          "pages": 1,
+          "content_checked": true,
+          "bytes": 829
+        },
+        {
+          "status": 200,
+          "pages": 1,
+          "content_checked": true,
+          "bytes": 829
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "submitted": 4,
+      "completed": 4,
+      "downloads": [
+        {
+          "status": 200,
+          "pages": 1,
+          "content_checked": true,
+          "bytes": 829
+        },
+        {
+          "status": 200,
+          "pages": 1,
+          "content_checked": true,
+          "bytes": 829
+        },
+        {
+          "status": 200,
+          "pages": 1,
+          "content_checked": true,
+          "bytes": 829
+        },
+        {
+          "status": 200,
+          "pages": 1,
+          "content_checked": true,
+          "bytes": 829
+        }
+      ]
+    }
+  ],
+  "page_errors": [],
+  "health": {
+    "status": "ok",
+    "service": "paperplane-pdf",
+    "version": "2.0.0",
+    "auth_required": false,
+    "workers": 4,
+    "max_file_size_mb": 500,
+    "job_ttl_hours": 2
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "summary_heading_count": 1,
+      "unsupported_currency_assigned": false,
+      "supported_usd_preserved": true,
+      "unitless_amounts_preserved": true,
+      "unsupported_absence_claim_present": false,
+      "supported_absence_statement_preserved": true,
+      "mode": "Offline Analysis",
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "summary_heading_count": 1,
+      "unsupported_currency_assigned": false,
+      "supported_usd_preserved": true,
+      "unitless_amounts_preserved": true,
+      "unsupported_absence_claim_present": false,
+      "supported_absence_statement_preserved": true,
+      "mode": "AI Synthesis",
+      "page_errors": []
+    }
+  ],
+  "duplicate_summary_fell_back_to_one_offline_heading": true,
+  "currency_attribution_checked_per_amount": true,
+  "unsupported_document_wide_absence_claim_removed": true,
+  "supported_absence_statement_preserved": true,
+  "source_pages": 24
+}

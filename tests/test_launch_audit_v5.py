@@ -39,7 +39,7 @@ def test_citation_alignment_supports_plain_parenthesized_ranges_and_filters_temp
     )
     assert citations == [1, 2, 3, 4]
     assert answer.count("[Page 1]") == 1
-    assert "[Page 2]" in answer and "[Pages 3, 4]" in answer
+    assert "[Page 2]" in answer and "[Pages 3-4]" in answer
     assert "99" not in answer and "[Page X]" not in answer
 
     already_bracketed, bracketed_pages = ai_engine.align_answer_citations("The extracted answer [Page 1].", {1})
@@ -196,8 +196,10 @@ def test_translation_ui_never_offers_source_preserved_fallback_as_a_successful_p
     assert "Translation failed" in failure_branch
     assert "No translated download was created" in failure_branch
     assert "Download translated PDF" not in failure_branch
-    assert "Partial translation ready" in translate_branch
-    assert "Download partial translation" in translate_branch
+    translation_result = app_js.split("function renderTranslationResult", 1)[1].split("function showRichAiResult", 1)[0]
+    assert "Partial translation ready" in translation_result
+    assert "Download partial translation" in translation_result
+    assert "translation-view-studio-btn" in translation_result
 
 
 def test_fill_form_json_map_wraps_long_values_and_is_submitted_with_job_options():

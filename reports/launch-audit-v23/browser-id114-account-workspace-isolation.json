@@ -1,0 +1,45 @@
+{
+  "scenario": "switch from an account with saved Studio work to a different account in the same browser session",
+  "rounds": [
+    {
+      "round": 1,
+      "previous_account": {
+        "userId": "11d523cee4df48a3bcae654875beff58",
+        "keys": [
+          "account:11d523cee4df48a3bcae654875beff58:studio-pdf",
+          "account:11d523cee4df48a3bcae654875beff58:studio-position"
+        ],
+        "filename": "previous-account-private-document.pdf",
+        "pageCount": 1
+      },
+      "new_account": {
+        "userId": "635e303795ac41c090d4a91731c41a54",
+        "pageCount": "0",
+        "canvasRendered": false,
+        "pageText": "",
+        "loading": false
+      },
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "previous_account": {
+        "userId": "11d523cee4df48a3bcae654875beff58",
+        "keys": [
+          "account:11d523cee4df48a3bcae654875beff58:studio-pdf",
+          "account:11d523cee4df48a3bcae654875beff58:studio-position"
+        ],
+        "filename": "previous-account-private-document.pdf",
+        "pageCount": 1
+      },
+      "new_account": {
+        "userId": "635e303795ac41c090d4a91731c41a54",
+        "pageCount": "0",
+        "canvasRendered": false,
+        "pageText": "",
+        "loading": false
+      },
+      "page_errors": []
+    }
+  ]
+}

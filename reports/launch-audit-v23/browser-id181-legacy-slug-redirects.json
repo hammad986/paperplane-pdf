@@ -1,0 +1,100 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "checks": [
+        {
+          "old": "/metadata",
+          "redirect_status": 301,
+          "location": "/pdf-metadata",
+          "final_status": 200,
+          "final_url": "http://127.0.0.1:58365/pdf-metadata"
+        },
+        {
+          "old": "/photo-compress",
+          "redirect_status": 301,
+          "location": "/compress-image-online",
+          "final_status": 200,
+          "final_url": "http://127.0.0.1:58365/compress-image-online"
+        },
+        {
+          "old": "/compress-photos",
+          "redirect_status": 301,
+          "location": "/compress-image-online",
+          "final_status": 200,
+          "final_url": "http://127.0.0.1:58365/compress-image-online"
+        },
+        {
+          "old": "/ai-chat",
+          "redirect_status": 301,
+          "location": "/ai-pdf-chat",
+          "final_status": 200,
+          "final_url": "http://127.0.0.1:58365/ai-intelligence"
+        },
+        {
+          "old": "/chat-pdf",
+          "redirect_status": 301,
+          "location": "/ai-pdf-chat",
+          "final_status": 200,
+          "final_url": "http://127.0.0.1:58365/ai-intelligence"
+        },
+        {
+          "old": "/pdf-chat",
+          "redirect_status": 301,
+          "location": "/ai-pdf-chat",
+          "final_status": 200,
+          "final_url": "http://127.0.0.1:58365/ai-intelligence"
+        }
+      ],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "checks": [
+        {
+          "old": "/metadata",
+          "redirect_status": 301,
+          "location": "/pdf-metadata",
+          "final_status": 200,
+          "final_url": "http://127.0.0.1:58365/pdf-metadata"
+        },
+        {
+          "old": "/photo-compress",
+          "redirect_status": 301,
+          "location": "/compress-image-online",
+          "final_status": 200,
+          "final_url": "http://127.0.0.1:58365/compress-image-online"
+        },
+        {
+          "old": "/compress-photos",
+          "redirect_status": 301,
+          "location": "/compress-image-online",
+          "final_status": 200,
+          "final_url": "http://127.0.0.1:58365/compress-image-online"
+        },
+        {
+          "old": "/ai-chat",
+          "redirect_status": 301,
+          "location": "/ai-pdf-chat",
+          "final_status": 200,
+          "final_url": "http://127.0.0.1:58365/ai-intelligence"
+        },
+        {
+          "old": "/chat-pdf",
+          "redirect_status": 301,
+          "location": "/ai-pdf-chat",
+          "final_status": 200,
+          "final_url": "http://127.0.0.1:58365/ai-intelligence"
+        },
+        {
+          "old": "/pdf-chat",
+          "redirect_status": 301,
+          "location": "/ai-pdf-chat",
+          "final_status": 200,
+          "final_url": "http://127.0.0.1:58365/ai-intelligence"
+        }
+      ],
+      "page_errors": []
+    }
+  ]
+}

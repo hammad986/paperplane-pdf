@@ -287,7 +287,8 @@ def test_google_auth_valid_session_and_logout_lifecycle(monkeypatch):
 
     # 4. Previously valid session token is now completely revoked
     revoked_res = auth_client.get("/api/auth/me")
-    assert revoked_res.status_code == 401
+    assert revoked_res.status_code == 200
+    assert revoked_res.json() == {"authenticated": False}
 
 
 def test_favicon_and_legal_routes():
@@ -393,20 +394,22 @@ def test_user_change_password_endpoint():
 
 
 def test_swagger_api_docs_route():
-    """Docs are available in development and absent from production."""
+    """Production hides FastAPI defaults but publishes the CSP-safe spec UI."""
     from server import DISABLE_DOCS
 
     docs_res = client.get("/api-docs", follow_redirects=False)
     openapi_res = client.get("/openapi.json")
     if DISABLE_DOCS:
         assert docs_res.status_code in (301, 302, 307, 308)
-        assert docs_res.headers["location"] == "/developers"
+        assert docs_res.headers["location"] == "/spec/swagger"
         assert openapi_res.status_code == 404
         redirected_docs = client.get("/api-docs")
         assert redirected_docs.status_code == 200
+        assert "/assets/swagger-init.js" in redirected_docs.text
         docs_redirect = client.get("/docs", follow_redirects=False)
         assert docs_redirect.status_code in (301, 302, 307, 308)
-        assert docs_redirect.headers["location"] == "/developers"
+        assert docs_redirect.headers["location"] == "/spec/swagger"
+        assert client.get("/spec/openapi.json").status_code == 200
         return
 
     assert docs_res.status_code == 200
@@ -450,10 +453,13 @@ def test_csp_does_not_allow_inline_script_execution():
 def test_plan_limits_match_server_upload_limits():
     from server import MAX_FILE_SIZE, plan_limits_payload, upload_limit_bytes_for_tier
 
-    limits = plan_limits_payload()
+    limits = plan_limits_payload("pro")
     assert limits["free_operations_per_day"] > 0
     assert limits["free_max_file_size_mb"] > 0
     assert limits["max_batch_files"] == 100
+    assert plan_limits_payload("student_pro")["max_batch_files"] == 10
+    assert plan_limits_payload("exam_pass")["max_batch_files"] == 10
+    assert plan_limits_payload("developer")["max_batch_files"] == 100
     assert upload_limit_bytes_for_tier("free") == min(
         MAX_FILE_SIZE, limits["free_max_file_size_mb"] * 1024 * 1024
     )
@@ -465,11 +471,12 @@ def test_auth_profile_exposes_the_authoritative_plan_limits():
     from server import plan_limits_payload
 
     anonymous_response = TestClient(app).get("/api/auth/me")
-    assert anonymous_response.status_code == 401
+    assert anonymous_response.status_code == 200
+    assert anonymous_response.json() == {"authenticated": False}
     authenticated = register_verified(client, f"profile_{os.urandom(4).hex()}@paperplane.test", secrets.token_urlsafe(24))
     response = client.get("/api/auth/me", headers={"Authorization": f"Bearer {authenticated.json()['token']}"})
     assert response.status_code == 200
-    assert response.json()["plan_limits"] == plan_limits_payload()
+    assert response.json()["plan_limits"] == plan_limits_payload("free")
 
 
 def test_ai_capability_endpoint_hides_provider_details_and_reports_local_availability(monkeypatch):

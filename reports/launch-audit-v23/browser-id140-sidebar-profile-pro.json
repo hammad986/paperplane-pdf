@@ -1,0 +1,107 @@
+{
+  "account": "disposable signed-in student_pro test account",
+  "rounds": [
+    {
+      "round": 1,
+      "routes": [
+        {
+          "route": "/apps",
+          "status": 200,
+          "first_paint_card_visible": true,
+          "auth_pending_at_first_paint": true,
+          "unresolved_identity": "",
+          "settled_name": "audit-5a95e7e0@example.invalid",
+          "authenticated_tier": "student_pro"
+        },
+        {
+          "route": "/download",
+          "status": 200,
+          "first_paint_card_visible": true,
+          "auth_pending_at_first_paint": true,
+          "unresolved_identity": "",
+          "settled_name": "audit-5a95e7e0@example.invalid",
+          "authenticated_tier": "student_pro"
+        },
+        {
+          "route": "/privacy",
+          "status": 200,
+          "first_paint_card_visible": true,
+          "auth_pending_at_first_paint": true,
+          "unresolved_identity": "",
+          "settled_name": "audit-5a95e7e0@example.invalid",
+          "authenticated_tier": "student_pro"
+        },
+        {
+          "route": "/terms",
+          "status": 200,
+          "first_paint_card_visible": true,
+          "auth_pending_at_first_paint": true,
+          "unresolved_identity": "",
+          "settled_name": "audit-5a95e7e0@example.invalid",
+          "authenticated_tier": "student_pro"
+        },
+        {
+          "route": "/faq",
+          "status": 200,
+          "first_paint_card_visible": true,
+          "auth_pending_at_first_paint": true,
+          "unresolved_identity": "",
+          "settled_name": "audit-5a95e7e0@example.invalid",
+          "authenticated_tier": "student_pro"
+        }
+      ],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "routes": [
+        {
+          "route": "/apps",
+          "status": 200,
+          "first_paint_card_visible": true,
+          "auth_pending_at_first_paint": true,
+          "unresolved_identity": "",
+          "settled_name": "audit-5a95e7e0@example.invalid",
+          "authenticated_tier": "student_pro"
+        },
+        {
+          "route": "/download",
+          "status": 200,
+          "first_paint_card_visible": true,
+          "auth_pending_at_first_paint": true,
+          "unresolved_identity": "",
+          "settled_name": "audit-5a95e7e0@example.invalid",
+          "authenticated_tier": "student_pro"
+        },
+        {
+          "route": "/privacy",
+          "status": 200,
+          "first_paint_card_visible": true,
+          "auth_pending_at_first_paint": true,
+          "unresolved_identity": "",
+          "settled_name": "audit-5a95e7e0@example.invalid",
+          "authenticated_tier": "student_pro"
+        },
+        {
+          "route": "/terms",
+          "status": 200,
+          "first_paint_card_visible": true,
+          "auth_pending_at_first_paint": true,
+          "unresolved_identity": "",
+          "settled_name": "audit-5a95e7e0@example.invalid",
+          "authenticated_tier": "student_pro"
+        },
+        {
+          "route": "/faq",
+          "status": 200,
+          "first_paint_card_visible": true,
+          "auth_pending_at_first_paint": true,
+          "unresolved_identity": "",
+          "settled_name": "audit-5a95e7e0@example.invalid",
+          "authenticated_tier": "student_pro"
+        }
+      ],
+      "page_errors": []
+    }
+  ]
+}

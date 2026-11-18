@@ -1,0 +1,42 @@
+{
+  "environment": "production",
+  "routes": [
+    {
+      "path": "/docs",
+      "status": 200,
+      "final_path": "/spec/swagger"
+    },
+    {
+      "path": "/api-docs",
+      "status": 200,
+      "final_path": "/spec/swagger"
+    },
+    {
+      "path": "/redoc",
+      "status": 200,
+      "final_path": "/spec/redoc"
+    },
+    {
+      "path": "/openapi.json",
+      "status": 404,
+      "final_path": "/openapi.json"
+    },
+    {
+      "path": "/spec/swagger",
+      "status": 200,
+      "final_path": "/spec/swagger"
+    },
+    {
+      "path": "/spec/redoc",
+      "status": 200,
+      "final_path": "/spec/redoc"
+    },
+    {
+      "path": "/spec/openapi.json",
+      "status": 200,
+      "final_path": "/spec/openapi.json"
+    }
+  ],
+  "page_errors": [],
+  "interpretation": "FastAPI built-in /openapi.json is disabled; legacy docs aliases redirect to the intentionally public curated developer reference (/spec/*)."
+}

@@ -35,7 +35,7 @@ def test_101_secret_scanner_catches_compose_fallbacks():
 def test_206_runtime_cache_key_changes_from_stale_v13():
     page = (ROOT / "web/index.html").read_text(encoding="utf-8")
     runtime = (ROOT / "web/assets/pdf_runtime.js").read_text(encoding="utf-8")
-    assert '/assets/pdf_runtime.js?v=14' in page
+    assert '/assets/pdf_runtime.js?v=18' in page
     assert 'transformLocalPdf,' in runtime
 
 

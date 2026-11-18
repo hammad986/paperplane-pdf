@@ -17,6 +17,7 @@ const state = {
     ...bootstrap.planLimits
   },
   clientSideMode: false,
+  serverFallbackForCurrentRun: false,
   activeView: 'home', // 'home', 'tool-desk', 'desk', 'studio', 'ai'
   activeToolResult: null,
   
@@ -40,7 +41,7 @@ const state = {
   aiContextPage: 1
 };
 
-const CLIENT_SIDE_SUPPORTED_OPERATIONS = new Set(['merge', 'split', 'remove', 'rotate', 'organize']);
+const CLIENT_SIDE_SUPPORTED_OPERATIONS = new Set(['merge', 'split', 'remove', 'rotate', 'organize', 'forms', 'flatten', 'metadata', 'pdf_to_text', 'page_numbers', 'crop']);
 const CLIENT_SIDE_IMAGE_OPERATIONS = new Set(['photo_compress', 'photo_resize', 'photo_merge', 'photo_resizer']);
 const PROCESSING_MODE_KEY = 'paperplane-pdf-processing-mode';
 const MAX_PHOTO_BATCH = 12;
@@ -90,15 +91,24 @@ const LOCAL_WORK_ACCOUNT_SCOPE_KEY = 'paperplane-local-work-account-id';
 function openLocalWorkDb() {
   if (!('indexedDB' in window)) return Promise.reject(new Error('Local browser storage is unavailable.'));
   if (!localWorkDbPromise) {
-    localWorkDbPromise = new Promise((resolve, reject) => {
+    const pending = new Promise((resolve, reject) => {
       const request = indexedDB.open('paperplane-local-work', 1);
       request.onupgradeneeded = () => {
         if (!request.result.objectStoreNames.contains('work')) request.result.createObjectStore('work');
       };
-      request.onsuccess = () => resolve(request.result);
+      request.onsuccess = () => {
+        const db = request.result;
+        db.onversionchange = () => db.close();
+        resolve(db);
+      };
       request.onerror = () => reject(request.error || new Error('Could not open local browser storage.'));
       request.onblocked = () => reject(new Error('Local browser storage is busy in another tab.'));
     });
+    localWorkDbPromise = pending.catch(error => {
+      if (localWorkDbPromise === retryable) localWorkDbPromise = null;
+      throw error;
+    });
+    const retryable = localWorkDbPromise;
   }
   return localWorkDbPromise;
 }
@@ -327,6 +337,7 @@ async function restoreStudioWorkspace() {
   if (state.studio.pdfDoc || state.studio.isLoading) return false;
   if (studioRestorePromise) return studioRestorePromise;
   studioRestorePending = true;
+  showStudioLoading('Checking for saved PDF...');
   const restoreEpoch = studioWorkspaceEpoch;
   studioRestorePromise = (async () => {
     try {
@@ -360,6 +371,7 @@ async function restoreStudioWorkspace() {
       }
       return Boolean(loaded);
     } finally {
+      if (restoreEpoch === studioWorkspaceEpoch && !state.studio.isLoading) hideStudioLoading();
       studioRestorePending = false;
       studioRestorePromise = null;
     }
@@ -416,7 +428,10 @@ async function clearStudioPdf() {
   try {
     await removeLocalWork('studio-pdf', 'studio-position');
   } catch (error) {
-    showToast('The saved Studio PDF could not be cleared. Close other Paperplane tabs and try again.', 'error', 7000);
+    const blockedByOtherTab = /busy in another tab/i.test(String(error?.message || error));
+    showToast(blockedByOtherTab
+      ? 'Another Paperplane tab is updating local storage. Close that tab and try clearing Studio again.'
+      : 'The saved Studio PDF could not be cleared because browser storage is unavailable. Try again or check this site’s storage permissions.', 'error', 7000);
     console.warn('Could not remove saved Studio PDF:', error);
     return false;
   }
@@ -576,7 +591,7 @@ function captureToolFormValues() {
   const form = $('#job-form');
   if (!form) return {};
   return Object.fromEntries([...form.elements]
-    .filter(control => control.id && control.type !== 'file' && control.type !== 'submit' && control.type !== 'button')
+    .filter(control => control.id && control.id !== 'signature_data' && control.type !== 'file' && control.type !== 'submit' && control.type !== 'button')
     .map(control => [control.id, {
       value: control.value,
       checked: control.type === 'checkbox' || control.type === 'radio' ? control.checked : undefined
@@ -617,13 +632,15 @@ function escapeHtml(value) {
 // Category Grouping for Crisp Navigation
 const CATEGORY_MAP = {
   'Organize': ['merge', 'split', 'remove', 'rotate', 'organize', 'scan_pdf', 'grayscale'],
+  'Optimize': ['compress', 'repair', 'ocr'],
   'Convert': [
     'word_to_pdf', 'excel_to_pdf', 'powerpoint_to_pdf', 'jpg_to_pdf', 'html_to_pdf',
     'pdf_to_word', 'pdf_to_excel', 'pdf_to_powerpoint', 'pdf_to_jpg', 'pdf_to_pdfa',
     'pdf_to_text', 'pdf_to_markdown'
   ],
-  'Edit': ['edit', 'annotate', 'sign', 'watermark', 'page_numbers', 'redact', 'crop', 'flatten'],
-  'AI': ['ai_chat', 'ai_extract', 'summarize', 'translate', 'protect', 'unlock', 'compress', 'repair', 'ocr', 'compare', 'forms', 'metadata', 'mask_aadhaar'],
+  'Edit': ['edit', 'annotate', 'watermark', 'page_numbers', 'crop', 'compare', 'flatten', 'metadata'],
+  'Security': ['sign', 'protect', 'unlock', 'redact', 'forms', 'mask_aadhaar'],
+  'AI': ['ai_chat', 'ai_extract', 'summarize', 'translate'],
   'Photo': ['photo_resizer', 'photo_compress', 'photo_resize', 'photo_merge'],
   'All': [] // Dynamically holds every operation returned by the server catalog.
 };
@@ -699,7 +716,21 @@ function showToast(message, type = 'success', duration = 3500) {
   toast.className = `toast-notice toast-${type}`;
   toast.innerHTML = `<span style="font-weight: 700; font-size: 11px; padding: 1px 5px; border-radius: 3px; background: rgba(255,255,255,0.15);">${icon}</span> <span>${escapeHtml(message)}</span>`;
   document.body.appendChild(toast);
+  const positionStudioToast = () => {
+    if (!document.body.classList.contains('studio-active')) return;
+    const toolbar = $('.studio-toolbar');
+    if (!toolbar) return;
+    const toastHeight = toast.getBoundingClientRect().height;
+    const toolbarBottom = toolbar.getBoundingClientRect().bottom;
+    const top = Math.min(Math.max(toolbarBottom + 8, 64), window.innerHeight - toastHeight - 12);
+    toast.style.setProperty('--studio-toast-top', `${Math.max(8, top)}px`);
+  };
+  if (document.body.classList.contains('studio-active')) {
+    requestAnimationFrame(positionStudioToast);
+    window.addEventListener('resize', positionStudioToast);
+  }
   setTimeout(() => {
+    window.removeEventListener('resize', positionStudioToast);
     if (toast.parentNode) toast.remove();
   }, duration);
 }
@@ -752,7 +783,7 @@ function showUserErrorModal(title, message, options = {}) {
   if (msgEl) msgEl.textContent = message || 'An unexpected condition occurred.';
 
   if (actionsEl) {
-    actionsEl.innerHTML = '';
+    actionsEl.replaceChildren();
     if (options.actionText && options.onAction) {
       const actBtn = document.createElement('button');
       actBtn.type = 'button';
@@ -863,7 +894,9 @@ async function safeFetch(url, options = {}) {
     }
   } catch (netErr) {
     if (netErr?.name === 'AbortError' || netErr?.name === 'TimeoutError') throw netErr;
-    throw new Error(`Connection error: Could not reach server. (${netErr.message})`);
+    const connectionError = new Error(`Connection error: Could not reach server. (${netErr.message})`);
+    connectionError.networkFailure = true;
+    throw connectionError;
   }
 
   const contentType = response.headers.get('content-type') || '';
@@ -909,19 +942,50 @@ async function safeFetch(url, options = {}) {
     }
 
     const errorMsg = (typeof data.detail === 'string' ? data.detail : data.detail?.message) || (typeof data.error === 'string' ? data.error : data.error?.message) || `Request failed with status ${response.status}`;
-    throw new Error(errorMsg);
+    const requestError = new Error(errorMsg);
+    requestError.status = response.status;
+    const retryAfterSeconds = Number(response.headers.get('retry-after'));
+    if (Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0) requestError.retryAfterMs = Math.min(5000, retryAfterSeconds * 1000);
+    throw requestError;
   }
 
   return data;
 }
 
 async function submitJobWithUploadProgress(form, operation, options, files, signal, onProgress) {
+  const idempotencyBytes = new Uint8Array(24);
+  window.crypto.getRandomValues(idempotencyBytes);
+  const idempotencyKey = Array.from(idempotencyBytes, byte => byte.toString(16).padStart(2, '0')).join('');
+  const retrySubmission = async request => {
+    for (let attempt = 0; ; attempt += 1) {
+      try {
+        return await request();
+      } catch (error) {
+        const transient = error?.networkFailure || [502, 503, 504].includes(Number(error?.status));
+        if (!transient || attempt >= 2 || signal?.aborted) throw error;
+        const delayMs = attempt === 0 ? 250 : 750;
+        updateProgress(2, null, `Temporary connection error. Retrying safely (${attempt + 1}/2)…`);
+        await new Promise((resolve, reject) => {
+          const timer = window.setTimeout(() => {
+            signal?.removeEventListener('abort', onAbort);
+            resolve();
+          }, delayMs);
+          const onAbort = () => {
+            window.clearTimeout(timer);
+            reject(new DOMException('The operation was aborted.', 'AbortError'));
+          };
+          if (signal?.aborted) onAbort();
+          else signal?.addEventListener('abort', onAbort, { once: true });
+        });
+      }
+    }
+  };
   const useChunks = files.some(file => file.size > 10 * 1024 * 1024);
   if (!useChunks) {
-    return safeFetch('/api/jobs', {
-      method: 'POST', body: form, signal,
+    return retrySubmission(() => safeFetch('/api/jobs', {
+      method: 'POST', headers: { 'Idempotency-Key': idempotencyKey }, body: form, signal,
       onUploadProgress: (loaded, total) => onProgress(loaded, total)
-    });
+    }));
   }
 
   const totalBytes = files.reduce((sum, file) => sum + file.size, 0);
@@ -948,10 +1012,11 @@ async function submitJobWithUploadProgress(form, operation, options, files, sign
         onProgress(completedBytes, totalBytes);
       }
     }
-    return await safeFetch(`/api/uploads/chunked/${encodeURIComponent(session.upload_id)}/commit`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+    return await retrySubmission(() => safeFetch(`/api/uploads/chunked/${encodeURIComponent(session.upload_id)}/commit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey },
       body: JSON.stringify({ operation, options }), signal
-    });
+    }));
   } catch (error) {
     try {
       await safeFetch(`/api/uploads/chunked/${encodeURIComponent(session.upload_id)}`, { method: 'DELETE' });
@@ -978,19 +1043,28 @@ const studioMobileOrigins = new Map();
 let seoContentRequestVersion = 0;
 
 function placeStudioControl(selector, slotId, mobile) {
-  const control = document.querySelector(selector);
   const slot = document.getElementById(slotId);
+  // Once a control has moved into its mobile slot, selectors scoped to its
+  // original parent no longer match it. Find it in the slot so a later
+  // desktop resize can restore the same node and its event handlers.
+  const control = document.querySelector(selector) || slot?.firstElementChild;
   if (!control || !slot) return;
   if (!studioMobileOrigins.has(control)) {
     studioMobileOrigins.set(control, { parent: control.parentElement, next: control.nextElementSibling });
   }
   const origin = studioMobileOrigins.get(control);
   if (mobile) {
-    if (control.parentElement !== slot) slot.appendChild(control);
+    if (control.parentElement !== slot) {
+      if (typeof slot.moveBefore === 'function') slot.moveBefore(control, null);
+      else slot.appendChild(control);
+    }
     return;
   }
   if (control.parentElement === origin.parent) return;
-  if (origin.next?.parentElement === origin.parent) origin.parent.insertBefore(control, origin.next);
+  if (origin.next?.parentElement === origin.parent) {
+    if (typeof origin.parent.moveBefore === 'function') origin.parent.moveBefore(control, origin.next);
+    else origin.parent.insertBefore(control, origin.next);
+  } else if (typeof origin.parent.moveBefore === 'function') origin.parent.moveBefore(control, null);
   else origin.parent.appendChild(control);
 }
 
@@ -1128,6 +1202,31 @@ const workspacePanelHosts = {
   pricing: ['#upgrade-modal', '#pricing-page-content'],
 };
 
+function appendPricingLimitsTable(panel) {
+  if (!panel || $('#pricing-limits-table')) return;
+  const operations = Object.entries(state.operations || {});
+  if (!operations.length) return;
+  const batchOperations = new Set(['merge', 'jpg_to_pdf', 'scan_pdf']);
+  const photoMergeLimit = 12;
+  const rows = operations.map(([operation, item]) => {
+    const standardBatch = 10;
+    const proBatch = 100;
+    const maxFiles = operation === 'compare' ? 2 : operation === 'photo_merge' ? `2–${Math.min(photoMergeLimit, Number(state.planLimits.max_batch_files) || standardBatch)}`
+      : batchOperations.has(operation) ? `${standardBatch} Free/Student Pro/Exam Pass · ${proBatch} Full Pro/Developer/All-In-One` : 1;
+    const isAi = ['ai_chat', 'ai_extract', 'summarize', 'translate'].includes(operation);
+    const quota = isAi ? `${state.planLimits.free_operations_per_day} requests/day shared (Free)`
+      : `${state.planLimits.free_operations_per_day} server runs/day shared (Free)`;
+    return `<tr><th scope="row" data-label="Tool">${escapeHtml(item.label || operation)}</th><td data-label="Batch">${maxFiles} file${maxFiles === 1 ? '' : 's'} per run</td><td data-label="File size">${state.planLimits.free_max_file_size_mb} MB Free / ${state.planLimits.pro_max_file_size_mb} MB paid, each</td><td data-label="Daily allowance">${quota}</td><td data-label="Page limit">No separate page-count cap published</td></tr>`;
+  }).join('');
+  const section = document.createElement('section');
+  section.id = 'pricing-limits-table';
+  section.className = 'pricing-limits-section';
+  section.innerHTML = `<h3>Per-tool upload and usage limits</h3>
+    <p>Server submissions count as one daily operation per run. Browser-local processing does not use the daily server allowance. AI requests share the same daily allowance; no separate page or word allowance is currently published. Provider, memory, and processing-time constraints may apply.</p>
+    <div class="pricing-limits-scroll" role="region" aria-label="Per-tool limits" tabindex="0"><table><thead><tr><th scope="col">Tool</th><th scope="col">Batch</th><th scope="col">File size</th><th scope="col">Daily allowance</th><th scope="col">Page limit</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  panel.appendChild(section);
+}
+
 function mountWorkspacePanel(name, inline) {
   const [selector, host] = workspacePanelHosts[name];
   const panel = $(selector);
@@ -1137,9 +1236,11 @@ function mountWorkspacePanel(name, inline) {
   panel.classList.toggle('workspace-inline-panel', inline);
   panel.classList.toggle('modal-backdrop', !inline);
   panel.hidden = !inline;
+  if (name === 'settings') syncClientSideControls();
+  if (name === 'pricing' && inline) appendPricingLimitsTable(panel.querySelector('.pricing-modal-card') || panel);
 }
 
-function switchWorkspaceView(view, extra = 'privacy', updateHistory = true, preserveOpenCloudModal = false) {
+function switchWorkspaceView(view, extra = 'privacy', updateHistory = true, preserveOpenCloudModal = false, skipStudioRestore = false) {
   // The root route remains a useful entry point, but the Tool Desk is the
   // single canonical directory for all PDF tools.
   if (view === 'home') view = 'tool-desk';
@@ -1153,7 +1254,7 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true, pres
   try { sessionStorage.setItem('paperplane-active-view', view); } catch { /* storage may be disabled */ }
   state.activeView = view;
   document.dispatchEvent(new CustomEvent('paperplane:workspace-view-changed', { detail: { view } }));
-  const mobileViewLabels = { 'tool-desk': 'Tool Desk', desk: 'PDF Tool', studio: 'Studio', ai: 'AI', download: 'Waitlist' };
+  const mobileViewLabels = { 'tool-desk': 'Tool Desk', desk: 'PDF Tool', studio: 'Studio', ai: 'AI Intelligence', download: 'Waitlist', pricing: 'Pricing', settings: 'Settings', faq: 'FAQ', feedback: 'Feedback', history: 'History' };
   if ($('#mobile-view-pill')) $('#mobile-view-pill').textContent = mobileViewLabels[view] || 'Paperplane';
   $('#tab-tool-desk-view')?.classList.toggle('active', view === 'tool-desk');
   $('#tab-desk-view')?.classList.toggle('active', view === 'desk');
@@ -1187,8 +1288,11 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true, pres
   if (view === 'studio' && window.matchMedia('(max-width: 900px)').matches) {
     window.scrollTo({ top: 0, behavior: 'auto' });
   }
+  if (view === 'studio' && !state.studio.pdfDoc && !skipStudioRestore) {
+    if (!document.body.classList.contains('auth-pending')) restoreStudioWorkspace();
+    else showStudioLoading('Checking for saved PDF...');
+  }
   if (!document.body.classList.contains('auth-pending')) {
-    if (view === 'studio' && !state.studio.pdfDoc) restoreStudioWorkspace();
     if (view === 'ai' && !aiWorkspaceRestored) restoreAiWorkspace();
   }
   if (view === 'studio') syncStudioMobileLayout();
@@ -1197,9 +1301,9 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true, pres
     $('#studio-mobile-properties-panel')?.setAttribute('hidden', '');
   }
 
-  // Strict SEO Content containment: Only display crawlable SEO sections on Home and Tool Desk views
+  // Keep tool guidance visible on tool workflows and the AI workspace route.
   const seoSection = $('.seo-content');
-  if (seoSection) seoSection.style.display = (view === 'tool-desk' || view === 'desk') ? '' : 'none';
+  if (seoSection) seoSection.style.display = (view === 'tool-desk' || view === 'desk' || view === 'ai') ? '' : 'none';
 
   // Dynamic Topbar Breadcrumb updates
   const crumbCat = $('#crumb-category');
@@ -1232,6 +1336,7 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true, pres
     if (crumbCat) crumbCat.textContent = 'Compliance';
     const isTerms = extra === 'terms';
     if (crumbTool) crumbTool.textContent = isTerms ? 'Terms of Service' : 'Privacy Policy';
+    document.title = `${isTerms ? 'Terms of Service' : 'Privacy Policy'} | Paperplane`;
     switchFullLegalTab(extra);
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (updateHistory && window.history.pushState) {
@@ -1328,7 +1433,7 @@ function clearResultPanel() {
     resEl.className = 'result-card';
   }
   const resContent = $('#result-content');
-  if (resContent) resContent.innerHTML = '';
+  if (resContent) resContent.replaceChildren();
   const resMeta = $('#result-meta');
   if (resMeta) resMeta.textContent = '';
   const dlLink = $('#result-download-link');
@@ -1374,7 +1479,7 @@ function clearResultAndStudio() {
     try { window.PaperplanePageOrganizer.loadDocument(null, null, '', 0); } catch (e) { /* ignore */ }
   }
   const studioThumbs = $('#studio-thumbnails-container');
-  if (studioThumbs) studioThumbs.innerHTML = '';
+  if (studioThumbs) studioThumbs.replaceChildren();
   const studioPageStack = $('#studio-page-stack');
   const drawCanvas = $('#pdf-draw-canvas');
   if (studioPageStack) {
@@ -1394,6 +1499,7 @@ function clearResultAndStudio() {
 }
 
 function resetJobWorkflow() {
+  const selectedTranslationLanguage = state.operation === 'translate' ? $('#target_language')?.value : null;
   state.files = [];
   state.splitPageCount = null;
   toolSessionCache.delete(state.operation);
@@ -1401,6 +1507,7 @@ function resetJobWorkflow() {
   if (form) form.reset();
   renderFiles();
   renderOptions();
+  if (selectedTranslationLanguage && $('#target_language')) $('#target_language').value = selectedTranslationLanguage;
   updateButton();
   if ($('#progress-card')) $('#progress-card').hidden = true;
   clearResultAndStudio();
@@ -1439,9 +1546,9 @@ function renderSidebarTools() {
   });
 
   if (cat === 'All') {
-    toolKeys = Object.keys(state.operations);
+    toolKeys = Object.keys(state.operations).filter(key => !AI_WORKSPACE_FEATURE_OPERATIONS.has(key));
   } else {
-    toolKeys = CATEGORY_MAP[cat] || [];
+    toolKeys = (CATEGORY_MAP[cat] || []).filter(key => !AI_WORKSPACE_FEATURE_OPERATIONS.has(key));
   }
 
   container.innerHTML = toolKeys.map(key => {
@@ -1515,6 +1622,10 @@ const HOME_CATEGORIES = [
   }
 ];
 
+// Chat, Smart Metadata, and Executive Brief share the AI Intelligence workspace.
+// Keep legacy tool routes alive, but list these workflows only in that workspace.
+const AI_WORKSPACE_FEATURE_OPERATIONS = new Set(['ai_chat', 'ai_extract', 'summarize']);
+
 function getToolIconSvg(opId) {
   const icons = {
     merge: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="12" height="15" rx="2"></rect><rect x="8" y="7" width="12" height="15" rx="2"></rect><path d="M12 11h4"></path><path d="M14 9v4"></path></svg>`,
@@ -1560,8 +1671,8 @@ function renderHomeToolsGrid(filterCategory = 'all', searchQuery = '') {
 
     const visibleOps = cat.ops.filter(opId => {
       const op = state.operations[opId];
-      if (!op) return false;
-            if (!normalizedQuery) return true;
+      if (!op || AI_WORKSPACE_FEATURE_OPERATIONS.has(opId)) return false;
+      if (!normalizedQuery) return true;
       return op.label.toLowerCase().includes(normalizedQuery) ||
              (op.description && op.description.toLowerCase().includes(normalizedQuery)) ||
              opId.toLowerCase().includes(normalizedQuery);
@@ -1638,16 +1749,20 @@ function renderToolDeskDirectory(category = null, searchQuery = null) {
   let totalVisible = 0;
   const sections = HOME_CATEGORIES.map(cat => {
     if (activeFilter !== 'all' && cat.id !== activeFilter) return '';
-    const ops = cat.ops.filter(id => {
+    const matchingOps = cat.ops.filter(id => {
       const op = state.operations[id];
       if (!op) return false;
       return !query || `${op.label} ${op.description || ''} ${id}`.toLowerCase().includes(query);
     });
-    if (!ops.length) return '';
-    totalVisible += ops.length;
+    const ops = matchingOps.filter(id => !AI_WORKSPACE_FEATURE_OPERATIONS.has(id));
+    if (!matchingOps.length) return '';
+    totalVisible += matchingOps.length;
+    const workspaceNote = cat.id === 'ai' && matchingOps.some(id => AI_WORKSPACE_FEATURE_OPERATIONS.has(id))
+      ? `<aside class="tool-desk-ai-workspace-note"><strong>AI Intelligence</strong><span>Chat with a PDF, extract Smart Metadata, and create an Executive Brief in one workspace.</span><a href="/ai-intelligence">Open AI Intelligence</a></aside>`
+      : '';
     return `<section class="home-cat-section" data-cat="${cat.id}">
-      <div class="home-cat-header"><div class="home-cat-title-group"><h2 class="home-cat-title" style="--cat-accent:${cat.iconColor}">${escapeHtml(cat.title)}</h2><span class="home-cat-count">${ops.length} tools</span></div></div>
-      <div class="home-cat-grid">${ops.map(id => {
+      <div class="home-cat-header"><div class="home-cat-title-group"><h2 class="home-cat-title" style="--cat-accent:${cat.iconColor}">${escapeHtml(cat.title)}</h2><span class="home-cat-count">${matchingOps.length} tools</span></div></div>
+      ${workspaceNote}<div class="home-cat-grid">${ops.map(id => {
         const op = state.operations[id];
         const available = op.available !== false && !['DEPENDENCY_MISSING', 'SERVICE_UNAVAILABLE'].includes(op.status);
         const badge = available ? 'Ready' : (op.prerequisite || 'Temporarily unavailable');
@@ -1660,6 +1775,11 @@ function renderToolDeskDirectory(category = null, searchQuery = null) {
   catalog.innerHTML = totalVisible ? sections : `<div class="home-no-results"><h2>No matching tools</h2><p>Try “merge”, “compress”, “sign”, or choose another category.</p><button type="button" class="btn-primary-action" id="tool-desk-reset-search">Clear search</button></div>`;
   const meta = $('#tool-desk-search-meta');
   if (meta) meta.textContent = `${totalVisible} ${totalVisible === 1 ? 'tool' : 'tools'}${query ? ` found for “${$('#tool-desk-search')?.value.trim()}”` : ' available'}`;
+  const totalDistinctTools = Object.keys(state.operations).length;
+  const countBadge = $('#view-tool-desk-directory .tool-category-badge');
+  if (countBadge) countBadge.textContent = `${totalDistinctTools} PDF TOOLS`;
+  const allFilter = $('#tool-desk-directory-filters [data-desk-category="all"]');
+  if (allFilter) allFilter.textContent = `All ${totalDistinctTools} Tools`;
   $('#tool-desk-reset-search')?.addEventListener('click', () => {
     const input = $('#tool-desk-search');
     if (input) input.value = '';
@@ -1757,8 +1877,13 @@ async function syncSeoContent(operation) {
     const faqs = (context.faqs || []).map(([question, answer]) => (
       `<details class="seo-faq-item"><summary>${escapeHtml(question)}</summary><p>${escapeHtml(answer)}</p></details>`
     )).join('');
+    const stepGuidance = [
+      'Use the inputs above to choose your source file or provide the content this tool needs.',
+      'Review the controls shown on this page and complete any required settings. Some choices appear after a file is selected.',
+      'Run the tool, check the result details, and download the output from the result panel.'
+    ];
     const steps = (context.how_to || []).map((step, index) => (
-      `<article class="seo-howto-step"><span>${String(index + 1).padStart(2, '0')}</span><h3>${escapeHtml(step)}</h3></article>`
+      `<article class="seo-howto-step"><span>${String(index + 1).padStart(2, '0')}</span><h3>${escapeHtml(step)}</h3><p>${escapeHtml(stepGuidance[index] || stepGuidance[1])}</p></article>`
     )).join('');
 
     section.innerHTML = `
@@ -1791,17 +1916,27 @@ function addEndpointTableMobileLabels() {
 
 // Select an operation and update view
 function getOperationBatchGuidance(operation) {
-  const maximum = Number(state.planLimits.max_batch_files) || 100;
+  const maximum = Number(state.planLimits.max_batch_files) || 10;
   if (operation === 'merge') return `Merge supports up to ${maximum} PDF files per run`;
   if (['jpg_to_pdf', 'scan_pdf'].includes(operation)) return `${state.operations[operation]?.label || 'This tool'} supports up to ${maximum} images per run`;
   if (operation === 'compare') return 'Compare supports up to 2 PDF files per run';
-  if (operation === 'photo_merge') return 'Merge 2–' + MAX_PHOTO_BATCH + ' photos per run';
+  if (operation === 'photo_merge') return 'Merge 2–' + Math.min(MAX_PHOTO_BATCH, maximum) + ' photos per run';
   return 'This tool processes 1 file per run';
 }
 
 function selectOperation(op, switchToDesk = true, preserveOpenCloudModal = false) {
   const previousOperation = state.operation;
   const opChanged = (previousOperation !== op);
+  if (opChanged) {
+    deskWorkflowEpoch += 1;
+    // An approved fallback belongs only to the original operation. A job may
+    // still be finishing when the user opens a different tool.
+    state.serverFallbackForCurrentRun = false;
+    activeDeskAiController?.abort();
+    if ($('#job-cancel-btn')) $('#job-cancel-btn').hidden = true;
+    $('#progress-card')?.classList.remove('ai-workflow-progress');
+    $('.toast-notice')?.remove();
+  }
   if (opChanged) saveToolSession(previousOperation);
   const cachedSession = opChanged ? toolSessionCache.get(op) || null : null;
   state.operation = op;
@@ -1841,6 +1976,8 @@ function selectOperation(op, switchToDesk = true, preserveOpenCloudModal = false
     }
     fileInput.multiple = ['merge', 'jpg_to_pdf', 'compare', 'scan_pdf', 'photo_merge'].includes(op);
   }
+  const cameraControl = $('#scan-camera-control');
+  if (cameraControl) cameraControl.hidden = op !== 'scan_pdf';
 
   const hint = $('#file-hint');
   if (hint) {
@@ -1857,7 +1994,10 @@ function selectOperation(op, switchToDesk = true, preserveOpenCloudModal = false
     restoreToolFormValues(cachedSession?.formValues || {});
     renderFiles();
     if (cachedSession?.result) {
-      showDownloadResult(cachedSession.result.job, cachedSession.result.downloadUrl, { silent: true });
+      showDownloadResult(cachedSession.result.job, cachedSession.result.downloadUrl, {
+        silent: true,
+        blob: cachedSession.result.blob || null,
+      });
     }
   }
   renderSidebarTools();
@@ -1906,10 +2046,7 @@ function syncToolAvailability() {
 function updateToolTierBadge() {
   const tierBadge = $('#tool-tier-badge');
   if (tierBadge) {
-    if (document.body.classList.contains('auth-pending')) {
-      tierBadge.textContent = 'Checking plan…';
-      return;
-    }
+    if (document.body.classList.contains('auth-pending')) return;
     if (state.user) {
       const accountTier = String(state.user.tier || '').toLowerCase();
       const paidAccount = Boolean(state.user.is_pro || state.user.is_dev || ['developer', 'student_pro', 'cyber_cafe', 'exam_pass'].includes(accountTier));
@@ -1940,7 +2077,17 @@ function updateToolTierBadge() {
 
 }
 
+function updateDeveloperApiKeyAccess(data = state.user) {
+  const tier = String(data?.tier || 'free').toLowerCase();
+  const canManageApiKeys = ['developer', 'cyber_cafe'].includes(tier);
+  const form = $('#settings-create-key-form');
+  const hint = $('#settings-api-key-upgrade-hint');
+  if (form) form.hidden = !canManageApiKeys;
+  if (hint) hint.hidden = canManageApiKeys;
+}
+
 function updateBillingUI(data) {
+  updateDeveloperApiKeyAccess(data);
   if (data?.plan_limits) state.planLimits = { ...state.planLimits, ...data.plan_limits };
   const tier = (data && data.tier ? data.tier : 'free').toLowerCase();
   const isPaid = Boolean(data && (data.is_pro || data.is_dev || ['pro', 'developer', 'student_pro', 'cyber_cafe', 'exam_pass'].includes(tier)));
@@ -1960,9 +2107,9 @@ function updateBillingUI(data) {
     card.classList.toggle('is-current-plan', isCurrent);
   });
 
-  const batchLimits = `Up to ${maxBatchFiles} files for Merge, JPG/PNG to PDF, and Scan to PDF. Compare takes two PDFs. Photo Merge takes 2–12 images.`;
+  const batchLimits = `Your plan: up to ${maxBatchFiles} files for Merge, JPG/PNG to PDF, and Scan to PDF. Free, Student Pro, and Exam Pass are capped at 10; Full Pro, Developer, and All-In-One plans allow 100. Compare takes two PDFs. Photo Merge takes 2–${Math.min(MAX_PHOTO_BATCH, Number(maxBatchFiles) || 10)} images.`;
   const quotaDescription = $('#settings-quota-description');
-  if (quotaDescription) quotaDescription.textContent = `Free accounts and guests: up to ${state.planLimits.free_operations_per_day} server operations per day and files up to ${freeFileMb} MB each. Paid web tools: no daily operation cap and files up to ${proFileMb} MB each. Batch limits: ${batchLimits}`;
+  if (quotaDescription) quotaDescription.textContent = `Free accounts and guests: up to ${state.planLimits.free_operations_per_day} server operations per day and files up to ${freeFileMb} MB each. Paid web tools: no daily operation cap and files up to ${proFileMb} MB each. ${batchLimits}`;
   const fileHint = $('#file-hint');
   if (fileHint) {
     const fileType = ({ image: 'Images', office: 'Office documents', pdf_or_image: 'PDFs and images' })[state.operations[state.operation]?.accept] || 'PDF files';
@@ -1982,6 +2129,7 @@ function updateBillingUI(data) {
   const settingsTierName = $('#settings-tier-name');
   const settingsTierBadge = $('#settings-tier-badge');
   const settingsDailyLimit = $('#settings-daily-limit');
+  const settingsUpgradePlanButton = $('#settings-upgrade-plan-btn');
   quotaText?.removeAttribute('aria-label');
   if (settingsDailyLimit) settingsDailyLimit.textContent = isPaid ? '(No daily operation cap)' : `(${limit} operations / day)`;
 
@@ -2007,10 +2155,10 @@ function updateBillingUI(data) {
       badgeColor = '#8b5cf6';
       shortLabel = 'All-In-One Pro';
     } else if (tier === 'exam_pass') {
-      tierName = 'Exam';
+      tierName = 'Exam Pass';
       badgeText = 'EXAM';
       badgeColor = '#3b82f6';
-      shortLabel = 'Exam';
+      shortLabel = 'Exam Pass';
     }
 
     if (quotaText) quotaText.textContent = 'No daily operation cap';
@@ -2020,6 +2168,7 @@ function updateBillingUI(data) {
     }
     if (sidebarUpgradeBtn) sidebarUpgradeBtn.style.display = 'none';
     if (topbarUpgradeBtn) topbarUpgradeBtn.style.display = 'none';
+    if (settingsUpgradePlanButton) settingsUpgradePlanButton.style.display = 'none';
     if (roleBadge) {
       roleBadge.textContent = shortLabel;
       roleBadge.style.color = badgeColor;
@@ -2045,6 +2194,7 @@ function updateBillingUI(data) {
     }
     if (sidebarUpgradeBtn) sidebarUpgradeBtn.style.display = 'flex';
     if (topbarUpgradeBtn) topbarUpgradeBtn.style.display = 'inline-flex';
+    if (settingsUpgradePlanButton) settingsUpgradePlanButton.style.display = 'block';
     if (roleBadge) {
       roleBadge.textContent = 'Free';
       roleBadge.style.color = '';
@@ -2097,12 +2247,24 @@ async function refreshQuotaUsage() {
       await checkAuthStatus();
       return;
     }
-    if (!response.ok) return;
+    if (!response.ok) {
+      setQuotaUnavailable();
+      return;
+    }
     const data = await response.json();
     await setAuthenticatedWorkspaceUser(data);
     updateBillingUI(data);
   } catch (error) {
+    setQuotaUnavailable();
     console.warn('Paperplane could not refresh the operation count:', error);
+  }
+}
+
+function setQuotaUnavailable() {
+  const unavailable = 'Usage unavailable';
+  for (const id of ['#quota-text', '#settings-quota-text']) {
+    const element = $(id);
+    if (element?.textContent.trim() === 'Checking usage…') element.textContent = unavailable;
   }
 }
 
@@ -2110,6 +2272,11 @@ function renderAuthShell(data) {
   const authenticated = Boolean(data?.authenticated);
   const name = authenticated ? data.email : 'Guest Explorer';
   const initial = (name[0] || 'G').toUpperCase();
+  const settingsGuestActions = $('#settings-guest-actions');
+  if (settingsGuestActions) {
+    if (authenticated) settingsGuestActions.replaceChildren();
+    else if (!settingsGuestActions.childElementCount) settingsGuestActions.innerHTML = SETTINGS_GUEST_ACTIONS_HTML;
+  }
   for (const id of ['#user-name', '#topbar-username', '#settings-user-email']) {
     if ($(id)) $(id).textContent = name;
   }
@@ -2127,6 +2294,8 @@ function renderAuthShell(data) {
   updateBillingUI(data);
   if (state.activeView === 'desk' && $('#tool-title')) updateToolTierBadge();
 }
+
+const SETTINGS_GUEST_ACTIONS_HTML = $('#settings-guest-actions')?.innerHTML || '';
 
 async function checkAuthStatus() {
   const requestVersion = ++authRequestVersion;
@@ -2165,6 +2334,7 @@ function openSettingsModal(defaultTab = 'account') {
   const modal = $('#settings-modal');
   if (!modal) return;
   modal.hidden = false;
+  syncClientSideControls();
   switchSettingsTab(defaultTab);
 }
 
@@ -2197,19 +2367,18 @@ if ($('#close-settings-modal')) {
   $('#close-settings-modal').onclick = () => closeSettingsModal();
 }
 
-// Account actions in Settings
-if ($('#settings-signin-btn')) {
-  $('#settings-signin-btn').onclick = () => {
+// Delegate guest actions so the account panel can remove signed-out copy while authenticated.
+if ($('#settings-guest-actions')) {
+  $('#settings-guest-actions').onclick = event => {
+    if (event.target.closest('#settings-signin-btn')) {
     closeSettingsModal();
     openAuthModal();
     if ($('#tab-login')) $('#tab-login').click();
-  };
-}
-if ($('#settings-register-btn')) {
-  $('#settings-register-btn').onclick = () => {
+    } else if (event.target.closest('#settings-register-btn')) {
     closeSettingsModal();
     openAuthModal();
     if ($('#tab-register')) $('#tab-register').click();
+    }
   };
 }
 if ($('#settings-signout-btn')) {
@@ -2318,7 +2487,7 @@ if ($('#settings-create-key-form')) {
 function syncClientSideControls() {
   const canSwitch = CLIENT_SIDE_SUPPORTED_OPERATIONS.has(state.operation);
   const localOnly = CLIENT_SIDE_IMAGE_OPERATIONS.has(state.operation);
-  state.clientSideMode = localOnly || (canSwitch && preferLocalProcessing);
+  state.clientSideMode = !state.serverFallbackForCurrentRun && (localOnly || (canSwitch && preferLocalProcessing));
   const label = state.operations[state.operation]?.label || 'this tool';
   const help = state.clientSideMode
     ? label + ' runs in your browser; files stay on this device and are not uploaded.'
@@ -2327,21 +2496,22 @@ function syncClientSideControls() {
   if (sidebarToggle) {
     sidebarToggle.checked = state.clientSideMode;
     sidebarToggle.disabled = !canSwitch;
-    sidebarToggle.setAttribute('aria-label', (state.clientSideMode ? 'Use local processing for ' : 'Use server processing for ') + label);
+    sidebarToggle.setAttribute('aria-label', (state.clientSideMode ? 'Browser processing is on for ' : 'Browser processing is off for ') + label + '; ' + (state.clientSideMode ? 'files stay on this device.' : 'files use temporary server processing.'));
     sidebarToggle.title = help;
   }
   const settingsToggle = $('#settings-client-privacy-toggle');
   if (settingsToggle) {
     settingsToggle.checked = preferLocalProcessing;
-    settingsToggle.setAttribute('aria-label', 'Prefer local processing for supported PDF tools');
+    settingsToggle.setAttribute('aria-label', 'Prefer browser processing for supported tools');
   }
-  if ($('#privacy-mode-label')) $('#privacy-mode-label').textContent = state.clientSideMode ? 'Local Processing' : 'Server Processing';
   if ($('#privacy-mode-support')) $('#privacy-mode-support').textContent = help;
   if ($('#settings-client-privacy-support')) {
-    $('#settings-client-privacy-support').textContent = 'Default for Merge, Split, Remove, Rotate, and Page Organizer. Photo tools run in your browser.';
+    $('#settings-client-privacy-support').textContent = preferLocalProcessing
+    ? 'Browser processing is preferred for Merge, Split, Remove, Rotate, Page Organizer, Crop PDF, PDF-to-Text, and Page Numbers. Photo tools always run in your browser.'
+    : 'Temporary server processing is preferred. Browser processing remains available for Merge, Split, Remove, Rotate, Page Organizer, Crop PDF, PDF-to-Text, and Page Numbers; photo tools always run in your browser.';
   }
   $('#engine-status-pill')?.classList.toggle('local', state.clientSideMode);
-  if ($('#engine-status-text')) $('#engine-status-text').textContent = state.clientSideMode ? 'Local Processing' : 'Server Processing';
+  if ($('#engine-status-text')) $('#engine-status-text').textContent = state.clientSideMode ? 'Browser processing' : 'Temporary server processing';
   const steps = $('#job-progress-steps');
   if (steps) steps.hidden = state.clientSideMode;
 }
@@ -2482,13 +2652,14 @@ function hideStudioLoading() {
   if (overlay) overlay.hidden = true;
 }
 
-async function loadDocumentIntoStudio(file, { initialPage = 1, persist = true, restoreEpoch = null } = {}) {
+async function loadDocumentIntoStudio(file, { initialPage = 1, persist = true, restoreEpoch = null, pdfPassword = undefined } = {}) {
   if (file === null && state.studio.isLoading) {
     return false;
   }
   const loadEpoch = restoreEpoch === null ? ++studioWorkspaceEpoch : restoreEpoch;
   if (loadEpoch !== studioWorkspaceEpoch) return false;
   state.studio.isLoading = true;
+  showStudioLoading('Loading document…');
 
   const container = $('#studio-thumbnails-container');
   if (container) container.innerHTML = '<div style="color: #94a3b8; font-size: 12px; text-align: center; padding: 20px;"><div class="studio-spinner" style="margin: 0 auto 10px; width: 20px; height: 20px; border-width: 2px;"></div>Rendering previews…</div>';
@@ -2518,7 +2689,9 @@ async function loadDocumentIntoStudio(file, { initialPage = 1, persist = true, r
       try { await state.studio.pdfDoc.destroy(); } catch { /* a previous document may already be destroyed */ }
     }
     if (loadEpoch !== studioWorkspaceEpoch) return false;
-    const loadedDoc = await pdfjsLib.getDocument({ data: arrayBuffer, isEvalSupported: false }).promise;
+    const loadOptions = { data: arrayBuffer, isEvalSupported: false };
+    if (typeof pdfPassword === 'string' && pdfPassword) loadOptions.password = pdfPassword;
+    const loadedDoc = await pdfjsLib.getDocument(loadOptions).promise;
     if (loadEpoch !== studioWorkspaceEpoch) {
       try { await loadedDoc.destroy(); } catch { /* stale load was already released */ }
       return false;
@@ -2562,7 +2735,7 @@ async function loadDocumentIntoStudio(file, { initialPage = 1, persist = true, r
 
     // Build stable page slots first so the viewer has a real continuous scroll
     // range before thumbnails or off-screen pages are painted.
-    prepareStudioPageStack(state.studio.totalCount);
+    if (!await prepareStudioPageStack(state.studio.totalCount, loadEpoch) || loadEpoch !== studioWorkspaceEpoch) return false;
     syncStudioZoomSelect(state.studio.scale);
     setupStudioPageObserver();
     setActiveStudioPage(state.studio.currentPage, { scrollThumbnail: false });
@@ -2623,35 +2796,50 @@ async function loadDocumentIntoStudio(file, { initialPage = 1, persist = true, r
   }
 }
 
-function createStudioPageSlot(pageNum) {
-  const stack = $('#studio-page-stack');
+function createStudioPageSlot(pageNum, initialWidth, parent = $('#studio-page-stack')) {
+  if (!Number.isFinite(initialWidth)) {
+    const areaWidth = $('#studio-canvas-area')?.clientWidth || window.innerWidth;
+    const horizontalPadding = window.innerWidth <= 900 ? 28 : 64;
+    initialWidth = Math.min(595, Math.max(180, areaWidth - horizontalPadding));
+  }
   const slot = document.createElement('section');
   slot.className = 'page-render-wrapper studio-page-sheet';
   slot.dataset.page = String(pageNum);
   slot.setAttribute('aria-label', `Page ${pageNum}`);
   slot.style.setProperty('--studio-page-ratio', '595 / 842');
-  const availableWidth = Math.max(180, ($('#studio-canvas-area')?.clientWidth || window.innerWidth) - (window.innerWidth <= 900 ? 28 : 64));
-  const initialWidth = Math.min(595, availableWidth);
   slot.style.width = `${initialWidth}px`;
   slot.style.height = `${Math.ceil(initialWidth * 842 / 595)}px`;
   slot.innerHTML = `<div class="studio-page-loading" role="status">Page ${pageNum} is loading…</div><canvas class="pdf-page-canvas" aria-label="PDF page ${pageNum}"></canvas>`;
-  stack.appendChild(slot);
+  parent?.appendChild(slot);
   return slot;
 }
 
-function prepareStudioPageStack(pageCount) {
+async function prepareStudioPageStack(pageCount, loadEpoch = studioWorkspaceEpoch) {
   const stack = $('#studio-page-stack');
-  if (!stack) return;
+  if (!stack) return false;
   const existingDrawCanvas = $('#pdf-draw-canvas');
-  stack.innerHTML = '';
+  const areaWidth = $('#studio-canvas-area')?.clientWidth || window.innerWidth;
+  const horizontalPadding = window.innerWidth <= 900 ? 28 : 64;
+  const initialWidth = Math.min(595, Math.max(180, areaWidth - horizontalPadding));
+  const slots = document.createDocumentFragment();
+  const batchSize = 16;
   for (let pageNum = 1; pageNum <= pageCount; pageNum++) {
-    const slot = createStudioPageSlot(pageNum);
+    const slot = createStudioPageSlot(pageNum, initialWidth, slots);
     const pdfCanvas = slot.querySelector('.pdf-page-canvas');
     if (pageNum === 1) pdfCanvas.id = 'pdf-canvas';
-    if (pageNum === 1 && existingDrawCanvas) slot.appendChild(existingDrawCanvas);
+    if (pageNum < pageCount && pageNum % batchSize === 0) {
+      await new Promise(resolve => setTimeout(resolve, 0));
+      if (loadEpoch !== studioWorkspaceEpoch) return false;
+    }
   }
+  if (loadEpoch !== studioWorkspaceEpoch) return false;
+  stack.replaceChildren(slots);
   const first = stack.querySelector('.studio-page-sheet[data-page="1"]');
-  if (first) first.id = 'page-render-wrapper';
+  if (first) {
+    first.id = 'page-render-wrapper';
+    if (existingDrawCanvas) first.appendChild(existingDrawCanvas);
+  }
+  return true;
 }
 
 function studioPageSlot(pageNum) {
@@ -2770,6 +2958,13 @@ async function renderStudioPageNow(pageNum, { priority = false, force = false } 
   const basePage = await studioDoc.getPage(target);
   if (state.studio.pdfDoc !== studioDoc) return false;
   const baseViewport = basePage.getViewport({ scale: 1 });
+  const pageWidthPt = Math.round(baseViewport.width * 100) / 100;
+  const pageHeightPt = Math.round(baseViewport.height * 100) / 100;
+  slot.dataset.pdfPageWidthPt = String(pageWidthPt);
+  slot.dataset.pdfPageHeightPt = String(pageHeightPt);
+  const pageSizeLabel = `${pageWidthPt} × ${pageHeightPt} pt`;
+  slot.setAttribute('aria-label', `Page ${target}, ${pageSizeLabel}`);
+  slot.title = pageSizeLabel;
   const scale = getStudioPageScale(baseViewport);
   const viewport = basePage.getViewport({ scale });
   updateStudioPageSlotSize(slot, viewport);
@@ -2946,7 +3141,7 @@ window.jumpToStudioPage = jumpToStudioPage;
 
 async function renderStudioThumbnails() {
   const container = $('#studio-thumbnails-container');
-  container.innerHTML = '';
+  container.replaceChildren();
 
   for (let i = 1; i <= state.studio.totalCount; i++) {
     const page = await state.studio.pdfDoc.getPage(i);
@@ -3515,6 +3710,63 @@ function initStudioDrawingLayer() {
 // Dynamic Options Panel Generator
 // ----------------------------------------------------------------------
 
+function initSignToolCanvas() {
+  const canvas = $('#sign-draw-canvas');
+  const clearButton = $('#sign-clear-canvas');
+  const output = $('#signature_data');
+  const status = $('#sign-draw-status');
+  if (!canvas || !clearButton || !output) return;
+  const context = canvas.getContext('2d');
+  if (!context) return;
+  context.lineCap = 'round';
+  context.lineJoin = 'round';
+  context.strokeStyle = $('#signature_color')?.value || '#243b53';
+  $('#signature_color')?.addEventListener('input', event => { context.strokeStyle = event.target.value; });
+  context.lineWidth = 5;
+  let drawing = false;
+  let hasInk = false;
+  const point = event => {
+    const bounds = canvas.getBoundingClientRect();
+    return {
+      x: (event.clientX - bounds.left) * canvas.width / bounds.width,
+      y: (event.clientY - bounds.top) * canvas.height / bounds.height
+    };
+  };
+  const finish = () => {
+    if (!drawing) return;
+    drawing = false;
+    output.value = hasInk ? canvas.toDataURL('image/png') : '';
+    if (status) status.textContent = hasInk ? 'Drawn signature ready to place.' : 'Draw a signature or enter a printed signer name.';
+  };
+  canvas.addEventListener('pointerdown', event => {
+    event.preventDefault();
+    drawing = true;
+    hasInk = true;
+    canvas.setPointerCapture(event.pointerId);
+    const p = point(event);
+    context.beginPath();
+    context.moveTo(p.x, p.y);
+    context.lineTo(p.x + 0.1, p.y + 0.1);
+    context.stroke();
+  });
+  canvas.addEventListener('pointermove', event => {
+    if (!drawing) return;
+    const p = point(event);
+    context.lineTo(p.x, p.y);
+    context.stroke();
+  });
+  canvas.addEventListener('pointerup', finish);
+  canvas.addEventListener('pointercancel', finish);
+  clearButton.addEventListener('click', () => {
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    drawing = false;
+    hasInk = false;
+    output.value = '';
+    if (status) status.textContent = 'Signature cleared. You can draw again or use the printed name below.';
+    updateButton();
+  });
+}
+
 function renderOptions() {
   const o = $('#options');
   if (!o) return;
@@ -3537,7 +3789,7 @@ function renderOptions() {
       } else if (pageCount && pageCount > 1) {
         fields += `<div class="option-field option-field-wide" style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; padding: 10px 14px; margin-bottom: 8px;"><strong style="color: #10b981;">📄 Document Analyzed: Total ${pageCount} pages found</strong></div>`;
         fields += selectField('split_mode', 'Split Mode', [
-          { value: 'all_pages', label: `Extract all ${pageCount} pages into individual PDF files (ZIP)` },
+          { value: 'all_pages', label: `All ${pageCount} pages as PDFs (ZIP)` },
           { value: 'range', label: 'Extract custom page ranges' }
         ]);
         fields += `<div class="option-field option-field-wide" id="split-range-container"><label for="pages">Pages or ranges to extract</label><input id="pages" type="text" placeholder="e.g. 1-3, 5, 8-${pageCount}" value="1-${pageCount}"></div>`;
@@ -3575,7 +3827,7 @@ function renderOptions() {
     ]);
   } else if (state.operation === 'photo_resizer') {
     fields += selectField('preset', 'Exam Preset', [
-      { value: 'ssc_photo', label: '📸 SSC Exam Photo (3.5 × 4.5 cm, 20 KB - 50 KB)' },
+      { value: 'ssc_photo', label: '📸 SSC Photo (3.5×4.5 cm · 20–50 KB)' },
       { value: 'ssc_sign', label: '✍️ SSC Signature (4.0 × 2.0 cm, 10 KB - 20 KB)' },
       { value: 'upsc_photo', label: '📸 UPSC Photo (350 × 350 px, 20 KB - 300 KB)' },
       { value: 'upsc_sign', label: '✍️ UPSC Signature (350 × 350 px, 20 KB - 300 KB)' },
@@ -3605,6 +3857,7 @@ function renderOptions() {
     fields += field('width', 'Width (px)', 'number', '', '1', '10000', '1');
     fields += field('height', 'Height (px)', 'number', '', '1', '10000', '1');
     fields += field('scale_percent', 'Or Scale Percentage (%)', 'number', '', '1', '500', '1');
+    fields += '<small class="option-help option-field-wide">When both dimensions are set, the image is fitted without stretching and centered on a white canvas.</small>';
   } else if (state.operation === 'photo_merge') {
     fields += selectField('layout', 'Merge Layout', [
       { value: 'vertical', label: '↕️ Stack Vertically (Top to Bottom)' },
@@ -3614,18 +3867,24 @@ function renderOptions() {
   } else if (state.operation === 'mask_aadhaar') {
     fields += '<div class="option-field option-field-wide" style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; padding: 12px;"><strong style="color: #10b981;">🛡️ UIDAI Compliant 1-Click Masking</strong><p style="margin: 4px 0 0; font-size: 12px; color: var(--text-muted);">Paperplane automatically searches for 12-digit Aadhaar numbers and permanently black-boxes or redacts the first 8 digits (XXXX-XXXX-1234) in memory.</p></div>';
   } else if (state.operation === 'grayscale') {
-    fields += '<div class="option-field option-field-wide" style="background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; padding: 12px;"><strong style="color: #3b82f6;">🖤 Grayscale for monochrome printing</strong><p style="margin: 4px 0 0; font-size: 12px; color: var(--text-muted);">Already-grayscale PDFs are preserved. Colored pages are rendered as images, so the output can be larger and their text may need OCR before it can be searched or copied. Use Compress PDF when reducing file size is your goal.</p></div>';
+    fields += '<div class="option-field option-field-wide" style="background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.3); border-radius: 8px; padding: 12px;"><strong style="color: #3b82f6;">🖤 Grayscale for monochrome printing</strong><p style="margin: 4px 0 0; font-size: 12px; color: var(--text-muted);">Already-grayscale PDFs are preserved. Colored pages are rendered as images, so the output can be larger and their text may lose searchability. To add a searchable text layer afterward, <a href="/ocr-pdf">run OCR PDF</a>. Use Compress PDF when reducing file size is your goal.</p></div>';
   } else if (state.operation === 'flatten') {
     fields += '<div class="option-field option-field-wide" style="background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; padding: 12px;"><strong style="color: #f59e0b;">📑 Permanent Form Flattening</strong><p style="margin: 4px 0 0; font-size: 12px; color: var(--text-muted);">Permanently bakes interactive AcroForm field values directly into the page content, preventing further modification in final submissions.</p></div>';
   } else if (state.operation === 'watermark') {
     fields += field('text', 'Watermark text (or choose an image below)', 'text', 'Type watermark text');
     fields += field('opacity', 'Opacity (0.05 to 0.8)', 'number', '0.2', '0.05', '0.8', '0.01');
+    fields += '<div class="option-field"><label for="mark_color">Mark colour</label><input id="mark_color" type="color" value="#243b53"></div>';
+    fields += selectField('mark_background', 'Page background behind mark', [{value:'unknown',label:'Unknown / mixed'}, {value:'light',label:'Mostly light'}, {value:'dark',label:'Mostly dark'}]);
+    fields += '<div class="option-field option-field-wide"><div id="mark_preview" class="mark-contrast-preview" role="status" aria-live="polite">Preview: watermark with a contrasting outline. Check placement and legibility in the exported PDF.</div></div>';
     fields += '<div class="option-field"><label for="watermark_image_file">Or Select Watermark Image</label><input id="watermark_image_file" type="file" accept="image/*"></div>';
   } else if (state.operation === 'page_numbers') {
     fields += selectField('position', 'Position', ['Footer center', 'Footer left', 'Footer right', 'Header center', 'Header left', 'Header right']);
     fields += selectField('format', 'Numbering Format', ['Page {n} of {total}', 'Page {n}', '{n}']);
     fields += field('start_number', 'Starting Number', 'number', '1', '1', '9999', '1');
     fields += field('start_page', 'First Page to Number', 'number', '1', '1', '9999', '1');
+    fields += '<div class="option-field"><label for="mark_color">Number colour</label><input id="mark_color" type="color" value="#243b53"></div>';
+    fields += selectField('mark_background', 'Page background behind number', [{value:'unknown',label:'Unknown / mixed'}, {value:'light',label:'Mostly light'}, {value:'dark',label:'Mostly dark'}]);
+    fields += '<div class="option-field option-field-wide"><div id="mark_preview" class="mark-contrast-preview" role="status" aria-live="polite">Preview: page number with a contrasting outline. Check placement and legibility in the exported PDF.</div></div>';
   } else if (['protect', 'unlock'].includes(state.operation)) {
     fields += field('password', 'PDF Password', 'password', 'Enter password');
     fields += '<div class="option-field option-field-wide"><button type="button" class="btn-secondary-action" id="open-security-audit-tool-btn">Open Security Audit &amp; Sanitize</button><small class="option-help">Upload a PDF above, then inspect or sanitize that file here.</small></div>';
@@ -3664,8 +3923,12 @@ function renderOptions() {
   } else if (state.operation === 'summarize') {
     fields += '<div class="option-field" style="grid-column: span 2;"><label>Executive Document Summary</label><p style="color: var(--text-muted); font-size: 13px;">Generates executive briefing and key bullet points using deep NLP summarization.</p></div>';
   } else if (state.operation === 'sign') {
-    fields += field('signature', 'Printed signer name', 'text', 'Enter signer name');
-    fields += '<p class="option-help option-field-wide">This tool places a typed visual stamp. For a drawn or typed signature mark and signature verification, open Studio → More Tools → Digital Signatures.</p>';
+    fields += '<div class="option-field"><label for="signature_color">Signature colour</label><input id="signature_color" type="color" value="#243b53"></div>';
+    fields += selectField('mark_background', 'Page background behind signature', [{value:'unknown',label:'Unknown / mixed'}, {value:'light',label:'Mostly light'}, {value:'dark',label:'Mostly dark'}]);
+    fields += '<div class="option-field option-field-wide"><div id="mark_preview" class="mark-contrast-preview" role="status" aria-live="polite">Signature preview. Choose a page background and inspect placement in the exported PDF.</div></div>';
+    fields += '<div class="option-field option-field-wide sign-draw-field"><label for="sign-draw-canvas">Draw your signature</label><p class="option-help" id="sign-draw-instructions">Use a mouse, stylus, or finger to draw. A transparent signature image is placed in the PDF with a contrasting edge. If drawing is unavailable, enter a printed name below.</p><canvas id="sign-draw-canvas" width="700" height="180" role="img" aria-label="Signature drawing area" aria-describedby="sign-draw-instructions"></canvas><div class="sign-draw-actions"><button type="button" class="btn-secondary" id="sign-clear-canvas">Clear drawing</button><span id="sign-draw-status" role="status" aria-live="polite">Draw a signature or enter a printed signer name.</span></div><input type="hidden" id="signature_data" value=""></div>';
+    fields += field('signature', 'Printed signer name (optional)', 'text', 'For example, Alex Morgan');
+    fields += '<p class="option-help option-field-wide">The drawn signature or printed name is a visual mark and does not verify the signer’s identity. Use Studio → Digital Signatures for cryptographic signing.</p>';
   } else if (state.operation === 'html_to_pdf') {
     fields += field('url', 'Public URL to convert', 'url', 'https://example.com');
   } else if (state.operation === 'metadata') {
@@ -3682,6 +3945,28 @@ function renderOptions() {
 
   if (state.operation === 'organize') {
     $('#pages')?.addEventListener('input', () => syncOrganizerOrderFromInput());
+  }
+
+  if (state.operation === 'sign') initSignToolCanvas();
+
+  if (state.operation === 'photo_resize') {
+    const preset = $('#preset');
+    const width = $('#width');
+    const height = $('#height');
+    const scale = $('#scale_percent');
+    const dimensions = {
+      passport: [350, 450],
+      signature: [400, 200],
+      fhd: [1920, 1080],
+      square: [1080, 1080]
+    };
+    preset?.addEventListener('change', () => {
+      const [targetWidth, targetHeight] = dimensions[preset.value] || ['', ''];
+      if (width) width.value = targetWidth;
+      if (height) height.value = targetHeight;
+      if (scale) scale.value = '';
+      updateButton();
+    });
   }
 
   $('#open-security-audit-tool-btn')?.addEventListener('click', () => {
@@ -3731,6 +4016,22 @@ function renderOptions() {
     input.addEventListener('input', updateButton);
     input.addEventListener('change', updateButton);
   });
+  const updateMarkPreview = () => {
+    const preview = $('#mark_preview');
+    if (!preview) return;
+    const color = $('#mark_color')?.value || $('#signature_color')?.value || '#243b53';
+    const background = $('#mark_background')?.value || 'unknown';
+    preview.style.setProperty('--mark-color', color);
+    preview.dataset.pageBackground = background;
+    const confidence = background === 'unknown'
+      ? 'Background is unknown or mixed; the outline helps, but inspect every page before sharing.'
+      : `Preview on a ${background} page background. Inspect placement and legibility in the exported PDF.`;
+    preview.textContent = `${state.operation === 'watermark' ? 'CONFIDENTIAL' : state.operation === 'sign' ? 'Signature mark' : 'Page 1 of 3'} — ${confidence}`;
+  };
+  $('#mark_color')?.addEventListener('input', updateMarkPreview);
+  $('#signature_color')?.addEventListener('input', updateMarkPreview);
+  $('#mark_background')?.addEventListener('change', updateMarkPreview);
+  updateMarkPreview();
   syncRequiredFieldFeedback();
 }
 
@@ -3972,6 +4273,8 @@ function renderFiles() {
 
 window.removeFile = idx => {
   state.files.splice(idx, 1);
+  clearResultPanel();
+  saveToolSession(state.operation);
   renderFiles();
   updateButton();
   clearLocalWorkMarkerIfEmpty();
@@ -3996,7 +4299,7 @@ function addFiles(newFiles) {
 
   const input = $('#file-input');
   const canBatch = Boolean(input?.multiple);
-  const maxFiles = state.operation === 'photo_merge' ? MAX_PHOTO_BATCH : state.operation === 'compare' ? 2 : state.planLimits.max_batch_files;
+  const maxFiles = state.operation === 'photo_merge' ? Math.min(MAX_PHOTO_BATCH, Number(state.planLimits.max_batch_files) || 10) : state.operation === 'compare' ? 2 : state.planLimits.max_batch_files;
   if (canBatch && state.files.length + newFiles.length > maxFiles) {
     showToast('This tool accepts up to ' + maxFiles + ' files.', 'warning');
     return;
@@ -4226,7 +4529,7 @@ $('#browse').onclick = async () => {
 const dropzoneEl = $('#dropzone');
 if (dropzoneEl) {
   dropzoneEl.onclick = async (e) => {
-    if (e.target.closest('#browse') || e.target.closest('#cloud-drop-btn') || e.target.closest('.cloud-import-btn')) return;
+    if (e.target.closest('#browse') || e.target.closest('#cloud-drop-btn') || e.target.closest('#scan-camera-btn') || e.target.closest('.cloud-import-btn')) return;
     if (HEAVY_TOOLS.has(state.operation) && !state.user) {
       if (!document.body.classList.contains('auth-pending')) {
         showToast('This advanced AI / conversion tool requires a free account. Please sign in or register.', 'info');
@@ -4237,6 +4540,28 @@ if (dropzoneEl) {
     $('#file-input').click();
   };
 }
+
+$('#scan-camera-btn')?.addEventListener('click', event => {
+  event.stopPropagation();
+  if (state.operation !== 'scan_pdf') return;
+  $('#scan-camera-input')?.click();
+});
+
+$('#scan-camera-input')?.addEventListener('change', async event => {
+  const selected = [...event.target.files];
+  const operation = state.operation;
+  try {
+    if (!selected.length) return;
+    if (!await waitForInitialAuth() || operation !== state.operation || !checkAccessRequirement(operation, selected)) return;
+    addFiles(selected);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'The camera photo could not be opened.';
+    showResult(message, true);
+    showToast(message, 'error', 6000);
+  } finally {
+    event.target.value = '';
+  }
+});
 
 $('#file-input').onchange = async e => {
   const selected = [...e.target.files];
@@ -4255,6 +4580,44 @@ $('#file-input').onchange = async e => {
     e.target.value = '';
   }
 };
+
+let deferredInstallPrompt = null;
+const installAppButton = $('#install-app-btn');
+const installAppStatus = $('#install-app-status');
+window.addEventListener('beforeinstallprompt', event => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+  if (installAppButton) installAppButton.hidden = false;
+});
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt = null;
+  if (installAppButton) installAppButton.hidden = true;
+  if (installAppStatus) installAppStatus.textContent = 'Paperplane was installed.';
+});
+installAppButton?.addEventListener('click', async () => {
+  const promptEvent = deferredInstallPrompt;
+  if (!promptEvent || installAppButton.getAttribute('aria-disabled') === 'true') return;
+  deferredInstallPrompt = null;
+  installAppButton.setAttribute('aria-disabled', 'true');
+  try {
+    await promptEvent.prompt();
+    const choice = await promptEvent.userChoice;
+    if (installAppStatus) installAppStatus.textContent = choice.outcome === 'accepted' ? 'Paperplane was installed.' : 'Installation was canceled.';
+    if (installAppButton) installAppButton.hidden = !deferredInstallPrompt;
+  } catch (error) {
+    if (installAppStatus) installAppStatus.textContent = error?.name === 'AbortError' ? 'Installation was canceled or could not complete.' : 'Installation could not start.';
+    if (installAppButton) installAppButton.hidden = !deferredInstallPrompt;
+    if (error?.name !== 'AbortError') console.error('Paperplane install prompt failed:', error);
+  } finally {
+    installAppButton.removeAttribute('aria-disabled');
+  }
+});
+if ('serviceWorker' in navigator && window.isSecureContext) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js', { scope: '/' })
+      .catch(error => console.warn('Paperplane could not register its app shell worker:', error));
+  }, { once: true });
+}
 
 ['dragenter', 'dragover'].forEach(event => {
   $('#dropzone').addEventListener(event, e => {
@@ -4356,7 +4719,7 @@ $('#cloud-form').onsubmit = async e => {
         addFiles([file]);
       }
       $('#cloud-modal').hidden = true;
-      showToast(`Imported ${file.name} · ${(file.size / (1024 * 1024)).toFixed(2)} MB · ${pageCount} pages`, 'success', 6000);
+      showToast(`Imported ${file.name} · ${(file.size / (1024 * 1024)).toFixed(2)} MB · ${pageCount} ${pageCount === 1 ? 'page' : 'pages'}`, 'success', 6000);
     } else throw new Error('The link did not return a downloadable PDF. Check sharing access and try again.');
   } catch (err) {
     if (errorBox) { errorBox.textContent = err.message; errorBox.hidden = false; }
@@ -4372,19 +4735,24 @@ $('#cloud-form').onsubmit = async e => {
 
 function updateProgress(step, percent, title) {
   $('#progress-card').hidden = false;
+  const stepLabels = state.clientSideMode
+    ? ['Read files locally', 'Process in browser', 'Prepare output', 'Ready']
+    : ['Upload files', 'Process on server', 'Prepare download', 'Ready'];
   const progress = $('#progress-bar-fill');
   if (percent === null || percent === undefined) {
     progress.removeAttribute('value');
     $('#progress-percent').textContent = 'Working';
   } else {
-    progress.value = Math.max(0, Math.min(100, percent));
-    $('#progress-percent').textContent = `${Math.round(progress.value)}%`;
+    const measuredPercent = Math.max(0, Math.min(100, Math.round(percent)));
+    progress.value = measuredPercent;
+    $('#progress-percent').textContent = `${measuredPercent}%`;
   }
   if (title) $('#progress-status-title').textContent = title;
 
   [1, 2, 3, 4].forEach(s => {
     const el = $(`#step-${s}`);
     if (el) {
+      el.textContent = `${s}. ${stepLabels[s - 1]}`;
       el.className = s < step ? 'progress-step done' : s === step ? 'progress-step active' : 'progress-step';
     }
   });
@@ -4392,6 +4760,7 @@ function updateProgress(step, percent, title) {
 
 let activeDeskAiController = null;
 let deskAiRequestTimedOut = false;
+let deskWorkflowEpoch = 0;
 
 function updateAiWorkflowProgress(message) {
   const card = $('#progress-card');
@@ -4408,13 +4777,19 @@ $('#job-cancel-btn')?.addEventListener('click', () => activeDeskAiController?.ab
 $('#job-form').onsubmit = async e => {
   e.preventDefault();
   const isHtml = state.operation === 'html_to_pdf';
-  if (!state.files.length && !isHtml) return;
+  if (!state.files.length && !isHtml) {
+    state.serverFallbackForCurrentRun = false;
+    updateButton();
+    return;
+  }
 
   const requiredField = getToolRequiredFieldState();
   if (requiredField && !requiredField.valid) {
     syncRequiredFieldFeedback(requiredField);
     requiredField.input?.focus();
     showToast(requiredField.message, 'info', 4500);
+    state.serverFallbackForCurrentRun = false;
+    updateButton();
     return;
   }
 
@@ -4447,21 +4822,43 @@ $('#job-form').onsubmit = async e => {
   btn.disabled = true;
   $('#result').hidden = true;
 
-  updateProgress(1, 15, 'Preparing document streams…');
+  updateProgress(1, null, 'Preparing document streams…');
 
   if (state.clientSideMode) {
+    let retryWithServer = false;
+    const localEpoch = deskWorkflowEpoch;
+    const localOperation = state.operation;
+    const localFiles = [...state.files];
+    const sameLocalRequest = () => localEpoch === deskWorkflowEpoch && state.operation === localOperation
+      && localFiles.length === state.files.length && localFiles.every((file, index) => file === state.files[index]);
     try {
-      updateProgress(2, 60, 'Processing in your browser…');
+      updateProgress(2, null, 'Processing in your browser…');
       await processClientSide();
       updateProgress(4, 100, 'Complete');
     } catch (error) {
-      showResult(error.message || 'Browser processing could not complete.', true);
-      showToast(error.message || 'Browser processing could not complete.', 'error');
+      if (sameLocalRequest()) {
+        const message = error?.message || 'Browser processing could not complete.';
+        const confirmed = await window.confirmAction(`${message} To retry, upload the selected files for temporary server processing? This uses your daily server allowance.`, { confirmLabel: 'Upload and retry' });
+        if (confirmed && sameLocalRequest()) {
+          state.serverFallbackForCurrentRun = true;
+          retryWithServer = true;
+          syncClientSideControls();
+        } else if (sameLocalRequest()) {
+          showResult(`Browser processing failed: ${message} No files were uploaded.`, true);
+        }
+      }
     } finally {
       $('#progress-card').hidden = true;
       btn.disabled = false;
       updateButton();
     }
+    if (retryWithServer) window.setTimeout(() => {
+      if (sameLocalRequest()) $('#job-form')?.requestSubmit();
+      else {
+        state.serverFallbackForCurrentRun = false;
+        syncClientSideControls();
+      }
+    }, 0);
     return;
   }
 
@@ -4486,6 +4883,10 @@ $('#job-form').onsubmit = async e => {
     options.dpi = options.dpi.split(' ')[0];
   }
 
+  const submittedOperation = state.operation;
+  const workflowEpoch = deskWorkflowEpoch;
+  const isCurrentWorkflow = () => workflowEpoch === deskWorkflowEpoch && state.operation === submittedOperation;
+
   if (['ai_chat', 'summarize', 'translate', 'ai_extract'].includes(state.operation)) {
     const controller = new AbortController();
     activeDeskAiController = controller;
@@ -4503,10 +4904,12 @@ $('#job-form').onsubmit = async e => {
         : state.operation === 'summarize'
           ? 'Preparing the executive brief · waiting for the provider response…'
           : 'AI request running · waiting for the provider response…');
-      await runDeskAiWorkflow(options, controller.signal);
+      await runDeskAiWorkflow(options, controller.signal, isCurrentWorkflow);
+      if (!isCurrentWorkflow()) return;
       updateProgress(4, 100, 'AI workflow complete');
       $('#progress-card').hidden = true;
     } catch (error) {
+      if (!isCurrentWorkflow()) return;
       const message = controller.signal.aborted
         ? deskAiRequestTimedOut
           ? 'The AI provider did not return a result before the time limit. No output was created; retry later.'
@@ -4517,6 +4920,7 @@ $('#job-form').onsubmit = async e => {
     } finally {
       window.clearTimeout(timeout);
       if (activeDeskAiController === controller) activeDeskAiController = null;
+      if (!isCurrentWorkflow()) return;
       if (cancelButton) cancelButton.hidden = true;
       $('#progress-card')?.classList.remove('ai-workflow-progress');
       $('#progress-card').hidden = true;
@@ -4545,15 +4949,18 @@ $('#job-form').onsubmit = async e => {
       form, state.operation, options, state.files, controller.signal,
       (loaded, total) => updateProgress(2, loaded / total * 100, 'Uploading files…')
     );
+    if (!isCurrentWorkflow()) return;
 
     updateProgress(3, null, 'Upload complete. Processing your document…');
     const job = await waitForJob(data.status_url, controller.signal);
+    if (!isCurrentWorkflow()) return;
     
     updateProgress(4, 100, 'Finished!');
     setTimeout(() => $('#progress-card').hidden = true, 800);
     showDownloadResult(job, data.download_url);
     await checkAuthStatus();
   } catch (error) {
+    if (!isCurrentWorkflow()) return;
     $('#progress-card').hidden = true;
     if (controller.signal.aborted) {
       const message = timedOut
@@ -4591,15 +4998,45 @@ $('#job-form').onsubmit = async e => {
   } finally {
     window.clearTimeout(timeout);
     if (activeDeskAiController === controller) activeDeskAiController = null;
+    if (!isCurrentWorkflow()) return;
     if (cancelButton) cancelButton.hidden = true;
     btn.disabled = false;
+    state.serverFallbackForCurrentRun = false;
     updateButton();
   }
 };
 
 async function waitForJob(url, signal) {
+  let transientFailures = 0;
   while (!signal?.aborted) {
-    const job = await safeFetch(url, { signal });
+    let job;
+    try {
+      job = await safeFetch(url, { signal });
+      transientFailures = 0;
+    } catch (error) {
+      const retryable = error?.networkFailure || [502, 503, 504].includes(Number(error?.status));
+      if (!retryable || transientFailures >= 3) throw error;
+      transientFailures += 1;
+      const delayMs = error.retryAfterMs || Math.min(1600, 400 * (2 ** (transientFailures - 1)));
+      const title = $('#progress-status-title');
+      if (title) title.textContent = `Connection interrupted. Retrying status check (${transientFailures}/3)…`;
+      await new Promise((resolve, reject) => {
+        const finish = callback => value => {
+          window.clearTimeout(timer);
+          signal?.removeEventListener('abort', abort);
+          callback(value);
+        };
+        const done = finish(resolve);
+        const fail = finish(reject);
+        const timer = window.setTimeout(done, delayMs);
+        const abort = () => {
+          fail(new DOMException('Stopped waiting.', 'AbortError'));
+        };
+        if (signal?.aborted) abort();
+        else signal?.addEventListener('abort', abort, { once: true });
+      });
+      continue;
+    }
     if (job.status === 'completed') return job;
     if (job.status === 'failed') throw new Error(job.error || 'The job failed during processing.');
     await new Promise(resolve => setTimeout(resolve, 600));
@@ -4607,10 +5044,71 @@ async function waitForJob(url, signal) {
   throw new DOMException('Stopped waiting.', 'AbortError');
 }
 
-function showDownloadResult(job, downloadUrl, { silent = false } = {}) {
+function renderUpdatedPdfMetadataJson({ metadata, fileName }) {
+  const content = $('#result-content');
+  if (!content) return;
+
+  const panel = document.createElement('section');
+  panel.className = 'metadata-json-result';
+  panel.id = 'metadata-json-result';
+  const header = document.createElement('div');
+  header.className = 'metadata-json-result__header';
+  const title = document.createElement('h3');
+  title.textContent = 'Updated PDF metadata';
+  const exportButton = document.createElement('button');
+  exportButton.type = 'button';
+  exportButton.className = 'btn-demo-upgrade';
+  exportButton.id = 'metadata-json-export-btn';
+  exportButton.textContent = 'Download JSON';
+  exportButton.disabled = true;
+  header.append(title, exportButton);
+
+  const status = document.createElement('p');
+  status.className = 'metadata-json-result__status';
+  status.setAttribute('role', 'status');
+  status.setAttribute('aria-live', 'polite');
+  status.textContent = 'Reading metadata from the updated PDF…';
+  const output = document.createElement('pre');
+  output.className = 'metadata-json-result__output';
+  output.id = 'metadata-json-output';
+  output.setAttribute('aria-label', 'Updated PDF metadata in JSON format');
+  panel.append(header, status, output);
+  content.replaceChildren(panel);
+  content.hidden = false;
+
+  if (!metadata || typeof metadata !== 'object') {
+    status.textContent = 'The PDF is ready, but its metadata was not available for JSON export. You can still download the PDF above.';
+    return;
+  }
+  const json = JSON.stringify({ file_name: fileName, ...metadata }, null, 2);
+  output.textContent = json;
+  status.textContent = 'These values were read from the updated PDF.';
+  exportButton.disabled = false;
+  exportButton.addEventListener('click', () => {
+    const jsonBlob = new Blob([json], { type: 'application/json;charset=utf-8' });
+    const objectUrl = URL.createObjectURL(jsonBlob);
+    const anchor = document.createElement('a');
+    anchor.href = objectUrl;
+    anchor.download = `${fileName.replace(/\.pdf$/i, '') || 'document'}.metadata.json`;
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+    showToast('Downloaded updated PDF metadata as JSON.', 'success');
+  }, { once: true });
+}
+
+async function countPdfPagesInBlob(blob) {
+  const pdfjsLib = await window.PaperplanePdfRuntime.ensurePdfJs();
+  const document = await pdfjsLib.getDocument({ data: await blob.arrayBuffer(), isEvalSupported: false }).promise;
+  try { return document.numPages; }
+  finally { await document.destroy(); }
+}
+
+function showDownloadResult(job, downloadUrl, { silent = false, blob = null } = {}) {
   const previous = toolSessionCache.get(state.operation)?.result?.downloadUrl;
   if (previous?.startsWith('blob:') && previous !== downloadUrl) URL.revokeObjectURL(previous);
-  state.activeToolResult = { job: { ...job }, downloadUrl };
+  state.activeToolResult = { job: { ...job }, downloadUrl, blob };
   toolSessionCache.set(state.operation, {
     files: [...state.files],
     splitPageCount: state.splitPageCount ?? null,
@@ -4623,10 +5121,15 @@ function showDownloadResult(job, downloadUrl, { silent = false } = {}) {
   const content = $('#result-content');
   if (content) {
     content.hidden = true;
-    content.innerHTML = '';
+    content.replaceChildren();
   }
   $('#result-title').textContent = 'Your document is ready!';
   const outName = job.output_name || 'document.pdf';
+  const isPdf = outName.toLowerCase().endsWith('.pdf');
+  const baseResultMeta = `${outName} · ${formatBytes(job.output_size)}`;
+  const serverPageCount = Number.isInteger(Number(job.page_count)) && Number(job.page_count) > 0
+    ? Number(job.page_count) : null;
+  const pageCountLabel = count => `${count} ${count === 1 ? 'page' : 'pages'}`;
   const dimensions = job.dimensions ? ' · ' + job.dimensions.join(' × ') + ' px' : '';
   const compressionReduction = state.operation === 'compress' && state.files[0]?.size > 0
     ? 1 - (Number(job.output_size || 0) / state.files[0].size)
@@ -4636,7 +5139,24 @@ function showDownloadResult(job, downloadUrl, { silent = false } = {}) {
     ? 'Quality warning: this file is over 95% smaller. Review every page before use; choose Balanced for image-heavy PDFs.'
     : '';
   const warning = [job.warning, qualityWarning].filter(Boolean).map(message => ` · ${message}`).join('');
-  $('#result-meta').textContent = `${outName} · ${formatBytes(job.output_size)}${dimensions}${warning}`;
+  const resultMeta = $('#result-meta');
+  delete resultMeta.dataset.pageCountState;
+  resultMeta.textContent = `${baseResultMeta}${isPdf && serverPageCount ? ` · ${pageCountLabel(serverPageCount)}` : ''}${dimensions}${warning}`;
+  if (isPdf && !serverPageCount && blob) {
+    const displayedResult = state.activeToolResult;
+    resultMeta.dataset.pageCountState = 'loading';
+    resultMeta.textContent = `${baseResultMeta} · Reading page count…${dimensions}${warning}`;
+    countPdfPagesInBlob(blob).then(count => {
+      if (!count || state.activeToolResult !== displayedResult || !resultMeta.isConnected) return;
+      resultMeta.dataset.pageCountState = 'ready';
+      resultMeta.textContent = `${baseResultMeta} · ${pageCountLabel(count)}${dimensions}${warning}`;
+    }).catch(error => {
+      if (state.activeToolResult !== displayedResult || !resultMeta.isConnected) return;
+      resultMeta.dataset.pageCountState = 'unavailable';
+      console.warn('Could not read the output PDF page count:', error);
+      resultMeta.textContent = `${baseResultMeta} · Page count unavailable${dimensions}${warning}`;
+    });
+  }
   const dlLink = $('#result-download-link');
   dlLink.href = downloadUrl;
   dlLink.setAttribute('download', outName);
@@ -4671,14 +5191,33 @@ function showDownloadResult(job, downloadUrl, { silent = false } = {}) {
       showToast('Download complete!', 'success', 2500);
     } catch (err) {
       console.warn('Blob download fallback:', err);
-      showToast(`Download failed: ${err.message}`, 'error', 4000);
+      // Let the browser handle the attachment directly if a blob fetch failed
+      // (for example a transient fetch/streaming failure). The endpoint already
+      // returns Content-Disposition and remains scoped to this user's job.
+      try {
+        const direct = document.createElement('a');
+        direct.href = downloadUrl;
+        direct.download = outName;
+        direct.hidden = true;
+        document.body.appendChild(direct);
+        direct.click();
+        direct.remove();
+        showToast('The direct download was started after the preview download failed.', 'warning', 4000);
+      } catch (fallbackError) {
+        showToast(`Download failed: ${err.message || fallbackError.message}`, 'error', 5000);
+      }
     } finally {
       dlLink.innerHTML = originalContent;
       dlLink.style.pointerEvents = '';
     }
   };
 
-  const isPdf = outName.toLowerCase().endsWith('.pdf');
+  if (state.operation === 'metadata') {
+    const sourceFile = state.files.find(file => file instanceof Blob) || null;
+    const originalName = sourceFile?.name || outName;
+    renderUpdatedPdfMetadataJson({ metadata: job.output_metadata, fileName: originalName });
+  }
+
   const studioBtn = $('#result-view-studio-btn');
   if (studioBtn) {
     studioBtn.hidden = !isPdf;
@@ -4686,15 +5225,19 @@ function showDownloadResult(job, downloadUrl, { silent = false } = {}) {
       studioBtn.onclick = async (e) => {
         if (e) { e.preventDefault(); e.stopPropagation(); }
         state.studio.isLoading = true;
-        switchWorkspaceView('studio');
+        switchWorkspaceView('studio', 'privacy', true, false, true);
         showStudioLoading('Loading document…');
         showToast('Opening processed document in Studio…', 'info');
         try {
-          const res = await fetch(downloadUrl, { credentials: 'same-origin' });
-          if (!res.ok) throw new Error(`Could not fetch the processed PDF (HTTP ${res.status}).`);
-          const blob = await res.blob();
-          const studioFile = new File([blob], outName, { type: blob.type || 'application/pdf' });
-          const loaded = await loadDocumentIntoStudio(studioFile);
+          let pdfBlob = blob;
+          if (!pdfBlob) {
+            const res = await fetch(downloadUrl, { credentials: 'same-origin' });
+            if (!res.ok) throw new Error(`Could not fetch the processed PDF (HTTP ${res.status}).`);
+            pdfBlob = await res.blob();
+          }
+          const studioFile = new File([pdfBlob], outName, { type: pdfBlob.type || 'application/pdf' });
+          const handoffPassword = state.operation === 'protect' ? ($('#password')?.value || '').trim() : undefined;
+          const loaded = await loadDocumentIntoStudio(studioFile, { pdfPassword: handoffPassword });
           if (!loaded) throw new Error('The processed file could not be rendered as a PDF.');
         } catch (err) {
           console.warn('Could not load output into Studio directly:', err);
@@ -4711,6 +5254,9 @@ function showDownloadResult(job, downloadUrl, { silent = false } = {}) {
   }
 
   result.hidden = false;
+  if (window.matchMedia('(max-width: 900px)').matches) {
+    requestAnimationFrame(() => result.scrollIntoView({ block: 'center', behavior: 'smooth' }));
+  }
   if (!silent) {
     checkAuthStatus();
     showToast('Processing complete! Document ready for download.');
@@ -4730,7 +5276,7 @@ function showResult(message, isError = false) {
   $('#result-meta').textContent = message;
   if ($('#result-content')) {
     $('#result-content').hidden = true;
-    $('#result-content').innerHTML = '';
+    $('#result-content').replaceChildren();
   }
   if ($('#result-download-link')) $('#result-download-link').hidden = true;
   if ($('#result-view-studio-btn')) $('#result-view-studio-btn').hidden = true;
@@ -4827,6 +5373,35 @@ function plainMarkdown(markdown) {
 
 let currentSummaryText = '';
 
+function renderTranslationResult(blob, name, targetLanguage, translatedPercent, blockPercent, warningCount, mode) {
+  const url = URL.createObjectURL(blob);
+  const isPartial = mode === 'partial';
+  const resultTitle = isPartial ? 'Partial translation ready' : 'Translation complete';
+  const coverageSummary = translatedPercent === null ? 'some source text was preserved' : `${translatedPercent}% character coverage, ${blockPercent ?? 'unknown'}% text block coverage`;
+  const resultSummary = `${targetLanguage} · ${coverageSummary} · ${warningCount} warning(s)`;
+  const resultMessage = isPartial
+    ? `${translatedPercent ?? 'Unknown'}% character coverage and ${blockPercent ?? 'unknown'}% text block coverage. Some source text remains unchanged. Review the PDF before sharing it.`
+    : 'Translated text was rendered into the original page layout.';
+  const downloadLabel = isPartial ? 'Download partial translation' : 'Download translated PDF';
+  showRichAiResult(resultTitle, resultSummary, `<p>${resultMessage}</p><div class="ai-result-actions"><a class="btn-download" href="${url}" download="${escapeHtml(name)}">${downloadLabel}</a><button type="button" class="btn-secondary-action" id="translation-view-studio-btn">View in Studio</button></div>`, { showStudio: false });
+  $('#translation-view-studio-btn')?.addEventListener('click', async event => {
+    event.currentTarget.disabled = true;
+    event.currentTarget.textContent = 'Opening in Studio…';
+    switchWorkspaceView('studio', 'privacy', true, false, true);
+    const translatedFile = new File([blob], name, { type: 'application/pdf' });
+    try {
+      const loaded = await loadDocumentIntoStudio(translatedFile);
+      if (!loaded) throw new Error('The translated PDF could not be opened in Studio.');
+      showToast('Translated PDF opened in Studio.', 'success');
+    } catch (error) {
+      event.currentTarget.disabled = false;
+      event.currentTarget.textContent = 'View in Studio';
+      showToast(error?.message || 'Could not open the translated PDF in Studio.', 'error');
+    }
+  });
+  showToast(isPartial ? 'Partial translation ready; some source text remains.' : 'Translation completed.', isPartial ? 'warning' : 'success');
+}
+
 function showRichAiResult(title, meta, contentHtml, actions = {}) {
   const result = $('#result');
   const content = $('#result-content');
@@ -4850,7 +5425,9 @@ function downloadTextFile(text, filename) {
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
-  URL.revokeObjectURL(url);
+  // Give the browser time to consume the object URL after click(). Synchronous
+  // revocation cancels downloads in Chromium and some WebKit builds.
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 async function downloadSummaryPdf(text, filename) {
@@ -4885,12 +5462,13 @@ async function downloadSummaryPdf(text, filename) {
 }
 
 function showAiChatDeskResult(data) {
-  const citations = data.citations?.length
-    ? data.citations.map(page => `<span class="ai-citation-tag">Page ${escapeHtml(page)}</span>`).join('')
+  const uniqueCitations = uniqueAiCitationPages(data.citations);
+  const citations = uniqueCitations.length
+    ? uniqueCitations.map(aiPageCitationTag).join('')
     : '<span class="ai-citation-tag muted">No page citation returned</span>';
   showRichAiResult(
     'Grounded AI answer',
-    data.citations?.length ? 'Document-grounded answer' : 'Direct answer',
+    uniqueCitations.length ? 'Document-grounded answer' : 'Direct answer',
     `<div class="ai-result-answer">${renderMarkdown(data.answer)}</div><div class="ai-result-citations"><strong>Verified sources</strong>${citations}</div><button type="button" class="btn-primary-action ai-open-studio-result-btn">Open in Full AI Interactive Studio →</button>`,
     { showStudio: true },
   );
@@ -4900,15 +5478,35 @@ function showAiChatDeskResult(data) {
 function summaryCitationHtml(citations = []) {
   const pages = [...new Set((Array.isArray(citations) ? citations : []).map(Number).filter(Number.isInteger))].sort((a, b) => a - b);
   if (!pages.length) return '<div class="ai-result-citations"><strong>Sources</strong><span class="ai-citation-tag muted">No verified page citations returned</span></div>';
-  return `<div class="ai-result-citations"><strong>Verified pages</strong>${pages.map(page => `<span class="ai-citation-tag">Page ${page}</span>`).join('')}</div>`;
+  const ranges = [];
+  pages.forEach(page => {
+    const last = ranges[ranges.length - 1];
+    if (last && page === last[1] + 1) last[1] = page;
+    else ranges.push([page, page]);
+  });
+  const labels = ranges.map(([start, end]) => start === end ? `Page ${start}` : `Pages ${start}-${end}`);
+  const visible = labels.slice(0, 8);
+  if (labels.length > visible.length) visible.push(`+${labels.length - visible.length} more ranges`);
+  return `<div class="ai-result-citations"><strong>Verified pages</strong>${visible.map(label => `<span class="ai-citation-tag">${label}</span>`).join('')}</div>`;
 }
 
-function showSummaryDeskResult(summary, citations = []) {
+function getSummaryModeLabel(summary, summaryMode) {
+  if (summaryMode === 'offline_extractive' || /Executive Summary \(Offline Analysis\)/i.test(String(summary || ''))) {
+    return { label: 'Offline Analysis', detail: 'offline extractive notes' };
+  }
+  if (summaryMode === 'provider_synthesized') {
+    return { label: 'AI Synthesis', detail: 'AI synthesized' };
+  }
+  return { label: 'Mode Unreported', detail: 'summary mode not reported' };
+}
+
+function showSummaryDeskResult(summary, citations = [], summaryMode = null) {
   currentSummaryText = summary || '';
   const fileName = (state.files[0]?.name || 'document').replace(/\.[^/.]+$/, '');
+  const mode = getSummaryModeLabel(currentSummaryText, summaryMode);
   showRichAiResult(
     'Executive briefing ready',
-    `${fileName} · formatted Markdown · local/provider grounded`,
+    `${fileName} · formatted Markdown · ${mode.detail}`,
     `<article class="ai-result-markdown">${renderMarkdown(currentSummaryText)}</article>${summaryCitationHtml(citations)}<div class="ai-result-actions"><button type="button" class="btn-demo-upgrade" id="desk-copy-summary-btn">Copy Summary</button><button type="button" class="btn-demo-upgrade" id="desk-download-summary-txt-btn">Download TXT</button><button type="button" class="btn-demo-upgrade" id="desk-download-summary-pdf-btn">Download PDF</button></div>`,
     { showStudio: false },
   );
@@ -4931,13 +5529,44 @@ async function fetchBinary(url, options = {}) {
   return { blob: await response.blob(), response };
 }
 
-async function runDeskAiWorkflow(options, signal) {
+async function safeFetchWithTransientRetry(url, options = {}, progressMessage = 'Connection interrupted. Retrying once…') {
+  let retries = 0;
+  while (true) {
+    try {
+      return await safeFetch(url, options);
+    } catch (error) {
+      const transient = error?.networkFailure || [502, 503, 504].includes(Number(error?.status));
+      if (!transient || retries >= 1 || options.signal?.aborted) throw error;
+      retries += 1;
+      const title = $('#progress-status-title');
+      if (title) title.textContent = progressMessage;
+      const delay = error.retryAfterMs || 400;
+      await new Promise((resolve, reject) => {
+        const timer = window.setTimeout(() => {
+          options.signal?.removeEventListener('abort', onAbort);
+          resolve();
+        }, delay);
+        const onAbort = () => {
+          window.clearTimeout(timer);
+          options.signal?.removeEventListener('abort', onAbort);
+          reject(new DOMException('The operation was aborted.', 'AbortError'));
+        };
+        if (options.signal?.aborted) onAbort();
+        else options.signal?.addEventListener('abort', onAbort, { once: true });
+      });
+    }
+  }
+}
+
+async function runDeskAiWorkflow(options, signal, isCurrent = () => true) {
   const operation = state.operation;
   if (operation === 'ai_chat') {
     const form = new FormData();
     form.append('file', state.files[0]);
     form.append('question', options.question || 'Summarize the key contents of this document.');
-    showAiChatDeskResult(await safeFetch('/api/ai/chat', { method: 'POST', body: form, signal }));
+    const result = await safeFetch('/api/ai/chat', { method: 'POST', body: form, signal });
+    if (!isCurrent()) return;
+    showAiChatDeskResult(result);
     showToast('AI answer rendered with verified page citations.', 'success');
     return;
   }
@@ -4945,7 +5574,8 @@ async function runDeskAiWorkflow(options, signal) {
     const form = new FormData();
     form.append('file', state.files[0]);
     const data = await safeFetch('/api/ai/summarize', { method: 'POST', body: form, signal });
-    showSummaryDeskResult(data.summary, data.citations);
+    if (!isCurrent()) return;
+    showSummaryDeskResult(data.summary, data.citations, data.summary_mode);
     showToast('Executive briefing rendered on-screen.', 'success');
     return;
   }
@@ -4953,7 +5583,11 @@ async function runDeskAiWorkflow(options, signal) {
     const form = new FormData();
     form.append('file', state.files[0]);
     form.append('doc_type', options.doc_type || 'auto');
-    const data = await safeFetch('/api/ai/extract', { method: 'POST', body: form, signal });
+    const data = await safeFetchWithTransientRetry(
+      '/api/ai/extract', { method: 'POST', body: form, signal },
+      'Smart Metadata connection interrupted. Retrying once…'
+    );
+    if (!isCurrent()) return;
     renderExtractionResultsModal(data.data);
     showRichAiResult('Structured extraction ready', `${data.data.document_type || 'general'} · interactive viewer opened`, '<p>Review the structured fields, source pages, warnings, and export controls in the extraction viewer.</p>', { showStudio: false });
     $('#extraction-results-modal').hidden = false;
@@ -4965,8 +5599,13 @@ async function runDeskAiWorkflow(options, signal) {
     form.append('file', state.files[0]);
     form.append('target_language', options.target_language || 'es');
     const { blob, response } = await fetchBinary('/api/ai/translate', { method: 'POST', body: form, signal });
+    if (!isCurrent()) return;
     const warningCount = response.headers.get('X-Paperplane-Translation-Warnings') || '0';
     const mode = response.headers.get('X-Paperplane-Translation-Mode') || 'translated';
+    const fractionHeader = Number(response.headers.get('X-Paperplane-Translated-Fraction'));
+    const translatedPercent = Number.isFinite(fractionHeader) ? Math.round(fractionHeader * 100) : (mode === 'translated' ? 100 : null);
+    const blockFractionHeader = Number(response.headers.get('X-Paperplane-Translated-Block-Fraction'));
+    const translatedBlockPercent = Number.isFinite(blockFractionHeader) ? Math.round(blockFractionHeader * 100) : (mode === 'translated' ? 100 : null);
     const name = `${(state.files[0]?.name || 'document').replace(/\.[^/.]+$/, '')}_translated.pdf`;
     const targetLanguage = options.target_language || 'es';
     if (mode === 'failed' || mode === 'source_preserved') {
@@ -4975,16 +5614,7 @@ async function runDeskAiWorkflow(options, signal) {
       return;
     }
 
-    const url = URL.createObjectURL(blob);
-    const isPartial = mode === 'partial';
-    const resultTitle = isPartial ? 'Partial translation ready' : 'Translation complete';
-    const resultSummary = `${targetLanguage} · ${isPartial ? 'some source text was preserved' : 'translated text'} · ${warningCount} warning(s)`;
-    const resultMessage = isPartial
-      ? 'Some text could not be translated and remains in the original language. Review the PDF before sharing it.'
-      : 'Translated text was rendered into the original page layout.';
-    const downloadLabel = isPartial ? 'Download partial translation' : 'Download translated PDF';
-    showRichAiResult(resultTitle, resultSummary, `<p>${resultMessage}</p><a class="btn-download" href="${url}" download="${escapeHtml(name)}">${downloadLabel}</a>`, { showStudio: false });
-    showToast(isPartial ? 'Partial translation ready; some source text remains.' : 'Translation completed.', isPartial ? 'warning' : 'success');
+    renderTranslationResult(blob, name, targetLanguage, translatedPercent, translatedBlockPercent, warningCount, mode);
   }
 }
 
@@ -5029,6 +5659,17 @@ function drawPhoto(image, width, height) {
   return canvas;
 }
 
+function fitPhoto(image, width, height) {
+  const canvas = photoCanvas(width, height);
+  const scale = Math.min(width / image.width, height / image.height);
+  const fittedWidth = Math.max(1, Math.round(image.width * scale));
+  const fittedHeight = Math.max(1, Math.round(image.height * scale));
+  const left = Math.floor((width - fittedWidth) / 2);
+  const top = Math.floor((height - fittedHeight) / 2);
+  canvas.getContext('2d').drawImage(image, left, top, fittedWidth, fittedHeight);
+  return canvas;
+}
+
 async function encodePhoto(canvas, targetBytes, maxQuality = 0.95) {
   const encode = quality => new Promise((resolve, reject) => canvas.toBlob(
     blob => blob ? resolve(blob) : reject(new Error('The browser could not encode this image.')),
@@ -5069,14 +5710,14 @@ function showPhotoResult(blob, filename, canvas, warning = '') {
     warning,
     status: 'completed',
     local_processing: true,
-  }, URL.createObjectURL(blob));
+  }, URL.createObjectURL(blob), { blob });
   canvas.width = canvas.height = 1;
 }
 
 async function processClientSide() {
   if (!CLIENT_SIDE_SUPPORTED_OPERATIONS.has(state.operation)) {
     if (!CLIENT_SIDE_IMAGE_OPERATIONS.has(state.operation)) {
-      throw new Error('This tool uses temporary server processing. Turn off Local Processing and retry.');
+      throw new Error('This tool requires browser processing. Turn browser processing on and retry.');
     }
   }
 
@@ -5090,12 +5731,14 @@ async function processClientSide() {
     const [width, height, minKb, maxKb] = presets[$('#preset')?.value] || presets.ssc_photo;
     const canvas = drawPhoto(await loadImageFromFile(file), width, height);
     const asPdf = $('#format')?.value === 'pdf';
-    const maxJpegBytes = maxKb * 1024 - (asPdf ? 2048 : 0);
+    // Exam portals publish decimal KB limits; keep the JPEG below 50,000 bytes
+    // for a 50 KB maximum instead of allowing 50 KiB (51,200 bytes).
+    const maxJpegBytes = maxKb * 1000 - (asPdf ? 2048 : 0);
     let blob = await encodePhoto(canvas, maxJpegBytes);
     if (blob.size > maxJpegBytes) {
       throw new Error('The photo could not fit the selected file-size range at the required dimensions. Try cropping or simplifying the background.');
     }
-    if (blob.size < minKb * 1024) blob = await padJpeg(blob, minKb * 1024);
+    if (blob.size < minKb * 1000) blob = await padJpeg(blob, minKb * 1000);
     if (asPdf) {
       const { PDFDocument } = await window.PaperplanePdfRuntime.ensurePdfLib();
       const pdf = await PDFDocument.create();
@@ -5104,7 +5747,7 @@ async function processClientSide() {
       page.drawImage(embedded, { x: 0, y: 0, width, height });
       blob = new Blob([await pdf.save()], { type: 'application/pdf' });
     }
-    if (blob.size < minKb * 1024 || blob.size > maxKb * 1024) {
+    if (blob.size < minKb * 1000 || blob.size > maxKb * 1000) {
       throw new Error('The output did not fit the selected file-size range. Try the JPEG format or a different image.');
     }
     showPhotoResult(blob, asPdf ? 'exam-photo.pdf' : 'exam-photo.jpg', canvas);
@@ -5169,7 +5812,7 @@ async function processClientSide() {
     if (preset === 'custom' && !targetW && !targetH && !Number($('#scale_percent')?.value)) {
       throw new Error('Enter a width, height, or scale percentage.');
     }
-    const canvas = drawPhoto(img, finalW, finalH);
+    const canvas = targetW && targetH ? fitPhoto(img, finalW, finalH) : drawPhoto(img, finalW, finalH);
     showPhotoResult(await encodePhoto(canvas, 0, 0.92),
       file.name.replace(/\.[^.]+$/, '') + '-resized.jpg', canvas);
     return;
@@ -5208,13 +5851,74 @@ async function processClientSide() {
     return;
   }
 
+  if (state.operation === 'pdf_to_text') {
+    const file = state.files[0];
+    const pdfjsLib = await window.PaperplanePdfRuntime.ensurePdfJs();
+    const loadingTask = pdfjsLib.getDocument({
+      data: await file.arrayBuffer(),
+      isEvalSupported: false,
+    });
+    let extractedText;
+    try {
+      const pdf = await loadingTask.promise;
+      const pages = [];
+      for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
+        const page = await pdf.getPage(pageNumber);
+        const content = await page.getTextContent();
+        const pageText = content.items
+          .filter(item => typeof item.str === 'string')
+          .map(item => item.str + (item.hasEOL ? '\n' : ' '))
+          .join('')
+          .replace(/[ \t]+\n/g, '\n')
+          .replace(/\n{3,}/g, '\n\n')
+          .trim();
+        if (pageText) pages.push(`Page ${pageNumber}\n${pageText}`);
+        updateProgress(2, Math.round((pageNumber / pdf.numPages) * 90),
+          `Extracting text from page ${pageNumber} of ${pdf.numPages}…`);
+      }
+      if (!pages.length) {
+        throw new Error('No selectable text was found. Run OCR first, then extract text.');
+      }
+      extractedText = pages.join('\n\n');
+    } finally {
+      await loadingTask.destroy();
+    }
+    const blob = new Blob([extractedText], { type: 'text/plain;charset=utf-8' });
+    const outputName = file.name.replace(/\.pdf$/i, '') + '-text.txt';
+    showDownloadResult({
+      output_name: outputName,
+      output_size: blob.size,
+      status: 'completed',
+      local_processing: true,
+    }, URL.createObjectURL(blob), { blob });
+    return;
+  }
+
   const operation = state.operation;
   const options = {
     pages: $('#pages')?.value.trim() || '',
     splitMode: $('#split_mode')?.value,
     degrees: Number($('#degrees')?.value || 90),
+    fields: operation === 'forms' ? ($('#fields')?.value || '').trim() : undefined,
   };
-  const { filename, output } = await window.PaperplanePdfRuntime.transformLocalPdf(operation, state.files, options);
+  if (operation === 'page_numbers') {
+    options.position = $('#position')?.value || 'Footer center';
+    options.format = $('#format')?.value || 'Page {n} of {total}';
+    options.startNumber = Number($('#start_number')?.value || 1);
+    options.startPage = Number($('#start_page')?.value || 1);
+    options.markColor = $('#mark_color')?.value || '#243b53';
+    options.markBackground = $('#mark_background')?.value || 'unknown';
+  }
+  if (operation === 'crop') {
+    for (const side of ['left', 'top', 'right', 'bottom']) options[side] = Number($(`#${side}`)?.value || 0);
+  }
+  if (operation === 'metadata') {
+    for (const key of ['title', 'author', 'subject']) {
+      const value = $(`#${key}`)?.value || '';
+      if (value) options[key] = value;
+    }
+  }
+  const { filename, output, output_metadata } = await window.PaperplanePdfRuntime.transformLocalPdf(operation, state.files, options);
   if (state.operation !== operation) return;
   const blob = output instanceof Blob ? output : new Blob([output], { type: 'application/pdf' });
   showDownloadResult({
@@ -5222,7 +5926,8 @@ async function processClientSide() {
     output_size: blob.size,
     status: 'completed',
     local_processing: true,
-  }, URL.createObjectURL(blob));
+    output_metadata,
+  }, URL.createObjectURL(blob), { blob });
 }
 
 function downloadBlob(bytes, filename, mimeType) {
@@ -5234,7 +5939,8 @@ function downloadBlob(bytes, filename, mimeType) {
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  // The browser may begin the download after click() returns.
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
   showToast(`Downloaded ${filename} processed locally!`);
 }
 
@@ -5469,6 +6175,8 @@ if (aiClearDocBtn) {
     updateAiDocBar();
     renderAiConversation([]);
     $('#summary-display').textContent = 'Summary will appear here after generation...';
+    const summaryModeBadge = $('#summary-mode-badge');
+    if (summaryModeBadge) summaryModeBadge.textContent = 'Summary';
     const sumActions = $('#summary-actions-bar');
     if (sumActions) sumActions.hidden = true;
     restoreAiWorkspaceScroll(scrollPosition);
@@ -5583,6 +6291,7 @@ if (chatClearBtn) {
     activeAIChatController?.abort();
     state.aiConversation = [];
     renderAiConversation([]);
+    updateAiDocBar();
     await removeLocalWork('ai-conversation').catch(error => console.warn('Could not clear AI chat locally:', error));
     clearLocalWorkMarkerIfEmpty();
     showToast('Conversation cleared', 'info');
@@ -5807,6 +6516,8 @@ async function generateExecutiveBrief() {
     controller.abort();
     }, 305000);
   currentSummaryText = '';
+  const summaryModeBadge = $('#summary-mode-badge');
+  if (summaryModeBadge) summaryModeBadge.textContent = 'Generating';
   btn.disabled = true;
   btn.textContent = 'Generating brief…';
   if (cancelButton) cancelButton.hidden = false;
@@ -5821,6 +6532,8 @@ async function generateExecutiveBrief() {
     const res = await safeFetch('/api/ai/summarize', { method: 'POST', body: form, signal: controller.signal });
     currentSummaryText = res.summary || '';
     if (!currentSummaryText.trim()) throw new Error('Paperplane AI returned an empty executive brief. Please retry.');
+    const summaryMode = getSummaryModeLabel(currentSummaryText, res.summary_mode);
+    if (summaryModeBadge) summaryModeBadge.textContent = summaryMode.label;
     summaryBox.innerHTML = `${renderMarkdown(currentSummaryText)}${summaryCitationHtml(res.citations)}`;
     if (actionsBar) actionsBar.hidden = false;
     showToast('Executive brief generated successfully!', 'success');
@@ -5831,6 +6544,7 @@ async function generateExecutiveBrief() {
         ? 'The AI provider timed out. No executive brief was created; retry later.'
         : 'Executive brief cancelled. No output was created.'
       : safeAiErrorMessage(err);
+    if (summaryModeBadge) summaryModeBadge.textContent = 'Mode Unreported';
     summaryBox.innerHTML = `<div class="ai-summary-error" role="alert">${escapeHtml(errMsg)} <button type="button" id="summary-retry-btn" class="btn-secondary-action">Retry</button></div>`;
     $('#summary-retry-btn')?.addEventListener('click', generateExecutiveBrief, { once: true });
     if (actionsBar) actionsBar.hidden = true;
@@ -5922,13 +6636,13 @@ function renderExtractionResultsModal(data) {
     if (warnList) warnList.innerHTML = data.warnings.map(w => `<div>• ${escapeHtml(w)}</div>`).join('');
   } else {
     if (warnBox) warnBox.hidden = true;
-    if (warnList) warnList.innerHTML = '';
+    if (warnList) warnList.replaceChildren();
   }
 
   // Key Fields Grid
   const grid = $('#extraction-fields-grid');
   if (grid) {
-    grid.innerHTML = '';
+    grid.replaceChildren();
 
     if (docType === 'invoice') {
       const inv = data.invoice_data || {};
@@ -5973,7 +6687,7 @@ function renderExtractionResultsModal(data) {
       const emptyState = $('#extraction-items-empty');
 
       if (countBadge) countBadge.textContent = `${items.length} item${items.length === 1 ? '' : 's'}`;
-      if (tbody) tbody.innerHTML = '';
+      if (tbody) tbody.replaceChildren();
 
       if (items.length > 0) {
         if (tableWrap) tableWrap.hidden = false;
@@ -6049,7 +6763,7 @@ function renderExtractionResultsModal(data) {
   // Contacts
   const contactsContainer = $('#extraction-contacts-container');
   if (contactsContainer) {
-    contactsContainer.innerHTML = '';
+    contactsContainer.replaceChildren();
     const emails = data.contact?.emails || [];
     const phones = data.contact?.phones || [];
     if (emails.length === 0 && phones.length === 0) {
@@ -6308,7 +7022,8 @@ window.copyToClipboard = text => {
 // Cloud Import Modal Controller
 // ----------------------------------------------------------------------
 
-function openCloudModal() {
+function openCloudModal(event) {
+  if (event && !event.isTrusted) return;
   $('#cloud-modal').hidden = false;
   $('#cloud-url').value = '';
   $('#cloud-url').focus();
@@ -6877,6 +7592,7 @@ const closeResetModalBtn = $('#close-reset-modal');
 if (closeResetModalBtn) {
   closeResetModalBtn.onclick = () => {
     $('#reset-password-modal').hidden = true;
+    if (window.location.pathname.includes('/reset-password')) switchWorkspaceView('tool-desk');
   };
 }
 
@@ -7242,19 +7958,18 @@ async function init() {
     const userNavigatedDuringStartup = workspaceNavigationVersion !== routedVersion;
     void availability;
     try {
-      // Restore the last workspace only on a plain root reload; explicit tool
-      // and document routes continue to take precedence.
-      const isRootWorkspaceReload = window.location.pathname.replace(/\/+$/, '') === '' && !window.location.search;
-      if (!userNavigatedDuringStartup && isRootWorkspaceReload && (previousView === 'studio' || previousView === 'ai')) {
-        switchWorkspaceView(previousView);
-      }
+      // The URL is authoritative on reload. A root URL opens the Tool Desk;
+      // restore a document only when the user explicitly opens Studio or AI.
       let restoredWork = false;
       if (state.activeView === 'ai') restoredWork = await restoreAiWorkspace();
       if (state.activeView === 'studio') {
         await restoreStudioWorkspace();
         restoredWork = Boolean(state.studio.pdfDoc);
       }
-      if (previousDoc && !restoredWork) showToast('Some temporary tool uploads may need to be selected again after reload.', 'info', 7000);
+      if (previousDoc && !restoredWork) {
+        const safeName = String(previousDoc).replace(/[<>]/g, '').slice(0, 120);
+        showToast(`${safeName} was temporary and could not be restored. Select it again to continue.`, 'info', 7000);
+      }
     } catch { /* session storage may be disabled */ }
   } catch (err) {
     console.error('Failed to load operations catalog:', err);
@@ -7273,7 +7988,7 @@ async function handleCashfreeReturn() {
       triggerConfetti();
       showToast('Cashfree payment verified. Your new tier is active!', 'success', 5500);
       const planNames = {
-        exam_pass: 'Exam',
+        exam_pass: 'Exam Pass',
         student_pro: 'Student & Educator',
         pro: 'Legacy Pro',
         cyber_cafe: 'All-In-One Pro & Developer',
@@ -7300,6 +8015,9 @@ async function handleCashfreeReturn() {
 // --------------------------------------------------------------------------
 function switchFullLegalTab(tab = 'privacy') {
   const isPrivacy = tab === 'privacy';
+  if (state.activeView === 'legal') document.title = `${isPrivacy ? 'Privacy Policy' : 'Terms of Service'} | Paperplane`;
+    const legalTitle = $('#legal-page-title');
+    if (legalTitle) legalTitle.textContent = isPrivacy ? 'Paperplane Privacy Policy & Data Protection' : 'Terms of Service';
   $('#full-legal-tab-privacy')?.classList.toggle('active', isPrivacy);
   $('#full-legal-tab-terms')?.classList.toggle('active', !isPrivacy);
   if ($('#full-privacy-pane')) $('#full-privacy-pane').hidden = !isPrivacy;
@@ -7490,6 +8208,10 @@ function handleInitialRouting() {
   } else if (path.includes('reset-password')) {
     checkPasswordResetUrl();
     setInitialView('home');
+    // The reset URL is a focused account task; keep the generic workspace
+    // heading out of the visible page while its modal form is open.
+    if ($('#view-home')) $('#view-home').hidden = true;
+    if ($('#view-tool-desk-directory')) $('#view-tool-desk-directory').hidden = true;
   } else if (path.includes('developers') || path.includes('api-docs') || path.includes('/docs/api') || urlParams.get('view') === 'api-docs') {
     setInitialView('api-docs');
   } else if (path.includes('download') || path.includes('apps') || urlParams.get('view') === 'download') {
@@ -7499,6 +8221,9 @@ function handleInitialRouting() {
   } else if (pathSlug === 'ai-intelligence') {
     setInitialView('ai');
   } else if (pathSlug === 'tool-desk') {
+    setInitialView('tool-desk');
+  } else if (pathSlug === 'compress-pdf-to-100kb' || pathSlug === 'compress-pdf-to-200kb') {
+    renderToolDeskDirectory('optimize');
     setInitialView('tool-desk');
   } else if (pathSlug === 'studio' || urlParams.get('view') === 'studio') {
     setInitialView('studio');

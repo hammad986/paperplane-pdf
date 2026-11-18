@@ -1,0 +1,25 @@
+{
+  "fixture": "live-id2-synthetic-69-pages.pdf",
+  "current_local_runtime": true,
+  "rounds": [
+    {
+      "http_status": 200,
+      "summary_mode": "offline_extractive",
+      "summary_keys": [
+        "citations",
+        "status",
+        "summary",
+        "summary_mode"
+      ],
+      "page24_cancellation": true,
+      "page24_spend_limit": true,
+      "page69_deadline": true,
+      "citations_count": 69,
+      "citation_range": [
+        1,
+        69
+      ],
+      "page_errors": []
+    }
+  ]
+}

@@ -146,6 +146,58 @@ def test_ai_connection_check_uses_configured_fallback_after_primary_rate_limit(m
     assert "fallback.example" not in result["message"]
 
 
+def test_translation_falls_back_after_primary_rate_limit_and_reports_admin_health(tmp_path, monkeypatch):
+    import persistence
+    source = tmp_path / "fallback-source.pdf"
+    output = tmp_path / "fallback-translated.pdf"
+    with fitz.open() as pdf:
+        page = pdf.new_page()
+        page.insert_text((72, 72), "The document processing service is ready for review.")
+        pdf.save(source)
+
+    monkeypatch.setattr(ai_engine, "AI_KILL_SWITCH", False)
+    monkeypatch.setattr(ai_engine, "_AI_PROVIDER_STATUS", {
+        "last_request_at": None, "last_status": "not_checked", "last_provider": None,
+        "fallback_active": False, "last_failure": None,
+    })
+    monkeypatch.setattr(persistence, "set_ai_provider_health_status", lambda _status: None)
+    monkeypatch.setattr(persistence, "get_ai_provider_health_status", lambda: dict(ai_engine._AI_PROVIDER_STATUS))
+    monkeypatch.setattr(ai_engine, "_current_bluesminds_api_key", lambda: "primary-secret")
+    monkeypatch.setattr(ai_engine, "_runtime_ai_config", lambda: {
+        "provider": "openai_compatible", "base_url": "https://primary.example/v1",
+        "model": "primary-model", "api_key": "primary-secret",
+        "fallback": {
+            "provider": "openrouter", "base_url": "https://fallback.example/v1",
+            "model": "fallback-model", "api_key": "fallback-secret",
+        },
+    })
+    calls = []
+
+    def provider_request(_system, _user, credentials, **_kwargs):
+        calls.append(credentials["provider"])
+        if credentials["provider"] == "openai_compatible":
+            raise RuntimeError("AI service returned HTTP 429. Please try again.")
+        return json.dumps({"translations": [{"id": 0, "text": "El servicio de procesamiento está listo para revisión."}]})
+
+    monkeypatch.setattr(ai_engine, "_provider_request", provider_request)
+    report = {}
+    ai_engine.translate_pdf_layout(source, output, target_lang="Spanish", report=report)
+
+    assert calls == ["openai_compatible", "openrouter"]
+    assert report["translation_status"] == "translated"
+    with fitz.open(output) as translated:
+        assert len(translated) == 1
+        assert "procesamiento" in translated[0].get_text().lower()
+
+    health = ai_engine.get_ai_configuration_health()
+    assert health["runtime_status"]["last_status"] == "rate_limited"
+    assert health["runtime_status"]["last_failure"] == "rate_limit"
+    assert health["runtime_status"]["fallback_active"] is True
+    assert "rate limited" in health["message"].lower()
+    assert "primary-secret" not in json.dumps(health)
+    assert "fallback-secret" not in json.dumps(health)
+
+
 def test_hindi_translation_embeds_extractable_devanagari_text(tmp_path, monkeypatch):
     source = tmp_path / "hindi-source.pdf"
     output = tmp_path / "hindi-translated.pdf"
@@ -168,6 +220,25 @@ def test_hindi_translation_embeds_extractable_devanagari_text(tmp_path, monkeypa
         assert "प्लेन" in extracted
         assert "टेस्ट" in extracted
         assert report["blocks_translated"] == 1
+
+
+def test_sparse_gallery_question_explains_low_searchable_text_instead_of_no_match(tmp_path, monkeypatch):
+    source = tmp_path / "sparse-gallery.pdf"
+    with fitz.open() as document:
+        for page_number in range(1, 25):
+            page = document.new_page()
+            page.insert_text((72, 72), f"Photo {page_number}")
+        document.save(source)
+    monkeypatch.setattr(ai_engine, "AI_KILL_SWITCH", False)
+    monkeypatch.setattr(ai_engine, "_current_bluesminds_api_key", lambda: "controlled-test-key")
+    monkeypatch.setattr(ai_engine, "call_llm", lambda *_args, **_kwargs: pytest.fail("sparse broad questions should not call the provider"))
+
+    result = ai_engine.chat_with_pdf(source, "What is this document about?")
+
+    assert "very little searchable text" in result["answer"]
+    assert "OCR" in result["answer"]
+    assert "No relevant information found" not in result["answer"]
+    assert result["retrieval_method"] == "Sparse PDF Text Check"
 
 
 def test_bluesminds_stream_parses_provider_deltas(monkeypatch):
@@ -483,15 +554,17 @@ def test_broad_summary_covers_all_document_pages_and_page_one_retrieval(tmp_path
     captured = {}
     monkeypatch.setattr(ai_engine, "AI_KILL_SWITCH", False)
     monkeypatch.setattr(ai_engine, "BLUESMINDS_API_KEY", "test-key")
-    def capture_summary(system, user, timeout_seconds=None, max_attempts=2):
+    def capture_summary(system, user, timeout_seconds=None, max_attempts=2, **kwargs):
         captured.setdefault("prompts", []).append(user)
+        captured.setdefault("temperatures", []).append(kwargs.get("temperature"))
         return "ok"
     monkeypatch.setattr(ai_engine, "call_llm", capture_summary)
     summary = ai_engine.summarize_pdf(source)
     assert "Page 20" in "\n".join(captured["prompts"])
+    assert captured["temperatures"] == [0.0, 0.0, 0.0]
     assert summary
 
-    def answer_page(system, prompt, timeout_seconds=None, max_attempts=2):
+    def answer_page(system, prompt, timeout_seconds=None, max_attempts=2, **kwargs):
         captured["page_prompt"] = prompt
         return "Page one unique topic marker-1. [Page 1]"
     monkeypatch.setattr(ai_engine, "call_llm", answer_page)
@@ -511,8 +584,8 @@ def test_large_summary_chunks_all_pages_and_preserves_supported_citations(tmp_pa
     doc.close()
 
     calls = []
-    def summarize_chunk(system, prompt, timeout_seconds=None, max_attempts=2):
-        calls.append((prompt, timeout_seconds))
+    def summarize_chunk(system, prompt, timeout_seconds=None, max_attempts=2, **kwargs):
+        calls.append((prompt, timeout_seconds, kwargs.get("temperature")))
         if prompt.startswith("Synthesize these page-grounded"):
             return "The document covers its opening topic [Page 1] and final topic [Page 69]."
         pages = [int(value) for value in __import__("re").findall(r"--- Page (\d+) ---", prompt)]
@@ -524,12 +597,43 @@ def test_large_summary_chunks_all_pages_and_preserves_supported_citations(tmp_pa
     assert len(calls) == 7
     included_pages = {
         int(value)
-        for prompt, _ in calls[:6]
+        for prompt, _, _temperature in calls[:6]
         for value in __import__("re").findall(r"--- Page (\d+) ---", prompt)
     }
     assert included_pages == set(range(1, 70))
-    assert all(1 <= timeout <= ai_engine.SUMMARY_CALL_TIMEOUT_SECONDS for _, timeout in calls)
+    assert all(1 <= timeout <= ai_engine.SUMMARY_CALL_TIMEOUT_SECONDS for _, timeout, _temperature in calls)
+    assert all(temperature == 0.0 for _, _, temperature in calls)
     assert "[Page 1]" in summary and "[Page 69]" in summary
+
+
+def test_large_summary_chunk_failure_falls_back_with_all_section_lines_and_citations(tmp_path, monkeypatch):
+    source = tmp_path / "summary-provider-failure-69-pages.pdf"
+    doc = fitz.open()
+    for page_num in range(1, 70):
+        page = doc.new_page()
+        page.insert_text((72, 72), f"Page {page_num} unique operations finding with enough extractable words for a grounded brief.")
+        if page_num == 24:
+            page.insert_text((72, 112), "Chunk recovery decision: preserve every record from the affected pages.")
+    doc.save(str(source))
+    doc.close()
+
+    calls = []
+
+    def fail_one_provider_section(system, prompt, timeout_seconds=None, max_attempts=2, **kwargs):
+        calls.append(prompt)
+        if "DOCUMENT SECTION, pages 13-24:" in prompt:
+            raise RuntimeError("controlled upstream failure")
+        pages = [int(value) for value in __import__("re").findall(r"--- Page (\d+) ---", prompt)]
+        return f"Section findings from [Page {pages[0]}] to [Page {pages[-1]}]."
+
+    monkeypatch.setattr(ai_engine, "call_llm", fail_one_provider_section)
+    summary = ai_engine.summarize_pdf(source)
+    citations = ai_engine.align_answer_citations(summary, set(range(1, 70)))[1]
+
+    assert "Executive Summary (Offline Analysis)" in summary
+    assert "Chunk recovery decision: preserve every record from the affected pages." in summary
+    assert set(range(13, 25)).issubset(citations)
+    assert len(calls) == 6
 
 
 def test_translation_provider_failure_reports_safe_upstream_class(monkeypatch):

@@ -1,0 +1,10 @@
+{
+  "command": "python -m pytest -q",
+  "result": "passed",
+  "passed": 580,
+  "warnings": 4,
+  "duration_seconds": 146.01,
+  "captured_at_utc": "2026-11-18 01:40 UTC",
+  "application_source_changed_during_repeat": false,
+  "notes": "Warnings are existing Starlette/httpx deprecations. The immediately following run is recorded in pytest-id29-followup-run2.log."
+}

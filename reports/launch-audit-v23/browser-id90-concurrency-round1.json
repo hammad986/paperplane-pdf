@@ -1,0 +1,41 @@
+{
+  "check": "id90_four_parallel_merge_jobs",
+  "round": 1,
+  "user": "audit-72331b0c@example.invalid",
+  "submit_statuses": [
+    202,
+    202,
+    202,
+    202
+  ],
+  "job_statuses": [
+    "completed",
+    "completed",
+    "completed",
+    "completed"
+  ],
+  "downloads": [
+    {
+      "http_status": 200,
+      "pages": 1,
+      "content_checked": true
+    },
+    {
+      "http_status": 200,
+      "pages": 1,
+      "content_checked": true
+    },
+    {
+      "http_status": 200,
+      "pages": 1,
+      "content_checked": true
+    },
+    {
+      "http_status": 200,
+      "pages": 1,
+      "content_checked": true
+    }
+  ],
+  "page_errors": [],
+  "evidence": "four one-page PDFs opened and text checked"
+}

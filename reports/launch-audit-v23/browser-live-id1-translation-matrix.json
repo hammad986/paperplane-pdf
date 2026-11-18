@@ -1,0 +1,67 @@
+{
+  "site": "https://paperplane.qd.je",
+  "source": "synthetic 10-page fixture; owner-supplied test-text-10page.pdf was not present in workspace",
+  "cases": [
+    {
+      "round": 1,
+      "language": "Spanish",
+      "available": true,
+      "http_status": 200,
+      "retry_after": null,
+      "output_name": "test-text-10page-live-synthetic_translated.pdf",
+      "download_content_checked": false,
+      "page_count": 10,
+      "target_language_pages": 0,
+      "source_markers_remaining": 10,
+      "result_text": "Translation complete\nes · translated text · 0 warning(s)\n\nTranslated text was rendered into the original page layout.\n\nDownload translated PDF\nView in Studio\nProcess Another File\nAll Tools",
+      "page_errors": [],
+      "download_bytes": 232776
+    },
+    {
+      "round": 1,
+      "language": "Hindi",
+      "available": true,
+      "http_status": 200,
+      "retry_after": null,
+      "output_name": "test-text-10page-live-synthetic_translated.pdf",
+      "download_content_checked": false,
+      "page_count": 10,
+      "target_language_pages": 0,
+      "source_markers_remaining": 10,
+      "result_text": "Partial translation ready\nhi · some source text was preserved · 2 warning(s)\n\nSome text could not be translated and remains in the original language. Review the PDF before sharing it.\n\nDownload partial translation\nView in Studio\nProcess Another File\nAll Tools",
+      "page_errors": [],
+      "download_bytes": 63767
+    },
+    {
+      "round": 2,
+      "language": "Spanish",
+      "available": true,
+      "http_status": 200,
+      "retry_after": null,
+      "output_name": "test-text-10page-live-synthetic_translated.pdf",
+      "download_content_checked": false,
+      "page_count": 10,
+      "target_language_pages": 0,
+      "source_markers_remaining": 10,
+      "result_text": "Partial translation ready\nes · some source text was preserved · 2 warning(s)\n\nSome text could not be translated and remains in the original language. Review the PDF before sharing it.\n\nDownload partial translation\nView in Studio\nProcess Another File\nAll Tools",
+      "page_errors": [],
+      "download_bytes": 65005
+    },
+    {
+      "round": 2,
+      "language": "Hindi",
+      "available": true,
+      "http_status": 200,
+      "retry_after": null,
+      "output_name": "test-text-10page-live-synthetic_translated.pdf",
+      "download_content_checked": false,
+      "page_count": 10,
+      "target_language_pages": 0,
+      "source_markers_remaining": 10,
+      "result_text": "Partial translation ready\nhi · some source text was preserved · 2 warning(s)\n\nSome text could not be translated and remains in the original language. Review the PDF before sharing it.\n\nDownload partial translation\nView in Studio\nProcess Another File\nAll Tools",
+      "page_errors": [],
+      "download_bytes": 68666
+    }
+  ],
+  "page_errors": 0
+}

@@ -150,6 +150,31 @@ def test_login_otp_flow(monkeypatch):
     assert "token" in verify_json
 
 
+def test_json_login_uses_json_for_otp_challenge_before_verification():
+    email = f"json_login_{uuid.uuid4().hex[:8]}@example.com"
+    password = "JsonLoginPassword123!"
+    persistence.create_user(email, password)
+
+    challenge = client.post("/api/auth/login", json={
+        "email": email,
+        "password": password,
+        "require_otp": True,
+    })
+    assert challenge.status_code == 200
+    challenge_data = challenge.json()
+    assert challenge_data["status"] == "otp_required"
+    assert challenge_data["email"] == email
+    assert "token" not in challenge_data
+
+    verified = client.post("/api/auth/verify-login-otp", json={
+        "email": email,
+        "otp": challenge_data["dev_otp"],
+    })
+    assert verified.status_code == 200
+    assert verified.json()["status"] == "success"
+    assert verified.json()["token"]
+
+
 def test_resend_otp_cooldown():
     email = f"resend_{uuid.uuid4().hex[:6]}@example.com"
     # Create initial OTP
@@ -176,7 +201,8 @@ def test_direct_auth_backward_compatibility():
     assert "token" not in reg.json()
     assert "paperplane_token" not in reg.cookies
     assert get_user_by_email(email) is None
-    assert client.get("/api/auth/me").status_code == 401
+    guest_profile = client.get("/api/auth/me")
+    assert guest_profile.status_code == 200 and guest_profile.json() == {"authenticated": False}
 
     verified = client.post("/api/auth/verify-signup-otp", json={
         "email": email,
@@ -235,7 +261,10 @@ def test_dev_otp_never_leaked_in_production(monkeypatch):
     reg_json = reg.json()
     assert reg_json["status"] == "otp_required"
     assert "dev_otp" not in reg_json
-    assert "set-cookie" not in reg.headers
+    # A first-time guest may receive the separate quota cookie; an OTP challenge
+    # must never mint an authenticated account session.
+    assert all(not cookie.lower().startswith("paperplane_token=")
+               for cookie in reg.headers.get_list("set-cookie"))
     assert all("otp" not in name.lower() for name in reg.headers)
 
     # Pre-create user for login test

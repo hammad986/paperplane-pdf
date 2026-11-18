@@ -47,7 +47,7 @@
             this.installedLanguages = data.languages;
             const select = document.getElementById('ocr-language-select');
             if (select) {
-              select.innerHTML = '';
+              select.replaceChildren();
               data.languages.forEach(l => {
                 const opt = document.createElement('option');
                 opt.value = l.code;

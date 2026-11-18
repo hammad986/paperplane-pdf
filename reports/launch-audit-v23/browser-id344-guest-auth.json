@@ -1,0 +1,30 @@
+{
+  "routes_checked": [
+    "/tool-desk",
+    "/merge-pdf",
+    "/settings",
+    "/faq",
+    "/history"
+  ],
+  "guest_auth_statuses": [
+    200,
+    200,
+    200,
+    200,
+    200
+  ],
+  "guest_plan_badges": [
+    null,
+    {
+      "route": "/merge-pdf",
+      "text": "\u26a1 Free Guest Tool \u00b7 No Account Required (10 server operations/day \u00b7 50 MB/file)",
+      "hidden_during_auth_check": true
+    },
+    null,
+    null,
+    null
+  ],
+  "auth_401_count": 0,
+  "page_errors": [],
+  "console_errors": []
+}

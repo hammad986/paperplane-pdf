@@ -1,0 +1,82 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "signed_in_views": [
+        {
+          "route": "/tool-desk",
+          "status": 200,
+          "widget_in_dom": true,
+          "launcher_visible": true,
+          "seen_flag": true
+        },
+        {
+          "route": "/scan-to-pdf",
+          "status": 200,
+          "widget_in_dom": true,
+          "launcher_visible": true,
+          "seen_flag": true
+        },
+        {
+          "route": "/merge-pdf",
+          "status": 200,
+          "widget_in_dom": true,
+          "launcher_visible": true,
+          "seen_flag": true
+        },
+        {
+          "route": "/settings",
+          "status": 200,
+          "widget_in_dom": true,
+          "launcher_visible": true,
+          "seen_flag": true
+        }
+      ],
+      "after_dismiss_and_route_change": {
+        "widget_in_dom": true,
+        "launcher_hidden_after_dismiss": true,
+        "dismiss_flag": true
+      },
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "signed_in_views": [
+        {
+          "route": "/tool-desk",
+          "status": 200,
+          "widget_in_dom": true,
+          "launcher_visible": true,
+          "seen_flag": true
+        },
+        {
+          "route": "/scan-to-pdf",
+          "status": 200,
+          "widget_in_dom": true,
+          "launcher_visible": true,
+          "seen_flag": true
+        },
+        {
+          "route": "/merge-pdf",
+          "status": 200,
+          "widget_in_dom": true,
+          "launcher_visible": true,
+          "seen_flag": true
+        },
+        {
+          "route": "/settings",
+          "status": 200,
+          "widget_in_dom": true,
+          "launcher_visible": true,
+          "seen_flag": true
+        }
+      ],
+      "after_dismiss_and_route_change": {
+        "widget_in_dom": true,
+        "launcher_hidden_after_dismiss": true,
+        "dismiss_flag": true
+      },
+      "page_errors": []
+    }
+  ]
+}

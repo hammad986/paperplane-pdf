@@ -1,0 +1,247 @@
+{
+  "action_checks": [
+    {
+      "width": 320,
+      "height": 780,
+      "operation": "merge-pdf",
+      "http_status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "action": {
+        "left": 16,
+        "right": 304,
+        "top": 658,
+        "bottom": 706
+      },
+      "nav": {
+        "top": 714,
+        "bottom": 780,
+        "display": "flex"
+      },
+      "overlapsNav": false,
+      "centerCoveredByNav": false,
+      "centerTag": "BUTTON",
+      "enabled": true
+    },
+    {
+      "width": 320,
+      "height": 780,
+      "operation": "split-pdf",
+      "http_status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "action": {
+        "left": 16,
+        "right": 304,
+        "top": 658,
+        "bottom": 706
+      },
+      "nav": {
+        "top": 714,
+        "bottom": 780,
+        "display": "flex"
+      },
+      "overlapsNav": false,
+      "centerCoveredByNav": false,
+      "centerTag": "BUTTON",
+      "enabled": true
+    },
+    {
+      "width": 320,
+      "height": 780,
+      "operation": "compress-pdf",
+      "http_status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "action": {
+        "left": 16,
+        "right": 304,
+        "top": 658,
+        "bottom": 706
+      },
+      "nav": {
+        "top": 714,
+        "bottom": 780,
+        "display": "flex"
+      },
+      "overlapsNav": false,
+      "centerCoveredByNav": false,
+      "centerTag": "BUTTON",
+      "enabled": true
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "operation": "merge-pdf",
+      "http_status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "action": {
+        "left": 16,
+        "right": 374,
+        "top": 722,
+        "bottom": 770
+      },
+      "nav": {
+        "top": 778,
+        "bottom": 844,
+        "display": "flex"
+      },
+      "overlapsNav": false,
+      "centerCoveredByNav": false,
+      "centerTag": "BUTTON",
+      "enabled": true
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "operation": "split-pdf",
+      "http_status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "action": {
+        "left": 16,
+        "right": 374,
+        "top": 722,
+        "bottom": 770
+      },
+      "nav": {
+        "top": 778,
+        "bottom": 844,
+        "display": "flex"
+      },
+      "overlapsNav": false,
+      "centerCoveredByNav": false,
+      "centerTag": "BUTTON",
+      "enabled": true
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "operation": "compress-pdf",
+      "http_status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "action": {
+        "left": 16,
+        "right": 374,
+        "top": 722,
+        "bottom": 770
+      },
+      "nav": {
+        "top": 778,
+        "bottom": 844,
+        "display": "flex"
+      },
+      "overlapsNav": false,
+      "centerCoveredByNav": false,
+      "centerTag": "BUTTON",
+      "enabled": true
+    },
+    {
+      "width": 820,
+      "height": 900,
+      "operation": "merge-pdf",
+      "http_status": 200,
+      "viewport": 820,
+      "documentWidth": 820,
+      "action": {
+        "left": 16,
+        "right": 804,
+        "top": 778,
+        "bottom": 826
+      },
+      "nav": {
+        "top": 834,
+        "bottom": 900,
+        "display": "flex"
+      },
+      "overlapsNav": false,
+      "centerCoveredByNav": false,
+      "centerTag": "BUTTON",
+      "enabled": true
+    },
+    {
+      "width": 820,
+      "height": 900,
+      "operation": "split-pdf",
+      "http_status": 200,
+      "viewport": 820,
+      "documentWidth": 820,
+      "action": {
+        "left": 16,
+        "right": 804,
+        "top": 778,
+        "bottom": 826
+      },
+      "nav": {
+        "top": 834,
+        "bottom": 900,
+        "display": "flex"
+      },
+      "overlapsNav": false,
+      "centerCoveredByNav": false,
+      "centerTag": "BUTTON",
+      "enabled": true
+    },
+    {
+      "width": 820,
+      "height": 900,
+      "operation": "compress-pdf",
+      "http_status": 200,
+      "viewport": 820,
+      "documentWidth": 820,
+      "action": {
+        "left": 16,
+        "right": 804,
+        "top": 778,
+        "bottom": 826
+      },
+      "nav": {
+        "top": 834,
+        "bottom": 900,
+        "display": "flex"
+      },
+      "overlapsNav": false,
+      "centerCoveredByNav": false,
+      "centerTag": "BUTTON",
+      "enabled": true
+    }
+  ],
+  "breadcrumb_checks": [
+    {
+      "viewportWidth": 320,
+      "http_status": 200,
+      "mobile_label": "AI Intelligence",
+      "display": "none",
+      "width": 0,
+      "text": "Paperplane\n            /\n            Workspace\n            /\n            AI Document Intelligence",
+      "viewport": 320,
+      "documentWidth": 320
+    },
+    {
+      "viewportWidth": 390,
+      "http_status": 200,
+      "mobile_label": "AI Intelligence",
+      "display": "none",
+      "width": 0,
+      "text": "Paperplane\n            /\n            Workspace\n            /\n            AI Document Intelligence",
+      "viewport": 390,
+      "documentWidth": 390
+    },
+    {
+      "viewportWidth": 820,
+      "http_status": 200,
+      "mobile_label": "AI Intelligence",
+      "display": "none",
+      "width": 0,
+      "text": "Paperplane\n            /\n            Workspace\n            /\n            AI Document Intelligence",
+      "viewport": 820,
+      "documentWidth": 820
+    }
+  ],
+  "page_errors": [],
+  "action_failures": [],
+  "breadcrumb_failures": [],
+  "result": true
+}

@@ -1,0 +1,55 @@
+{
+  "item": 161,
+  "fixture": "C:\\Users\\mdham\\Downloads\\notes.pdf",
+  "source_profile": {
+    "unique_image_refs": 36,
+    "embedded_image_bytes": 5190357,
+    "embedded_font_refs": 21,
+    "embedded_font_program_bytes": 253127,
+    "pdf_bytes": 5456746
+  },
+  "rounds": [
+    {
+      "round": 1,
+      "http_status": 200,
+      "source_bytes": 5456746,
+      "source_pages": 69,
+      "source_sha256": "9e436e944e5901bd8b7030c9c184aea83af5a80b632fcd2e5d44ead1314ab8bb",
+      "source_text_chars": 92651,
+      "source_first_page_marker": "Introduction to Machine Learning Class Notes",
+      "output_bytes": 5414364,
+      "output_pages": 69,
+      "output_text_chars": 92651,
+      "all_pages_have_text": true,
+      "mean_rendered_rgb_difference_0_255": 0.020531263846626683,
+      "max_page_rendered_rgb_difference_0_255": 0.8108398886275782,
+      "first_page_marker_preserved": true,
+      "target_100000_bytes_reached": false,
+      "missed_target_warning_visible": true,
+      "result_meta": "notes_compress.pdf · 5.16 MB · 69 pages · Compressed to 5287.5 KB; the requested target could not be reached while preserving document content.",
+      "download_name": "notes_compress.pdf",
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "http_status": 200,
+      "source_bytes": 5456746,
+      "source_pages": 69,
+      "source_sha256": "9e436e944e5901bd8b7030c9c184aea83af5a80b632fcd2e5d44ead1314ab8bb",
+      "source_text_chars": 92651,
+      "source_first_page_marker": "Introduction to Machine Learning Class Notes",
+      "output_bytes": 5414364,
+      "output_pages": 69,
+      "output_text_chars": 92651,
+      "all_pages_have_text": true,
+      "mean_rendered_rgb_difference_0_255": 0.020531263846626683,
+      "max_page_rendered_rgb_difference_0_255": 0.8108398886275782,
+      "first_page_marker_preserved": true,
+      "target_100000_bytes_reached": false,
+      "missed_target_warning_visible": true,
+      "result_meta": "notes_compress.pdf · 5.16 MB · 69 pages · Compressed to 5287.5 KB; the requested target could not be reached while preserving document content.",
+      "download_name": "notes_compress.pdf",
+      "page_errors": []
+    }
+  ]
+}

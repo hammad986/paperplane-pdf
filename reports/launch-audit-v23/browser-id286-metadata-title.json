@@ -1,0 +1,46 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "status": 200,
+      "answer": "The document title is \"Project Atlas Evaluation\". The file name is \"atlas-report.pdf\".",
+      "events": [
+        {
+          "event": "stage",
+          "stage": "Thinking\u2026"
+        },
+        {
+          "event": "replace",
+          "text": "The document title is \"Project Atlas Evaluation\". The file name is \"atlas-report.pdf\"."
+        },
+        {
+          "event": "done",
+          "citations": [],
+          "mode": "document_metadata"
+        }
+      ],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "status": 200,
+      "answer": "The document title is \"Project Atlas Evaluation\". The file name is \"atlas-report.pdf\".",
+      "events": [
+        {
+          "event": "stage",
+          "stage": "Thinking\u2026"
+        },
+        {
+          "event": "replace",
+          "text": "The document title is \"Project Atlas Evaluation\". The file name is \"atlas-report.pdf\"."
+        },
+        {
+          "event": "done",
+          "citations": [],
+          "mode": "document_metadata"
+        }
+      ],
+      "page_errors": []
+    }
+  ]
+}

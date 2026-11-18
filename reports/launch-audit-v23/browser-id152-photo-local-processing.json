@@ -1,0 +1,114 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "operations": [
+        {
+          "route": "/ssc-photo-resizer",
+          "operation": "photo_resizer",
+          "local_mode": null,
+          "download": "exam-photo.jpg",
+          "bytes": 51177,
+          "dimensions": [
+            350,
+            450
+          ],
+          "format": "JPEG"
+        },
+        {
+          "route": "/compress-image-online",
+          "operation": "photo_compress",
+          "local_mode": null,
+          "download": "photo-compressed.jpg",
+          "bytes": 97839,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "format": "JPEG"
+        },
+        {
+          "route": "/resize-image-dimensions",
+          "operation": "photo_resize",
+          "local_mode": null,
+          "download": "photo-resized.jpg",
+          "bytes": 167762,
+          "dimensions": [
+            600,
+            400
+          ],
+          "format": "JPEG"
+        },
+        {
+          "route": "/merge-photos-online",
+          "operation": "photo_merge",
+          "local_mode": null,
+          "download": "merged-photos.jpg",
+          "bytes": 1495733,
+          "dimensions": [
+            2400,
+            800
+          ],
+          "format": "JPEG"
+        }
+      ],
+      "job_api_requests": [],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "operations": [
+        {
+          "route": "/ssc-photo-resizer",
+          "operation": "photo_resizer",
+          "local_mode": null,
+          "download": "exam-photo.jpg",
+          "bytes": 51177,
+          "dimensions": [
+            350,
+            450
+          ],
+          "format": "JPEG"
+        },
+        {
+          "route": "/compress-image-online",
+          "operation": "photo_compress",
+          "local_mode": null,
+          "download": "photo-compressed.jpg",
+          "bytes": 97839,
+          "dimensions": [
+            1200,
+            800
+          ],
+          "format": "JPEG"
+        },
+        {
+          "route": "/resize-image-dimensions",
+          "operation": "photo_resize",
+          "local_mode": null,
+          "download": "photo-resized.jpg",
+          "bytes": 167762,
+          "dimensions": [
+            600,
+            400
+          ],
+          "format": "JPEG"
+        },
+        {
+          "route": "/merge-photos-online",
+          "operation": "photo_merge",
+          "local_mode": null,
+          "download": "merged-photos.jpg",
+          "bytes": 1495733,
+          "dimensions": [
+            2400,
+            800
+          ],
+          "format": "JPEG"
+        }
+      ],
+      "job_api_requests": [],
+      "page_errors": []
+    }
+  ]
+}

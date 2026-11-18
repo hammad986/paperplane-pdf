@@ -1,0 +1,23 @@
+{
+  "base": "http://127.0.0.1:8766",
+  "rounds": [
+    {
+      "round": 1,
+      "previous_file": "test-protected_unlock.pdf",
+      "selected_current_file": "current-document.pdf",
+      "restored_file": "current-document.pdf",
+      "restored_page_count": 2,
+      "sha256_matches_current": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "previous_file": "test-protected_unlock.pdf",
+      "selected_current_file": "current-document.pdf",
+      "restored_file": "current-document.pdf",
+      "restored_page_count": 2,
+      "sha256_matches_current": true,
+      "page_errors": []
+    }
+  ]
+}

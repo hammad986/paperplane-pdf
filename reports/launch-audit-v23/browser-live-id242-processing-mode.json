@@ -1,0 +1,93 @@
+{
+  "base": "https://paperplane.qd.je",
+  "rounds": [
+    {
+      "round": 1,
+      "fresh_routes": [
+        {
+          "slug": "merge-pdf",
+          "http_status": 200,
+          "checked_on_fresh_context": true,
+          "label": "Use local processing for Merge PDF",
+          "mode_text": null,
+          "help_text": null,
+          "stored_mode": null
+        },
+        {
+          "slug": "split-pdf",
+          "http_status": 200,
+          "checked_on_fresh_context": true,
+          "label": "Use local processing for Split / extract",
+          "mode_text": null,
+          "help_text": null,
+          "stored_mode": null
+        },
+        {
+          "slug": "remove-pages-pdf",
+          "http_status": 200,
+          "checked_on_fresh_context": true,
+          "label": "Use local processing for Remove pages",
+          "mode_text": null,
+          "help_text": null,
+          "stored_mode": null
+        },
+        {
+          "slug": "rotate-pdf",
+          "http_status": 200,
+          "checked_on_fresh_context": true,
+          "label": "Use local processing for Rotate PDF",
+          "mode_text": null,
+          "help_text": null,
+          "stored_mode": null
+        }
+      ],
+      "server_choice_survives_reload": true,
+      "server_choice_survives_route_change": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "fresh_routes": [
+        {
+          "slug": "merge-pdf",
+          "http_status": 200,
+          "checked_on_fresh_context": true,
+          "label": "Use local processing for Merge PDF",
+          "mode_text": null,
+          "help_text": null,
+          "stored_mode": null
+        },
+        {
+          "slug": "split-pdf",
+          "http_status": 200,
+          "checked_on_fresh_context": true,
+          "label": "Use local processing for Split / extract",
+          "mode_text": null,
+          "help_text": null,
+          "stored_mode": null
+        },
+        {
+          "slug": "remove-pages-pdf",
+          "http_status": 200,
+          "checked_on_fresh_context": true,
+          "label": "Use local processing for Remove pages",
+          "mode_text": null,
+          "help_text": null,
+          "stored_mode": null
+        },
+        {
+          "slug": "rotate-pdf",
+          "http_status": 200,
+          "checked_on_fresh_context": true,
+          "label": "Use local processing for Rotate PDF",
+          "mode_text": null,
+          "help_text": null,
+          "stored_mode": null
+        }
+      ],
+      "server_choice_survives_reload": true,
+      "server_choice_survives_route_change": true,
+      "page_errors": []
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "base": "http://127.0.0.1:54565",
+  "rounds": [
+    {
+      "round": 1,
+      "viewport": "390x844 touch emulation",
+      "camera_capture": "environment",
+      "manifest_content_type": "application/manifest+json",
+      "service_worker_scope_header": "/",
+      "install_prompt": "shown only after browser event; accepted mock hides consumed button",
+      "pdf_download": "id357-mobile-camera-scan-round1.pdf",
+      "pdf_pages": 1,
+      "page_size_points": [
+        612,
+        792
+      ],
+      "cached_offline_shell_http": 200,
+      "horizontal_overflow": false,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "viewport": "390x844 touch emulation",
+      "camera_capture": "environment",
+      "manifest_content_type": "application/manifest+json",
+      "service_worker_scope_header": "/",
+      "install_prompt": "shown only after browser event; dismissed mock hides consumed button",
+      "pdf_download": "id357-mobile-camera-scan-round2.pdf",
+      "pdf_pages": 1,
+      "page_size_points": [
+        612,
+        792
+      ],
+      "cached_offline_shell_http": 200,
+      "horizontal_overflow": false,
+      "page_errors": []
+    }
+  ]
+}

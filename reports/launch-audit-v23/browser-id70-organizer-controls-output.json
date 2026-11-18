@@ -1,0 +1,29 @@
+{
+  "route": "/organize-pdf",
+  "rounds": [
+    {
+      "round": 1,
+      "route_status": 200,
+      "page_order_input": "2,1,3",
+      "download": "organized.pdf",
+      "output_pages": [
+        "PAGE MARKER 2",
+        "PAGE MARKER 1",
+        "PAGE MARKER 3"
+      ],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "route_status": 200,
+      "page_order_input": "2,1,3",
+      "download": "organized.pdf",
+      "output_pages": [
+        "PAGE MARKER 2",
+        "PAGE MARKER 1",
+        "PAGE MARKER 3"
+      ],
+      "page_errors": []
+    }
+  ]
+}

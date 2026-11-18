@@ -25,6 +25,21 @@ def test_compress_photo_target_kb(tmp_path):
     assert res.stat().st_size <= 65 * 1024  # within target range
 
 
+def test_compress_photo_reduces_dimensions_when_quality_alone_misses_target(tmp_path):
+    import random
+
+    source = tmp_path / "high-detail-429kb.jpg"
+    pixels = random.Random(20261117).randbytes(1200 * 900 * 3)
+    Image.frombytes("RGB", (1200, 900), pixels).save(source, format="JPEG", quality=52, optimize=True)
+    assert 400 * 1024 <= source.stat().st_size <= 450 * 1024
+
+    output = converters.compress_photo(source, tmp_path / "target-50kb.jpg", target_kb=50)
+    with Image.open(output) as image:
+        assert image.format == "JPEG"
+        assert image.size[0] < 1200 and image.size[1] < 900
+    assert output.stat().st_size <= 50 * 1024
+
+
 def test_compress_photo_quality(tmp_path):
     src = _make_sample_image(tmp_path / "orig.jpg", width=400, height=400)
     out = tmp_path / "out_q.jpg"
@@ -69,6 +84,23 @@ def test_merge_photos_vertical_horizontal_grid(tmp_path):
     g_out = converters.merge_photos([img1, img2, img3, img4], tmp_path / "g_merged.jpg", layout="grid")
     with Image.open(str(g_out)) as im:
         assert im.size == (200, 200)
+
+
+def test_merge_photos_grid_uses_distinct_row_and_column_extents(tmp_path):
+    sources = [
+        _make_sample_image(tmp_path / "tall-left.jpg", 100, 200, (255, 0, 0)),
+        _make_sample_image(tmp_path / "wide-right-top.jpg", 200, 100, (0, 255, 0)),
+        _make_sample_image(tmp_path / "short-left-bottom.jpg", 80, 120, (0, 0, 255)),
+        _make_sample_image(tmp_path / "wide-right-bottom.jpg", 200, 150, (255, 255, 0)),
+    ]
+
+    output = converters.merge_photos(sources, tmp_path / "uneven_grid.jpg", layout="grid")
+    with Image.open(output) as merged:
+        assert merged.size == (300, 350)
+        assert merged.getpixel((50, 50))[0] > 200
+        assert merged.getpixel((150, 50))[1] > 200
+        assert merged.getpixel((50, 250))[2] > 200
+        assert merged.getpixel((150, 250))[0] > 200
 
 
 def test_photo_tools_server_routes_and_seo():

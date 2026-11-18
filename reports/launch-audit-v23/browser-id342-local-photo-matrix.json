@@ -1,0 +1,108 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "operation": "resize",
+      "download_name": "red-photo-resized.jpg",
+      "dimensions": [
+        100,
+        100
+      ],
+      "jpeg_content_decoded": true,
+      "server_job_requests": 0,
+      "route_change_and_reload_completed": true,
+      "page_errors": []
+    },
+    {
+      "round": 1,
+      "operation": "compress",
+      "download_name": "red-photo-compressed.jpg",
+      "dimensions": [
+        320,
+        160
+      ],
+      "jpeg_content_decoded": true,
+      "server_job_requests": 0,
+      "route_change_and_reload_completed": true,
+      "page_errors": []
+    },
+    {
+      "round": 1,
+      "operation": "exam-resizer",
+      "download_name": "exam-photo.jpg",
+      "dimensions": [
+        350,
+        450
+      ],
+      "jpeg_content_decoded": true,
+      "server_job_requests": 0,
+      "route_change_and_reload_completed": true,
+      "page_errors": []
+    },
+    {
+      "round": 1,
+      "operation": "photo-merge",
+      "download_name": "merged-photos.jpg",
+      "dimensions": [
+        320,
+        280
+      ],
+      "jpeg_content_decoded": true,
+      "server_job_requests": 0,
+      "route_change_and_reload_completed": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "operation": "resize",
+      "download_name": "red-photo-resized.jpg",
+      "dimensions": [
+        100,
+        100
+      ],
+      "jpeg_content_decoded": true,
+      "server_job_requests": 0,
+      "route_change_and_reload_completed": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "operation": "compress",
+      "download_name": "red-photo-compressed.jpg",
+      "dimensions": [
+        320,
+        160
+      ],
+      "jpeg_content_decoded": true,
+      "server_job_requests": 0,
+      "route_change_and_reload_completed": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "operation": "exam-resizer",
+      "download_name": "exam-photo.jpg",
+      "dimensions": [
+        350,
+        450
+      ],
+      "jpeg_content_decoded": true,
+      "server_job_requests": 0,
+      "route_change_and_reload_completed": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "operation": "photo-merge",
+      "download_name": "merged-photos.jpg",
+      "dimensions": [
+        320,
+        280
+      ],
+      "jpeg_content_decoded": true,
+      "server_job_requests": 0,
+      "route_change_and_reload_completed": true,
+      "page_errors": []
+    }
+  ]
+}

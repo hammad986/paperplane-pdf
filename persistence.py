@@ -12,7 +12,7 @@ import socket
 import sqlite3
 import time
 import uuid
-from contextlib import closing
+from contextlib import closing, contextmanager
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -37,228 +37,283 @@ def connect() -> sqlite3.Connection:
     return connection
 
 
-def init_db() -> None:
-    with closing(connect()) as connection:
-        # Enable incremental vacuum for new databases without forcing a blocking
-        # full VACUUM against an existing production database.
-        if connection.execute("PRAGMA page_count").fetchone()[0] == 0:
-            connection.execute("PRAGMA auto_vacuum=INCREMENTAL")
-        connection.executescript(
-            """
-            CREATE TABLE IF NOT EXISTS users (
-                id TEXT PRIMARY KEY,
-                email TEXT NOT NULL UNIQUE,
-                password_hash TEXT NOT NULL,
-                salt TEXT NOT NULL,
-                created_at REAL NOT NULL,
-                tier TEXT NOT NULL DEFAULT 'free',
-                payment_customer_id TEXT,
-                cashfree_order_id TEXT,
-                payment_method TEXT,
-                subscription_status TEXT DEFAULT 'inactive',
-                subscription_expires_at REAL,
-                last_seen_at REAL
-            );
-            CREATE TABLE IF NOT EXISTS sessions (
-                token_hash TEXT PRIMARY KEY,
-                user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                expires_at REAL NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS api_keys (
-                id TEXT PRIMARY KEY,
-                user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                name TEXT NOT NULL,
-                key_prefix TEXT NOT NULL,
-                key_hash TEXT NOT NULL UNIQUE,
-                created_at REAL NOT NULL,
-                last_used_at REAL,
-                revoked INTEGER NOT NULL DEFAULT 0
-            );
-            CREATE TABLE IF NOT EXISTS jobs (
-                id TEXT PRIMARY KEY,
-                user_id TEXT,
-                guest_token TEXT,
-                operation TEXT NOT NULL,
-                status TEXT NOT NULL,
-                progress INTEGER NOT NULL DEFAULT 0,
-                error TEXT,
-                warning TEXT,
-                output_name TEXT,
-                output_size INTEGER,
-                created_at REAL NOT NULL,
-                expires_at REAL NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS rate_limits (
-                subject TEXT PRIMARY KEY,
-                window_started REAL NOT NULL,
-                request_count INTEGER NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS user_usage (
-                subject TEXT NOT NULL,
-                usage_date TEXT NOT NULL,
-                count INTEGER NOT NULL DEFAULT 0,
-                PRIMARY KEY (subject, usage_date)
-            );
-            CREATE TABLE IF NOT EXISTS billing_events (
-                id TEXT PRIMARY KEY,
-                event_type TEXT NOT NULL,
-                customer_id TEXT,
-                payload TEXT,
-                created_at REAL NOT NULL
-            );
-            CREATE INDEX IF NOT EXISTS idx_users_cashfree_order_id
-                ON users(cashfree_order_id);
-            CREATE INDEX IF NOT EXISTS idx_billing_events_created_at
-                ON billing_events(created_at);
-            CREATE TABLE IF NOT EXISTS password_resets (
-                token_hash TEXT PRIMARY KEY,
-                user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                expires_at REAL NOT NULL,
-                used INTEGER NOT NULL DEFAULT 0,
-                created_at REAL NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS idempotency_keys (
-                key TEXT PRIMARY KEY,
-                user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                job_id TEXT NOT NULL,
-                created_at REAL NOT NULL,
-                expires_at REAL NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS app_waitlist (
-                id TEXT PRIMARY KEY,
-                email TEXT NOT NULL,
-                platform TEXT NOT NULL DEFAULT 'all',
-                created_at REAL NOT NULL,
-                ip_address TEXT
-            );
-            CREATE INDEX IF NOT EXISTS idx_waitlist_email ON app_waitlist(email);
-            CREATE TABLE IF NOT EXISTS email_otps (
-                id TEXT PRIMARY KEY,
-                email TEXT NOT NULL,
-                otp_hash TEXT NOT NULL,
-                purpose TEXT NOT NULL,
-                payload_json TEXT DEFAULT '{}',
-                attempts INTEGER DEFAULT 0,
-                expires_at REAL NOT NULL,
-                created_at REAL NOT NULL
-            );
-            CREATE INDEX IF NOT EXISTS idx_email_otps_lookup ON email_otps(email, purpose);
-            CREATE TABLE IF NOT EXISTS email_otp_attempt_limits (
-                email TEXT NOT NULL,
-                purpose TEXT NOT NULL,
-                window_started REAL NOT NULL,
-                attempts INTEGER NOT NULL DEFAULT 0,
-                locked_until REAL NOT NULL DEFAULT 0,
-                PRIMARY KEY (email, purpose)
-            );
-            CREATE TABLE IF NOT EXISTS email_otp_resend_state (
-                email TEXT NOT NULL,
-                purpose TEXT NOT NULL,
-                window_started REAL NOT NULL,
-                send_count INTEGER NOT NULL DEFAULT 0,
-                last_sent_at REAL NOT NULL,
-                PRIMARY KEY (email, purpose)
-            );
-            CREATE TABLE IF NOT EXISTS audit_logs (
-                id TEXT PRIMARY KEY,
-                event_type TEXT NOT NULL,
-                user_id TEXT,
-                email TEXT,
-                ip_address TEXT,
-                user_agent TEXT,
-                details TEXT,
-                created_at REAL NOT NULL
-            );
-            CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at);
-            CREATE INDEX IF NOT EXISTS idx_audit_logs_email ON audit_logs(email);
-            CREATE TABLE IF NOT EXISTS admin_auth_state (
-                id TEXT PRIMARY KEY DEFAULT 'current',
-                failed_attempts INTEGER NOT NULL DEFAULT 0,
-                locked_until REAL NOT NULL DEFAULT 0,
-                last_attempt_at REAL,
-                pending_otp_hash TEXT,
-                otp_expires_at REAL,
-                session_token_hash TEXT,
-                session_expires_at REAL
-            );
-            INSERT OR IGNORE INTO admin_auth_state (id, failed_attempts, locked_until) VALUES ('current', 0, 0);
-            CREATE TABLE IF NOT EXISTS admin_challenges (
-                id TEXT PRIMARY KEY,
-                email TEXT NOT NULL,
-                client_ip TEXT NOT NULL,
-                otp_hash TEXT NOT NULL,
-                expires_at REAL NOT NULL,
-                attempts INTEGER NOT NULL DEFAULT 0,
-                UNIQUE(email, client_ip)
-            );
-            CREATE TABLE IF NOT EXISTS admin_sessions (
-                id TEXT PRIMARY KEY,
-                token_hash TEXT NOT NULL UNIQUE,
-                email TEXT NOT NULL,
-                client_ip TEXT NOT NULL,
-                created_at REAL NOT NULL,
-                expires_at REAL NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS admin_auth_attempts (
-                client_ip TEXT PRIMARY KEY,
-                failed_attempts INTEGER NOT NULL DEFAULT 0,
-                locked_until REAL NOT NULL DEFAULT 0,
-                last_attempt_at REAL NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS user_feedbacks (
-                id TEXT PRIMARY KEY,
-                user_id TEXT,
-                email TEXT,
-                rating INTEGER NOT NULL DEFAULT 5,
-                category TEXT NOT NULL DEFAULT 'general',
-                message TEXT NOT NULL,
-                ip_address TEXT,
-                created_at REAL NOT NULL,
-                resolved INTEGER NOT NULL DEFAULT 0
-            );
-            CREATE INDEX IF NOT EXISTS idx_feedbacks_created_at ON user_feedbacks(created_at);
-            CREATE TABLE IF NOT EXISTS admin_system_settings (
-                key TEXT PRIMARY KEY,
-                value TEXT NOT NULL,
-                updated_at REAL NOT NULL
-            );
-            """
-        )
-        # Migrate existing users and jobs tables if columns don't exist yet
-        for col_name, col_sql in [
-            ("tier", "TEXT NOT NULL DEFAULT 'free'"),
-            ("payment_customer_id", "TEXT"),
-            ("cashfree_order_id", "TEXT"),
-            ("payment_method", "TEXT"),
-            ("subscription_status", "TEXT DEFAULT 'inactive'"),
-            ("subscription_expires_at", "REAL"),
-            ("last_seen_at", "REAL"),
-        ]:
+@contextmanager
+def _database_initialization_lock():
+    """Serialize schema setup across Uvicorn worker processes.
+
+    Each spawned worker imports ``server`` independently. Without this lock,
+    their simultaneous ``PRAGMA journal_mode=WAL`` / migration calls can race
+    during a cold start and leave one or more workers unable to boot.
+    """
+    lock_path = Path(DATABASE).with_suffix(Path(DATABASE).suffix + ".init.lock")
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    with lock_path.open("a+b") as lock_file:
+        lock_file.seek(0, os.SEEK_END)
+        if lock_file.tell() == 0:
+            lock_file.write(b"\0")
+            lock_file.flush()
+
+        if os.name == "nt":
+            import msvcrt
+
+            deadline = time.monotonic() + 120
+            while True:
+                try:
+                    lock_file.seek(0)
+                    msvcrt.locking(lock_file.fileno(), msvcrt.LK_NBLCK, 1)
+                    break
+                except OSError:
+                    if time.monotonic() >= deadline:
+                        raise TimeoutError("Timed out waiting for the database initialization lock")
+                    time.sleep(0.05)
             try:
-                connection.execute(f"ALTER TABLE users ADD COLUMN {col_name} {col_sql}")
+                yield
+            finally:
+                lock_file.seek(0)
+                msvcrt.locking(lock_file.fileno(), msvcrt.LK_UNLCK, 1)
+        else:
+            import fcntl
+
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+            try:
+                yield
+            finally:
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+
+
+def init_db() -> None:
+    with _database_initialization_lock():
+        with closing(connect()) as connection:
+            # Enable incremental vacuum for new databases without forcing a blocking
+            # full VACUUM against an existing production database.
+            if connection.execute("PRAGMA page_count").fetchone()[0] == 0:
+                connection.execute("PRAGMA auto_vacuum=INCREMENTAL")
+            connection.executescript(
+                """
+                CREATE TABLE IF NOT EXISTS users (
+                    id TEXT PRIMARY KEY,
+                    email TEXT NOT NULL UNIQUE,
+                    password_hash TEXT NOT NULL,
+                    salt TEXT NOT NULL,
+                    created_at REAL NOT NULL,
+                    tier TEXT NOT NULL DEFAULT 'free',
+                    payment_customer_id TEXT,
+                    cashfree_order_id TEXT,
+                    payment_method TEXT,
+                    subscription_status TEXT DEFAULT 'inactive',
+                    subscription_expires_at REAL,
+                    last_seen_at REAL
+                );
+                CREATE TABLE IF NOT EXISTS sessions (
+                    token_hash TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    expires_at REAL NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS api_keys (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    name TEXT NOT NULL,
+                    key_prefix TEXT NOT NULL,
+                    key_hash TEXT NOT NULL UNIQUE,
+                    created_at REAL NOT NULL,
+                    last_used_at REAL,
+                    revoked INTEGER NOT NULL DEFAULT 0
+                );
+                CREATE TABLE IF NOT EXISTS jobs (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT,
+                    guest_token TEXT,
+                    operation TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    progress INTEGER NOT NULL DEFAULT 0,
+                    error TEXT,
+                    warning TEXT,
+                    output_name TEXT,
+                    output_size INTEGER,
+                    created_at REAL NOT NULL,
+                    expires_at REAL NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS rate_limits (
+                    subject TEXT PRIMARY KEY,
+                    window_started REAL NOT NULL,
+                    request_count INTEGER NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS user_usage (
+                    subject TEXT NOT NULL,
+                    usage_date TEXT NOT NULL,
+                    count INTEGER NOT NULL DEFAULT 0,
+                    PRIMARY KEY (subject, usage_date)
+                );
+                CREATE TABLE IF NOT EXISTS billing_events (
+                    id TEXT PRIMARY KEY,
+                    event_type TEXT NOT NULL,
+                    customer_id TEXT,
+                    payload TEXT,
+                    created_at REAL NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS idx_users_cashfree_order_id
+                    ON users(cashfree_order_id);
+                CREATE INDEX IF NOT EXISTS idx_billing_events_created_at
+                    ON billing_events(created_at);
+                CREATE TABLE IF NOT EXISTS password_resets (
+                    token_hash TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    expires_at REAL NOT NULL,
+                    used INTEGER NOT NULL DEFAULT 0,
+                    created_at REAL NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS idempotency_keys (
+                    key TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                    job_id TEXT NOT NULL,
+                    created_at REAL NOT NULL,
+                    expires_at REAL NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS app_job_submission_keys (
+                    key_hash TEXT PRIMARY KEY,
+                    subject TEXT NOT NULL,
+                    job_id TEXT NOT NULL,
+                    guest_token TEXT,
+                    created_at REAL NOT NULL,
+                    expires_at REAL NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS idx_app_job_submission_expiry
+                    ON app_job_submission_keys(expires_at);
+                CREATE TABLE IF NOT EXISTS app_waitlist (
+                    id TEXT PRIMARY KEY,
+                    email TEXT NOT NULL,
+                    platform TEXT NOT NULL DEFAULT 'all',
+                    created_at REAL NOT NULL,
+                    ip_address TEXT
+                );
+                CREATE INDEX IF NOT EXISTS idx_waitlist_email ON app_waitlist(email);
+                CREATE TABLE IF NOT EXISTS email_otps (
+                    id TEXT PRIMARY KEY,
+                    email TEXT NOT NULL,
+                    otp_hash TEXT NOT NULL,
+                    purpose TEXT NOT NULL,
+                    payload_json TEXT DEFAULT '{}',
+                    attempts INTEGER DEFAULT 0,
+                    expires_at REAL NOT NULL,
+                    created_at REAL NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS idx_email_otps_lookup ON email_otps(email, purpose);
+                CREATE TABLE IF NOT EXISTS email_otp_attempt_limits (
+                    email TEXT NOT NULL,
+                    purpose TEXT NOT NULL,
+                    window_started REAL NOT NULL,
+                    attempts INTEGER NOT NULL DEFAULT 0,
+                    locked_until REAL NOT NULL DEFAULT 0,
+                    PRIMARY KEY (email, purpose)
+                );
+                CREATE TABLE IF NOT EXISTS email_otp_resend_state (
+                    email TEXT NOT NULL,
+                    purpose TEXT NOT NULL,
+                    window_started REAL NOT NULL,
+                    send_count INTEGER NOT NULL DEFAULT 0,
+                    last_sent_at REAL NOT NULL,
+                    PRIMARY KEY (email, purpose)
+                );
+                CREATE TABLE IF NOT EXISTS audit_logs (
+                    id TEXT PRIMARY KEY,
+                    event_type TEXT NOT NULL,
+                    user_id TEXT,
+                    email TEXT,
+                    ip_address TEXT,
+                    user_agent TEXT,
+                    details TEXT,
+                    created_at REAL NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at);
+                CREATE INDEX IF NOT EXISTS idx_audit_logs_email ON audit_logs(email);
+                CREATE TABLE IF NOT EXISTS admin_auth_state (
+                    id TEXT PRIMARY KEY DEFAULT 'current',
+                    failed_attempts INTEGER NOT NULL DEFAULT 0,
+                    locked_until REAL NOT NULL DEFAULT 0,
+                    last_attempt_at REAL,
+                    pending_otp_hash TEXT,
+                    otp_expires_at REAL,
+                    session_token_hash TEXT,
+                    session_expires_at REAL
+                );
+                INSERT OR IGNORE INTO admin_auth_state (id, failed_attempts, locked_until) VALUES ('current', 0, 0);
+                CREATE TABLE IF NOT EXISTS admin_challenges (
+                    id TEXT PRIMARY KEY,
+                    email TEXT NOT NULL,
+                    client_ip TEXT NOT NULL,
+                    otp_hash TEXT NOT NULL,
+                    expires_at REAL NOT NULL,
+                    attempts INTEGER NOT NULL DEFAULT 0,
+                    UNIQUE(email, client_ip)
+                );
+                CREATE TABLE IF NOT EXISTS admin_sessions (
+                    id TEXT PRIMARY KEY,
+                    token_hash TEXT NOT NULL UNIQUE,
+                    email TEXT NOT NULL,
+                    client_ip TEXT NOT NULL,
+                    created_at REAL NOT NULL,
+                    expires_at REAL NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS admin_auth_attempts (
+                    client_ip TEXT PRIMARY KEY,
+                    failed_attempts INTEGER NOT NULL DEFAULT 0,
+                    locked_until REAL NOT NULL DEFAULT 0,
+                    last_attempt_at REAL NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS user_feedbacks (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT,
+                    email TEXT,
+                    rating INTEGER NOT NULL DEFAULT 5,
+                    category TEXT NOT NULL DEFAULT 'general',
+                    message TEXT NOT NULL,
+                    ip_address TEXT,
+                    created_at REAL NOT NULL,
+                    resolved INTEGER NOT NULL DEFAULT 0
+                );
+                CREATE INDEX IF NOT EXISTS idx_feedbacks_created_at ON user_feedbacks(created_at);
+                CREATE TABLE IF NOT EXISTS admin_system_settings (
+                    key TEXT PRIMARY KEY,
+                    value TEXT NOT NULL,
+                    updated_at REAL NOT NULL
+                );
+                """
+            )
+            # Migrate existing users and jobs tables if columns don't exist yet
+            for col_name, col_sql in [
+                ("tier", "TEXT NOT NULL DEFAULT 'free'"),
+                ("payment_customer_id", "TEXT"),
+                ("cashfree_order_id", "TEXT"),
+                ("payment_method", "TEXT"),
+                ("subscription_status", "TEXT DEFAULT 'inactive'"),
+                ("subscription_expires_at", "REAL"),
+                ("last_seen_at", "REAL"),
+            ]:
+                try:
+                    connection.execute(f"ALTER TABLE users ADD COLUMN {col_name} {col_sql}")
+                except sqlite3.OperationalError:
+                    pass
+            try:
+                connection.execute("ALTER TABLE jobs ADD COLUMN guest_token TEXT")
             except sqlite3.OperationalError:
                 pass
-        try:
-            connection.execute("ALTER TABLE jobs ADD COLUMN guest_token TEXT")
-        except sqlite3.OperationalError:
-            pass
-        try:
-            connection.execute("ALTER TABLE jobs ADD COLUMN warning TEXT")
-        except sqlite3.OperationalError:
-            pass
+            try:
+                connection.execute("ALTER TABLE jobs ADD COLUMN warning TEXT")
+            except sqlite3.OperationalError:
+                pass
 
-        # One-way migration for databases created by the pre-Cashfree schema.
-        # The legacy identifier is constructed rather than referenced in the
-        # application contract, so all new reads and writes stay provider-neutral.
-        legacy_payment_column = "_".join(("stripe", "customer", "id"))
-        columns = {row[1] for row in connection.execute("PRAGMA table_info(users)").fetchall()}
-        if legacy_payment_column in columns:
-            connection.execute(
-                f"UPDATE users SET payment_customer_id = COALESCE(payment_customer_id, [{legacy_payment_column}]) "
-                f"WHERE [{legacy_payment_column}] IS NOT NULL"
-            )
+            # One-way migration for databases created by the pre-Cashfree schema.
+            # The legacy identifier is constructed rather than referenced in the
+            # application contract, so all new reads and writes stay provider-neutral.
+            legacy_payment_column = "_".join(("stripe", "customer", "id"))
+            columns = {row[1] for row in connection.execute("PRAGMA table_info(users)").fetchall()}
+            if legacy_payment_column in columns:
+                connection.execute(
+                    f"UPDATE users SET payment_customer_id = COALESCE(payment_customer_id, [{legacy_payment_column}]) "
+                    f"WHERE [{legacy_payment_column}] IS NOT NULL"
+                )
 
-        connection.commit()
+            connection.commit()
 
 
 def _password_hash(password: str, salt: str) -> str:
@@ -1329,13 +1384,66 @@ def record_idempotent_job(key: str, user_id: str, job_id: str, ttl: int = 86400)
         connection.commit()
 
 
+def get_app_job_submission(key: str, subject: str) -> dict | None:
+    """Look up a replay-safe app job submission; raw idempotency keys are never stored."""
+    if not key:
+        return None
+    key_hash = hashlib.sha256(key.encode("utf-8")).hexdigest()
+    now = time.time()
+    with closing(connect()) as connection:
+        row = connection.execute(
+            "SELECT key_hash, subject, job_id, guest_token, expires_at "
+            "FROM app_job_submission_keys WHERE key_hash = ?",
+            (key_hash,),
+        ).fetchone()
+        if row and row["expires_at"] <= now:
+            connection.execute("DELETE FROM app_job_submission_keys WHERE key_hash = ?", (key_hash,))
+            connection.commit()
+            return None
+        if not row:
+            return None
+        if not hmac.compare_digest(str(row["subject"]), str(subject)):
+            return {"key_conflict": True}
+        return dict(row)
+
+
+def record_app_job_submission(key: str, subject: str, job_id: str, guest_token: str | None,
+                              ttl: int = 86400) -> bool:
+    """Atomically claim an idempotency key for an app job, including guest jobs."""
+    if not key:
+        return False
+    now = time.time()
+    key_hash = hashlib.sha256(key.encode("utf-8")).hexdigest()
+    with closing(connect()) as connection:
+        connection.execute("DELETE FROM app_job_submission_keys WHERE expires_at <= ?", (now,))
+        cursor = connection.execute(
+            "INSERT OR IGNORE INTO app_job_submission_keys "
+            "(key_hash, subject, job_id, guest_token, created_at, expires_at) VALUES (?, ?, ?, ?, ?, ?)",
+            (key_hash, subject, job_id, guest_token, now, now + ttl),
+        )
+        connection.commit()
+        return cursor.rowcount == 1
+
+
+def delete_app_job_submission(key: str) -> None:
+    if not key:
+        return
+    key_hash = hashlib.sha256(key.encode("utf-8")).hexdigest()
+    with closing(connect()) as connection:
+        connection.execute("DELETE FROM app_job_submission_keys WHERE key_hash = ?", (key_hash,))
+        connection.commit()
+
+
 # ---------------------------------------------------------------------------
 # Admin-only analytics functions
 # ---------------------------------------------------------------------------
 
 def admin_get_analytics() -> dict:
     """Return aggregate statistics for the admin dashboard."""
-    today_str = __import__("datetime").date.today().isoformat()
+    dt = __import__("datetime")
+    today = dt.datetime.now(dt.timezone.utc).date()
+    today_str = today.isoformat()
+    today_start = dt.datetime.combine(today, dt.time.min, tzinfo=dt.timezone.utc).timestamp()
     with closing(connect()) as connection:
         total_users = connection.execute("SELECT COUNT(*) FROM users").fetchone()[0]
         tier_rows = connection.execute(
@@ -1356,7 +1464,7 @@ def admin_get_analytics() -> dict:
         total_jobs = connection.execute("SELECT COUNT(*) FROM jobs").fetchone()[0]
         jobs_today = connection.execute(
             "SELECT COUNT(*) FROM jobs WHERE created_at >= ?",
-            (time.time() - 86400,)
+            (today_start,)
         ).fetchone()[0]
 
         total_waitlist = connection.execute("SELECT COUNT(*) FROM app_waitlist").fetchone()[0]
@@ -1611,7 +1719,10 @@ def revoke_admin_session(session_id: str) -> bool:
 
 def admin_get_extended_analytics() -> dict:
     """Return comprehensive analytics, time-series signup trends, and platform metrics."""
-    today_str = __import__("datetime").date.today().isoformat()
+    dt = __import__("datetime")
+    today = dt.datetime.now(dt.timezone.utc).date()
+    today_str = today.isoformat()
+    today_start = dt.datetime.combine(today, dt.time.min, tzinfo=dt.timezone.utc).timestamp()
     now = time.time()
     with closing(connect()) as connection:
         total_users = connection.execute("SELECT COUNT(*) FROM users").fetchone()[0]
@@ -1633,7 +1744,7 @@ def admin_get_extended_analytics() -> dict:
         total_jobs = connection.execute("SELECT COUNT(*) FROM jobs").fetchone()[0]
         jobs_today = connection.execute(
             "SELECT COUNT(*) FROM jobs WHERE created_at >= ?",
-            (now - 86400,)
+            (today_start,)
         ).fetchone()[0]
 
         total_waitlist = connection.execute("SELECT COUNT(*) FROM app_waitlist").fetchone()[0]
@@ -2341,4 +2452,59 @@ def get_runtime_ai_credentials() -> dict:
         "base_url": base_url,
         "api_key": saved_key or _environment_ai_key(provider),
         "fallback": fallback,
+    }
+
+
+_AI_PROVIDER_HEALTH_STATUSES = {"not_checked", "available", "rate_limited", "unavailable", "invalid_response"}
+_AI_PROVIDER_HEALTH_FAILURES = {None, "rate_limit", "network", "invalid_response", "provider_error"}
+_AI_PROVIDER_HEALTH_PROVIDERS = {"bluesminds", "openai_compatible", "openrouter", "anthropic", "gemini", "deepseek", "unavailable"}
+
+
+def set_ai_provider_health_status(status: dict) -> None:
+    """Persist only sanitized provider health metadata shared across app workers."""
+    if not isinstance(status, dict):
+        return
+    last_status = status.get("last_status")
+    last_provider = status.get("last_provider")
+    last_failure = status.get("last_failure")
+    clean = {
+        "last_request_at": status.get("last_request_at") if isinstance(status.get("last_request_at"), str) else None,
+        "last_status": last_status if isinstance(last_status, str) and last_status in _AI_PROVIDER_HEALTH_STATUSES else "unavailable",
+        "last_provider": last_provider if isinstance(last_provider, str) and last_provider in _AI_PROVIDER_HEALTH_PROVIDERS else "unavailable",
+        "fallback_active": bool(status.get("fallback_active")),
+        "last_failure": last_failure if last_failure is None or (isinstance(last_failure, str) and last_failure in _AI_PROVIDER_HEALTH_FAILURES) else None,
+    }
+    encoded = json.dumps(clean, separators=(",", ":"))
+    with closing(connect()) as connection:
+        connection.execute(
+            "INSERT INTO admin_system_settings (key, value, updated_at) VALUES ('AI_PROVIDER_HEALTH', ?, ?) "
+            "ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
+            (encoded, time.time()),
+        )
+        connection.commit()
+
+
+def get_ai_provider_health_status() -> dict:
+    """Read shared sanitized provider health metadata; return empty on first run."""
+    with closing(connect()) as connection:
+        row = connection.execute(
+            "SELECT value FROM admin_system_settings WHERE key='AI_PROVIDER_HEALTH'"
+        ).fetchone()
+    if not row:
+        return {}
+    try:
+        saved = json.loads(row["value"])
+    except (TypeError, ValueError):
+        return {}
+    if not isinstance(saved, dict):
+        return {}
+    last_status = saved.get("last_status")
+    last_provider = saved.get("last_provider")
+    last_failure = saved.get("last_failure")
+    return {
+        "last_request_at": saved.get("last_request_at") if isinstance(saved.get("last_request_at"), str) else None,
+        "last_status": last_status if isinstance(last_status, str) and last_status in _AI_PROVIDER_HEALTH_STATUSES else "unavailable",
+        "last_provider": last_provider if isinstance(last_provider, str) and last_provider in _AI_PROVIDER_HEALTH_PROVIDERS else "unavailable",
+        "fallback_active": bool(saved.get("fallback_active")),
+        "last_failure": last_failure if last_failure is None or (isinstance(last_failure, str) and last_failure in _AI_PROVIDER_HEALTH_FAILURES) else None,
     }

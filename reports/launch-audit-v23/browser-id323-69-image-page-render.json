@@ -1,0 +1,160 @@
+{
+  "source_fixture": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v23\\fixtures\\totpdf-sample-scanned.pdf",
+  "source_pages": 1,
+  "generated_page_count": 69,
+  "generated_bytes": 76633356,
+  "rounds": [
+    {
+      "viewport": 390,
+      "fixture_bytes": 76633356,
+      "first_page": {
+        "width": 390,
+        "docWidth": 390,
+        "pageCount": "69",
+        "firstRendered": "true"
+      },
+      "later_pages": [
+        {
+          "page": 4,
+          "seconds": 0.205,
+          "width": 344,
+          "height": 487,
+          "rendered": "true"
+        },
+        {
+          "page": 5,
+          "seconds": 0.066,
+          "width": 344,
+          "height": 487,
+          "rendered": "true"
+        },
+        {
+          "page": 20,
+          "seconds": 0.17,
+          "width": 344,
+          "height": 487,
+          "rendered": "true"
+        },
+        {
+          "page": 69,
+          "seconds": 0.154,
+          "width": 344,
+          "height": 487,
+          "rendered": "true"
+        }
+      ],
+      "layout": {
+        "docWidth": 390,
+        "width": 390,
+        "errors": [],
+        "pages": [
+          {
+            "page": 4,
+            "width": 0,
+            "height": 0,
+            "visible": false,
+            "rendered": "false"
+          },
+          {
+            "page": 5,
+            "width": 0,
+            "height": 0,
+            "visible": false,
+            "rendered": "false"
+          },
+          {
+            "page": 20,
+            "width": 0,
+            "height": 0,
+            "visible": false,
+            "rendered": "false"
+          },
+          {
+            "page": 69,
+            "width": 344,
+            "height": 487,
+            "visible": true,
+            "rendered": "true"
+          }
+        ]
+      },
+      "page_errors": []
+    },
+    {
+      "viewport": 1366,
+      "fixture_bytes": 76633356,
+      "first_page": {
+        "width": 1366,
+        "docWidth": 1366,
+        "pageCount": "69",
+        "firstRendered": "true"
+      },
+      "later_pages": [
+        {
+          "page": 4,
+          "seconds": 0.375,
+          "width": 596,
+          "height": 842,
+          "rendered": "true"
+        },
+        {
+          "page": 5,
+          "seconds": 0.198,
+          "width": 596,
+          "height": 842,
+          "rendered": "true"
+        },
+        {
+          "page": 20,
+          "seconds": 0.542,
+          "width": 596,
+          "height": 842,
+          "rendered": "true"
+        },
+        {
+          "page": 69,
+          "seconds": 0.526,
+          "width": 596,
+          "height": 842,
+          "rendered": "true"
+        }
+      ],
+      "layout": {
+        "docWidth": 1366,
+        "width": 1366,
+        "errors": [],
+        "pages": [
+          {
+            "page": 4,
+            "width": 0,
+            "height": 0,
+            "visible": true,
+            "rendered": "false"
+          },
+          {
+            "page": 5,
+            "width": 0,
+            "height": 0,
+            "visible": true,
+            "rendered": "false"
+          },
+          {
+            "page": 20,
+            "width": 0,
+            "height": 0,
+            "visible": true,
+            "rendered": "false"
+          },
+          {
+            "page": 69,
+            "width": 596,
+            "height": 842,
+            "visible": true,
+            "rendered": "true"
+          }
+        ]
+      },
+      "page_errors": []
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "routes": [
+        {
+          "path": "/summarize-pdf",
+          "status": 200,
+          "visible_limits": [
+            "PDF files up to 50 MB each on Free and 500 MB each on paid plans \u00b7 This tool processes 1 file per run"
+          ],
+          "mentions_wrong_merge_operation": false,
+          "truncated_limits": false,
+          "pricing_link": 1
+        },
+        {
+          "path": "/mask-aadhaar-card-online",
+          "status": 200,
+          "visible_limits": [
+            "PDFs and images up to 50 MB each on Free and 500 MB each on paid plans \u00b7 This tool processes 1 file per run"
+          ],
+          "mentions_wrong_merge_operation": false,
+          "truncated_limits": false,
+          "pricing_link": 1
+        }
+      ],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "routes": [
+        {
+          "path": "/summarize-pdf",
+          "status": 200,
+          "visible_limits": [
+            "PDF files up to 50 MB each on Free and 500 MB each on paid plans \u00b7 This tool processes 1 file per run"
+          ],
+          "mentions_wrong_merge_operation": false,
+          "truncated_limits": false,
+          "pricing_link": 1
+        },
+        {
+          "path": "/mask-aadhaar-card-online",
+          "status": 200,
+          "visible_limits": [
+            "PDFs and images up to 50 MB each on Free and 500 MB each on paid plans \u00b7 This tool processes 1 file per run"
+          ],
+          "mentions_wrong_merge_operation": false,
+          "truncated_limits": false,
+          "pricing_link": 1
+        }
+      ],
+      "page_errors": []
+    }
+  ]
+}

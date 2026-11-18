@@ -1,0 +1,69 @@
+{
+  "fixture": "synthetic 10-page text PDF matching the named acceptance shape; exact owner fixture unavailable",
+  "provider_mode": "controlled primary HTTP 429 on every primary attempt; configured secondary returns valid translations",
+  "provider_calls": {
+    "primary_429": 36,
+    "fallback_ok": 9,
+    "undercoverage_mode": false
+  },
+  "results": [
+    {
+      "round": 1,
+      "language": "Spanish",
+      "http_status": 200,
+      "pages": 10,
+      "all_pages_searchable_in_target_language": true,
+      "hindi_download_markers": [],
+      "source_markers_removed": true,
+      "download_bytes": 139330,
+      "page_errors": []
+    },
+    {
+      "round": 1,
+      "language": "Hindi",
+      "http_status": 200,
+      "pages": 10,
+      "all_pages_searchable_in_target_language": true,
+      "hindi_download_markers": [
+        "प्लेन",
+        "टेस्ट"
+      ],
+      "source_markers_removed": true,
+      "download_bytes": 146072,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "language": "Spanish",
+      "http_status": 200,
+      "pages": 10,
+      "all_pages_searchable_in_target_language": true,
+      "hindi_download_markers": [],
+      "source_markers_removed": true,
+      "download_bytes": 139330,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "language": "Hindi",
+      "http_status": 200,
+      "pages": 10,
+      "all_pages_searchable_in_target_language": true,
+      "hindi_download_markers": [
+        "प्लेन",
+        "टेस्ट"
+      ],
+      "source_markers_removed": true,
+      "download_bytes": 146072,
+      "page_errors": []
+    }
+  ],
+  "imbalanced_coverage_rejection": {
+    "http_status": 422,
+    "detail": "Only 25% of text blocks, 25% of text segments, and 98% of source characters were translated (minimum 50% for blocks and characters). No translated PDF was produced.",
+    "download_offered": false,
+    "translated_character_fraction_if_accepted": "over 50%",
+    "translated_block_fraction": "25%",
+    "page_errors": []
+  }
+}

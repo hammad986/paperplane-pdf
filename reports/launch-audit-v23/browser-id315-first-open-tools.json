@@ -1,0 +1,29 @@
+{
+  "base": "http://127.0.0.1:54587",
+  "rounds": [
+    {
+      "round": 1,
+      "first_open_without_reload": true,
+      "text_panel_visible": true,
+      "text_tool_active": true,
+      "stamp_picker_visible": true,
+      "page_errors": [],
+      "expected_guest_auth_401_urls": [
+        "http://127.0.0.1:54587/api/auth/me"
+      ],
+      "unexpected_console_errors": []
+    },
+    {
+      "round": 2,
+      "first_open_without_reload": true,
+      "text_panel_visible": true,
+      "text_tool_active": true,
+      "stamp_picker_visible": true,
+      "page_errors": [],
+      "expected_guest_auth_401_urls": [
+        "http://127.0.0.1:54587/api/auth/me"
+      ],
+      "unexpected_console_errors": []
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "route": "/compress-image-online",
+  "rounds": [
+    {
+      "round": 1,
+      "status": 200,
+      "source_bytes": 428615,
+      "target_bytes": 51200,
+      "output_bytes": 48415,
+      "output_dimensions": [
+        960,
+        720
+      ],
+      "target_met": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "status": 200,
+      "source_bytes": 428615,
+      "target_bytes": 51200,
+      "output_bytes": 48415,
+      "output_dimensions": [
+        960,
+        720
+      ],
+      "target_met": true,
+      "page_errors": []
+    }
+  ]
+}

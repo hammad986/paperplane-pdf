@@ -1,0 +1,21 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "admin_loaded": true,
+      "browser_clock_advanced_minutes": 75,
+      "protected_dashboard_status": 200,
+      "session_still_in_dashboard": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "admin_loaded": true,
+      "browser_clock_advanced_minutes": 75,
+      "protected_dashboard_status": 200,
+      "session_still_in_dashboard": true,
+      "page_errors": []
+    }
+  ],
+  "limit": "browser clock is advanced; server clock remains real, so this checks the client does not expire the session at 75 minutes, not a live elapsed-time session test"
+}

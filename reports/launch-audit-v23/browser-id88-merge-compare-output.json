@@ -1,0 +1,24 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "merge_filename": "merged-PDF.pdf",
+      "merge_pages": 2,
+      "both_merge_markers_preserved": true,
+      "compare_description_explicitly_says_txt_diff": true,
+      "compare_filename": "first-source_compare.txt",
+      "compare_output_contains_differences": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "merge_filename": "merged-PDF.pdf",
+      "merge_pages": 2,
+      "both_merge_markers_preserved": true,
+      "compare_description_explicitly_says_txt_diff": true,
+      "compare_filename": "first-source_compare.txt",
+      "compare_output_contains_differences": true,
+      "page_errors": []
+    }
+  ]
+}

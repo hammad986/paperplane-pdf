@@ -38,7 +38,7 @@
   async function transformLocalPdf(operation, files, options) {
     const buffers = await Promise.all(files.map(file => file.arrayBuffer()));
     return new Promise((resolve, reject) => {
-      const worker = new Worker('/assets/local_pdf_worker.js?v=13');
+      const worker = new Worker('/assets/local_pdf_worker.js?v=20');
       const release = () => {
         worker.terminate();
         window.removeEventListener('pagehide', onPageHide);

@@ -1,0 +1,464 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "accountTier": "legacy_pro",
+      "routeCount": 44,
+      "checks": [
+        {
+          "route": "/merge-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/split-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/remove-pages-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/rotate-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/organize-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/scan-to-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/compress-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/repair-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/ocr-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/jpg-to-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/word-to-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/excel-to-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/powerpoint-to-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/html-to-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/pdf-to-jpg",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/pdf-to-word",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/pdf-to-excel",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/pdf-to-powerpoint",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/pdf-to-pdfa",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/pdf-to-text",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/pdf-to-markdown",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/edit-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/annotate-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/crop-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/redact-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/watermark-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/add-page-numbers-to-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/protect-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/unlock-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/sign-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/compare-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/fill-pdf-form",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/pdf-metadata",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/ai-pdf-chat",
+          "status": 200,
+          "workspace": "AI Intelligence",
+          "guestBadgeVisible": false
+        },
+        {
+          "route": "/extract-pdf-data",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/summarize-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/translate-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/ssc-photo-resizer",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/compress-image-online",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/resize-image-dimensions",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/merge-photos-online",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/mask-aadhaar-card-online",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/convert-pdf-to-grayscale",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/flatten-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        }
+      ],
+      "pageErrors": [],
+      "seedTier": "student_pro"
+    },
+    {
+      "round": 2,
+      "accountTier": "legacy_pro",
+      "routeCount": 44,
+      "checks": [
+        {
+          "route": "/merge-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/split-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/remove-pages-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/rotate-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/organize-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/scan-to-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/compress-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/repair-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/ocr-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/jpg-to-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/word-to-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/excel-to-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/powerpoint-to-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/html-to-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/pdf-to-jpg",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/pdf-to-word",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/pdf-to-excel",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/pdf-to-powerpoint",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/pdf-to-pdfa",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/pdf-to-text",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/pdf-to-markdown",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/edit-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/annotate-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/crop-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/redact-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/watermark-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/add-page-numbers-to-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/protect-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/unlock-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/sign-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/compare-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/fill-pdf-form",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/pdf-metadata",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/ai-pdf-chat",
+          "status": 200,
+          "workspace": "AI Intelligence",
+          "guestBadgeVisible": false
+        },
+        {
+          "route": "/extract-pdf-data",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/summarize-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/translate-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/ssc-photo-resizer",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/compress-image-online",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/resize-image-dimensions",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/merge-photos-online",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/mask-aadhaar-card-online",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/convert-pdf-to-grayscale",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        },
+        {
+          "route": "/flatten-pdf",
+          "status": 200,
+          "badge": "Legacy Pro \u00b7 no daily operation cap \u00b7 up to 500 MB/file"
+        }
+      ],
+      "pageErrors": [],
+      "seedTier": "student_pro"
+    }
+  ]
+}

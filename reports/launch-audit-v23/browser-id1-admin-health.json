@@ -1,0 +1,28 @@
+{
+  "local_url": "http://127.0.0.1:8501/admin",
+  "checks": [
+    {
+      "name": "admin_ai_health_alert_visible",
+      "passed": true
+    },
+    {
+      "name": "admin_ai_health_reports_provider_rate_limit",
+      "passed": true
+    },
+    {
+      "name": "admin_ai_health_reports_fallback_was_used",
+      "passed": true
+    },
+    {
+      "name": "admin_ai_health_contains_no_credentials",
+      "passed": true
+    },
+    {
+      "name": "admin_template_loads_cache_busted_script_v15",
+      "passed": true
+    }
+  ],
+  "page_errors": [],
+  "rendered_status_text": "The primary AI provider was rate limited; the configured fallback handled the last request. Check primary provider quota.",
+  "screenshot": "browser-id1-admin-health.png"
+}

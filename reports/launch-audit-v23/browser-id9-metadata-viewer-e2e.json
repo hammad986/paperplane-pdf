@@ -1,0 +1,40 @@
+{
+  "fixture": "synthetic invoice PDF; local heuristic extraction, no provider credential",
+  "rounds": [
+    {
+      "round": 1,
+      "status": 200,
+      "viewer_opened_on_first_run": true,
+      "document_type": "invoice",
+      "invoice_number": "INV-2026-0942",
+      "extract_http_statuses": [
+        502,
+        200
+      ],
+      "json_download_bytes": 999,
+      "result_card_preserved_after_close": true,
+      "navigation_race": null,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "status": 200,
+      "viewer_opened_on_first_run": true,
+      "document_type": "invoice",
+      "invoice_number": "INV-2026-0942",
+      "extract_http_statuses": [
+        200
+      ],
+      "json_download_bytes": 999,
+      "result_card_preserved_after_close": true,
+      "navigation_race": {
+        "delayed_response_ms": 1000,
+        "destination_operation": "merge",
+        "stale_modal_opened": false,
+        "stale_result_rendered": false,
+        "stale_cancel_control_visible": false
+      },
+      "page_errors": []
+    }
+  ]
+}

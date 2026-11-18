@@ -38,6 +38,7 @@
   class PaperplaneSecurityFormsController {
     constructor() {
       this.currentFile = null;
+      this.protectedHandoffFile = null;
       this.activeFormFields = [];
       this.isProcessing = false;
 
@@ -83,6 +84,7 @@
         return;
       }
       this.currentFile = target;
+      this.protectedHandoffFile = null;
       const modal = document.getElementById('forms-modal');
       if (!modal) return;
       modal.hidden = false;
@@ -177,7 +179,7 @@
 
         // Render fields editor list
         if (container) {
-          container.innerHTML = '';
+          container.replaceChildren();
           this.activeFormFields.forEach((field, idx) => {
             const row = document.createElement('div');
             row.className = 'form-field-edit-row';
@@ -633,6 +635,7 @@
         return;
       }
       this.currentFile = target;
+      this.protectedHandoffFile = null;
       const modal = document.getElementById('security-modal');
       if (!modal) return;
       modal.hidden = false;
@@ -747,14 +750,19 @@
         const blob = await resp.blob();
         const protName = target.name.replace(/\.pdf$/i, '_protected.pdf');
         downloadBlob(blob, protName);
-        window.showToast?.('PDF encrypted with AES-256 and permissions bitmask! Protected file downloaded.', 'success');
+        this.currentFile = new File([blob], protName, { type: 'application/pdf' });
+        this.protectedHandoffFile = this.currentFile;
+        const userPassword = document.getElementById('sec-user-password');
+        const unlockPassword = document.getElementById('sec-unlock-password');
+        if (userPassword?.value && unlockPassword && !unlockPassword.value) unlockPassword.value = userPassword.value;
+        window.showToast?.('Protected PDF downloaded and loaded here. Switch to Unlock to decrypt this copy.', 'success', 6000);
       } catch (err) {
         window.showToast?.(`Protection error: ${err.message}`, 'error');
       }
     }
 
     async applyUnlockPdf() {
-      const target = this._getActiveFile();
+      const target = this.protectedHandoffFile || this._getActiveFile();
       if (!target) return;
 
       const password = document.getElementById('sec-unlock-password')?.value || '';
@@ -780,6 +788,7 @@
         const newFile = new File([blob], unlName, { type: 'application/pdf' });
         if (window.loadDocumentIntoStudio) await window.loadDocumentIntoStudio(newFile);
         this.currentFile = newFile;
+        this.protectedHandoffFile = null;
         document.getElementById('security-modal').hidden = true;
         window.showToast?.('PDF successfully unlocked and decrypted!', 'success');
       } catch (err) {

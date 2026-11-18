@@ -1,0 +1,80 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "observations": [
+        {
+          "route": "/merge-pdf",
+          "status": 200,
+          "checked": true,
+          "localStorage": null
+        },
+        {
+          "route": "/split-pdf",
+          "status": 200,
+          "checked": true,
+          "localStorage": null
+        },
+        {
+          "action": "select_server_mode",
+          "checked": false,
+          "localStorage": "server"
+        },
+        {
+          "route": "/rotate-pdf_after_server_choice",
+          "checked": false,
+          "localStorage": "server"
+        },
+        {
+          "route": "settings-privacy",
+          "checked": false,
+          "localStorage": "server"
+        },
+        {
+          "route": "/remove-pages-pdf_after_local_choice",
+          "checked": true,
+          "localStorage": "local"
+        }
+      ],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "observations": [
+        {
+          "route": "/merge-pdf",
+          "status": 200,
+          "checked": true,
+          "localStorage": null
+        },
+        {
+          "route": "/split-pdf",
+          "status": 200,
+          "checked": true,
+          "localStorage": null
+        },
+        {
+          "action": "select_server_mode",
+          "checked": false,
+          "localStorage": "server"
+        },
+        {
+          "route": "/rotate-pdf_after_server_choice",
+          "checked": false,
+          "localStorage": "server"
+        },
+        {
+          "route": "settings-privacy",
+          "checked": false,
+          "localStorage": "server"
+        },
+        {
+          "route": "/remove-pages-pdf_after_local_choice",
+          "checked": true,
+          "localStorage": "local"
+        }
+      ],
+      "page_errors": []
+    }
+  ]
+}

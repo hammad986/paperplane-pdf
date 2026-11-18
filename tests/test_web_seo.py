@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import html
 from pathlib import Path
+import re
 
 from fastapi.testclient import TestClient
 
@@ -32,6 +34,10 @@ def test_operation_shell_is_server_rendered_for_deep_links():
 def test_common_guessed_tool_slugs_redirect_to_canonical_pages():
     aliases = {
         "exam-photo-signature-resizer": "ssc-photo-resizer",
+        "resize-photo": "resize-image-dimensions",
+        "photo-resize": "resize-image-dimensions",
+        "compress-photo": "compress-image-online",
+        "add-page-numbers": "add-page-numbers-to-pdf",
         "mask-aadhaar": "mask-aadhaar-card-online",
         "flatten-pdf-forms": "flatten-pdf",
         "ai-summarize": "summarize-pdf",
@@ -51,6 +57,17 @@ def test_root_shell_renders_tool_desk_directory_for_first_visit():
     assert response.status_code == 200
     assert '<div id="view-tool-desk-directory" class="tool-desk-directory">' in response.text
     assert '<div id="view-tool-desk" class="tool-desk-container" hidden>' in response.text
+
+
+def test_home_shell_privacy_copy_matches_processing_modes_and_footer_links():
+    response = client.get("/")
+    assert response.status_code == 200
+    assert "Browser processing for supported tools" in response.text
+    assert "when browser processing is selected" in response.text
+    assert "100% locally" not in response.text
+    assert "100% Private Browser Processing" not in response.text
+    for href in ("/tool-desk", "/dashboard", "/pricing", "/faq"):
+        assert f'href="{href}"' in response.text
 
 
 def test_each_operation_has_unique_seo_catalog_and_schema_payload():
@@ -74,13 +91,15 @@ def test_workflow_cards_have_useful_body_copy_without_claiming_missing_controls(
 
     for slug in OPERATION_SLUGS.values():
         response = client.get(f"/{slug}")
-        cards = re.findall(r'<article class="seo-howto-step">.*?<h3>(.*?)</h3><p>(.*?)</p>', response.text, re.S)
+        section = re.search(r'<section class="seo-content".*?</section>', response.text, re.S)
+        assert section, slug
+        cards = re.findall(r'<article class="seo-howto-step">.*?<h3>(.*?)</h3><p>(.*?)</p>', section.group(0), re.S)
         assert len(cards) == 3, slug
         assert all(title.strip() and body.strip() for title, body in cards), slug
 
     checks = {
         "ocr-pdf": ("After upload, select an available OCR language", "quality setting"),
-        "translate-pdf": ("After upload, choose the target language", "visible list"),
+        "translate-pdf": ("available before upload", "not shown before upload"),
         "html-to-pdf": ("Enter an allowed public URL", "page-size controls"),
         "pdf-to-word": ("Select a text-based PDF", "OCR settings selector"),
         "pdf-to-excel": ("Convert the extracted content, then review the workbook", "table-region previews"),
@@ -94,7 +113,9 @@ def test_workflow_cards_have_useful_body_copy_without_claiming_missing_controls(
     }
     for slug, (present, absent) in checks.items():
         response = client.get(f"/{slug}")
-        cards = re.findall(r'<article class="seo-howto-step">.*?<h3>(.*?)</h3><p>(.*?)</p>', response.text, re.S)
+        section = re.search(r'<section class="seo-content".*?</section>', response.text, re.S)
+        assert section, slug
+        cards = re.findall(r'<article class="seo-howto-step">.*?<h3>(.*?)</h3><p>(.*?)</p>', section.group(0), re.S)
         card_copy = " ".join(" ".join(item) for item in cards)
         card_titles = " ".join(title for title, _ in cards)
         assert present in card_copy, slug
@@ -102,10 +123,13 @@ def test_workflow_cards_have_useful_body_copy_without_claiming_missing_controls(
 
     home = client.get("/")
     apps = client.get("/download")
-    home_cards = re.findall(r'<article class="seo-howto-step">.*?<h3>(.*?)</h3><p>(.*?)</p>', home.text, re.S)
-    assert len(home_cards) == 3
-    assert all(title.strip() and body.strip() for title, body in home_cards)
-    assert "native builds are not released" in apps.text
+    home_section = re.search(r'<section class="seo-howto-grid tool-desk-quick-steps".*?</section>', home.text, re.S)
+    apps_section = re.search(r'<section class="download-howto-section".*?</section>', apps.text, re.S)
+    home_cards = re.findall(r'<article class="seo-howto-step">.*?<h3>(.*?)</h3><p>(.*?)</p>', home_section.group(0), re.S) if home_section else []
+    app_cards = re.findall(r'<article class="seo-howto-step">.*?<h3>(.*?)</h3><p>(.*?)</p>', apps_section.group(0), re.S) if apps_section else []
+    assert len(home_cards) == 3 and all(title.strip() and body.strip() for title, body in home_cards)
+    assert len(app_cards) == 3 and all(title.strip() and body.strip() for title, body in app_cards)
+    assert "No app installer is available to download yet" in apps.text
 
 
 def test_untrusted_forwarded_headers_cannot_change_canonical_origin():
@@ -127,6 +151,91 @@ def test_spa_seo_endpoint_returns_the_same_route_content_model():
     assert len(payload["faqs"]) == 4
     assert payload["faqs"][-1][0] == "Does Paperplane keep a job history?"
     assert "does not provide a recent-files or job-history page" in payload["faqs"][-1][1]
+
+
+def test_faq_workspace_matches_the_four_home_page_faqs():
+    home = client.get("/").text
+    faq_page = client.get("/faq").text
+    home_section = re.search(r'<div class="seo-faq">(.*?)</div>\s*<nav class="seo-related"', home, re.S)
+    workspace_section = re.search(r'<section id="view-faq"[^>]*>(.*?)</section>', faq_page, re.S)
+    assert home_section and workspace_section
+
+    def entries(section: str) -> list[tuple[str, str]]:
+        values = re.findall(r'<details[^>]*>\s*<summary>(.*?)</summary>\s*<p>(.*?)</p>\s*</details>', section, re.S)
+        return [(html.unescape(re.sub(r"<[^>]+>", " ", question)).strip(),
+                 html.unescape(re.sub(r"<[^>]+>", " ", answer)).strip())
+                for question, answer in values]
+
+    home_entries = entries(home_section.group(1))
+    workspace_entries = entries(workspace_section.group(1))
+    assert len(home_entries) == 4
+    assert workspace_entries == home_entries
+
+
+def test_developer_api_docs_use_configured_free_app_quota():
+    response = client.get("/developers")
+    assert response.status_code == 200
+    assert "free app workflow quota is 10 operations/day" in response.text
+    assert "free app workflow quota is 100 operations/day" not in response.text
+
+
+def test_howto_and_faq_copy_does_not_promise_missing_pdf_controls():
+    pdf_to_text = client.get("/api/seo/pdf_to_text").json()
+    text_pages_faq = dict(pdf_to_text["faqs"])["Can I extract only certain pages?"]
+    assert "currently exports the full document" in text_pages_faq
+    assert "page-range controls" not in text_pages_faq
+
+    pdf_to_jpg = client.get("/api/seo/pdf_to_jpg").json()
+    assert "every document page" in pdf_to_jpg["intro"]
+    assert "selected document pages" not in pdf_to_jpg["intro"]
+
+    compare = client.get("/api/seo/compare").json()
+    assert "plain-text report" in compare["description"]
+    assert "highlight text" not in compare["description"]
+
+    metadata = client.get("/api/seo/metadata").json()
+    assert "title, author, and subject" in metadata["description"]
+    assert "keywords" not in metadata["description"]
+    assert "not editable here" in dict(metadata["faqs"])["What PDF metadata can I change?"]
+
+
+def test_conversion_and_annotation_copy_matches_available_controls():
+    word = client.get("/api/seo/word_to_pdf").json()
+    assert word["how_to"][1] == "Convert with the available document renderer"
+    assert "no OCR or page-layout controls" in client.get("/word-to-pdf").text
+
+    powerpoint = client.get("/api/seo/powerpoint_to_pdf").json()
+    assert powerpoint["how_to"][1] == "Convert the slides with the available renderer"
+    assert "no orientation or output-options controls" in client.get("/powerpoint-to-pdf").text
+
+    annotate = client.get("/api/seo/annotate").json()
+    assert "freehand" not in annotate["description"]
+    assert "draw shapes" not in annotate["description"]
+    assert "rectangle mark" in dict(annotate["faqs"])["Can I highlight text in a PDF?"]
+
+    operations = client.get("/api/operations").json()
+    annotate_operation = operations["annotate"]
+    assert "strike through" in annotate_operation["description"]
+    assert "draw shapes" not in annotate_operation["description"]
+
+    watermark = client.get("/api/seo/watermark").json()
+    assert "built-in placement" in watermark["description"]
+    assert "adjustable placement" not in watermark["description"]
+    assert "rotation" not in watermark["description"]
+
+    protect = client.get("/api/seo/protect").json()
+    assert "does not provide separate owner-password or permission controls" in protect["description"]
+    assert "owner controls" not in protect["intro"]
+    assert "does not offer permission controls" in dict(protect["faqs"])["Can I prevent copying or printing?"]
+    operations = client.get("/api/operations").json()
+    assert "one password" in operations["protect"]["description"]
+    assert "separate owner-password and permission controls are not provided" in operations["protect"]["description"]
+
+    crop = client.get("/api/seo/crop").json()
+    assert "every PDF page" in crop["description"]
+    assert "one or more pages" not in " ".join(crop["how_to"])
+    assert "Preview and download" not in crop["how_to"]
+    assert "same top, bottom, left, and right margins to every page" in dict(crop["faqs"])["Can I crop all pages with the same margins?"]
 
 
 def test_page_organizer_copy_matches_its_page_number_order_control():
@@ -185,7 +294,7 @@ def test_delivery_shell_keeps_heavy_assets_deferred_and_uses_clean_urls():
     launcher = (root / "app.py").read_text(encoding="utf-8")
 
     assert "window.history.pushState({ view: 'desk', op: state.operation }, '', targetPath)" in app_js
-    assert '<script src="/assets/pdf_runtime.js?v=14" defer></script>' in index_html
+    assert '<script src="/assets/pdf_runtime.js?v=18" defer></script>' in index_html
     assert '<script src="/assets/pdf.min.js" defer></script>' not in index_html
     assert '<script src="/assets/pdf-lib.min.js" defer></script>' not in index_html
     assert "ensurePdfJs" in pdf_runtime_js and "ensurePdfLib" in pdf_runtime_js

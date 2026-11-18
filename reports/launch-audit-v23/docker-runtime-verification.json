@@ -1,0 +1,39 @@
+{
+  "docker_image": "pdf_splitter-paperplane:latest",
+  "image_id": "sha256:f10a8f17066b1193a3788f69d64cbd844b5d19cfd071dac2abd5cc1978697e68",
+  "image_size_bytes": 697823601,
+  "created_utc": "2026-11-17T14:54:15.22874437Z",
+  "runtime_versions": {
+    "pymupdf": "1.28.2",
+    "ghostscript": "10.05.1",
+    "tesseract": "5.5.0",
+    "libreoffice": "25.2.3.2 520(Build:2)"
+  },
+  "server_import": "passed",
+  "isolated_container": {
+    "name": "paperplane-v23-audit",
+    "health": "healthy",
+    "data_storage": "tmpfs",
+    "credentials": "dummy local-only values"
+  },
+  "browser_download_matrix": "browser-docker-runtime-smoke.json",
+  "pdfa_direct_conversion": {
+    "dependency_issue": null,
+    "source_pages": 5,
+    "output_bytes": 14275,
+    "pdfa_part": 1,
+    "output_intent": "GTS_PDFA1",
+    "source_text_retained": true
+  },
+  "ocr_golden_conversion": {
+    "source_pages": 1,
+    "source_text_characters": 0,
+    "pages_ocrd": 1,
+    "pages_failed": 0,
+    "expected_phrases_recognized": [
+      "PAPERPLANE OCR GOLDEN CHECK",
+      "Invoice 54821",
+      "Total: $124.50"
+    ]
+  }
+}

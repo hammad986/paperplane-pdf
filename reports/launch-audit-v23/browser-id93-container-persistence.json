@@ -1,0 +1,18 @@
+{
+  "replacement_container": true,
+  "health": {
+    "status": "ok",
+    "service": "paperplane-pdf",
+    "version": "2.0.0",
+    "auth_required": false,
+    "workers": 4,
+    "max_file_size_mb": 500,
+    "job_ttl_hours": 2
+  },
+  "home_http_status": 200,
+  "login_http_status": 200,
+  "login_status": "success",
+  "authenticated_email_after_replacement": "audit-persist@example.com",
+  "http_only_session_cookie": true,
+  "page_errors": []
+}

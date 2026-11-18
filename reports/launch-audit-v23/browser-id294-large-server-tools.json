@@ -1,0 +1,29 @@
+[
+  {
+    "operation": "compress",
+    "status": "completed",
+    "source_bytes": 4830840,
+    "output_bytes": 660321,
+    "pages": 69,
+    "content_marker_checked": true,
+    "elapsed_seconds": 0.92
+  },
+  {
+    "operation": "watermark",
+    "status": "completed",
+    "source_bytes": 4830840,
+    "output_bytes": 4848884,
+    "pages": 69,
+    "content_marker_checked": true,
+    "elapsed_seconds": 1.65
+  },
+  {
+    "operation": "page_numbers",
+    "status": "completed",
+    "source_bytes": 4830840,
+    "output_bytes": 4882240,
+    "pages": 69,
+    "content_marker_checked": true,
+    "elapsed_seconds": 1.3
+  }
+]

@@ -1,0 +1,23 @@
+{
+  "site": "https://paperplane.qd.je",
+  "merge_page_http": 200,
+  "merge_page_title": "Merge PDF Files Online — Combine PDFs Free | Paperplane",
+  "served_assets": {
+    "app": "app.js?v=22",
+    "editor": "editor.js?v=13"
+  },
+  "local_assets": {
+    "app": "app.js?v=68",
+    "editor": "editor.js?v=14"
+  },
+  "merge_file_input": {
+    "multiple_attribute": false,
+    "accept_attribute": null,
+    "two_file_upload_error": "Non-multiple file input can only accept single file"
+  },
+  "single_file_attempt": {
+    "result_download_visible_after_seconds": 60,
+    "visible": false
+  },
+  "conclusion": "Deployed artifact is behind the current local source; live Merge completion remains unverified and must be retested after deployment."
+}

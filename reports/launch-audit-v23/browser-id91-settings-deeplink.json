@@ -1,0 +1,44 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "http_status": 200,
+      "metrics": {
+        "path": "/settings",
+        "viewHidden": false,
+        "viewTitle": "Paperplane Settings",
+        "panelHost": "settings-page-content",
+        "inline": true,
+        "visibleTabs": [
+          "Account & Profile\nIdentity and security",
+          "Appearance & Theme\nLight, dark, contrast",
+          "Plans & Billing\nQuota and upgrades",
+          "Developer API Keys\nREST access and keys",
+          "Storage & Privacy\nLocal or temporary processing"
+        ],
+        "activeView": "settings"
+      },
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "http_status": 200,
+      "metrics": {
+        "path": "/settings",
+        "viewHidden": false,
+        "viewTitle": "Paperplane Settings",
+        "panelHost": "settings-page-content",
+        "inline": true,
+        "visibleTabs": [
+          "Account & Profile\nIdentity and security",
+          "Appearance & Theme\nLight, dark, contrast",
+          "Plans & Billing\nQuota and upgrades",
+          "Developer API Keys\nREST access and keys",
+          "Storage & Privacy\nLocal or temporary processing"
+        ],
+        "activeView": "settings"
+      },
+      "page_errors": []
+    }
+  ]
+}

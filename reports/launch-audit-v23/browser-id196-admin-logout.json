@@ -1,0 +1,32 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "navigation_status": 200,
+      "logout_api": [
+        {
+          "url": "http://127.0.0.1:58519/api/admin/auth/logout",
+          "status": 200
+        }
+      ],
+      "revoked_token_status": 401,
+      "returned_to_step1": true,
+      "session_token_cleared": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "navigation_status": 200,
+      "logout_api": [
+        {
+          "url": "http://127.0.0.1:63096/api/admin/auth/logout",
+          "status": 200
+        }
+      ],
+      "revoked_token_status": 401,
+      "returned_to_step1": true,
+      "session_token_cleared": true,
+      "page_errors": []
+    }
+  ]
+}
