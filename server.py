@@ -3828,10 +3828,12 @@ def public_pricing_catalog() -> dict:
 def _cashfree_checkout_issue() -> str | None:
     if CASHFREE_ENV_CONFIG_ERROR:
         return "invalid_gateway_environment"
-    allow_test_in_prod = (
-        os.getenv("PAPERPLANE_ALLOW_TEST_PAYMENTS", "false").lower() in ("true", "1", "yes")
-        and not os.getenv("TESTING")
-    )
+    env_override = os.getenv("PAPERPLANE_ALLOW_TEST_PAYMENTS")
+    if env_override is not None:
+        allow_test_in_prod = env_override.strip().lower() in ("true", "1", "yes")
+    else:
+        allow_test_in_prod = bool(ALLOW_TEST_PAYMENTS)
+    allow_test_in_prod = allow_test_in_prod and not os.getenv("TESTING")
     if ENVIRONMENT == "production" and CASHFREE_ENV != "PROD" and not allow_test_in_prod:
         return "production_requires_prod_gateway"
     if CASHFREE_ENV == "PROD" and ENVIRONMENT != "production":
