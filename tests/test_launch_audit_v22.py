@@ -90,3 +90,39 @@ def test_scan_to_pdf_uses_selected_physical_page_size(tmp_path):
         assert abs(document[0].rect.width - 576) < 1
         assert abs(document[0].rect.height - 432) < 1
 
+
+def test_scan_to_pdf_applies_camera_exif_before_sizing_and_rendering(tmp_path):
+    source = tmp_path / "camera.jpg"
+    image = Image.new("RGB", (240, 120), "blue")
+    image.paste("red", (0, 0, 120, 120))
+    exif = image.getexif()
+    exif[274] = 6
+    image.save(source, quality=95, exif=exif)
+    output = tmp_path / "scan.pdf"
+    converters.scan_to_pdf([source], output, page_size="original")
+    with fitz.open(output) as document:
+        page = document[0]
+        assert abs(page.rect.width - 43.2) < .2 and abs(page.rect.height - 86.4) < .2
+        pixmap = page.get_pixmap(matrix=fitz.Matrix(3, 3), alpha=False)
+        top = pixmap.pixel(pixmap.width // 2, pixmap.height // 4)
+        bottom = pixmap.pixel(pixmap.width // 2, 3 * pixmap.height // 4)
+        assert top[0] > top[2] + 80 and bottom[2] > bottom[0] + 80
+
+
+def test_scan_to_pdf_composites_transparent_images_on_white_paper(tmp_path):
+    rgba = Image.new("RGBA", (100, 100), (0, 0, 0, 0))
+    rgba.paste((255, 0, 0, 255), (25, 25, 75, 75))
+    paths = [tmp_path / "alpha.png", tmp_path / "palette.png"]
+    rgba.save(paths[0])
+    rgba.quantize(colors=2).save(paths[1], transparency=0)
+    output = tmp_path / "scans.pdf"
+    converters.scan_to_pdf(paths, output, page_size="original")
+    with fitz.open(output) as document:
+        assert len(document) == 2
+        for page in document:
+            pix = page.get_pixmap(matrix=fitz.Matrix(4, 4), alpha=False)
+            corner = pix.pixel(5, 5)
+            center = pix.pixel(pix.width // 2, pix.height // 2)
+            assert min(corner) > 235
+            assert center[0] > 200 and center[1] < 60 and center[2] < 60
+

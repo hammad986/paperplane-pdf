@@ -26,7 +26,7 @@
       this.lastSelectedPage = null; // For Shift+Click range selection
       this.activePage = 1;
       this.layoutMode = 'strip'; // 'strip' or 'grid'
-      this.thumbnailCache = new Map(); // pageKey -> dataUrl
+      this.thumbnailCache = new Map(); // pageKey -> object URL for a JPEG Blob
       this.totalCount = 0;
     }
 
@@ -526,16 +526,25 @@
         });
       }, {
         root: document.getElementById('studio-thumbnails-container'),
-        rootMargin: '180px 0px',
+        rootMargin: '0px 0px',
         threshold: 0.01
       });
+    }
+
+    _clearThumbnailCache() {
+      for (const url of this.state.thumbnailCache.values()) {
+        if (typeof url === 'string' && url.startsWith('blob:')) {
+          try { URL.revokeObjectURL(url); } catch { /* already released */ }
+        }
+      }
+      this.state.thumbnailCache.clear();
     }
 
     loadDocument(pdfDoc, file, name, totalPages, metadata = null) {
       this.pdfDoc = pdfDoc;
       this.sourceFile = file;
       this.sourceName = name || (file && file.name) || 'document.pdf';
-      this.state.thumbnailCache.clear();
+      this._clearThumbnailCache();
       this.state.setPages(totalPages, metadata);
 
       const countBadge = document.getElementById('studio-page-count');
@@ -603,14 +612,26 @@
         // Checkbox & Grip Handle
         const header = document.createElement('div');
         header.className = 'thumb-header';
-        header.innerHTML = `
-          <button type="button" class="thumb-grip" title="Drag to reorder page ${pageNum}" aria-label="Drag page ${pageNum} to reorder">⠿</button>
-          <label class="thumb-checkbox-label" title="Select page">
-            <input type="checkbox" class="thumb-checkbox" ${this.state.isSelected(pageNum) ? 'checked' : ''} />
-            <span class="thumb-checkbox-custom"></span>
-          </label>
-          <span class="thumb-page-num">${p.label || pageNum}</span>
-        `;
+        const grip = document.createElement('button');
+        grip.type = 'button';
+        grip.className = 'thumb-grip';
+        grip.title = `Drag to reorder page ${pageNum}`;
+        grip.setAttribute('aria-label', `Drag page ${pageNum} to reorder`);
+        grip.textContent = '⠿';
+        const checkboxLabel = document.createElement('label');
+        checkboxLabel.className = 'thumb-checkbox-label';
+        checkboxLabel.title = 'Select page';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'thumb-checkbox';
+        checkbox.checked = this.state.isSelected(pageNum);
+        const checkboxDecoration = document.createElement('span');
+        checkboxDecoration.className = 'thumb-checkbox-custom';
+        checkboxLabel.append(checkbox, checkboxDecoration);
+        const pageLabel = document.createElement('span');
+        pageLabel.className = 'thumb-page-num';
+        pageLabel.textContent = String(p.label || pageNum);
+        header.append(grip, checkboxLabel, pageLabel);
         card.appendChild(header);
 
         // Preview Wrapper (Canvas Placeholder)
@@ -662,6 +683,8 @@
 
     async _renderCardCanvas(card, pageNum) {
       if (!this.pdfDoc) return;
+      const sourceDoc = this.pdfDoc;
+      const renderEpoch = this.thumbnailRenderEpoch;
       const previewWrap = card.querySelector('.thumb-preview-wrap');
       if (!previewWrap) return;
 
@@ -675,7 +698,8 @@
       }
 
       try {
-        const page = await this.pdfDoc.getPage(pageNum);
+        const page = await sourceDoc.getPage(pageNum);
+        if (sourceDoc !== this.pdfDoc || renderEpoch !== this.thumbnailRenderEpoch || !card.isConnected) return;
         const baseVp = page.getViewport({ scale: 1.0 });
         // Calculate thumbnail scale to fit ~120px width
         const thumbScale = Math.min(0.28, 120 / baseVp.width);
@@ -687,15 +711,39 @@
         canvas.height = Math.floor(viewport.height);
         const ctx = canvas.getContext('2d');
 
-        await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+        const rotation = this.state.getPage(pageNum)?.rotation || 0;
+        const renderSession = window.PaperplanePdfRuntime?.getStudioRenderSession?.();
+        let renderedBitmap = null;
+        if (renderSession) {
+          try {
+            const rendered = await renderSession.renderPage(pageNum, thumbScale, 1, rotation).promise;
+            renderedBitmap = rendered.bitmap;
+            if (sourceDoc !== this.pdfDoc || renderEpoch !== this.thumbnailRenderEpoch || !card.isConnected) return;
+            ctx.drawImage(renderedBitmap, 0, 0, canvas.width, canvas.height);
+          } catch (error) {
+            // A failed thumbnail request must not tear down the shared Studio
+            // renderer while a visible page or other thumbnail is in flight.
+            // Fall back for this card and let the session serve later work.
+            window.__studioRenderWorkerFailure ||= `thumbnail ${pageNum}: ${String(error?.message || error)}`;
+            if (sourceDoc !== this.pdfDoc || renderEpoch !== this.thumbnailRenderEpoch || !card.isConnected) return;
+            await page.render({ canvasContext: ctx, viewport }).promise;
+          } finally {
+            renderedBitmap?.close?.();
+          }
+        } else await page.render({ canvasContext: ctx, viewport }).promise;
+        if (sourceDoc !== this.pdfDoc || renderEpoch !== this.thumbnailRenderEpoch || !card.isConnected) return;
 
-        // Cache as lightweight data URI
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-        this.state.thumbnailCache.set(cacheKey, dataUrl);
+        // JPEG encoding via toBlob is asynchronous; data URLs synchronously
+        // encode every visible thumbnail on the main thread.
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.85));
+        if (!blob) throw new Error('Could not encode page thumbnail');
+        if (sourceDoc !== this.pdfDoc || renderEpoch !== this.thumbnailRenderEpoch || !card.isConnected) return;
+        const objectUrl = URL.createObjectURL(blob);
+        this.state.thumbnailCache.set(cacheKey, objectUrl);
 
         const img = document.createElement('img');
         img.className = 'thumb-rendered-img';
-        img.src = dataUrl;
+        img.src = objectUrl;
         img.alt = `Page ${pageNum}`;
         previewWrap.replaceChildren(img);
       } catch (err) {
@@ -962,11 +1010,12 @@
       });
     }
 
-    _updateBatchToolbar() {
+    _updateBatchToolbar({ syncLayout = true } = {}) {
       const bar = document.getElementById('organizer-batch-bar');
       const countLabel = document.getElementById('batch-selection-count');
       if (!bar) return;
 
+      const wasHidden = bar.hidden;
       const selCount = this.state.selectedPages.size;
       const isOrganizeMode = document.getElementById('btn-mode-organize')?.classList.contains('active');
 
@@ -980,7 +1029,10 @@
         bar.hidden = true;
         bar.classList.remove('visible');
       }
-      window.syncStudioBatchPanelLocation?.();
+      // Selection-count changes do not move the toolbar or Pages drawer. Only
+      // resync layout when the batch bar actually appears/disappears; otherwise
+      // every checkbox click forces a synchronous toolbar geometry read.
+      if (syncLayout && wasHidden !== bar.hidden) window.syncStudioBatchPanelLocation?.();
     }
 
     _bindSubnavEvents() {

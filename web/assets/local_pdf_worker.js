@@ -27,7 +27,7 @@ async function copyPages(document, indices) {
 
 // PDF streams are already compressed. ZIP store mode avoids recompressing
 // every file and keeps the result readable by standard ZIP tools.
-function zipPages(files) {
+function zipPages(files, extension = 'pdf') {
   const encoder = new TextEncoder();
   const crcTable = Uint32Array.from({ length: 256 }, (_, byte) => {
     let crc = byte;
@@ -39,7 +39,9 @@ function zipPages(files) {
   let offset = 0;
   let directorySize = 0;
   for (const [index, data] of files.entries()) {
-    const name = encoder.encode('page-' + (index + 1) + '.pdf');
+    const name = encoder.encode(extension === 'jpg'
+      ? `page_${String(index + 1).padStart(3, '0')}.jpg`
+      : `page-${index + 1}.pdf`);
     let crc = 0xffffffff;
     for (const byte of data) crc = (crc >>> 8) ^ crcTable[(crc ^ byte) & 255];
     crc ^= 0xffffffff;
@@ -76,6 +78,32 @@ function zipPages(files) {
 }
 
 async function transform({ operation, files, options }) {
+  if (operation === 'grayscale_pages') {
+    const pageSizes = options?.pageSizes;
+    if (!Array.isArray(pageSizes) || pageSizes.length !== files.length || !files.length || files.length > 100) {
+      throw new Error('The browser received an invalid grayscale page set. Choose Server Processing to continue.');
+    }
+    const totalBytes = files.reduce((sum, bytes) => sum + bytes.byteLength, 0);
+    if (totalBytes > 64 * 1024 * 1024) throw new Error('The grayscale result is too large for browser memory. Choose Server Processing.');
+    const result = await PDFDocument.create();
+    for (let index = 0; index < files.length; index++) {
+      const [width, height] = pageSizes[index].map(Number);
+      if (![width, height].every(Number.isFinite) || width < 1 || height < 1 || width > 14400 || height > 14400) {
+        throw new Error('A grayscale page has invalid dimensions. Choose Server Processing to continue.');
+      }
+      const image = await result.embedPng(files[index]);
+      const page = result.addPage([width, height]);
+      page.drawImage(image, { x: 0, y: 0, width, height });
+    }
+    return { filename: 'grayscale.pdf', output: await result.save() };
+  }
+  if (operation === 'zip_jpg') {
+    if (!files.length || files.length > 200) throw new Error('Convert 1–200 pages in your browser, or choose Server Processing.');
+    if (files.reduce((total, bytes) => total + bytes.byteLength, 0) > 256 * 1024 * 1024) {
+      throw new Error('The rendered JPGs exceed the browser ZIP limit. Choose Server Processing.');
+    }
+    return { filename: 'pdf-pages-jpg.zip', output: zipPages(files.map(bytes => new Uint8Array(bytes)), 'jpg') };
+  }
   if (operation === 'merge') {
     const result = await PDFDocument.create();
     for (const bytes of files) {
@@ -88,6 +116,78 @@ async function transform({ operation, files, options }) {
 
   const pdf = await PDFDocument.load(files[0]);
   const count = pdf.getPageCount();
+  if (operation === 'sign') {
+    if (!count) throw new Error('This PDF has no page to sign.');
+    const page = pdf.getPage(0);
+    const box = page.getCropBox();
+    if (box.width < 100 || box.height < 100) {
+      throw new Error('This page is too small for a visual signature. Choose Server Processing.');
+    }
+    const signer = String(options.signerName || 'Signed').trim() || 'Signed';
+    const hex = /^#([0-9a-f]{6})$/i.exec(String(options.signatureColor || ''))?.[1] || '243b53';
+    const pen = rgb(parseInt(hex.slice(0, 2), 16) / 255,
+      parseInt(hex.slice(2, 4), 16) / 255, parseInt(hex.slice(4, 6), 16) / 255);
+    const edge = options.markBackground === 'dark' ? rgb(1, 1, 1) : rgb(0, 0, 0);
+    const font = await pdf.embedFont(StandardFonts.Helvetica);
+    const width = Math.min(200, box.width - 32);
+    const height = Math.min(80, box.height - 48);
+    const x = box.x + Math.max(16, box.width - width - 40);
+    const y = box.y + 30;
+    const caption = `${signer} | ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC`;
+    try { font.encodeText(signer); font.encodeText(caption); }
+    catch { throw new Error('This browser signature supports standard-font names. Choose Server Processing for this script.'); }
+    page.drawRectangle({ x, y, width, height, borderColor: rgb(0.7, 0.7, 0.7), borderWidth: 0.5 });
+    if (files[1]) {
+      const mark = await pdf.embedPng(files[1]);
+      const scale = Math.min((width - 12) / mark.width, (height - 14) / mark.height);
+      const drawWidth = mark.width * scale;
+      const drawHeight = mark.height * scale;
+      page.drawImage(mark, { x: x + (width - drawWidth) / 2, y: y + (height - drawHeight) / 2,
+        width: drawWidth, height: drawHeight });
+    } else {
+      let fontSize = Math.min(24, Math.max(14, height * 0.4));
+      while (fontSize > 8 && font.widthOfTextAtSize(signer, fontSize) > width - 16) fontSize -= 1;
+      if (font.widthOfTextAtSize(signer, fontSize) > width - 16) {
+        throw new Error('The printed name is too long for this page. Shorten it or choose Server Processing.');
+      }
+      page.drawText(signer, { x: x + 8, y: y + height * 0.4, size: fontSize, font, color: pen });
+      page.drawLine({ start: { x: x + 6, y: y + 6 }, end: { x: x + width - 6, y: y + 6 },
+        thickness: 1, color: options.markBackground === 'dark' ? pen : edge });
+    }
+    let captionSize = 7.5;
+    while (captionSize > 5 && font.widthOfTextAtSize(caption, captionSize) > box.width - 20) captionSize -= 0.5;
+    if (font.widthOfTextAtSize(caption, captionSize) <= box.width - 20) {
+      page.drawText(caption, { x: Math.max(box.x + 10, x), y: y - 11,
+        size: captionSize, font, color: rgb(0.4, 0.4, 0.4) });
+    }
+    return { filename: 'signed-document.pdf', output: await pdf.save() };
+  }
+  if (operation === 'edit') {
+    const text = String(options.text || '').trim();
+    const pageNumber = Number(options.page);
+    const x = Number(options.x);
+    const y = Number(options.y);
+    if (!text) throw new Error('Enter text to add.');
+    if (!Number.isInteger(pageNumber) || pageNumber < 1 || pageNumber > count) {
+      throw new Error('The selected page does not exist.');
+    }
+    if (![x, y].every(Number.isFinite) || x < 0 || y < 0) {
+      throw new Error('Enter valid non-negative text coordinates.');
+    }
+    const page = pdf.getPage(pageNumber - 1);
+    const box = page.getCropBox();
+    if (x > box.width || y > box.height) {
+      throw new Error('Text coordinates must be inside the selected page.');
+    }
+    const font = await pdf.embedFont(StandardFonts.Helvetica);
+    try { font.encodeText(text); }
+    catch { throw new Error('This browser text stamp supports standard-font text. Choose Server Processing for this script.'); }
+    page.drawText(text, {
+      x: box.x + x, y: box.y + box.height - y,
+      size: 14, font, color: rgb(0.1, 0.12, 0.12),
+    });
+    return { filename: 'text-stamped.pdf', output: await pdf.save() };
+  }
   if (operation === 'metadata') {
     for (const [key, setter] of Object.entries({title: 'setTitle', author: 'setAuthor', subject: 'setSubject'})) {
       if (Object.prototype.hasOwnProperty.call(options, key)) pdf[setter](String(options[key] || ''));
@@ -136,6 +236,85 @@ async function transform({ operation, files, options }) {
   if (operation === 'rotate') {
     pdf.getPages().forEach(page => page.setRotation(degrees(page.getRotation().angle + options.degrees)));
     return { filename: 'rotated.pdf', output: await pdf.save() };
+  }
+  if (operation === 'watermark') {
+    if (options.watermarkImageSelected) {
+      const imageBytes = files[1];
+      if (!imageBytes?.byteLength) throw new Error('Choose a PNG or JPEG watermark image.');
+      if (imageBytes.byteLength > 25 * 1024 * 1024) {
+        throw new Error('This watermark image exceeds the 25 MiB browser limit. Choose Server Processing to continue.');
+      }
+      const imageType = String(options.watermarkImageType || '').toLowerCase();
+      let image;
+      try {
+        if (imageType === 'image/png') image = await pdf.embedPng(imageBytes);
+        else if (imageType === 'image/jpeg' || imageType === 'image/jpg') image = await pdf.embedJpg(imageBytes);
+        else throw new Error('Unsupported image type');
+      } catch {
+        throw new Error('This image could not be decoded as PNG or JPEG. Choose another image or use Server Processing.');
+      }
+      const opacity = Number(options.opacity);
+      if (!Number.isFinite(opacity) || opacity < 0.05 || opacity > 0.8) {
+        throw new Error('Watermark opacity must be between 0.05 and 0.8.');
+      }
+      for (const page of pdf.getPages()) {
+        const box = page.getCropBox();
+        const maxWidth = box.width * 0.45;
+        const maxHeight = box.height * 0.45;
+        const scale = Math.min(maxWidth / image.width, maxHeight / image.height);
+        const width = image.width * scale;
+        const height = image.height * scale;
+        page.drawImage(image, {
+          x: box.x + (box.width - width) / 2,
+          y: box.y + (box.height - height) / 2,
+          width,
+          height,
+          opacity,
+        });
+      }
+      return { filename: 'watermarked.pdf', output: await pdf.save() };
+    }
+    const label = String(options.text || '').trim();
+    if (!label) throw new Error('Please provide watermark text.');
+    const opacity = Number(options.opacity);
+    if (!Number.isFinite(opacity) || opacity < 0.05 || opacity > 0.8) {
+      throw new Error('Watermark opacity must be between 0.05 and 0.8.');
+    }
+    const colorMatch = /^#?([0-9a-f]{6})$/i.exec(String(options.markColor || '#243b53'));
+    const colorHex = colorMatch?.[1] || '243b53';
+    const color = rgb(parseInt(colorHex.slice(0, 2), 16) / 255,
+      parseInt(colorHex.slice(2, 4), 16) / 255, parseInt(colorHex.slice(4, 6), 16) / 255);
+    const outline = options.markBackground === 'dark' ? rgb(1, 1, 1) : rgb(0, 0, 0);
+    const font = await pdf.embedFont(StandardFonts.HelveticaBold);
+    const { pushGraphicsState, popGraphicsState, setFillingColor, setStrokingColor,
+      setLineWidth, setGraphicsState, beginText, endText, setFontAndSize, setTextMatrix,
+      showText, setTextRenderingMode, TextRenderingMode } = self.PDFLib;
+    const opacityState = pdf.context.obj({ Type: 'ExtGState', ca: opacity, CA: opacity });
+    const opacityRef = pdf.context.register(opacityState);
+    for (const page of pdf.getPages()) {
+      const box = page.getCropBox();
+      const rotation = ((page.getRotation().angle % 360) + 360) % 360;
+      const displayedWidth = rotation === 90 || rotation === 270 ? box.height : box.width;
+      const fontSize = Math.min(44, Math.max(20, displayedWidth / 12));
+      let encoded;
+      try { encoded = font.encodeText(label); }
+      catch { throw new Error('This browser watermark supports standard-font text. Choose Server Processing for this script.'); }
+      const textWidth = font.widthOfTextAtSize(label, fontSize);
+      const angle = (35 + rotation) * Math.PI / 180;
+      const cosine = Math.cos(angle);
+      const sine = Math.sin(angle);
+      const centerX = box.x + box.width / 2;
+      const centerY = box.y + box.height / 2;
+      const x = centerX - (textWidth / 2) * cosine;
+      const y = centerY - (textWidth / 2) * sine;
+      const fontKey = page.node.newFontDictionary(font.name, font.ref);
+      const opacityKey = page.node.newExtGState(font.name, opacityRef).toString().replace(/^\//, '');
+      page.pushOperators(pushGraphicsState(), setGraphicsState(opacityKey), setFillingColor(color),
+        setStrokingColor(outline), setLineWidth(Math.max(0.8, fontSize / 18)), beginText(),
+        setFontAndSize(fontKey, fontSize), setTextRenderingMode(TextRenderingMode.FillAndOutline),
+        setTextMatrix(cosine, sine, -sine, cosine, x, y), showText(encoded), endText(), popGraphicsState());
+    }
+    return { filename: 'watermarked.pdf', output: await pdf.save() };
   }
   if (operation === 'page_numbers') {
     if (!count) throw new Error('This PDF has no pages to number.');

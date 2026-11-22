@@ -34,12 +34,12 @@ def test_browser_local_processing_lists_only_the_implemented_operations():
     match = re.search(r"CLIENT_SIDE_SUPPORTED_OPERATIONS\s*=\s*new Set\(\[([^\]]+)\]\)", app_js)
     assert match
     supported = set(re.findall(r"'([^']+)'", match.group(1)))
-    assert supported == {"merge", "split", "remove", "rotate", "organize", "forms", "flatten", "metadata", "pdf_to_text", "page_numbers", "crop"}
+    assert supported == {"merge", "split", "remove", "rotate", "organize", "scan_pdf", "jpg_to_pdf", "pdf_to_jpg", "grayscale", "forms", "flatten", "metadata", "pdf_to_text", "pdf_to_markdown", "pdf_to_word", "page_numbers", "crop", "watermark", "edit", "sign", "compare"}
     assert "sidebarToggle.disabled = !canSwitch" in app_js
     assert "if (!CLIENT_SIDE_SUPPORTED_OPERATIONS.has(state.operation))" in app_js
     assert "100% Client-Side Privacy Mode Activated" not in app_js
     assert "Zero-Upload Client Privacy Mode" not in index_html
-    assert "Browser-local processing is available for Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Crop PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Page Numbers, and the photo tools." in index_html
+    assert "Browser-local processing is available for Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Scan to PDF, JPG/PNG to PDF, PDF-to-JPG, Grayscale PDF, Crop PDF, Add Text & Stamps, Sign PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Compare PDF text, PDF-to-Markdown (basic), PDF-to-Word (text-first), Page Numbers, text and image watermarks, and the photo tools." in index_html
 
     assert set(server.OPERATION_SLUGS) == set(server.SEO_CATALOG)
 
@@ -50,7 +50,7 @@ def test_ai_metadata_uses_a_dash_for_missing_values_and_privacy_copy_is_qualifie
     index_html = (root / "web" / "index.html").read_text(encoding="utf-8")
 
     assert "'Not detected'" not in app_js
-    assert "Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Crop PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Page Numbers, and the photo tools can run in your browser. Other tools use temporary server processing." in index_html
+    assert "Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Scan to PDF, JPG/PNG to PDF, PDF-to-JPG, Grayscale PDF, Crop PDF, Add Text & Stamps, Sign PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Compare PDF text, PDF-to-Markdown (basic), PDF-to-Word (text-first), Page Numbers, text and image watermarks, and the photo tools can run in your browser. Grayscale may rasterize colored pages and remove searchable text; already-grayscale PDFs are preserved. PNG and JPEG image watermarks up to 25 MiB can also run locally; other image formats and tools use temporary server processing." in index_html
     assert "ephemeral and zero-upload" not in index_html.lower()
 
     for operation in server.OPERATION_SLUGS:

@@ -159,8 +159,10 @@ def test_studio_mutation_keeps_visible_page_as_reload_target():
     assert "initialPage: targetPage" in organizer_js
     assert "Number(document.getElementById('page-jump-input')?.value) || this.state.activePage" in organizer_js
     assert "const renderDeadline = Date.now() + 10000" in app_js
-    assert "const preservePageThroughModeChange = () =>" in app_js
-    assert "jumpToStudioPage(pageToKeep, 'auto')" in app_js
+    # Mode changes only alter the ribbon and must not queue a page jump that
+    # can override the user's next scroll while PDF.js is rendering.
+    assert "const preservePageThroughModeChange = () =>" not in app_js
+    assert "jumpToStudioPage(pageToKeep, 'auto')" not in app_js
     assert "document.documentElement.classList.toggle('studio-active', view === 'studio')" in app_js
 
 

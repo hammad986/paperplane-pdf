@@ -2128,6 +2128,41 @@ textarea::placeholder {
   }
 }
 
+/* At desktop-zoom and compact desktop widths, the main workspace becomes too
+   narrow for the breadcrumb, view switcher, and account actions on one row. */
+@media (max-width: 1280px) and (min-width: 901px) {
+  .topbar {
+    display: flex !important;
+    flex: 0 0 auto;
+    height: auto;
+    min-height: 64px;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    padding-block: 8px;
+  }
+
+  .topbar-left {
+    flex: 1 1 240px;
+    max-width: none;
+    overflow: visible;
+  }
+
+  .topbar-right {
+    flex: 0 1 auto;
+    min-width: 0;
+    margin-inline-start: auto;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .workspace-tabs {
+    order: 3;
+    flex: 1 0 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
 /* Dedicated Contextual Page Selection Panel */
 .organizer-selection-panel {
   background: #1b2628;
@@ -8618,13 +8653,19 @@ section, h1, h2, h3 { scroll-margin-top: 104px; }
     overflow: visible !important;
     padding-bottom: calc(68px + env(safe-area-inset-bottom));
   }
-  .topbar { position: fixed !important; inset: 0 0 auto !important; z-index: 120 !important; }
+  .topbar {
+    position: fixed !important;
+    inset: 0 0 auto !important;
+    z-index: 120 !important;
+    height: calc(64px + env(safe-area-inset-top, 0px)) !important;
+    padding-top: env(safe-area-inset-top, 0px) !important;
+  }
   .main-area, .main-area.studio-active, .ai-active .main-area {
     display: block !important;
     width: 100% !important;
     height: auto !important;
     min-height: calc(100dvh - 56px) !important;
-    padding-top: 64px !important;
+    padding-top: calc(64px + env(safe-area-inset-top, 0px)) !important;
     overflow: visible !important;
   }
   .dynamic-workspace, .studio-active .dynamic-workspace, .ai-active .dynamic-workspace {
@@ -8909,7 +8950,7 @@ section, h1, h2, h3 { scroll-margin-top: 104px; }
     min-width: 0 !important;
     min-height: 0 !important;
     margin: 0 !important;
-    padding: 64px 0 0 !important;
+    padding: calc(64px + env(safe-area-inset-top, 0px)) 0 0 !important;
     overflow: hidden !important;
     box-sizing: border-box !important;
   }
@@ -9222,7 +9263,7 @@ section, h1, h2, h3 { scroll-margin-top: 104px; }
     height: auto !important;
     min-height: calc(100dvh - 56px) !important;
     overflow: visible !important;
-    padding-top: 64px !important;
+    padding-top: calc(64px + env(safe-area-inset-top, 0px)) !important;
   }
   #app-shell.ai-active .dynamic-workspace {
     width: 100% !important;
@@ -9344,7 +9385,7 @@ section, h1, h2, h3 { scroll-margin-top: 104px; }
     height: auto !important;
     min-height: calc(100dvh - 64px) !important;
     margin: 0 !important;
-    padding: 64px 0 0 !important;
+    padding: calc(64px + env(safe-area-inset-top, 0px)) 0 0 !important;
     overflow: visible !important;
   }
   html.studio-active body #app-shell .dynamic-workspace {
@@ -10002,7 +10043,19 @@ html.studio-active body .studio-main-viewport { min-width: 0; max-width: 100%; b
 @media (max-width: 380px) {
   html.studio-active body .studio-tool-btn,
   html.studio-active body .studio-mode-btn { width: 52px !important; min-width: 52px !important; }
+  #app-shell.ai-active .ai-active-doc-strip { align-items: stretch; flex-wrap: wrap; gap: 6px 8px; }
+  #app-shell.ai-active .ai-doc-info-group { flex: 1 0 100%; width: 100%; }
+  #app-shell.ai-active .ai-doc-details { flex: 1 1 auto; width: 0; }
+  #app-shell.ai-active .ai-doc-actions { flex: 1 0 100%; width: 100%; justify-content: flex-end; }
   #app-shell.ai-active .ai-doc-actions { gap: 4px; }
+  #app-shell.ai-active .ai-doc-actions button { padding-inline: 7px !important; font-size: 11px !important; }
+}
+
+@media (max-width: 480px) {
+  #app-shell.ai-active .ai-active-doc-strip { align-items: stretch; flex-wrap: wrap; gap: 6px 8px; }
+  #app-shell.ai-active .ai-doc-info-group { flex: 1 0 100%; width: 100%; }
+  #app-shell.ai-active .ai-doc-details { flex: 1 1 auto; width: 0; }
+  #app-shell.ai-active .ai-doc-actions { flex: 1 0 100%; width: 100%; justify-content: flex-end; gap: 4px; }
   #app-shell.ai-active .ai-doc-actions button { padding-inline: 7px !important; font-size: 11px !important; }
 }
 
@@ -10036,6 +10089,37 @@ html.footer-revealed .app-global-footer { visibility: visible; opacity: 1; point
   html.studio-active body .studio-toolbar .studio-page-badge,
   html.studio-active body .studio-toolbar .zoom-select {
     min-height: 25px !important;
+  }
+}
+
+/* Mid-size laptop viewports cannot show the complete Studio ribbon at once.
+   Keep each control row compact and scrollable instead of wrapping it into
+   five dense, hard-to-scan rows at the 901px desktop breakpoint. */
+@media (min-width: 901px) and (max-width: 1023px) {
+  html.studio-active body .studio-toolbar .studio-primary-ribbon,
+  html.studio-active body .studio-toolbar .studio-sub-ribbon {
+    flex-flow: row nowrap !important;
+    align-items: center !important;
+    gap: 4px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 6px 8px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+    touch-action: pan-x;
+    white-space: nowrap !important;
+  }
+
+  html.studio-active body .studio-toolbar .studio-primary-ribbon > *,
+  html.studio-active body .studio-toolbar .studio-sub-ribbon > *,
+  html.studio-active body .studio-toolbar .studio-primary-ribbon .studio-tool-group,
+  html.studio-active body .studio-toolbar .studio-sub-ribbon .studio-tool-group {
+    flex: 0 0 auto !important;
+    flex-wrap: nowrap !important;
+    width: max-content !important;
+    max-width: none !important;
   }
 }
 
@@ -10389,6 +10473,25 @@ html[data-paperplane-theme="light"] body.studio-active .studio-toolbar .studio-m
 html.studio-active body .toast-notice {
   top: var(--studio-toast-top, 76px) !important;
 }
+html.studio-active body .toast-notice.toast-visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+@media (max-width: 600px) and (max-height: 900px) {
+  html.studio-active body .toast-notice {
+    max-width: calc(100vw - 24px);
+    padding: 6px 10px;
+    gap: 7px;
+    font-size: 12px;
+  }
+}
 h1, h2, h3, .tool-hero-title { word-spacing: .08em; }
 
 .quota-label-row { gap: 6px 10px; flex-wrap: wrap; }
@@ -10419,6 +10522,73 @@ body.high-contrast #run-button:disabled {
 .workspace-inline-panel > .pricing-modal-card { max-height: none; overflow: visible; }
 @media (max-width: 480px) {
   .workspace-inline-panel .pricing-tiers-grid { grid-template-columns: minmax(0, 1fr) !important; }
+}
+
+/* Browser zoom can make a desktop-sized window behave like a short mobile
+   viewport. Keep the submit action in document flow so it cannot cover the
+   current tool content above the fixed mobile navigation. */
+@media (max-width: 900px) and (max-height: 600px) {
+  html.studio-active body #app-shell.studio-pages-open .studio-thumbnails-bar {
+    inset: var(--studio-mobile-pages-top, calc(8px + env(safe-area-inset-top, 0px))) 8px calc(8px + env(safe-area-inset-bottom, 0px)) 8px !important;
+    top: calc(8px + env(safe-area-inset-top, 0px)) !important;
+    max-height: none !important;
+    z-index: 970 !important;
+  }
+
+  html.studio-active body #app-shell.studio-pages-open .studio-thumbnails-scroll {
+    max-height: none !important;
+    gap: 4px !important;
+    padding: 0 6px 4px !important;
+  }
+
+  html.studio-active body #app-shell.studio-pages-open .studio-thumbnails-scroll > .organizer-subnav {
+    flex: 0 0 30px !important;
+    min-height: 30px !important;
+    margin: 0 0 3px !important;
+    padding: 0 4px 3px !important;
+  }
+
+  html.studio-active body #app-shell.studio-pages-open .studio-thumbnails-scroll > .organizer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  html.studio-active body #app-shell.studio-pages-open .studio-mobile-page-actions {
+    flex: 0 0 40px !important;
+    max-height: 40px !important;
+    min-height: 40px !important;
+    overflow: hidden !important;
+    padding: 2px 8px !important;
+  }
+
+  html.studio-active body #app-shell.studio-pages-open .studio-mobile-page-actions-label {
+    display: none !important;
+  }
+
+  html.studio-active body #app-shell.studio-pages-open #studio-mobile-page-actions-slot .studio-tool-group {
+    flex-wrap: nowrap !important;
+    gap: 4px !important;
+    overflow-x: auto;
+  }
+
+  html.studio-active body #app-shell.studio-pages-open #studio-mobile-page-actions-slot .studio-tool-btn {
+    min-width: 44px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    padding-inline: 5px !important;
+  }
+
+  body:not(.studio-active):not(.ai-active) #run-button {
+    position: static;
+    inset: auto;
+    z-index: auto;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  body:not(.studio-active):not(.ai-active) .main-area {
+    padding-bottom: calc(74px + env(safe-area-inset-bottom, 0px)) !important;
+  }
 }
 
 /* Layouts follow available space on phones and tablets; dialogs stay usable
@@ -10562,5 +10732,28 @@ body.high-contrast #run-button:disabled {
     flex: 0 0 auto !important;
     width: max-content !important;
     max-width: none !important;
+  }
+}
+
+/* An empty document-context bar has no content until a PDF is loaded. Collapse
+   its reserved height so the mobile AI chat starts directly beneath the app
+   header instead of leaving a blank 118px band. Keep the bar when document or
+   connection controls become visible. */
+#app-shell.ai-active .ai-studio-topbar:has(#ai-active-doc-bar[hidden]):not(:has(#ai-test-connection-btn:not([hidden]), .ai-connection-status:not([hidden]))) {
+  min-height: 0 !important;
+  gap: 0 !important;
+}
+#app-shell.ai-active .ai-studio-topbar:has(#ai-active-doc-bar[hidden]):not(:has(#ai-test-connection-btn:not([hidden]), .ai-connection-status:not([hidden]))) .ai-engine-notice-bar {
+  display: none !important;
+}
+
+/* Keep focused AI actions visible above the fixed mobile workspace bar. */
+@media (max-width: 900px) {
+  html {
+    scroll-padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .main-area {
+    scroll-padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
   }
 }

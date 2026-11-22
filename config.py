@@ -100,6 +100,10 @@ TRUSTED_HOSTS = [
 for h in ["127.0.0.1", "localhost", "testserver"]:
     if h not in TRUSTED_HOSTS:
         TRUSTED_HOSTS.append(h)
+# Railway sends deploy health checks with this host even when the public
+# service domain is different. Accept it only in an actual Railway runtime.
+if os.getenv("RAILWAY_SERVICE_ID") and "healthcheck.railway.app" not in TRUSTED_HOSTS:
+    TRUSTED_HOSTS.append("healthcheck.railway.app")
 
 # Cryptographic Session & JWT Secrets with safe random fallback
 _configured_session_secret = (

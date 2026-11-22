@@ -24,7 +24,6 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PAPERPLANE_ENV=production \
     PAPERPLANE_DATA_DIR=/data \
-    PAPERPLANE_REQUIRE_AUTH=false \
     PAPERPLANE_WORKERS=4 \
     PAPERPLANE_HOST=0.0.0.0 \
     PAPERPLANE_PORT=8501
@@ -59,11 +58,12 @@ RUN useradd -m -u 1001 -s /bin/bash paperplane && \
     mkdir -p /data /backups && \
     chown -R paperplane:paperplane /app /data /backups
 
-USER paperplane
+USER root
 VOLUME ["/data"]
 EXPOSE 8501
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501/api/health')" || exit 1
+    CMD python -c "import os,urllib.request; p=os.getenv('PORT') or os.getenv('PAPERPLANE_PORT','8501'); urllib.request.urlopen('http://127.0.0.1:'+p+'/api/health',timeout=4)" || exit 1
 
+ENTRYPOINT ["python", "scripts/container_entrypoint.py"]
 CMD ["python", "app.py"]

@@ -7,8 +7,33 @@ description = "Hardcoded admin credential fallback"
 regex = '''(?i)(?:getenv|environ\.get)\(\s*["']PAPERPLANE_ADMIN_(?:KEY|CODE)["']\s*,\s*["']([^"'\r\n]+)["']'''
 secretGroup = 1
 
+  [[rules.allowlists]]
+  description = "The isolated history-preparation mirror replaces the compromised value with this literal marker."
+  regexTarget = "line"
+  regexes = ['''(?i)(?:getenv|environ\.get)\(\s*["']PAPERPLANE_ADMIN_(?:KEY|CODE)["']\s*,\s*["']\[REDACTED\]["']\s*\)''']
+
 [[rules]]
 id = "paperplane-compose-admin-fallback"
 description = "Hardcoded Compose admin credential fallback"
 regex = '''(?i)PAPERPLANE_ADMIN_(?:KEY|CODE)\s*:\s*["']?\$\{PAPERPLANE_ADMIN_(?:KEY|CODE):-([^}]+)\}'''
 secretGroup = 1
+
+  [[rules.allowlists]]
+  description = "The regression test assembles a synthetic fallback string to verify that the detector catches it."
+  paths = ['''tests/test_launch_audit_v14\.py$''']
+
+[[rules]]
+id = "curl-auth-header"
+
+  [[rules.allowlists]]
+  description = "Documentation examples read credentials from the environment."
+  regexTarget = "match"
+  regexes = ['''\$\{?PAPERPLANE_API_KEY\}?''']
+
+[[rules]]
+id = "generic-api-key"
+
+  [[rules.allowlists]]
+  description = "The uploaded certificate private-key parameter is a variable name, not a key value."
+  regexTarget = "line"
+  regexes = ['''save_upload_spooled\s*\(\s*custom_key\s*,\s*key_path''']

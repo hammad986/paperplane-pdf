@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="color-scheme" content="light dark" />
   <meta name="theme-color" content="#142023" />
   <title>Paperplane PDF - Online PDF Tools &amp; Editor</title>
@@ -12,13 +12,9 @@
   <link rel="alternate icon" href="/favicon.ico" />
   <link rel="manifest" href="/manifest.webmanifest" />
   
-  <!-- Google Identity Services (GIS) for Official Sign In with Google -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <!-- Cashfree PG v3 checkout SDK; app.js initializes it with the server-issued session. -->
-  <script src="https://sdk.cashfree.com/js/v3/cashfree.js" defer></script>
 
   <script src="/assets/theme-init.js?v=13"></script>
-  <link rel="stylesheet" href="/assets/styles.css?v=51" />
+  <link rel="stylesheet" href="/assets/styles.css?v=61" />
 
 </head>
 <body class="light-mode auth-pending">
@@ -118,7 +114,7 @@
             <span class="toggle-slider-sm"></span>
           </label>
         </div>
-        <small id="privacy-mode-support" class="privacy-mode-support">Available for Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Crop PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Page Numbers, and photo tools</small>
+        <small id="privacy-mode-support" class="privacy-mode-support">Available for Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Scan to PDF, JPG/PNG to PDF, PDF-to-JPG, Grayscale PDF, Crop PDF, Add Text & Stamps, Sign PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Compare PDF text, PDF-to-Markdown (basic), PDF-to-Word (text-first), Page Numbers, text and image watermarks, and photo tools</small>
 
         <!-- Freemium Daily Quota Tracker -->
         <div class="quota-container" id="quota-container">
@@ -242,7 +238,7 @@
         </section>
         <section id="view-faq" class="workspace-page" hidden>
           <h1>Frequently asked questions</h1>
-          <details><summary>Where are files processed?</summary><p>Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Crop PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Page Numbers, and photo tools can run in your browser when browser processing is selected. Other tasks use temporary server processing; expired job files are removed on the configured cleanup schedule (2-hour retention by default).</p></details>
+          <details><summary>Where are files processed?</summary><p>Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Scan to PDF, JPG/PNG to PDF, PDF-to-JPG, Grayscale PDF, Crop PDF, Add Text & Stamps, Sign PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Compare PDF text, PDF-to-Markdown (basic), PDF-to-Word (text-first), Page Numbers, text and image watermarks, and photo tools can run in your browser when browser processing is selected. Grayscale renders colored pages at 150 DPI and may remove searchable text; already-grayscale files stay unchanged. Browser-local Scan to PDF skips automatic contrast/sharpness enhancement; choose temporary server processing for enhancement. Image watermarks and other tasks use temporary server processing after your choice; expired job files are removed on the configured cleanup schedule (2-hour retention by default).</p></details>
           <details><summary>What PDF operations are available?</summary><p>The catalog covers organizing, compression, conversion, editing, security, and document intelligence workflows.</p></details>
           <details><summary>Does Paperplane work on phones?</summary><p>Yes. The public web workspace is responsive and uses touch-sized controls on mobile browsers.</p></details>
           <details><summary>Does Paperplane keep a job history?</summary><p>No. This version does not provide a recent-files or job-history page. Download the result when processing finishes; temporary server job files are removed by the retention cleanup.</p></details>
@@ -1002,7 +998,7 @@
                 <div>
                   <h3>Data Privacy & Temporary Processing</h3>
                   <p><strong>DRAFT — do not treat this as approved legal wording.</strong> Server-powered job files are scheduled for removal after the configured retention period (2 hours by default). Browser-saved Studio and AI Docs work remains on this device until you clear it. Confirm the production settings and statements below before launch.</p>
-                  <p>Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Crop PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Page Numbers, and the photo tools can run in your browser. Other tools use temporary server processing.</p>
+                  <p>Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Scan to PDF, JPG/PNG to PDF, PDF-to-JPG, Grayscale PDF, Crop PDF, Add Text & Stamps, Sign PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Compare PDF text, PDF-to-Markdown (basic), PDF-to-Word (text-first), Page Numbers, text and image watermarks, and the photo tools can run in your browser. Grayscale may rasterize colored pages and remove searchable text; already-grayscale PDFs are preserved. PNG and JPEG image watermarks up to 25 MiB can also run locally; other image formats and tools use temporary server processing.</p>
                 </div>
               </div>
 
@@ -1132,7 +1128,7 @@
               </div>
               <div class="api-meta-item">
                 <span class="meta-label">AUTHENTICATION</span>
-                <code class="meta-val">Authorization: Bearer sk_live_...</code>
+                <code class="meta-val">Authorization: Bearer ${PAPERPLANE_API_KEY}</code>
               </div>
               <div class="api-meta-item">
                 <span class="meta-label">FREE SANDBOX TIER</span>
@@ -1161,12 +1157,12 @@
               <div class="api-code-wrapper">
                 <pre id="full-api-code-curl" class="api-code-block"><code># 1. Inspect remaining daily free quota and reset timestamp
 curl -X GET "https://paperplane.qd.je/api/v1/account/usage" \
-  -H "Authorization: Bearer YOUR_PAPERPLANE_API_KEY"
+  -H "Authorization: Bearer ${PAPERPLANE_API_KEY}"
 
 # 2. Asynchronously submit a PDF compression job with idempotency
 curl -X POST "https://paperplane.qd.je/api/v1/jobs" \
-  -H "Authorization: Bearer YOUR_PAPERPLANE_API_KEY" \
-  -H "Idempotency-Key: invoice_batch_98124" \
+  -H "Authorization: Bearer ${PAPERPLANE_API_KEY}" \
+  -H "Idempotency-Key: ${IDEMPOTENCY_KEY}" \
   -F "operation=compress" \
   -F "options={\"preset\":\"balanced\"}" \
   -F "files=@document.pdf"
@@ -1176,11 +1172,11 @@ curl -X POST "https://paperplane.qd.je/api/v1/jobs" \
 
 # 3. Poll job status
 curl -X GET "https://paperplane.qd.je/api/v1/jobs/4f9a8b1c..." \
-  -H "Authorization: Bearer YOUR_PAPERPLANE_API_KEY"
+  -H "Authorization: Bearer ${PAPERPLANE_API_KEY}"
 
 # 4. Stream download verified output artifact
 curl -O -J "https://paperplane.qd.je/api/v1/jobs/4f9a8b1c.../download" \
-  -H "Authorization: Bearer YOUR_PAPERPLANE_API_KEY"</code></pre>
+  -H "Authorization: Bearer ${PAPERPLANE_API_KEY}"</code></pre>
 
                 <pre id="full-api-code-python" class="api-code-block" hidden><code>import time
 import requests
@@ -1850,11 +1846,11 @@ async function convertFileInBrowser(file, operation = 'compress') {
            <div class="settings-card-item privacy-settings-card">
              <span class="settings-eyebrow">DATA CONTROL</span>
              <h4>Ephemeral encrypted storage</h4>
-             <p>Temporary server job files expire after the configured retention period (2 hours by default). Browser-saved Studio and AI Docs work remains on this device until you clear it. Browser-local processing is available for Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Crop PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Page Numbers, and the photo tools.</p>
+             <p>Temporary server job files expire after the configured retention period (2 hours by default). Browser-saved Studio and AI Docs work remains on this device until you clear it. Browser-local processing is available for Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Scan to PDF, JPG/PNG to PDF, PDF-to-JPG, Grayscale PDF, Crop PDF, Add Text & Stamps, Sign PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Compare PDF text, PDF-to-Markdown (basic), PDF-to-Word (text-first), Page Numbers, text and image watermarks, and the photo tools. Grayscale renders colored pages at 150 DPI and may remove searchable text; the original is kept unchanged when the PDF is already grayscale. Image watermarks use temporary server processing after your choice.</p>
              <div class="settings-privacy-toggle-row">
                <div>
                  <strong>Browser processing</strong>
-                 <small id="settings-client-privacy-support">Available for Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Crop PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Page Numbers, and photo tools.</small>
+                 <small id="settings-client-privacy-support">Available for Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Scan to PDF, JPG/PNG to PDF, PDF-to-JPG, Grayscale PDF, Crop PDF, Add Text & Stamps, Sign PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Compare PDF text, PDF-to-Markdown (basic), PDF-to-Word (text-first), Page Numbers, text and image watermarks, and photo tools.</small>
                </div>
                <label class="toggle-switch-sm">
                  <input type="checkbox" id="settings-client-privacy-toggle" aria-label="Prefer browser processing for supported tools" aria-describedby="settings-client-privacy-support" />
@@ -3454,20 +3450,20 @@ async function convertFileInBrowser(file, operation = 'compress') {
   </nav>
 
   <!-- PDF engines are loaded on demand by the first feature that needs them. -->
-  <script src="/assets/pdf_runtime.js?v=18" defer></script>
+  <script src="/assets/pdf_runtime.js?v=25" defer></script>
 
   <!-- Phase 6 PDF Forms, Signing & Security Engine -->
-  <script src="/assets/security_forms.js?v=6.2.2" defer></script>
+  <script src="/assets/security_forms.js?v=6.2.3" defer></script>
   <!-- Phase 5 Professional PDF Conversion Engine -->
   <script src="/assets/conversion_engine.js?v=5.2.0" defer></script>
   <!-- Phase 4 Compression, Repair & OCR Engine -->
-  <script src="/assets/optimization_engine.js?v=4.2.0" defer></script>
+  <script src="/assets/optimization_engine.js?v=4.2.1" defer></script>
   <!-- Phase 3 Professional Page Management Engine -->
-  <script src="/assets/page_organizer.js?v=14" defer></script>
+  <script src="/assets/page_organizer.js?v=20" defer></script>
   <!-- Phase 2 Professional Editor Engine -->
 <script src="/assets/editor.js?v=14" defer></script>
   <!-- Application Controller -->
-  <script src="/assets/app.js?v=91" defer></script>
+  <script src="/assets/app.js?v=154" defer></script>
   <!-- Floating Customer Feedback Widget -->
   <script src="/assets/feedback.js?v=17" defer></script>
 </body>

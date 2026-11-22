@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import time
 from unittest.mock import patch
 from urllib.error import URLError
 
@@ -96,6 +97,45 @@ def test_bluesminds_retries_transient_first_attempt(monkeypatch):
     assert open_url.call_count == 2
 
 
+def test_translation_retry_budget_allows_slow_but_healthy_provider(monkeypatch):
+    monkeypatch.setattr(ai_engine, "AI_KILL_SWITCH", False)
+    calls = []
+
+    class FakeResponse:
+        status = 200
+        def __enter__(self): return self
+        def __exit__(self, exc_type, exc_value, traceback): return False
+        def read(self): return b'{"choices":[{"message":{"content":"{\\"translations\\":[{\\"id\\":0,\\"text\\":\\"Texto traducido\\"}]}"}}]}'
+
+    def slow_provider(request, timeout):
+        calls.append(timeout)
+        # Model an upstream that needs 15 seconds: the old 55-second total
+        # budget split over four attempts provided only about 12 seconds each.
+        if timeout < 15:
+            raise TimeoutError("simulated provider response exceeded attempt timeout")
+        time.sleep(15.1)
+        return FakeResponse()
+
+    monkeypatch.setattr(ai_engine, "_open_ai_request", slow_provider)
+    credentials = {
+        "provider": "openai_compatible",
+        "base_url": "https://provider.invalid/v1",
+        "model": "synthetic-model",
+        "api_key": "synthetic-key",
+    }
+    result = ai_engine._provider_request(
+        "Translate the text.",
+        '[{"id":0,"text":"Source text"}]',
+        credentials,
+        timeout_seconds=ai_engine.TRANSLATION_CALL_TIMEOUT_SECONDS,
+        max_attempts=4,
+    )
+
+    assert result == '{"translations":[{"id":0,"text":"Texto traducido"}]}'
+    assert len(calls) == 1
+    assert calls[0] >= 15
+
+
 def test_bluesminds_429_retry_honors_bounded_retry_after(monkeypatch):
     from urllib.error import HTTPError
 
@@ -112,7 +152,50 @@ def test_bluesminds_429_retry_honors_bounded_retry_after(monkeypatch):
             patch("ai_engine.time.sleep") as sleep:
         assert ai_engine.call_bluesminds("system", "user", timeout_seconds=8) == "recovered after provider cooldown"
     assert open_url.call_count == 2
-    sleep.assert_called_once_with(5.0)
+    assert sleep.call_count == 1
+    assert sleep.call_args.args[0] == pytest.approx(4.2, abs=0.1)
+
+
+def test_provider_retry_after_is_honored_within_total_timeout_budget(monkeypatch):
+    from urllib.error import HTTPError
+
+    now = [100.0]
+    sleep_calls = []
+    request_timeouts = []
+
+    class FakeResponse:
+        status = 200
+        def __enter__(self): return self
+        def __exit__(self, exc_type, exc_value, traceback): return False
+        def read(self): return b'{"choices":[{"message":{"content":"recovered"}}]}'
+
+    def advance(seconds):
+        sleep_calls.append(seconds)
+        now[0] += seconds
+
+    def provider(request, timeout):
+        request_timeouts.append(timeout)
+        if len(request_timeouts) == 1:
+            raise HTTPError(request.full_url, 429, "limited", {"Retry-After": "30"}, None)
+        return FakeResponse()
+
+    monkeypatch.setattr(ai_engine.time, "monotonic", lambda: now[0])
+    monkeypatch.setattr(ai_engine.time, "sleep", advance)
+    monkeypatch.setattr(ai_engine, "_open_ai_request", provider)
+    credentials = {
+        "provider": "openai_compatible", "base_url": "https://provider.invalid/v1",
+        "model": "synthetic-model", "api_key": "synthetic-key",
+    }
+
+    result = ai_engine._provider_request(
+        "Translate the text.", "Source text", credentials,
+        timeout_seconds=90, max_attempts=4,
+    )
+
+    assert result == "recovered"
+    assert sleep_calls == [30.0]
+    assert request_timeouts == pytest.approx([20.65, 17.67], abs=0.02)
+    assert now[0] - 100.0 <= 90
 
 
 def test_ai_connection_check_uses_configured_fallback_after_primary_rate_limit(monkeypatch):
@@ -720,6 +803,173 @@ def test_translation_reports_upstream_rate_limit_when_all_batches_fail(tmp_path,
     assert report["failure_class"] == ["upstream HTTP 429"]
     assert server.translation_failure_response(failure.value)[0] == 429
     assert not output.exists()
+
+
+def test_translation_repairs_segments_omitted_from_partial_provider_batch(tmp_path, monkeypatch):
+    source = tmp_path / "partial-batch-source.pdf"
+    output = tmp_path / "partial-batch-translated.pdf"
+    with fitz.open() as document:
+        page = document.new_page()
+        for y, text in ((72, "Source paragraph alpha."), (100, "Source paragraph bravo."), (128, "Source paragraph charlie.")):
+            page.insert_text((72, y), text)
+        document.save(source)
+
+    monkeypatch.setattr(ai_engine, "TRANSLATION_BATCH_SIZE", 4)
+    monkeypatch.setattr(ai_engine, "TRANSLATION_MAX_PARALLEL_BATCHES", 1)
+    calls = []
+
+    def partial_then_complete(batch, *_args, **_kwargs):
+        calls.append([block_id for block_id, _ in batch])
+        if len(calls) == 1:
+            block_id = batch[0][0]
+            return {block_id: f"Párrafo traducido {block_id}."}
+        return {block_id: f"Párrafo traducido {block_id}." for block_id, _ in batch}
+
+    monkeypatch.setattr(ai_engine, "_translate_text_batch", partial_then_complete)
+    report = {}
+    ai_engine.translate_pdf_layout(source, output, target_lang="es", report=report)
+
+    assert output.exists()
+    assert len(calls) == 3
+    assert report["blocks_translated"] == 3
+    assert report["partial_translation_repair"] == {
+        "requests": 2,
+        "segments_requested": 2,
+        "segments_recovered": 2,
+        "segments_missing": 2,
+        "segments_remaining": 0,
+        "segments_deferred": 0,
+    }
+    with fitz.open(output) as translated:
+        text = translated[0].get_text()
+    assert "Párrafo traducido 0" in text
+    assert "Párrafo traducido 1" in text
+    assert "Párrafo traducido 2" in text
+
+
+def test_translation_repairs_a_fully_failed_provider_batch_with_smaller_retries(tmp_path, monkeypatch):
+    source = tmp_path / "failed-batch-source.pdf"
+    output = tmp_path / "failed-batch-translated.pdf"
+    with fitz.open() as document:
+        page = document.new_page()
+        for index in range(10):
+            page.insert_text((72, 60 + index * 28), f"Source paragraph {index:02d}.")
+        document.save(source)
+
+    monkeypatch.setattr(ai_engine, "TRANSLATION_BATCH_SIZE", 20)
+    monkeypatch.setattr(ai_engine, "TRANSLATION_MAX_PARALLEL_BATCHES", 1)
+    calls = []
+
+    def fail_once_then_translate(batch, *_args, **_kwargs):
+        calls.append([block_id for block_id, _ in batch])
+        if len(calls) == 1:
+            raise RuntimeError("Translation provider failed (upstream HTTP 504).")
+        return {block_id: f"Párrafo traducido {block_id}." for block_id, _ in batch}
+
+    monkeypatch.setattr(ai_engine, "_translate_text_batch", fail_once_then_translate)
+    report = {}
+    ai_engine.translate_pdf_layout(source, output, target_lang="es", report=report)
+
+    assert output.exists()
+    assert len(calls) == 6  # One failed batch followed by five two-segment repairs.
+    assert report["blocks_translated"] == 10
+    assert report["partial_translation_repair"] == {
+        "requests": 5,
+        "segments_requested": 10,
+        "segments_recovered": 10,
+        "segments_missing": 10,
+        "segments_remaining": 0,
+        "segments_deferred": 0,
+    }
+    assert not any("untranslated source text was preserved" in warning for warning in report["warnings"])
+    with fitz.open(output) as translated:
+        text = translated[0].get_text()
+    assert all(f"Párrafo traducido {index}" in text for index in range(10))
+    assert "Source paragraph 08." not in text and "Source paragraph 09." not in text
+
+
+def test_translation_repair_repeats_progress_rounds_until_every_segment_is_recovered(tmp_path, monkeypatch):
+    source = tmp_path / "progress-rounds-source.pdf"
+    output = tmp_path / "progress-rounds-translated.pdf"
+    with fitz.open() as document:
+        page = document.new_page()
+        for index in range(6):
+            page.insert_text((72, 60 + index * 38), f"Source segment marker {index:02d}.")
+        document.save(source)
+
+    monkeypatch.setattr(ai_engine, "TRANSLATION_BATCH_SIZE", 8)
+    monkeypatch.setattr(ai_engine, "TRANSLATION_MAX_PARALLEL_BATCHES", 1)
+    calls = []
+
+    def one_repair_segment_at_a_time(batch, *_args, **_kwargs):
+        calls.append([block_id for block_id, _ in batch])
+        if len(calls) == 1:
+            raise RuntimeError("Translation provider failed (upstream HTTP 504).")
+        block_id = batch[0][0]
+        return {block_id: f"Segmento traducido {block_id}."}
+
+    monkeypatch.setattr(ai_engine, "_translate_text_batch", one_repair_segment_at_a_time)
+    report = {}
+    ai_engine.translate_pdf_layout(source, output, target_lang="es", report=report)
+
+    assert len(calls) == 7  # One initial failure, then 3 + 2 + 1 progress-round repairs.
+    assert report["blocks_translated"] == 6
+    assert report["partial_translation_repair"] == {
+        "requests": 6,
+        "segments_requested": 6,
+        "segments_recovered": 6,
+        "segments_missing": 6,
+        "segments_remaining": 0,
+        "segments_deferred": 0,
+    }
+    assert any("smaller retries recovered all affected text" in warning for warning in report["warnings"])
+    with fitz.open(output) as translated:
+        text = translated[0].get_text()
+    assert all(f"Segmento traducido {index}" in text for index in range(6))
+    assert all(f"Source segment marker {index:02d}." not in text for index in range(6))
+
+
+def test_translation_provider_fanout_is_capped_at_two_concurrent_batches(tmp_path, monkeypatch):
+    import threading
+
+    monkeypatch.setattr(ai_engine, "AI_KILL_SWITCH", False)
+    monkeypatch.setattr(ai_engine, "_current_bluesminds_api_key", lambda: "configured-test-key")
+    source = tmp_path / "bounded-provider-fanout-source.pdf"
+    output = tmp_path / "bounded-provider-fanout-output.pdf"
+    with fitz.open() as document:
+        page = document.new_page()
+        for index in range(8):
+            page.insert_text((72, 72 + index * 24), f"Source paragraph {index}.")
+        document.save(source)
+
+    monkeypatch.setattr(ai_engine, "TRANSLATION_BATCH_SIZE", 1)
+    assert ai_engine.TRANSLATION_MAX_PARALLEL_BATCHES == 2
+    active = 0
+    peak = 0
+    lock = threading.Lock()
+
+    def bounded_provider(batch, *_args, **_kwargs):
+        nonlocal active, peak
+        with lock:
+            active += 1
+            peak = max(peak, active)
+        try:
+            time.sleep(0.02)
+            return {block_id: f"Párrafo traducido {block_id}." for block_id, _ in batch}
+        finally:
+            with lock:
+                active -= 1
+
+    monkeypatch.setattr(ai_engine, "_translate_text_batch", bounded_provider)
+    report = {}
+    ai_engine.translate_pdf_layout(source, output, target_lang="es", report=report)
+
+    assert output.exists()
+    assert peak == 2
+    assert report["blocks_translated"] == 8
+    with fitz.open(output) as translated:
+        output_text = translated[0].get_text()
+    assert all(f"Párrafo traducido {index}" in output_text for index in range(8))
 
 
 def test_short_document_chat_uses_full_context_but_keeps_unsupported_queries_uncited(tmp_path, monkeypatch):

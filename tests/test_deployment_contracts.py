@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import re
 import sqlite3
 import os
 import subprocess
@@ -13,10 +15,30 @@ import converters
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def test_deployment_guide_retention_and_health_example_match_runtime_contract():
+    guide = (ROOT / "docs" / "DEPLOYMENT.md").read_text(encoding="utf-8")
+    env_example = (ROOT / ".env.example").read_text(encoding="utf-8")
+    ttl_match = re.search(r"^PAPERPLANE_JOB_TTL_SECONDS=(\d+)$", env_example, re.MULTILINE)
+    health_match = re.search(r"# Expected JSON output:\s*# (\{[^\r\n]+\})", guide)
+    assert ttl_match and health_match
+    default_ttl_hours = int(ttl_match.group(1)) // 3600
+    health_example = json.loads(health_match.group(1))
+    assert health_example["job_ttl_hours"] == default_ttl_hours
+    assert set(health_example) == {
+        "status", "service", "version", "auth_required", "workers",
+        "max_file_size_mb", "job_ttl_hours",
+    }
+    assert "PAPERPLANE_JOB_TTL_SECONDS=7200" in guide
+    assert "PAPERPLANE_JOB_TTL_SECONDS=86400" not in guide
+
+
 def test_docker_and_nginx_production_contracts():
     compose = (ROOT / "docker-compose.yml").read_text(encoding="utf-8")
     nginx = (ROOT / "deploy" / "nginx.conf.template").read_text(encoding="utf-8")
+    env_example = (ROOT / ".env.example").read_text(encoding="utf-8")
     assert "PAPERPLANE_ENV: production" in compose
+    assert "PAPERPLANE_ALLOW_TEST_PAYMENTS=false" in env_example
+    assert 'PAPERPLANE_ALLOW_TEST_PAYMENTS: "${PAPERPLANE_ALLOW_TEST_PAYMENTS:-false}"' in compose
     assert "PAPERPLANE_HOST: 0.0.0.0" in compose
     assert "restart: always" in compose
     assert "/tmp:size=2g" in compose
@@ -28,6 +50,18 @@ def test_docker_and_nginx_production_contracts():
     assert "expires 30d;" in nginx
     assert 'Cache-Control "public, no-transform"' in nginx
     assert "max-age=63072000; includeSubDomains; preload" in nginx
+
+
+def test_container_entrypoint_prepares_root_mounted_data_then_drops_to_nonroot():
+    dockerfile = (ROOT / "Dockerfile").read_text(encoding="utf-8")
+    entrypoint = (ROOT / "scripts" / "container_entrypoint.py").read_text(encoding="utf-8")
+    assert 'ENTRYPOINT ["python", "scripts/container_entrypoint.py"]' in dockerfile
+    assert "USER root" in dockerfile and 'useradd -m -u 1001' in dockerfile
+    assert "followlinks=False" in entrypoint and "follow_symlinks=False" in entrypoint
+    assert "_validate_mount_path" in entrypoint and "PROTECTED_ROOTS" in entrypoint
+    assert "os.setgid(gid)" in entrypoint and "os.setuid(uid)" in entrypoint
+    assert "os.execvp(command[0], command)" in entrypoint
+    assert "PAPERPLANE_DATA_DIR" in entrypoint and "PAPERPLANE_BACKUP_DIR" in entrypoint
 
 
 def test_sqlite_retention_and_native_backup(tmp_path, monkeypatch):

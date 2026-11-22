@@ -440,7 +440,11 @@ def test_public_api_docs_disabled_for_production_even_if_env_false():
 
 def test_csp_does_not_allow_inline_script_execution():
     nginx = (Path(__file__).resolve().parents[1] / "deploy" / "nginx.conf.template").read_text(encoding="utf-8")
-    policy_line = next(line for line in nginx.splitlines() if 'add_header Content-Security-Policy ' in line)
+    policy_lines = [line for line in nginx.splitlines() if 'add_header Content-Security-Policy ' in line]
+    assert len(policy_lines) == 2
+    assert all("base-uri 'self'" in line for line in policy_lines)
+    assert all("frame-ancestors 'self'" in line for line in policy_lines)
+    policy_line = policy_lines[0]
     policy = policy_line.split('add_header Content-Security-Policy "', 1)[1].split('" always;', 1)[0]
     script_policy = policy.split("style-src", 1)[0]
     assert "unsafe-inline" not in script_policy

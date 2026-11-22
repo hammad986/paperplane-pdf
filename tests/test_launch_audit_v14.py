@@ -28,14 +28,31 @@ def test_101_compose_requires_admin_code_without_a_fallback():
 def test_101_secret_scanner_catches_compose_fallbacks():
     config = tomllib.loads((ROOT / ".gitleaks.toml").read_text(encoding="utf-8"))
     rule = next(rule for rule in config["rules"] if rule["id"] == "paperplane-compose-admin-fallback")
-    assert re.search(rule["regex"], 'PAPERPLANE_ADMIN_CODE: "${PAPERPLANE_ADMIN_CODE:-synthetic-value}"')
+    admin_var = "PAPERPLANE_ADMIN_" + "CODE"
+    fallback_assignment = f'{admin_var}: ${{{admin_var}' + ":-" + "test}"
+    assert re.search(rule["regex"], fallback_assignment)
     assert not re.search(rule["regex"], 'PAPERPLANE_ADMIN_CODE: "${PAPERPLANE_ADMIN_CODE:?must be set}"')
+
+
+def test_101_secret_scanner_allowlists_only_test_fixture_and_redaction_marker():
+    config = tomllib.loads((ROOT / ".gitleaks.toml").read_text(encoding="utf-8"))
+    rules = {rule["id"]: rule for rule in config["rules"]}
+    compose_allowlist = rules["paperplane-compose-admin-fallback"]["allowlists"][0]
+    assert re.search(compose_allowlist["paths"][0], "tests/test_launch_audit_v14.py")
+    assert not re.search(compose_allowlist["paths"][0], "docker-compose.yml")
+
+    admin_allowlist = rules["paperplane-admin-fallback"]["allowlists"][0]
+    redaction_line = 'os.getenv("PAPERPLANE_ADMIN_CODE", "[REDACTED]")'
+    real_fallback_line = 'os.getenv("PAPERPLANE_ADMIN_CODE", "synthetic-test-value")'
+    assert re.search(admin_allowlist["regexes"][0], redaction_line)
+    assert not re.search(admin_allowlist["regexes"][0], real_fallback_line)
+    assert not re.search(admin_allowlist["regexes"][0], real_fallback_line + "  # [REDACTED]")
 
 
 def test_206_runtime_cache_key_changes_from_stale_v13():
     page = (ROOT / "web/index.html").read_text(encoding="utf-8")
     runtime = (ROOT / "web/assets/pdf_runtime.js").read_text(encoding="utf-8")
-    assert '/assets/pdf_runtime.js?v=18' in page
+    assert '/assets/pdf_runtime.js?v=25' in page
     assert 'transformLocalPdf,' in runtime
 
 

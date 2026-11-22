@@ -153,7 +153,7 @@ python -m pytest -q
 - **Evidence:** `tests/test_developer_api.py::TestDeveloperAPI::test_06_job_creation_and_quota_consumption` (PASS).
 
 ### Scenario 6: Idempotency Key Handling
-- **Endpoint:** `POST /api/v1/jobs` with `Idempotency-Key: invoice_98124`
+- **Endpoint:** `POST /api/v1/jobs` with `Idempotency-Key: demo-request-1`
 - **Verification:** Repeated identical requests return the original HTTP 202 payload with identical `job_id` without consuming additional quota.
 - **Evidence:** `tests/test_developer_api.py::TestDeveloperAPI::test_08_idempotency_key_replay` (PASS).
 

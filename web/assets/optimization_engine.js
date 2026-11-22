@@ -401,7 +401,12 @@
               }
               if (msg) msg.textContent = report.message;
               if (issues) {
-                issues.innerHTML = (report.detected_issues || []).map(i => `• ${i}`).join('<br>');
+                const detectedIssues = Array.isArray(report.detected_issues) ? report.detected_issues : [];
+                issues.replaceChildren();
+                detectedIssues.forEach((issue, index) => {
+                  if (index) issues.appendChild(document.createElement('br'));
+                  issues.appendChild(document.createTextNode(`• ${String(issue)}`));
+                });
               }
               window.showToast(report.valid ? 'Document structure is healthy!' : 'Structural issues detected.', report.valid ? 'success' : 'warning');
             } else {

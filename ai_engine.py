@@ -797,9 +797,8 @@ def _provider_request(
     attempts = max(1, min(4, int(max_attempts)))
     retry_delays = (0.4, 2.0, 5.0)
     total_backoff = sum(retry_delays[:max(0, attempts - 1)])
-    per_attempt_timeout = (
-        total_timeout if attempts <= 2 else max(5.0, (total_timeout - total_backoff) / attempts)
-    )
+    per_attempt_timeout = max(0.1, (total_timeout - total_backoff) / attempts)
+    request_deadline = time.monotonic() + total_timeout
     headers = {"Content-Type": "application/json", "User-Agent": "Paperplane-PDF/1.0"}
     if provider in {"bluesminds", "openrouter", "deepseek", "openai_compatible"}:
         endpoint = f"{base_url}/chat/completions" if base_url.endswith("/v1") else f"{base_url}/v1/chat/completions"
@@ -844,25 +843,32 @@ def _provider_request(
     def retry_delay(attempt: int, retry_after: str | None = None) -> float:
         if retry_after:
             try:
-                return min(5.0, max(0.0, float(retry_after)))
+                return min(30.0, max(0.0, float(retry_after)))
             except ValueError:
                 try:
                     retry_at = parsedate_to_datetime(retry_after)
                     if retry_at.tzinfo is None:
                         retry_at = retry_at.replace(tzinfo=dt.timezone.utc)
-                    return min(5.0, max(0.0, (retry_at - dt.datetime.now(dt.timezone.utc)).total_seconds()))
+                    return min(30.0, max(0.0, (retry_at - dt.datetime.now(dt.timezone.utc)).total_seconds()))
                 except (TypeError, ValueError, OverflowError):
                     pass
         return retry_delays[min(attempt, len(retry_delays) - 1)]
 
     for attempt in range(attempts):
+        attempts_left = attempts - attempt
+        remaining_budget = request_deadline - time.monotonic()
+        if remaining_budget <= 0.1:
+            raise TimeoutError("AI provider retry budget exhausted")
+        future_backoff_reserve = sum(retry_delays[attempt:attempt + attempts_left - 1])
+        available_for_requests = max(0.1, remaining_budget - future_backoff_reserve)
+        request_timeout = min(per_attempt_timeout, available_for_requests / attempts_left)
         request = urllib.request.Request(endpoint, data=body, headers=headers)
         try:
             started = time.monotonic()
-            with _open_ai_request(request, timeout=per_attempt_timeout) as response:
+            with _open_ai_request(request, timeout=request_timeout) as response:
                 data = json.loads(response.read().decode("utf-8"))
                 logger.debug("AI provider host=%s attempt=%d timeout=%.1fs HTTP=%s elapsed=%.1fs",
-                             provider_host, attempt + 1, per_attempt_timeout, getattr(response, "status", None),
+                             provider_host, attempt + 1, request_timeout, getattr(response, "status", None),
                              time.monotonic() - started)
             if not isinstance(data, dict):
                 raise ValueError("Invalid provider response")
@@ -881,17 +887,32 @@ def _provider_request(
             break
         except urllib.error.HTTPError as error:
             logger.warning("AI provider host=%s attempt=%d timeout=%.1fs HTTP=%s",
-                           provider_host, attempt + 1, per_attempt_timeout, error.code)
+                           provider_host, attempt + 1, request_timeout, error.code)
             if attempt + 1 < attempts and error.code in (408, 429, 500, 502, 503, 504):
                 retry_after = error.headers.get("Retry-After") if error.headers else None
-                time.sleep(min(5.0, retry_delay(attempt, retry_after)))
+                future_attempts = attempts - attempt - 1
+                reserve_per_attempt = min(5.0, per_attempt_timeout)
+                sleep_budget = max(
+                    0.0,
+                    request_deadline - time.monotonic() - reserve_per_attempt * future_attempts,
+                )
+                delay = min(retry_delay(attempt, retry_after), sleep_budget)
+                if delay <= 0:
+                    raise RuntimeError(f"AI service returned HTTP {error.code}. Please try again.") from error
+                time.sleep(delay)
                 continue
             raise RuntimeError(f"AI service returned HTTP {error.code}. Please try again.") from error
         except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as error:
             logger.warning("AI provider host=%s attempt=%d timeout=%.1fs failure=%s",
-                           provider_host, attempt + 1, per_attempt_timeout, type(error).__name__)
+                           provider_host, attempt + 1, request_timeout, type(error).__name__)
             if attempt + 1 < attempts:
-                time.sleep(retry_delay(attempt))
+                future_attempts = attempts - attempt - 1
+                reserve_per_attempt = min(5.0, per_attempt_timeout)
+                sleep_budget = max(
+                    0.0,
+                    request_deadline - time.monotonic() - reserve_per_attempt * future_attempts,
+                )
+                time.sleep(min(retry_delay(attempt), sleep_budget))
                 continue
             raise RuntimeError("AI service could not be reached or timed out. Please try again.") from error
         except (ValueError, KeyError, TypeError, IndexError, AttributeError) as error:
@@ -2149,9 +2170,19 @@ def extract_metadata_entities(pdf_path: Path, doc_type: str = "auto") -> dict:
     return extracted
 
 
-TRANSLATION_CALL_TIMEOUT_SECONDS = 55.0
+# Give a healthy but slower translation provider enough time to answer each
+# bounded retry. `_provider_request` shares this total budget across its four
+# attempts, so 55 seconds left only about 12 seconds per attempt; document-wide
+# work still remains capped by DOCUMENT_AI_BUDGET_SECONDS.
+TRANSLATION_CALL_TIMEOUT_SECONDS = 90.0
 TRANSLATION_BATCH_SIZE = 8
-TRANSLATION_MAX_PARALLEL_BATCHES = 3
+# Keep provider fan-out below common per-key rate limits while preserving
+# useful overlap for multi-page translations and transient retries.
+TRANSLATION_MAX_PARALLEL_BATCHES = 2
+# Cap additional repair calls across the whole PDF, while allowing enough small
+# groups to recover a truncated multi-batch response instead of giving up after
+# repairing only the first few missing segments.
+TRANSLATION_MAX_REPAIR_REQUESTS = 16
 
 
 def _translation_chunks(text: str, limit: int = 1600) -> list[str]:
@@ -2200,10 +2231,16 @@ def _parse_translation_batch(response: str, expected_ids: list[int]) -> dict[int
         for item in payload:
             if not isinstance(item, dict):
                 continue
-            block_id = item.get("id")
+            raw_block_id = item.get("id")
+            if isinstance(raw_block_id, int) and not isinstance(raw_block_id, bool):
+                block_id = raw_block_id
+            elif isinstance(raw_block_id, str) and re.fullmatch(r"(?:0|[1-9]\d*)", raw_block_id.strip()):
+                block_id = int(raw_block_id.strip())
+            else:
+                continue
             text = item.get("text", item.get("translation"))
             if block_id in expected_ids and isinstance(text, str) and text.strip():
-                output[int(block_id)] = text.strip()
+                output[block_id] = text.strip()
         return output
 
     return {}
@@ -2333,9 +2370,80 @@ def translate_pdf_layout(
                         target_language, batch_number, block_ids, safe_failure,
                     )
                     batch_failures.append((batch_number, block_ids, safe_failure))
-                    report_data["warnings"].append(
-                        f"Translation batch {batch_number} failed ({safe_failure}); affected source text was preserved."
-                    )
+        # Retry missing segments in smaller groups, whether the provider omitted
+        # IDs from valid JSON or an entire first-pass batch failed transiently.
+        # Keep retries bounded across the document so provider truncation cannot
+        # silently strand every missing segment after only the first few groups.
+        all_missing_ids = {
+            block_id for batch in batches for block_id, _ in batch if block_id not in translated_segments
+        }
+        repair_group_size = max(1, min(2, TRANSLATION_BATCH_SIZE // 4))
+        requested_ids: set[int] = set()
+        repaired_ids: set[int] = set()
+        repair_requests = 0
+        while repair_requests < TRANSLATION_MAX_REPAIR_REQUESTS:
+            remaining_budget = deadline - time.monotonic()
+            if remaining_budget <= 0:
+                break
+            repair_batches: list[tuple[int, list[tuple[int, str]]]] = []
+            for batch_number, batch in enumerate(batches, start=1):
+                missing = [(block_id, text) for block_id, text in batch if block_id not in translated_segments]
+                for start in range(0, len(missing), repair_group_size):
+                    if repair_requests + len(repair_batches) >= TRANSLATION_MAX_REPAIR_REQUESTS:
+                        break
+                    repair_batches.append((batch_number, missing[start:start + repair_group_size]))
+                if repair_requests + len(repair_batches) >= TRANSLATION_MAX_REPAIR_REQUESTS:
+                    break
+            if not repair_batches:
+                break
+
+            round_requested_ids = {block_id for _, batch in repair_batches for block_id, _ in batch}
+            requested_ids.update(round_requested_ids)
+            round_repaired = 0
+            with ThreadPoolExecutor(max_workers=TRANSLATION_MAX_PARALLEL_BATCHES,
+                                    thread_name_prefix="translation-repair") as pool:
+                repair_futures = {
+                    pool.submit(_translate_text_batch, batch, target_language, deadline=deadline): (batch_number, batch)
+                    for batch_number, batch in repair_batches
+                }
+                for future in as_completed(repair_futures):
+                    batch_number, batch = repair_futures[future]
+                    try:
+                        repaired = future.result()
+                    except Exception as error:
+                        logger.warning(
+                            "Translation repair failed language=%s batch=%d block_ids=%s reason=%s",
+                            target_language, batch_number, [block_id for block_id, _ in batch], str(error)[:180],
+                        )
+                        continue
+                    for block_id, translated_text in repaired.items():
+                        if block_id in round_requested_ids and block_id not in translated_segments and translated_text.strip():
+                            translated_segments[block_id] = translated_text.strip()
+                            repaired_ids.add(block_id)
+                            round_repaired += 1
+            repair_requests += len(repair_batches)
+            # Avoid repeatedly charging for a provider that made no progress.
+            if round_repaired == 0:
+                break
+
+        if requested_ids:
+            report_data["partial_translation_repair"] = {
+                "requests": repair_requests,
+                "segments_requested": len(requested_ids),
+                "segments_recovered": len(repaired_ids),
+                "segments_missing": len(all_missing_ids),
+                "segments_remaining": len(all_missing_ids - translated_segments.keys()),
+                "segments_deferred": len(all_missing_ids - requested_ids),
+            }
+        for batch_number, block_ids, failure in batch_failures:
+            if all(block_id in translated_segments for block_id in block_ids):
+                report_data["warnings"].append(
+                    f"Translation batch {batch_number} initially failed ({failure}); smaller retries recovered all affected text."
+                )
+            else:
+                report_data["warnings"].append(
+                    f"Translation batch {batch_number} failed ({failure}); untranslated source text was preserved."
+                )
         if batch_failures:
             report_data["failed_batches"] = [
                 {"batch": batch_number, "block_ids": block_ids, "reason": reason}

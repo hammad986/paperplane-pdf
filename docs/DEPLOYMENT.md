@@ -70,13 +70,14 @@ PAPERPLANE_DOMAIN=pdf.yourcompany.com
 PAPERPLANE_SESSION_SECRET=<generated_32_byte_hex>
 PAPERPLANE_REQUIRE_AUTH=false
 PAPERPLANE_ALLOW_BILLING_SIMULATION=false
+PAPERPLANE_ALLOW_TEST_PAYMENTS=false
 PAPERPLANE_SECURE_COOKIES=true
 PAPERPLANE_COOKIE_SAMESITE=lax
 PAPERPLANE_ALLOWED_ORIGINS=https://pdf.yourcompany.com
 PAPERPLANE_TRUSTED_HOSTS=pdf.yourcompany.com,paperplane,127.0.0.1
 PAPERPLANE_DATA_DIR=/data
 PAPERPLANE_MAX_FILE_SIZE=524288000
-PAPERPLANE_JOB_TTL_SECONDS=86400
+PAPERPLANE_JOB_TTL_SECONDS=7200
 ```
 
 > [!IMPORTANT]
@@ -129,10 +130,13 @@ docker compose ps
 Verify backend health endpoint:
 
 ```bash
-curl -k https://127.0.0.1/api/health
+PAPERPLANE_DOMAIN=pdf.yourcompany.com
+curl --fail --silent --show-error "https://${PAPERPLANE_DOMAIN}/api/health"
 # Expected JSON output:
-# {"status":"ok","version":"3.0.0","service":"paperplane-api","database":"connected","environment":"production"}
+# {"status":"ok","service":"paperplane-pdf","version":"2.0.0","auth_required":false,"workers":4,"max_file_size_mb":500,"job_ttl_hours":2}
 ```
+
+The health response reports the configured worker count, maximum upload size, and job-retention duration. These values may differ from the example when the deployment overrides them. The default temporary job retention is two hours (`PAPERPLANE_JOB_TTL_SECONDS=7200`).
 
 Inspect logs:
 
@@ -144,9 +148,9 @@ docker compose logs -f --tail=100
 
 ## 5. Security & Isolation Controls
 
-1. **Non-Root Execution**: The backend container runs under the dedicated `paperplane` user (`UID 1001`, `GID 1001`). It has write access only to `/data` and `/tmp`.
-2. **Reverse Proxy Enclosure**: The FastAPI application binds exclusively to the private Docker network and `127.0.0.1:8501`. Public traffic cannot bypass Nginx.
-3. **Upload Constraints**: Enforced at both proxy (`client_max_body_size 500m;`) and application levels (`PAPERPLANE_MAX_FILE_SIZE=524288000`).
+1. **Non-Root Execution**: The entrypoint starts with root permissions to safely prepare mounted data directories, then drops privileges before starting the application as the dedicated `paperplane` user (`UID 1001`, `GID 1001`). The application processes run as UID 1001; `/data` and `/tmp` are writable for processing.
+2. **Reverse Proxy Enclosure**: The FastAPI application listens on the container network. Compose publishes port 8501 only on host loopback (`127.0.0.1:8501`) so public traffic goes through Nginx.
+3. **Upload Constraints**: Enforced at both proxy (`client_max_body_size 512m;`, including multipart overhead) and application levels (`PAPERPLANE_MAX_FILE_SIZE=524288000`, 500 MiB per file by default).
 4. **SSRF Defenses**: Cloud-sync and URL-based imports use a strict socket resolver that rejects loopback (`127.0.0.0/8`), private networks (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), link-local (`169.254.0.0/16`), cloud metadata endpoints (`169.254.169.254`, `metadata.google.internal`), and IPv6-mapped IPv4 addresses.
 5. **Job Access Isolation**: Authenticated jobs are accessible only to their owning account. Guest jobs require a cryptographically random capability token (`guest_token`) set in an `HttpOnly` cookie or bearer authorization. Directory traversal is blocked via strict `is_relative_to(job_dir)` path containment.
 

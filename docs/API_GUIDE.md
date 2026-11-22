@@ -23,7 +23,7 @@ All protected endpoints require an authenticated Paperplane API key issued to yo
 
 ### Header Specification
 ```http
-Authorization: Bearer YOUR_PAPERPLANE_API_KEY
+Authorization: Bearer ${PAPERPLANE_API_KEY}
 ```
 *(Legacy `X-API-Key: YOUR_PAPERPLANE_API_KEY` header is also supported for backward compatibility).*
 
@@ -129,7 +129,7 @@ If a request with the same idempotency key is received within 24 hours, the serv
 ```bash
 # 1. Submit compression job
 curl -X POST "http://127.0.0.1:8501/api/v1/jobs" \
-  -H "Authorization: Bearer YOUR_PAPERPLANE_API_KEY" \
+  -H "Authorization: Bearer ${PAPERPLANE_API_KEY}" \
   -H "Idempotency-Key: compress_job_001" \
   -F "operation=compress" \
   -F "options={\"preset\":\"balanced\"}" \
@@ -140,11 +140,11 @@ curl -X POST "http://127.0.0.1:8501/api/v1/jobs" \
 
 # 2. Check status
 curl -X GET "http://127.0.0.1:8501/api/v1/jobs/a8f9c1e0..." \
-  -H "Authorization: Bearer YOUR_PAPERPLANE_API_KEY"
+  -H "Authorization: Bearer ${PAPERPLANE_API_KEY}"
 
 # 3. Download verified result
 curl -O -J "http://127.0.0.1:8501/api/v1/jobs/a8f9c1e0.../download" \
-  -H "Authorization: Bearer YOUR_PAPERPLANE_API_KEY"
+  -H "Authorization: Bearer ${PAPERPLANE_API_KEY}"
 ```
 
 ---

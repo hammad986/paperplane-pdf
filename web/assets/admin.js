@@ -560,20 +560,27 @@
     const container = document.getElementById("bar-chart-container");
     if (!container) return;
 
-    if (!days.length) {
+    const trendDays = (Array.isArray(days) ? days : []).slice(-14);
+
+    if (!trendDays.length) {
       container.innerHTML = '<div style="color: var(--text-muted); font-size: 12px; margin: auto;">No trend data available.</div>';
       return;
     }
 
-    const maxCount = Math.max(1, ...days.map(d => d.count || 0));
+    const countFor = day => {
+      const value = Number(day?.count);
+      return Number.isFinite(value) ? Math.max(0, Math.trunc(value)) : 0;
+    };
+    const maxCount = Math.max(1, ...trendDays.map(countFor));
 
-    container.innerHTML = days.map(d => {
-      const count = d.count || 0;
+    container.innerHTML = trendDays.map(d => {
+      const count = countFor(d);
+      const dateLabel = escapeHtml(d?.date || "");
       const heightPct = Math.max(6, Math.round((count / maxCount) * 100));
       return `<div class="bar-col">
         <span class="bar-value">${count > 0 ? count : ""}</span>
-        <div class="bar-fill" style="height: ${heightPct}%;" title="${d.date}: ${count} signups"></div>
-        <span class="bar-label">${d.date}</span>
+        <div class="bar-fill" style="height: ${heightPct}%;" title="${dateLabel}: ${count} signups"></div>
+        <span class="bar-label">${dateLabel}</span>
       </div>`;
     }).join("");
   }
@@ -772,11 +779,13 @@
 
     tbody.innerHTML = orders.map(ord => {
       const dateStr = ord.created_at ? new Date(ord.created_at * 1000).toLocaleString() : "—";
+      const amount = Number(ord.amount);
+      const amountLabel = Number.isFinite(amount) ? amount.toLocaleString("en-IN") : "0";
       return `<tr>
         <td><strong>${escapeHtml(ord.email || ord.customer_id)}</strong></td>
         <td><span class="badge badge-pro">${escapeHtml((ord.tier || "PRO").toUpperCase())}</span></td>
         <td><code style="color: var(--text-muted);">${escapeHtml(ord.order_id || ord.customer_id)}</code></td>
-        <td><strong style="color: var(--green);">₹${(ord.amount || 0).toLocaleString("en-IN")}</strong></td>
+        <td><strong style="color: var(--green);">₹${amountLabel}</strong></td>
         <td>${escapeHtml(ord.gateway_environment || "UNKNOWN")}</td>
         <td>${dateStr}</td>
         <td><span style="color: var(--green); font-weight: 600;">● ${escapeHtml(ord.status || "Paid")}</span></td>

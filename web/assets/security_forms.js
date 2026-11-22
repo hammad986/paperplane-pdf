@@ -185,32 +185,65 @@
             row.className = 'form-field-edit-row';
             row.style.cssText = 'padding: 10px; background: rgba(30, 41, 59, 0.5); border: 1px solid var(--studio-border); border-radius: 6px; margin-bottom: 8px; font-size: 12px;';
 
-            let inputHtml = '';
+            const fieldName = String(field.field_name ?? '');
+            const header = document.createElement('div');
+            header.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;';
+            const nameLabel = document.createElement('strong');
+            nameLabel.style.cssText = 'color: #f1f5f9; font-size: 12.5px;';
+            nameLabel.textContent = fieldName;
+            const meta = document.createElement('span');
+            meta.style.cssText = 'font-size: 10.5px; color: #94a3b8; background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px;';
+            const pageNumber = Number(field.page);
+            meta.textContent = `Page ${Number.isFinite(pageNumber) && pageNumber >= 0 ? Math.floor(pageNumber) + 1 : '—'} · ${String(field.field_type_string || 'Field')}`;
+            header.append(nameLabel, meta);
+
+            let input;
+            let inputWrapper = null;
             if (field.field_type === 2) { // Checkbox
               const isChecked = field.field_value && ['Yes', '1', 'true', 'True', 'on'].includes(String(field.field_value));
-              inputHtml = `<label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                <input type="checkbox" id="form-input-${idx}" class="form-field-input" data-name="${field.field_name}" ${isChecked ? 'checked' : ''} />
-                <span>Checked / Active</span>
-              </label>`;
+              inputWrapper = document.createElement('label');
+              inputWrapper.style.cssText = 'display: flex; align-items: center; gap: 8px; cursor: pointer;';
+              input = document.createElement('input');
+              input.type = 'checkbox';
+              input.checked = Boolean(isChecked);
+              const caption = document.createElement('span');
+              caption.textContent = 'Checked / Active';
+              inputWrapper.append(input, caption);
             } else if (field.choice_values && field.choice_values.length > 0) {
-              const options = field.choice_values.map(c => `<option value="${c}" ${c === field.field_value ? 'selected' : ''}>${c}</option>`).join('');
-              inputHtml = `<select id="form-input-${idx}" class="editor-select form-field-input" data-name="${field.field_name}">${options}</select>`;
+              input = document.createElement('select');
+              input.className = 'editor-select';
+              for (const choice of field.choice_values) {
+                const optionValue = String(choice ?? '');
+                const option = document.createElement('option');
+                option.value = optionValue;
+                option.textContent = optionValue;
+                option.selected = optionValue === String(field.field_value ?? '');
+                input.appendChild(option);
+              }
             } else {
-              inputHtml = `<input type="text" id="form-input-${idx}" class="editor-input form-field-input" data-name="${field.field_name}" value="${field.field_value || ''}" placeholder="Field value..." style="width: 100%;" />`;
+              input = document.createElement('input');
+              input.type = 'text';
+              input.className = 'editor-input';
+              input.value = String(field.field_value ?? '');
+              input.placeholder = 'Field value...';
+              input.style.width = '100%';
             }
-
-            row.innerHTML = `
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                <strong style="color: #f1f5f9; font-size: 12.5px;">${field.field_name}</strong>
-                <span style="font-size: 10.5px; color: #94a3b8; background: rgba(255,255,255,0.06); padding: 2px 6px; border-radius: 4px;">Page ${field.page + 1} · ${field.field_type_string || 'Field'}</span>
-              </div>
-              <div>${inputHtml}</div>
-            `;
+            input.id = `form-input-${idx}`;
+            input.classList.add('form-field-input');
+            input.dataset.name = fieldName;
+            const inputContainer = document.createElement('div');
+            inputContainer.appendChild(inputWrapper || input);
+            row.append(header, inputContainer);
             container.appendChild(row);
           });
         }
       } catch (err) {
-        if (container) container.innerHTML = `<div style="color: #ef4444; padding: 12px;">Error inspecting forms: ${err.message}</div>`;
+        if (container) {
+          const message = document.createElement('div');
+          message.style.cssText = 'color: #ef4444; padding: 12px;';
+          message.textContent = `Error inspecting forms: ${err.message}`;
+          container.replaceChildren(message);
+        }
       }
     }
 
@@ -563,7 +596,7 @@
           <div style="padding: 12px; border-radius: 8px; margin-bottom: 12px; ${badgeStyle}">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <strong>${isAllValid ? 'ALL SIGNATURES CRYPTOGRAPHICALLY VALID' : (isTampered ? 'TAMPERING DETECTED - FILE WAS MODIFIED' : 'INVALID SIGNATURE')}</strong>
-              <span class="badge" style="${badgeStyle}">${report.overall_status}</span>
+              <span class="badge" style="${badgeStyle}">${escapeHtml(report.overall_status)}</span>
             </div>
             <div style="font-size: 11.5px; margin-top: 4px; opacity: 0.9;">Total Signatures: ${escapeHtml(report.signature_count)}</div>
           </div>
@@ -826,11 +859,11 @@
 
         container.innerHTML = `
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; color: #cbd5e1; margin-bottom: 12px;">
-            <div>Encryption: <strong style="color: ${isEncrypted ? '#10b981' : '#f59e0b'};">${isEncrypted ? (info.encryption_type || 'AES-256') : 'None (Unencrypted)'}</strong></div>
+            <div>Encryption: <strong style="color: ${isEncrypted ? '#10b981' : '#f59e0b'};">${escapeHtml(isEncrypted ? (info.encryption_type || 'AES-256') : 'None (Unencrypted)')}</strong></div>
             <div>Password Required: <strong>${info.open_password_required ? 'Yes' : 'No'}</strong></div>
             <div>Active JavaScript: <strong style="color: ${info.has_javascript ? '#ef4444' : '#10b981'};">${info.has_javascript ? 'Detected' : 'Clean'}</strong></div>
-            <div>File Attachments: <strong>${info.attachment_count || 0}</strong></div>
-            <div>Form Fields: <strong>${info.form_field_count || 0}</strong></div>
+            <div>File Attachments: <strong>${escapeHtml(info.attachment_count || 0)}</strong></div>
+            <div>Form Fields: <strong>${escapeHtml(info.form_field_count || 0)}</strong></div>
             <div>Digitally Signed: <strong>${info.is_digitally_signed ? 'Yes' : 'No'}</strong></div>
           </div>
           <div style="padding: 8px; background: rgba(30, 41, 59, 0.6); border-radius: 6px; font-size: 11.5px; color: #94a3b8;">
@@ -839,7 +872,12 @@
           </div>
         `;
       } catch (err) {
-        if (container) container.innerHTML = `<div style="color: #ef4444; padding: 12px;">Audit error: ${err.message}</div>`;
+        if (container) {
+          const message = document.createElement('div');
+          message.style.cssText = 'color: #ef4444; padding: 12px;';
+          message.textContent = `Audit error: ${err.message}`;
+          container.replaceChildren(message);
+        }
       }
     }
 

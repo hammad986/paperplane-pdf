@@ -82,7 +82,7 @@ To enable live external inference with this key:
 3. Test connectivity at any time via Paperplane's diagnostic endpoint:
    ```bash
    curl -X GET "http://127.0.0.1:8501/api/v1/ai/test-connection" \
-     -H "Authorization: Bearer YOUR_PAPERPLANE_API_KEY"
+     -H "Authorization: Bearer ${PAPERPLANE_API_KEY}"
    ```
 
 ---

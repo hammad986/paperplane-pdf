@@ -37,6 +37,8 @@ from reportlab.lib.pagesizes import letter, landscape, A4
 
 logger = logging.getLogger(__name__)
 
+MAX_WATERMARK_IMAGE_PIXELS = 20_000_000
+
 
 def unicode_font_path(bold: bool = False, text: str = "") -> str:
     """Find an embeddable Unicode font so generated text has a ToUnicode map."""
@@ -1271,7 +1273,11 @@ def pdf_to_markdown(
                     table_md_list.append("\n".join(lines))
 
         # Extract structured blocks outside tables
-        d = page.get_text("rawdict")
+        # Keep raw glyph geometry so word gaps can be recovered even when the
+        # PDF stores adjacent words in one span with no explicit space glyph.
+        # Space-only spans must still be retained; dropping them concatenates
+        # words in PDFs whose text layer stores spaces as separate runs.
+        d = page.get_text("rawdict", sort=True)
         for b in d.get("blocks", []):
             if b.get("type") == 0:
                 bbox = fitz.Rect(b.get("bbox"))
@@ -1282,31 +1288,39 @@ def pdf_to_markdown(
                     span_texts = []
                     max_size = 0.0
                     is_bold = False
+                    previous_char = None
                     for s in l.get("spans", []):
-                        t = s.get("text", "") or "".join(char.get("c", "") for char in s.get("chars", []))
-                        if t.strip():
-                            sz = float(s.get("size", 10.0))
-                            chars = s.get("chars") or []
-                            if chars:
-                                previous_char = None
-                                for char in chars:
-                                    char_text = char.get("c", "")
-                                    if not char_text:
-                                        continue
-                                    if previous_char is not None and not char_text.isspace():
-                                        prev_end = float(previous_char.get("bbox", [0, 0, 0, 0])[2])
-                                        this_start = float(char.get("bbox", [0, 0, 0, 0])[0])
-                                        threshold = max(0.5, sz * 0.08)
-                                        if this_start - prev_end > threshold and not span_texts[-1].endswith((" ", "-", "\u2010")):
-                                            span_texts.append(" ")
-                                    span_texts.append(char_text)
-                                    previous_char = char
-                            else:
-                                span_texts.append(t)
-                            if sz > max_size:
-                                max_size = sz
-                            if s.get("flags", 0) & 16:
-                                is_bold = True
+                        chars = s.get("chars") or []
+                        t = s.get("text", "") or "".join(char.get("c", "") for char in chars)
+                        if not t:
+                            continue
+                        sz = float(s.get("size", 10.0))
+                        if chars:
+                            for char in chars:
+                                char_text = char.get("c", "")
+                                if not char_text:
+                                    continue
+                                if previous_char is not None and not char_text.isspace():
+                                    prev_end = float(previous_char.get("bbox", [0, 0, 0, 0])[2])
+                                    this_start = float(char.get("bbox", [0, 0, 0, 0])[0])
+                                    # Leave normal font kerning gaps intact;
+                                    # infer a word boundary only when the
+                                    # geometric gap is clearly larger than
+                                    # intra-word spacing.
+                                    threshold = max(0.25, sz * 0.05)
+                                    if (this_start - prev_end > threshold
+                                            and not "".join(span_texts).endswith((" ", "-", "\u2010"))):
+                                        span_texts.append(" ")
+                                span_texts.append(char_text)
+                                previous_char = char
+                        else:
+                            span_bbox = s.get("bbox", [0, 0, 0, 0])
+                            span_texts.append(t)
+                            previous_char = {"bbox": span_bbox}
+                        if sz > max_size:
+                            max_size = sz
+                        if s.get("flags", 0) & 16:
+                            is_bold = True
                     line_str = "".join(span_texts).strip()
                     if line_str:
                         if max_size >= 18 or (max_size >= 15 and is_bold):
@@ -2037,22 +2051,73 @@ def compress_pdf(
         doc = fitz.open(str(source))
         if active_cfg["downsample"]:
             processed_xrefs = set()
+            image_masks: dict[int, int] = {}
+            conflicting_mask_refs: set[int] = set()
+            for scan_page in doc:
+                for image_info in scan_page.get_images(full=True):
+                    image_xref, mask_xref = image_info[0], image_info[1]
+                    previous_mask = image_masks.setdefault(image_xref, mask_xref)
+                    if previous_mask != mask_xref:
+                        conflicting_mask_refs.add(image_xref)
             for page in doc:
                 for img_info in page.get_images(full=True):
                     xref = img_info[0]
-                    if xref in processed_xrefs or img_info[1]:
+                    if xref in processed_xrefs:
                         continue
                     processed_xrefs.add(xref)
+                    if xref in conflicting_mask_refs:
+                        continue
                     try:
                         base_image = doc.extract_image(xref)
                         if not base_image:
                             continue
                         image_bytes = base_image["image"]
+                        smask_xref = img_info[1]
+                        if smask_xref:
+                            # PDF soft masks store transparency in a separate
+                            # image stream. Recombine them before downsampling,
+                            # then write PNG so transparent pixels remain
+                            # transparent instead of turning black or opaque.
+                            mask_image = doc.extract_image(smask_xref)
+                            if not mask_image:
+                                continue
+                            pixmap = fitz.Pixmap(fitz.Pixmap(doc, xref), fitz.Pixmap(doc, smask_xref))
+                            with Image.open(io.BytesIO(pixmap.tobytes("png"))) as masked_image:
+                                pil_img = masked_image.convert("RGBA")
+                                w, h = pil_img.size
+                                if w > active_cfg["max_w"] or h > active_cfg["max_h"]:
+                                    scale = min(active_cfg["max_w"] / w, active_cfg["max_h"] / h)
+                                    pil_img = pil_img.resize(
+                                        (max(1, int(w * scale)), max(1, int(h * scale))),
+                                        Image.Resampling.LANCZOS,
+                                    )
+                                buf = io.BytesIO()
+                                pil_img.save(buf, format="PNG", optimize=True)
+                            compressed = buf.getvalue()
+                            original_payload_size = len(image_bytes) + len(mask_image["image"])
+                            if len(compressed) < original_payload_size:
+                                page.replace_image(xref, stream=compressed)
+                            continue
                         with Image.open(io.BytesIO(image_bytes)) as pil_img:
-                            # Replacing an image xref with a JPEG drops soft masks and
-                            # palette transparency. Keep these streams intact; shrinking
-                            # them is not worth turning transparent regions black.
-                            if pil_img.mode in ("RGBA", "LA", "P", "CMYK") or "transparency" in pil_img.info:
+                            if pil_img.mode == "CMYK":
+                                continue
+                            if pil_img.mode in ("RGBA", "LA", "P") or "transparency" in pil_img.info:
+                                # Preserve inline alpha/palette transparency by
+                                # recompressing as PNG rather than flattening it
+                                # into an opaque JPEG.
+                                pil_img = pil_img.convert("RGBA")
+                                w, h = pil_img.size
+                                if w > active_cfg["max_w"] or h > active_cfg["max_h"]:
+                                    scale = min(active_cfg["max_w"] / w, active_cfg["max_h"] / h)
+                                    pil_img = pil_img.resize(
+                                        (max(1, int(w * scale)), max(1, int(h * scale))),
+                                        Image.Resampling.LANCZOS,
+                                    )
+                                buf = io.BytesIO()
+                                pil_img.save(buf, format="PNG", optimize=True)
+                                compressed = buf.getvalue()
+                                if len(compressed) < len(image_bytes):
+                                    page.replace_image(xref, stream=compressed)
                                 continue
                             w, h = pil_img.size
                             if w > active_cfg["max_w"] or h > active_cfg["max_h"]:
@@ -2336,7 +2401,13 @@ def scan_to_pdf(images: list[Path], output: Path, enhance: bool = True, page_siz
 
     for img_path in images:
         with Image.open(img_path) as img:
-            rgb_img = img.convert("RGB")
+            oriented = ImageOps.exif_transpose(img)
+            if "A" in oriented.getbands() or "transparency" in oriented.info:
+                rgba = oriented.convert("RGBA")
+                background = Image.new("RGBA", rgba.size, "white")
+                rgb_img = Image.alpha_composite(background, rgba).convert("RGB")
+            else:
+                rgb_img = oriented.convert("RGB")
             if enhance:
                 # Auto contrast and sharpness boost
                 rgb_img = ImageOps.autocontrast(rgb_img, cutoff=2)
@@ -2644,32 +2715,51 @@ def apply_image_watermark(source: Path, output: Path, watermark_img_path: Path |
         actual_output = output
         actual_wm_path = watermark_img_path
 
+    opacity = float(opacity)
+    if not math.isfinite(opacity) or not 0 <= opacity <= 1:
+        raise ValueError("Watermark opacity must be between 0 and 1.")
+    scale = float(scale)
+    if not math.isfinite(scale) or scale <= 0:
+        raise ValueError("Watermark image scale must be greater than 0.")
+
+    try:
+        with Image.open(actual_wm_path) as wm_pil:
+            wm_w, wm_h = wm_pil.size
+            if wm_w <= 0 or wm_h <= 0 or wm_w * wm_h > MAX_WATERMARK_IMAGE_PIXELS:
+                raise ValueError(
+                    "Watermark image exceeds the 20-megapixel processing limit. Choose a smaller image."
+                )
+            wm_rgba = wm_pil.convert("RGBA")
+            if opacity < 1.0:
+                alpha = wm_rgba.getchannel("A")
+                alpha = alpha.point(lambda p: int(p * opacity))
+                wm_rgba.putalpha(alpha)
+
+            buffer = io.BytesIO()
+            wm_rgba.save(buffer, format="PNG")
+            wm_bytes = buffer.getvalue()
+    except ValueError:
+        raise
+    except Exception as error:
+        raise ValueError("Watermark image could not be decoded. Choose a supported image file.") from error
+
     doc = fitz.open(str(source))
-    with Image.open(actual_wm_path) as wm_pil:
-        wm_rgba = wm_pil.convert("RGBA")
-        if opacity < 1.0:
-            alpha = wm_rgba.split()[3]
-            alpha = alpha.point(lambda p: int(p * opacity))
-            wm_rgba.putalpha(alpha)
+    try:
+        for page in doc:
+            rect = page.rect
+            target_w = rect.width * scale
+            aspect = wm_w / max(1, wm_h)
+            target_h = target_w / max(0.1, aspect)
 
-        buffer = io.BytesIO()
-        wm_rgba.save(buffer, format="PNG")
-        wm_bytes = buffer.getvalue()
-        wm_w, wm_h = wm_pil.size
+            x0 = (rect.width - target_w) / 2
+            y0 = (rect.height - target_h) / 2
+            wm_rect = fitz.Rect(x0, y0, x0 + target_w, y0 + target_h)
+            page.insert_image(wm_rect, stream=wm_bytes)
 
-    for page in doc:
-        rect = page.rect
-        target_w = rect.width * scale
-        aspect = wm_w / max(1, wm_h)
-        target_h = target_w / max(0.1, aspect)
-
-        x0 = (rect.width - target_w) / 2
-        y0 = (rect.height - target_h) / 2
-        wm_rect = fitz.Rect(x0, y0, x0 + target_w, y0 + target_h)
-        page.insert_image(wm_rect, stream=wm_bytes)
-
-    doc.save(str(actual_output), garbage=4, deflate=True)
-    return actual_output
+        doc.save(str(actual_output), garbage=4, deflate=True)
+        return actual_output
+    finally:
+        doc.close()
 
 
 def annotate_pdf(source: Path, output: Path | list[dict], annotations: list[dict] | Path | None = None) -> Path:
@@ -2684,71 +2774,71 @@ def annotate_pdf(source: Path, output: Path | list[dict], annotations: list[dict
         actual_output = Path(output)
         actual_annotations = annotations or []
 
-    doc = fitz.open(str(source))
-    for ann in actual_annotations:
-        try:
-            # The public API accepts one-based page numbers; preserve the
-            # original page-zero alias used by legacy converter callers.
-            page_num = max(0, int(ann.get("page", 1)) - 1)
-        except (TypeError, ValueError) as error:
-            raise ValueError("Annotation page must be a valid page number.") from error
-        if page_num < 0 or page_num >= len(doc):
-            raise ValueError(f"Annotation page {page_num + 1} is outside this document.")
-        page = doc[page_num]
-        atype = ann.get("type", "").lower()
-        if atype == "note":
-            atype = "sticky_note"
-        color = ann.get("color", [1, 0.8, 0])
-        color_tuple = tuple(color[:3]) if isinstance(color, list) else (1, 0.8, 0)
+    with fitz.open(str(source)) as doc:
+        for ann in actual_annotations:
+            try:
+                # The public API accepts one-based page numbers; preserve the
+                # original page-zero alias used by legacy converter callers.
+                page_num = max(0, int(ann.get("page", 1)) - 1)
+            except (TypeError, ValueError) as error:
+                raise ValueError("Annotation page must be a valid page number.") from error
+            if page_num < 0 or page_num >= len(doc):
+                raise ValueError(f"Annotation page {page_num + 1} is outside this document.")
+            page = doc[page_num]
+            atype = ann.get("type", "").lower()
+            if atype == "note":
+                atype = "sticky_note"
+            color = ann.get("color", [1, 0.8, 0])
+            color_tuple = tuple(color[:3]) if isinstance(color, list) else (1, 0.8, 0)
 
-        if atype in {"highlight", "underline", "strikeout"}:
-            search_text = str(ann.get("text", "")).strip()
-            if search_text:
-                rectangles = page.search_for(search_text)
-                if not rectangles:
-                    raise ValueError(f'The text "{search_text}" was not found on page {page_num + 1}.')
-            else:
-                rectangles = [fitz.Rect(*ann.get("rect", [72, 72, 200, 90]))]
-            for rect in rectangles:
-                if atype == "highlight":
-                    annot = page.add_highlight_annot(rect)
-                elif atype == "underline":
-                    annot = page.add_underline_annot(rect)
+            if atype in {"highlight", "underline", "strikeout"}:
+                search_text = str(ann.get("text", "")).strip()
+                if search_text:
+                    rectangles = page.search_for(search_text)
+                    if not rectangles:
+                        raise ValueError(f'The text "{search_text}" was not found on page {page_num + 1}.')
                 else:
-                    annot = page.add_strikeout_annot(rect)
-                annot.set_colors(stroke=color_tuple)
-                comment = str(ann.get("content", ann.get("comment", ""))).strip()
-                if comment:
-                    annot.set_info(title=str(ann.get("author", "User")), content=comment)
+                    rectangles = [fitz.Rect(*ann.get("rect", [72, 72, 200, 90]))]
+                for rect in rectangles:
+                    if atype == "highlight":
+                        annot = page.add_highlight_annot(rect)
+                    elif atype == "underline":
+                        annot = page.add_underline_annot(rect)
+                    else:
+                        annot = page.add_strikeout_annot(rect)
+                    annot.set_colors(stroke=color_tuple)
+                    comment = str(ann.get("content", ann.get("comment", ""))).strip()
+                    if comment:
+                        annot.set_info(title=str(ann.get("author", "User")), content=comment)
+                    annot.update()
+            elif atype in {"rect", "rectangle"}:
+                rect = fitz.Rect(*ann.get("rect", [72, 72, 200, 150]))
+                fill = ann.get("fill")
+                fill_tuple = tuple(fill[:3]) if fill and isinstance(fill, list) else None
+                page.draw_rect(rect, color=color_tuple, fill=fill_tuple, width=float(ann.get("width", 1.5)))
+            elif atype in {"circle", "oval"}:
+                rect = fitz.Rect(*ann.get("rect", [72, 72, 200, 150]))
+                page.draw_oval(rect, color=color_tuple, width=float(ann.get("width", 1.5)))
+            elif atype == "text":
+                pt = ann.get("point", [72, 72])
+                text = str(ann.get("text", "")).strip()
+                if not text:
+                    raise ValueError("Text annotations need content.")
+                fontsize = float(ann.get("fontsize", 12))
+                page.insert_text(fitz.Point(pt[0], pt[1]), text, fontsize=fontsize, color=color_tuple,
+                                 fontname="paperplane-unicode", fontfile=unicode_font_path())
+            elif atype in {"sticky_note", "comment"}:
+                pt = ann.get("point", [72, 72])
+                text = str(ann.get("content", ann.get("text", ""))).strip()
+                if not text:
+                    raise ValueError("Sticky note annotations need comment text.")
+                annot = page.add_text_annot(fitz.Point(pt[0], pt[1]), text)
+                annot.set_info(title=str(ann.get("author", "User")), content=text)
                 annot.update()
-        elif atype in {"rect", "rectangle"}:
-            rect = fitz.Rect(*ann.get("rect", [72, 72, 200, 150]))
-            fill = ann.get("fill")
-            fill_tuple = tuple(fill[:3]) if fill and isinstance(fill, list) else None
-            page.draw_rect(rect, color=color_tuple, fill=fill_tuple, width=float(ann.get("width", 1.5)))
-        elif atype in {"circle", "oval"}:
-            rect = fitz.Rect(*ann.get("rect", [72, 72, 200, 150]))
-            page.draw_oval(rect, color=color_tuple, width=float(ann.get("width", 1.5)))
-        elif atype == "text":
-            pt = ann.get("point", [72, 72])
-            text = str(ann.get("text", "")).strip()
-            if not text:
-                raise ValueError("Text annotations need content.")
-            fontsize = float(ann.get("fontsize", 12))
-            page.insert_text(fitz.Point(pt[0], pt[1]), text, fontsize=fontsize, color=color_tuple,
-                             fontname="paperplane-unicode", fontfile=unicode_font_path())
-        elif atype in {"sticky_note", "comment"}:
-            pt = ann.get("point", [72, 72])
-            text = str(ann.get("content", ann.get("text", ""))).strip()
-            if not text:
-                raise ValueError("Sticky note annotations need comment text.")
-            annot = page.add_text_annot(fitz.Point(pt[0], pt[1]), text)
-            annot.set_info(title=str(ann.get("author", "User")), content=text)
-            annot.update()
-        else:
-            raise ValueError(f"Unsupported annotation type: {atype or 'empty'}.")
+            else:
+                raise ValueError(f"Unsupported annotation type: {atype or 'empty'}.")
 
-    doc.save(str(actual_output), garbage=4, deflate=True)
+        doc.save(str(actual_output), garbage=4, deflate=True)
     return actual_output
 
 

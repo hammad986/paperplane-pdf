@@ -15,6 +15,7 @@ import ipaddress
 from functools import lru_cache
 import json
 import logging
+import multiprocessing
 import os
 import re
 import shutil
@@ -114,6 +115,7 @@ except ImportError:
     HAS_GOOGLE_AUTH = False
 
 import converters
+import watermark_job_worker
 import ai_engine
 import security_forms_engine
 
@@ -123,6 +125,7 @@ CHUNKED_UPLOADS_DIR = Path(config.DATA_DIR) / "staged_uploads"
 CHUNKED_UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 UPLOAD_CHUNK_BYTES = 5 * 1024 * 1024
 UPLOAD_SESSION_TTL_SECONDS = 60 * 60
+MAX_WATERMARK_IMAGE_BYTES = 25 * 1024 * 1024
 logger = logging.getLogger(__name__)
 executor = ThreadPoolExecutor(max_workers=max(4, int(os.getenv("PAPERPLANE_WORKERS", "4"))))
 
@@ -222,6 +225,7 @@ def _require_admin(
 COMPRESS_TIMEOUT_SECONDS = 60.0    # multi-pass downsampling & stream compression
 OCR_TIMEOUT_SECONDS = 90.0         # page-by-page C++ Tesseract OCR execution
 GRAYSCALE_TIMEOUT_SECONDS = 45.0   # 150-DPI monochrome rasterization per page
+WATERMARK_TIMEOUT_SECONDS = 180.0  # per-document overlay rendering; surface a terminal result instead of leaving jobs processing indefinitely
 MERGE_TIMEOUT_SECONDS = 840.0       # large image-heavy jobs; Nginx allows 900s
 AI_SUMMARY_REQUEST_TIMEOUT_SECONDS = 300.0  # up to four chunked large-document requests with one bounded retry each
 AI_TRANSLATION_REQUEST_TIMEOUT_SECONDS = 300.0  # bounded batches for documents up to the current text-block cap
@@ -281,6 +285,74 @@ def run_converter_with_timeout(
             tool_name, elapsed, in_size_kb, exc
         )
         raise
+
+
+def _run_watermark_worker_with_timeout(
+    source: Path,
+    output: Path,
+    operation: str,
+    options: dict,
+    *,
+    image_path: Path | None = None,
+    timeout_seconds: float = WATERMARK_TIMEOUT_SECONDS,
+    worker_target: Callable = watermark_job_worker.run_watermark_job,
+) -> Path:
+    """Run native PDF overlay work in a killable process with a hard deadline."""
+    context = multiprocessing.get_context("spawn")
+    parent_pipe, worker_pipe = context.Pipe(duplex=False)
+    process = context.Process(
+        target=worker_target,
+        args=(worker_pipe, str(source), str(output), operation, options, str(image_path) if image_path else None),
+        name=f"paperplane-{operation}-worker",
+        daemon=True,
+    )
+    started = time.monotonic()
+    succeeded = False
+    try:
+        process.start()
+        worker_pipe.close()
+        process.join(timeout_seconds)
+        if process.is_alive():
+            process.terminate()
+            process.join(timeout=5)
+            if process.is_alive():
+                process.kill()
+                process.join(timeout=5)
+            if process.is_alive():
+                raise RuntimeError(f"{operation.capitalize()} worker could not be stopped after timeout.")
+            output.unlink(missing_ok=True)
+            elapsed = round(time.monotonic() - started, 2)
+            logger.error("Operation '%s' worker process %s terminated at timeout after %.2fs (limit: %.3fs).", operation, process.pid, elapsed, timeout_seconds)
+            raise TimeoutError(
+                f"{operation.replace('_', ' ').capitalize()} processing timed out after {max(1, int(timeout_seconds))}s. "
+                "The worker was stopped. The document may be unusually large or complex; try fewer pages or a smaller file."
+            )
+
+        if parent_pipe.poll(1):
+            succeeded, error_type, error_message = parent_pipe.recv()
+            if succeeded:
+                succeeded = True
+                return output
+            output.unlink(missing_ok=True)
+            if error_type == "ValueError":
+                raise ValueError(error_message)
+            raise RuntimeError(error_message or f"{operation.capitalize()} worker failed.")
+
+        output.unlink(missing_ok=True)
+        raise RuntimeError(f"{operation.capitalize()} worker exited without a result (exit code {process.exitcode}).")
+    finally:
+        worker_pipe.close()
+        parent_pipe.close()
+        if process.pid is not None:
+            if process.is_alive():
+                process.kill()
+                process.join(timeout=5)
+            process.close()
+        if not succeeded:
+            try:
+                output.unlink(missing_ok=True)
+            except OSError as cleanup_error:
+                logger.warning("Unable to remove partial output after %s worker failure: %s", operation, cleanup_error)
 
 def _should_disable_docs(environment: str, configured_enable: str | None = None) -> bool:
     """Fail closed; interactive API docs require an explicit non-production opt-in."""
@@ -1395,7 +1467,7 @@ def seo_page_context(operation: str | None, landing_slug: str | None = None) -> 
             "related": landing["related"],
             "how_to": how_to,
             "faqs": (
-                ("Is Paperplane free to use?", "Paperplane includes free workflows for everyday PDF tasks. Browser-local processing is available for Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Crop PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Page Numbers, and photo tools."),
+                ("Is Paperplane free to use?", "Paperplane includes free workflows for everyday PDF tasks. Browser-local processing is available for Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Scan to PDF, JPG/PNG to PDF, PDF-to-JPG, Grayscale PDF, Crop PDF, Add Text & Stamps, Sign PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Compare PDF text, PDF-to-Markdown (basic), PDF-to-Word (text-first), Page Numbers, text and image watermarks, and photo tools."),
                 ("Are files stored permanently?", "No. Server-mode job files use isolated storage and an automatic lifecycle cleanup policy."),
                 ("Can I use these tools on mobile?", "Yes. The web workspace adapts to Android and iOS browsers with touch-friendly controls."),
             ),
@@ -1413,7 +1485,7 @@ def seo_page_context(operation: str | None, landing_slug: str | None = None) -> 
             "related": ("merge", "compress", "pdf_to_word", "sign"),
             "how_to": ("Choose a PDF tool", "Add the source document", "Download the verified output"),
             "faqs": (
-                ("Where are files processed?", "Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Crop PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Page Numbers, and photo tools can run in your browser when browser processing is selected. Other tasks use temporary server processing; expired job files are removed on the configured cleanup schedule (2-hour retention by default)."),
+                ("Where are files processed?", "Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Scan to PDF, JPG/PNG to PDF, PDF-to-JPG, Grayscale PDF, Crop PDF, Add Text & Stamps, Sign PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Compare PDF text, PDF-to-Markdown (basic), PDF-to-Word (text-first), Page Numbers, text and image watermarks, and photo tools can run in your browser when browser processing is selected. Grayscale renders colored pages at 150 DPI and may remove searchable text; already-grayscale files stay unchanged. Browser-local Scan to PDF skips automatic contrast/sharpness enhancement; choose temporary server processing for enhancement. Image watermarks and other tasks use temporary server processing after your choice; expired job files are removed on the configured cleanup schedule (2-hour retention by default)."),
                 ("What PDF operations are available?", "The catalog covers organizing, compression, conversion, editing, security, and document intelligence workflows."),
                 ("Does Paperplane work on phones?", "Yes. The public web workspace is responsive and uses touch-sized controls on mobile browsers."),
             ),
@@ -2322,50 +2394,7 @@ def pdf_bytes(writer: PdfWriter) -> bytes:
 
 
 def overlay(width: float, height: float, text: str, kind: str, options: dict) -> bytes:
-    output = io.BytesIO()
-    pdf = canvas.Canvas(output, pagesize=(width, height))
-    size = int(options.get("font_size", 11))
-    font_path = converters.unicode_font_path(bold=kind == "watermark", text=text)
-    font_name = "PaperplaneUnicodeBold" if kind == "watermark" else "PaperplaneUnicode"
-    if font_name not in pdfmetrics.getRegisteredFontNames():
-        pdfmetrics.registerFont(TTFont(font_name, font_path))
-    render_size = size if kind != "watermark" else min(44, max(20, width / 12))
-    pdf.setFont(font_name, render_size)
-    mark_color = str(options.get("mark_color", "#243b53"))
-    if not re.fullmatch(r"#[0-9a-fA-F]{6}", mark_color):
-        mark_color = "#243b53"
-    red, green, blue = (int(mark_color[i:i + 2], 16) / 255 for i in (1, 3, 5))
-    background = str(options.get("mark_background", "unknown")).lower()
-    outline = (1, 1, 1) if background == "dark" else (0, 0, 0)
-
-    if kind == "watermark":
-        pdf.saveState()
-        pdf.setFillAlpha(float(options.get("opacity", 0.18)))
-        pdf.setFillColorRGB(red, green, blue)
-        pdf.setStrokeColorRGB(*outline)
-        pdf.setLineWidth(max(0.8, render_size / 18))
-        pdf.translate(width / 2, height / 2)
-        pdf.rotate(35)
-        mark = pdf.beginText(-pdf.stringWidth(text, font_name, render_size) / 2, 0)
-        mark.setTextRenderMode(2)
-        mark.textOut(text)
-        pdf.drawText(mark)
-        pdf.restoreState()
-    else:
-        position = options.get("position", "Footer center")
-        text_width = pdf.stringWidth(text, font_name, size)
-        x = 28 if position.endswith("left") else width - text_width - 28 if position.endswith("right") else (width - text_width) / 2
-        y = 24 if position.startswith("Footer") else height - 34
-        pdf.setFillColorRGB(red, green, blue)
-        pdf.setStrokeColorRGB(*outline)
-        pdf.setLineWidth(max(0.8, size / 10))
-        mark = pdf.beginText(x, y)
-        mark.setTextRenderMode(2)
-        mark.textOut(text)
-        pdf.drawText(mark)
-
-    pdf.save()
-    return output.getvalue()
+    return watermark_job_worker._overlay(width, height, text, kind, options)
 
 
 # ----------------------------------------------------------------------
@@ -2740,12 +2769,33 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
 
     elif operation in {"watermark", "page_numbers"}:
         wm_image_data = options.get("watermark_image_data")
-        if operation == "watermark" and wm_image_data and "," in str(wm_image_data):
-            img_bytes = base64.b64decode(str(wm_image_data).split(",", 1)[1])
+        if operation == "watermark" and wm_image_data:
+            if not isinstance(wm_image_data, str) or "," not in wm_image_data:
+                raise ValueError("Watermark image data URL is invalid. Choose a supported PNG or JPEG file.")
+            header, encoded_image = str(wm_image_data).split(",", 1)
+            if header.lower() not in {"data:image/png;base64", "data:image/jpeg;base64", "data:image/jpg;base64"}:
+                raise ValueError("Watermark image must be a PNG or JPEG file.")
+            # Reject oversized payloads before base64 decoding or writing them
+            # to disk. The browser worker applies the same 25 MiB file limit.
+            if len(encoded_image) > ((MAX_WATERMARK_IMAGE_BYTES + 2) // 3) * 4:
+                raise ValueError("Watermark image exceeds the 25 MiB processing limit. Choose a smaller image.")
+            try:
+                img_bytes = base64.b64decode(encoded_image, validate=True)
+            except (ValueError, base64.binascii.Error) as error:
+                raise ValueError("Watermark image data is invalid. Choose a supported PNG or JPEG file.") from error
+            if len(img_bytes) > MAX_WATERMARK_IMAGE_BYTES:
+                raise ValueError("Watermark image exceeds the 25 MiB processing limit. Choose a smaller image.")
             temp_img = output_dir / f"wm_{uuid.uuid4().hex[:8]}.png"
             temp_img.write_bytes(img_bytes)
             try:
-                converters.apply_image_watermark(source, output, temp_img, opacity=float(options.get("opacity", 0.3)))
+                _run_watermark_worker_with_timeout(
+                    source,
+                    output,
+                    operation,
+                    options,
+                    image_path=temp_img,
+                    timeout_seconds=WATERMARK_TIMEOUT_SECONDS,
+                )
                 return output
             finally:
                 temp_img.unlink(missing_ok=True)
@@ -2758,35 +2808,13 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
         else:
             label = options.get("text", "CONFIDENTIAL") if operation == "watermark" else ""
 
-        format_pattern = str(options.get("format", "page_of_total")).lower()
-        start_number = _safe_int(options.get("start_number"), 1)
-        start_page = _safe_int(options.get("start_page"), 1)
-        with fitz.open(str(source)) as overlay_document:
-            total_pages = overlay_document.page_count
-            for number, page in enumerate(overlay_document, 1):
-                if operation == "watermark":
-                    lbl = label
-                else:
-                    if number < start_page:
-                        continue
-                    curr = start_number + (number - start_page)
-                    if format_pattern in {"number_only", "number only", "{n}"}:
-                        lbl = str(curr)
-                    elif "{n}" in format_pattern or "{total}" in format_pattern:
-                        # Preserve the selected template and substitute both tokens.
-                        lbl = re.sub(r"\{n\}", str(curr), str(options.get("format", "")), flags=re.IGNORECASE)
-                        lbl = re.sub(r"\{total\}", str(total_pages), lbl, flags=re.IGNORECASE)
-                    elif format_pattern == "page_n":
-                        lbl = f"Page {curr}"
-                    else:
-                        lbl = f"Page {curr} of {total_pages}"
-
-                overlay_bytes = overlay(float(page.rect.width), float(page.rect.height), lbl, operation, options)
-                with fitz.open(stream=overlay_bytes, filetype="pdf") as overlay_doc:
-                    page.show_pdf_page(page.rect, overlay_doc, 0, overlay=True)
-
-            overlay_document.save(str(output), garbage=4, deflate=True)
-        return output
+        return _run_watermark_worker_with_timeout(
+            source,
+            output,
+            operation,
+            options,
+            timeout_seconds=WATERMARK_TIMEOUT_SECONDS,
+        )
 
     elif operation == "protect":
         password = (options.get("password") or options.get("user_password") or "").strip()
@@ -7899,6 +7927,39 @@ def admin_portal_page():
     @media (max-width: 900px) {
       .analytics-section { grid-template-columns: 1fr; }
     }
+    .analytics-section > .chart-card { min-width: 0; }
+    .bar-chart-container {
+      inline-size: 100%;
+      min-width: 0;
+      overflow-x: auto;
+      overscroll-behavior-inline: contain;
+    }
+    .bar-chart-container .bar-col { flex: 0 0 24px; }
+    .table-container:focus-visible,
+    .bar-chart-container:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    @media (max-width: 600px) {
+      header {
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 12px 16px;
+      }
+      .tabs {
+        flex-wrap: wrap;
+        min-width: 0;
+        max-width: 100%;
+      }
+      .tab-btn { flex: 1 1 95px; }
+      .header-actions {
+        flex-wrap: wrap;
+        margin-inline-start: auto;
+      }
+      main { padding: 20px 14px; }
+      .chart-card { padding: 14px; }
+      .chart-card h3 { flex-wrap: wrap; gap: 8px; }
+    }
     .chart-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
@@ -8306,7 +8367,7 @@ def admin_portal_page():
             <span>📈 14-Day User Signups Trend</span>
             <span style="font-size: 11px; font-weight: normal; color: var(--text-muted);">Daily Registrations</span>
           </h3>
-          <div class="bar-chart-container" id="bar-chart-container">
+          <div class="bar-chart-container" id="bar-chart-container" role="region" aria-label="14-day signup trend chart; scroll horizontally to inspect each date" tabindex="0">
             <!-- Dynamically rendered bars -->
           </div>
         </div>
@@ -8345,7 +8406,7 @@ def admin_portal_page():
       </div>
 
       <!-- Users Table Panel -->
-      <div class="table-container" id="panel-users">
+      <div class="table-container" id="panel-users" role="region" aria-label="User directory table" tabindex="0">
         <div style="padding: 12px 16px; background: #111a1d; border-bottom: 1px solid var(--card-border); display: flex; align-items: center; gap: 8px;">
           <span style="font-size: 12px; color: var(--text-muted);">Quick Filter:</span>
           <div class="filter-pills">
@@ -8399,7 +8460,7 @@ def admin_portal_page():
 
         <p class="text-muted" id="rev-revenue-basis" style="padding: 0 4px; font-size: 12px;"></p>
 
-        <div class="table-container">
+        <div class="table-container" role="region" aria-label="Paying customers and recent transactions" tabindex="0">
           <div style="padding: 14px 18px; background: #111a1d; border-bottom: 1px solid var(--card-border); font-weight: 700; font-size: 14px;">
             💳 Paying Customers &amp; Recent Transactions
           </div>
@@ -8422,7 +8483,7 @@ def admin_portal_page():
         </div>
       </div>
 
-      <section id="panel-sessions" class="table-container" style="display: none;" aria-label="Admin sessions">
+      <section id="panel-sessions" class="table-container" style="display: none;" aria-label="Admin sessions" tabindex="0">
         <table>
           <thead><tr><th>Owner account</th><th>Role</th><th>Signed in</th><th>Expires</th><th>Action</th></tr></thead>
           <tbody id="sessions-tbody"></tbody>
@@ -8432,7 +8493,7 @@ def admin_portal_page():
       <!-- User Feedback Panel -->
       <div id="panel-feedback" style="display: none;">
         <p id="feedback-refresh-status" role="status">Feedback refreshes while this tab is open.</p>
-        <div class="table-container">
+        <div class="table-container" role="region" aria-label="User feedback table" tabindex="0">
           <div style="padding: 12px 16px; background: #111a1d; border-bottom: 1px solid var(--card-border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
             <div style="display: flex; align-items: center; gap: 8px;">
               <span style="font-size: 12px; color: var(--text-muted);">Feedback Filter:</span>
@@ -8548,7 +8609,7 @@ def admin_portal_page():
       </div>
 
       <!-- Waitlist Table Panel -->
-      <div class="table-container" id="panel-waitlist" style="display: none;">
+      <div class="table-container" id="panel-waitlist" style="display: none;" role="region" aria-label="Waitlist table" tabindex="0">
         <table>
           <thead>
             <tr>
@@ -8566,7 +8627,7 @@ def admin_portal_page():
       </div>
 
       <!-- Security Audit Trail Panel -->
-      <div class="table-container" id="panel-audit" style="display: none;">
+      <div class="table-container" id="panel-audit" style="display: none;" role="region" aria-label="Security audit table" tabindex="0">
         <table>
           <thead>
             <tr>
@@ -8586,7 +8647,7 @@ def admin_portal_page():
     </div>
   </main>
 
-  <script src="/assets/admin.js?v=16" defer></script>
+  <script src="/assets/admin.js?v=18" defer></script>
 </body>
 </html>""")
 
@@ -9215,9 +9276,11 @@ async def custom_404_handler(request: Request, exc: HTTPException):
 
 
 if __name__ == "__main__":
+    from app import configured_port
+
     uvicorn.run(
         "server:app",
         host=os.getenv("PAPERPLANE_HOST", "127.0.0.1"),
-        port=int(os.getenv("PAPERPLANE_PORT", "8501")),
+        port=configured_port(),
         reload=False,
     )

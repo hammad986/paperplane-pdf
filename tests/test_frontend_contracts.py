@@ -80,7 +80,8 @@ def test_active_file_resolution_chain_contract():
 
 
 def test_cashfree_checkout_contract():
-    assert 'https://sdk.cashfree.com/js/v3/cashfree.js' in INDEX
+    assert 'https://sdk.cashfree.com/js/v3/cashfree.js' not in INDEX
+    assert "loadExternalSdk('https://sdk.cashfree.com/js/v3/cashfree.js'" in APP
     for tier in ("exam", "student", "cybercafe"):
         assert f'id="{tier}-cashfree-checkout-btn"' in INDEX
     assert 'id="pro-cashfree-checkout-btn"' not in INDEX

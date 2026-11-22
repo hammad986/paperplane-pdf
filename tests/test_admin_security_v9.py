@@ -45,6 +45,28 @@ def _credential():
     return secrets.token_urlsafe(32)
 
 
+def test_admin_session_survives_75_minutes_and_expires_at_four_hours(admin_audit_db, monkeypatch):
+    start = time.time()
+    clock = [start]
+    monkeypatch.setattr(persistence.time, "time", lambda: clock[0])
+
+    token = persistence.create_admin_session(server.PRIMARY_ADMIN_EMAIL)
+    client = TestClient(server.app)
+    headers = {"X-Admin-Session": token}
+    clock[0] = start + 75 * 60
+    session = persistence.get_admin_session(token)
+    assert session is not None
+    assert session["expires_at"] == start + 4 * 60 * 60
+    assert client.get("/api/admin/dashboard", headers=headers).status_code == 200
+
+    clock[0] = start + 4 * 60 * 60 - 0.001
+    assert persistence.get_admin_session(token) is not None
+    assert client.get("/api/admin/dashboard", headers=headers).status_code == 200
+    clock[0] = start + 4 * 60 * 60
+    assert persistence.get_admin_session(token) is None
+    assert client.get("/api/admin/dashboard", headers=headers).status_code == 401
+
+
 def test_admin_routes_reject_direct_keys_and_url_credentials_and_hide_contact(admin_audit_db, monkeypatch):
     admin_key = _credential()
     monkeypatch.setattr(server, "ADMIN_SECRET_KEY", admin_key)
