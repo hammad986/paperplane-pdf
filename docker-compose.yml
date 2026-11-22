@@ -35,6 +35,8 @@ services:
       - ./security_forms_engine.py:/app/security_forms_engine.py:ro
       - ./email_service.py:/app/email_service.py:ro
       - ./config.py:/app/config.py:ro
+      - ./app.py:/app/app.py:ro
+      - ./watermark_job_worker.py:/app/watermark_job_worker.py:ro
       - ./deploy/fonts:/app/deploy/fonts:ro
       - ./web:/app/web:ro
     networks:
