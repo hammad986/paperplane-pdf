@@ -1331,7 +1331,7 @@ def test_compare_supports_browser_local_selectable_text_diff():
     assert "page layout, images, and scanned text are not compared" in compare
     assert "2_000_000" in app_js and "20,000 combined text lines" in app_js
     assert "workLimit = 250_000" in app_js and "if (++work > workLimit)" in app_js
-    assert "'/assets/app.js?v=153'" in (Path(__file__).resolve().parents[1] / "web" / "assets" / "service-worker.js").read_text(encoding="utf-8")
+    assert "'/assets/app.js?v=154'" in (Path(__file__).resolve().parents[1] / "web" / "assets" / "service-worker.js").read_text(encoding="utf-8")
 
 
 def test_pdf_to_markdown_browser_path_discloses_its_formatting_limits():
@@ -1347,7 +1347,7 @@ def test_pdf_to_markdown_browser_path_discloses_its_formatting_limits():
     assert "Browser mode extracts selectable text and basic heading/list formatting" in app_js
     assert "up to 500 pages" in app_js and "2_000_000" in app_js and "20_000" in app_js
     assert "PDF-to-Markdown (basic)" in index_html
-    assert 'src="/assets/app.js?v=153"' in index_html
+    assert 'src="/assets/app.js?v=154"' in index_html
 
 
 def test_scan_to_pdf_local_path_declares_enhancement_limit_and_size_safety():
@@ -1360,8 +1360,8 @@ def test_scan_to_pdf_local_path_declares_enhancement_limit_and_size_safety():
     assert "switch browser processing off to use enhanced server processing" in app_js
     assert "totalSourcePixels > 100_000_000" in app_js
     assert "pageWidth = image.naturalWidth * 72 / 200" in app_js
-    assert 'src="/assets/app.js?v=153"' in index_html
-    assert "paperplane-shell-v94" in worker
+    assert 'src="/assets/app.js?v=154"' in index_html
+    assert "paperplane-shell-v95" in worker
     assert "'/assets/styles.css?v=61'" in worker
     assert 'href="/assets/styles.css?v=61"' in index_html
     assert "'/assets/styles.css?v=51'" not in worker
@@ -1396,8 +1396,8 @@ def test_grayscale_pdf_supports_bounded_browser_local_rendering_and_preserves_gr
     assert "grayscale_pages" in worker and "result.embedPng(files[index])" in worker
     assert "local_pdf_worker.js?v=26" in runtime
     assert "Grayscale PDF" in index_html and "searchable text" in index_html
-    assert 'src="/assets/app.js?v=153"' in index_html
-    assert "paperplane-shell-v94" in service_worker
+    assert 'src="/assets/app.js?v=154"' in index_html
+    assert "paperplane-shell-v95" in service_worker
     assert "'/assets/local_pdf_worker.js?v=26'" in service_worker
     assert "menuBtn.onclick = () => sidebar?.classList.contains('mobile-open')" in app_js
 
@@ -1612,10 +1612,10 @@ def test_pdf_to_text_forms_flatten_metadata_page_numbers_and_crop_are_zero_uploa
     assert all(label in index_html for label in ("Fill PDF Forms", "Flatten PDF forms", "Edit PDF Metadata", "Page Numbers", "Crop PDF"))
     assert "local_pdf_worker.js?v=26" in (root / "web/assets/pdf_runtime.js").read_text(encoding="utf-8")
     assert 'src="/assets/pdf_runtime.js?v=25"' in index_html
-    assert 'src="/assets/app.js?v=153"' in index_html
+    assert 'src="/assets/app.js?v=154"' in index_html
     assert 'src="/assets/page_organizer.js?v=20"' in index_html
-    assert "paperplane-shell-v94" in service_worker
-    assert "'/assets/app.js?v=153'" in service_worker
+    assert "paperplane-shell-v95" in service_worker
+    assert "'/assets/app.js?v=154'" in service_worker
     assert "'/assets/page_organizer.js?v=20'" in service_worker
     assert "'/assets/styles.css?v=61'" in service_worker
 
@@ -1644,7 +1644,7 @@ def test_offscreen_studio_worker_encodes_thumbnails_off_thread_and_keeps_fallbac
 
 def test_offline_shell_precaches_pdf_dependencies_for_browser_local_processing():
     worker = (Path(__file__).resolve().parents[1] / "web/assets/service-worker.js").read_text(encoding="utf-8")
-    assert "const CACHE_NAME = 'paperplane-shell-v94'" in worker
+    assert "const CACHE_NAME = 'paperplane-shell-v95'" in worker
     assert all(asset in worker for asset in (
         "'/assets/pdf.min.js'",
         "'/assets/pdf.worker.min.js'",
@@ -1692,9 +1692,9 @@ def test_pdf_to_word_browser_path_builds_disclosed_text_first_docx():
     assert "w:pageBreakBefore" in app_js and "escapeDocxXml" in app_js
     assert "images, exact layout, and table structure are not" in app_js
     assert "Server Processing for supported table/layout reconstruction" in app_js
-    assert 'src="/assets/app.js?v=153"' in index_html
-    assert "'/assets/app.js?v=153'" in service_worker
-    assert "const CACHE_NAME = 'paperplane-shell-v94'" in service_worker
+    assert 'src="/assets/app.js?v=154"' in index_html
+    assert "'/assets/app.js?v=154'" in service_worker
+    assert "const CACHE_NAME = 'paperplane-shell-v95'" in service_worker
 
 
 def test_ai_empty_document_context_topbar_does_not_reserve_blank_height():
@@ -1707,7 +1707,7 @@ def test_ai_empty_document_context_topbar_does_not_reserve_blank_height():
     assert ".ai-engine-notice-bar" in styles
     assert 'href="/assets/styles.css?v=61"' in index_html
     assert "'/assets/styles.css?v=61'" in service_worker
-    assert "const CACHE_NAME = 'paperplane-shell-v94'" in service_worker
+    assert "const CACHE_NAME = 'paperplane-shell-v95'" in service_worker
 
 
 
@@ -1815,8 +1815,8 @@ def test_command_palette_escapes_operation_metadata_before_html_rendering():
     update_button = source[update_button_start:update_button_end]
     assert '${escapeHtml(toolLabel)} unavailable' in update_button
     assert update_button.count('${escapeHtml(activeToolLabel)} Now') == 2
-    assert "const CACHE_NAME = 'paperplane-shell-v94'" in (root / "web/assets/service-worker.js").read_text(encoding="utf-8")
-    assert 'src="/assets/app.js?v=153"' in (root / "web/index.html").read_text(encoding="utf-8")
+    assert "const CACHE_NAME = 'paperplane-shell-v95'" in (root / "web/assets/service-worker.js").read_text(encoding="utf-8")
+    assert 'src="/assets/app.js?v=154"' in (root / "web/index.html").read_text(encoding="utf-8")
 
 
 def test_studio_batch_selection_skips_redundant_toolbar_geometry_sync():
@@ -1853,9 +1853,9 @@ def test_studio_mobile_pages_position_reuses_resize_observer_geometry_cache():
     worker = (root / "web/assets/service-worker.js").read_text(encoding="utf-8")
     index_html = (root / "web/index.html").read_text(encoding="utf-8")
     assert 'name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"' in index_html
-    assert "const CACHE_NAME = 'paperplane-shell-v94'" in worker
-    assert "'/assets/app.js?v=153'" in worker
-    assert 'src="/assets/app.js?v=153"' in index_html
+    assert "const CACHE_NAME = 'paperplane-shell-v95'" in worker
+    assert "'/assets/app.js?v=154'" in worker
+    assert 'src="/assets/app.js?v=154"' in index_html
     styles = (root / "web/assets/styles.css").read_text(encoding="utf-8")
     assert "height: calc(64px + env(safe-area-inset-top, 0px)) !important;" in styles
     assert "padding-top: env(safe-area-inset-top, 0px) !important;" in styles
@@ -1940,5 +1940,5 @@ def test_google_and_cashfree_sdks_are_requested_only_when_their_flows_open():
     assert "https://sdk.cashfree.com/js/v3/cashfree.js" not in index_html
     assert "loadExternalSdk(GOOGLE_IDENTITY_SDK_URL" in app_js
     assert "await loadExternalSdk('https://sdk.cashfree.com/js/v3/cashfree.js'" in app_js
-    assert "app.js?v=153" in index_html and "app.js?v=153" in service_worker
-    assert "paperplane-shell-v94" in service_worker
+    assert "app.js?v=154" in index_html and "app.js?v=154" in service_worker
+    assert "paperplane-shell-v95" in service_worker
