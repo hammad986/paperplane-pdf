@@ -53,7 +53,7 @@ def test_mobile_result_download_has_touch_target_and_fresh_stylesheet_cache_key(
     assert "#result.result-card {" in styles
     assert "flex-direction: column;" in styles
     assert "#result .result-actions > * {" in styles
-    assert "/assets/styles.css?v=92" in html
+    assert "/assets/styles.css?v=93" in html
     assert ".ai-chat-header #ai-chat-clear-btn {" in styles
     assert "min-height: 36px;" in styles
 
@@ -101,7 +101,7 @@ def test_mobile_workspace_navigation_uses_short_visible_labels_with_full_accessi
     assert '<span>AI</span>' in nav
     assert '<span>Apps</span>' in nav
     assert '<span>AI Intelligence</span>' not in nav
-    assert "paperplane-shell-v218" in service_worker
+    assert "paperplane-shell-v219" in service_worker
 
 
 def test_mobile_workspace_pill_uses_compact_labels_and_full_accessible_names():
@@ -1937,8 +1937,8 @@ def test_scan_to_pdf_local_path_declares_enhancement_limit_and_size_safety():
     assert "pageWidth = image.naturalWidth * 72 / 200" in app_js
     assert_current_app_script_reference(index_html)
     assert re.search(r"paperplane-shell-v\d+", worker)
-    assert "'/assets/styles.css?v=92'" in worker
-    assert 'href="/assets/styles.css?v=92"' in index_html
+    assert "'/assets/styles.css?v=93'" in worker
+    assert 'href="/assets/styles.css?v=93"' in index_html
     assert "'/assets/styles.css?v=51'" not in worker
 
 
@@ -2286,7 +2286,7 @@ def test_annotate_has_guarded_browser_local_text_markup_path():
     assert "PDFName.of('Highlight')" in worker or "Subtype: PDFName.of(subtype)" in worker
     assert "QuadPoints" in worker and "page.node.addAnnot" in worker
     assert "50 * 1024 * 1024" in app_js and "50000" in app_js
-    assert "'/assets/styles.css?v=92'" in service_worker
+    assert "'/assets/styles.css?v=93'" in service_worker
 
 
 def test_studio_more_tools_menu_escapes_scrolling_ribbon_and_bounds_to_viewport():
@@ -2459,8 +2459,8 @@ def test_ai_empty_document_context_topbar_does_not_reserve_blank_height():
     assert ".ai-studio-topbar:has(#ai-active-doc-bar[hidden])" in styles
     assert "min-height: 0 !important" in styles
     assert ".ai-engine-notice-bar" in styles
-    assert 'href="/assets/styles.css?v=92"' in index_html
-    assert "'/assets/styles.css?v=92'" in service_worker
+    assert 'href="/assets/styles.css?v=93"' in index_html
+    assert "'/assets/styles.css?v=93'" in service_worker
     assert re.search(r"const CACHE_NAME = 'paperplane-shell-v\d+'", service_worker)
 
 
@@ -2765,8 +2765,8 @@ def test_phone_tool_desk_hides_redundant_quick_steps():
     service_worker = (root / "web" / "assets" / "service-worker.js").read_text(encoding="utf-8")
     assert "#view-tool-desk-directory .tool-desk-quick-steps { display: none; }" in styles
     assert "@media (max-width: 600px)" in styles
-    assert 'href="/assets/styles.css?v=92"' in index_html
-    assert "'/assets/styles.css?v=92'" in service_worker
+    assert 'href="/assets/styles.css?v=93"' in index_html
+    assert "'/assets/styles.css?v=93'" in service_worker
     assert re.search(r"paperplane-shell-v\d+", service_worker)
 
 

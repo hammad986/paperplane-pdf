@@ -174,17 +174,17 @@
         box-shadow: 0 20px 48px rgba(0, 0, 0, 0.6);
         z-index: 1260;
         max-height: calc(100dvh - 110px);
-        overflow-y: auto;
         display: none;
         flex-direction: column;
-        overflow: hidden;
-        animation: ppFeedbackSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        overflow-x: hidden;
+        overflow-y: auto;
+        animation: ppFeedbackSlideIn 0.14s cubic-bezier(0.16, 1, 0.3, 1);
         font-family: inherit;
         color: #f0f5f4;
       }
       @keyframes ppFeedbackSlideIn {
-        from { opacity: 0; transform: translateY(12px) scale(0.97); }
-        to { opacity: 1; transform: translateY(0) scale(1); }
+        from { opacity: 0.94; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
       }
 
       .pp-fb-header {

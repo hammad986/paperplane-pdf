@@ -115,7 +115,7 @@ def test_studio_organizer_page_number_stays_inside_narrow_tile():
     assert ".thumb-header {" in STYLES
     assert "grid-template-columns: minmax(20px, 1fr) 18px auto;" in STYLES
     assert ".thumb-page-num" in STYLES and "white-space: nowrap;" in STYLES
-    assert 'href="/assets/styles.css?v=92"' in INDEX
+    assert 'href="/assets/styles.css?v=93"' in INDEX
 
 
 def test_studio_page_sizes_do_not_fall_back_to_a4_and_use_pdfjs_page_view():
