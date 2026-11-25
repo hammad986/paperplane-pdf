@@ -31,6 +31,7 @@
       this.isConverting = false;
       this.lastResultBlob = null;
       this.lastResultFilename = '';
+      this.modalReturnFocus = null;
 
       this.init = this.init.bind(this);
       this.openConvertModal = this.openConvertModal.bind(this);
@@ -76,6 +77,19 @@
       const downloadBtn = document.getElementById('convert-download-btn');
 
       if (closeBtn) closeBtn.addEventListener('click', this.closeConvertModal);
+      if (modal) modal.addEventListener('keydown', event => {
+        if (event.key !== 'Tab') return;
+        const focusable = [...modal.querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [href], [tabindex]:not([tabindex="-1"])')]
+          .filter(element => element.getClientRects().length && getComputedStyle(element).visibility !== 'hidden');
+        if (!focusable.length) { event.preventDefault(); modal.focus(); return; }
+        const first = focusable[0];
+        const last = focusable.at(-1);
+        if (event.shiftKey && (document.activeElement === first || !modal.contains(document.activeElement))) {
+          event.preventDefault(); last.focus();
+        } else if (!event.shiftKey && (document.activeElement === last || !modal.contains(document.activeElement))) {
+          event.preventDefault(); first.focus();
+        }
+      });
       if (cancelBtn) cancelBtn.addEventListener('click', this.closeConvertModal);
       if (applyBtn) applyBtn.addEventListener('click', this.applyConversion);
 
@@ -163,7 +177,7 @@
       grid.innerHTML = `
         <div class="format-card selected" data-format="docx">
           <div class="format-card-header">
-            <span class="format-icon">Note</span>
+            <span class="format-icon">DOC</span>
             <span class="format-badge badge-full">FULL</span>
           </div>
           <div class="format-name">Word (.docx)</div>
@@ -195,7 +209,7 @@
         </div>
         <div class="format-card" data-format="png">
           <div class="format-card-header">
-            <span class="format-icon">SVG</span>
+            <span class="format-icon">PNG</span>
             <span class="format-badge badge-full">FULL</span>
           </div>
           <div class="format-name">PNG Images</div>
@@ -203,7 +217,7 @@
         </div>
         <div class="format-card" data-format="webp">
           <div class="format-card-header">
-            <span class="format-icon">HTML</span>
+            <span class="format-icon">WEBP</span>
             <span class="format-badge badge-full">FULL</span>
           </div>
           <div class="format-name">WebP Images</div>
@@ -211,7 +225,7 @@
         </div>
         <div class="format-card" data-format="md">
           <div class="format-card-header">
-            <span class="format-icon"></span>
+            <span class="format-icon">MD</span>
             <span class="format-badge badge-full">FULL</span>
           </div>
           <div class="format-name">Markdown (.md)</div>
@@ -219,7 +233,7 @@
         </div>
         <div class="format-card" data-format="txt">
           <div class="format-card-header">
-            <span class="format-icon">DOC</span>
+            <span class="format-icon">TXT</span>
             <span class="format-badge badge-full">FULL</span>
           </div>
           <div class="format-name">Plain Text (.txt)</div>
@@ -425,6 +439,8 @@
     }
 
     async openConvertModal(file = null) {
+      this.modalReturnFocus = document.activeElement instanceof HTMLElement && document.activeElement !== document.body
+        ? document.activeElement : null;
       const targetFile = file || (window.PaperplaneEditor && window.PaperplaneEditor.editorState.sourceFile);
       if (targetFile) {
         this.selectedFiles = [targetFile];
@@ -442,7 +458,10 @@
       if (resBox) resBox.style.display = 'none';
 
       const modal = document.getElementById('convert-modal');
-      if (modal) modal.hidden = false;
+      if (modal) {
+        modal.hidden = false;
+        document.getElementById('modal-close-convert')?.focus();
+      }
 
       await this._fetchCapabilities();
     }
@@ -450,6 +469,8 @@
     closeConvertModal() {
       const modal = document.getElementById('convert-modal');
       if (modal) modal.hidden = true;
+      this.modalReturnFocus?.focus?.();
+      this.modalReturnFocus = null;
     }
 
     async applyConversion() {

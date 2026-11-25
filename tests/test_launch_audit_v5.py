@@ -93,7 +93,7 @@ def test_paid_upload_limit_includes_exact_500_mib_boundary():
 
 def test_billable_ai_and_studio_success_count_but_failed_uploads_do_not(tmp_path, monkeypatch):
     monkeypatch.setattr(server, "REQUIRE_AUTH", False)
-    monkeypatch.setattr(ai_engine, "summarize_pdf", lambda path: "Test overview [Page 1].")
+    monkeypatch.setattr(ai_engine, "summarize_pdf", lambda path, **kwargs: ("Test overview [Page 1].", [1]))
     monkeypatch.setattr(ai_engine, "extract_chunks_from_pdf", lambda path: [SimpleNamespace(page_number=1, text="Test page")])
     client = TestClient(server.app)
     source = tmp_path / "source.pdf"
@@ -255,3 +255,35 @@ def test_excel_to_pdf_wraps_and_preserves_full_cell_values_for_xlsx_and_csv(tmp_
         csv_text = "\n".join(page.get_text() for page in pdf)
     assert "Application" in csv_text
     assert "AUDIT_CSV_OUTPUT" in csv_text
+
+
+def test_excel_to_pdf_discloses_uncached_formula_results(tmp_path):
+    workbook = converters.openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = "Budget"
+    sheet.append(["Item", "Amount"])
+    sheet.append(["Rent", 1200])
+    sheet.append(["Total", "=SUM(B2:B2)"])
+    source = tmp_path / "uncached-formula.xlsx"
+    output = tmp_path / "uncached-formula.pdf"
+    workbook.save(source)
+
+    converters.excel_to_pdf(source, output)
+    with fitz.open(output) as pdf:
+        text = "\n".join(page.get_text() for page in pdf)
+    assert "Formula result unavailable" in text
+    assert "=SUM(B2:B2)" in text
+
+
+def test_compression_keeps_smaller_original_candidate(tmp_path):
+    source = tmp_path / "original.pdf"
+    candidate = tmp_path / "larger-candidate.pdf"
+    preserved = tmp_path / "preserved.pdf"
+    source.write_bytes(b"small-valid-original")
+    candidate.write_bytes(b"larger-optimized-candidate-that-saves-no-space")
+
+    selected = converters._prefer_smaller_compression_source(source, candidate, preserved)
+
+    assert selected == preserved
+    assert selected.read_bytes() == source.read_bytes()
+    assert not candidate.exists()

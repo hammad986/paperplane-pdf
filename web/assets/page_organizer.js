@@ -41,8 +41,10 @@
           id: uid('page'),
           pageNum: i,
           rotation: meta.rotation || 0,
-          width: meta.width || 595.28,
-          height: meta.height || 841.89,
+          // Unknown dimensions stay unknown until PDF.js reads the real page
+          // view. Showing A4 here mislabels Letter and cropped pages.
+          width: Number.isFinite(meta.width) && meta.width > 0 ? meta.width : null,
+          height: Number.isFinite(meta.height) && meta.height > 0 ? meta.height : null,
           label: meta.label || String(i),
           orientation: meta.orientation || ((meta.height || 842) >= (meta.width || 595) ? 'portrait' : 'landscape')
         });
@@ -649,7 +651,7 @@
         const footer = document.createElement('div');
         footer.className = 'thumb-footer';
         footer.innerHTML = `
-          <div class="thumb-meta-text">${Math.round(p.width)}×${Math.round(p.height)}pt</div>
+          <div class="thumb-meta-text">${p.width && p.height ? `${Math.round(p.width)}×${Math.round(p.height)}pt` : 'Reading page size…'}</div>
           <div class="thumb-quick-actions">
             <button type="button" class="thumb-mini-btn btn-rotate-quick" title="Rotate 90° Clockwise">↷</button>
             <button type="button" class="thumb-mini-btn btn-dup-quick" title="Duplicate Page"></button>
@@ -701,6 +703,13 @@
         const page = await sourceDoc.getPage(pageNum);
         if (sourceDoc !== this.pdfDoc || renderEpoch !== this.thumbnailRenderEpoch || !card.isConnected) return;
         const baseVp = page.getViewport({ scale: 1.0 });
+        const pageState = this.state.getPage(pageNum);
+        if (pageState && Number.isFinite(baseVp.width) && Number.isFinite(baseVp.height) && baseVp.width > 0 && baseVp.height > 0) {
+          pageState.width = baseVp.width;
+          pageState.height = baseVp.height;
+          const sizeLabel = card.querySelector('.thumb-meta-text');
+          if (sizeLabel) sizeLabel.textContent = `${Math.round(baseVp.width)}×${Math.round(baseVp.height)}pt`;
+        }
         // Calculate thumbnail scale to fit ~120px width
         const thumbScale = Math.min(0.28, 120 / baseVp.width);
         const viewport = page.getViewport({ scale: thumbScale, rotation: this.state.getPage(pageNum)?.rotation || 0 });

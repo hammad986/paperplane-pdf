@@ -8,6 +8,8 @@ privkey.pem
 fullchain.pem
 deploy/certs/*.pem
 !deploy/certs/.gitkeep
+deploy/geoip/*.mmdb
+/tmp/
 deploy/acme/*
 !deploy/acme/.gitkeep
 deploy/*.log

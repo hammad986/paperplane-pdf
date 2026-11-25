@@ -130,6 +130,22 @@ def test_deployment_and_ssl_scripts_are_idempotent_contracts():
     assert "docker compose" in ssl_script
 
 
+def test_github_deployment_waits_for_tests_and_pins_ssh_host_key():
+    workflow = (ROOT / ".github" / "workflows" / "deploy.yml").read_text(encoding="utf-8")
+    test_requirements = (ROOT / "requirements-test.txt").read_text(encoding="utf-8")
+    assert "permissions:\n  contents: read" in workflow
+    assert "  verify:" in workflow
+    assert "python -m pip install -r requirements-test.txt" in workflow
+    assert "python -m pytest -q" in workflow
+    assert "  deploy:\n    needs: verify" in workflow
+    assert workflow.count("persist-credentials: false") == 2
+    assert "appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2" in workflow
+    assert "ORACLE_HOST_FINGERPRINT repository secret" in workflow
+    assert "fingerprint: ${{ secrets.ORACLE_HOST_FINGERPRINT }}" in workflow
+    assert "-r requirements.txt" in test_requirements
+    assert "pytest" in test_requirements and "httpx2" in test_requirements
+
+
 def test_deployment_dry_run_never_claims_live_signoff(tmp_path, monkeypatch, capsys):
     import json
     import sys
@@ -162,3 +178,14 @@ def test_linux_libreoffice_discovery_ignores_windows_host_override(monkeypatch):
     monkeypatch.setattr(converters.shutil, "which", lambda name: "/usr/bin/soffice" if name == "soffice" else None)
     monkeypatch.setattr(converters.os.path, "isfile", lambda path: path == "/usr/bin/soffice")
     assert converters.find_libreoffice_executable() == "/usr/bin/soffice"
+
+
+def test_paperplane_sqlite_and_backups_use_separate_named_persistent_volumes():
+    compose = (ROOT / "docker-compose.yml").read_text(encoding="utf-8")
+    assert "PAPERPLANE_DATA_DIR: /data" in compose
+    assert "- paperplane_data:/data" in compose
+    assert "- paperplane_data:/data" in compose
+    assert "- paperplane_backups:/backups" in compose
+    assert "name: ${PAPERPLANE_DATA_VOLUME_NAME:-paperplane-pdf_paperplane_data}" in compose
+    assert "name: ${PAPERPLANE_BACKUP_VOLUME_NAME:-paperplane-pdf_paperplane_backups}" in compose
+    assert "PAPERPLANE_BACKUP_DIR: /backups" in compose

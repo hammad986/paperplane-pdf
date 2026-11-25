@@ -52,6 +52,10 @@ async function openDocument(requestId, { bytes, password }) {
   loadingTask = self.pdfjsLib.getDocument({
     data: new Uint8Array(bytes),
     isEvalSupported: false,
+    // Worker rendering cannot reliably install document fonts with FontFace
+    // in every browser. PDF.js's glyph-path renderer preserves embedded and
+    // subset fonts without depending on a DOM font registry.
+    disableFontFace: true,
     ...(typeof password === 'string' && password ? { password } : {}),
     worker: pdfWorker,
   });
@@ -88,6 +92,22 @@ async function renderPage(requestId, { pageNumber, scale, outputScale, rotation 
     if (cancelledRequests.delete(requestId)) {
       reply(requestId, { action: 'rendered', cancelled: true });
       return;
+    }
+    // A worker render can resolve successfully while returning a fully white
+    // bitmap (for example when the browser's OffscreenCanvas PDF.js path fails
+    // silently). Detect that before marking the Studio page as rendered so the
+    // main-thread renderer can retry the same page instead of freezing a blank
+    // canvas in the editor.
+    const pixels = context.getImageData(0, 0, width, height).data;
+    let hasVisibleInk = false;
+    for (let index = 0; index < pixels.length; index += 4) {
+      if (pixels[index] < 250 || pixels[index + 1] < 250 || pixels[index + 2] < 250) {
+        hasVisibleInk = true;
+        break;
+      }
+    }
+    if (!hasVisibleInk) {
+      throw new Error('Studio worker returned a blank page; retrying with the main-thread renderer.');
     }
     const bitmap = canvas.transferToImageBitmap();
     reply(requestId, {

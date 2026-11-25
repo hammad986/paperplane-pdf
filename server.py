@@ -4,6 +4,7 @@ import base64
 import asyncio
 import csv
 import difflib
+import gc
 from datetime import date
 from decimal import Decimal, InvalidOperation
 import hashlib
@@ -116,6 +117,7 @@ except ImportError:
 
 import converters
 import watermark_job_worker
+import pdf_to_word_job_worker
 import ai_engine
 import security_forms_engine
 
@@ -230,6 +232,9 @@ MERGE_TIMEOUT_SECONDS = 840.0       # large image-heavy jobs; Nginx allows 900s
 AI_SUMMARY_REQUEST_TIMEOUT_SECONDS = 300.0  # up to four chunked large-document requests with one bounded retry each
 AI_TRANSLATION_REQUEST_TIMEOUT_SECONDS = 300.0  # bounded batches for documents up to the current text-block cap
 PDF_TO_MARKDOWN_TIMEOUT_SECONDS = 480.0  # typography/table extraction for long PDFs; no automatic retry
+PDF_TO_WORD_TIMEOUT_MIN_SECONDS = 120.0
+PDF_TO_WORD_TIMEOUT_PER_PAGE_SECONDS = 2.0
+PDF_TO_WORD_TIMEOUT_MAX_SECONDS = 600.0
 
 _CONVERTER_POOL = ThreadPoolExecutor(
     max_workers=min(32, max(4, (os.cpu_count() or 4) * 2)),
@@ -353,6 +358,82 @@ def _run_watermark_worker_with_timeout(
                 output.unlink(missing_ok=True)
             except OSError as cleanup_error:
                 logger.warning("Unable to remove partial output after %s worker failure: %s", operation, cleanup_error)
+
+
+def _pdf_to_word_timeout_seconds(source: Path) -> float:
+    """Scale a hard PDF-to-Word deadline to the input's page count."""
+    try:
+        with fitz.open(str(source)) as document:
+            page_count = document.page_count
+    except Exception:
+        page_count = 0
+    return min(
+        PDF_TO_WORD_TIMEOUT_MAX_SECONDS,
+        max(PDF_TO_WORD_TIMEOUT_MIN_SECONDS, page_count * PDF_TO_WORD_TIMEOUT_PER_PAGE_SECONDS),
+    )
+
+
+def _run_pdf_to_word_worker_with_timeout(
+    source: Path,
+    output: Path,
+    pages: str = "all",
+    *,
+    timeout_seconds: float | None = None,
+    worker_target: Callable = pdf_to_word_job_worker.run_pdf_to_word_job_worker,
+) -> Path:
+    """Convert PDF to Word in a killable process so a stuck native call cannot occupy a job worker forever."""
+    deadline = timeout_seconds if timeout_seconds is not None else _pdf_to_word_timeout_seconds(source)
+    context = multiprocessing.get_context("spawn")
+    parent_pipe, worker_pipe = context.Pipe(duplex=False)
+    process = context.Process(
+        target=worker_target,
+        args=(worker_pipe, str(source), str(output), pages),
+        name="paperplane-pdf-to-word-worker",
+        daemon=True,
+    )
+    started = time.monotonic()
+    try:
+        process.start()
+        worker_pipe.close()
+        process.join(deadline)
+        if process.is_alive():
+            process.terminate()
+            process.join(5)
+            if process.is_alive():
+                process.kill()
+                process.join(5)
+            if process.is_alive():
+                raise RuntimeError("PDF-to-Word worker could not be stopped after timeout.")
+            output.unlink(missing_ok=True)
+            elapsed = round(time.monotonic() - started, 2)
+            logger.error(
+                "PDF-to-Word worker process %s terminated at timeout after %.2fs (limit: %.3fs).",
+                process.pid, elapsed, deadline,
+            )
+            raise TimeoutError(
+                f"PDF to Word processing timed out after {max(1, int(deadline))}s. "
+                "The worker was stopped; try fewer pages or a smaller file."
+            )
+
+        if parent_pipe.poll(1):
+            succeeded, error_type, error_message = parent_pipe.recv()
+            if succeeded and output.is_file():
+                return output
+            output.unlink(missing_ok=True)
+            if error_type == "ValueError":
+                raise ValueError(error_message)
+            raise RuntimeError(error_message or f"PDF to Word worker exited without an output (exit code {process.exitcode}).")
+
+        output.unlink(missing_ok=True)
+        raise RuntimeError(f"PDF to Word worker exited without a result (exit code {process.exitcode}).")
+    finally:
+        worker_pipe.close()
+        parent_pipe.close()
+        if process.pid is not None:
+            if process.is_alive():
+                process.kill()
+                process.join(5)
+            process.close()
 
 def _should_disable_docs(environment: str, configured_enable: str | None = None) -> bool:
     """Fail closed; interactive API docs require an explicit non-production opt-in."""
@@ -593,12 +674,12 @@ cleanup_thread.start()
 # Full Operations Catalog
 OPERATIONS = {
     # 1. Organize PDF
-    "merge": {"label": "Merge PDF", "category": "Organize PDF", "accept": "pdf", "implemented": True, "description": "Combine multiple PDFs into one unified document with custom ordering."},
+    "merge": {"label": "Merge PDF", "category": "Organize PDF", "accept": "pdf", "implemented": True, "description": "Combine PDFs in the order you add them into one unified document."},
     "split": {"label": "Split / extract", "category": "Organize PDF", "accept": "pdf", "implemented": True, "description": "Extract specific pages or page ranges into a clean new PDF."},
     "remove": {"label": "Remove pages", "category": "Organize PDF", "accept": "pdf", "implemented": True, "description": "Delete unwanted pages from any PDF document."},
     "rotate": {"label": "Rotate PDF", "category": "Organize PDF", "accept": "pdf", "implemented": True, "description": "Rotate pages 90, 180, or 270 degrees clockwise."},
     "organize": {"label": "Page Organizer", "category": "Organize PDF", "accept": "pdf", "implemented": True, "description": "Reorder pages by entering their page numbers in the desired output order."},
-    "scan_pdf": {"label": "Scan to PDF", "category": "Organize PDF", "accept": "image", "implemented": True, "description": "Create PDF pages from scanned photos in A4, US Letter, or original photo size at 200 DPI. Automatic contrast and sharpness enhancement is applied."},
+    "scan_pdf": {"label": "Scan to PDF", "category": "Organize PDF", "accept": "image", "implemented": True, "description": "Create A4, US Letter, or original-size (200 DPI) PDFs from photos. Server processing applies automatic contrast and sharpness enhancement; browser processing stays on this device and skips enhancement."},
 
     # 2. Optimize PDF
     "compress": {"label": "Compress PDF", "category": "Optimize PDF", "accept": "pdf", "implemented": True, "description": "True lossy & lossless compression optimizing image streams and deflating structures."},
@@ -613,7 +694,7 @@ OPERATIONS = {
     "html_to_pdf": {"label": "HTML to PDF", "category": "Convert to PDF", "accept": "url", "implemented": True, "description": "Convert a publicly reachable web page URL to PDF; this form does not accept pasted HTML snippets."},
 
     # 4. Convert from PDF
-    "pdf_to_jpg": {"label": "PDF to JPG", "category": "Convert from PDF", "accept": "pdf", "implemented": True, "description": "Export all pages as high-resolution images bundled in a ZIP archive."},
+    "pdf_to_jpg": {"label": "PDF to JPG", "category": "Convert from PDF", "accept": "pdf", "implemented": True, "description": "Export selected pages or the full document as high-resolution images bundled in a ZIP archive."},
     "pdf_to_word": {"label": "PDF to Word", "category": "Convert from PDF", "accept": "pdf", "implemented": True, "description": "Convert PDF documents to editable Microsoft Word (.docx)."},
     "pdf_to_excel": {"label": "PDF to Excel", "category": "Convert from PDF", "accept": "pdf", "implemented": True, "description": "Extract structured tables into an Excel (.xlsx) workbook."},
     "pdf_to_powerpoint": {"label": "PDF to PowerPoint", "category": "Convert from PDF", "accept": "pdf", "implemented": True, "description": "Convert PDF pages into PowerPoint presentation slides (.pptx)."},
@@ -632,7 +713,7 @@ OPERATIONS = {
     # 6. Security
     "protect": {"label": "Protect PDF", "category": "Security", "accept": "pdf", "implemented": True, "description": "Encrypt a PDF with one password using AES-256; separate owner-password and permission controls are not provided."},
     "unlock": {"label": "Unlock PDF", "category": "Security", "accept": "pdf", "implemented": True, "description": "Remove password protection and permission restrictions."},
-    "sign": {"label": "Sign PDF", "category": "Security", "accept": "pdf", "implemented": True, "description": "Place a typed signature stamp. Use Studio's Digital Signatures panel for draw/type marks and signature verification."},
+    "sign": {"label": "Signature Stamp", "category": "Security", "accept": "pdf", "implemented": True, "description": "Add a typed visual signature mark. It does not verify identity or create a certified or cryptographic signature."},
 
     # 7. Advanced & AI Tools
     "compare": {"label": "Compare PDF", "category": "Advanced", "accept": "pdf", "implemented": True, "description": "Compare downloads a .txt diff file listing differences between two versions."},
@@ -648,7 +729,7 @@ OPERATIONS = {
     "photo_merge": {"label": "Merge Photos into One", "category": "Photo Tools", "accept": "image", "implemented": True, "description": "Combine multiple photos side-by-side, stacked vertically, or in a photo collage."},
     "mask_aadhaar": {"label": "Mask Aadhaar Card", "category": "Security", "accept": "pdf_or_image", "implemented": True, "description": "Automatically redact first 8 digits of Aadhaar numbers per UIDAI guidelines."},
     "grayscale": {"label": "Convert to Grayscale", "category": "Organize PDF", "accept": "pdf", "implemented": True, "description": "Convert colored PDF pages to monochrome for printing. Output size varies, and colored pages may become image-based."},
-    "flatten": {"label": "Flatten PDF Forms", "category": "Edit & Sign", "accept": "pdf", "implemented": True, "description": "Bake all interactive form fields into the page content, creating a non-editable submission copy."},
+    "flatten": {"label": "Flatten PDF Forms", "category": "Edit PDF", "accept": "pdf", "implemented": True, "description": "Bake all interactive form fields into the page content, creating a non-editable submission copy."},
 }
 
 
@@ -710,7 +791,7 @@ SEO_CATALOG = {
     "merge": {
         "title": "Merge PDF Files Online — Combine PDFs Free | Paperplane",
         "description": "Merge PDF files in the order you add them, then download one clean document with Paperplane's private PDF merger.",
-        "heading": "Merge PDF files in your preferred order",
+        "heading": "Merge PDF files in the order you add them",
         "intro": "Combine contracts, scans, invoices, or reports into one PDF. Files are merged in the order you add them.",
         "how_to": ("Choose the PDFs to merge", "Check the file list; files merge in the order added", "Download the merged document"),
         "faqs": (
@@ -774,13 +855,13 @@ SEO_CATALOG = {
     },
     "scan_pdf": {
         "title": "Scan to PDF Online — Convert Photos & Scans | Paperplane",
-        "description": "Turn photographed pages into PDF with automatic contrast and sharpness improvement, plus A4, US Letter, or original photo-size output.",
+        "description": "Turn photographed pages into A4, US Letter, or original-size PDFs. Server processing applies automatic contrast and sharpness enhancement; browser processing stays on this device and skips enhancement.",
         "heading": "Turn photos and scans into a readable PDF",
         "intro": "Prepare receipts, whiteboard photos, and paper documents for sharing with a focused scan-to-PDF workflow.",
-        "how_to": ("Upload images in the order they should appear", "Check the selected image files", "Export the optimized PDF"),
+        "how_to": ("Upload images in the order they should appear", "Choose A4, US Letter, or original size; browser mode stays local without enhancement, while server mode applies contrast and sharpness enhancement", "Export the PDF and check its page size and readability"),
         "faqs": (
             ("What image formats can I use for scan to PDF?", "The workflow accepts common image formats including JPG, PNG, TIFF, and WebP when the browser or server image decoder can verify them safely."),
-            ("Does scan enhancement create searchable text?", "Enhancement improves the visual scan. Use OCR PDF afterward when you also need a searchable text layer."),
+            ("Which processing mode enhances scan images?", "Temporary server processing applies automatic contrast and sharpness enhancement. Browser processing keeps the images on this device and skips enhancement; the tool tells you this before export. Neither mode adds searchable text. Run OCR PDF afterward when you need text search or selection."),
             ("Can I combine multiple photographed pages?", "Yes. Add a batch of images, arrange their sequence, and export them as a single PDF document."),
         ),
         "related": ("jpg_to_pdf", "ocr", "compress", "organize"),
@@ -878,8 +959,8 @@ SEO_CATALOG = {
     },
     "html_to_pdf": {
         "title": "HTML to PDF Converter — Render Web Pages to PDF | Paperplane",
-        "description": "Render trusted HTML content or a public page into a PDF, then review the generated page breaks and layout.",
-        "heading": "Convert HTML content into a PDF",
+        "description": "Render a publicly reachable webpage URL into a PDF, then review the generated page breaks and layout.",
+        "heading": "Convert a public webpage to PDF",
         "intro": "Create a portable PDF from a publicly reachable web page URL. This form accepts a URL, not pasted HTML snippets.",
         "how_to": ("Enter an allowed public URL", "Review the URL and start the conversion", "Download the rendered PDF"),
         "faqs": (
@@ -893,11 +974,11 @@ SEO_CATALOG = {
         "title": "PDF to JPG Converter — Convert PDF Pages to Images | Paperplane",
         "description": "Convert PDF pages to high-resolution JPG images in a ZIP bundle for previews, publishing, or image-based workflows.",
         "heading": "Convert PDF pages to JPG images",
-        "intro": "Rasterize every document page for sharing in systems that accept images instead of PDF files.",
-        "how_to": ("Upload the source PDF", "After upload, choose an export resolution", "Download the JPG image bundle"),
+        "intro": "Choose specific pages or rasterize the full document for systems that accept images instead of PDF files.",
+        "how_to": ("Upload the source PDF", "Optionally enter page numbers or ranges, then choose an export resolution", "Download the selected JPG images"),
         "faqs": (
             ("Is PDF to JPG conversion lossless?", "JPG is a lossy image format. Choose an appropriate quality setting, or use a lossless image workflow when text and line art must remain pixel-perfect."),
-            ("Can I convert only selected PDF pages?", "PDF to JPG currently exports every page. To convert a subset, first use Split to extract the pages you need, then convert that smaller PDF."),
+            ("Can I convert only selected PDF pages?", "Yes. Enter page numbers or ranges such as 1, 3-5 in Pages to export. Leave the field blank to export every page."),
             ("Why is the result downloaded as a ZIP file?", "A multi-page PDF produces multiple image files. Packaging them in a ZIP keeps the page set together and avoids ambiguous browser downloads."),
         ),
         "related": ("jpg_to_pdf", "pdf_to_text", "compress", "split"),
@@ -1085,14 +1166,14 @@ SEO_CATALOG = {
         "related": ("protect", "sign", "metadata", "redact"),
     },
     "sign": {
-        "title": "Sign PDF Online — Add Visual or Digital Signatures | Paperplane",
-        "description": "Place a typed visual signature stamp. Use Paperplane Studio's Digital Signatures panel for a drawn or typed mark and signature verification.",
-        "heading": "Sign a PDF for approval or integrity",
-        "intro": "This tool places a typed visual signature stamp. For draw/type signature marks and verification, open the document in Paperplane Studio and choose More Tools → Digital Signatures.",
-        "how_to": ("Upload the document and enter the printed signer name", "Run Sign PDF to place a typed stamp", "Open Studio for drawn or certificate-backed signature workflows"),
+        "title": "Add a Visual Signature Stamp to a PDF | Paperplane",
+        "description": "Add a typed visual signature mark to a PDF page. This stamp does not verify identity or create a certified or cryptographic signature.",
+        "heading": "Add a visual signature stamp",
+        "intro": "This tool places a typed visual mark on the page. It does not verify the signer’s identity or create a certified or cryptographic signature. For other signing and verification options, open Paperplane Studio → Digital Signatures.",
+        "how_to": ("Upload the PDF and enter the printed name to show", "Run Signature Stamp to add the visual mark", "Download and review the marked PDF; the stamp is not identity verification"),
         "faqs": (
-            ("What is the difference between a visual and digital PDF signature?", "A visual signature is an appearance placed on the page. A digital signature uses certificate-backed cryptographic validation to detect changes after signing."),
-            ("Does Paperplane provide a certificate authority?", "No. Cryptographic signing requires an authorized certificate and key material. The application can create or verify supported signature structures but does not replace your trust provider."),
+            ("Does this stamp verify who signed the document?", "No. It adds a visual mark only; it does not verify identity, create a cryptographic signature, or provide a certified e-signature workflow."),
+            ("Does Paperplane provide a certificate authority?", "No. A visual stamp is not certificate-backed signing. Any cryptographic signature must be independently validated against a certificate chain trusted by its recipient."),
             ("Can I verify a signed PDF after downloading it?", "Yes. Use the verification workflow to inspect signature status, byte ranges, and integrity information supported by the document."),
         ),
         "related": ("protect", "unlock", "forms", "metadata"),
@@ -1485,9 +1566,12 @@ def seo_page_context(operation: str | None, landing_slug: str | None = None) -> 
             "related": ("merge", "compress", "pdf_to_word", "sign"),
             "how_to": ("Choose a PDF tool", "Add the source document", "Download the verified output"),
             "faqs": (
-                ("Where are files processed?", "Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Scan to PDF, JPG/PNG to PDF, PDF-to-JPG, Grayscale PDF, Crop PDF, Add Text & Stamps, Sign PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Compare PDF text, PDF-to-Markdown (basic), PDF-to-Word (text-first), Page Numbers, text and image watermarks, and photo tools can run in your browser when browser processing is selected. Grayscale renders colored pages at 150 DPI and may remove searchable text; already-grayscale files stay unchanged. Browser-local Scan to PDF skips automatic contrast/sharpness enhancement; choose temporary server processing for enhancement. Image watermarks and other tasks use temporary server processing after your choice; expired job files are removed on the configured cleanup schedule (2-hour retention by default)."),
+                ("Where are files processed?", "Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Scan to PDF, JPG/PNG to PDF, PDF-to-JPG, Grayscale PDF, Crop PDF, Add Text & Stamps, Sign PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Compare PDF text, PDF-to-Markdown (basic), PDF-to-Word (text-first), Page Numbers, text and image watermarks, basic Annotate PDF text markup for exact single-block phrases (not sticky notes or rectangles), and photo tools can run in your browser when browser processing is selected. Grayscale renders colored pages at 150 DPI and may remove searchable text; already-grayscale files stay unchanged. Browser-local Scan to PDF skips automatic contrast/sharpness enhancement; choose temporary server processing for enhancement. Image watermarks and other tasks use temporary server processing after your choice; expired job files are removed on the configured cleanup schedule (2-hour retention by default)."),
                 ("What PDF operations are available?", "The catalog covers organizing, compression, conversion, editing, security, and document intelligence workflows."),
                 ("Does Paperplane work on phones?", "Yes. The public web workspace is responsive and uses touch-sized controls on mobile browsers."),
+                ("Where can I check plan prices and usage limits?", "Pricing lists current plan prices. File-size and usage limits depend on your account and the tool; check the limit shown in the workspace before starting a job."),
+                ("Where can I find refund information?", "The Refunds page is still a draft pending owner approval. Review the current purchase terms before paying; this FAQ does not promise a refund."),
+                ("How do I report a problem or contact the team?", "Use the Feedback form to report a problem or suggest an improvement. The Contact page is still marked as a draft."),
             ),
         }
 
@@ -1560,8 +1644,8 @@ def render_seo_content(context: dict) -> str:
         ),
         "pdf_to_jpg": (
             "Select the PDF whose pages should become images.",
-            "After selecting the PDF, choose an export resolution from the available control; the tool exports every page.",
-            "Download the ZIP and review the page images at the selected resolution.",
+            "Optionally enter page numbers or ranges, such as 1, 3-5; leave the field blank to export every page, then choose a resolution.",
+            "Download the ZIP and review the selected page images at the chosen resolution.",
         ),
         "word_to_pdf": (
             "Select a DOC or DOCX file in the upload area above.",
@@ -1697,7 +1781,10 @@ def render_web_page(request: Request, operation: str | None = None, landing_slug
     ).replace("</", "<\\/")
 
     html = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
-    plan_limits = plan_limits_payload()
+    session_token = request.cookies.get("paperplane_token")
+    page_user_id = persistence.authenticate(session_token) if session_token else None
+    page_tier = persistence.get_user_tier(page_user_id) if page_user_id else None
+    plan_limits = plan_limits_payload(page_tier, authenticated=bool(page_user_id))
     bootstrap = json.dumps({
         "operations": OPERATIONS,
         "planLimits": plan_limits,
@@ -1707,13 +1794,17 @@ def render_web_page(request: Request, operation: str | None = None, landing_slug
                         '<script id="paperplane-bootstrap" type="application/json">' + bootstrap + "</script>")
     for token, value in {
         "%%FREE_DAILY%%": plan_limits["free_operations_per_day"],
+        "%%AI_PAGES%%": plan_limits["ai_document_page_limit"],
+        "%%AI_CHAT_CHARS%%": plan_limits["ai_chat_question_max_chars"],
         "%%COPYRIGHT_YEAR%%": date.today().year,
         "%%APP_VERSION%%": app.version,
         "%%TOOL_COUNT%%": len(OPERATIONS),
         "%%EXAM_PRICE%%": EXAM_PASS_PRICE_INR,
         "%%STUDENT_PRICE%%": STUDENT_PRO_PRICE_INR,
         "%%CAFE_PRICE%%": CYBER_CAFE_PRICE_INR,
+        "%%GUEST_MB%%": plan_limits["guest_max_file_size_mb"],
         "%%FREE_MB%%": plan_limits["free_max_file_size_mb"],
+        "%%PREMIUM_MB%%": plan_limits["exam_pass_max_file_size_mb"],
         "%%PRO_MB%%": plan_limits["pro_max_file_size_mb"],
         "%%BATCH_FILES%%": plan_limits["max_batch_files"],
     }.items():
@@ -1787,7 +1878,8 @@ def render_web_page(request: Request, operation: str | None = None, landing_slug
                 "compare": "Exactly two PDFs per run",
                 "photo_merge": "Merge 2–12 photos per run",
             }.get(operation, "One file per run")
-            hint = f"{file_kind} up to {plan_limits['free_max_file_size_mb']} MB each on Free and {plan_limits['pro_max_file_size_mb']} MB each on paid plans. {batch}."
+            hint = (f"Guests: up to {plan_limits['guest_max_file_size_mb']} MB per file. Signed-in Free and recurring paid plans have no plan-specific file cap, "
+                    f"within the {plan_limits['platform_max_file_size_mb']} MB service maximum. Exam Pass: up to {plan_limits['exam_pass_max_file_size_mb']} MB. {batch}.")
         html = html.replace(
             '<small id="file-hint">PDF tools · file size and batch limits are shown for the selected tool</small>',
             f'<small id="file-hint">{html_escape(hint)}</small>', 1,
@@ -1813,7 +1905,7 @@ def render_web_page(request: Request, operation: str | None = None, landing_slug
             1,
         )
         html = html.replace(
-            '<p id="tool-description">Combine multiple PDFs into one unified document with custom ordering.</p>',
+            '<p id="tool-description">Combine PDFs in the order you add them into one unified document.</p>',
             f'<p id="tool-description">{html_escape(info["description"])}</p>',
             1,
         )
@@ -1912,6 +2004,14 @@ def render_web_page(request: Request, operation: str | None = None, landing_slug
         # Home directory view: ensure topbar breadcrumb accurately shows Directory
         html = html.replace('<span id="crumb-category">Organize PDF</span>', '<span id="crumb-category">All Tools</span>', 1)
         html = html.replace('<b id="crumb-tool">Merge PDF</b>', '<b id="crumb-tool">Directory</b>', 1)
+    if page_user_id:
+        # The first page render already includes the account's effective limits.
+        # Keep this personalized HTML out of shared caches so a later guest or
+        # account cannot receive another session's tier limits.
+        return HTMLResponse(
+            content=html,
+            headers={"Cache-Control": "private, no-store", "Vary": "Cookie"},
+        )
     return html
 
 
@@ -2026,9 +2126,12 @@ def deliver_otp_or_raise(background_tasks: BackgroundTasks, email: str, code: st
     if (ENVIRONMENT != "production" and os.getenv("TESTING") == "True"):
         background_tasks.add_task(send_otp_email, email, code, purpose)
         return
-    if not send_otp_email(email, code, purpose):
+    delivery_accepted = send_otp_email(email, code, purpose)
+    if not delivery_accepted:
+        logger.error("otp_delivery_failed purpose=%s provider_dispatch=exhausted_or_unavailable", purpose)
         delete_email_otp(email, purpose, code)
         raise HTTPException(503, "Email delivery is unavailable. Please try again later or contact support.")
+    logger.info("otp_delivery_accepted purpose=%s", purpose)
 
 
 def parse_options(raw: str) -> dict:
@@ -2070,19 +2173,35 @@ def max_batch_files_for_tier(tier: str | None = None) -> int:
     return MAX_BATCH_FILES if normalized in {"pro", "developer", "cyber_cafe"} else STANDARD_BATCH_FILES
 
 
-def plan_limits_payload(tier: str | None = None) -> dict[str, int]:
-    """Public plan limits used by both the upload guard and client copy."""
+def plan_limits_payload(tier: str | None = None, authenticated: bool = False) -> dict[str, int]:
+    """Public upload and usage limits, including the platform's hard file ceiling."""
+    platform_max_mb = MAX_FILE_SIZE // (1024 * 1024)
     return {
         "free_operations_per_day": FREE_TIER_DAILY_LIMIT,
-        "free_max_file_size_mb": FREE_TIER_MAX_FILE_SIZE_MB,
-        "pro_max_file_size_mb": MAX_FILE_SIZE // (1024 * 1024),
+        "ai_document_page_limit": AI_DOCUMENT_PAGE_LIMIT,
+        "ai_chat_question_max_chars": AI_CHAT_QUESTION_MAX_CHARS,
+        "guest_max_file_size_mb": min(FREE_TIER_MAX_FILE_SIZE_MB, platform_max_mb),
+        "free_max_file_size_mb": platform_max_mb,
+        "exam_pass_max_file_size_mb": min(500, platform_max_mb),
+        "pro_max_file_size_mb": platform_max_mb,
+        "platform_max_file_size_mb": platform_max_mb,
+        "authenticated": int(bool(authenticated)),
         "max_batch_files": max_batch_files_for_tier(tier),
     }
 
 
-def upload_limit_bytes_for_tier(tier: str | None) -> int:
-    paid_tiers = {"pro", "developer", "student_pro", "cyber_cafe", "exam_pass"}
-    if (tier or "free").lower() in paid_tiers:
+def upload_limit_bytes_for_tier(tier: str | None, authenticated: bool = False) -> int:
+    """Return the tier cap, always bounded by the configured platform maximum.
+
+    Guest uploads retain a 50 MiB cap. Signed-in Free users and recurring paid
+    plans have no additional plan-level file cap. The time-limited Exam Pass is
+    the Premium Pack and is capped at 500 MiB. MAX_FILE_SIZE remains the hard
+    infrastructure safety ceiling, so "unlimited" never means unbounded input.
+    """
+    normalized = str(tier or "free").strip().lower()
+    if normalized == "exam_pass":
+        return min(MAX_FILE_SIZE, 500 * 1024 * 1024)
+    if normalized in {"pro", "developer", "student_pro", "cyber_cafe"} or (normalized == "free" and authenticated):
         return MAX_FILE_SIZE
     return min(MAX_FILE_SIZE, FREE_TIER_MAX_FILE_SIZE_MB * 1024 * 1024)
 
@@ -2090,7 +2209,7 @@ def upload_limit_bytes_for_tier(tier: str | None) -> int:
 def upload_limit_bytes_for_user(user_id: str | None) -> int:
     user = get_user(user_id) if user_id else None
     tier = user.get("tier", "free") if user else "free"
-    return upload_limit_bytes_for_tier(tier)
+    return upload_limit_bytes_for_tier(tier, authenticated=bool(user))
 
 
 def save_upload_spooled(
@@ -2156,7 +2275,11 @@ def validate_upload(path: Path, expected: str, operation: str = "") -> None:
         except Exception as error:
             if isinstance(error, ValueError) and str(error) == "The uploaded PDF contains no readable pages.":
                 raise
-            raise ValueError("The uploaded PDF is damaged or unreadable. Please choose a valid PDF.") from error
+            # PyMuPDF's native open failure can retain a Windows file handle in
+            # its traceback. Do not chain that native exception into the API
+            # error: callers need to remove the rejected upload immediately.
+            error.__traceback__ = None
+            raise ValueError("The uploaded PDF is damaged or unreadable. Please choose a valid PDF.") from None
 
     if expected == "image":
         try:
@@ -2242,13 +2365,33 @@ def validate_upload(path: Path, expected: str, operation: str = "") -> None:
             raise ValueError("Malware scanner is unavailable; upload rejected by policy.") from error
 
 
+def _cleanup_upload_path(path: Path, *, is_directory: bool = False) -> bool:
+    """Remove rejected uploads reliably when native PDF parsers release Windows handles lazily."""
+    for attempt in range(12):
+        try:
+            if is_directory:
+                shutil.rmtree(path)
+            else:
+                path.unlink(missing_ok=True)
+            return True
+        except FileNotFoundError:
+            return True
+        except OSError:
+            if attempt == 11:
+                logger.warning("upload_cleanup_failed path=%s directory=%s", path, is_directory)
+                return False
+            gc.collect()
+            time.sleep(0.05 * (attempt + 1))
+    return False
+
+
 def save_pdf_upload(upload_file: UploadFile, destination: Path, user_id: str | None = None) -> Path:
     """Spool and validate a PDF upload while keeping the request heap bounded."""
     save_upload_spooled(upload_file, destination, max_bytes=upload_limit_bytes_for_user(user_id))
     try:
         validate_upload(destination, "pdf")
     except ValueError as error:
-        destination.unlink(missing_ok=True)
+        _cleanup_upload_path(destination)
         raise HTTPException(422, str(error)) from error
     return destination
 
@@ -2435,6 +2578,8 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
     stem = source.stem.split("_", 1)[-1] if source else "document"
     output = output_dir / f"{stem}_{operation}.pdf"
     if operation == "merge":
+        if len(inputs) < 2:
+            raise ValueError("Select at least two PDFs to merge.")
         output = output_dir / "merged-PDF.pdf"
 
     # 1. Office to PDF Conversions
@@ -2453,7 +2598,9 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
     # 2. PDF to Office / Standard formats
     if operation == "pdf_to_word":
         docx_output = output.with_suffix(".docx")
-        return converters.pdf_to_word(source, docx_output, pages=options.get("pages", "all"))
+        return _run_pdf_to_word_worker_with_timeout(
+            source, docx_output, pages=options.get("pages", "all")
+        )
     if operation == "pdf_to_excel":
         xlsx_output = output.with_suffix(".xlsx")
         return converters.pdf_to_excel(source, xlsx_output, pages=options.get("pages", "all"))
@@ -2485,6 +2632,10 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
             (output_dir / ".job-warning").write_text(
                 "Compression could have damaged page content, so the readable original was preserved. The requested file-size target was not reached.",
                 encoding="utf-8",
+            )
+        elif compression_result.get("smaller_original_preserved") and compression_result.get("note"):
+            (output_dir / ".job-warning").write_text(
+                str(compression_result["note"]), encoding="utf-8"
             )
         elif not compression_result.get("target_achieved", True) and compression_result.get("note"):
             (output_dir / ".job-warning").write_text(
@@ -2730,7 +2881,14 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
         to_name = original_names[1] if len(original_names) > 1 else inputs[1].name
         report = "\n".join(difflib.unified_diff(left.splitlines(), right.splitlines(), fromfile=from_name, tofile=to_name, lineterm=""))
         result = output.with_suffix(".txt")
-        result.write_text(report or "No text differences found.\n", encoding="utf-8")
+        if report:
+            changed_lines = [line for line in report.splitlines() if line.startswith(("+", "-")) and not line.startswith(("+++", "---"))]
+            verdict = f"Verdict: {len(changed_lines)} changed text lines found."
+            body = report
+        else:
+            verdict = "Verdict: Files are identical in selectable text — no differences found."
+            body = "No text differences found."
+        result.write_text(f"{verdict}\n\n{body}\n", encoding="utf-8")
         return result
 
     # 5. Reader / Writer operations
@@ -3804,7 +3962,7 @@ def get_current_user_profile(request: Request, user_id: str | None = Depends(cur
         return {"authenticated": False}
     all_pricing = public_pricing_catalog()
     tier = get_user_tier(user_id)
-    plan_limits = plan_limits_payload(tier)
+    plan_limits = plan_limits_payload(tier, authenticated=True)
     user = get_user(user_id)
     if not user:
         return {"authenticated": False}
@@ -4196,12 +4354,38 @@ def delete_key(key_id: str, user_id: str = Depends(current_user)):
 # AI Endpoints (Chat, Summarize, Extract, Translate)
 # ----------------------------------------------------------------------
 
+AI_DOCUMENT_PAGE_LIMIT = ai_engine.SUMMARY_PAGE_LIMIT
+AI_CHAT_QUESTION_MAX_CHARS = 4_000
+
+
+def enforce_ai_document_page_limit(pdf_path: Path) -> None:
+    """Keep every AI PDF workflow within the published page cap."""
+    try:
+        with fitz.open(pdf_path) as document:
+            page_count = document.page_count
+    except (fitz.FileDataError, fitz.EmptyFileError) as error:
+        raise HTTPException(422, "This PDF is damaged or empty.") from error
+    if page_count > AI_DOCUMENT_PAGE_LIMIT:
+        raise HTTPException(
+            422,
+            f"AI document workflows accept up to {AI_DOCUMENT_PAGE_LIMIT} pages. Split the PDF and try again.",
+        )
+
+
+def validate_ai_chat_question(question: str) -> None:
+    if len(question) > AI_CHAT_QUESTION_MAX_CHARS:
+        raise HTTPException(
+            422,
+            f"AI Chat questions are limited to {AI_CHAT_QUESTION_MAX_CHARS:,} characters.",
+        )
+
 @app.post("/api/ai/chat")
 async def ai_chat(
     file: UploadFile | None = File(None),
     question: str = Form(...),
     user_id: str | None = Depends(current_user)
 ):
+    validate_ai_chat_question(question)
     temp_dir = Path(tempfile.mkdtemp())
     try:
         if file is None:
@@ -4225,6 +4409,7 @@ async def ai_chat(
             return {"answer": answer, "citations": [], "retrieval_method": None, "fallback_used": False}
         temp_pdf = temp_dir / "chat_doc.pdf"
         await save_upload_spooled_async(file, temp_pdf, max_bytes=upload_limit_bytes_for_user(user_id))
+        enforce_ai_document_page_limit(temp_pdf)
         return await asyncio.to_thread(ai_engine.chat_with_pdf, temp_pdf, question)
     except ValueError as ve:
         raise HTTPException(status_code=503, detail=str(ve))
@@ -4246,6 +4431,7 @@ async def ai_chat_stream(
     user_id: str | None = Depends(current_user),
 ):
     """SSE chat endpoint: reports real work stages and streams upstream content deltas."""
+    validate_ai_chat_question(question)
     temp_dir = Path(tempfile.mkdtemp())
 
     def frame(kind: str, **data: Any) -> str:
@@ -4280,6 +4466,7 @@ async def ai_chat_stream(
             if file is not None:
                 temp_pdf = temp_dir / "chat_stream.pdf"
                 await save_upload_spooled_async(file, temp_pdf, max_bytes=upload_limit_bytes_for_user(user_id))
+                enforce_ai_document_page_limit(temp_pdf)
                 if re.search(r"\b(how many pages?|page count|number of pages|document title|pdf title|file name|filename|title of (?:this|the) (?:document|pdf)|what(?:'s| is) (?:the )?(?:document )?title)\b", question, re.IGNORECASE):
                     metadata_result = await asyncio.to_thread(ai_engine.chat_with_pdf, temp_pdf, question, file.filename)
                     yield frame("replace", text=metadata_result["answer"])
@@ -4295,6 +4482,13 @@ async def ai_chat_stream(
                     f"Page count: {page_count}\n"
                     f"Title: {document_title}\n"
                 )
+                sparse_response = await asyncio.to_thread(
+                    ai_engine.sparse_document_text_response, chunks, page_count, question
+                )
+                if sparse_response:
+                    yield frame("replace", text=sparse_response["answer"])
+                    yield frame("done", citations=[], mode="sparse_text_guidance")
+                    return
                 correction = await asyncio.to_thread(ai_engine.correct_false_premise, temp_pdf, question)
                 if correction:
                     yield frame("replace", text=correction)
@@ -4370,7 +4564,26 @@ async def ai_chat_stream(
             # SSE delta.
             identity_guard_buffer = max(180, max_forbidden_len + 140)
             while True:
-                piece = await asyncio.to_thread(get_next)
+                try:
+                    piece = await asyncio.to_thread(get_next)
+                except Exception as stream_error:
+                    fallback_answer = await asyncio.to_thread(
+                        ai_engine.complete_with_configured_fallback,
+                        system_prompt,
+                        user_prompt,
+                        stream_error,
+                    )
+                    if not fallback_answer:
+                        raise
+                    # A fallback response replaces the possibly partial stream
+                    # so users receive one coherent answer and one citation set.
+                    full_answer, fallback_citations = ai_engine.align_answer_citations(
+                        ai_engine._guard_ai_output(fallback_answer), citations
+                    )
+                    pending_output = ""
+                    yield frame("replace", text=full_answer)
+                    yield frame("done", citations=fallback_citations, mode="provider_fallback")
+                    return
                 if piece is sentinel:
                     break
                 accumulated += piece
@@ -4423,11 +4636,10 @@ async def ai_summarize(
     try:
         temp_pdf = temp_dir / "summary_doc.pdf"
         await save_upload_spooled_async(file, temp_pdf, max_bytes=upload_limit_bytes_for_user(user_id))
+        enforce_ai_document_page_limit(temp_pdf)
 
         def build_summary() -> tuple[str, list[int]]:
-            summary_text = ai_engine.summarize_pdf(temp_pdf)
-            eligible_pages = sorted({chunk.page_number for chunk in ai_engine.extract_chunks_from_pdf(temp_pdf) if chunk.text.strip()})
-            return ai_engine.align_answer_citations(summary_text, eligible_pages)
+            return ai_engine.summarize_pdf(temp_pdf, include_citations=True)
 
         summary_task = asyncio.create_task(asyncio.to_thread(build_summary))
         try:
@@ -4475,6 +4687,7 @@ async def ai_extract(
     try:
         temp_pdf = temp_dir / "extract_doc.pdf"
         await save_pdf_upload_async(file, temp_pdf, user_id=user_id)
+        enforce_ai_document_page_limit(temp_pdf)
         data = await asyncio.to_thread(ai_engine.extract_metadata_entities, temp_pdf, doc_type)
         return {"status": "success", "data": data}
     except HTTPException:
@@ -4504,6 +4717,7 @@ async def ai_translate_endpoint(
     try:
         temp_pdf = temp_dir / "translate_input.pdf"
         await save_pdf_upload_async(file, temp_pdf, user_id=user_id)
+        enforce_ai_document_page_limit(temp_pdf)
         out_pdf = temp_dir / f"translated_{target_language}.pdf"
         translation_report: dict = {}
         translation_task = asyncio.create_task(asyncio.to_thread(
@@ -4530,8 +4744,8 @@ async def ai_translate_endpoint(
             headers={
                 "Content-Disposition": f'attachment; filename="translated_{target_language}.pdf"',
                 "X-Paperplane-Translation-Mode": translation_report.get("translation_status", "failed"),
-                "X-Paperplane-Translated-Fraction": f"{translation_report.get('translated_fraction', 0):.4f}",
-                "X-Paperplane-Translated-Block-Fraction": f"{translation_report.get('translated_block_fraction', 0):.4f}",
+                "X-Paperplane-Translated-Fraction": f"{translation_report.get('translated_fraction', 0):.8f}",
+                "X-Paperplane-Translated-Block-Fraction": f"{translation_report.get('translated_block_fraction', 0):.8f}",
                 "X-Paperplane-Translation-Warnings": str(len(translation_report.get("warnings", []))),
             }
         )
@@ -5451,7 +5665,9 @@ async def studio_compress(
             "X-Saved-Bytes": str(report["saved_bytes"]),
             "X-Percent-Saved": str(report["percent_saved"]),
             "X-Preset-Used": str(report["preset_used"]),
-            "Access-Control-Expose-Headers": "X-Original-Size, X-Output-Size, X-Saved-Bytes, X-Percent-Saved, X-Preset-Used"
+            "X-Target-Achieved": "true" if report.get("target_achieved", True) else "false",
+            "X-Compression-Note": report.get("note") or "",
+            "Access-Control-Expose-Headers": "X-Original-Size, X-Output-Size, X-Saved-Bytes, X-Percent-Saved, X-Preset-Used, X-Target-Achieved, X-Compression-Note"
         }
 
         return StreamingResponse(
@@ -6159,7 +6375,7 @@ async def studio_security_inspect(
     except Exception as err:
         raise HTTPException(500, f"Security inspection failed: {err}") from err
     finally:
-        shutil.rmtree(temp_dir, ignore_errors=True)
+        _cleanup_upload_path(temp_dir, is_directory=True)
 
 
 @app.post("/api/studio/security/sanitize")
@@ -6657,7 +6873,7 @@ async def start_chunked_upload(request: Request, user_id: str | None = Depends(c
     if len(files) > max_files:
         raise HTTPException(400, f"This operation accepts at most {max_files} files.")
     tier = get_user_tier(user_id)
-    per_file_limit = upload_limit_bytes_for_tier(tier)
+    per_file_limit = upload_limit_bytes_for_tier(tier, authenticated=bool(user_id))
     normalized_files = []
     for item in files:
         if not isinstance(item, dict):
@@ -6673,6 +6889,8 @@ async def start_chunked_upload(request: Request, user_id: str | None = Depends(c
         chunk_count = (size + UPLOAD_CHUNK_BYTES - 1) // UPLOAD_CHUNK_BYTES
         normalized_files.append({"name": filename, "size": size, "chunk_count": chunk_count,
                                  "received": [False] * chunk_count})
+    if operation == "merge" and len(normalized_files) < 2:
+        raise HTTPException(400, "Select at least two PDFs to merge.")
     upload_id = uuid.uuid4().hex
     session_dir = CHUNKED_UPLOADS_DIR / upload_id
     session_dir.mkdir(mode=0o700, parents=False, exist_ok=False)
@@ -6886,7 +7104,7 @@ def create_job_endpoint(
 
     try:
         paths = []
-        upload_limit_bytes = upload_limit_bytes_for_tier(user_tier)
+        upload_limit_bytes = upload_limit_bytes_for_tier(user_tier, authenticated=bool(user_id))
         for file_index, file in enumerate(files, start=1):
             file_started_at = time.monotonic()
             p = save_upload(file, job_dir, max_bytes=upload_limit_bytes)
@@ -6904,6 +7122,9 @@ def create_job_endpoint(
                 int((time.monotonic() - validation_started_at) * 1000),
             )
             paths.append(p)
+
+        if operation == "merge" and len(paths) < 2:
+            raise HTTPException(400, "Select at least two PDFs to merge.")
 
         # Failed uploads never spend quota. Keep a reservation for queued AI
         # work so that failure can refund the day on which it was submitted.
@@ -6954,11 +7175,27 @@ def create_job_endpoint(
         }
     except HTTPException as error:
         update_job(job_id, status="failed", error=str(error.detail))
-        shutil.rmtree(job_dir, ignore_errors=True)
-        raise HTTPException(error.status_code, error.detail) from error
+        for upload in files:
+            try:
+                upload.file.close()
+            except Exception:
+                pass
+        error.__traceback__ = None
+        error.__cause__ = None
+        error.__context__ = None
+        _cleanup_upload_path(job_dir, is_directory=True)
+        raise HTTPException(error.status_code, error.detail) from None
     except Exception as error:
         update_job(job_id, status="failed", error=str(error))
-        shutil.rmtree(job_dir, ignore_errors=True)
+        for upload in files:
+            try:
+                upload.file.close()
+            except Exception:
+                pass
+        error.__traceback__ = None
+        error.__cause__ = None
+        error.__context__ = None
+        _cleanup_upload_path(job_dir, is_directory=True)
         raise HTTPException(422, str(error)) from error
 
 
@@ -7532,7 +7769,15 @@ def public_swagger_reference():
     )
     if replaced != 1:
         raise RuntimeError("Swagger UI initialization template changed unexpectedly.")
-    return HTMLResponse(html, headers={"Cache-Control": "public, max-age=300"})
+    html, mount_replaced = re.subn(
+        r'<div id="swagger-ui">\s*</div>',
+        '<div id="swagger-ui"><div id="swagger-ui-loading" role="status" aria-live="polite">Loading interactive API documentation…</div></div>',
+        html,
+        count=1,
+    )
+    if mount_replaced != 1:
+        raise RuntimeError("Swagger UI mount template changed unexpectedly.")
+    return HTMLResponse(html, headers={"Cache-Control": "no-store"})
 
 
 @app.get("/spec/redoc", response_class=HTMLResponse, include_in_schema=False)
@@ -8045,6 +8290,29 @@ def admin_portal_page():
       display: inline-block;
       margin-right: 8px;
     }
+    .tier-breakdown-table {
+      margin-top: 8px;
+      font-size: 12.5px;
+    }
+    .tier-breakdown-table caption.visually-hidden {
+      position: absolute;
+      inline-size: 1px;
+      block-size: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+      border: 0;
+    }
+    .tier-breakdown-table th,
+    .tier-breakdown-table td {
+      padding: 6px 4px;
+    }
+    .tier-breakdown-table td:last-child,
+    .tier-breakdown-table th:last-child {
+      text-align: right;
+    }
 
     /* Toolbar & Tabs */
     .toolbar {
@@ -8381,8 +8649,11 @@ def admin_portal_page():
           <div class="meter-bar">
             <div id="meter-plan-segments" style="display:flex;width:100%;height:100%;"></div>
           </div>
-          <div class="legend-list" id="plan-breakdown-rows">
-          </div>
+          <table class="tier-breakdown-table">
+            <caption class="visually-hidden">Account distribution by plan</caption>
+            <thead><tr><th scope="col">Plan</th><th scope="col">Accounts</th><th scope="col">Share</th></tr></thead>
+            <tbody id="plan-breakdown-rows"></tbody>
+          </table>
         </div>
       </div>
 
@@ -8647,7 +8918,7 @@ def admin_portal_page():
     </div>
   </main>
 
-  <script src="/assets/admin.js?v=18" defer></script>
+  <script src="/assets/admin.js?v=22" defer></script>
 </body>
 </html>""")
 

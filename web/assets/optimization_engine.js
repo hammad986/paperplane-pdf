@@ -133,6 +133,8 @@
       const closeBtn = document.getElementById('modal-close-compress');
       const cancelBtn = document.getElementById('btn-cancel-compress');
       const applyBtn = document.getElementById('btn-apply-compress');
+      const errorBox = document.getElementById('compress-error-box');
+      const applyLabel = 'Compress PDF →';
 
       if (closeBtn) closeBtn.onclick = () => { modal.hidden = true; };
       if (cancelBtn) cancelBtn.onclick = () => { modal.hidden = true; };
@@ -150,7 +152,7 @@
 
       if (applyBtn) {
         applyBtn.onclick = async () => {
-          if (!this.currentFile) return;
+          if (!this.currentFile || applyBtn.disabled) return;
           const chosenRadio = modal.querySelector('input[name="compress-preset"]:checked');
           const preset = chosenRadio ? chosenRadio.value : 'balanced';
 
@@ -161,7 +163,9 @@
             targetKb = targetUnit === 'MB' ? Math.round(targetSizeVal * 1024) : Math.round(targetSizeVal);
           }
 
-          modal.hidden = true;
+          applyBtn.disabled = true;
+          applyBtn.textContent = 'Compressing…';
+          if (errorBox) { errorBox.hidden = true; errorBox.textContent = ''; }
           window.showToast(`Compressing PDF with ${preset} preset…`, 'info');
 
           try {
@@ -179,6 +183,8 @@
             const origSize = parseInt(resp.headers.get('X-Original-Size') || '0', 10);
             const outSize = parseInt(resp.headers.get('X-Output-Size') || '0', 10);
             const pct = resp.headers.get('X-Percent-Saved') || '0';
+            const targetAchieved = resp.headers.get('X-Target-Achieved') !== 'false';
+            const compressionNote = resp.headers.get('X-Compression-Note') || '';
             const savedStr = formatBytes(origSize - outSize);
 
             const blob = await resp.blob();
@@ -187,9 +193,24 @@
             if (window.loadDocumentIntoStudio) {
               await window.loadDocumentIntoStudio(newFile);
             }
-            window.showToast(`Compressed! Saved ${savedStr} (${pct}% reduction).`, 'success');
+            modal.hidden = true;
+            if (!targetAchieved) {
+              const actualSize = formatBytes(outSize || blob.size);
+              const detail = compressionNote || `The requested target was not reached. The output is ${actualSize}.`;
+              window.showToast(`${detail} Output size: ${actualSize}.`, 'warning');
+            } else {
+              window.showToast(`Compressed! Saved ${savedStr} (${pct}% reduction).`, 'success');
+            }
           } catch (err) {
+            if (errorBox) {
+              errorBox.textContent = `Compression failed: ${err.message}. Your original PDF is still open. Retry when ready.`;
+              errorBox.hidden = false;
+            }
+            applyBtn.textContent = 'Retry Compression →';
             window.showToast(`Compression error: ${err.message}`, 'error');
+          } finally {
+            applyBtn.disabled = false;
+            if (applyBtn.textContent === 'Compressing…') applyBtn.textContent = applyLabel;
           }
         };
       }
@@ -223,7 +244,15 @@
       }
 
       const progressBox = document.getElementById('ocr-progress-box');
+      const progressStatus = document.getElementById('ocr-progress-status');
+      const progressPct = document.getElementById('ocr-progress-pct');
+      const progressBar = document.getElementById('ocr-progress-bar');
+      const applyBtn = document.getElementById('btn-apply-ocr');
       if (progressBox) progressBox.style.display = 'none';
+      if (progressStatus) progressStatus.textContent = 'Processing OCR...';
+      if (progressPct) progressPct.textContent = '0%';
+      if (progressBar) progressBar.style.width = '0%';
+      if (applyBtn) { applyBtn.disabled = false; applyBtn.textContent = 'Start OCR Processing →'; }
 
       modal.hidden = false;
     }
@@ -256,7 +285,7 @@
 
       if (applyBtn) {
         applyBtn.onclick = async () => {
-          if (!this.currentFile) return;
+          if (!this.currentFile || applyBtn.disabled) return;
 
           const lang = document.getElementById('ocr-language-select')?.value || 'eng';
           const dpi = parseInt(document.getElementById('ocr-dpi-select')?.value || '150', 10);
@@ -267,6 +296,7 @@
           const progressBar = document.getElementById('ocr-progress-bar');
 
           if (progressBox) progressBox.style.display = 'block';
+          applyBtn.textContent = 'Running OCR…';
           if (progressStatus) progressStatus.textContent = `Running OCR engine (${lang.toUpperCase()})...`;
           if (progressPct) progressPct.textContent = '35%';
           if (progressBar) progressBar.style.width = '35%';
@@ -311,10 +341,14 @@
             }
             window.showToast(`OCR completed in ${elapsed}s! ${ocrdCount} page(s) recognized (${charsCount} characters). Text is now searchable via Ctrl+F.`, 'success');
           } catch (err) {
+            if (progressStatus) progressStatus.textContent = `OCR failed: ${err.message}. Your original PDF is unchanged. Retry when ready.`;
+            if (progressPct) progressPct.textContent = 'Failed';
+            if (progressBar) progressBar.style.width = '0%';
+            applyBtn.textContent = 'Retry OCR →';
             window.showToast(`OCR error: ${err.message}`, 'error');
           } finally {
             applyBtn.disabled = false;
-            if (progressBar) progressBar.style.width = '0%';
+            if (applyBtn.textContent === 'Running OCR…') applyBtn.textContent = 'Start OCR Processing →';
           }
         };
       }

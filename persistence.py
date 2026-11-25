@@ -2093,7 +2093,14 @@ def admin_get_revenue_analytics() -> dict:
             "amount": amount,
             "created_at": float(event["created_at"] or 0),
             "currency": "INR",
-            "status": "Paid",
+            # Keep verified sandbox/simulated events visibly distinct from
+            # production receipts in the admin transaction table.
+            "status": {
+                "PROD": "Paid",
+                "TEST": "Sandbox paid",
+                "SIMULATION": "Simulated paid",
+                "UNKNOWN": "Unclassified paid",
+            }[source],
         })
 
     totals = {source: Decimal("0.00") for source in ("PROD", "TEST", "SIMULATION", "UNKNOWN")}

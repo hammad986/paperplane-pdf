@@ -1,17 +1,20 @@
-const CACHE_NAME = 'paperplane-shell-v95';
+const CACHE_NAME = 'paperplane-shell-v215';
 const APP_SHELL = [
   '/',
   '/manifest.webmanifest',
-  '/assets/styles.css?v=61',
+  '/assets/styles.css?v=90',
   '/assets/theme-init.js?v=13',
-  '/assets/app.js?v=154',
-  '/assets/page_organizer.js?v=20',
-  '/assets/pdf_runtime.js?v=25',
+  '/assets/editor.js?v=15',
+  '/assets/app.js?v=239',
+  '/assets/feedback.js?v=19',
+  '/assets/optimization_engine.js?v=4.2.3',
+  '/assets/page_organizer.js?v=21',
+  '/assets/pdf_runtime.js?v=27',
   '/assets/pdf.min.js',
   '/assets/pdf.worker.min.js',
   '/assets/pdf-lib.min.js',
-  '/assets/studio_render_worker.js?v=4',
-  '/assets/local_pdf_worker.js?v=26',
+  '/assets/studio_render_worker.js?v=6',
+  '/assets/local_pdf_worker.js?v=29',
   '/assets/favicon.svg',
   '/assets/app-192.png',
   '/assets/app-512.png'

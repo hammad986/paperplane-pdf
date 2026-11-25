@@ -212,6 +212,15 @@ class TestPhase5ConversionEngine(unittest.TestCase):
             self.assertIn("page_001.jpg", namelist)
             self.assertIn("page_002.jpg", namelist)
 
+        # A page range preserves only the requested pages; malformed or out-of-range input must not silently export all pages.
+        selected_out = self.temp_dir / "selected_pages.zip"
+        converters.pdf_to_images(self.sample_pdf, selected_out, fmt="jpg", dpi=100, pages="2-2")
+        with zipfile.ZipFile(selected_out, "r") as zf:
+            self.assertEqual(zf.namelist(), ["page_002.jpg"])
+        for invalid in ("abc", "3", "2-1", "1,,2"):
+            with self.subTest(pages=invalid), self.assertRaises(ValueError):
+                converters.pdf_to_images(self.sample_pdf, self.temp_dir / "invalid.zip", fmt="jpg", pages=invalid)
+
     def test_06_pdf_to_png_and_webp(self):
         """Tests PDF page export to lossless PNG and WebP formats."""
         png_out = self.temp_dir / "page1.png"
@@ -342,7 +351,7 @@ class TestPhase5ConversionEngine(unittest.TestCase):
         out_pdf = self.temp_dir / "blocked_ssrf.pdf"
         with self.assertRaises(ValueError) as ctx:
             converters.html_to_pdf("http://127.0.0.1:8501/admin", out_pdf, is_url=True)
-        self.assertIn("Security Guard", str(ctx.exception))
+        self.assertIn("This address is not allowed (private or internal network)", str(ctx.exception))
 
     def test_13_pdf_to_html_sanitized_document(self):
         """Tests converting PDF to standalone, sanitized HTML with page sections."""

@@ -3,6 +3,7 @@
 .env.*
 deploy/certs/*.pem
 !deploy/certs/.gitkeep
+deploy/geoip/*.mmdb
 
 # Runtime Data and Databases
 runtime_data/

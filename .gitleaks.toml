@@ -12,6 +12,10 @@ secretGroup = 1
   regexTarget = "line"
   regexes = ['''(?i)(?:getenv|environ\.get)\(\s*["']PAPERPLANE_ADMIN_(?:KEY|CODE)["']\s*,\s*["']\[REDACTED\]["']\s*\)''']
 
+  [[rules.allowlists]]
+  description = "This regression test intentionally assembles a fake fallback string to verify the detector."
+  paths = ['''tests/test_launch_audit_v14\.py$''']
+
 [[rules]]
 id = "paperplane-compose-admin-fallback"
 description = "Hardcoded Compose admin credential fallback"
@@ -28,7 +32,7 @@ id = "curl-auth-header"
   [[rules.allowlists]]
   description = "Documentation examples read credentials from the environment."
   regexTarget = "match"
-  regexes = ['''\$\{?PAPERPLANE_API_KEY\}?''']
+  regexes = ['''\$\{?PAPERPLANE_API_KEY\}?''', '''(?i)(?:YOUR|REPLACE|EXAMPLE|PAPERPLANE)[A-Z0-9_<> -]{0,32}API[A-Z0-9_<> -]{0,16}KEY''']
 
 [[rules]]
 id = "generic-api-key"
@@ -37,3 +41,11 @@ id = "generic-api-key"
   description = "The uploaded certificate private-key parameter is a variable name, not a key value."
   regexTarget = "line"
   regexes = ['''save_upload_spooled\s*\(\s*custom_key\s*,\s*key_path''']
+
+  [[rules.allowlists]]
+  description = "These files contain synthetic idempotency values in API documentation and local retry-test evidence."
+  paths = [
+    '''docs/API_GUIDE\.md$''',
+    '''docs/TEST_EVIDENCE\.md$''',
+    '''reports/launch-audit-v23/browser-id106-idempotent-submit-retry\.json$'''
+  ]

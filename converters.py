@@ -453,13 +453,25 @@ def excel_to_pdf(source: Path, output: Path) -> Path:
     else:
         try:
             wb = openpyxl.load_workbook(str(source), data_only=True, read_only=True)
+            formula_wb = openpyxl.load_workbook(str(source), data_only=False, read_only=True)
             sheets = []
-            for sheet in wb.worksheets:
+            for sheet, formula_sheet in zip(wb.worksheets, formula_wb.worksheets):
                 rows = []
-                for row in sheet.iter_rows(min_row=1, max_row=150, max_col=min(sheet.max_column or 1, 15), values_only=True):
-                    rows.append(list(row))
+                max_row = min(sheet.max_row or 1, 150)
+                max_col = min(sheet.max_column or 1, 15)
+                value_rows = sheet.iter_rows(min_row=1, max_row=max_row, max_col=max_col, values_only=True)
+                formula_rows = formula_sheet.iter_rows(min_row=1, max_row=max_row, max_col=max_col)
+                for value_row, formula_row in zip(value_rows, formula_rows):
+                    row = list(value_row)
+                    for index, value in enumerate(row):
+                        formula_cell = formula_row[index]
+                        if value is None and formula_cell.data_type == "f":
+                            formula = str(formula_cell.value or "")
+                            row[index] = f"Formula result unavailable (not calculated in workbook): {formula}"
+                    rows.append(row)
                 sheets.append((sheet.title, rows))
             wb.close()
+            formula_wb.close()
         except Exception as exc:
             raise ValueError(f"Please provide a valid Excel spreadsheet (.xlsx). File parsing failed: {exc}") from exc
 
@@ -559,35 +571,21 @@ def html_to_pdf(url_or_content: str, output: Path, is_url: bool = True) -> Path:
     if is_url:
         safe, reason = is_safe_url(url_or_content)
         if not safe:
+            if "forbidden" in reason.lower() or "private/internal" in reason.lower() or "metadata" in reason.lower():
+                raise ValueError("This address is not allowed (private or internal network). Enter a public HTTP or HTTPS URL.")
             raise ValueError(f"Security Guard: {reason}")
         if chrome:
-            subprocess.run(
-                [
-                    chrome,
-                    "--headless=new",
-                    "--disable-gpu",
-                    "--no-sandbox",
-                    "--no-first-run",
-                    "--no-default-browser-check",
-                    "--disable-extensions",
-                    "--disable-background-networking",
-                    "--disable-sync",
-                    "--disable-translate",
-                    f"--print-to-pdf={output}",
-                    url_or_content,
-                ],
-                check=True, timeout=60
-            )
-            return output
-        raise ValueError("Headless browser is required for rendering web URLs.")
-    else:
-        # Raw HTML content
-        if chrome:
-            temp_dir = Path(tempfile.mkdtemp())
-            temp_html = temp_dir / "snippet.html"
-            temp_pdf = temp_dir / "output.pdf"
-            temp_html.write_text(url_or_content, encoding="utf-8")
-            try:
+            # Each worker needs a private writable Chrome profile. The image
+            # starts the app as an unprivileged user, so Chromium's default
+            # profile may point at an unwritable /root path. A unique profile
+            # also prevents concurrent URL-to-PDF jobs from colliding.
+            with tempfile.TemporaryDirectory(prefix="paperplane-html-to-pdf-") as profile_dir:
+                chrome_env = os.environ.copy()
+                chrome_env.update({
+                    "HOME": profile_dir,
+                    "XDG_CONFIG_HOME": str(Path(profile_dir) / "config"),
+                    "XDG_CACHE_HOME": str(Path(profile_dir) / "cache"),
+                })
                 subprocess.run(
                     [
                         chrome,
@@ -600,10 +598,48 @@ def html_to_pdf(url_or_content: str, output: Path, is_url: bool = True) -> Path:
                         "--disable-background-networking",
                         "--disable-sync",
                         "--disable-translate",
+                        "--disable-dev-shm-usage",
+                        f"--user-data-dir={profile_dir}",
+                        f"--print-to-pdf={output}",
+                        url_or_content,
+                    ],
+                    check=True, timeout=60, env=chrome_env
+                )
+            return output
+        raise ValueError("Headless browser is required for rendering web URLs.")
+    else:
+        # Raw HTML content
+        if chrome:
+            temp_dir = Path(tempfile.mkdtemp())
+            temp_html = temp_dir / "snippet.html"
+            temp_pdf = temp_dir / "output.pdf"
+            profile_dir = temp_dir / "chrome-profile"
+            temp_html.write_text(url_or_content, encoding="utf-8")
+            try:
+                chrome_env = os.environ.copy()
+                chrome_env.update({
+                    "HOME": str(profile_dir),
+                    "XDG_CONFIG_HOME": str(profile_dir / "config"),
+                    "XDG_CACHE_HOME": str(profile_dir / "cache"),
+                })
+                subprocess.run(
+                    [
+                        chrome,
+                        "--headless=new",
+                        "--disable-gpu",
+                        "--no-sandbox",
+                        "--no-first-run",
+                        "--no-default-browser-check",
+                        "--disable-extensions",
+                        "--disable-background-networking",
+                        "--disable-sync",
+                        "--disable-translate",
+                        "--disable-dev-shm-usage",
+                        f"--user-data-dir={profile_dir}",
                         f"--print-to-pdf={temp_pdf}",
                         str(temp_html),
                     ],
-                    check=True, timeout=60
+                    check=True, timeout=60, env=chrome_env
                 )
                 if temp_pdf.exists() and temp_pdf.stat().st_size > 0:
                     shutil.move(str(temp_pdf), str(output))
@@ -1099,29 +1135,36 @@ def pdf_to_images(
     doc = fitz.open(str(source))
     total_pages = len(doc)
 
-    if pages == "all" or not pages:
+    if pages == "all" or not str(pages or "").strip():
         target_indices = list(range(total_pages))
     else:
         target_indices = []
-        for part in pages.split(","):
+        page_spec = str(pages).strip()
+        if not re.fullmatch(r"\d+(?:\s*-\s*\d+)?(?:\s*,\s*\d+(?:\s*-\s*\d+)?)*", page_spec):
+            doc.close()
+            raise ValueError("Enter page numbers or ranges such as 1, 3-5, or leave blank for all pages.")
+        for part in page_spec.split(","):
             part = part.strip()
             if "-" in part:
                 s, e = part.split("-", 1)
-                try:
-                    for p in range(int(s), int(e) + 1):
-                        if 1 <= p <= total_pages:
-                            target_indices.append(p - 1)
-                except ValueError:
-                    pass
+                start, end = int(s.strip()), int(e.strip())
+                if start > end:
+                    doc.close()
+                    raise ValueError("Page ranges must be written from the smaller page number to the larger one.")
+                if start < 1 or end > total_pages:
+                    doc.close()
+                    raise ValueError(f"Choose pages from 1 to {total_pages}.")
+                target_indices.extend(range(start - 1, end))
             else:
-                try:
-                    p = int(part)
-                    if 1 <= p <= total_pages:
-                        target_indices.append(p - 1)
-                except ValueError:
-                    pass
+                page_number = int(part)
+                if page_number < 1 or page_number > total_pages:
+                    doc.close()
+                    raise ValueError(f"Choose pages from 1 to {total_pages}.")
+                target_indices.append(page_number - 1)
         if not target_indices:
-            target_indices = list(range(total_pages))
+            doc.close()
+            raise ValueError("Select at least one page to export.")
+        target_indices = list(dict.fromkeys(target_indices))
 
     if len(target_indices) == 1 and output.suffix.lower() in (".jpg", ".jpeg", ".png", ".webp"):
         page = doc[target_indices[0]]
@@ -1340,11 +1383,14 @@ def pdf_to_markdown(
 
     metadata_title = (doc.metadata or {}).get("title", "").strip()
     # Storage/job identifiers are not document titles. Leave the heading absent
-    # when the PDF has no trustworthy title rather than exposing an internal name.
-    safe_title = metadata_title if metadata_title and not re.match(r"^[a-f0-9]{20,}(?:_|$)", metadata_title, re.I) else ""
+    # when neither PDF metadata nor the original filename has a trustworthy title.
+    internal_title_prefix = r"^(?:[a-f0-9]{20,}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})(?:[_-]|$)"
+    safe_title = metadata_title if metadata_title and not re.match(internal_title_prefix, metadata_title, re.I) else ""
     if not safe_title and document_name:
-        safe_title = Path(document_name.replace("\\", "/")).name
-        safe_title = re.sub(r"\.(?:pdf)$", "", safe_title, flags=re.I).strip()
+        filename_title = Path(document_name.replace("\\", "/")).name
+        filename_title = re.sub(r"\.(?:pdf)$", "", filename_title, flags=re.I).strip()
+        if filename_title and not re.match(internal_title_prefix, filename_title, re.I):
+            safe_title = filename_title
     heading = f"# {safe_title}\n\n" if safe_title else ""
     final_md = heading + "\n\n---\n\n".join(md_sections) + "\n"
     output.write_text(final_md, encoding="utf-8")
@@ -1988,6 +2034,15 @@ def analyze_pdf_compression(source: Path) -> dict:
     }
 
 
+def _prefer_smaller_compression_source(source: Path, candidate: Path, preserved_path: Path) -> Path:
+    """Keep the original PDF when an optimized candidate would increase bytes."""
+    if candidate.stat().st_size <= source.stat().st_size:
+        return candidate
+    candidate.unlink(missing_ok=True)
+    shutil.copyfile(source, preserved_path)
+    return preserved_path
+
+
 def compress_pdf(
     source: Path,
     output: Path,
@@ -2213,6 +2268,21 @@ def compress_pdf(
         reason = "Compression would have damaged rendered page content; the readable original was preserved."
         target_achieved = False
 
+    smaller_original_preserved = False
+    if not visual_regression and temp_res.stat().st_size > original_size:
+        temp_res = _prefer_smaller_compression_source(
+            source,
+            temp_res,
+            output.with_name(f"{output.stem}_original_smaller_{uuid.uuid4().hex[:6]}.pdf"),
+        )
+        smaller_original_preserved = True
+        target_achieved = not target_size_bytes or original_size <= target_size_bytes
+        reason = (
+            "The original PDF is smaller than the optimized candidate, so it was kept."
+            if target_achieved else
+            "The requested target was not reached; the optimized candidate was larger, so the smaller original was kept."
+        )
+
     temp_res.replace(output)
     output_size = output.stat().st_size
     saved_bytes = max(0, original_size - output_size)
@@ -2231,8 +2301,9 @@ def compress_pdf(
         "page_count": out_pages,
         "target_size_requested": target_size_bytes,
         "target_achieved": target_achieved,
-        "note": reason if target_size_bytes or visual_regression else None,
+        "note": reason if target_size_bytes or visual_regression or smaller_original_preserved else None,
         "content_preserved_original": visual_regression,
+        "smaller_original_preserved": smaller_original_preserved,
         "validation_passed": True
     }
 
@@ -2460,7 +2531,10 @@ def resize_exam_image(
     """
     Resizes and optimizes images (photos & signatures) to exact dimensions and KB limits
     for Indian government and competitive exams (SSC, UPSC, IBPS, State PSC, NTA).
-    Guarantees strict size band adherence: min_kb <= output_size <= max_kb.
+    Enforces exam upload size bands with a conservative byte interpretation:
+    the minimum clears the listed KiB threshold and the maximum stays below
+    the listed decimal KB threshold. This keeps outputs inside either reading
+    when a portal labels its byte limit simply as "KB".
     """
     EXAM_PRESETS = {
         "ssc_photo": {"w": 350, "h": 450, "max_kb": 50, "min_kb": 20},
@@ -2477,7 +2551,10 @@ def resize_exam_image(
     w = width_px or cfg["w"]
     h = height_px or cfg["h"]
     min_bytes = int(cfg["min_kb"] * 1024)
-    max_bytes = int(cfg["max_kb"] * 1024)
+    max_bytes = int(cfg["max_kb"] * 1000)
+    jpeg_max_bytes = max_bytes - (2048 if as_pdf else 0)
+    if jpeg_max_bytes < min_bytes:
+        raise ValueError("The selected exam size range is too small to fit this output format.")
     target_bytes = (min_bytes + max_bytes) // 2
 
     out_p = Path(output)
@@ -2495,7 +2572,7 @@ def resize_exam_image(
             resized.save(buf, format="JPEG", quality=mid_q, optimize=True)
             data = buf.getvalue()
             cur_len = len(data)
-            if cur_len > max_bytes:
+            if cur_len > jpeg_max_bytes:
                 high_q = mid_q - 1
             elif cur_len < min_bytes:
                 best_data = data
@@ -2508,9 +2585,15 @@ def resize_exam_image(
             buf = io.BytesIO()
             resized.save(buf, format="JPEG", quality=20, optimize=True)
             best_data = buf.getvalue()
+            if len(best_data) > jpeg_max_bytes:
+                raise ValueError("This image cannot fit the selected exam file-size limit. Try another photo or output format.")
 
-        # If data is smaller than min_bytes, pad with standard JPEG COM comment markers
-        if len(best_data) < min_bytes:
+        if len(best_data) > jpeg_max_bytes:
+            raise ValueError("This image cannot fit the selected exam file-size limit. Try another photo or output format.")
+
+        # Keep JPEG-only outputs inside the strict byte range. For PDFs, pad
+        # the final document instead so image metadata cannot push it over cap.
+        if not as_pdf and len(best_data) < min_bytes:
             needed = target_bytes - len(best_data)
             com_segments = bytearray()
             while needed > 4:
@@ -2520,21 +2603,46 @@ def resize_exam_image(
             best_data = best_data[:2] + bytes(com_segments) + best_data[2:]
 
         if as_pdf:
-            pdf_doc = fitz.open()
-            page = pdf_doc.new_page(width=w, height=h)
-            page.insert_image(page.rect, stream=best_data)
-            pdf_bytes = pdf_doc.tobytes(deflate=True, garbage=3)
-            pdf_doc.close()
+            def make_pdf(jpeg_data: bytes) -> bytes:
+                pdf_doc = fitz.open()
+                try:
+                    page = pdf_doc.new_page(width=w, height=h)
+                    page.insert_image(page.rect, stream=jpeg_data)
+                    return pdf_doc.tobytes(deflate=True, garbage=3)
+                finally:
+                    pdf_doc.close()
+
+            pdf_bytes = make_pdf(best_data)
+            if len(pdf_bytes) > max_bytes:
+                bounded_pdf = None
+                for candidate_quality in range(95, 19, -1):
+                    candidate_buffer = io.BytesIO()
+                    resized.save(candidate_buffer, format="JPEG", quality=candidate_quality, optimize=True)
+                    candidate_jpeg = candidate_buffer.getvalue()
+                    if len(candidate_jpeg) > jpeg_max_bytes:
+                        continue
+                    candidate_pdf = make_pdf(candidate_jpeg)
+                    if len(candidate_pdf) <= max_bytes:
+                        bounded_pdf = candidate_pdf
+                        break
+                if bounded_pdf is None:
+                    raise ValueError("This image cannot fit the selected exam PDF size limit. Try the JPG format or another photo.")
+                pdf_bytes = bounded_pdf
 
             if len(pdf_bytes) < min_bytes:
                 pad_needed = target_bytes - len(pdf_bytes)
                 if pad_needed > 0:
-                    pdf_bytes = pdf_bytes + b"\n% Pad " + (b"0" * pad_needed) + b"\n"
+                    pdf_bytes = pdf_bytes + b"\n% Pad " + (b"0" * max(0, pad_needed - 8)) + b"\n"
+
+            if not min_bytes <= len(pdf_bytes) <= max_bytes:
+                raise ValueError("The generated PDF did not fit the selected exam size range. Try the JPG format or another photo.")
 
             out_file = out_p.with_suffix(".pdf")
             out_file.write_bytes(pdf_bytes)
             return out_file
         else:
+            if not min_bytes <= len(best_data) <= max_bytes:
+                raise ValueError("The generated image did not fit the selected exam size range. Try another photo.")
             out_file = out_p.with_suffix(".jpg")
             out_file.write_bytes(best_data)
             return out_file
@@ -2606,6 +2714,8 @@ def resize_photo(
     scale_percent: int | None = None,
 ) -> Path:
     """Resizes photo dimensions (width x height) or scale percentage."""
+    if not any(value and int(value) > 0 for value in (width, height, scale_percent)):
+        raise ValueError("Enter a width, height, or scale percentage.")
     out_p = Path(output)
     with Image.open(str(source)) as img:
         orig_w, orig_h = img.size

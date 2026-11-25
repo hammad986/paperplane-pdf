@@ -85,9 +85,28 @@ def main() -> None:
         if process.poll() is None:
             process.kill()
             process.wait()
+    # Keep the result review-only. Never leave a rewritten mirror looking
+    # publish-ready while credentials and the final source still need owner
+    # review. filter-repo normally removes origin; strip any remote that remains
+    # in the isolated destination so an accidental push cannot target a server.
+    configured_remotes = run("git", "remote", cwd=destination).decode("utf-8").splitlines()
+    for remote in configured_remotes:
+        if remote.strip():
+            run("git", "remote", "remove", remote.strip(), cwd=destination)
     warning.unlink()
+    owner_review = destination / "OWNER-REVIEW-REQUIRED.txt"
+    owner_review.write_text(
+        "OWNER REVIEW REQUIRED\n\n"
+        "This isolated mirror has had the known historical admin-code fallback removed "
+        "and its objects scanned. It does not include current uncommitted source changes.\n\n"
+        "Do not publish or push this mirror. The owner must rotate affected credentials, "
+        "review the rewritten refs and full secret-scan results, then rebuild this mirror "
+        "from the approved final source before any coordinated history rewrite.\n\n"
+        "No source repository or remote was modified.\n",
+        encoding="utf-8",
+    )
     print(f"Prepared and scanned isolated mirror: {destination}")
-    print("No remote was modified. Rotate credentials and review before any coordinated history rewrite.")
+    print("Owner review required; no destination remote or source remote was modified.")
 
 
 if __name__ == "__main__":

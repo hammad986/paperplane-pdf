@@ -125,7 +125,8 @@ def test_plan_limits_and_photo_resizer_names_are_explicit_and_consistent():
     javascript = (root / "web" / "assets" / "app.js").read_text(encoding="utf-8")
     backend = (root / "server.py").read_text(encoding="utf-8")
 
-    assert "Free accounts and guests:" in html
+    assert "Guests: files up to %%GUEST_MB%% MB." in html
+    assert "Signed-in Free accounts and recurring paid plans have no plan-specific per-file cap" in html
     assert "Paid web tools: no daily operation cap" in html
     assert "Developer API quotas are separate." not in javascript
     assert "Compare accepts 2 files; other tools accept 1 file per run." in html

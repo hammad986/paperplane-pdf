@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import secrets
 import subprocess
 import sys
@@ -313,6 +314,49 @@ def test_feedback_dismissal_submission_and_settings_reopen_are_wired():
     assert 'body:has(.modal-backdrop:not([hidden])) #pp-feedback-container' in source
     assert 'promptVisible = currentScope !== "guest" && !hasSubmitted() && !isDismissed();' in source
     assert 'promptVisible = scope !== "guest" && !hasSubmitted() && !isDismissed();' in source
+
+
+def test_mobile_feedback_launcher_repositions_around_protected_content():
+    root = Path(__file__).resolve().parents[1]
+    source = (root / "web" / "assets" / "feedback.js").read_text(encoding="utf-8")
+    markup = (root / "web" / "index.html").read_text(encoding="utf-8")
+    worker = (root / "web" / "assets" / "service-worker.js").read_text(encoding="utf-8")
+    assert "const collidesAtOffset = offset =>" in source
+    assert "offset = Math.min(offset + 12, maxOffset)" in source
+    assert 'launcher.style.setProperty("--pp-feedback-offset-y"' in source
+    assert "var(--pp-feedback-offset-y)" in source
+    assert "#run-button" in source
+    assert ".main-area .result-actions" in source
+    script_version = re.search(r'<script src="/assets/feedback.js\?v=(\d+)"', markup)
+    cached_version = re.search(r"'/assets/feedback.js\?v=(\d+)'", worker)
+    assert script_version and cached_version and script_version.group(1) == cached_version.group(1)
+
+
+def test_mobile_closed_sidebar_is_removed_from_keyboard_and_accessibility_navigation():
+    root = Path(__file__).resolve().parents[1]
+    source = (root / "web" / "assets" / "app.js").read_text(encoding="utf-8")
+    assert "function syncMobileSidebarAccessibility()" in source
+    assert "sidebar.inert = isMobile && !isOpen;" in source
+    assert "sidebar.setAttribute('aria-hidden', isOpen ? 'false' : 'true')" in source
+    assert "window.addEventListener('resize', syncMobileSidebarAccessibility" in source
+
+
+def test_phone_styles_keep_a_direct_guest_signin_entry_point():
+    root = Path(__file__).resolve().parents[1]
+    source = (root / "web" / "assets" / "styles.css").read_text(encoding="utf-8")
+    assert "#topbar-auth-guest:not([hidden])" in source
+    assert "#topbar-signin-btn { min-height: 44px" in source
+    assert "#topbar-register-btn { display: none !important; }" in source
+
+
+def test_phone_tool_desk_compacts_marketing_copy_and_upload_gaps():
+    root = Path(__file__).resolve().parents[1]
+    source = (root / "web" / "assets" / "styles.css").read_text(encoding="utf-8")
+    assert "#tool-description { display: none; }" in source
+    assert ".dropzone { padding-block: 12px; }" in source
+    assert ".tool-desk-container { gap: 8px; }" in source
+    assert ".options-panel { padding: 10px 12px; gap: 8px; }" in source
+    assert "#options:has(#title) { grid-template-columns: repeat(2, minmax(0, 1fr)); }" in source
 
 
 def test_retention_copy_matches_configurable_job_ttl_and_saved_browser_work():

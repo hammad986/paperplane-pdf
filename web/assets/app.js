@@ -11,8 +11,15 @@ const state = {
   user: null,
   planLimits: {
     free_operations_per_day: 10,
-    free_max_file_size_mb: 50,
+    ai_document_page_limit: 120,
+    ai_chat_question_max_chars: 4000,
+    guest_max_file_size_mb: 50,
+    // Signed-in Free has no plan-specific cap; the platform ceiling is the
+    // hard maximum used when server-provided limits are not yet available.
+    free_max_file_size_mb: 500,
+    exam_pass_max_file_size_mb: 500,
     pro_max_file_size_mb: 500,
+    platform_max_file_size_mb: 500,
     max_batch_files: 100,
     ...bootstrap.planLimits
   },
@@ -46,7 +53,7 @@ const state = {
   aiContextPage: 1
 };
 
-const CLIENT_SIDE_SUPPORTED_OPERATIONS = new Set(['merge', 'split', 'remove', 'rotate', 'organize', 'scan_pdf', 'jpg_to_pdf', 'pdf_to_jpg', 'grayscale', 'forms', 'flatten', 'metadata', 'pdf_to_text', 'pdf_to_markdown', 'pdf_to_word', 'page_numbers', 'crop', 'watermark', 'edit', 'sign', 'compare']);
+const CLIENT_SIDE_SUPPORTED_OPERATIONS = new Set(['merge', 'split', 'remove', 'rotate', 'organize', 'scan_pdf', 'jpg_to_pdf', 'pdf_to_jpg', 'grayscale', 'forms', 'flatten', 'metadata', 'pdf_to_text', 'pdf_to_markdown', 'pdf_to_word', 'page_numbers', 'crop', 'watermark', 'edit', 'sign', 'compare', 'annotate']);
 const CLIENT_SIDE_IMAGE_OPERATIONS = new Set(['photo_compress', 'photo_resize', 'photo_merge', 'photo_resizer']);
 const PROCESSING_MODE_KEY = 'paperplane-pdf-processing-mode';
 const MAX_PHOTO_BATCH = 12;
@@ -83,25 +90,54 @@ function loadExternalSdk(src, isReady) {
 
 let preferLocalProcessing = true;
 let activeLocalRequest = null;
+let localProgressDisplayToken = null;
 try { preferLocalProcessing = localStorage.getItem(PROCESSING_MODE_KEY) !== 'server'; } catch { /* Storage may be disabled. */ }
 
 let generatedControlId = 0;
-function addMissingControlLabels(root) {
-  const controls = [];
-  if (root instanceof Element && root.matches('input, select, textarea')) controls.push(root);
-  if (root.querySelectorAll) controls.push(...root.querySelectorAll('input, select, textarea'));
-  controls.forEach(control => {
-    if (control.type === 'hidden' || control.closest('label') || control.labels?.length) return;
-    if (!control.id) control.id = `paperplane-control-${++generatedControlId}`;
-    const label = document.createElement('label');
-    label.className = 'sr-only';
-    label.htmlFor = control.id;
-    label.textContent = control.getAttribute('aria-label') || control.title || control.placeholder || control.name || control.id.replace(/[-_]/g, ' ');
-    control.parentElement?.insertBefore(label, control);
-  });
+function addMissingControlLabel(control) {
+  if (!(control instanceof Element) || !control.matches('input, select, textarea')) return;
+  if (control.type === 'hidden' || control.closest('label') || control.labels?.length) return;
+  if (!control.id) control.id = `paperplane-control-${++generatedControlId}`;
+  const label = document.createElement('label');
+  label.className = 'sr-only';
+  label.htmlFor = control.id;
+  label.textContent = control.getAttribute('aria-label') || control.title || control.placeholder || control.name || control.id.replace(/[-_]/g, ' ');
+  control.parentElement?.insertBefore(label, control);
 }
 
-addMissingControlLabels(document);
+function addMissingControlLabels(root) {
+  if (root instanceof Element) addMissingControlLabel(root);
+  if (root.querySelectorAll) root.querySelectorAll('input, select, textarea').forEach(addMissingControlLabel);
+}
+
+function yieldToBrowser(callback, background = false) {
+  if (background && 'scheduler' in window && 'postTask' in window.scheduler) {
+    window.scheduler.postTask(callback, { priority: 'background' }).catch(() => window.setTimeout(callback, 0));
+  } else if ('scheduler' in window && 'yield' in window.scheduler) {
+    window.scheduler.yield().then(callback, () => window.setTimeout(callback, 0));
+  } else {
+    window.setTimeout(callback, 0);
+  }
+}
+
+function scheduleInitialControlLabels() {
+  const start = () => {
+    const controls = document.querySelectorAll('input, select, textarea');
+    let index = 0;
+    const processBatch = () => {
+      const deadline = performance.now() + 8;
+      while (index < controls.length && performance.now() < deadline) {
+        addMissingControlLabel(controls[index++]);
+      }
+      if (index < controls.length) yieldToBrowser(processBatch);
+    };
+    yieldToBrowser(processBatch, true);
+  };
+  if ('requestIdleCallback' in window) window.requestIdleCallback(start, { timeout: 1200 });
+  else window.setTimeout(start, 0);
+}
+
+scheduleInitialControlLabels();
 new MutationObserver(records => {
   records.forEach(record => record.addedNodes.forEach(node => {
     if (node.nodeType === Node.ELEMENT_NODE) addMissingControlLabels(node);
@@ -249,7 +285,7 @@ async function clearLocalWorkStore() {
   return new Promise((resolve, reject) => {
     const tx = db.transaction('work', 'readwrite');
     const store = tx.objectStore('work');
-    const legacyWorkspaceKeys = new Set(['studio-pdf', 'studio-position', 'ai-pdf', 'ai-conversation']);
+    const legacyWorkspaceKeys = new Set(['studio-pdf', 'studio-position', 'studio-edits', 'ai-pdf', 'ai-conversation']);
     const request = store.getAllKeys();
     request.onsuccess = () => {
       request.result.forEach(key => {
@@ -270,6 +306,47 @@ function localPdfRecord(file) {
     lastModified: file.lastModified || Date.now()
   };
 }
+
+function studioSourceIdentity(file) {
+  return {
+    name: String(file?.name || 'document.pdf'),
+    size: Number(file?.size) || 0,
+    lastModified: Number(file?.lastModified) || 0,
+  };
+}
+
+function studioEditRecordMatchesFile(record, file) {
+  const saved = record?.source;
+  const current = studioSourceIdentity(file);
+  return record?.version === 1 && saved?.name === current.name
+    && saved?.size === current.size && saved?.lastModified === current.lastModified
+    && Array.isArray(record.objects);
+}
+
+let studioEditPersistTimer = null;
+window.persistPaperplaneStudioEdits = () => {
+  clearTimeout(studioEditPersistTimer);
+  studioEditPersistTimer = setTimeout(async () => {
+    const editor = window.PaperplaneEditor;
+    const source = editor?.editorState?.sourceFile;
+    if (!source || !(source instanceof Blob)) return;
+    const objects = editor.editorState.serialize().map(object => {
+      const clean = { ...object };
+      delete clean._imgEl;
+      return clean;
+    });
+    try {
+      await writeLocalWork('studio-edits', {
+        version: 1,
+        source: studioSourceIdentity(source),
+        objects,
+      });
+    } catch (error) {
+      console.warn('Paperplane could not save Studio annotations locally:', error);
+      showToast('Studio changes could not be saved in this browser. Export the PDF before closing this tab.', 'warning', 7000);
+    }
+  }, 180);
+};
 
 function fileFromLocalRecord(record) {
   if (!record?.blob) return null;
@@ -390,10 +467,12 @@ async function restoreStudioWorkspace() {
       let saved = pendingStudioRestore;
       if (!saved) {
         try {
-          const [file, position] = await Promise.all([readLocalWork('studio-pdf'), readLocalWork('studio-position')]);
+          const [file, position, edits] = await Promise.all([
+            readLocalWork('studio-pdf'), readLocalWork('studio-position'), readLocalWork('studio-edits'),
+          ]);
           let sessionPosition = null;
           try { sessionPosition = JSON.parse(sessionStorage.getItem(studioPositionSessionKey()) || 'null'); } catch { /* ignore corrupt tab state */ }
-          if (file) saved = { file, position: sessionPosition || position };
+          if (file) saved = { file, position: sessionPosition || position, edits };
         } catch (error) { console.warn('Paperplane could not read saved Studio work:', error); }
       }
       if (restoreEpoch !== studioWorkspaceEpoch) return false;
@@ -404,7 +483,14 @@ async function restoreStudioWorkspace() {
       const requestedPage = Math.max(1, Number(saved.position?.page) || 1);
       const loaded = await loadDocumentIntoStudio(file, { initialPage: requestedPage, persist: false, restoreEpoch });
       if (loaded) {
-        showToast(`Restored ${file.name} on page ${state.studio.currentPage}`, 'success', 4000);
+        let restoredEdits = 0;
+        if (studioEditRecordMatchesFile(saved.edits, file)) {
+          restoredEdits = window.PaperplaneEditor?.restoreSerialized(saved.edits.objects) || 0;
+        }
+        const editNotice = restoredEdits
+          ? ` and ${restoredEdits} unsaved Studio edit${restoredEdits === 1 ? '' : 's'}; export to bake them into the PDF`
+          : '';
+        showToast(`Restored ${file.name}${editNotice} on page ${state.studio.currentPage}`, 'success', 5000);
       }
       return Boolean(loaded);
     } finally {
@@ -464,7 +550,7 @@ async function unloadStudioPdf() {
 async function clearStudioPdf() {
   studioWorkspaceEpoch += 1;
   try {
-    await removeLocalWork('studio-pdf', 'studio-position');
+    await removeLocalWork('studio-pdf', 'studio-position', 'studio-edits');
   } catch (error) {
     const blockedByOtherTab = /busy in another tab/i.test(String(error?.message || error));
     showToast(blockedByOtherTab
@@ -755,6 +841,8 @@ function showToast(message, type = 'success', duration = 3500) {
   toast.setAttribute('role', type === 'error' ? 'alert' : 'status');
   toast.setAttribute('aria-live', type === 'error' ? 'assertive' : 'polite');
   toast.setAttribute('aria-atomic', 'true');
+  const isResultAwareSuccessToast = type === 'success';
+  if (isResultAwareSuccessToast) toast.classList.add('toast-result-aware-success');
   toast.innerHTML = `<span style="font-weight: 700; font-size: 11px; padding: 1px 5px; border-radius: 3px; background: rgba(255,255,255,0.15);">${icon}</span> <span>${escapeHtml(message)}</span>`;
   document.body.appendChild(toast);
   const positionStudioToast = () => {
@@ -804,6 +892,40 @@ function showToast(message, type = 'success', duration = 3500) {
     const top = gapPlacementFits ? clearGapTop : toolbarClearTop;
     toast.style.setProperty('--studio-toast-top', `${Math.ceil(Math.max(8, top))}px`);
   };
+  const positionResultToast = () => {
+    if (!isResultAwareSuccessToast || !toast.isConnected) return;
+    const actions = $('#result .result-actions');
+    const actionsRect = actions?.getBoundingClientRect();
+    if (!actionsRect || actionsRect.width <= 0 || actionsRect.height <= 0) return;
+    if (actionsRect.bottom <= 0 || actionsRect.top >= window.innerHeight) return;
+
+    toast.classList.remove('toast-visually-hidden');
+    const toastRect = toast.getBoundingClientRect();
+
+    const runButton = $('#run-button');
+    const mobileNav = $('.mobile-workspace-bar');
+    const runRect = runButton?.getBoundingClientRect();
+    const navRect = mobileNav?.getBoundingClientRect();
+    let bottomBoundary = window.innerHeight - 8;
+    if (runRect && getComputedStyle(runButton).position === 'fixed' && runRect.height > 0) {
+      bottomBoundary = Math.min(bottomBoundary, runRect.top - 8);
+    }
+    if (navRect && navRect.height > 0) bottomBoundary = Math.min(bottomBoundary, navRect.top - 8);
+
+    const aboveTop = actionsRect.top - toastRect.height - 8;
+    const belowTop = actionsRect.bottom + 8;
+    if (belowTop + toastRect.height <= bottomBoundary) {
+      toast.style.setProperty('--toast-download-top', `${Math.ceil(belowTop)}px`);
+      return;
+    }
+    if (aboveTop >= 8 && aboveTop + toastRect.height <= window.innerHeight - 8) {
+      toast.style.setProperty('--toast-download-top', `${Math.ceil(aboveTop)}px`);
+      return;
+    }
+    // Keep the live announcement available without painting over the result
+    // actions or fixed mobile controls when this viewport has no free gap.
+    toast.classList.add('toast-visually-hidden');
+  };
   let positionFrame = 0;
   let positionObserver = null;
   let studioClassObserver = null;
@@ -814,17 +936,26 @@ function showToast(message, type = 'success', duration = 3500) {
       positionStudioToast();
     });
   };
+  const scheduleResultToastPosition = () => requestAnimationFrame(positionResultToast);
   // The Studio can become active after a toast is created during restore.
   // Keep positioning responsive to that transition and to later viewport changes.
   positionStudioToast();
+  positionResultToast();
+  setTimeout(positionResultToast, 100);
+  setTimeout(positionResultToast, 300);
   scheduleStudioToastPosition();
   window.addEventListener('resize', scheduleStudioToastPosition);
+  window.addEventListener('resize', scheduleResultToastPosition, { passive: true });
+  window.addEventListener('scroll', scheduleResultToastPosition, { passive: true });
   studioClassObserver = new MutationObserver(scheduleStudioToastPosition);
   studioClassObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
   studioClassObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
   const toolbar = $('.studio-toolbar');
   if ('ResizeObserver' in window) {
-    positionObserver = new ResizeObserver(scheduleStudioToastPosition);
+    positionObserver = new ResizeObserver(() => {
+      scheduleStudioToastPosition();
+      scheduleResultToastPosition();
+    });
     positionObserver.observe(document.documentElement);
     if (toolbar) positionObserver.observe(toolbar);
     const canvas = $('#pdf-canvas');
@@ -832,9 +963,13 @@ function showToast(message, type = 'success', duration = 3500) {
     const dock = $('#studio-mobile-dock') || $('.mobile-workspace-bar');
     if (pageSheet) positionObserver.observe(pageSheet);
     if (dock) positionObserver.observe(dock);
+    const resultActions = $('#result .result-actions');
+    if (resultActions) positionObserver.observe(resultActions);
   }
   setTimeout(() => {
     window.removeEventListener('resize', scheduleStudioToastPosition);
+    window.removeEventListener('resize', scheduleResultToastPosition);
+    window.removeEventListener('scroll', scheduleResultToastPosition);
     if (positionFrame) cancelAnimationFrame(positionFrame);
     positionObserver?.disconnect();
     studioClassObserver?.disconnect();
@@ -953,8 +1088,25 @@ function closeUpgradeModal() {
 async function readStudioResponseError(response, fallback) {
   const data = await response.json().catch(() => null);
   const detail = data?.detail;
-  const message = (typeof detail === 'string' ? detail : detail?.message)
-    || fallback + ' (HTTP ' + response.status + ').';
+  // FastAPI and upstream adapters can return either a string or a structured
+  // error. Never let an arbitrary object reach a toast/dialog as
+  // "[object Object]"; walk known message fields and keep a safe status fallback.
+  const candidates = [
+    typeof detail === 'string' ? detail : null,
+    detail?.message,
+    detail?.message?.message,
+    detail?.error?.message,
+    detail?.error?.message?.message,
+    typeof detail?.error === 'string' ? detail.error : null,
+    data?.message,
+    data?.message?.message,
+    data?.error?.message,
+    data?.error?.message?.message,
+    typeof data?.error === 'string' ? data.error : null,
+  ];
+  const message = candidates.find(value =>
+    typeof value === 'string' && value.trim() && value.trim() !== '[object Object]'
+  )?.trim() || fallback + ' (HTTP ' + response.status + ').';
   if (response.status === 402 || detail?.code === 'TIER_LIMIT_REACHED') {
     openUpgradeModal(message);
     return null;
@@ -1352,6 +1504,7 @@ const studioPageSummaryObserver = new MutationObserver(updateStudioMobilePageSum
 $('#page-jump-input')?.addEventListener('input', updateStudioMobilePageSummary);
 
 const dedicatedWorkspaceViews = new Set(['settings', 'pricing', 'faq', 'feedback', 'history']);
+let refreshFooterReveal = () => {};
 const workspacePanelHosts = {
   settings: ['#settings-modal', '#settings-page-content'],
   pricing: ['#upgrade-modal', '#pricing-page-content'],
@@ -1367,17 +1520,18 @@ function appendPricingLimitsTable(panel) {
     const standardBatch = 10;
     const proBatch = 100;
     const maxFiles = operation === 'compare' ? 2 : operation === 'photo_merge' ? `2–${Math.min(photoMergeLimit, Number(state.planLimits.max_batch_files) || standardBatch)}`
-      : batchOperations.has(operation) ? `${standardBatch} Free/Student Pro/Exam Pass · ${proBatch} Full Pro/Developer/All-In-One` : 1;
+      : batchOperations.has(operation) ? `${standardBatch} files (Free / Student & Educator / Exam Pass) · ${proBatch} files (All-In-One Pro & Developer)` : 1;
+    const batchLabel = batchOperations.has(operation) ? `${maxFiles} per run` : `${maxFiles} file${maxFiles === 1 ? '' : 's'} per run`;
     const isAi = ['ai_chat', 'ai_extract', 'summarize', 'translate'].includes(operation);
-    const quota = isAi ? `${state.planLimits.free_operations_per_day} requests/day shared (Free)`
-      : `${state.planLimits.free_operations_per_day} server runs/day shared (Free)`;
-    return `<tr><th scope="row" data-label="Tool">${escapeHtml(item.label || operation)}</th><td data-label="Batch">${maxFiles} file${maxFiles === 1 ? '' : 's'} per run</td><td data-label="File size">${state.planLimits.free_max_file_size_mb} MB Free / ${state.planLimits.pro_max_file_size_mb} MB paid, each</td><td data-label="Daily allowance">${quota}</td><td data-label="Page limit">No separate page-count cap published</td></tr>`;
+    const quota = `${state.planLimits.free_operations_per_day} accepted server operations/day (Free)`;
+    const pageLimit = isAi ? `${state.planLimits.ai_document_page_limit} pages/PDF${operation === 'ai_chat' ? `; question ≤${state.planLimits.ai_chat_question_max_chars} characters` : ''}` : 'Not an AI document tool';
+    return `<tr><th scope="row" data-label="Tool">${escapeHtml(item.label || operation)}</th><td data-label="Batch">${batchLabel}</td><td data-label="File size">Guest ${state.planLimits.guest_max_file_size_mb} MB / Free no plan cap (service max ${state.planLimits.free_max_file_size_mb} MB) / Exam Pass ${state.planLimits.exam_pass_max_file_size_mb} MB / paid no plan cap (service max ${state.planLimits.pro_max_file_size_mb} MB)</td><td data-label="Daily allowance">${quota}</td><td data-label="Page limit">${pageLimit}</td></tr>`;
   }).join('');
   const section = document.createElement('section');
   section.id = 'pricing-limits-table';
   section.className = 'pricing-limits-section';
   section.innerHTML = `<h3>Per-tool upload and usage limits</h3>
-    <p>Server submissions count as one daily operation per run. Browser-local processing does not use the daily server allowance. AI requests share the same daily allowance; no separate page or word allowance is currently published. Provider, memory, and processing-time constraints may apply.</p>
+    <p>Server submissions count as one daily operation per run. Browser-local processing does not use the daily server allowance. AI PDF workflows accept up to ${state.planLimits.ai_document_page_limit} pages per document; AI Chat questions are limited to ${state.planLimits.ai_chat_question_max_chars} characters. Provider, memory, and processing-time constraints may also apply.</p>
     <div class="pricing-limits-scroll" role="region" aria-label="Per-tool limits" tabindex="0"><table><thead><tr><th scope="col">Tool</th><th scope="col">Batch</th><th scope="col">File size</th><th scope="col">Daily allowance</th><th scope="col">Page limit</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   panel.appendChild(section);
 }
@@ -1409,9 +1563,43 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true, pres
   document.documentElement.classList.remove('footer-revealed');
   try { sessionStorage.setItem('paperplane-active-view', view); } catch { /* storage may be disabled */ }
   state.activeView = view;
+  const workspaceTitles = {
+    'tool-desk': 'PDF Tools',
+    desk: state.operations[state.operation]?.label || 'PDF Tool',
+    studio: 'PDF Studio',
+    ai: 'AI Document Intelligence',
+    download: updateHistory || window.location.pathname === '/download' ? 'Downloads' : 'Native Apps',
+    pricing: 'Pricing',
+    settings: 'Settings',
+    faq: 'FAQ',
+    feedback: 'Feedback',
+    history: 'History',
+    'api-docs': 'Developer API'
+  };
+  if (workspaceTitles[view]) document.title = `${workspaceTitles[view]} | Paperplane`;
+  if (view === 'download') {
+    const showWebDownloads = updateHistory || window.location.pathname === '/download';
+    const appContent = $('#apps-waitlist-content');
+    const webContent = $('#web-download-content');
+    if (appContent) appContent.hidden = showWebDownloads;
+    if (webContent) webContent.hidden = !showWebDownloads;
+    const heading = $('#download-view-heading');
+    if (heading) heading.textContent = showWebDownloads ? 'Downloads' : 'Native Apps Early Access';
+    const badge = $('.download-badge-fast');
+    if (badge) badge.textContent = showWebDownloads ? 'Web app available' : 'Native app waitlist';
+    const crumbTool = $('#crumb-tool');
+    if (crumbTool) crumbTool.textContent = showWebDownloads ? 'Downloads' : 'Native Apps Waitlist';
+  }
   document.dispatchEvent(new CustomEvent('paperplane:workspace-view-changed', { detail: { view } }));
-  const mobileViewLabels = { 'tool-desk': 'Tool Desk', desk: 'PDF Tool', studio: 'Studio', ai: 'AI Intelligence', download: 'Waitlist', pricing: 'Pricing', settings: 'Settings', faq: 'FAQ', feedback: 'Feedback', history: 'History' };
-  if ($('#mobile-view-pill')) $('#mobile-view-pill').textContent = mobileViewLabels[view] || 'Paperplane';
+  const mobileViewLabels = { 'tool-desk': ['Tool Desk', 'Tool Desk workspace'], desk: ['PDF Tool', 'PDF Tool workspace'], studio: ['Studio', 'Studio workspace'], ai: ['AI', 'AI Intelligence workspace'], download: ['Apps', window.location.pathname === '/download' ? 'Downloads workspace' : 'Native Apps workspace'], pricing: ['Pricing', 'Pricing workspace'], settings: ['Settings', 'Settings workspace'], faq: ['FAQ', 'FAQ workspace'], feedback: ['Feedback', 'Feedback workspace'], history: ['History', 'History workspace'] };
+  const mobileViewPill = $('#mobile-view-pill');
+  if (mobileViewPill) {
+    const [label, accessibleName] = mobileViewLabels[view] || ['Paperplane', 'Paperplane workspace'];
+    mobileViewPill.textContent = label;
+    mobileViewPill.title = accessibleName;
+    const mobileViewPillStatus = $('#mobile-view-pill-sr');
+    if (mobileViewPillStatus) mobileViewPillStatus.textContent = accessibleName;
+  }
   $('#tab-tool-desk-view')?.classList.toggle('active', view === 'tool-desk');
   $('#tab-desk-view')?.classList.toggle('active', view === 'desk');
   $('#tab-studio-view')?.classList.toggle('active', view === 'studio');
@@ -1454,9 +1642,9 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true, pres
     $('#studio-mobile-properties-panel')?.setAttribute('hidden', '');
   }
 
-  // Keep tool guidance visible on tool workflows and the AI workspace route.
+  // SEO help belongs to the active tool route, never to the independent AI view.
   const seoSection = $('.seo-content');
-  if (seoSection) seoSection.style.display = (view === 'tool-desk' || view === 'desk' || view === 'ai') ? '' : 'none';
+  if (seoSection) seoSection.style.display = (view === 'tool-desk' || view === 'desk') ? '' : 'none';
 
   // Dynamic Topbar Breadcrumb updates
   const crumbCat = $('#crumb-category');
@@ -1506,7 +1694,7 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true, pres
     }
   } else if (view === 'download') {
     if (crumbCat) crumbCat.textContent = 'Apps';
-    if (crumbTool) crumbTool.textContent = 'Early Access Waitlist';
+    if (crumbTool) crumbTool.textContent = 'Native Apps Waitlist';
     if (updateHistory && window.history.pushState) {
       if (window.location.pathname !== '/download') {
         window.history.pushState({ view: 'download' }, '', '/download');
@@ -1549,6 +1737,7 @@ function switchWorkspaceView(view, extra = 'privacy', updateHistory = true, pres
   if (mobMap[view]) {
     $(mobMap[view])?.classList.add('active');
   }
+  refreshFooterReveal();
 }
 
 function showStudioEmptyState() {
@@ -1601,7 +1790,7 @@ function clearResultPanel() {
     studioBtn.hidden = true;
     studioBtn.onclick = null;
   }
-  if ($('#dropzone')) $('#dropzone').hidden = false;
+  if ($('#dropzone')) $('#dropzone').hidden = state.operation === 'html_to_pdf';
   state.activeToolResult = null;
 }
 
@@ -1837,7 +2026,7 @@ function renderHomeToolsGrid(filterCategory = 'all', searchQuery = '') {
         <div class="home-cat-header">
           <div class="home-cat-title-group">
             <h2 class="home-cat-title" style="--cat-accent: ${cat.iconColor}">${cat.title}</h2>
-            <span class="home-cat-count">${visibleOps.length} tools</span>
+            <span class="home-cat-count">${visibleOps.length} ${visibleOps.length === 1 ? 'tool' : 'tools'}</span>
           </div>
         </div>
         <div class="home-cat-grid">
@@ -1905,14 +2094,18 @@ function renderToolDeskDirectory(category = null, searchQuery = null) {
       if (!op) return false;
       return !query || `${op.label} ${op.description || ''} ${id}`.toLowerCase().includes(query);
     });
+    const workspaceOps = matchingOps.filter(id => AI_WORKSPACE_FEATURE_OPERATIONS.has(id));
     const ops = matchingOps.filter(id => !AI_WORKSPACE_FEATURE_OPERATIONS.has(id));
+    const categoryCountLabel = workspaceOps.length
+      ? `${ops.length} ${ops.length === 1 ? 'tool' : 'tools'} + ${workspaceOps.length} in AI Intelligence`
+      : `${ops.length} ${ops.length === 1 ? 'tool' : 'tools'}`;
     if (!matchingOps.length) return '';
     totalVisible += matchingOps.length;
-    const workspaceNote = cat.id === 'ai' && matchingOps.some(id => AI_WORKSPACE_FEATURE_OPERATIONS.has(id))
+    const workspaceNote = cat.id === 'ai' && workspaceOps.length
       ? `<aside class="tool-desk-ai-workspace-note"><strong>AI Intelligence</strong><span>Chat with a PDF, extract Smart Metadata, and create an Executive Brief in one workspace.</span><a href="/ai-intelligence">Open AI Intelligence</a></aside>`
       : '';
     return `<section class="home-cat-section" data-cat="${cat.id}">
-      <div class="home-cat-header"><div class="home-cat-title-group"><h2 class="home-cat-title" style="--cat-accent:${cat.iconColor}">${escapeHtml(cat.title)}</h2><span class="home-cat-count">${matchingOps.length} tools</span></div></div>
+      <div class="home-cat-header"><div class="home-cat-title-group"><h2 class="home-cat-title" style="--cat-accent:${cat.iconColor}">${escapeHtml(cat.title)}</h2><span class="home-cat-count">${escapeHtml(categoryCountLabel)}</span></div></div>
       ${workspaceNote}<div class="home-cat-grid">${ops.map(id => {
         const op = state.operations[id];
         const available = op.available !== false && !['DEPENDENCY_MISSING', 'SERVICE_UNAVAILABLE'].includes(op.status);
@@ -2068,11 +2261,57 @@ function addEndpointTableMobileLabels() {
 // Select an operation and update view
 function getOperationBatchGuidance(operation) {
   const maximum = Number(state.planLimits.max_batch_files) || 10;
-  if (operation === 'merge') return `Merge supports up to ${maximum} PDF files per run`;
+  if (operation === 'merge') return `Select 2–${maximum} PDFs to merge`;
   if (['jpg_to_pdf', 'scan_pdf'].includes(operation)) return `${state.operations[operation]?.label || 'This tool'} supports up to ${maximum} images per run`;
   if (operation === 'compare') return 'Compare supports up to 2 PDF files per run';
   if (operation === 'photo_merge') return 'Merge 2–' + Math.min(MAX_PHOTO_BATCH, maximum) + ' photos per run';
   return 'This tool processes 1 file per run';
+}
+
+let mobileActionLayoutObserver = null;
+let mobileActionViewportFrame = 0;
+function watchMobileActionLayoutForDock() {
+  if (window.innerWidth > 900 || typeof ResizeObserver !== 'function') return;
+  const targets = ['#view-tool-desk', '#job-form', '#options', '#run-button']
+    .map(selector => $(selector)).filter(Boolean);
+  if (!targets.length) return;
+  if (!mobileActionLayoutObserver) {
+    mobileActionLayoutObserver = new ResizeObserver(() => {
+      if (state.activeView === 'desk') clearMobileNavigationFromToolAction();
+    });
+  }
+  targets.forEach(target => mobileActionLayoutObserver.observe(target));
+}
+
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 900 || state.activeView !== 'desk') return;
+  if (mobileActionViewportFrame) cancelAnimationFrame(mobileActionViewportFrame);
+  mobileActionViewportFrame = requestAnimationFrame(() => {
+    mobileActionViewportFrame = 0;
+    watchMobileActionLayoutForDock();
+    clearMobileNavigationFromToolAction();
+  });
+}, { passive: true });
+
+function clearMobileNavigationFromToolAction() {
+  if (window.innerWidth > 900 || state.activeView !== 'desk') return;
+  const action = $('#run-button');
+  const navigation = $('.mobile-workspace-bar');
+  if (!action || !navigation || action.hidden || navigation.hidden) return;
+  const actionRect = action.getBoundingClientRect();
+  const navigationRect = navigation.getBoundingClientRect();
+  if (!actionRect.width || !actionRect.height || !navigationRect.width || !navigationRect.height) return;
+  const intersects = actionRect.left < navigationRect.right
+    && actionRect.right > navigationRect.left
+    && actionRect.top < navigationRect.bottom
+    && actionRect.bottom > navigationRect.top;
+  if (!intersects) return;
+
+  // Keep the primary action and its label visibly above the fixed mobile
+  // workspace navigation after a tool is selected. Move only by the measured
+  // overlap, so the tool title and upload controls remain in the viewport.
+  const scrollBy = Math.ceil(actionRect.bottom - navigationRect.top + 8);
+  window.scrollTo(window.scrollX, window.scrollY + scrollBy);
 }
 
 function selectOperation(op, switchToDesk = true, preserveOpenCloudModal = false) {
@@ -2130,6 +2369,8 @@ function selectOperation(op, switchToDesk = true, preserveOpenCloudModal = false
   }
   const cameraControl = $('#scan-camera-control');
   if (cameraControl) cameraControl.hidden = op !== 'scan_pdf';
+  const uploadDropzone = $('#dropzone');
+  if (uploadDropzone) uploadDropzone.hidden = op === 'html_to_pdf';
 
   const hint = $('#file-hint');
   if (hint) {
@@ -2137,7 +2378,7 @@ function selectOperation(op, switchToDesk = true, preserveOpenCloudModal = false
       hint.textContent = 'Public HTTP or HTTPS website URL · No file upload required';
     } else {
       const fileType = ({ image: 'Images', office: 'Office documents', pdf_or_image: 'PDFs and images' })[item.accept] || 'PDF files';
-      hint.textContent = `${fileType} up to ${state.planLimits.free_max_file_size_mb} MB each on Free and ${state.planLimits.pro_max_file_size_mb} MB each on paid plans · ${getOperationBatchGuidance(op)}`;
+      hint.textContent = `Guests up to ${state.planLimits.guest_max_file_size_mb} MB/file · signed-in Free and recurring paid plans have no plan-specific per-file cap (service max ${state.planLimits.platform_max_file_size_mb} MB) · Exam Pass up to ${state.planLimits.exam_pass_max_file_size_mb} MB/file · ${getOperationBatchGuidance(op)}`;
     }
   }
 
@@ -2165,6 +2406,17 @@ function selectOperation(op, switchToDesk = true, preserveOpenCloudModal = false
 
   if (switchToDesk || state.activeView === 'desk') {
     syncSeoContent(op);
+  }
+
+  // Some long forms place Run underneath the fixed mobile navigation at the
+  // initial scroll position. Let the selected tool finish rendering, then
+  // expose the action without requiring a blind scroll or hiding navigation.
+  if (window.innerWidth <= 900 && switchToDesk) {
+    // Server/account hydration can still change the tool form height after
+    // the initial clearance timeout. Observe the form and its content wrapper
+    // so late layout shifts cannot place Run beneath the fixed mobile dock.
+    watchMobileActionLayoutForDock();
+    window.setTimeout(clearMobileNavigationFromToolAction, 260);
   }
 
   // Close mobile sidebar drawer if open
@@ -2204,12 +2456,13 @@ function updateToolTierBadge() {
       const paidAccount = Boolean(state.user.is_pro || state.user.is_dev || ['developer', 'student_pro', 'cyber_cafe', 'exam_pass'].includes(accountTier));
       if (paidAccount) {
         const paidLabel = state.user.tier_label || 'Paid plan';
-        tierBadge.textContent = `${paidLabel} · no daily operation cap · up to ${state.planLimits.pro_max_file_size_mb} MB/file`;
+        const uploadMax = accountTier === 'exam_pass' ? state.planLimits.exam_pass_max_file_size_mb : state.planLimits.pro_max_file_size_mb;
+        tierBadge.textContent = `${paidLabel} · no daily operation cap · ${accountTier === 'exam_pass' ? `up to ${uploadMax} MB/file` : `no plan-specific file cap (service max ${uploadMax} MB)`}`;
         tierBadge.style.color = '#f59e0b';
         tierBadge.style.borderColor = 'rgba(245,158,11,0.3)';
         tierBadge.style.background = 'rgba(245,158,11,0.1)';
       } else {
-        tierBadge.textContent = `✨ Free Account · ${state.planLimits.free_operations_per_day} server operations/day · ${state.planLimits.free_max_file_size_mb} MB/file`;
+        tierBadge.textContent = `✨ Free Account · ${state.planLimits.free_operations_per_day} server operations/day · no plan-specific file cap (service max ${state.planLimits.free_max_file_size_mb} MB)`;
         tierBadge.style.color = '#38bdf8';
         tierBadge.style.borderColor = 'rgba(56,189,248,0.3)';
         tierBadge.style.background = 'rgba(56,189,248,0.1)';
@@ -2220,7 +2473,7 @@ function updateToolTierBadge() {
       tierBadge.style.borderColor = 'rgba(245,158,11,0.3)';
       tierBadge.style.background = 'rgba(245,158,11,0.1)';
     } else {
-      tierBadge.textContent = `⚡ Free Guest Tool · No Account Required (${state.planLimits.free_operations_per_day} server operations/day · ${state.planLimits.free_max_file_size_mb} MB/file)`;
+      tierBadge.textContent = `⚡ Free Guest Tool · No Account Required (${state.planLimits.free_operations_per_day} server operations/day · up to ${state.planLimits.guest_max_file_size_mb} MB/file)`;
       tierBadge.style.color = '#10b981';
       tierBadge.style.borderColor = 'rgba(16,185,129,0.3)';
       tierBadge.style.background = 'rgba(16,185,129,0.1)';
@@ -2259,15 +2512,15 @@ function updateBillingUI(data) {
     card.classList.toggle('is-current-plan', isCurrent);
   });
 
-  const batchLimits = `Your plan: up to ${maxBatchFiles} files for Merge, JPG/PNG to PDF, and Scan to PDF. Free, Student Pro, and Exam Pass are capped at 10; Full Pro, Developer, and All-In-One plans allow 100. Compare takes two PDFs. Photo Merge takes 2–${Math.min(MAX_PHOTO_BATCH, Number(maxBatchFiles) || 10)} images.`;
+  const batchLimits = `Your plan: up to ${maxBatchFiles} files for Merge, JPG/PNG to PDF, and Scan to PDF. Free, Student & Educator, and Exam Pass are capped at 10; All-In-One Pro & Developer plans allow 100. Compare takes two PDFs. Photo Merge takes 2–${Math.min(MAX_PHOTO_BATCH, Number(maxBatchFiles) || 10)} images.`;
   const quotaDescription = $('#settings-quota-description');
-  if (quotaDescription) quotaDescription.textContent = `Free accounts and guests: up to ${state.planLimits.free_operations_per_day} server operations per day and files up to ${freeFileMb} MB each. Paid web tools: no daily operation cap and files up to ${proFileMb} MB each. ${batchLimits}`;
+  if (quotaDescription) quotaDescription.textContent = `Guests upload up to ${state.planLimits.guest_max_file_size_mb} MB per file; signed-in Free accounts have no plan-specific file cap within the ${freeFileMb} MB service maximum. Exam Pass uploads are limited to ${state.planLimits.exam_pass_max_file_size_mb} MB. Recurring paid plans have no plan-specific file cap within the ${proFileMb} MB service maximum. Free and guest accounts: up to ${state.planLimits.free_operations_per_day} accepted server operations per day. AI Chat questions are limited to ${state.planLimits.ai_chat_question_max_chars} characters; AI PDF workflows accept documents up to ${state.planLimits.ai_document_page_limit} pages. One multi-file batch counts once. Browser-local processing and requests rejected before acceptance do not count. A queued PDF/photo job still counts if processing later fails; failed AI or Studio requests refund their reservation when the failure is reported. Paid web tools: no daily operation cap. ${batchLimits}`;
   const fileHint = $('#file-hint');
   if (fileHint) {
     const fileType = ({ image: 'Images', office: 'Office documents', pdf_or_image: 'PDFs and images' })[state.operations[state.operation]?.accept] || 'PDF files';
     fileHint.textContent = state.operations[state.operation]?.accept === 'url'
       ? 'Public HTTP or HTTPS website URL · No file upload required'
-      : `${fileType} up to ${freeFileMb} MB each on Free and ${proFileMb} MB each on paid plans · ${getOperationBatchGuidance(state.operation)}`;
+      : `Guests up to ${state.planLimits.guest_max_file_size_mb} MB/file · signed-in Free and recurring paid plans have no plan-specific file cap (service max ${state.planLimits.platform_max_file_size_mb} MB) · Exam Pass up to ${state.planLimits.exam_pass_max_file_size_mb} MB/file · ${getOperationBatchGuidance(state.operation)}`;
   }
 
   const quotaText = $('#quota-text');
@@ -2303,9 +2556,9 @@ function updateBillingUI(data) {
       shortLabel = 'Student & Educator';
     } else if (tier === 'cyber_cafe') {
       tierName = 'All-In-One Pro & Developer';
-      badgeText = 'ALL-IN-ONE PRO';
+      badgeText = 'ALL-IN-ONE PRO & DEVELOPER';
       badgeColor = '#8b5cf6';
-      shortLabel = 'All-In-One Pro';
+      shortLabel = 'All-In-One Pro & Developer';
     } else if (tier === 'exam_pass') {
       tierName = 'Exam Pass';
       badgeText = 'EXAM';
@@ -2491,9 +2744,18 @@ function openSettingsModal(defaultTab = 'account') {
 }
 
 function switchSettingsTab(tabName) {
-  $$('.settings-tab-btn').forEach(btn => {
+  const buttons = $$('.settings-tab-btn');
+  buttons.forEach(btn => {
     btn.classList.toggle('active', btn.dataset.tab === tabName);
   });
+  const activeTab = Array.from(buttons).find(btn => btn.dataset.tab === tabName);
+  const tabStrip = activeTab?.closest('.settings-tabs');
+  if (activeTab && tabStrip && ['auto', 'scroll'].includes(getComputedStyle(tabStrip).overflowX)) {
+    const tabRect = activeTab.getBoundingClientRect();
+    const stripRect = tabStrip.getBoundingClientRect();
+    if (tabRect.left < stripRect.left) tabStrip.scrollLeft -= stripRect.left - tabRect.left;
+    else if (tabRect.right > stripRect.right) tabStrip.scrollLeft += tabRect.right - stripRect.right;
+  }
   $$('.settings-pane').forEach(pane => {
     pane.hidden = pane.id !== `pane-${tabName}`;
   });
@@ -2641,26 +2903,46 @@ function syncClientSideControls() {
   const localOnly = CLIENT_SIDE_IMAGE_OPERATIONS.has(state.operation);
   state.clientSideMode = !state.serverFallbackForCurrentRun && (localOnly || (canSwitch && preferLocalProcessing));
   const label = state.operations[state.operation]?.label || 'this tool';
+  const isTextFirstWordExport = state.operation === 'pdf_to_word';
   const help = state.clientSideMode
     ? label + ' runs in your browser; files stay on this device and are not uploaded.'
     : label + ' uploads files for temporary server processing.';
+  const privacyModeLabel = $('#privacy-mode-label');
+  if (privacyModeLabel) {
+    privacyModeLabel.textContent = isTextFirstWordExport
+      ? (state.clientSideMode ? 'Text-only DOCX' : 'Server DOCX reconstruction')
+      : 'Use browser processing';
+  }
   const sidebarToggle = $('#client-privacy-toggle');
   if (sidebarToggle) {
     sidebarToggle.checked = state.clientSideMode;
     sidebarToggle.disabled = !canSwitch;
-    sidebarToggle.setAttribute('aria-label', (state.clientSideMode ? 'Browser processing is on for ' : 'Browser processing is off for ') + label + '; ' + (state.clientSideMode ? 'files stay on this device.' : 'files use temporary server processing.'));
+    sidebarToggle.setAttribute('aria-label', isTextFirstWordExport
+      ? (state.clientSideMode
+        ? 'Use text-only DOCX export for PDF to Word; files stay on this device.'
+        : 'Use server DOCX reconstruction for PDF to Word; files are uploaded for temporary processing.')
+      : (state.clientSideMode ? 'Browser processing is on for ' : 'Browser processing is off for ') + label + '; ' + (state.clientSideMode ? 'files stay on this device.' : 'files use temporary server processing.'));
+    const describedBy = ['privacy-mode-support', isTextFirstWordExport ? 'pdf-to-word-capability-copy' : null]
+      .filter(id => id && document.getElementById(id)).join(' ');
+    if (describedBy) sidebarToggle.setAttribute('aria-describedby', describedBy);
     sidebarToggle.title = help;
   }
   const settingsToggle = $('#settings-client-privacy-toggle');
   if (settingsToggle) {
     settingsToggle.checked = preferLocalProcessing;
-    settingsToggle.setAttribute('aria-label', 'Prefer browser processing for supported tools');
+    settingsToggle.setAttribute('aria-label', 'Use browser processing for supported tools');
   }
   if ($('#privacy-mode-support')) $('#privacy-mode-support').textContent = help;
+  const wordCapabilityCopy = $('#pdf-to-word-capability-copy');
+  if (wordCapabilityCopy && state.operation === 'pdf_to_word') {
+    wordCapabilityCopy.textContent = state.clientSideMode
+      ? 'Browser mode creates an editable text-first DOCX on this device and keeps page boundaries. It does not retain images, exact layout, or table structure. Server Processing attempts to reconstruct detected tables and images, but overall layout can still differ. Scanned PDFs need OCR first.'
+      : 'Server mode rebuilds editable text, detected tables, and embedded images. Columns, spacing, and pagination can change, so review the DOCX before relying on its layout. Scanned pages are inserted as images; run OCR first if you need editable text.';
+  }
   if ($('#settings-client-privacy-support')) {
     $('#settings-client-privacy-support').textContent = preferLocalProcessing
-    ? 'Browser processing is preferred for Merge, Split, Remove, Rotate, Page Organizer, Scan to PDF, JPG/PNG to PDF, PDF-to-JPG, Grayscale PDF, Crop PDF, Add Text & Stamps, Sign PDF, Fill Forms, Flatten Forms, Metadata, PDF-to-Text, Compare PDF text, PDF-to-Markdown (basic), PDF-to-Word (text-first), Page Numbers, and text or image watermarks. Photo tools always run in your browser.'
-    : 'Temporary server processing is preferred. Browser processing remains available for Merge, Split, Remove, Rotate, Page Organizer, Scan to PDF, JPG/PNG to PDF, PDF-to-JPG, Grayscale PDF, Crop PDF, Add Text & Stamps, Sign PDF, Fill Forms, Flatten Forms, Metadata, PDF-to-Text, Compare PDF text, PDF-to-Markdown (basic), PDF-to-Word (text-first), Page Numbers, and text or image watermarks; photo tools always run in your browser.';
+    ? 'Browser processing is preferred for Merge, Split, Remove, Rotate, Page Organizer, Scan to PDF, JPG/PNG to PDF, PDF-to-JPG, Grayscale PDF, Crop PDF, Add Text & Stamps, Sign PDF, Fill Forms, Flatten Forms, Metadata, PDF-to-Text, Compare PDF text, PDF-to-Markdown (basic), PDF-to-Word (text-first), Page Numbers, text or image watermarks, and basic Annotate PDF text markup for exact single-block phrases (not sticky notes or rectangles). Photo tools always run in your browser.'
+    : 'Temporary server processing is preferred. Browser processing remains available for Merge, Split, Remove, Rotate, Page Organizer, Scan to PDF, JPG/PNG to PDF, PDF-to-JPG, Grayscale PDF, Crop PDF, Add Text & Stamps, Sign PDF, Fill Forms, Flatten Forms, Metadata, PDF-to-Text, Compare PDF text, PDF-to-Markdown (basic), PDF-to-Word (text-first), Page Numbers, text or image watermarks, and basic Annotate PDF text markup for exact single-block phrases (not sticky notes or rectangles); photo tools always run in your browser.';
   }
   $('#engine-status-pill')?.classList.toggle('local', state.clientSideMode);
   if ($('#engine-status-text')) $('#engine-status-text').textContent = state.clientSideMode ? 'Browser processing' : 'Temporary server processing';
@@ -2847,6 +3129,12 @@ async function loadDocumentIntoStudio(file, { initialPage = 1, persist = true, r
     }
     if (loadEpoch !== studioWorkspaceEpoch) return false;
     const renderWorkerBytes = arrayBuffer.byteLength <= 64 * 1024 * 1024 ? arrayBuffer.slice(0) : null;
+    // PDF.js may transfer and detach the ArrayBuffer supplied as `data`.
+    // Keep an independent source File for generated/fetched documents before
+    // parsing; uploaded File objects already own their independent byte store.
+    const srcFile = file instanceof Blob || file instanceof File
+      ? file
+      : new File([arrayBuffer.slice(0)], (file && file.name) || 'document.pdf', { type: 'application/pdf' });
     const loadOptions = { data: arrayBuffer, isEvalSupported: false };
     if (typeof pdfPassword === 'string' && pdfPassword) loadOptions.password = pdfPassword;
     const loadedDoc = await pdfjsLib.getDocument(loadOptions).promise;
@@ -2876,10 +3164,6 @@ async function loadDocumentIntoStudio(file, { initialPage = 1, persist = true, r
     state.studio.currentPage = Math.max(1, Math.min(state.studio.totalCount, Number(initialPage) || 1));
     state.studio.srcFile = file;
     // Load into Phase 2 PaperplaneEditor
-    let srcFile = file;
-    if (!srcFile || typeof srcFile === 'string') {
-      srcFile = new File([arrayBuffer], (file && file.name) || 'document.pdf', { type: 'application/pdf' });
-    }
     state.studio.srcFile = srcFile;
     updateStudioAiHandoffButton();
     if (persist) {
@@ -2887,7 +3171,12 @@ async function loadDocumentIntoStudio(file, { initialPage = 1, persist = true, r
       try {
         await Promise.all([
           writeLocalWork('studio-pdf', localPdfRecord(srcFile)),
-          writeLocalWork('studio-position', { page: state.studio.currentPage })
+          writeLocalWork('studio-position', { page: state.studio.currentPage }),
+          writeLocalWork('studio-edits', {
+            version: 1,
+            source: studioSourceIdentity(srcFile),
+            objects: [],
+          }),
         ]);
         if (loadEpoch !== studioWorkspaceEpoch) return false;
         try { sessionStorage.removeItem(studioUnsavedSessionKey()); } catch { /* storage may be disabled */ }
@@ -2948,6 +3237,9 @@ async function loadDocumentIntoStudio(file, { initialPage = 1, persist = true, r
     }
     if (loadEpoch !== studioWorkspaceEpoch) return false;
     hideStudioLoading();
+    // The empty Studio shell can reveal the footer before a document exists.
+    // Re-evaluate after page slots establish the loaded document's scroll range.
+    refreshFooterReveal();
     return true;
   } catch (err) {
     if (loadEpoch !== studioWorkspaceEpoch) return false;
@@ -3235,7 +3527,9 @@ async function renderStudioPageNow(pageNum, { priority = false, force = false } 
   ]);
   try {
     if (state.studio.renderSession && !state.studio.renderWorkerDisabled) {
-      renderTask = state.studio.renderSession.renderPage(target, scale, outputScale, 0, 15000, priority);
+      // Keep the OffscreenCanvas worker's viewport in the same intrinsic
+      // orientation used above for the page slot and editor hit testing.
+      renderTask = state.studio.renderSession.renderPage(target, scale, outputScale, basePage.rotate, 15000, priority);
       state.studio.pageRenderTasks.set(target, renderTask);
       try {
         const rendered = await awaitRender(renderTask);
@@ -3353,12 +3647,19 @@ async function jumpToStudioPage(pageNum, behavior = 'auto') {
   alignStudioPageInViewport(slot, behavior);
 
   let rendered = await renderStudioPage(target, { priority: true });
-  if (!rendered) rendered = await renderStudioPage(target, { priority: true, force: true });
+  const requestedCanvasIsPainted = () =>
+    studioPageSlot(target)?.querySelector('.pdf-page-canvas')?.dataset.rendered === 'true';
+  // A deduplicated render may complete successfully for a slot that was
+  // replaced while it was in flight. Confirm the live slot itself is painted,
+  // not merely that an older queued render returned true.
+  if (!rendered || !requestedCanvasIsPainted()) {
+    rendered = await renderStudioPage(target, { priority: true, force: true });
+  }
   setActiveStudioPage(target, { scrollThumbnail: false });
   // Page sizes can differ, so align again after the target's true dimensions are known.
   alignStudioPageInViewport(slot, 'auto');
   studioPageJumpLockUntil = performance.now() + 900;
-  return rendered;
+  return Boolean(rendered && requestedCanvasIsPainted());
 }
 
 const studioPageStack = $('#studio-page-stack');
@@ -3940,35 +4241,77 @@ const moreToolsTrigger = $('#btn-more-tools-trigger');
 const moreToolsMenu = $('#studio-more-dropdown');
 
 if (moreToolsTrigger && moreToolsMenu) {
+  const moreToolsOriginalParent = moreToolsMenu.parentElement;
+  const moreToolsOriginalNext = moreToolsMenu.nextSibling;
+  const closeMoreToolsMenu = ({ restoreFocus = false } = {}) => {
+    moreToolsMenu.hidden = true;
+    moreToolsTrigger.setAttribute('aria-expanded', 'false');
+    moreToolsMenu.style.removeProperty('position');
+    moreToolsMenu.style.removeProperty('inset');
+    moreToolsMenu.style.removeProperty('left');
+    moreToolsMenu.style.removeProperty('top');
+    moreToolsMenu.style.removeProperty('width');
+    moreToolsMenu.style.removeProperty('max-height');
+    moreToolsMenu.style.removeProperty('overflow-y');
+    if (moreToolsMenu.parentElement === document.body && moreToolsOriginalParent) {
+      moreToolsOriginalParent.insertBefore(moreToolsMenu, moreToolsOriginalNext);
+    }
+    if (restoreFocus) moreToolsTrigger.focus();
+  };
+
+  const openMoreToolsMenu = () => {
+    // Move the popover out of the horizontally scrolling ribbon before measuring
+    // it. This keeps all seven actions visible instead of clipping to one row.
+    document.body.appendChild(moreToolsMenu);
+    moreToolsMenu.hidden = false;
+    moreToolsTrigger.setAttribute('aria-expanded', 'true');
+    const triggerRect = moreToolsTrigger.getBoundingClientRect();
+    const margin = 8;
+    const maxHeight = Math.min(480, Math.floor(window.innerHeight * 0.7));
+    moreToolsMenu.style.position = 'fixed';
+    moreToolsMenu.style.inset = 'auto';
+    moreToolsMenu.style.width = `min(280px, calc(100vw - ${margin * 2}px))`;
+    moreToolsMenu.style.maxHeight = `${maxHeight}px`;
+    moreToolsMenu.style.overflowY = 'auto';
+    const menuRect = moreToolsMenu.getBoundingClientRect();
+    const left = Math.max(margin, Math.min(triggerRect.left, window.innerWidth - menuRect.width - margin));
+    const below = window.innerHeight - triggerRect.bottom - margin;
+    const above = triggerRect.top - margin;
+    const placeBelow = below >= Math.min(menuRect.height, maxHeight) || below >= above;
+    const availableHeight = Math.max(120, Math.min(maxHeight, placeBelow ? below : above));
+    moreToolsMenu.style.maxHeight = `${availableHeight}px`;
+    moreToolsMenu.style.left = `${left}px`;
+    moreToolsMenu.style.top = placeBelow ? `${triggerRect.bottom + margin}px` : `${Math.max(margin, triggerRect.top - Math.min(menuRect.height, availableHeight) - margin)}px`;
+    moreToolsMenu.querySelector('.studio-dropdown-item')?.focus();
+  };
+
   moreToolsTrigger.onclick = (e) => {
     e.stopPropagation();
-    const isHidden = moreToolsMenu.hidden;
-    moreToolsMenu.hidden = !isHidden;
-    moreToolsTrigger.setAttribute('aria-expanded', String(isHidden));
-    if (isHidden) moreToolsMenu.querySelector('.studio-dropdown-item')?.focus();
+    if (moreToolsMenu.hidden) openMoreToolsMenu();
+    else closeMoreToolsMenu();
   };
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !moreToolsMenu.hidden) {
-      moreToolsMenu.hidden = true;
-      moreToolsTrigger.setAttribute('aria-expanded', 'false');
-      moreToolsTrigger.focus();
+      closeMoreToolsMenu({ restoreFocus: true });
     }
   });
 
   document.addEventListener('click', (e) => {
     if (!moreToolsMenu.hidden && !moreToolsMenu.contains(e.target) && !moreToolsTrigger.contains(e.target)) {
-      moreToolsMenu.hidden = true;
-      moreToolsTrigger.setAttribute('aria-expanded', 'false');
+      closeMoreToolsMenu();
     }
   });
 
   $$('.studio-dropdown-item', moreToolsMenu).forEach(item => {
     item.addEventListener('click', () => {
-      moreToolsMenu.hidden = true;
-      moreToolsTrigger.setAttribute('aria-expanded', 'false');
+      closeMoreToolsMenu();
     });
   });
+
+  window.addEventListener('resize', () => {
+    if (!moreToolsMenu.hidden) closeMoreToolsMenu();
+  }, { passive: true });
 
   // Action listeners for Studio "More Tools" items
   $('#studio-compress-btn')?.addEventListener('click', () => { selectOperation('compress'); });
@@ -4046,7 +4389,11 @@ function initSignToolCanvas() {
   });
 }
 
+let refreshActiveMarkPreviewPageCount = null;
+let markPreviewPageCountRequest = 0;
+
 function renderOptions() {
+  refreshActiveMarkPreviewPageCount = null;
   const o = $('#options');
   if (!o) return;
   let fields = '';
@@ -4066,12 +4413,18 @@ function renderOptions() {
       if (pageCount === 1) {
         fields += '<div class="option-field option-field-wide" style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 8px; padding: 12px;"><strong style="color: #ef4444;">⚠️ Only 1 page found and can\'t be split</strong><p style="margin: 4px 0 0; font-size: 12px; color: var(--text-muted);">This document only contains 1 page. Splitting requires a multi-page document.</p></div>';
       } else if (pageCount && pageCount > 1) {
+        const rangeExample = pageCount >= 10
+          ? '1-3, 5, 8-10'
+          : pageCount >= 5
+            ? '1-3, 5'
+            : `1-${pageCount}`;
         fields += `<div class="option-field option-field-wide" style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 8px; padding: 10px 14px; margin-bottom: 8px;"><strong style="color: #10b981;">📄 Document Analyzed: Total ${pageCount} pages found</strong></div>`;
         fields += selectField('split_mode', 'Split Mode', [
           { value: 'all_pages', label: `All ${pageCount} pages as PDFs (ZIP)` },
           { value: 'range', label: 'Extract custom page ranges' }
         ]);
-        fields += `<div class="option-field option-field-wide" id="split-range-container"><label for="pages">Pages or ranges to extract</label><input id="pages" type="text" placeholder="e.g. 1-3, 5, 8-${pageCount}" value="1-${pageCount}"></div>`;
+        fields += `<div class="option-field option-field-wide" id="split-range-container"><label for="pages">Pages or ranges to extract</label><input id="pages" type="text" placeholder="e.g. ${rangeExample}" value="1-${pageCount}"></div>`;
+        fields += '<p class="option-help option-field-wide" id="split-mode-help" role="status" aria-live="polite"></p>';
       } else {
         fields += field('pages', 'Pages or ranges to extract (e.g. 1-3, 5, 8-12)', 'text', '1-3, 5, 8-12');
       }
@@ -4083,7 +4436,7 @@ function renderOptions() {
   } else if (state.operation === 'compare') {
     fields += '<div class="option-field option-field-wide"><small class="option-help">Browser processing compares selectable text on this device only; it does not compare page layout or images. Scanned PDFs need OCR, and files above the browser limits require Server Processing.</small></div>';
   } else if (state.operation === 'pdf_to_word') {
-    fields += '<div class="option-field option-field-wide"><small class="option-help">Browser mode creates an editable text-first DOCX on this device and keeps page boundaries. It does not retain images, exact layout, or table structure; use Server Processing for supported table/layout reconstruction. Scanned PDFs need OCR first.</small></div>';
+    fields += '<div class="option-field option-field-wide"><small class="option-help" id="pdf-to-word-capability-copy"></small></div>';
   } else if (state.operation === 'pdf_to_markdown') {
     fields += '<div class="option-field option-field-wide"><small class="option-help">Browser mode extracts selectable text and basic heading/list formatting on this device. It does not reconstruct tables, math layout, or scanned text; custom-font glyphs trigger a safe server-processing fallback.</small></div>';
   } else if (state.operation === 'organize') {
@@ -4112,13 +4465,14 @@ function renderOptions() {
     ]);
   } else if (state.operation === 'photo_resizer') {
     fields += selectField('preset', 'Exam Preset', [
-      { value: 'ssc_photo', label: '📸 SSC Photo (3.5×4.5 cm · 20–50 KB)' },
-      { value: 'ssc_sign', label: '✍️ SSC Signature (4.0 × 2.0 cm, 10 KB - 20 KB)' },
-      { value: 'upsc_photo', label: '📸 UPSC Photo (350 × 350 px, 20 KB - 300 KB)' },
-      { value: 'upsc_sign', label: '✍️ UPSC Signature (350 × 350 px, 20 KB - 300 KB)' },
-      { value: 'ibps_photo', label: '📸 IBPS / Bank Photo (200 × 230 px, 20 KB - 50 KB)' },
-      { value: 'ibps_sign', label: '✍️ IBPS / Bank Signature (140 × 60 px, 10 KB - 20 KB)' }
+      { value: 'ssc_photo', label: 'SSC Photo 20-50KB' },
+      { value: 'ssc_sign', label: 'SSC Signature 10-20KB' },
+      { value: 'upsc_photo', label: 'UPSC Photo 20-300KB' },
+      { value: 'upsc_sign', label: 'UPSC Sign 20-300KB' },
+      { value: 'ibps_photo', label: 'IBPS Photo 20-50KB' },
+      { value: 'ibps_sign', label: 'IBPS Sign 10-20KB' }
     ]);
+    fields += '<small class="option-help option-field-wide">Pixel dimensions — SSC photo 350 × 450, signature 400 × 200; UPSC photo/signature 350 × 350; IBPS photo 200 × 230, signature 140 × 60. To avoid KB/KiB ambiguity, outputs clear the minimum KiB threshold and stay below the decimal KB maximum (50 KB = 50,000 bytes). Check your exam portal’s current rules.</small>';
     fields += selectField('format', 'Output Format', [
       { value: 'jpg', label: 'JPG Image (Standard for portals)' },
       { value: 'pdf', label: 'PDF Document (Single-page)' }
@@ -4160,7 +4514,7 @@ function renderOptions() {
     fields += field('opacity', 'Opacity (0.05 to 0.8)', 'number', '0.2', '0.05', '0.8', '0.01');
     fields += '<div class="option-field"><label for="mark_color">Mark colour</label><input id="mark_color" type="color" value="#243b53"></div>';
     fields += selectField('mark_background', 'Page background behind mark', [{value:'unknown',label:'Unknown / mixed'}, {value:'light',label:'Mostly light'}, {value:'dark',label:'Mostly dark'}]);
-    fields += '<div class="option-field option-field-wide"><div id="mark_preview" class="mark-contrast-preview" role="status" aria-live="polite">Preview: watermark with a contrasting outline. Check placement and legibility in the exported PDF.</div></div>';
+    fields += '<div class="option-field option-field-wide"><div id="mark_preview" class="mark-contrast-preview" data-operation="watermark"><div class="mark-preview-page" aria-hidden="true"><span class="mark-preview-mark"></span></div><p class="mark-preview-caption"></p></div></div>';
     fields += '<div class="option-field option-field-wide"><small class="option-help">Text and PNG/JPEG image watermarks can run locally in your browser. Unsupported image formats need temporary server processing and an upload confirmation.</small></div>';
     fields += '<div class="option-field"><label for="watermark_image_file">Or Select Watermark Image</label><input id="watermark_image_file" type="file" accept="image/*"></div>';
   } else if (state.operation === 'page_numbers') {
@@ -4170,7 +4524,7 @@ function renderOptions() {
     fields += field('start_page', 'First Page to Number', 'number', '1', '1', '9999', '1');
     fields += '<div class="option-field"><label for="mark_color">Number colour</label><input id="mark_color" type="color" value="#243b53"></div>';
     fields += selectField('mark_background', 'Page background behind number', [{value:'unknown',label:'Unknown / mixed'}, {value:'light',label:'Mostly light'}, {value:'dark',label:'Mostly dark'}]);
-    fields += '<div class="option-field option-field-wide"><div id="mark_preview" class="mark-contrast-preview" role="status" aria-live="polite">Preview: page number with a contrasting outline. Check placement and legibility in the exported PDF.</div></div>';
+    fields += '<div class="option-field option-field-wide"><div id="mark_preview" class="mark-contrast-preview" data-operation="page_numbers"><div class="mark-preview-page" aria-hidden="true"><span class="mark-preview-mark"></span></div><p class="mark-preview-caption"></p></div></div>';
   } else if (['protect', 'unlock'].includes(state.operation)) {
     fields += field('password', 'PDF Password', 'password', 'Enter password');
     fields += '<div class="option-field option-field-wide"><button type="button" class="btn-secondary-action" id="open-security-audit-tool-btn">Open Security Audit &amp; Sanitize</button><small class="option-help">Upload a PDF above, then inspect or sanitize that file here.</small></div>';
@@ -4197,6 +4551,7 @@ function renderOptions() {
   } else if (['word_to_pdf', 'excel_to_pdf', 'powerpoint_to_pdf'].includes(state.operation)) {
     fields += '<div class="option-field option-field-wide option-engine-badge"><span class="engine-badge-dot"></span><div><strong>Paperplane High-Fidelity Engine</strong><small>Enterprise headless conversion with ISO-standard fidelity.</small></div></div>';
   } else if (state.operation === 'pdf_to_jpg') {
+    fields += '<div class="option-field option-field-wide"><label for="pages">Pages to export (optional)</label><input id="pages" type="text" inputmode="numeric" placeholder="All pages, or e.g. 1, 3-5" aria-describedby="pdf-to-jpg-pages-help"><small class="option-help" id="pdf-to-jpg-pages-help">Leave blank for all pages. Enter page numbers or ranges from the PDF, separated by commas.</small></div>';
     fields += selectField('dpi', 'Export Resolution', [
       { value: '150', label: '150 DPI (Balanced)' },
       { value: '300', label: '300 DPI (Print)' },
@@ -4209,18 +4564,19 @@ function renderOptions() {
     fields += field('page', 'Target Page Number', 'number', '1', '1', '999', '1');
     fields += field('text', 'Text to find & annotate', 'text', 'Enter exact text from the selected page');
     fields += field('content', 'Comment / Sticky Note Text', 'text', 'Enter your note');
-    fields += '<p class="option-help option-field-wide">For a sticky note, enter its comment above. For a highlight, underline, or strikeout, enter exact text from the selected page.</p>';
+    fields += '<p class="option-help option-field-wide">Browser mode adds searchable PDF highlight, underline, or strikeout annotations when the exact phrase matches a single text block. Multi-block text, sticky notes, and rectangles use Server Processing after you confirm upload.</p>';
   } else if (state.operation === 'summarize') {
     fields += '<div class="option-field" style="grid-column: span 2;"><label>Executive Document Summary</label><p style="color: var(--text-muted); font-size: 13px;">Generates executive briefing and key bullet points using deep NLP summarization.</p></div>';
   } else if (state.operation === 'sign') {
     fields += '<div class="option-field"><label for="signature_color">Signature colour</label><input id="signature_color" type="color" value="#243b53"></div>';
     fields += selectField('mark_background', 'Page background behind signature', [{value:'unknown',label:'Unknown / mixed'}, {value:'light',label:'Mostly light'}, {value:'dark',label:'Mostly dark'}]);
-    fields += '<div class="option-field option-field-wide"><div id="mark_preview" class="mark-contrast-preview" role="status" aria-live="polite">Signature preview. Choose a page background and inspect placement in the exported PDF.</div></div>';
+    fields += '<div class="option-field option-field-wide"><div id="mark_preview" class="mark-contrast-preview" data-operation="sign"><div class="mark-preview-page" aria-hidden="true"><span class="mark-preview-mark"></span></div><p class="mark-preview-caption"></p></div></div>';
     fields += '<div class="option-field option-field-wide sign-draw-field"><label for="sign-draw-canvas">Draw your signature</label><p class="option-help" id="sign-draw-instructions">Use a mouse, stylus, or finger to draw. A transparent signature image is placed in the PDF with a contrasting edge. If drawing is unavailable, enter a printed name below.</p><canvas id="sign-draw-canvas" width="700" height="180" role="img" aria-label="Signature drawing area" aria-describedby="sign-draw-instructions"></canvas><div class="sign-draw-actions"><button type="button" class="btn-secondary" id="sign-clear-canvas">Clear drawing</button><span id="sign-draw-status" role="status" aria-live="polite">Draw a signature or enter a printed signer name.</span></div><input type="hidden" id="signature_data" value=""></div>';
     fields += field('signature', 'Printed signer name (optional)', 'text', 'For example, Alex Morgan');
     fields += '<p class="option-help option-field-wide">The drawn signature or printed name is a visual mark and does not verify the signer’s identity. Use Studio → Digital Signatures for cryptographic signing.</p>';
   } else if (state.operation === 'html_to_pdf') {
     fields += field('url', 'Public URL to convert', 'url', 'https://example.com');
+    fields += '<small class="option-help option-field-wide">Enter a public webpage URL. This tool does not accept PDF or document uploads.</small>';
   } else if (state.operation === 'metadata') {
     fields += field('title', 'Document Title', 'text', '') + field('author', 'Author', 'text', '') + field('subject', 'Subject', 'text', '');
   } else if (state.operation === 'forms') {
@@ -4232,6 +4588,36 @@ function renderOptions() {
   o.innerHTML = fields;
   o.hidden = !fields;
   o.style.display = fields ? '' : 'none';
+  if (state.operation === 'photo_resizer') $('#preset')?.classList.add('exam-preset-select');
+
+  if (state.operation === 'metadata') {
+    ['title', 'author', 'subject'].forEach(id => {
+      $(`#${id}`)?.addEventListener('input', event => { event.currentTarget.dataset.userEdited = 'true'; });
+    });
+  }
+
+  if (state.operation === 'split' && $('#split_mode') && $('#pages')) {
+    const mode = $('#split_mode');
+    const rangeContainer = $('#split-range-container');
+    const rangeInput = $('#pages');
+    const help = $('#split-mode-help');
+    const updateSplitMode = () => {
+      const allPages = mode.value === 'all_pages';
+      if (rangeContainer) rangeContainer.hidden = allPages;
+      rangeInput.disabled = allPages;
+      if (help) {
+        help.hidden = false;
+        help.textContent = allPages
+          ? 'All pages will be split into separate PDFs. Custom page ranges are disabled for this mode.'
+          : 'Only the pages or ranges entered above will be included in the output.';
+      }
+    };
+    mode.addEventListener('change', () => {
+      updateSplitMode();
+      updateButton();
+    });
+    updateSplitMode();
+  }
 
   if (state.operation === 'organize') {
     $('#pages')?.addEventListener('input', () => syncOrganizerOrderFromInput());
@@ -4309,18 +4695,65 @@ function renderOptions() {
   const updateMarkPreview = () => {
     const preview = $('#mark_preview');
     if (!preview) return;
+    const page = preview.querySelector('.mark-preview-page');
+    const mark = preview.querySelector('.mark-preview-mark');
+    const caption = preview.querySelector('.mark-preview-caption');
+    if (!page || !mark || !caption) return;
     const color = $('#mark_color')?.value || $('#signature_color')?.value || '#243b53';
     const background = $('#mark_background')?.value || 'unknown';
     preview.style.setProperty('--mark-color', color);
     preview.dataset.pageBackground = background;
-    const confidence = background === 'unknown'
-      ? 'Background is unknown or mixed; the outline helps, but inspect every page before sharing.'
-      : `Preview on a ${background} page background. Inspect placement and legibility in the exported PDF.`;
-    preview.textContent = `${state.operation === 'watermark' ? 'CONFIDENTIAL' : state.operation === 'sign' ? 'Signature mark' : 'Page 1 of 3'} — ${confidence}`;
+    const operation = preview.dataset.operation;
+    const pageCount = preview.dataset.pdfPageCount;
+    const selectedPosition = $('#position')?.value || 'Footer center';
+    const format = $('#format')?.value || 'Page {n} of {total}';
+    const total = pageCount || 'selected PDF';
+    const numberLabel = format.replace('{n}', String($('#start_number')?.value || '1')).replace('{total}', String(total));
+    const label = operation === 'watermark'
+      ? ($('#text')?.value.trim() || 'Watermark')
+      : operation === 'sign' ? ($('#signature')?.value.trim() || 'Signature') : numberLabel;
+    mark.textContent = label;
+    mark.className = `mark-preview-mark ${operation === 'watermark' ? 'is-watermark' : operation === 'sign' ? 'is-signature' : 'is-page-number'} ${selectedPosition.toLowerCase().replaceAll(' ', '-')}`;
+    caption.textContent = `${operation === 'watermark' ? 'Centered diagonal watermark' : operation === 'sign' ? 'Signature area at the lower right of page 1' : `${selectedPosition} · ${numberLabel}`} · ${background === 'unknown' ? 'Unknown or mixed backgrounds: choose the dominant background and inspect every page.' : `Preview on a mostly ${background} background; inspect each page before sharing.`}`;
   };
+  if (state.operation === 'page_numbers') {
+    refreshActiveMarkPreviewPageCount = async () => {
+      const previewFile = state.files.find(file => file instanceof File && file.name.toLowerCase().endsWith('.pdf'));
+      const requestId = ++markPreviewPageCountRequest;
+      if (!previewFile) {
+        const currentPreview = $('#mark_preview');
+        if (currentPreview?.isConnected) {
+          delete currentPreview.dataset.pdfPageCount;
+          updateMarkPreview();
+        }
+        return;
+      }
+      let pdf;
+      try {
+        const data = await previewFile.arrayBuffer();
+        const pdfjsLib = await window.PaperplanePdfRuntime.ensurePdfJs();
+        pdf = await pdfjsLib.getDocument({ data, isEvalSupported: false }).promise;
+        const currentPreview = $('#mark_preview');
+        if (requestId === markPreviewPageCountRequest && state.operation === 'page_numbers' && state.files.includes(previewFile) && currentPreview?.isConnected) {
+          currentPreview.dataset.pdfPageCount = String(pdf.numPages);
+          updateMarkPreview();
+        }
+      } catch (error) {
+        /* Keep the accurate generic preview when this PDF cannot be inspected. */
+      } finally {
+        await pdf?.destroy();
+      }
+    };
+    void refreshActiveMarkPreviewPageCount();
+  }
+  $('#text')?.addEventListener('input', updateMarkPreview);
   $('#mark_color')?.addEventListener('input', updateMarkPreview);
   $('#signature_color')?.addEventListener('input', updateMarkPreview);
   $('#mark_background')?.addEventListener('change', updateMarkPreview);
+  $('#position')?.addEventListener('change', updateMarkPreview);
+  $('#format')?.addEventListener('change', updateMarkPreview);
+  $('#start_number')?.addEventListener('input', updateMarkPreview);
+  $('#signature')?.addEventListener('input', updateMarkPreview);
   updateMarkPreview();
   syncRequiredFieldFeedback();
 }
@@ -4579,6 +5012,7 @@ function invalidateDeskFileWorkflow() {
 window.removeFile = idx => {
   invalidateDeskFileWorkflow();
   state.files.splice(idx, 1);
+  void refreshActiveMarkPreviewPageCount?.();
   clearResultPanel();
   saveToolSession(state.operation);
   renderFiles();
@@ -4617,6 +5051,27 @@ function addFiles(newFiles) {
   if (state.files.length) rememberLocalWork(state.files[0].name || 'PDF document');
   renderFiles();
   updateButton();
+  void refreshActiveMarkPreviewPageCount?.();
+
+  if (state.operation === 'metadata' && state.files[0]?.name.toLowerCase().endsWith('.pdf')) {
+    const targetFile = state.files[0];
+    ['title', 'author', 'subject'].forEach(id => {
+      const input = $(`#${id}`);
+      if (input) input.dataset.userEdited = '';
+    });
+    void (async () => {
+      try {
+        const PDFLib = await window.PaperplanePdfRuntime.ensurePdfLib();
+        const doc = await PDFLib.PDFDocument.load(await targetFile.arrayBuffer());
+        if (state.operation !== 'metadata' || state.files[0] !== targetFile) return;
+        const values = { title: doc.getTitle(), author: doc.getAuthor(), subject: doc.getSubject() };
+        Object.entries(values).forEach(([id, value]) => {
+          const input = $(`#${id}`);
+          if (input && input.dataset.userEdited !== 'true') input.value = value || '';
+        });
+      } catch { /* Keep the editable fields available when metadata cannot be read. */ }
+    })();
+  }
 
   // If on Split tool, analyze page count dynamically
   if (state.operation === 'split' && state.files.length && state.files[0].name.toLowerCase().endsWith('.pdf')) {
@@ -4692,6 +5147,12 @@ function updateButton() {
     return;
   }
 
+  if (state.operation === 'merge' && state.files.length < 2) {
+    btn.disabled = true;
+    btn.textContent = 'Select at least two PDFs to merge';
+    return;
+  }
+
   if (state.operation === 'split' && state.splitPageCount === 1) {
     btn.disabled = true;
     btn.innerHTML = 'Only 1 page found (Cannot be split) <span>✕</span>';
@@ -4755,6 +5216,29 @@ function getToolRequiredFieldState() {
   return { ...requirement, input, valid };
 }
 
+function validateSplitPageRanges(value, pageCount) {
+  const text = String(value || '').trim();
+  if (!text) return { valid: false, message: 'Enter one or more pages or ranges to extract.' };
+  if (!Number.isInteger(pageCount) || pageCount < 1) {
+    return { valid: false, message: 'The PDF page count is still being checked. Try again in a moment.' };
+  }
+  const selected = new Set();
+  for (const part of text.split(',')) {
+    const match = /^(\d+)(?:\s*-\s*(\d+))?$/.exec(part.trim());
+    if (!match) return { valid: false, message: 'Enter valid page numbers or ranges, such as 2, 4-6.' };
+    const first = Number(match[1]);
+    const last = Number(match[2] || match[1]);
+    if (first < 1 || last < first || last > pageCount) {
+      return { valid: false, message: `Enter page numbers from 1 to ${pageCount}. This PDF has ${pageCount} pages.` };
+    }
+    for (let page = first; page <= last; page++) {
+      if (selected.has(page)) return { valid: false, message: `Page ${page} is listed more than once. Remove duplicate pages or ranges.` };
+      selected.add(page);
+    }
+  }
+  return { valid: selected.size > 0, message: selected.size ? '' : 'Choose at least one page.' };
+}
+
 function syncRequiredFieldFeedback(requirement = getToolRequiredFieldState()) {
   document.querySelectorAll('#options .option-required-hint').forEach(node => node.remove());
   document.querySelectorAll('#options [aria-describedby="required-field-hint"]').forEach(node => {
@@ -4793,10 +5277,12 @@ function checkAccessRequirement(operation, files = []) {
     openAuthModal('', 'login');
     return false;
   }
-  const maxMb = paidAccount ? state.planLimits.pro_max_file_size_mb : state.planLimits.free_max_file_size_mb;
+  const maxMb = !state.user ? state.planLimits.guest_max_file_size_mb
+    : accountTier === 'exam_pass' ? state.planLimits.exam_pass_max_file_size_mb
+      : paidAccount ? state.planLimits.pro_max_file_size_mb : state.planLimits.free_max_file_size_mb;
   const largeFile = files.find(f => f.size > maxMb * 1024 * 1024);
   if (largeFile) {
-    showToast(`"${largeFile.name}" is over the ${maxMb} MB ${paidAccount ? 'account' : 'Free'} file limit. Choose a smaller file${paidAccount ? '' : ' or upgrade for larger uploads'}.`, 'warning');
+    showToast(`"${largeFile.name}" is over the ${maxMb} MB ${!state.user ? 'guest' : accountTier === 'exam_pass' ? 'Exam Pass' : 'service'} upload limit. Choose a smaller file.`, 'warning');
     if (!state.user) openAuthModal('', 'login');
     return false;
   }
@@ -4821,7 +5307,8 @@ async function waitForInitialAuth() {
   return true;
 }
 
-$('#browse').onclick = async () => {
+$('#browse').onclick = async event => {
+  event.stopPropagation();
   // Open the native picker immediately. Waiting for a slow first-auth request
   // before invoking file selection leaves the browser in a fragile delayed
   // picker state; authorization is rechecked when the selected files arrive.
@@ -4965,29 +5452,6 @@ function dataUrlToFile(dataUrl, filename) {
   return new File([u8arr], filename, { type: mime });
 }
 
-$('#topbar-cloud-btn').onclick = (e) => {
-  if (e) e.stopPropagation();
-  $('#cloud-modal').hidden = false;
-  $('#cloud-url').value = '';
-};
-
-$('#cloud-drop-btn').onclick = (e) => {
-  if (e) e.stopPropagation();
-  $('#cloud-modal').hidden = false;
-  $('#cloud-url').value = '';
-};
-
-$('#close-cloud-modal').onclick = () => $('#cloud-modal').hidden = true;
-$('#cloud-modal')?.addEventListener('click', event => {
-  if (event.target === $('#cloud-modal')) $('#cloud-modal').hidden = true;
-});
-document.addEventListener('keydown', event => {
-  const cloudModal = $('#cloud-modal');
-  if (event.key === 'Escape' && cloudModal && !cloudModal.hidden) {
-    cloudModal.hidden = true;
-  }
-});
-
 $('#cloud-form').onsubmit = async e => {
   e.preventDefault();
   const fileUrl = $('#cloud-url').value.trim();
@@ -5027,7 +5491,7 @@ $('#cloud-form').onsubmit = async e => {
       } else {
         addFiles([file]);
       }
-      $('#cloud-modal').hidden = true;
+      closeCloudModal();
       showToast(`Imported ${file.name} · ${(file.size / (1024 * 1024)).toFixed(2)} MB · ${pageCount} ${pageCount === 1 ? 'page' : 'pages'}`, 'success', 6000);
     } else throw new Error('The link did not return a downloadable PDF. Check sharing access and try again.');
   } catch (err) {
@@ -5102,6 +5566,36 @@ $('#job-form').onsubmit = async e => {
     return;
   }
 
+  if (state.operation === 'split' && $('#split_mode')?.value === 'range') {
+    const rangeInput = $('#pages');
+    const validation = validateSplitPageRanges(rangeInput?.value, state.splitPageCount);
+    const rangeHelp = $('#split-mode-help');
+    if (!validation.valid) {
+      rangeInput?.setAttribute('aria-invalid', 'true');
+      if (rangeHelp) rangeHelp.textContent = validation.message;
+      rangeInput?.focus();
+      state.serverFallbackForCurrentRun = false;
+      showToast(validation.message, 'warning', 4500);
+      return;
+    }
+    rangeInput?.removeAttribute('aria-invalid');
+    if (rangeHelp) rangeHelp.textContent = 'Only the pages or ranges entered above will be included in the output.';
+  }
+
+  if (state.operation === 'photo_resize') {
+    const hasResizeTarget = ['#width', '#height', '#scale_percent']
+      .some(selector => Number($(selector)?.value) > 0);
+    if (!hasResizeTarget) {
+      const message = 'Enter a width, height, or scale percentage.';
+      state.serverFallbackForCurrentRun = false;
+      showResult(message, true);
+      showToast(message, 'warning', 4500);
+      $('#width')?.focus();
+      updateButton();
+      return;
+    }
+  }
+
   const btn = $('#run-button');
 
   if (isHtml) {
@@ -5140,12 +5634,13 @@ $('#job-form').onsubmit = async e => {
     const localFiles = [...state.files];
     const requestToken = {};
     activeLocalRequest = requestToken;
+    localProgressDisplayToken = requestToken;
     const sameLocalRequest = () => activeLocalRequest === requestToken && localEpoch === deskWorkflowEpoch && state.operation === localOperation
       && localFiles.length === state.files.length && localFiles.every((file, index) => file === state.files[index]);
     try {
       updateProgress(2, null, 'Processing in your browser…');
       await processClientSide(sameLocalRequest);
-      if (sameLocalRequest()) updateProgress(4, 100, 'Complete');
+      if (sameLocalRequest()) updateProgress(4, 100, 'Finished!');
     } catch (error) {
       if (sameLocalRequest()) {
         const message = error?.message || 'Browser processing could not complete.';
@@ -5160,7 +5655,24 @@ $('#job-form').onsubmit = async e => {
       }
     } finally {
       if (sameLocalRequest()) {
-        $('#progress-card').hidden = true;
+        const completionVisible = localProgressDisplayToken === requestToken
+          && $('#progress-status-title')?.textContent === 'Finished!'
+          && !$('#result').hidden;
+        if (completionVisible) {
+          // Keep the 100% completion state visible beside the result briefly,
+          // so browser-only Scan/JPG-to-PDF runs do not jump straight to a
+          // result card with no finished/progress feedback.
+          window.setTimeout(() => {
+            if (localProgressDisplayToken !== requestToken) return;
+            if (localEpoch === deskWorkflowEpoch && state.operation === localOperation && !$('#result').hidden) {
+              $('#progress-card').hidden = true;
+            }
+            localProgressDisplayToken = null;
+          }, 900);
+        } else {
+          $('#progress-card').hidden = true;
+          if (localProgressDisplayToken === requestToken) localProgressDisplayToken = null;
+        }
         btn.disabled = false;
         updateButton();
         if (!retryWithServer) activeLocalRequest = null;
@@ -5412,6 +5924,30 @@ function renderUpdatedPdfMetadataJson({ metadata, fileName }) {
   }, { once: true });
 }
 
+async function getToolResultBlob(downloadUrl, fallbackBlob = null) {
+  const activeResult = state.activeToolResult?.downloadUrl === downloadUrl ? state.activeToolResult : null;
+  if (fallbackBlob instanceof Blob) {
+    if (activeResult) activeResult.blob = fallbackBlob;
+    return fallbackBlob;
+  }
+  if (activeResult?.blob instanceof Blob) return activeResult.blob;
+  if (activeResult?.blobPromise) return activeResult.blobPromise;
+
+  const request = (async () => {
+    const response = await fetch(downloadUrl, { credentials: 'same-origin' });
+    if (!response.ok) throw new Error(`Could not fetch the processed file (HTTP ${response.status}).`);
+    const resultBlob = await response.blob();
+    if (activeResult && state.activeToolResult === activeResult) activeResult.blob = resultBlob;
+    return resultBlob;
+  })();
+  if (activeResult) activeResult.blobPromise = request;
+  try {
+    return await request;
+  } finally {
+    if (activeResult?.blobPromise === request) activeResult.blobPromise = null;
+  }
+}
+
 async function countPdfPagesInBlob(blob) {
   const pdfjsLib = await window.PaperplanePdfRuntime.ensurePdfJs();
   const document = await pdfjsLib.getDocument({ data: await blob.arrayBuffer(), isEvalSupported: false }).promise;
@@ -5440,7 +5976,7 @@ function showDownloadResult(job, downloadUrl, { silent = false, blob = null } = 
   $('#result-title').textContent = 'Your document is ready!';
   const outName = job.output_name || 'document.pdf';
   const isPdf = outName.toLowerCase().endsWith('.pdf');
-  const baseResultMeta = `${outName} · ${formatBytes(job.output_size)}`;
+  const baseResultMeta = `${outName} · ${job.output_size_label || formatBytes(job.output_size)}`;
   const serverPageCount = Number.isInteger(Number(job.page_count)) && Number(job.page_count) > 0
     ? Number(job.page_count) : null;
   const pageCountLabel = count => `${count} ${count === 1 ? 'page' : 'pages'}`;
@@ -5452,7 +5988,10 @@ function showDownloadResult(job, downloadUrl, { silent = false, blob = null } = 
   const qualityWarning = extremeCompression
     ? 'Quality warning: this file is over 95% smaller. Review every page before use; choose Balanced for image-heavy PDFs.'
     : '';
-  const warning = [job.warning, qualityWarning].filter(Boolean).map(message => ` · ${message}`).join('');
+  const wordExportDisclosure = state.operation === 'pdf_to_word' && !job.local_processing
+    ? 'PDF-to-Word server reconstruction: editable text, detected tables, and embedded images are included where extractable; columns, spacing, and pagination may differ from the PDF. Review the DOCX before relying on its layout.'
+    : '';
+  const warning = [job.warning, qualityWarning, wordExportDisclosure].filter(Boolean).map(message => ` · ${message}`).join('');
   const resultMeta = $('#result-meta');
   delete resultMeta.dataset.pageCountState;
   resultMeta.textContent = `${baseResultMeta}${isPdf && serverPageCount ? ` · ${pageCountLabel(serverPageCount)}` : ''}${dimensions}${warning}`;
@@ -5489,10 +6028,8 @@ function showDownloadResult(job, downloadUrl, { silent = false, blob = null } = 
       dlLink.style.pointerEvents = 'none';
       dlLink.innerHTML = `<span class="studio-spinner" style="width: 14px; height: 14px; border-width: 2px; display: inline-block; vertical-align: middle; margin-right: 6px;"></span> Preparing download…`;
       showToast('Preparing your file download…', 'info', 2000);
-      const res = await fetch(downloadUrl, { credentials: 'same-origin' });
-      if (!res.ok) throw new Error(`Server returned HTTP ${res.status}`);
-      const blob = await res.blob();
-      const blobUrl = URL.createObjectURL(blob);
+      const resultBlob = await getToolResultBlob(downloadUrl, blob);
+      const blobUrl = URL.createObjectURL(resultBlob);
       const tempA = document.createElement('a');
       tempA.href = blobUrl;
       tempA.download = outName;
@@ -5543,12 +6080,7 @@ function showDownloadResult(job, downloadUrl, { silent = false, blob = null } = 
         showStudioLoading('Loading document…');
         showToast('Opening processed document in Studio…', 'info');
         try {
-          let pdfBlob = blob;
-          if (!pdfBlob) {
-            const res = await fetch(downloadUrl, { credentials: 'same-origin' });
-            if (!res.ok) throw new Error(`Could not fetch the processed PDF (HTTP ${res.status}).`);
-            pdfBlob = await res.blob();
-          }
+          const pdfBlob = await getToolResultBlob(downloadUrl, blob);
           const studioFile = new File([pdfBlob], outName, { type: pdfBlob.type || 'application/pdf' });
           const handoffPassword = state.operation === 'protect' ? ($('#password')?.value || '').trim() : undefined;
           const loaded = await loadDocumentIntoStudio(studioFile, { pdfPassword: handoffPassword });
@@ -5568,9 +6100,11 @@ function showDownloadResult(job, downloadUrl, { silent = false, blob = null } = 
   }
 
   result.hidden = false;
-  if (window.matchMedia('(max-width: 900px)').matches) {
-    requestAnimationFrame(() => result.scrollIntoView({ block: 'center', behavior: 'smooth' }));
-  }
+  // Keep the primary download action in view after processing on both mobile
+  // and desktop. On desktop the result card can otherwise begin at the very
+  // bottom edge of the viewport, leaving the download action below the fold.
+  const mobileResultViewport = window.matchMedia('(max-width: 900px)').matches;
+  requestAnimationFrame(() => result.scrollIntoView({ block: mobileResultViewport ? 'end' : 'center', behavior: 'smooth' }));
   if (!silent) {
     checkAuthStatus();
     showToast('Processing complete! Document ready for download.');
@@ -5615,12 +6149,47 @@ function showNeutralResult(message) {
 
 function renderMarkdown(markdown) {
   const lines = String(markdown || '').replace(/\r/g, '').split('\n');
-  const formatInline = text => escapeHtml(text)
-    .replace(/\[\[?(?:Pages?)\s+(\d+(?:\s*,\s*\d+)*)\]\]?/gi, (_match, pages) =>
-      pages.split(',').map(page => aiPageCitationTag(page)).join(' '))
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s.,;:!?)]|$)/g, '$1<em>$2</em>')
-    .replace(/`(.+?)`/g, '<code>$1</code>');
+  const renderedCitationPages = new Set();
+  const citationBody = String.raw`\d+(?:\s*[-–]\s*\d+)?(?:\s*,\s*\d+(?:\s*[-–]\s*\d+)?)*`;
+  const citationToken = String.raw`\[\[?(?:Pages?)\s+${citationBody}\]\]?`;
+  const citationPatternWithPages = new RegExp(String.raw`\[\[?(?:Pages?)\s+(${citationBody})\]\]?`, 'gi');
+  const renderCitationPages = pages => {
+    const unseen = [...new Set(pages.filter(page => Number.isInteger(page) && page > 0))]
+      .sort((a, b) => a - b)
+      .filter(page => !renderedCitationPages.has(page));
+    unseen.forEach(page => renderedCitationPages.add(page));
+    const ranges = [];
+    unseen.forEach(page => {
+      const last = ranges[ranges.length - 1];
+      if (last && page === last[1] + 1) last[1] = page;
+      else ranges.push([page, page]);
+    });
+    return ranges.map(([start, end]) => aiPageCitationRangeTag(start, end)).join(' ');
+  };
+  const expandCitation = raw => raw.split(/\s*,\s*/).flatMap(part => {
+    const range = part.match(/^(\d+)\s*[-–]\s*(\d+)$/);
+    if (!range) return /^\d+$/.test(part) ? [Number(part)] : [];
+    const start = Number(range[1]);
+    const end = Number(range[2]);
+    return end >= start && end - start <= 100
+      ? Array.from({ length: end - start + 1 }, (_value, index) => start + index)
+      : [];
+  });
+  const formatInline = text => {
+    let formatted = escapeHtml(text);
+    const citationRun = new RegExp(`${citationToken}(?:\\s+${citationToken})+`, 'gi');
+    formatted = formatted.replace(citationRun, run => {
+      const pages = [...run.matchAll(new RegExp(citationPatternWithPages.source, 'gi'))]
+        .flatMap(match => expandCitation(match[1]));
+      return renderCitationPages(pages);
+    });
+    formatted = formatted.replace(citationPatternWithPages, (_match, pages) =>
+      renderCitationPages(expandCitation(pages)));
+    return formatted
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s.,;:!?)]|$)/g, '$1<em>$2</em>')
+      .replace(/`(.+?)`/g, '<code>$1</code>');
+  };
   let html = '';
   let inList = false;
   const closeList = () => {
@@ -5629,10 +6198,10 @@ function renderMarkdown(markdown) {
   for (const line of lines) {
     const trimmed = line.trim();
     if (!trimmed) { closeList(); continue; }
-    const heading = /^(#{1,3})\s+(.+)$/.exec(trimmed);
+    const heading = /^(#{1,6})\s+(.+)$/.exec(trimmed);
     if (heading) {
       closeList();
-      const level = heading[1].length + 1;
+      const level = Math.min(heading[1].length + 1, 6);
       html += '<h' + level + '>' + formatInline(heading[2]) + '</h' + level + '>';
     } else if (/^[-*]\s+/.test(trimmed)) {
       if (!inList) { html += '<ul>'; inList = true; }
@@ -5649,6 +6218,13 @@ function renderMarkdown(markdown) {
 function aiPageCitationTag(page) {
   const pageNumber = Math.max(1, Math.trunc(Number(page) || 1));
   return `<span class="ai-citation-tag" role="button" tabindex="0" data-ai-page="${pageNumber}" title="Open page ${pageNumber} in Studio">Page ${pageNumber}</span>`;
+}
+
+function aiPageCitationRangeTag(start, end) {
+  const firstPage = Math.max(1, Math.trunc(Number(start) || 1));
+  const lastPage = Math.max(firstPage, Math.trunc(Number(end) || firstPage));
+  if (lastPage === firstPage) return aiPageCitationTag(firstPage);
+  return `<span class="ai-citation-tag" role="button" tabindex="0" data-ai-page="${firstPage}" title="Open cited pages ${firstPage}–${lastPage} in Studio">Pages ${firstPage}–${lastPage}</span>`;
 }
 
 function uniqueAiCitationPages(pages) {
@@ -5694,19 +6270,40 @@ function releaseTranslationResultObjectUrl() {
   currentTranslationResultObjectUrl = null;
 }
 
+function formatTranslationWarningCount(value) {
+  const count = Math.max(0, Number.parseInt(String(value), 10) || 0);
+  return `${count} ${count === 1 ? 'warning' : 'warnings'}`;
+}
+
+function formatTranslationCoveragePercent(fraction) {
+  const value = Number(fraction);
+  if (!Number.isFinite(value) || value < 0 || value > 1) return null;
+  if (value === 1) return '100';
+  // Round down to one decimal so an incomplete result can never be presented
+  // as 100% merely because ordinary rounding hid a small preserved fraction.
+  const percent = Math.floor(value * 1000 + 1e-10) / 10;
+  return Number.isInteger(percent) ? String(percent) : percent.toFixed(1);
+}
+
 function renderTranslationResult(blob, name, targetLanguage, translatedPercent, blockPercent, warningCount, mode) {
   releaseTranslationResultObjectUrl();
   const url = URL.createObjectURL(blob);
   currentTranslationResultObjectUrl = url;
   const isPartial = mode === 'partial';
+  const warningCountValue = Math.max(0, Number.parseInt(String(warningCount), 10) || 0);
+  const warningLabel = warningCountValue === 1 ? 'warning' : 'warnings';
+  const warningCountSummary = formatTranslationWarningCount(warningCountValue);
   const resultTitle = isPartial ? 'Partial translation ready' : 'Translation complete';
   const coverageSummary = translatedPercent === null ? 'some source text was preserved' : `${translatedPercent}% character coverage, ${blockPercent ?? 'unknown'}% text block coverage`;
-  const resultSummary = `${targetLanguage} · ${coverageSummary} · ${warningCount} warning(s)`;
+  const resultSummary = `${targetLanguage} · ${coverageSummary} · ${warningCountSummary}`;
   const resultMessage = isPartial
     ? `${translatedPercent ?? 'Unknown'}% character coverage and ${blockPercent ?? 'unknown'}% text block coverage. Some source text remains unchanged. Review the PDF before sharing it.`
     : 'Translated text was rendered into the original page layout.';
+  const warningNotice = warningCountValue > 0
+    ? `<p class="translation-review-note" role="status">The translation reported ${warningCountValue} ${warningLabel}. Review the translated PDF before sharing it.</p>`
+    : '';
   const downloadLabel = isPartial ? 'Download partial translation' : 'Download translated PDF';
-  showRichAiResult(resultTitle, resultSummary, `<p>${resultMessage}</p><div class="ai-result-actions"><a class="btn-download" href="${url}" download="${escapeHtml(name)}">${downloadLabel}</a><button type="button" class="btn-secondary-action" id="translation-view-studio-btn">View in Studio</button></div>`, { showStudio: false, keepTranslationUrl: true });
+  showRichAiResult(resultTitle, resultSummary, `<p>${resultMessage}</p>${warningNotice}<div class="ai-result-actions"><a class="btn-download" href="${url}" download="${escapeHtml(name)}">${downloadLabel}</a><button type="button" class="btn-secondary-action" id="translation-view-studio-btn">View in Studio</button></div>`, { showStudio: false, keepTranslationUrl: true });
   $('#translation-view-studio-btn')?.addEventListener('click', async event => {
     event.currentTarget.disabled = true;
     event.currentTarget.textContent = 'Opening in Studio…';
@@ -5738,6 +6335,10 @@ function showRichAiResult(title, meta, contentHtml, actions = {}) {
   $('#result-download-link').hidden = true;
   $('#result-view-studio-btn').hidden = actions.showStudio !== false;
   result.hidden = false;
+  // AI chat/summary/translation use this rich-result path rather than
+  // showDownloadResult; bring the newly-rendered result into view as well.
+  const mobileResultViewport = window.matchMedia('(max-width: 900px)').matches;
+  requestAnimationFrame(() => result.scrollIntoView({ block: mobileResultViewport ? 'end' : 'center', behavior: 'smooth' }));
 }
 
 function downloadTextFile(text, filename) {
@@ -5853,9 +6454,20 @@ async function fetchBinary(url, options = {}) {
   const headers = options.headers || {};
   const response = await fetch(url, { ...options, credentials: 'same-origin', headers });
   if (!response.ok) {
-    let message = `Request failed with status ${response.status}`;
-    try { const data = await response.json(); message = data.detail || message; } catch { /* non-JSON error */ }
-    throw new Error(message);
+    const fallback = `Request failed with status ${response.status}`;
+    let data = null;
+    try { data = await response.json(); } catch { /* non-JSON error */ }
+    const detail = data?.detail;
+    const errorMessage = data?.error?.message || (typeof data?.error === 'string' ? data.error : '');
+    const message = (typeof detail === 'string' ? detail : detail?.message)
+      || data?.message || errorMessage || fallback;
+    const requestError = new Error(String(message));
+    requestError.status = response.status;
+    const retryAfterSeconds = Number(response.headers.get('retry-after'));
+    if (Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0) {
+      requestError.retryAfterMs = Math.min(5000, retryAfterSeconds * 1000);
+    }
+    throw requestError;
   }
   return { blob: await response.blob(), response };
 }
@@ -5934,13 +6546,13 @@ async function runDeskAiWorkflow(options, signal, isCurrent = () => true) {
     const warningCount = response.headers.get('X-Paperplane-Translation-Warnings') || '0';
     const mode = response.headers.get('X-Paperplane-Translation-Mode') || 'translated';
     const fractionHeader = Number(response.headers.get('X-Paperplane-Translated-Fraction'));
-    const translatedPercent = Number.isFinite(fractionHeader) ? Math.round(fractionHeader * 100) : (mode === 'translated' ? 100 : null);
+    const translatedPercent = Number.isFinite(fractionHeader) ? formatTranslationCoveragePercent(fractionHeader) : (mode === 'translated' ? '100' : null);
     const blockFractionHeader = Number(response.headers.get('X-Paperplane-Translated-Block-Fraction'));
-    const translatedBlockPercent = Number.isFinite(blockFractionHeader) ? Math.round(blockFractionHeader * 100) : (mode === 'translated' ? 100 : null);
+    const translatedBlockPercent = Number.isFinite(blockFractionHeader) ? formatTranslationCoveragePercent(blockFractionHeader) : (mode === 'translated' ? '100' : null);
     const name = `${(state.files[0]?.name || 'document').replace(/\.[^/.]+$/, '')}_translated.pdf`;
     const targetLanguage = options.target_language || 'es';
     if (mode === 'failed' || mode === 'source_preserved') {
-      showRichAiResult('Translation failed', `${targetLanguage} · no translated text produced · ${warningCount} warning(s)`, '<p>No translated PDF is available. The source document was not changed. Check the provider connection and retry.</p>', { showStudio: false });
+      showRichAiResult('Translation failed', `${targetLanguage} · no translated text produced · ${formatTranslationWarningCount(warningCount)}`, '<p>No translated PDF is available. The source document was not changed. Check the provider connection and retry.</p>', { showStudio: false });
       showToast('Translation failed. No translated download was created.', 'error');
       return;
     }
@@ -6033,10 +6645,11 @@ async function padJpeg(blob, minimum) {
   return new Blob([bytes.slice(0, 2), segment, bytes.slice(2)], { type: 'image/jpeg' });
 }
 
-function showPhotoResult(blob, filename, canvas, warning = '') {
+function showPhotoResult(blob, filename, canvas, warning = '', sizeLabel = '') {
   showDownloadResult({
     output_name: filename,
     output_size: blob.size,
+    ...(sizeLabel ? { output_size_label: sizeLabel } : {}),
     dimensions: [canvas.width, canvas.height],
     warning,
     status: 'completed',
@@ -6142,11 +6755,16 @@ async function extractPdfMarkdown(file, isCurrent, localProgress) {
     if (pdf.numPages > 500) throw new Error('Browser text export supports PDFs up to 500 pages. Choose Server Processing for larger files.');
     const metadata = await pdf.getMetadata().catch(() => ({ info: {} }));
     let title = String(metadata.info?.Title || '').trim();
-    if (!title || /^[a-f0-9]{20,}(?:_|$)/i.test(title)) title = file.name.replace(/\.pdf$/i, '').trim();
+    const isInternalTitle = value => /^(?:[a-f0-9]{20,}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})(?:[_-]|$)/i.test(value);
+    if (!title || isInternalTitle(title)) {
+      const fileTitle = file.name.replace(/\.pdf$/i, '').trim();
+      title = isInternalTitle(fileTitle) ? '' : fileTitle;
+    }
     title = title.replace(/[\r\n]+/g, ' ').slice(0, 200);
     const sections = [];
     let totalCharacters = 0;
     let totalLines = 0;
+    let unsupportedGlyphCount = 0;
 
     for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
       if (!isCurrent()) return null;
@@ -6172,14 +6790,15 @@ async function extractPdfMarkdown(file, isCurrent, localProgress) {
 
       for (const item of content.items) {
         if (typeof item.str !== 'string' || !item.str) continue;
-        const text = item.str;
-        totalCharacters += text.length;
+        const sourceText = item.str;
+        totalCharacters += sourceText.length;
         if (totalCharacters > 2_000_000) {
           throw new Error('Browser text export supports up to 2 million extracted characters. Choose Server Processing for larger files.');
         }
-        if (/[\u0000-\u0008\u000b-\u001f\ue000-\uf8ff\ufffd]|[√∑∫≤≥∈∉∧∨⇒⇔±]/u.test(text)) {
-          throw new Error('This PDF uses math or custom-font glyphs that basic browser text export cannot preserve accurately. Choose Server Processing for this document.');
-        }
+        const text = sourceText.replace(/[\u0000-\u0008\u000b-\u001f\ue000-\uf8ff\ufffd]|[√∑∫≤≥∈∉∧∨⇒⇔±]/gu, () => {
+          unsupportedGlyphCount += 1;
+          return '[math/custom glyph]';
+        });
         const style = styles[item.fontName] || {};
         const size = Math.abs(Number(item.transform?.[0])) || Number(item.height) || 10;
         const y = Number(item.transform?.[5]);
@@ -6220,7 +6839,10 @@ async function extractPdfMarkdown(file, isCurrent, localProgress) {
     if (!totalCharacters || !totalLines) {
       throw new Error('No selectable text was found. Run OCR first, or choose Server Processing for a text export.');
     }
-    return `# ${title}\n\n${sections.join('\n\n---\n\n')}\n`;
+    return {
+      markdown: `${title ? `# ${title}\n\n` : ''}${sections.join('\n\n---\n\n')}\n`,
+      unsupportedGlyphCount,
+    };
   } finally {
     await loadingTask.destroy();
   }
@@ -6330,15 +6952,33 @@ function buildTextOnlyDocx(markdown) {
   ], 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
 }
 
+function parsePdfPageSelection(specification, pageCount) {
+  const raw = String(specification || '').trim();
+  if (!raw) return Array.from({ length: pageCount }, (_, index) => index + 1);
+  if (!/^\d+(?:\s*-\s*\d+)?(?:\s*,\s*\d+(?:\s*-\s*\d+)?)*$/.test(raw)) {
+    throw new Error('Enter page numbers or ranges such as 1, 3-5, or leave blank for all pages.');
+  }
+  const selected = [];
+  for (const part of raw.split(',')) {
+    const [startValue, endValue = startValue] = part.split('-').map(value => Number(value.trim()));
+    if (startValue < 1 || endValue < startValue || endValue > pageCount) {
+      throw new Error(`Choose pages from 1 to ${pageCount}.`);
+    }
+    for (let page = startValue; page <= endValue; page += 1) selected.push(page);
+  }
+  if (new Set(selected).size !== selected.length) throw new Error('Choose each page at most once.');
+  return selected;
+}
+
 async function processClientSide(isCurrent = () => true) {
   const selectedFiles = [...state.files];
   const showLocalResult = (job, url, options) => {
     if (!isCurrent()) { if (url?.startsWith('blob:')) URL.revokeObjectURL(url); return; }
     showDownloadResult(job, url, options);
   };
-  const showLocalPhotoResult = (blob, filename, canvas, warning) => {
+  const showLocalPhotoResult = (blob, filename, canvas, warning, sizeLabel = '') => {
     if (!isCurrent()) { canvas.width = canvas.height = 1; return; }
-    showPhotoResult(blob, filename, canvas, warning);
+    showPhotoResult(blob, filename, canvas, warning, sizeLabel);
   };
   const localProgress = (...args) => { if (isCurrent()) updateProgress(...args); };
   if (!CLIENT_SIDE_SUPPORTED_OPERATIONS.has(state.operation)) {
@@ -6364,7 +7004,7 @@ async function processClientSide(isCurrent = () => true) {
     if (blob.size > maxJpegBytes) {
       throw new Error('The photo could not fit the selected file-size range at the required dimensions. Try cropping or simplifying the background.');
     }
-    if (blob.size < minKb * 1000) blob = await padJpeg(blob, minKb * 1000);
+    if (blob.size < minKb * 1024) blob = await padJpeg(blob, minKb * 1024);
     if (asPdf) {
       const { PDFDocument } = await window.PaperplanePdfRuntime.ensurePdfLib();
       const pdf = await PDFDocument.create();
@@ -6376,7 +7016,7 @@ async function processClientSide(isCurrent = () => true) {
     if (blob.size < minKb * 1000 || blob.size > maxKb * 1000) {
       throw new Error('The output did not fit the selected file-size range. Try the JPEG format or a different image.');
     }
-    showLocalPhotoResult(blob, asPdf ? 'exam-photo.pdf' : 'exam-photo.jpg', canvas);
+    showLocalPhotoResult(blob, asPdf ? 'exam-photo.pdf' : 'exam-photo.jpg', canvas, '', `${blob.size.toLocaleString()} bytes`);
     return;
   }
 
@@ -6592,11 +7232,13 @@ async function processClientSide(isCurrent = () => true) {
     const pdfjsLib = await window.PaperplanePdfRuntime.ensurePdfJs();
     const loadingTask = pdfjsLib.getDocument({ data: await file.arrayBuffer(), isEvalSupported: false });
     const images = [];
+    const pageNumbers = [];
     let totalBytes = 0;
     try {
       const pdf = await loadingTask.promise;
-      if (pdf.numPages > 200) throw new Error('For more than 200 JPG pages, choose Server Processing.');
-      for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
+      const selectedPages = parsePdfPageSelection($('#pages')?.value, pdf.numPages);
+      if (selectedPages.length > 200) throw new Error('Convert 1–200 selected pages in the browser, or choose Server Processing.');
+      for (const pageNumber of selectedPages) {
         if (!isCurrent()) return;
         const page = await pdf.getPage(pageNumber);
         const viewport = page.getViewport({ scale: dpi / 72 });
@@ -6607,6 +7249,7 @@ async function processClientSide(isCurrent = () => true) {
           if (!isCurrent()) return;
           const jpeg = await encodePhoto(canvas, 0, 0.85);
           images.push(jpeg);
+          pageNumbers.push(pageNumber);
           totalBytes += jpeg.size;
           if (totalBytes > 256 * 1024 * 1024) {
             throw new Error('The rendered JPGs exceed the browser ZIP limit. Choose Server Processing.');
@@ -6615,14 +7258,14 @@ async function processClientSide(isCurrent = () => true) {
           if (canvas) canvas.width = canvas.height = 1;
           page.cleanup();
         }
-        localProgress(2, Math.round((pageNumber / pdf.numPages) * 90),
-          `Rendering JPG page ${pageNumber} of ${pdf.numPages}…`);
+        localProgress(2, Math.round((images.length / selectedPages.length) * 90),
+          `Rendering JPG page ${pageNumber} (${images.length} of ${selectedPages.length})…`);
       }
     } finally {
       await loadingTask.destroy();
     }
     if (!isCurrent()) return;
-    const { output } = await window.PaperplanePdfRuntime.transformLocalPdf('zip_jpg', images, {});
+    const { output } = await window.PaperplanePdfRuntime.transformLocalPdf('zip_jpg', images, { pageNumbers });
     if (!isCurrent()) return;
     const blob = output instanceof Blob ? output : new Blob([output], { type: 'application/zip' });
     showLocalResult({
@@ -6811,6 +7454,69 @@ async function processClientSide(isCurrent = () => true) {
     return;
   }
 
+  if (state.operation === 'annotate') {
+    const file = selectedFiles[0];
+    if (!file) throw new Error('Select a PDF to annotate.');
+    const annotType = ($('#annot_type')?.value || 'highlight').toLowerCase();
+    if (!['highlight', 'underline', 'strikeout'].includes(annotType)) {
+      throw new Error('Browser mode currently supports text highlight, underline, and strikeout. Sticky notes and rectangles require Server Processing.');
+    }
+    if (file.size > 50 * 1024 * 1024) {
+      throw new Error('This PDF is too large for browser annotation. Choose Server Processing to continue.');
+    }
+    const pageNumber = Number($('#page')?.value || 1);
+    const searchText = ($('#text')?.value || '').trim();
+    if (!searchText) throw new Error('Enter exact text from the selected page to annotate.');
+    const pdfjsLib = await window.PaperplanePdfRuntime.ensurePdfJs();
+    const loadingTask = pdfjsLib.getDocument({ data: await file.arrayBuffer(), isEvalSupported: false });
+    let pdf;
+    try {
+      pdf = await loadingTask.promise;
+      if (!Number.isInteger(pageNumber) || pageNumber < 1 || pageNumber > pdf.numPages) {
+        throw new Error(`Page ${pageNumber || 1} is outside this ${pdf.numPages}-page PDF.`);
+      }
+      const page = await pdf.getPage(pageNumber);
+      try {
+        const textContent = await page.getTextContent();
+        if (textContent.items.length > 50000) throw new Error('This page has too much text for browser annotation. Choose Server Processing.');
+        const matches = textContent.items.filter(item => typeof item.str === 'string' && item.str.trim() === searchText);
+        if (!matches.length) {
+          const hasPartialMatch = textContent.items.some(item => typeof item.str === 'string' && item.str.includes(searchText));
+          throw new Error(hasPartialMatch
+            ? 'Browser mode needs the full text block exactly as it appears. This phrase spans only part of a block; choose Server Processing to annotate it precisely.'
+            : `The exact text “${searchText.slice(0, 80)}” was not found as a single text block on page ${pageNumber}.`);
+        }
+        if (matches.length > 500) throw new Error('This page contains too many matching text blocks for browser annotation. Choose Server Processing.');
+        const annotations = [];
+        for (const item of matches) {
+          const x = Number(item.transform?.[4]);
+          const baseline = Number(item.transform?.[5]);
+          const width = Number(item.width);
+          const height = Number(item.height) || Math.abs(Number(item.transform?.[3])) || 10;
+          if (![x, baseline, width, height].every(Number.isFinite) || width <= 0 || height <= 0) {
+            throw new Error('The PDF text position cannot be read accurately in browser mode. Choose Server Processing.');
+          }
+          const rect = [x, baseline - height * 0.28, x + width, baseline + height * 0.78];
+          annotations.push({ type: annotType, page: pageNumber - 1, rect, text: searchText });
+        }
+        if (!isCurrent()) return;
+        const { output } = await window.PaperplanePdfRuntime.transformLocalPdf('annotate', [file], { annotations });
+        if (!isCurrent()) return;
+        const blob = output instanceof Blob ? output : new Blob([output], { type: 'application/pdf' });
+        showLocalResult({
+          output_name: `${file.name.replace(/\.pdf$/i, '')}-annotated.pdf`, output_size: blob.size,
+          status: 'completed', local_processing: true,
+          warning: `Added ${matches.length} searchable ${annotType} annotation${matches.length === 1 ? '' : 's'} on this device. Highlighted text is preserved and remains searchable.`
+        }, URL.createObjectURL(blob), { blob });
+        return;
+      } finally {
+        page.cleanup();
+      }
+    } finally {
+      await loadingTask.destroy();
+    }
+  }
+
   if (state.operation === 'compare') {
     if (selectedFiles.length !== 2) throw new Error('Compare requires exactly two PDF files.');
     const left = await extractSelectablePdfLines(selectedFiles[0], isCurrent, localProgress, 0);
@@ -6824,14 +7530,20 @@ async function processClientSide(isCurrent = () => true) {
       throw new Error('Browser comparison supports up to 20,000 combined text lines. Choose Server Processing for larger files.');
     }
     const edits = diffPdfTextLines(left, right);
+    const differences = edits.filter(edit => edit.type !== ' ');
+    const verdict = differences.length === 0
+      ? 'Verdict: Files are identical in selectable text — no differences found.'
+      : `Verdict: ${differences.length} selectable-text differences found.`;
     const safeName = name => name.replace(/\.pdf$/i, '').replace(/[\\/:*?"<>|\u0000-\u001f]/g, '_');
     const output = [
+      verdict,
+      '',
       'Selectable text comparison',
       `File A: ${selectedFiles[0].name}`,
       `File B: ${selectedFiles[1].name}`,
       'Scope: selectable PDF text only; page layout, images, and scanned text are not compared.',
       '',
-      ...(edits.length ? edits.map(edit => `${edit.type}${edit.text}`) : ['No text differences found.']),
+      ...(differences.length ? differences.map(edit => `${edit.type}${edit.text}`) : ['No text differences found.']),
       '',
     ].join('\n');
     const blob = new Blob([output], { type: 'text/plain;charset=utf-8' });
@@ -6848,15 +7560,16 @@ async function processClientSide(isCurrent = () => true) {
   if (state.operation === 'pdf_to_markdown') {
     const file = selectedFiles[0];
     if (!file) throw new Error('Select a PDF to convert to Markdown.');
-    const markdown = await extractPdfMarkdown(file, isCurrent, localProgress);
-    if (markdown === null || !isCurrent()) return;
+    const extracted = await extractPdfMarkdown(file, isCurrent, localProgress);
+    if (extracted === null || !isCurrent()) return;
+    const { markdown, unsupportedGlyphCount } = extracted;
     const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
     showLocalResult({
       output_name: file.name.replace(/\.pdf$/i, '') + '.md',
       output_size: blob.size,
       status: 'completed',
       local_processing: true,
-      warning: 'Basic browser Markdown preserves selectable text and basic headings/lists; tables, math layout, and scanned text are not reconstructed.',
+      warning: `${unsupportedGlyphCount ? `${unsupportedGlyphCount} math/custom-font glyphs were replaced with “[math/custom glyph]” because their original character could not be decoded. ` : ''}Basic browser Markdown preserves selectable text and basic headings/lists; tables, math layout, and scanned text are not reconstructed.`,
     }, URL.createObjectURL(blob), { blob });
     return;
   }
@@ -6864,15 +7577,16 @@ async function processClientSide(isCurrent = () => true) {
   if (state.operation === 'pdf_to_word') {
     const file = selectedFiles[0];
     if (!file) throw new Error('Select a PDF to convert to Word.');
-    const markdown = await extractPdfMarkdown(file, isCurrent, localProgress);
-    if (markdown === null || !isCurrent()) return;
+    const extracted = await extractPdfMarkdown(file, isCurrent, localProgress);
+    if (extracted === null || !isCurrent()) return;
+    const { markdown, unsupportedGlyphCount } = extracted;
     const blob = buildTextOnlyDocx(markdown);
     showLocalResult({
       output_name: file.name.replace(/\.pdf$/i, '') + '.docx',
       output_size: blob.size,
       status: 'completed',
       local_processing: true,
-      warning: 'Created a text-first editable DOCX locally. Page boundaries are retained; images, exact layout, and table structure are not. Use Server Processing for supported table/layout reconstruction.',
+      warning: `${unsupportedGlyphCount ? `${unsupportedGlyphCount} math/custom-font glyphs were replaced with “[math/custom glyph]” because their original character could not be decoded. ` : ''}Created a text-first editable DOCX locally. Page boundaries are retained; images, exact layout, and table structure are not. Use Server Processing for supported table/layout reconstruction.`,
     }, URL.createObjectURL(blob), { blob });
     return;
   }
@@ -7093,7 +7807,18 @@ function updateAiDocBar() {
         .then(pdfjsLib => file.arrayBuffer().then(buffer => pdfjsLib.getDocument({ data: buffer, isEvalSupported: false }).promise))
         .then(async pdf => {
           try {
-            if (state.files[0] === file) docMeta.textContent = `${formatBytes(file.size)} • ${pdf.numPages} pages`;
+            if (state.files[0] === file) {
+              const studioFile = state.studio.srcFile;
+              const studioPages = studioFile && studioFile.name === file.name
+                ? Number(state.studio.totalCount)
+                : 0;
+              const studioHasDifferentPageCount = Number.isInteger(studioPages)
+                && studioPages > 0
+                && studioPages !== pdf.numPages;
+              docMeta.textContent = studioHasDifferentPageCount
+                ? `${formatBytes(file.size)} • AI copy: ${pdf.numPages} pages · Studio copy: ${studioPages} pages`
+                : `${formatBytes(file.size)} • ${pdf.numPages} pages`;
+            }
           } finally {
             await pdf.destroy();
           }
@@ -7483,7 +8208,6 @@ $('#chat-form').onsubmit = async e => {
         }
         if (eventName === 'done') {
           responseCitations = uniqueAiCitationPages(payload.citations);
-          citationsNode.innerHTML = responseCitations.map(aiPageCitationTag).join('');
           if (payload.mode === 'local_extraction' && responseModeNode) {
             responseModeNode.hidden = false;
             responseModeNode.textContent = 'Local document extract · AI provider is disabled';
@@ -7495,6 +8219,13 @@ $('#chat-form').onsubmit = async e => {
             item.removeAttribute('aria-current');
           });
           textNode.innerHTML = renderMarkdown(answerText);
+          const inlineCitationPages = new Set([...textNode.querySelectorAll('[data-ai-page]')]
+            .map(citation => Number(citation.dataset.aiPage))
+            .filter(page => Number.isInteger(page) && page > 0));
+          citationsNode.innerHTML = responseCitations
+            .filter(page => !inlineCitationPages.has(page))
+            .map(aiPageCitationTag)
+            .join('');
           completed = true;
         }
         if (eventName === 'error') throw new Error(/not configured/i.test(payload.message || '') ? 'AI provider is not configured' : (payload.message || 'AI request failed, please try again'));
@@ -7516,6 +8247,7 @@ $('#chat-form').onsubmit = async e => {
       failure.className = 'ai-chat-error';
       failure.innerHTML = `${escapeHtml(errMsg)} <button type="button" class="ai-chat-retry">Retry</button>`;
       failure.querySelector('.ai-chat-retry').onclick = () => {
+        userBubble.remove();
         failure.remove();
         answerBubble.remove();
         input.value = question;
@@ -8071,23 +8803,69 @@ window.copyToClipboard = text => {
 // Cloud Import Modal Controller
 // ----------------------------------------------------------------------
 
+let cloudModalOpener = null;
+function cloudModalFocusableElements() {
+  return [...$('#cloud-modal').querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])')]
+    .filter(element => !element.hidden && element.getClientRects().length > 0);
+}
+
+function closeCloudModal() {
+  const modal = $('#cloud-modal');
+  if (!modal || modal.hidden) return;
+  modal.hidden = true;
+  const opener = cloudModalOpener;
+  cloudModalOpener = null;
+  if (opener?.isConnected && !opener.closest('[hidden]')) opener.focus();
+}
+
 function openCloudModal(event) {
   if (event && !event.isTrusted) return;
-  $('#cloud-modal').hidden = false;
+  cloudModalOpener = event?.currentTarget || document.activeElement;
+  const modal = $('#cloud-modal');
+  modal.hidden = false;
   $('#cloud-url').value = '';
   $('#cloud-url').focus();
   $('#cloud-error').hidden = true;
 }
 
 if ($('#topbar-cloud-btn')) $('#topbar-cloud-btn').onclick = openCloudModal;
-if ($('#cloud-drop-btn')) $('#cloud-drop-btn').onclick = openCloudModal;
-if ($('#close-cloud-modal')) $('#close-cloud-modal').onclick = () => $('#cloud-modal').hidden = true;
+if ($('#cloud-drop-btn')) $('#cloud-drop-btn').onclick = event => {
+  event.stopPropagation();
+  openCloudModal(event);
+};
+if ($('#close-cloud-modal')) $('#close-cloud-modal').onclick = closeCloudModal;
 
 // Close modals when clicking backdrop
 $$('.modal-backdrop').forEach(modal => {
   modal.onclick = e => {
-    if (e.target === modal) modal.hidden = true;
+    if (e.target === modal) {
+      if (modal.id === 'cloud-modal') closeCloudModal();
+      else modal.hidden = true;
+    }
   };
+});
+$('#cloud-modal')?.addEventListener('keydown', event => {
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    closeCloudModal();
+    return;
+  }
+  if (event.key !== 'Tab') return;
+  const focusable = cloudModalFocusableElements();
+  if (!focusable.length) {
+    event.preventDefault();
+    $('#cloud-modal .modal-card').focus();
+    return;
+  }
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (event.shiftKey && (document.activeElement === first || !$('#cloud-modal').contains(document.activeElement))) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && (document.activeElement === last || !$('#cloud-modal').contains(document.activeElement))) {
+    event.preventDefault();
+    first.focus();
+  }
 });
 if ($('#command-modal')) {
   $('#command-modal').onclick = e => {
@@ -8793,6 +9571,7 @@ function openMobileSidebar() {
   restoreCollapsedSidebarAfterMobileClose = Boolean(shell?.classList.contains('sidebar-collapsed'));
   shell?.classList.remove('sidebar-collapsed');
   if (sidebar) sidebar.classList.add('mobile-open');
+  syncMobileSidebarAccessibility();
   if (backdrop) backdrop.hidden = false;
   $('#mobile-menu-btn')?.setAttribute('aria-expanded', 'true');
 }
@@ -8801,11 +9580,24 @@ function closeMobileSidebar() {
   const sidebar = $('#sidebar');
   const backdrop = $('#mobile-backdrop');
   const shell = $('#app-shell');
+  const restoreFocus = Boolean(sidebar?.classList.contains('mobile-open') && window.matchMedia('(max-width: 900px)').matches);
   if (sidebar) sidebar.classList.remove('mobile-open');
+  syncMobileSidebarAccessibility();
   if (backdrop) backdrop.hidden = true;
   if (restoreCollapsedSidebarAfterMobileClose) shell?.classList.add('sidebar-collapsed');
   restoreCollapsedSidebarAfterMobileClose = false;
   $('#mobile-menu-btn')?.setAttribute('aria-expanded', 'false');
+  if (restoreFocus) $('#mobile-menu-btn')?.focus({ preventScroll: true });
+}
+
+function syncMobileSidebarAccessibility() {
+  const sidebar = $('#sidebar');
+  if (!sidebar) return;
+  const isMobile = window.matchMedia('(max-width: 900px)').matches;
+  const isOpen = sidebar.classList.contains('mobile-open');
+  sidebar.inert = isMobile && !isOpen;
+  if (isMobile) sidebar.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+  else sidebar.removeAttribute('aria-hidden');
 }
 
 function initMobileNav() {
@@ -8815,6 +9607,8 @@ function initMobileNav() {
   if (menuBtn) menuBtn.onclick = () => sidebar?.classList.contains('mobile-open')
     ? closeMobileSidebar() : openMobileSidebar();
   if (backdrop) backdrop.onclick = closeMobileSidebar;
+  syncMobileSidebarAccessibility();
+  window.addEventListener('resize', syncMobileSidebarAccessibility, { passive: true });
 
   // Swipe the drawer left to dismiss it on touch devices.  The gesture is
   // intentionally bounded to horizontal movement so scrolling the tool list
@@ -8837,7 +9631,7 @@ function initMobileNav() {
 }
 
 function syncOpenOverlayStack() {
-  return [...document.querySelectorAll('.modal-backdrop:not([hidden]), dialog[open], #sidebar.mobile-open, .studio-mobile-properties-panel:not([hidden])')]
+  return [...document.querySelectorAll('.modal-backdrop:not([hidden]), .command-backdrop:not([hidden]), dialog[open], #sidebar.mobile-open, .studio-mobile-properties-panel:not([hidden])')]
     .filter(overlay => {
       const style = getComputedStyle(overlay);
       return style.display !== 'none' && style.visibility !== 'hidden';
@@ -8875,8 +9669,17 @@ function installOverlayEscapeStack() {
     const visible = syncOpenOverlayStack();
     const ordered = visible.map((overlay, domOrder) => {
       const zIndex = Number.parseInt(getComputedStyle(overlay).zIndex, 10);
-      return { overlay, domOrder, zIndex: Number.isFinite(zIndex) ? zIndex : 0, isDialog: overlay.tagName === 'DIALOG' };
-    }).sort((a, b) => Number(a.isDialog) - Number(b.isDialog) || a.zIndex - b.zIndex || a.domOrder - b.domOrder);
+      return {
+        overlay,
+        domOrder,
+        zIndex: Number.isFinite(zIndex) ? zIndex : 0,
+        isDialog: overlay.tagName === 'DIALOG',
+        containsFocus: overlay.contains(document.activeElement),
+      };
+    }).sort((a, b) => Number(a.isDialog) - Number(b.isDialog)
+      || Number(a.containsFocus) - Number(b.containsFocus)
+      || a.zIndex - b.zIndex
+      || a.domOrder - b.domOrder);
     const top = ordered.at(-1)?.overlay;
     if (!top) return;
     event.preventDefault();
@@ -8888,11 +9691,22 @@ function installOverlayEscapeStack() {
 
 function initFooterReveal() {
   const refresh = () => {
-    const mainScroll = document.querySelector('.main-area')?.scrollTop || 0;
+    const mainArea = document.querySelector('.main-area');
+    const mainScroll = mainArea?.scrollTop || 0;
     const pageScroll = window.scrollY || document.documentElement.scrollTop || 0;
-    document.documentElement.classList.toggle('footer-revealed', Math.max(mainScroll, pageScroll) > 12);
+    const footer = document.querySelector('.app-global-footer');
+    const footerRect = footer?.getBoundingClientRect();
+    const footerInViewport = Boolean(footerRect && footerRect.top < window.innerHeight && footerRect.bottom > 0);
+    const hasScrollRange = Boolean(
+      (mainArea && mainArea.scrollHeight > mainArea.clientHeight + 12)
+      || document.documentElement.scrollHeight > document.documentElement.clientHeight + 12
+    );
+    const hasScrolled = Math.max(mainScroll, pageScroll) > 12;
+    document.documentElement.classList.toggle('footer-revealed', hasScrolled || (!hasScrollRange && footerInViewport));
   };
+  refreshFooterReveal = refresh;
   window.addEventListener('scroll', refresh, { passive: true, capture: true });
+  window.addEventListener('resize', refresh, { passive: true });
   document.querySelector('.main-area')?.addEventListener('scroll', refresh, { passive: true });
   refresh();
 }
@@ -8976,7 +9790,6 @@ async function init() {
   try {
     previousView = sessionStorage.getItem('paperplane-active-view');
     previousDoc = sessionStorage.getItem(localWorkSessionKey('paperplane-last-local-document'));
-    if (previousDoc) sessionStorage.removeItem(localWorkSessionKey('paperplane-last-local-document'));
   } catch { /* session storage may be disabled */ }
 
   initBillingHandlers();
@@ -9009,12 +9822,16 @@ async function init() {
       // The URL is authoritative on reload. A root URL opens the Tool Desk;
       // restore a document only when the user explicitly opens Studio or AI.
       let restoredWork = false;
+      const restoreAttempted = state.activeView === 'ai' || state.activeView === 'studio';
       if (state.activeView === 'ai') restoredWork = await restoreAiWorkspace();
       if (state.activeView === 'studio') {
         await restoreStudioWorkspace();
         restoredWork = Boolean(state.studio.pdfDoc);
       }
-      if (previousDoc && !restoredWork) {
+      if (restoreAttempted && previousDoc) {
+        try { sessionStorage.removeItem(localWorkSessionKey('paperplane-last-local-document')); } catch { /* Storage may be disabled. */ }
+      }
+      if (restoreAttempted && previousDoc && !restoredWork) {
         const safeName = String(previousDoc).replace(/[<>]/g, '').slice(0, 120);
         showToast(`${safeName} was temporary and could not be restored. Select it again to continue.`, 'info', 7000);
       }
@@ -9237,6 +10054,21 @@ if (waitlistForm) {
 }
 
 // URL Path & Query Parameter Routing Engine
+function showPublicInfoLanding() {
+  switchWorkspaceView('home', null, false, true);
+  if ($('#view-tool-desk-directory')) $('#view-tool-desk-directory').hidden = true;
+  if ($('#view-tool-desk')) $('#view-tool-desk').hidden = true;
+  const seoContent = $('.seo-content');
+  if (seoContent) seoContent.style.display = '';
+  const routeHeading = seoContent?.querySelector('h2')?.textContent?.trim();
+  const crumbCategory = $('#crumb-category');
+  const crumbTool = $('#crumb-tool');
+  if (crumbCategory) crumbCategory.textContent = 'Information';
+  if (crumbTool) crumbTool.textContent = routeHeading || 'Information';
+  const routeTitle = document.querySelector('meta[property="og:title"]')?.content;
+  if (routeTitle) document.title = routeTitle;
+}
+
 function handleInitialRouting() {
   const path = window.location.pathname.toLowerCase();
   const pathSlug = path.replace(/^\/+|\/+$/g, '');
@@ -9260,6 +10092,8 @@ function handleInitialRouting() {
     // heading out of the visible page while its modal form is open.
     if ($('#view-home')) $('#view-home').hidden = true;
     if ($('#view-tool-desk-directory')) $('#view-tool-desk-directory').hidden = true;
+  } else if (['contact', 'refund', 'status'].includes(pathSlug)) {
+    showPublicInfoLanding();
   } else if (path.includes('developers') || path.includes('api-docs') || path.includes('/docs/api') || urlParams.get('view') === 'api-docs') {
     setInitialView('api-docs');
   } else if (path.includes('download') || path.includes('apps') || urlParams.get('view') === 'download') {
@@ -9308,6 +10142,8 @@ window.addEventListener('popstate', e => {
     switchWorkspaceView('api-docs', null, false);
   } else if (path.includes('download') || path.includes('apps')) {
     switchWorkspaceView('download', null, false);
+  } else if (['contact', 'refund', 'status'].includes(pathSlug)) {
+    showPublicInfoLanding();
   } else if (dedicatedWorkspaceViews.has(pathSlug)) {
     switchWorkspaceView(pathSlug, null, false);
   } else if (pathSlug === 'ai-intelligence') {

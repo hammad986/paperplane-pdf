@@ -1,4 +1,6 @@
 import pytest
+import io
+import urllib.error
 from pathlib import Path
 import persistence
 import email_service
@@ -36,6 +38,20 @@ def test_email_service_fallback(monkeypatch):
     assert send_login_notification("test@paperplane.local", client_ip="127.0.0.1", user_agent="Mozilla/5.0") is False
     assert send_password_reset_email("test@paperplane.local", reset_token="mock123", base_url="http://localhost:8000") is False
     assert send_password_changed_notification("test@paperplane.local", client_ip="127.0.0.1") is False
+
+
+def test_password_reset_email_matches_30_minute_token_lifetime(monkeypatch):
+    captured = {}
+
+    def capture(to_email, subject, html_body, text_body, **kwargs):
+        captured.update(html=html_body, text=text_body)
+        return True
+
+    monkeypatch.setattr(email_service, "_dispatch_email", capture)
+    assert send_password_reset_email("user@example.test", "safe-token", "https://paperplane.example.test")
+    assert "valid for 30 minutes" in captured["text"]
+    assert "expires in 30 minutes" in captured["html"]
+    assert "60 minutes" not in captured["html"]
 
 
 def test_resend_api_dispatch(monkeypatch):
@@ -95,3 +111,52 @@ def test_waitlist_persistence(tmp_path, monkeypatch):
     assert res1_dup["status"] == "success"
     assert res1_dup["waitlist_position"] == 1
     assert get_waitlist_count() == 2
+
+
+def test_resend_retries_transient_failures_with_bounded_backoff_without_logging_recipient_or_otp(monkeypatch, caplog):
+    attempts = []
+    sleeps = []
+
+    class MockResponse:
+        status = 202
+        def __enter__(self): return self
+        def __exit__(self, *_args): return False
+
+    def flaky_urlopen(req, timeout=10):
+        attempts.append((req, timeout))
+        if len(attempts) < 3:
+            raise urllib.error.HTTPError(req.full_url, 429 if len(attempts) == 1 else 503, "transient", {}, io.BytesIO(b"provider details"))
+        return MockResponse()
+
+    monkeypatch.setattr(email_service, "SMTP_FROM_EMAIL", "security@paperplane.example")
+    monkeypatch.setattr(email_service, "RESEND_API_KEY", "test-key-never-log")
+    monkeypatch.setattr(email_service.time, "sleep", sleeps.append)
+    monkeypatch.setattr("urllib.request.urlopen", flaky_urlopen)
+    with caplog.at_level("WARNING", logger="paperplane.email"):
+        assert email_service._send_resend_api("person@example.test", "OTP", "<p>654321</p>", "654321") is True
+    assert len(attempts) == 3
+    assert sleeps == [0.25, 0.75]
+    assert "person@example.test" not in caplog.text
+    assert "654321" not in caplog.text
+    assert "test-key-never-log" not in caplog.text
+
+
+def test_resend_does_not_retry_permanent_sender_or_request_errors(monkeypatch):
+    attempts = []
+    def reject_urlopen(req, timeout=10):
+        attempts.append(req)
+        raise urllib.error.HTTPError(req.full_url, 400, "invalid sender", {}, io.BytesIO(b"do not leak details"))
+    monkeypatch.setattr(email_service, "SMTP_FROM_EMAIL", "security@paperplane.example")
+    monkeypatch.setattr(email_service, "RESEND_API_KEY", "test-key")
+    monkeypatch.setattr("urllib.request.urlopen", reject_urlopen)
+    monkeypatch.setattr(email_service.time, "sleep", lambda _delay: pytest.fail("permanent errors must not retry"))
+    assert email_service._send_resend_api("person@example.test", "OTP", "<p>x</p>", "x") is False
+    assert len(attempts) == 1
+
+
+def test_otp_dispatch_never_reports_simulated_delivery_success(monkeypatch):
+    monkeypatch.setattr(email_service, "RESEND_API_KEY", "")
+    monkeypatch.setattr(email_service, "SMTP_ENABLED", False)
+    monkeypatch.setattr(email_service, "SMTP_HOST", "")
+    monkeypatch.setattr(email_service, "SMTP_FROM_EMAIL", "security@paperplane.example")
+    assert email_service.send_otp_email("person@example.test", "123456", "login") is False

@@ -187,6 +187,40 @@ class EditorState {
     return this.getAllObjects();
   }
 
+  restoreSerialized(objects) {
+    this._pages.clear();
+    if (!Array.isArray(objects) || objects.length > 5000) {
+      this._dirty = false;
+      return 0;
+    }
+    const supportedTypes = new Set([
+      'text', 'image', 'rectangle', 'shape', 'ellipse', 'circle', 'line', 'arrow',
+      'drawing', 'freehand', 'pen', 'highlight', 'redact', 'signature', 'stamp', 'note',
+    ]);
+    let restored = 0;
+    for (const value of objects) {
+      if (!value || typeof value !== 'object' || !supportedTypes.has(value.type)) continue;
+      const page = Number(value.page);
+      const coordinates = [value.docX, value.docY, value.docW, value.docH].map(Number);
+      if (!Number.isInteger(page) || page < 1 || page > this._totalPages
+          || coordinates.some(number => !Number.isFinite(number))
+          || coordinates[2] < 0 || coordinates[3] < 0
+          || typeof value.id !== 'string' || !value.id || value.id.length > 160) continue;
+      try {
+        const object = structuredClone(value);
+        delete object._imgEl;
+        if (object.imageData != null
+            && (typeof object.imageData !== 'string' || object.imageData.length > 16 * 1024 * 1024
+              || !/^data:image\/(?:png|jpe?g|webp|gif);base64,/i.test(object.imageData))) continue;
+        if (!this._pages.has(page)) this._pages.set(page, []);
+        this._pages.get(page).push(object);
+        restored += 1;
+      } catch { /* Ignore malformed local records and keep valid edits. */ }
+    }
+    this._dirty = restored > 0;
+    return restored;
+  }
+
   markClean() { this._dirty = false; }
 }
 
@@ -1726,6 +1760,16 @@ class PaperplaneEditorController {
     this._updateUnsavedIndicator();
   }
 
+  restoreSerialized(objects) {
+    const restored = this.editorState.restoreSerialized(objects);
+    this.history.clear();
+    this.selection.deselect();
+    if (this.canvas) this.canvas.redraw();
+    this._markUnsaved();
+    this._updateHistoryButtons();
+    return restored;
+  }
+
   _onStateChange() {
     this._updateHistoryButtons();
   }
@@ -1733,6 +1777,7 @@ class PaperplaneEditorController {
   _markUnsaved() {
     this._unsaved = this.editorState.dirty;
     this._updateUnsavedIndicator();
+    if (this._unsaved) window.persistPaperplaneStudioEdits?.();
   }
 
   _updateUnsavedIndicator() {

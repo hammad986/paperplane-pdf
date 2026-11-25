@@ -2,6 +2,7 @@ import os
 import secrets
 import uuid
 import pytest
+from fastapi import BackgroundTasks, HTTPException
 from fastapi.testclient import TestClient
 
 import server
@@ -279,3 +280,19 @@ def test_dev_otp_never_leaked_in_production(monkeypatch):
     assert log_json["status"] == "otp_required"
     assert "dev_otp" not in log_json
     assert all("otp" not in name.lower() for name in log.headers)
+
+
+def test_otp_delivery_failure_emits_redacted_telemetry_and_preserves_safe_response(monkeypatch, caplog):
+    recipient = "private-recipient@example.test"
+    code = "731946"
+    monkeypatch.setattr(server, "ENVIRONMENT", "production")
+    monkeypatch.setattr(server, "send_otp_email", lambda *_args: False)
+    monkeypatch.setattr(server, "delete_email_otp", lambda *_args: None)
+    with caplog.at_level("INFO"):
+        with pytest.raises(HTTPException) as error:
+            server.deliver_otp_or_raise(BackgroundTasks(), recipient, code, "login")
+    assert error.value.status_code == 503
+    assert error.value.detail == "Email delivery is unavailable. Please try again later or contact support."
+    assert "otp_delivery_failed purpose=login" in caplog.text
+    assert recipient not in caplog.text
+    assert code not in caplog.text

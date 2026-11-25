@@ -460,15 +460,26 @@ def test_plan_limits_match_server_upload_limits():
     limits = plan_limits_payload("pro")
     assert limits["free_operations_per_day"] > 0
     assert limits["free_max_file_size_mb"] > 0
+    assert limits["guest_max_file_size_mb"] == 50
+    assert limits["exam_pass_max_file_size_mb"] == min(500, MAX_FILE_SIZE // (1024 * 1024))
     assert limits["max_batch_files"] == 100
     assert plan_limits_payload("student_pro")["max_batch_files"] == 10
     assert plan_limits_payload("exam_pass")["max_batch_files"] == 10
     assert plan_limits_payload("developer")["max_batch_files"] == 100
     assert upload_limit_bytes_for_tier("free") == min(
-        MAX_FILE_SIZE, limits["free_max_file_size_mb"] * 1024 * 1024
+        MAX_FILE_SIZE, limits["guest_max_file_size_mb"] * 1024 * 1024
     )
+    assert upload_limit_bytes_for_tier("free", authenticated=True) == MAX_FILE_SIZE
+    assert upload_limit_bytes_for_tier("exam_pass") == min(MAX_FILE_SIZE, 500 * 1024 * 1024)
     assert upload_limit_bytes_for_tier("pro") == MAX_FILE_SIZE
     assert upload_limit_bytes_for_tier("developer") == MAX_FILE_SIZE
+
+
+def test_frontend_fallback_limits_match_guest_and_authenticated_free_policy():
+    app_js = (Path(__file__).resolve().parents[1] / "web" / "assets" / "app.js").read_text(encoding="utf-8")
+    assert "guest_max_file_size_mb: 50" in app_js
+    assert "free_max_file_size_mb: 500" in app_js
+    assert "platform_max_file_size_mb: 500" in app_js
 
 
 def test_auth_profile_exposes_the_authoritative_plan_limits():
@@ -480,7 +491,7 @@ def test_auth_profile_exposes_the_authoritative_plan_limits():
     authenticated = register_verified(client, f"profile_{os.urandom(4).hex()}@paperplane.test", secrets.token_urlsafe(24))
     response = client.get("/api/auth/me", headers={"Authorization": f"Bearer {authenticated.json()['token']}"})
     assert response.status_code == 200
-    assert response.json()["plan_limits"] == plan_limits_payload("free")
+    assert response.json()["plan_limits"] == plan_limits_payload("free", authenticated=True)
 
 
 def test_ai_capability_endpoint_hides_provider_details_and_reports_local_availability(monkeypatch):
@@ -516,6 +527,9 @@ def test_free_job_upload_limit_returns_actionable_413(monkeypatch):
     """The UI-advertised free cap is enforced by the upload route."""
     import server
 
+    # The module-level test client is reused across tests. Clear any account
+    # cookie left by a registration test so this checks the guest 50 MiB tier.
+    client.cookies.clear()
     monkeypatch.setattr(server, "FREE_TIER_MAX_FILE_SIZE_MB", 1)
     oversized_pdf = b"%PDF-1.7\n" + (b"x" * (1024 * 1024))
     response = client.post(

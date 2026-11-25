@@ -505,6 +505,17 @@ def test_revenue_uses_verified_deduplicated_inr_orders_and_configured_fees(admin
     }
     persistence.record_billing_event("verified-event-1", "cashfree.order_verified", paid_user, verified_payload)
     persistence.record_billing_event("verified-event-2", "cashfree.order_verified", paid_user, verified_payload)
+    sandbox_user = persistence.create_user("sandbox-customer@example.test", _password())
+    persistence.set_user_tier(
+        sandbox_user, tier="pro", status="active", cashfree_order_id="sandbox-order"
+    )
+    persistence.record_billing_event(
+        "sandbox-event", "cashfree.order_verified", sandbox_user,
+        {"gateway_environment": "TEST", "order": {
+            "order_id": "sandbox-order", "order_amount": 3750,
+            "order_currency": "INR", "order_status": "PAID",
+        }},
+    )
     persistence.record_billing_event(
         "pending-event", "cashfree.order_verified", demo_user,
         {"order": {"order_id": "pending-order", "order_amount": 500, "order_currency": "INR", "order_status": "PENDING"}},
@@ -522,10 +533,15 @@ def test_revenue_uses_verified_deduplicated_inr_orders_and_configured_fees(admin
 
     assert result["paying_users_count"] == 1
     assert result["gross_revenue_inr"] == 100.0
+    assert result["sandbox_gross_inr"] == 3750.0
     assert result["gateway_fee_rate_percent"] == 2.36
     assert result["estimated_gateway_fees_inr"] == 2.36
     assert result["net_bank_payout_inr"] == 97.64
-    assert len(result["recent_transactions"]) == 1
+    assert len(result["recent_transactions"]) == 2
+    sandbox_transaction = next(row for row in result["recent_transactions"] if row["order_id"] == "sandbox-order")
+    assert sandbox_transaction["gateway_environment"] == "TEST"
+    assert sandbox_transaction["status"] == "Sandbox paid"
+    assert result["paying_users_count"] == 1
     assert all("user_id" not in row for row in result["recent_transactions"])
 
 

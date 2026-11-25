@@ -24,6 +24,18 @@
     })[char]);
   }
 
+  async function studioRequestError(response, action) {
+    const payload = await response.json().catch(() => null);
+    const detail = payload?.detail;
+    const message = (typeof detail === 'string' ? detail : detail?.message)
+      || payload?.message
+      || `${action} failed (HTTP ${response.status}).`;
+    if (response.status === 402 || detail?.code === 'TIER_LIMIT_REACHED') {
+      window.openUpgradeModal?.(message);
+    }
+    return new Error(message);
+  }
+
   function downloadBlob(blob, filename) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -156,7 +168,7 @@
         const form = new FormData();
         form.append('file', target);
         const resp = await fetch('/api/studio/forms/analyze', { method: 'POST', body: form });
-        if (!resp.ok) throw new Error(`Analysis failed (${resp.status})`);
+        if (!resp.ok) throw await studioRequestError(resp, 'Form analysis');
         const data = await resp.json();
         this.activeFormFields = data.fields || [];
 
@@ -849,7 +861,7 @@
         const form = new FormData();
         form.append('file', target);
         const resp = await fetch('/api/studio/security/inspect', { method: 'POST', body: form });
-        if (!resp.ok) throw new Error(`Inspection failed (${resp.status})`);
+        if (!resp.ok) throw await studioRequestError(resp, 'Security inspection');
         const info = await resp.json();
 
         if (!container) return;

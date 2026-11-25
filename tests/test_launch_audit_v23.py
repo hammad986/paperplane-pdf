@@ -22,11 +22,139 @@ from pypdf import PdfReader
 from fastapi.testclient import TestClient
 
 
+def _sleeping_pdf_to_word_worker(_result_pipe, _source, _output, _pages):
+    time.sleep(5)
+
+
+def assert_current_app_script_reference(index_html: str) -> str:
+    match = re.search(r'<script src="/assets/app\.js\?v=(\d+)"', index_html)
+    assert match, "index.html must load a versioned app.js asset"
+    return match.group(1)
+
+
+def assert_current_app_asset_cached(service_worker: str) -> str:
+    match = re.search(r"'/assets/app\.js\?v=(\d+)'", service_worker)
+    assert match, "service worker must precache a versioned app.js asset"
+    cache = re.search(r"const CACHE_NAME = 'paperplane-shell-v(\d+)'", service_worker)
+    assert cache, "service worker must version its shell cache"
+    return match.group(1)
+
+
+def assert_app_cache_consistent(index_html: str, service_worker: str) -> None:
+    html_version = assert_current_app_script_reference(index_html)
+    worker_version = assert_current_app_asset_cached(service_worker)
+    assert worker_version == html_version, "index.html and service worker must use the same app.js cache key"
+
+
 def test_mobile_result_download_has_touch_target_and_fresh_stylesheet_cache_key():
     styles = (Path(__file__).resolve().parents[1] / "web" / "assets" / "styles.css").read_text(encoding="utf-8")
     html = (Path(__file__).resolve().parents[1] / "web" / "index.html").read_text(encoding="utf-8")
     assert ".result-actions .btn-download { min-height: 44px; box-sizing: border-box; }" in styles
-    assert "/assets/styles.css?v=61" in html
+    assert "#result.result-card {" in styles
+    assert "flex-direction: column;" in styles
+    assert "#result .result-actions > * {" in styles
+    assert "/assets/styles.css?v=90" in html
+    assert ".ai-chat-header #ai-chat-clear-btn {" in styles
+    assert "min-height: 36px;" in styles
+
+
+def test_rich_ai_results_scroll_newly_rendered_actions_into_view():
+    app_js = (Path(__file__).resolve().parents[1] / "web" / "assets" / "app.js").read_text(encoding="utf-8")
+    rich_result = app_js.split("function showRichAiResult", 1)[1].split("function downloadTextFile", 1)[0]
+    assert "result.hidden = false;" in rich_result
+    assert "requestAnimationFrame(() => result.scrollIntoView({ block: mobileResultViewport ? 'end' : 'center', behavior: 'smooth' }));" in rich_result
+    assert "window.matchMedia('(max-width: 900px)').matches" in rich_result
+
+
+def test_admin_login_city_database_is_optional_read_only_and_excluded_from_images():
+    root = Path(__file__).resolve().parents[1]
+    compose = (root / "docker-compose.yml").read_text(encoding="utf-8")
+    gitignore = (root / ".gitignore").read_text(encoding="utf-8")
+    dockerignore = (root / ".dockerignore").read_text(encoding="utf-8")
+    deployment = (root / "docs" / "DEPLOYMENT.md").read_text(encoding="utf-8")
+    assert 'PAPERPLANE_GEOIP_DB: "${PAPERPLANE_GEOIP_DB:-/geoip/GeoLite2-City.mmdb}"' in compose
+    assert '"${PAPERPLANE_GEOIP_HOST_DIR:-./deploy/geoip}:/geoip:ro"' in compose
+    assert "deploy/geoip/*.mmdb" in gitignore
+    assert "deploy/geoip/*.mmdb" in dockerignore
+    assert "approximate network city/region" in deployment
+    assert "not an exact device location" in deployment
+
+
+def test_mobile_tool_submit_stays_in_flow_and_workspace_clears_navigation():
+    root = Path(__file__).resolve().parents[1]
+    styles = (root / "web" / "assets" / "styles.css").read_text(encoding="utf-8")
+    mobile_start = styles.index("Mobile Workspace Bottom Navigation Bar")
+    mobile_rules = styles[mobile_start:styles.index(".toast-notice", mobile_start)]
+    submit_rules = mobile_rules.split("body:not(.studio-active):not(.ai-active) #run-button", 1)[1].split("}", 1)[0]
+    assert "position: static;" in submit_rules
+    assert "position: fixed;" not in submit_rules
+    assert "padding-bottom: calc(82px + env(safe-area-inset-bottom, 0px));" in mobile_rules
+
+
+def test_mobile_workspace_navigation_uses_short_visible_labels_with_full_accessible_names():
+    root = Path(__file__).resolve().parents[1]
+    html = (root / "web" / "index.html").read_text(encoding="utf-8")
+    nav = html.split('<nav class="mobile-workspace-bar"', 1)[1].split("</nav>", 1)[0]
+    service_worker = (root / "web" / "assets" / "service-worker.js").read_text(encoding="utf-8")
+    assert 'id="mob-nav-studio" data-workspace-view="studio" aria-label="Open PDF Studio"' in nav
+    assert 'id="mob-nav-ai" data-workspace-view="ai" aria-label="Open AI Intelligence workspace"' in nav
+    assert '<span>AI</span>' in nav
+    assert '<span>Apps</span>' in nav
+    assert '<span>AI Intelligence</span>' not in nav
+    assert "paperplane-shell-v215" in service_worker
+
+
+def test_mobile_workspace_pill_uses_compact_labels_and_full_accessible_names():
+    root = Path(__file__).resolve().parents[1]
+    app_js = (root / "web" / "assets" / "app.js").read_text(encoding="utf-8")
+    index_html = (root / "web" / "index.html").read_text(encoding="utf-8")
+    assert "ai: ['AI', 'AI Intelligence workspace']" in app_js
+    assert "download: ['Apps', window.location.pathname === '/download' ? 'Downloads workspace' : 'Native Apps workspace']" in app_js
+    assert "mobileViewPill.title = accessibleName" in app_js
+    assert "mobileViewPillStatus.textContent = accessibleName" in app_js
+    assert 'id="mobile-view-pill" class="mobile-view-pill" aria-hidden="true" title="Tool Desk workspace"' in index_html
+    assert 'id="mobile-view-pill-sr" class="sr-only" aria-live="polite">Tool Desk workspace</span>' in index_html
+
+
+def test_mobile_tool_action_remains_clear_when_async_form_content_resizes():
+    root = Path(__file__).resolve().parents[1]
+    app_js = (root / "web" / "assets" / "app.js").read_text(encoding="utf-8")
+    select_operation = app_js.split("function selectOperation(", 1)[1].split("function syncToolAvailability(", 1)[0]
+    observer = app_js.split("function watchMobileActionLayoutForDock()", 1)[1].split("function clearMobileNavigationFromToolAction()", 1)[0]
+    assert "new ResizeObserver(() =>" in observer
+    assert "['#view-tool-desk', '#job-form', '#options', '#run-button']" in observer
+    assert "if (state.activeView === 'desk') clearMobileNavigationFromToolAction()" in observer
+    assert "watchMobileActionLayoutForDock();" in select_operation
+    assert "window.addEventListener('resize', () =>" in app_js
+    assert "if (window.innerWidth > 900 || state.activeView !== 'desk') return;" in app_js
+
+
+def test_ai_document_bar_discloses_distinct_studio_copy_page_count():
+    root = Path(__file__).resolve().parents[1]
+    app_js = (root / "web" / "assets" / "app.js").read_text(encoding="utf-8")
+    index_html = (root / "web" / "index.html").read_text(encoding="utf-8")
+    service_worker = (root / "web" / "assets" / "service-worker.js").read_text(encoding="utf-8")
+    assert "AI copy: ${pdf.numPages} pages · Studio copy: ${studioPages} pages" in app_js
+    assert "/assets/app.js?v=239" in index_html
+    assert "'/assets/app.js?v=239'" in service_worker
+
+
+def test_studio_footer_visibility_rechecks_after_document_load_establishes_scroll_range():
+    root = Path(__file__).resolve().parents[1]
+    app_js = (root / "web" / "assets" / "app.js").read_text(encoding="utf-8")
+    load_path = app_js.split("async function loadDocumentIntoStudio", 1)[1].split("function createStudioPageSlot", 1)[0]
+    assert "hideStudioLoading();\n    // The empty Studio shell can reveal the footer before a document exists." in load_path
+    assert "refreshFooterReveal();\n    return true;" in load_path
+
+
+def test_tool_upload_prompt_keeps_semantic_heading_order():
+    root = Path(__file__).resolve().parents[1]
+    html = (root / "web" / "index.html").read_text(encoding="utf-8")
+    styles = (root / "web" / "assets" / "styles.css").read_text(encoding="utf-8")
+    assert "<h2>Drop your document here</h2>" in html
+    assert "<h3>Drop your document here</h3>" not in html
+    assert ".dropzone h2 {" in styles
+    assert ".dropzone h3 {" not in styles
 
 
 def test_developer_api_key_prefix_is_escaped_before_html_rendering():
@@ -137,6 +265,16 @@ def test_student_batch_limit_is_enforced_and_full_pro_retains_large_batch():
     pro_token = persistence.create_session_for_user(pro_id)["token"]
     pro_headers = {"Cookie": f"paperplane_token={pro_token}"}
     assert client.get("/api/auth/me", headers=pro_headers).json()["plan_limits"]["max_batch_files"] == 100
+    pro_page = client.get("/merge-pdf", headers=pro_headers)
+    bootstrap_match = re.search(
+        r'<script id="paperplane-bootstrap" type="application/json">(.*?)</script>',
+        pro_page.text,
+        flags=re.DOTALL,
+    )
+    assert bootstrap_match
+    assert json.loads(bootstrap_match.group(1))["planLimits"]["max_batch_files"] == 100
+    assert pro_page.headers["cache-control"] == "private, no-store"
+    assert "cookie" in pro_page.headers["vary"].lower()
     accepted = client.post("/api/uploads/chunked", json={"operation": "merge", "files": files11}, headers=pro_headers)
     assert accepted.status_code == 201
     upload_id = accepted.json()["upload_id"]
@@ -160,6 +298,196 @@ def test_repair_report_renders_pdf_derived_issues_as_text():
     assert "issues.innerHTML = (report.detected_issues" not in source
 
 
+def test_studio_compress_and_ocr_failures_keep_modal_open_with_retry_state():
+    root = Path(__file__).resolve().parents[1]
+    source = (root / "web" / "assets" / "optimization_engine.js").read_text(encoding="utf-8")
+    html = (root / "web" / "index.html").read_text(encoding="utf-8")
+    compress_handler = source.split("    _bindCompressModal() {", 1)[1].split("// 2. OCR MODAL", 1)[0]
+    ocr_handler = source.split("    _bindOcrModal() {", 1)[1].split("// 3. REPAIR MODAL", 1)[0]
+    assert 'id="compress-error-box" role="alert" hidden' in html
+    assert "Your original PDF is still open. Retry when ready." in compress_handler
+    assert "Retry Compression →" in compress_handler
+    assert "modal.hidden = true" not in compress_handler.split("catch (err)", 1)[1].split("finally", 1)[0]
+    assert "Your original PDF is unchanged. Retry when ready." in ocr_handler
+    assert "Retry OCR →" in ocr_handler
+    assert "progressPct.textContent = 'Failed'" in ocr_handler
+    assert "if (progressBar) progressBar.style.width = '0%'" not in ocr_handler.split("finally", 1)[1]
+
+
+def test_studio_compress_api_exposes_missed_target_and_ui_warns_with_actual_size(tmp_path, monkeypatch):
+    source_bytes = io.BytesIO()
+    with fitz.open() as pdf:
+        pdf.new_page().insert_text((72, 72), "Original content")
+        pdf.save(source_bytes)
+
+    def controlled_compression(_fn, _source, output, **_kwargs):
+        with fitz.open() as pdf:
+            pdf.new_page().insert_text((72, 72), "Readable compressed content")
+            pdf.save(output)
+        return {
+            "original_size": len(source_bytes.getvalue()), "output_size": output.stat().st_size,
+            "saved_bytes": 0, "percent_saved": 0, "preset_used": "100kb",
+            "target_achieved": False,
+            "note": "Compressed to 1,790.0 KB; the requested target could not be reached while preserving document content.",
+        }
+
+    monkeypatch.setattr(server, "run_converter_with_timeout", controlled_compression)
+    response = TestClient(server.app).post(
+        "/api/studio/compress",
+        files={"file": ("large.pdf", source_bytes.getvalue(), "application/pdf")},
+        data={"preset": "100kb"},
+    )
+    assert response.status_code == 200
+    assert response.headers["x-target-achieved"] == "false"
+    assert "1,790.0 KB" in response.headers["x-compression-note"]
+    assert "X-Target-Achieved" in response.headers["access-control-expose-headers"]
+    with fitz.open(stream=response.content, filetype="pdf") as output:
+        assert output.page_count == 1
+        assert "Readable compressed content" in output[0].get_text()
+
+    js = (Path(__file__).resolve().parents[1] / "web" / "assets" / "optimization_engine.js").read_text(encoding="utf-8")
+    assert "X-Target-Achieved" in js and "X-Compression-Note" in js
+    assert "Output size: ${actualSize}." in js and "'warning'" in js
+
+
+def test_watermark_preview_uses_entered_text_and_has_an_input_listener():
+    root = Path(__file__).resolve().parents[1]
+    source = (root / "web" / "assets" / "app.js").read_text(encoding="utf-8")
+    assert "const label = operation === 'watermark'" in source
+    assert "$('#text')?.addEventListener('input', updateMarkPreview);" in source
+    assert 'class="mark-preview-page" aria-hidden="true"' in source
+    assert 'class="mark-preview-caption"' in source
+    assert "Centered diagonal watermark" in source
+    assert "Signature area at the lower right of page 1" in source
+    assert "selectedPosition.toLowerCase().replaceAll(' ', '-')" in source
+    assert ".mark-preview-mark.is-page-number.header-right" in (Path(__file__).resolve().parents[1] / "web" / "assets" / "styles.css").read_text(encoding="utf-8")
+    assert "state.operation === 'watermark' ? 'CONFIDENTIAL'" not in source
+
+
+def test_metadata_upload_prefills_existing_title_author_and_subject():
+    root = Path(__file__).resolve().parents[1]
+    source = (root / "web" / "assets" / "app.js").read_text(encoding="utf-8")
+    assert "const values = { title: doc.getTitle(), author: doc.getAuthor(), subject: doc.getSubject() };" in source
+    assert "input.dataset.userEdited !== 'true'" in source
+    assert "if (state.operation !== 'metadata' || state.files[0] !== targetFile) return;" in source
+
+
+def test_pdf_comparison_report_starts_with_an_explicit_verdict(tmp_path):
+    left = tmp_path / "left.pdf"
+    right = tmp_path / "right.pdf"
+    for path, text in ((left, "Same selectable content"), (right, "Same selectable content")):
+        pdf = fitz.open()
+        pdf.new_page().insert_text((72, 72), text)
+        pdf.save(path)
+        pdf.close()
+    source = (Path(__file__).resolve().parents[1] / "web" / "assets" / "app.js").read_text(encoding="utf-8")
+    assert "Verdict: Files are identical in selectable text — no differences found." in source
+    assert "const differences = edits.filter(edit => edit.type !== ' ');" in source
+    identical_dir = tmp_path / "out"
+    identical_dir.mkdir()
+    output = server.process("compare", [left, right], {"_original_filenames": ["left.pdf", "right.pdf"]}, identical_dir)
+    assert output.read_text(encoding="utf-8").startswith("Verdict: Files are identical in selectable text — no differences found.")
+
+    changed = tmp_path / "changed.pdf"
+    pdf = fitz.open()
+    pdf.new_page().insert_text((72, 72), "Different selectable content")
+    pdf.save(changed)
+    pdf.close()
+    diff_dir = tmp_path / "out-diff"
+    diff_dir.mkdir()
+    output = server.process("compare", [left, changed], {"_original_filenames": ["left.pdf", "changed.pdf"]}, diff_dir)
+    text = output.read_text(encoding="utf-8")
+    assert text.startswith("Verdict: ") and "changed text lines found." in text.splitlines()[0]
+
+
+def test_edit_pdf_suite_name_matches_tool_breadcrumbs_and_accessible_label():
+    root = Path(__file__).resolve().parents[1]
+    html = (root / "web" / "index.html").read_text(encoding="utf-8")
+    assert 'data-category="Edit" aria-label="Edit PDF tools" title="Edit PDF tools"' in html
+    assert server.OPERATIONS["flatten"]["category"] == "Edit PDF"
+
+
+def test_swagger_page_has_a_loading_state_before_external_assets_load():
+    client = TestClient(server.app)
+    response = client.get("/spec/swagger")
+    assert response.status_code == 200
+    assert 'id="swagger-ui-loading" role="status" aria-live="polite"' in response.text
+    assert "Loading interactive API documentation…" in response.text
+    assert response.headers["cache-control"] == "no-store"
+
+
+def test_academic_pdf_text_export_replaces_unsupported_math_glyphs_instead_of_aborting():
+    source = (Path(__file__).resolve().parents[1] / "web" / "assets" / "app.js").read_text(encoding="utf-8")
+    assert "unsupportedGlyphCount += 1;" in source
+    assert "return '[math/custom glyph]';" in source
+    assert "math/custom-font glyphs were replaced with" in source
+    assert "[math/custom glyph]" in source
+    assert "This PDF uses math or custom-font glyphs that basic browser text export cannot preserve accurately" not in source
+
+
+def test_html_to_pdf_route_hides_file_upload_controls_and_explains_url_only_input():
+    root = Path(__file__).resolve().parents[1]
+    source = (root / "web" / "assets" / "app.js").read_text(encoding="utf-8")
+    server_source = (root / "server.py").read_text(encoding="utf-8")
+    assert "if (uploadDropzone) uploadDropzone.hidden = op === 'html_to_pdf';" in source
+    assert "state.operation === 'html_to_pdf';" in source
+    assert "This tool does not accept PDF or document uploads." in source
+    assert '"heading": "Convert a public webpage to PDF"' in server_source
+    assert "Render a publicly reachable webpage URL into a PDF" in server_source
+
+
+def test_url_to_pdf_uses_private_temporary_chrome_profile_for_each_job(tmp_path, monkeypatch):
+    commands = []
+
+    def fake_run(command, **kwargs):
+        commands.append((command, kwargs))
+        Path(command[-2].split("=", 1)[1]).write_bytes(b"%PDF-test")
+
+    monkeypatch.setattr(converters, "find_chrome_executable", lambda: "/usr/bin/chromium")
+    monkeypatch.setattr(converters, "is_safe_url", lambda _url: (True, ""))
+    monkeypatch.setattr(converters.subprocess, "run", fake_run)
+
+    outputs = [tmp_path / "first.pdf", tmp_path / "second.pdf"]
+    for output in outputs:
+        assert converters.html_to_pdf("https://example.com/", output, is_url=True) == output
+        assert output.read_bytes().startswith(b"%PDF-")
+    inline_output = tmp_path / "inline.pdf"
+    assert converters.html_to_pdf("<h1>Controlled HTML</h1>", inline_output, is_url=False) == inline_output
+    assert inline_output.read_bytes().startswith(b"%PDF-")
+
+    profile_dirs = []
+    for command, kwargs in commands:
+        profile_flag = next(arg for arg in command if arg.startswith("--user-data-dir="))
+        profile_dir = Path(profile_flag.split("=", 1)[1])
+        profile_dirs.append(profile_dir)
+        assert Path(kwargs["env"]["HOME"]) == profile_dir
+        assert Path(kwargs["env"]["XDG_CONFIG_HOME"]) == profile_dir / "config"
+        assert Path(kwargs["env"]["XDG_CACHE_HOME"]) == profile_dir / "cache"
+        assert "--disable-dev-shm-usage" in command
+        assert kwargs["check"] is True
+        assert kwargs["timeout"] == 60
+        assert not profile_dir.exists()
+    assert len(set(profile_dirs)) == 3
+
+
+def test_merge_requires_two_files_in_ui_upload_api_and_worker(tmp_path):
+    root = Path(__file__).resolve().parents[1]
+    source = (root / "web" / "assets" / "app.js").read_text(encoding="utf-8")
+    assert "Select at least two PDFs to merge" in source
+    pdf = fitz.open()
+    pdf.new_page().insert_text((72, 72), "one source")
+    data = pdf.tobytes()
+    pdf.close()
+    response = TestClient(server.app).post(
+        "/api/jobs", data={"operation": "merge", "options": "{}"},
+        files=[("files", ("one.pdf", data, "application/pdf"))],
+    )
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Select at least two PDFs to merge."
+    with pytest.raises(ValueError, match="Select at least two PDFs to merge"):
+        server.process("merge", [tmp_path / "one.pdf"], {}, tmp_path / "worker-output")
+
+
 def test_admin_revenue_amounts_are_normalized_before_html_rendering():
     root = Path(__file__).resolve().parents[1]
     source = (root / "web" / "assets" / "admin.js").read_text(encoding="utf-8")
@@ -168,7 +496,7 @@ def test_admin_revenue_amounts_are_normalized_before_html_rendering():
     assert "Number.isFinite(amount) ? amount.toLocaleString(\"en-IN\") : \"0\"" in source
     assert "₹${amountLabel}" in source
     assert "(ord.amount || 0).toLocaleString" not in source
-    assert 'admin.js?v=18' in html
+    assert 'admin.js?v=22' in html
     assert '.analytics-section > .chart-card { min-width: 0; }' in html
     assert 'overflow-x: auto;' in html
     assert 'role="region" aria-label="14-day signup trend chart' in html
@@ -228,6 +556,22 @@ def test_seo_landing_routes_have_route_specific_headings_and_content():
     assert download != apps
 
 
+def test_signature_stamp_landing_disclaims_identity_and_certified_signing():
+    client = TestClient(server.app)
+    response = client.get("/api/seo/sign")
+    assert response.status_code == 200
+    seo = response.json()
+    assert seo["heading"] == "Add a visual signature stamp"
+    assert "does not verify the signer’s identity" in seo["intro"]
+    assert all("certificate-backed signature workflows" not in step for step in seo["how_to"])
+    assert "Add a typed visual signature mark" in server.OPERATIONS["sign"]["description"]
+    assert "certified or cryptographic signature" in server.OPERATIONS["sign"]["description"]
+    page = client.get("/sign-pdf")
+    assert page.status_code == 200
+    assert "Add a visual signature stamp" in page.text
+    assert "Add a Visual Signature Stamp to a PDF" in page.text
+
+
 def test_legal_developer_and_password_reset_routes_render_page_headings():
     client = TestClient(server.app)
     privacy = client.get("/privacy").text
@@ -252,9 +596,29 @@ def test_cloud_import_entry_points_share_one_dialog():
     assert response.text.count('id="cloud-modal"') == 1
     assert response.text.count('id="cloud-url"') == 1
     assert response.text.count('id="cloud-submit-btn"') == 1
+    assert 'id="cloud-drop-btn">Import from a cloud link</button>' in response.text
     app_js = (Path(__file__).resolve().parents[1] / "web" / "assets" / "app.js").read_text(encoding="utf-8")
     assert "if ($('#topbar-cloud-btn')) $('#topbar-cloud-btn').onclick = openCloudModal" in app_js
-    assert "if ($('#cloud-drop-btn')) $('#cloud-drop-btn').onclick = openCloudModal" in app_js
+    cloud_drop_handler = app_js.split("if ($('#cloud-drop-btn')) $('#cloud-drop-btn').onclick = event => {", 1)[1].split("};", 1)[0]
+    assert "event.stopPropagation()" in cloud_drop_handler
+    assert "openCloudModal(event)" in cloud_drop_handler
+
+
+def test_studio_worker_uses_intrinsic_pdf_page_rotation():
+    app_js = (Path(__file__).resolve().parents[1] / "web" / "assets" / "app.js").read_text(encoding="utf-8")
+    assert "renderPage(target, scale, outputScale, basePage.rotate, 15000, priority)" in app_js
+
+
+def test_studio_offscreen_worker_renders_embedded_fonts_as_glyph_paths():
+    root = Path(__file__).resolve().parents[1]
+    worker = (root / "web/assets/studio_render_worker.js").read_text(encoding="utf-8")
+    runtime = (root / "web/assets/pdf_runtime.js").read_text(encoding="utf-8")
+    shell = (root / "web/assets/service-worker.js").read_text(encoding="utf-8")
+    assert "disableFontFace: true" in worker
+    assert "context.getImageData(0, 0, width, height)" in worker
+    assert "Studio worker returned a blank page" in worker
+    assert "studio_render_worker.js?v=6" in runtime
+    assert "studio_render_worker.js?v=6" in shell
 
 
 def test_processing_mode_uses_one_browser_label_and_states_its_active_mode():
@@ -262,13 +626,13 @@ def test_processing_mode_uses_one_browser_label_and_states_its_active_mode():
     assert response.status_code == 200
     assert 'id="privacy-mode-label">Use browser processing</span>' in response.text
     assert 'aria-label="Use browser processing for the current tool"' in response.text
-    assert '<strong>Browser processing</strong>' in response.text
-    assert 'aria-label="Prefer browser processing for supported tools"' in response.text
+    assert '<strong>Use browser processing</strong>' in response.text
+    assert 'aria-label="Use browser processing for supported tools"' in response.text
     app_js = (Path(__file__).resolve().parents[1] / "web" / "assets" / "app.js").read_text(encoding="utf-8")
     assert "Browser processing is on for " in app_js
     assert "Browser processing is off for " in app_js
     assert "uploads files for temporary server processing." in app_js
-    assert "Prefer browser processing for supported tools" in app_js
+    assert "Use browser processing for supported tools" in app_js
     assert "Server Mode" not in response.text and "Local Processing" not in response.text
 
 
@@ -305,11 +669,48 @@ def test_authenticated_settings_guest_controls_are_removed_and_restorable():
 
 def test_scan_to_pdf_copy_matches_automatic_enhancement_and_page_size_options():
     description = server.OPERATIONS["scan_pdf"]["description"]
-    assert "A4, US Letter, or original photo size at 200 DPI" in description
-    assert "Automatic contrast and sharpness enhancement is applied" in description
+    assert "A4, US Letter, or original-size (200 DPI) PDFs" in description
+    assert "Server processing applies automatic contrast and sharpness enhancement" in description
+    assert "browser processing stays on this device and skips enhancement" in description
     assert "optional contrast" not in description.lower()
+    page_copy = server.SEO_CATALOG["scan_pdf"]
+    assert any(
+        "Browser processing keeps the images on this device and skips enhancement" in answer
+        for _question, answer in page_copy["faqs"]
+    )
+    assert any("browser mode stays local without enhancement" in step for step in page_copy["how_to"])
     app_js = (Path(__file__).resolve().parents[1] / "web" / "assets" / "app.js").read_text(encoding="utf-8")
     assert "value: 'a4'" in app_js and "value: 'letter'" in app_js and "value: 'original'" in app_js
+
+
+def test_scan_to_pdf_original_size_converts_pixels_to_200_dpi_points(tmp_path):
+    source = tmp_path / "large-landscape-scan.png"
+    output = tmp_path / "large-landscape-scan.pdf"
+    Image.new("RGB", (2400, 1800), "white").save(source)
+
+    converters.scan_to_pdf([source], output, enhance=False, page_size="original")
+
+    with fitz.open(output) as document:
+        assert document.page_count == 1
+        page = document[0]
+        assert page.rect.width == pytest.approx(864.0, abs=0.1)
+        assert page.rect.height == pytest.approx(648.0, abs=0.1)
+        image = page.get_images(full=True)[0]
+        assert image[2:4] == (2400, 1800)
+
+
+def test_public_contact_refund_and_status_routes_keep_their_information_page():
+    app_js = (Path(__file__).resolve().parents[1] / "web" / "assets" / "app.js").read_text(encoding="utf-8")
+    assert "function showPublicInfoLanding()" in app_js
+    assert "if ($('#view-tool-desk-directory')) $('#view-tool-desk-directory').hidden = true;" in app_js
+    assert "if (seoContent) seoContent.style.display = '';" in app_js
+    assert "if (routeTitle) document.title = routeTitle;" in app_js
+    assert "['contact', 'refund', 'status'].includes(pathSlug)" in app_js
+
+
+def test_html_to_pdf_explains_private_network_url_rejection(tmp_path):
+    with pytest.raises(ValueError, match=r"This address is not allowed \(private or internal network\)"):
+        converters.html_to_pdf("http://127.0.0.1:8000/admin", tmp_path / "blocked.pdf", is_url=True)
 
 
 def test_jpg_to_pdf_and_scan_to_pdf_show_real_completion_progress():
@@ -323,6 +724,11 @@ def test_jpg_to_pdf_and_scan_to_pdf_show_real_completion_progress():
 
 def test_ai_chat_citation_renderers_deduplicate_page_numbers():
     app_js = (Path(__file__).resolve().parents[1] / "web" / "assets" / "app.js").read_text(encoding="utf-8")
+    assert "const renderedCitationPages = new Set()" in app_js
+    assert "function aiPageCitationRangeTag(start, end)" in app_js
+    assert "const citationBody = String.raw`\\d+(?:\\s*[-–]\\s*\\d+)?" in app_js
+    assert "const citationRun = new RegExp" in app_js
+    assert "aiPageCitationRangeTag(start, end)" in app_js
     assert "const uniqueCitations = uniqueAiCitationPages(data.citations)" in app_js
     assert "uniqueCitations.map(aiPageCitationTag).join('')" in app_js
     assert "responseCitations = uniqueAiCitationPages(payload.citations)" in app_js
@@ -439,6 +845,56 @@ def test_overlay_operations_return_terminal_timeout_instead_of_hanging_job(tmp_p
     with pytest.raises(TimeoutError, match="processing timed out"):
         server.process(operation, [source], options, tmp_path)
     assert not (tmp_path / f"slow-{operation}_{operation}.pdf").exists()
+
+
+def test_pdf_to_word_hard_timeout_kills_worker_and_removes_partial_output(tmp_path):
+    source = tmp_path / "slow-pdf-to-word.pdf"
+    with fitz.open() as document:
+        document.new_page().insert_text((72, 72), "Worker timeout source")
+        document.save(source)
+    output = tmp_path / "slow-pdf-to-word.docx"
+
+    with pytest.raises(TimeoutError, match="PDF to Word processing timed out"):
+        server._run_pdf_to_word_worker_with_timeout(
+            source,
+            output,
+            timeout_seconds=0.1,
+            worker_target=_sleeping_pdf_to_word_worker,
+        )
+
+    assert not output.exists()
+    assert server._pdf_to_word_timeout_seconds(source) == server.PDF_TO_WORD_TIMEOUT_MIN_SECONDS
+
+
+def test_pdf_to_word_timeout_scales_by_page_count_and_has_a_hard_cap(tmp_path):
+    source = tmp_path / "long-pdf-to-word.pdf"
+    with fitz.open() as document:
+        for _ in range(69):
+            document.new_page()
+        document.save(source)
+    assert server._pdf_to_word_timeout_seconds(source) == 138
+
+    monkeypatch_source = tmp_path / "large-pdf-to-word.pdf"
+    with fitz.open() as document:
+        for _ in range(400):
+            document.new_page()
+        document.save(monkeypatch_source)
+    assert server._pdf_to_word_timeout_seconds(monkeypatch_source) == server.PDF_TO_WORD_TIMEOUT_MAX_SECONDS
+
+
+def test_pdf_to_word_server_operation_runs_in_bounded_child_and_preserves_page_text(tmp_path):
+    source = tmp_path / "server-pdf-to-word.pdf"
+    with fitz.open() as document:
+        for page_number in range(1, 4):
+            document.new_page().insert_text((72, 72), f"PAPERPLANE_PAGE_{page_number}")
+        document.save(source)
+
+    output = server.process("pdf_to_word", [source], {}, tmp_path)
+    converted = converters.docx.Document(str(output))
+    text = "\n".join(paragraph.text for paragraph in converted.paragraphs)
+
+    assert output.suffix == ".docx"
+    assert [f"PAPERPLANE_PAGE_{page_number}" in text for page_number in range(1, 4)] == [True, True, True]
 
 
 def test_image_watermark_returns_terminal_timeout_instead_of_hanging_job(tmp_path, monkeypatch):
@@ -737,6 +1193,22 @@ def test_executive_brief_checks_currency_per_amount_and_drops_unsupported_absenc
     assert "No further deadlines are identified." in summary
 
 
+def test_executive_brief_restores_explicit_source_currency_when_provider_marks_it_unspecified(tmp_path, monkeypatch):
+    source = tmp_path / "inr-budget.pdf"
+    with fitz.open() as pdf:
+        pdf.new_page().insert_text((72, 72), "Budget cap: INR 900,000. No spending is authorized.")
+        pdf.save(source)
+
+    monkeypatch.setattr(
+        ai_engine, "call_llm",
+        lambda *_args, **_kwargs: "### Executive Summary\\nThe budget is 900,000 (currency unspecified). No spending is authorized. [Page 1]",
+    )
+    summary = ai_engine.summarize_pdf(source)
+    assert "INR 900,000" in summary
+    assert "currency unspecified" not in summary
+    assert "No spending is authorized." in summary
+
+
 def test_false_author_claim_is_corrected_when_metadata_and_text_have_no_author(tmp_path):
     source = tmp_path / "unattributed-report.pdf"
     with fitz.open() as pdf:
@@ -928,7 +1400,8 @@ def test_app_job_idempotency_replays_guest_job_and_rejects_other_scope(tmp_path,
         return target.post(
             "/api/jobs", headers={"Idempotency-Key": request_key},
             data={"operation": "merge", "options": "{}"},
-            files=[("files", ("input.pdf", pdf_bytes, "application/pdf"))],
+            files=[("files", ("input-a.pdf", pdf_bytes, "application/pdf")),
+                   ("files", ("input-b.pdf", pdf_bytes, "application/pdf"))],
         )
 
     first = submit(client, key)
@@ -983,6 +1456,43 @@ def test_pdf_to_markdown_uses_original_upload_name_and_keeps_body_text_out_of_he
     assert "random-job-id" not in markdown
     assert "## Report body sentence" not in markdown
     assert "## Findings" in markdown
+
+
+def test_pdf_to_markdown_omits_internal_uuid_filename_heading_when_metadata_is_empty(tmp_path):
+    source = tmp_path / "input.pdf"
+    with fitz.open() as pdf:
+        page = pdf.new_page()
+        page.insert_text((72, 72), "A readable source paragraph.", fontsize=12)
+        pdf.set_metadata({"title": ""})
+        pdf.save(source)
+
+    internal_name = "a5e7074e4bb844cdb8a39a50783e06b5_browser-download-1706.03762v7.pdf"
+    output = tmp_path / "without-internal-heading.md"
+    converters.pdf_to_markdown(source, output, document_name=internal_name)
+    markdown = output.read_text(encoding="utf-8")
+    assert not re.search(r"^#\s+[^\n]*a5e7074e4bb844cdb8a39a50783e06b5", markdown, re.I | re.M)
+    assert "A readable source paragraph." in markdown
+
+    named_output = tmp_path / "with-readable-heading.md"
+    converters.pdf_to_markdown(source, named_output, document_name="Annual Report.pdf")
+    assert named_output.read_text(encoding="utf-8").startswith("# Annual Report\n")
+
+
+def test_dropzone_upload_limit_hint_wraps_inside_the_dropzone():
+    css = (Path(__file__).resolve().parents[1] / "web" / "assets" / "styles.css").read_text(encoding="utf-8")
+    dropzone_small = css.split(".dropzone small {", 1)[1].split("}", 1)[0]
+    assert "display: block" in dropzone_small
+    assert "width: 100%" in dropzone_small
+    assert "max-width: 58rem" in dropzone_small
+    assert "overflow-wrap: anywhere" in dropzone_small
+
+
+def test_tool_desk_ai_intelligence_link_has_mobile_sized_hit_target():
+    css = (Path(__file__).resolve().parents[1] / "web" / "assets" / "styles.css").read_text(encoding="utf-8")
+    link_rule = css.split(".tool-desk-ai-workspace-note a {", 1)[1].split("}", 1)[0]
+    assert "display: inline-flex" in link_rule
+    assert "align-items: center" in link_rule
+    assert "min-height: 44px" in link_rule
 
 
 def test_admin_analytics_counts_every_plan_and_uses_utc_calendar_day(tmp_path, monkeypatch):
@@ -1051,6 +1561,50 @@ def test_smart_metadata_skips_attribution_and_uses_prominent_title(tmp_path, mon
     monkeypatch.setattr(ai_engine, "_extract_metadata_with_agentrouter", lambda *_args: None)
     metadata = ai_engine.extract_metadata_entities(source, "general")
     assert metadata["general_data"]["title"] == "Attention Is All You Need"
+
+
+def test_smart_metadata_retries_transient_502_with_bounded_provider_budget(monkeypatch):
+    attempts = []
+    valid_payload = {
+        "choices": [{"message": {"content": json.dumps({
+            "general_data": {
+                "title": "Machine Learning Notes",
+                "document_date": "3.3.1",
+                "detected_topics": ["3.3.1 Fragments", "Machine Learning"],
+                "key_entities": [],
+            },
+            "warnings": [],
+            "source_pages": [1],
+            "contact": {"emails": [], "phones": []},
+        })}}]
+    }
+
+    def provider_response(request, timeout):
+        attempts.append((request, timeout))
+        if len(attempts) == 1:
+            raise ai_engine.urllib.error.HTTPError(
+                request.full_url, 502, "synthetic upstream failure", {}, io.BytesIO(b"temporary")
+            )
+        return io.BytesIO(json.dumps(valid_payload).encode("utf-8"))
+
+    monkeypatch.setattr(ai_engine, "_runtime_ai_config", lambda: {
+        "provider": "bluesminds", "api_key": "synthetic", "base_url": "https://provider.example/v1",
+        "model": "synthetic-model",
+    })
+    monkeypatch.setattr(ai_engine, "_current_agentrouter_api_key", lambda: "synthetic")
+    monkeypatch.setattr(ai_engine, "_open_ai_request", provider_response)
+    monkeypatch.setattr(ai_engine, "_record_ai_provider_status", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(ai_engine.time, "sleep", lambda _seconds: None)
+
+    result = ai_engine._extract_metadata_with_agentrouter(
+        "Machine Learning Notes\n3.3.1 Machine Learning", "general", 1
+    )
+
+    assert len(attempts) == 2
+    assert all(timeout > 0 for _request, timeout in attempts)
+    assert result["general_data"]["document_date"] is None
+    assert result["general_data"]["detected_topics"] == ["Machine Learning"]
+    assert any("date" in warning.lower() for warning in result["warnings"])
 
 
 def test_compression_missed_target_warning_is_persisted(tmp_path, monkeypatch):
@@ -1134,13 +1688,13 @@ def test_seo_and_navigation_copy_matches_pdf_tool_capabilities():
     assert response.status_code == 200
     selected_pages_faq = next(answer for question, answer in response.json()["faqs"]
                               if question == "Can I convert only selected PDF pages?")
-    assert "currently exports every page" in selected_pages_faq
+    assert "Yes. Enter page numbers or ranges" in selected_pages_faq
     html = client.get("/").text
     assert 'href="/history">Temporary results</a>' in html
     assert 'class="theme-choice-card active" id="theme-light-btn"' in html
     assert 'class="theme-choice-card" id="theme-dark-btn"' in html
     faq = client.get("/faq").text
-    assert faq.count("<details>") == 4
+    assert faq.count("<details>") == 7
     history = client.get("/history").text
     assert "Temporary results — no saved history" in history
     assert "does not keep a job or download history list" in history
@@ -1321,6 +1875,27 @@ def test_studio_toasts_avoid_document_overlap_and_announce_accessibly():
     assert "never cover a visible PDF or the" in toast
 
 
+def test_phone_tool_toasts_stay_above_fixed_run_action_and_bottom_navigation():
+    root = Path(__file__).resolve().parents[1]
+    styles = (root / "web" / "assets" / "styles.css").read_text(encoding="utf-8")
+    mobile_rule = styles.split("left: 12px;\n    right: 12px;", 1)[1].split("}", 1)[0]
+    forced_rule = styles.split(".toast-notice { top: auto !important;", 1)[1].split("}", 1)[0]
+    assert "top: auto;" in mobile_rule
+    assert "bottom: calc(168px + env(safe-area-inset-bottom, 0px));" in mobile_rule
+    assert "bottom: calc(168px + env(safe-area-inset-bottom, 0px)) !important;" in forced_rule
+
+
+def test_studio_preserves_generated_blank_pdf_before_pdfjs_can_detach_buffer():
+    root = Path(__file__).resolve().parents[1]
+    app_js = (root / "web" / "assets" / "app.js").read_text(encoding="utf-8")
+    loader = app_js.split("async function loadDocumentIntoStudio(", 1)[1].split("function syncStudioZoomSelect", 1)[0]
+    preserved_source = loader.index("const srcFile = file instanceof Blob || file instanceof File")
+    pdfjs_load = loader.index("pdfjsLib.getDocument(loadOptions).promise")
+    assert preserved_source < pdfjs_load
+    assert "new File([arrayBuffer.slice(0)]" in loader
+    assert "const loadOptions = { data: arrayBuffer, isEvalSupported: false }" in loader
+
+
 def test_compare_supports_browser_local_selectable_text_diff():
     app_js = (Path(__file__).resolve().parents[1] / "web" / "assets" / "app.js").read_text(encoding="utf-8")
     operations = app_js.split("const CLIENT_SIDE_SUPPORTED_OPERATIONS", 1)[1].split(";", 1)[0]
@@ -1331,7 +1906,7 @@ def test_compare_supports_browser_local_selectable_text_diff():
     assert "page layout, images, and scanned text are not compared" in compare
     assert "2_000_000" in app_js and "20,000 combined text lines" in app_js
     assert "workLimit = 250_000" in app_js and "if (++work > workLimit)" in app_js
-    assert "'/assets/app.js?v=154'" in (Path(__file__).resolve().parents[1] / "web" / "assets" / "service-worker.js").read_text(encoding="utf-8")
+    assert_current_app_asset_cached((Path(__file__).resolve().parents[1] / "web" / "assets" / "service-worker.js").read_text(encoding="utf-8"))
 
 
 def test_pdf_to_markdown_browser_path_discloses_its_formatting_limits():
@@ -1347,7 +1922,7 @@ def test_pdf_to_markdown_browser_path_discloses_its_formatting_limits():
     assert "Browser mode extracts selectable text and basic heading/list formatting" in app_js
     assert "up to 500 pages" in app_js and "2_000_000" in app_js and "20_000" in app_js
     assert "PDF-to-Markdown (basic)" in index_html
-    assert 'src="/assets/app.js?v=154"' in index_html
+    assert_current_app_script_reference(index_html)
 
 
 def test_scan_to_pdf_local_path_declares_enhancement_limit_and_size_safety():
@@ -1360,10 +1935,10 @@ def test_scan_to_pdf_local_path_declares_enhancement_limit_and_size_safety():
     assert "switch browser processing off to use enhanced server processing" in app_js
     assert "totalSourcePixels > 100_000_000" in app_js
     assert "pageWidth = image.naturalWidth * 72 / 200" in app_js
-    assert 'src="/assets/app.js?v=154"' in index_html
-    assert "paperplane-shell-v95" in worker
-    assert "'/assets/styles.css?v=61'" in worker
-    assert 'href="/assets/styles.css?v=61"' in index_html
+    assert_current_app_script_reference(index_html)
+    assert re.search(r"paperplane-shell-v\d+", worker)
+    assert "'/assets/styles.css?v=90'" in worker
+    assert 'href="/assets/styles.css?v=90"' in index_html
     assert "'/assets/styles.css?v=51'" not in worker
 
 
@@ -1394,11 +1969,11 @@ def test_grayscale_pdf_supports_bounded_browser_local_rendering_and_preserves_gr
     assert "32_000_000" in grayscale and "64 * 1024 * 1024" in grayscale
     assert "Unlock it before converting to grayscale" in grayscale
     assert "grayscale_pages" in worker and "result.embedPng(files[index])" in worker
-    assert "local_pdf_worker.js?v=26" in runtime
+    assert "local_pdf_worker.js?v=29" in runtime
     assert "Grayscale PDF" in index_html and "searchable text" in index_html
-    assert 'src="/assets/app.js?v=154"' in index_html
-    assert "paperplane-shell-v95" in service_worker
-    assert "'/assets/local_pdf_worker.js?v=26'" in service_worker
+    assert_current_app_script_reference(index_html)
+    assert re.search(r"paperplane-shell-v\d+", service_worker)
+    assert "'/assets/local_pdf_worker.js?v=29'" in service_worker
     assert "menuBtn.onclick = () => sidebar?.classList.contains('mobile-open')" in app_js
 
 
@@ -1458,6 +2033,34 @@ def test_browser_photo_resize_uses_contain_fit_for_two_dimensions():
     assert "centered on a white canvas" in app_js
 
 
+def test_photo_resize_rejects_missing_dimensions_before_processing_or_fallback():
+    root = Path(__file__).resolve().parents[1]
+    app_js = (root / "web/assets/app.js").read_text(encoding="utf-8")
+    converter = (root / "converters.py").read_text(encoding="utf-8")
+    assert "if (state.operation === 'photo_resize')" in app_js
+    assert "Enter a width, height, or scale percentage." in app_js
+    assert "def resize_photo(" in converter
+    resize_photo = converter.split("def resize_photo(", 1)[1].split("def merge_photos(", 1)[0]
+    assert "raise ValueError(\"Enter a width, height, or scale percentage.\")" in resize_photo
+
+
+def test_photo_resize_converter_rejects_empty_target(tmp_path):
+    source = tmp_path / "source.jpg"
+    Image.new("RGB", (640, 480), (12, 80, 160)).save(source)
+    with pytest.raises(ValueError, match="Enter a width, height, or scale percentage"):
+        converters.resize_photo(source, tmp_path / "output.jpg")
+    assert not (tmp_path / "output.jpg").exists()
+
+
+def test_split_range_placeholder_stays_valid_for_short_documents():
+    app_js = (Path(__file__).resolve().parents[1] / "web/assets/app.js").read_text(encoding="utf-8")
+    assert "const rangeExample = pageCount >= 10" in app_js
+    assert "? '1-3, 5, 8-10'" in app_js
+    assert ": pageCount >= 5" in app_js
+    assert "? '1-3, 5'" in app_js
+    assert "placeholder=\"e.g. ${rangeExample}\"" in app_js
+
+
 def test_grayscale_ui_discloses_rasterization_and_links_to_ocr():
     app_js = (Path(__file__).resolve().parents[1] / "web" / "assets" / "app.js").read_text(encoding="utf-8")
     assert "Colored pages are rendered as images" in app_js
@@ -1494,6 +2097,50 @@ def test_public_plan_names_match_billing_catalog_across_pricing_and_account_view
     assert "Exam & 24h Pass</h4>" not in html
 
 
+def test_exam_resizer_preset_labels_fit_mobile_and_keep_dimension_guidance():
+    app_js = Path("web/assets/app.js").read_text(encoding="utf-8")
+    presets = app_js.split("} else if (state.operation === 'photo_resizer') {", 1)[1].split("} else if (state.operation === 'photo_compress') {", 1)[0]
+    assert "SSC Photo 20-50KB" in presets
+    assert "IBPS Sign 10-20KB" in presets
+    assert "350 × 450" in presets and "140 × 60" in presets
+    assert "50 KB = 50,000 bytes" in presets
+    assert "maxKb * 1000" in app_js
+    assert "minKb * 1024" in app_js
+    assert "output_size_label || formatBytes(job.output_size)" in app_js
+    assert "blob.size.toLocaleString()} bytes" in app_js
+    assert "exam-preset-select" in app_js and "min-height: 48px" in (Path("web/assets/styles.css").read_text(encoding="utf-8"))
+    assert "3.5×4.5 cm · 20–50 KB" not in presets
+
+
+def test_plan_names_are_consistent_in_upload_quota_guidance():
+    app_js = Path("web/assets/app.js").read_text(encoding="utf-8")
+    assert "files (Free / Student & Educator / Exam Pass)" in app_js
+    assert "files (All-In-One Pro & Developer)" in app_js
+    assert "Free, Student & Educator, and Exam Pass" in app_js
+    assert "Free/Student Pro/Exam Pass" not in app_js
+    assert "Free, Student Pro, and Exam Pass" not in app_js
+    assert "All-In-One Pro & Developer" in app_js
+    index_html = Path("web/index.html").read_text(encoding="utf-8")
+    assert "ALL-IN-ONE PRO &amp; DEVELOPER" in index_html
+    assert "₹399/year" not in index_html
+    assert "Cyber Café" not in index_html
+    assert "Full Pro/Developer/All-In-One" not in app_js
+    assert "Full Pro, Developer, and All-In-One plans" not in app_js
+
+
+def test_daily_quota_copy_defines_server_operation_and_batch_counting():
+    root = Path(__file__).resolve().parents[1]
+    html = (root / "web/index.html").read_text(encoding="utf-8")
+    app_js = (root / "web/assets/app.js").read_text(encoding="utf-8")
+    assert "server operations per day:</strong> One accepted server tool, AI, or Studio action counts once" in html
+    assert "AI Chat questions are limited to %%AI_CHAT_CHARS%% characters" in html
+    assert "AI document tools accept PDFs up to %%AI_PAGES%% pages" in html
+    assert "a multi-file batch counts once" in html
+    assert "Browser-local processing and requests rejected before acceptance do not count" in html
+    assert "A queued PDF/photo job still counts if processing later fails" in app_js
+    assert "failed AI or Studio requests refund their reservation" in app_js
+
+
 def test_ai_workspace_and_quota_copy_avoid_outdated_storage_and_limit_claims():
     client = TestClient(server.app)
     ai_html = client.get("/ai-intelligence").text
@@ -1502,11 +2149,13 @@ def test_ai_workspace_and_quota_copy_avoid_outdated_storage_and_limit_claims():
     assert "Unlimited · 500 MB · 100 files" not in index_html
     assert 'id="settings-quota-description"' in index_html
     limits = server.plan_limits_payload()
-    assert f"files up to {limits['free_max_file_size_mb']} MB each" in index_html
-    assert f"files up to {limits['pro_max_file_size_mb']} MB each" in index_html
+    assert f"upload files up to {limits['guest_max_file_size_mb']} MB each" in index_html
+    assert f"no plan-specific per-file cap within the {limits['free_max_file_size_mb']} MB service maximum" in index_html
+    assert f"limited to {limits['exam_pass_max_file_size_mb']} MB per file" in index_html
+    assert f"within the {limits['pro_max_file_size_mb']} MB service maximum" in index_html
     app_js = Path("web/assets/app.js").read_text(encoding="utf-8")
     assert "No daily operation cap" in app_js
-    assert "${state.planLimits.free_operations_per_day} server operations per day" in app_js
+    assert "${state.planLimits.free_operations_per_day} accepted server operations per day. AI Chat questions are limited to ${state.planLimits.ai_chat_question_max_chars} characters" in app_js
 
 
 def test_public_api_spec_links_resolve_without_developer_page_loop():
@@ -1550,8 +2199,9 @@ def test_ai_and_apps_workflows_explain_how_to_use_them():
     html = client.get("/").text
     assert 'How AI Intelligence works' in html
     assert 'Run OCR first when a scanned PDF has no searchable text.' in html
-    assert 'How the apps waitlist works' in html
-    assert 'browser-based PDF tools while native desktop and mobile apps are in development' in html
+    assert 'How the native apps waitlist works' in html
+    assert 'install the web app when your browser offers the Install Web App button' in html
+    assert 'Native desktop and mobile installers are still in development' in html
 
 
 def test_mobile_settings_uses_compact_horizontal_navigation_and_single_content_scroller():
@@ -1574,7 +2224,7 @@ def test_auth_pending_keeps_sidebar_profile_space_without_flashing_identity():
 def test_browser_processing_support_copy_matches_between_sidebar_and_settings():
     response = TestClient(server.app).get("/")
     assert response.status_code == 200
-    expected = "Available for Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Scan to PDF, JPG/PNG to PDF, PDF-to-JPG, Grayscale PDF, Crop PDF, Add Text & Stamps, Sign PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Compare PDF text, PDF-to-Markdown (basic), PDF-to-Word (text-first), Page Numbers, text and image watermarks, and photo tools"
+    expected = "Available for Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Scan to PDF, JPG/PNG to PDF, PDF-to-JPG, Grayscale PDF, Crop PDF, Add Text & Stamps, Sign PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Compare PDF text, PDF-to-Markdown (basic), PDF-to-Word (text-first), Page Numbers, text and image watermarks, basic Annotate PDF text markup for exact single-block phrases (not sticky notes or rectangles), and photo tools"
     assert f'id="privacy-mode-support" class="privacy-mode-support">{expected}</small>' in response.text
     assert f'id="settings-client-privacy-support">{expected}.</small>' in response.text
 
@@ -1599,6 +2249,9 @@ def test_pdf_to_text_forms_flatten_metadata_page_numbers_and_crop_are_zero_uploa
     worker = (root / "web/assets/local_pdf_worker.js").read_text(encoding="utf-8")
     assert "if (operation === 'flatten')" in worker
     assert "form.flatten();" in worker
+    assert "page.node.Annots()" in worker
+    assert "annotation.get(annotationSubtype)?.toString() !== widgetSubtype.toString()" in worker
+    assert "cannot flatten visual PDF annotations" in worker
     assert "field.setText(value)" in worker
     assert "operation === 'metadata'" in worker and "pdf[setter]" in worker
     assert "if (operation === 'page_numbers')" in worker and "setTextRenderingMode(TextRenderingMode.FillAndOutline)" in worker
@@ -1610,14 +2263,102 @@ def test_pdf_to_text_forms_flatten_metadata_page_numbers_and_crop_are_zero_uploa
     assert "if (operation === 'metadata')" in app_js and "options[key] = value" in app_js
     assert "PDF-to-Text" in index_html
     assert all(label in index_html for label in ("Fill PDF Forms", "Flatten PDF forms", "Edit PDF Metadata", "Page Numbers", "Crop PDF"))
-    assert "local_pdf_worker.js?v=26" in (root / "web/assets/pdf_runtime.js").read_text(encoding="utf-8")
-    assert 'src="/assets/pdf_runtime.js?v=25"' in index_html
-    assert 'src="/assets/app.js?v=154"' in index_html
-    assert 'src="/assets/page_organizer.js?v=20"' in index_html
-    assert "paperplane-shell-v95" in service_worker
-    assert "'/assets/app.js?v=154'" in service_worker
-    assert "'/assets/page_organizer.js?v=20'" in service_worker
-    assert "'/assets/styles.css?v=61'" in service_worker
+    assert "local_pdf_worker.js?v=29" in (root / "web/assets/pdf_runtime.js").read_text(encoding="utf-8")
+    assert 'src="/assets/pdf_runtime.js?v=27"' in index_html
+    assert_current_app_script_reference(index_html)
+    assert 'src="/assets/page_organizer.js?v=21"' in index_html
+    assert re.search(r"paperplane-shell-v\d+", service_worker)
+    assert_current_app_asset_cached(service_worker)
+    assert "'/assets/page_organizer.js?v=21'" in service_worker
+
+
+def test_annotate_has_guarded_browser_local_text_markup_path():
+    root = Path(__file__).resolve().parents[1]
+    app_js = (root / "web/assets/app.js").read_text(encoding="utf-8")
+    worker = (root / "web/assets/local_pdf_worker.js").read_text(encoding="utf-8")
+    service_worker = (root / "web/assets/service-worker.js").read_text(encoding="utf-8")
+    supported = app_js.split("const CLIENT_SIDE_SUPPORTED_OPERATIONS", 1)[1].split(";", 1)[0]
+    assert "'annotate'" in supported
+    assert "exact phrase matches a single text block" in app_js
+    assert "phrase spans only part of a block" in app_js
+    assert "Sticky notes and rectangles require Server Processing" in app_js
+    assert "if (operation === 'annotate')" in worker
+    assert "PDFName.of('Highlight')" in worker or "Subtype: PDFName.of(subtype)" in worker
+    assert "QuadPoints" in worker and "page.node.addAnnot" in worker
+    assert "50 * 1024 * 1024" in app_js and "50000" in app_js
+    assert "'/assets/styles.css?v=90'" in service_worker
+
+
+def test_studio_more_tools_menu_escapes_scrolling_ribbon_and_bounds_to_viewport():
+    root = Path(__file__).resolve().parents[1]
+    app_js = (root / "web/assets/app.js").read_text(encoding="utf-8")
+    assert "document.body.appendChild(moreToolsMenu)" in app_js
+    assert "moreToolsMenu.style.position = 'fixed'" in app_js
+    assert "Math.min(triggerRect.left, window.innerWidth - menuRect.width - margin)" in app_js
+    assert "moreToolsMenu.style.overflowY = 'auto'" in app_js
+    assert "closeMoreToolsMenu({ restoreFocus: true })" in app_js
+
+
+def test_studio_more_tools_menu_stays_above_mobile_docks_in_landscape():
+    styles = (Path(__file__).resolve().parents[1] / "web" / "assets" / "styles.css").read_text(encoding="utf-8")
+    mobile_menu = styles.split("html.studio-active body .studio-dropdown-menu {", 1)[1].split("}", 1)[0]
+    mobile_dock = styles.split("html.studio-active body .studio-mobile-dock {", 1)[1].split("}", 1)[0]
+    assert "z-index: 1500" in mobile_menu
+    assert "z-index: 950" in mobile_dock
+
+
+def test_studio_document_loading_overlay_hides_previous_document_in_both_themes():
+    styles = (Path(__file__).resolve().parents[1] / "web" / "assets" / "styles.css").read_text(encoding="utf-8")
+    dark_overlay = styles.split(".studio-loading-overlay {", 1)[1].split("}", 1)[0]
+    light_overlay = styles.split(':root[data-paperplane-theme="light"] .studio-loading-overlay {', 1)[1].split("}", 1)[0]
+    light_text = styles.split(':root[data-paperplane-theme="light"] .studio-loading-text {', 1)[1].split("}", 1)[0]
+    assert "background: #141b1d" in dark_overlay
+    assert "backdrop-filter: none" in dark_overlay
+    assert "background: #f8faf9" in light_overlay
+    assert "color: #26373a" in light_text
+
+
+def test_translation_binary_errors_extract_nested_server_message_without_object_coercion():
+    app_js = (Path(__file__).resolve().parents[1] / "web/assets/app.js").read_text(encoding="utf-8")
+    fetch_binary = app_js.split("async function fetchBinary", 1)[1].split("async function safeFetchWithTransientRetry", 1)[0]
+    assert "typeof detail === 'string' ? detail : detail?.message" in fetch_binary
+    assert "requestError.status = response.status" in fetch_binary
+    assert "requestError.retryAfterMs" in fetch_binary
+    assert "message = data.detail || message" not in fetch_binary
+
+
+def test_tool_help_is_scoped_to_tool_routes_and_workspace_titles_are_explicit():
+    app_js = (Path(__file__).resolve().parents[1] / "web/assets/app.js").read_text(encoding="utf-8")
+    assert "seoSection.style.display = (view === 'tool-desk' || view === 'desk') ? '' : 'none'" in app_js
+    assert "ai: 'AI Document Intelligence'" in app_js
+    assert "document.title = `${workspaceTitles[view]} | Paperplane`" in app_js
+
+
+def test_native_app_waitlist_copy_does_not_conflict_with_web_app_install():
+    root = Path(__file__).resolve().parents[1]
+    index_html = (root / "web/index.html").read_text(encoding="utf-8")
+    app_js = (root / "web/assets/app.js").read_text(encoding="utf-8")
+    assert 'aria-label="Install Web App"' in index_html
+    assert "Native installers coming later" in index_html
+    assert "Join the Native Apps Waitlist" in index_html
+    assert "download: ['Apps', window.location.pathname === '/download' ? 'Downloads workspace' : 'Native Apps workspace']" in app_js
+    assert "Native Apps Waitlist" in app_js
+
+
+def test_security_redaction_has_only_one_primary_submit_button():
+    index_html = (Path(__file__).resolve().parents[1] / "web/index.html").read_text(encoding="utf-8")
+    assert 'id="btn-apply-hardened-redact-footer"' in index_html
+    assert 'id="btn-apply-hardened-redact"' not in index_html
+
+
+def test_server_result_download_and_studio_share_single_fetched_blob():
+    app_js = (Path(__file__).resolve().parents[1] / "web/assets/app.js").read_text(encoding="utf-8")
+    result_blob = app_js.split("async function getToolResultBlob", 1)[1].split("async function countPdfPagesInBlob", 1)[0]
+    assert "activeResult?.blob instanceof Blob" in result_blob
+    assert "activeResult?.blobPromise" in result_blob
+    assert "state.activeToolResult === activeResult" in result_blob
+    show_result = app_js.split("function showDownloadResult", 1)[1].split("function showResult", 1)[0]
+    assert "getToolResultBlob(downloadUrl, blob)" in show_result
 
 
 def test_pricing_grid_uses_responsive_two_column_desktop_tracks():
@@ -1636,20 +2377,20 @@ def test_offscreen_studio_worker_encodes_thumbnails_off_thread_and_keeps_fallbac
     runtime = (root / "web/assets/pdf_runtime.js").read_text(encoding="utf-8")
     service_worker = (root / "web/assets/service-worker.js").read_text(encoding="utf-8")
     assert "new OffscreenCanvas(1, 1)" in worker
-    assert "studio_render_worker.js?v=4" in runtime
-    assert "studio_render_worker.js?v=4" in service_worker
+    assert "studio_render_worker.js?v=6" in runtime
+    assert "studio_render_worker.js?v=6" in service_worker
     thumbnail_fallback = organizer.split("// A failed thumbnail request must not tear down", 1)[1].split("if (sourceDoc !== this.pdfDoc", 1)[0]
     assert ".close()" not in thumbnail_fallback
 
 
 def test_offline_shell_precaches_pdf_dependencies_for_browser_local_processing():
     worker = (Path(__file__).resolve().parents[1] / "web/assets/service-worker.js").read_text(encoding="utf-8")
-    assert "const CACHE_NAME = 'paperplane-shell-v95'" in worker
+    assert re.search(r"const CACHE_NAME = 'paperplane-shell-v\d+'", worker)
     assert all(asset in worker for asset in (
         "'/assets/pdf.min.js'",
         "'/assets/pdf.worker.min.js'",
         "'/assets/pdf-lib.min.js'",
-        "'/assets/local_pdf_worker.js?v=26'",
+        "'/assets/local_pdf_worker.js?v=29'",
     ))
 
 
@@ -1678,6 +2419,18 @@ def test_acroform_field_rendering_uses_safe_dom_text_apis():
     assert '${p.label || pageNum}' not in organizer
 
 
+def test_forms_and_security_audit_show_structured_free_tier_limit_message():
+    root = Path(__file__).resolve().parents[1]
+    source = (root / "web/assets/security_forms.js").read_text(encoding="utf-8")
+    index_html = (root / "web/index.html").read_text(encoding="utf-8")
+    assert "async function studioRequestError(response, action)" in source
+    assert "detail?.code === 'TIER_LIMIT_REACHED'" in source
+    assert "window.openUpgradeModal?.(message)" in source
+    assert "throw await studioRequestError(resp, 'Form analysis')" in source
+    assert "throw await studioRequestError(resp, 'Security inspection')" in source
+    assert "/assets/security_forms.js?v=6.2.4" in index_html
+
+
 def test_pdf_to_word_browser_path_builds_disclosed_text_first_docx():
     root = Path(__file__).resolve().parents[1]
     app_js = (root / "web/assets/app.js").read_text(encoding="utf-8")
@@ -1686,15 +2439,16 @@ def test_pdf_to_word_browser_path_builds_disclosed_text_first_docx():
     supported = app_js.split("const CLIENT_SIDE_SUPPORTED_OPERATIONS", 1)[1].split(";", 1)[0]
     word_path = app_js.split("if (state.operation === 'pdf_to_word')", 1)[1].split("if (state.operation === 'pdf_to_text')", 1)[0]
     assert "'pdf_to_word'" in supported
-    assert "const markdown = await extractPdfMarkdown(file, isCurrent, localProgress)" in word_path
+    assert "const extracted = await extractPdfMarkdown(file, isCurrent, localProgress)" in word_path
+    assert "const { markdown, unsupportedGlyphCount } = extracted;" in word_path
     assert "const blob = buildTextOnlyDocx(markdown)" in word_path
     assert "application/vnd.openxmlformats-officedocument.wordprocessingml.document" in app_js
     assert "w:pageBreakBefore" in app_js and "escapeDocxXml" in app_js
     assert "images, exact layout, and table structure are not" in app_js
     assert "Server Processing for supported table/layout reconstruction" in app_js
-    assert 'src="/assets/app.js?v=154"' in index_html
-    assert "'/assets/app.js?v=154'" in service_worker
-    assert "const CACHE_NAME = 'paperplane-shell-v95'" in service_worker
+    assert_current_app_script_reference(index_html)
+    assert_current_app_asset_cached(service_worker)
+    assert re.search(r"const CACHE_NAME = 'paperplane-shell-v\d+'", service_worker)
 
 
 def test_ai_empty_document_context_topbar_does_not_reserve_blank_height():
@@ -1705,9 +2459,9 @@ def test_ai_empty_document_context_topbar_does_not_reserve_blank_height():
     assert ".ai-studio-topbar:has(#ai-active-doc-bar[hidden])" in styles
     assert "min-height: 0 !important" in styles
     assert ".ai-engine-notice-bar" in styles
-    assert 'href="/assets/styles.css?v=61"' in index_html
-    assert "'/assets/styles.css?v=61'" in service_worker
-    assert "const CACHE_NAME = 'paperplane-shell-v95'" in service_worker
+    assert 'href="/assets/styles.css?v=90"' in index_html
+    assert "'/assets/styles.css?v=90'" in service_worker
+    assert re.search(r"const CACHE_NAME = 'paperplane-shell-v\d+'", service_worker)
 
 
 
@@ -1815,8 +2569,17 @@ def test_command_palette_escapes_operation_metadata_before_html_rendering():
     update_button = source[update_button_start:update_button_end]
     assert '${escapeHtml(toolLabel)} unavailable' in update_button
     assert update_button.count('${escapeHtml(activeToolLabel)} Now') == 2
-    assert "const CACHE_NAME = 'paperplane-shell-v95'" in (root / "web/assets/service-worker.js").read_text(encoding="utf-8")
-    assert 'src="/assets/app.js?v=154"' in (root / "web/index.html").read_text(encoding="utf-8")
+    assert re.search(r"const CACHE_NAME = 'paperplane-shell-v\d+'", (root / "web/assets/service-worker.js").read_text(encoding="utf-8"))
+    assert_current_app_script_reference((root / "web/index.html").read_text(encoding="utf-8"))
+
+
+def test_tool_catalog_category_count_uses_singular_for_one_match():
+    root = Path(__file__).resolve().parents[1]
+    source = (root / "web/assets/app.js").read_text(encoding="utf-8")
+    assert '${visibleOps.length === 1 ? \'tool\' : \'tools\'}' in source
+    assert "const categoryCountLabel = workspaceOps.length" in source
+    assert "${ops.length === 1 ? 'tool' : 'tools'}" in source
+    assert "${workspaceOps.length} in AI Intelligence" in source
 
 
 def test_studio_batch_selection_skips_redundant_toolbar_geometry_sync():
@@ -1853,9 +2616,9 @@ def test_studio_mobile_pages_position_reuses_resize_observer_geometry_cache():
     worker = (root / "web/assets/service-worker.js").read_text(encoding="utf-8")
     index_html = (root / "web/index.html").read_text(encoding="utf-8")
     assert 'name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"' in index_html
-    assert "const CACHE_NAME = 'paperplane-shell-v95'" in worker
-    assert "'/assets/app.js?v=154'" in worker
-    assert 'src="/assets/app.js?v=154"' in index_html
+    assert re.search(r"const CACHE_NAME = 'paperplane-shell-v\d+'", worker)
+    assert_current_app_asset_cached(worker)
+    assert_current_app_script_reference(index_html)
     styles = (root / "web/assets/styles.css").read_text(encoding="utf-8")
     assert "height: calc(64px + env(safe-area-inset-top, 0px)) !important;" in styles
     assert "padding-top: env(safe-area-inset-top, 0px) !important;" in styles
@@ -1900,7 +2663,9 @@ def test_studio_toast_repositions_after_toolbar_and_page_geometry_changes():
     end = source.index("\nfunction triggerConfetti()", start)
     toast = source[start:end]
     assert "Math.ceil(Math.max(toolbarBottom + 10" in toast
-    assert "new ResizeObserver(scheduleStudioToastPosition)" in toast
+    assert "new ResizeObserver(() => {" in toast
+    assert "scheduleStudioToastPosition();" in toast
+    assert "scheduleResultToastPosition();" in toast
     assert "positionObserver.observe(toolbar)" in toast
     assert "positionObserver.observe(pageSheet)" in toast
     assert "window.addEventListener('resize', scheduleStudioToastPosition)" in toast
@@ -1919,6 +2684,16 @@ def test_studio_mid_size_desktop_ribbons_scroll_instead_of_wrapping():
     assert "touch-action: pan-x" in compact_tablet
 
 
+def test_overlay_escape_stack_prefers_the_overlay_that_contains_focus():
+    root = Path(__file__).resolve().parents[1]
+    source = (root / "web/assets/app.js").read_text(encoding="utf-8")
+    start = source.index("function installOverlayEscapeStack() {")
+    end = source.index("\nfunction initFooterReveal()", start)
+    installer = source[start:end]
+    assert "containsFocus: overlay.contains(document.activeElement)" in installer
+    assert "Number(a.containsFocus) - Number(b.containsFocus)" in installer
+
+
 def test_overlay_escape_stack_avoids_document_wide_mutation_rescans():
     root = Path(__file__).resolve().parents[1]
     source = (root / "web/assets/app.js").read_text(encoding="utf-8")
@@ -1931,6 +2706,20 @@ def test_overlay_escape_stack_avoids_document_wide_mutation_rescans():
     assert "document.querySelectorAll('.modal-backdrop:not([hidden])" in source[sync_start:start]
 
 
+def test_initial_accessible_control_labels_are_scheduled_and_batched():
+    root = Path(__file__).resolve().parents[1]
+    app_js = (root / "web" / "assets" / "app.js").read_text(encoding="utf-8")
+    labels = app_js.split("function yieldToBrowser(callback", 1)[1].split("new MutationObserver", 1)[0]
+    assert "scheduleInitialControlLabels();" in labels
+    assert "requestIdleCallback(start, { timeout: 1200 })" in labels
+    assert "const deadline = performance.now() + 8" in labels
+    assert "if (index < controls.length) yieldToBrowser(processBatch)" in labels
+    assert "scheduler.postTask(callback, { priority: 'background' })" in labels
+    assert "scheduler.yield().then(callback" in labels
+    assert "window.setTimeout(callback, 0)" in labels
+    assert "addMissingControlLabels(document)" not in app_js
+
+
 def test_google_and_cashfree_sdks_are_requested_only_when_their_flows_open():
     root = Path(__file__).resolve().parents[1]
     index_html = (root / "web" / "index.html").read_text(encoding="utf-8")
@@ -1940,5 +2729,116 @@ def test_google_and_cashfree_sdks_are_requested_only_when_their_flows_open():
     assert "https://sdk.cashfree.com/js/v3/cashfree.js" not in index_html
     assert "loadExternalSdk(GOOGLE_IDENTITY_SDK_URL" in app_js
     assert "await loadExternalSdk('https://sdk.cashfree.com/js/v3/cashfree.js'" in app_js
-    assert "app.js?v=154" in index_html and "app.js?v=154" in service_worker
-    assert "paperplane-shell-v95" in service_worker
+    assert_app_cache_consistent(index_html, service_worker)
+    assert re.search(r"paperplane-shell-v\d+", service_worker)
+
+
+def test_cloud_import_modal_has_named_dialog_and_keyboard_focus_management():
+    root = Path(__file__).resolve().parents[1]
+    html = (root / "web" / "index.html").read_text(encoding="utf-8")
+    app = (root / "web" / "assets" / "app.js").read_text(encoding="utf-8")
+    assert 'role="dialog" aria-modal="true" aria-labelledby="cloud-modal-title"' in html
+    assert '<h3 id="cloud-modal-title">Cloud Document Import</h3>' in html
+    assert 'aria-label="Close Cloud Import dialog"' in html
+    assert "function closeCloudModal()" in app
+    assert "cloudModalFocusableElements()" in app
+    assert "event.key === 'Escape'" in app and "event.key !== 'Tab'" in app
+    assert "opener.focus()" in app
+    assert "if (event.target === $('#cloud-modal')) $('#cloud-modal').hidden = true" not in app
+
+
+def test_pdf_to_jpg_selected_pages_control_matches_supported_faq_and_server_behavior():
+    root = Path(__file__).resolve().parents[1]
+    app = (root / "web" / "assets" / "app.js").read_text(encoding="utf-8")
+    assert 'label for="pages">Pages to export (optional)</label>' in app
+    assert 'id="pdf-to-jpg-pages-help"' in app
+    assert "Enter page numbers or ranges" in app
+    faqs = dict(server.SEO_CATALOG["pdf_to_jpg"]["faqs"])
+    assert "Yes. Enter page numbers or ranges" in faqs["Can I convert only selected PDF pages?"]
+    assert "selected pages" in server.OPERATIONS["pdf_to_jpg"]["description"]
+
+
+def test_phone_tool_desk_hides_redundant_quick_steps():
+    root = Path(__file__).resolve().parents[1]
+    styles = (root / "web" / "assets" / "styles.css").read_text(encoding="utf-8")
+    index_html = (root / "web" / "index.html").read_text(encoding="utf-8")
+    service_worker = (root / "web" / "assets" / "service-worker.js").read_text(encoding="utf-8")
+    assert "#view-tool-desk-directory .tool-desk-quick-steps { display: none; }" in styles
+    assert "@media (max-width: 600px)" in styles
+    assert 'href="/assets/styles.css?v=90"' in index_html
+    assert "'/assets/styles.css?v=90'" in service_worker
+    assert re.search(r"paperplane-shell-v\d+", service_worker)
+
+
+def test_translation_result_explains_warnings_and_announces_review_note():
+    root = Path(__file__).resolve().parents[1]
+    app_js = (root / "web" / "assets" / "app.js").read_text(encoding="utf-8")
+    server = (root / "server.py").read_text(encoding="utf-8")
+    html = (root / "web" / "index.html").read_text(encoding="utf-8")
+    service_worker = (root / "web" / "assets" / "service-worker.js").read_text(encoding="utf-8")
+    render = app_js.split("function renderTranslationResult", 1)[1].split("function showRichAiResult", 1)[0]
+    assert "Number.parseInt(String(warningCount), 10)" in render
+    assert "formatTranslationWarningCount(warningCountValue)" in render
+    assert "count === 1 ? 'warning' : 'warnings'" in app_js
+    assert "formatTranslationWarningCount(warningCount)" in app_js
+    assert 'class="translation-review-note" role="status"' in render
+    assert "Review the translated PDF before sharing it." in render
+    assert "function formatTranslationCoveragePercent(fraction)" in app_js
+    assert "Math.floor(value * 1000 + 1e-10) / 10" in app_js
+    assert "formatTranslationCoveragePercent(fractionHeader)" in app_js
+    assert "formatTranslationCoveragePercent(blockFractionHeader)" in app_js
+    assert "translation_report.get('translated_fraction', 0):.8f" in server
+    assert "translation_report.get('translated_block_fraction', 0):.8f" in server
+    assert_app_cache_consistent(html, service_worker)
+
+
+
+
+
+def test_ai_and_native_app_views_include_user_facing_how_it_works_sections():
+    root = Path(__file__).resolve().parents[1]
+    html = (root / "web" / "index.html").read_text(encoding="utf-8")
+    ai_view = html.split('id="view-ai-studio"', 1)[1].split('id="view-legal"', 1)[0]
+    download_view = html.split('id="view-download"', 1)[1].split('id="view-legal"', 1)[0]
+    assert '<section class="ai-howto-section" aria-labelledby="ai-howto-title">' in ai_view
+    assert "How AI Intelligence works" in ai_view
+    assert "Choose a task" in ai_view and "Add a document when needed" in ai_view and "Review the response" in ai_view
+    assert "Use Paperplane in your browser" in download_view
+    assert "How the native apps waitlist works" in download_view
+
+
+def test_conversion_center_format_badges_match_their_selected_formats():
+    root = Path(__file__).resolve().parents[1]
+    html = (root / "web" / "index.html").read_text(encoding="utf-8")
+    conversion_engine = (root / "web" / "assets" / "conversion_engine.js").read_text(encoding="utf-8")
+    render_from_start = conversion_engine.index("_renderFromPdfGrid() {")
+    render_to_start = conversion_engine.index("_renderToPdfGrid() {", render_from_start)
+    from_pdf = conversion_engine[render_from_start:render_to_start]
+    assert 'conversion_engine.js?v=5.2.2' in html
+    for value, badge, label in [
+        ("png", "PNG", "PNG Images"),
+        ("webp", "WEBP", "WebP Images"),
+        ("md", "MD", "Markdown (.md)"),
+        ("txt", "TXT", "Plain Text (.txt)"),
+        ("docx", "DOC", "Word (.docx)"),
+    ]:
+        start = from_pdf.index(f'data-format="{value}"')
+        next_card = from_pdf.find('<div class="format-card"', start + 1)
+        card = from_pdf[start:next_card if next_card >= 0 else len(from_pdf)]
+        assert f'class="format-icon">{badge}</span>' in card
+        assert label in card
+
+
+def test_page_number_preview_uses_inspected_pdf_total_and_never_guesses_three():
+    root = Path(__file__).resolve().parents[1]
+    app = (root / "web" / "assets" / "app.js").read_text(encoding="utf-8")
+    styles = (root / "web" / "assets" / "styles.css").read_text(encoding="utf-8")
+    html = (root / "web" / "index.html").read_text(encoding="utf-8")
+    worker = (root / "web" / "assets" / "service-worker.js").read_text(encoding="utf-8")
+    assert "const total = pageCount || 'selected PDF';" in app
+    assert "currentPreview.dataset.pdfPageCount = String(pdf.numPages)" in app
+    assert "delete currentPreview.dataset.pdfPageCount" in app
+    assert "Page 1 of 3" not in app
+    assert "background: repeating-linear-gradient(135deg, #f4f5f6 0 12px, #20252b 12px 24px);" in styles
+    assert_app_cache_consistent(html, worker)
+

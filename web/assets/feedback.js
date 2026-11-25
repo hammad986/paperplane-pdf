@@ -50,16 +50,30 @@
     if (launcher.contains(document.activeElement)) return;
     const launcherRect = launcher.getBoundingClientRect();
     const protectedContent = document.querySelectorAll(
-      ".main-area h1, .main-area h2, .main-area h3, #file-list .file-row-card, .home-tool-title, .home-tool-desc"
+      ".main-area h1, .main-area h2, .main-area h3, #file-list .file-row-card, #run-button, #result-download-link, .main-area .result-actions, .main-area .btn-primary-action, .home-tool-title, .home-tool-desc"
     );
-    const overlaps = Array.from(protectedContent).some(element => {
+    const visibleProtectedContent = Array.from(protectedContent).filter(element => {
       const style = getComputedStyle(element);
       if (style.display === "none" || style.visibility === "hidden") return false;
       const rect = element.getBoundingClientRect();
       if (rect.width <= 0 || rect.height <= 0 || rect.bottom <= 0 || rect.top >= window.innerHeight) return false;
-      return rect.left < launcherRect.right && rect.right > launcherRect.left &&
-        rect.top < launcherRect.bottom && rect.bottom > launcherRect.top;
+      return true;
     });
+    const collidesAtOffset = offset => {
+      const top = launcherRect.top - offset;
+      const bottom = launcherRect.bottom - offset;
+      if (top < 8 || bottom > window.innerHeight - 8) return true;
+      return visibleProtectedContent.some(element => {
+        const rect = element.getBoundingClientRect();
+        return rect.left < launcherRect.right && rect.right > launcherRect.left &&
+          rect.top < bottom && rect.bottom > top;
+      });
+    };
+    let offset = 0;
+    const maxOffset = Math.max(0, launcherRect.top - 8);
+    while (collidesAtOffset(offset) && offset < maxOffset) offset = Math.min(offset + 12, maxOffset);
+    const overlaps = collidesAtOffset(offset);
+    launcher.style.setProperty("--pp-feedback-offset-y", `${overlaps ? 0 : offset}px`);
     launcher.style.visibility = overlaps ? "hidden" : "";
     launcher.style.pointerEvents = overlaps ? "none" : "";
     launcher.setAttribute("aria-hidden", overlaps ? "true" : "false");
@@ -100,8 +114,9 @@
     style.id = "pp-feedback-styles";
     style.textContent = `
       .pp-feedback-launcher {
+        --pp-feedback-offset-y: 0px;
         position: fixed;
-        bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+        bottom: calc(24px + env(safe-area-inset-bottom, 0px) + var(--pp-feedback-offset-y));
         right: calc(18px + env(safe-area-inset-right, 0px));
         z-index: 45;
         display: flex;
@@ -328,7 +343,7 @@
         .pp-feedback-btn > span:last-child { display: none; }
       }
       @media (max-width: 1023px) {
-        .pp-feedback-launcher { bottom: calc(132px + env(safe-area-inset-bottom, 0px)); }
+        .pp-feedback-launcher { bottom: calc(132px + env(safe-area-inset-bottom, 0px) + var(--pp-feedback-offset-y)); }
       }
       @media (max-width: 480px) {
         .pp-feedback-launcher { right: calc(10px + env(safe-area-inset-right, 0px)); }

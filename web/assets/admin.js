@@ -4,6 +4,17 @@
 // Strict Content Security Policy (CSP) compliant — No inline event handlers
 
 (function () {
+  const planDisplayNames = {
+    free: "Free",
+    exam_pass: "Exam Pass",
+    student_pro: "Student & Educator",
+    pro: "Pro",
+    developer: "Developer",
+    dev: "Developer (legacy)",
+    cyber_cafe: "All-In-One Pro & Developer",
+  };
+  const planDisplayName = tier => planDisplayNames[tier] || String(tier || "unknown").replaceAll("_", " ");
+
   const urlParams = new URLSearchParams(window.location.search);
   if (urlParams.has("session") || urlParams.has("key")) {
     urlParams.delete("session");
@@ -515,13 +526,20 @@
   // --- Visual Analytics: Tier Meter ---
   function renderTierMeter(m) {
     const total = Number(m.total_users) || 0;
-    const knownNames = {
-      free: "Free Accounts", exam_pass: "Exam Pass", student_pro: "Student & Educator",
-      pro: "Pro Subscribers", developer: "Developer Users", dev: "Developer Users (legacy)",
-      cyber_cafe: "Cyber Cafe",
+    const analyticsPlanNames = {
+      ...planDisplayNames,
+      free: "Free Accounts",
+      pro: "Pro Subscribers",
+      developer: "Developer Users",
+      dev: "Developer Users (legacy)",
     };
     const colors = ["#6b8f71", "#d5a84b", "#5996a8", "#8a75c7", "#d17c61", "#9aabb1", "#aa78a1"];
-    const counts = m.tier_breakdown && typeof m.tier_breakdown === "object" ? m.tier_breakdown : {};
+    const counts = m.tier_breakdown && typeof m.tier_breakdown === "object" ? { ...m.tier_breakdown } : {};
+    // Keep the chart's categories stable when a plan currently has no users.
+    // Otherwise a missing SQL GROUP BY row hides that plan from the legend.
+    ["free", "exam_pass", "pro", "student_pro", "developer", "cyber_cafe"].forEach(tier => {
+      if (!Object.hasOwn(counts, tier)) counts[tier] = 0;
+    });
     const tiers = Object.entries(counts).sort(([a], [b]) => a.localeCompare(b));
     const meter = document.getElementById("meter-plan-segments");
     const rows = document.getElementById("plan-breakdown-rows");
@@ -531,7 +549,7 @@
     tiers.forEach(([tier, rawCount], index) => {
       const count = Number(rawCount) || 0;
       const percent = total ? Math.round((count / total) * 100) : 0;
-      const label = knownNames[tier] || `${tier.replaceAll("_", " ")} (other)`;
+      const label = analyticsPlanNames[tier] || `${planDisplayName(tier)} (other)`;
       const color = colors[index % colors.length];
       if (count > 0) {
         const segment = document.createElement("div");
@@ -540,17 +558,19 @@
         segment.title = `${label}: ${count} (${percent}%)`;
         meter.append(segment);
       }
-      const row = document.createElement("div");
-      row.className = "legend-item";
-      const name = document.createElement("span");
+      const tableRow = document.createElement("tr");
+      const name = document.createElement("th");
+      name.scope = "row";
       const dot = document.createElement("span");
       dot.className = "legend-dot";
       dot.style.backgroundColor = color;
       name.append(dot, document.createTextNode(label));
-      const value = document.createElement("strong");
-      value.textContent = `${count} (${percent}%)`;
-      row.append(name, value);
-      rows.append(row);
+      const accountCount = document.createElement("td");
+      accountCount.textContent = String(count);
+      const share = document.createElement("td");
+      share.textContent = `${percent}%`;
+      tableRow.append(name, accountCount, share);
+      rows.append(tableRow);
     });
     setElText("tier-ratio-label", `${total} total accounts`);
   }
@@ -666,7 +686,7 @@
 
       return `<tr>
         <td><strong>${escapeHtml(u.email)}</strong></td>
-        <td><span class="badge ${badgeClass}">${escapeHtml(tier.toUpperCase())}</span></td>
+        <td><span class="badge ${badgeClass}">${escapeHtml(planDisplayName(tier))}</span></td>
         <td>${created}</td>
         <td>${lastActive}</td>
         <td style="color: var(--text-muted);">${escapeHtml(status)}</td>
@@ -781,14 +801,17 @@
       const dateStr = ord.created_at ? new Date(ord.created_at * 1000).toLocaleString() : "—";
       const amount = Number(ord.amount);
       const amountLabel = Number.isFinite(amount) ? amount.toLocaleString("en-IN") : "0";
+      const environment = String(ord.gateway_environment || "UNKNOWN").toUpperCase();
+      const isProduction = environment === "PROD";
+      const statusColor = isProduction ? "var(--green)" : "var(--amber, #b7791f)";
       return `<tr>
         <td><strong>${escapeHtml(ord.email || ord.customer_id)}</strong></td>
-        <td><span class="badge badge-pro">${escapeHtml((ord.tier || "PRO").toUpperCase())}</span></td>
+        <td><span class="badge badge-pro">${escapeHtml(planDisplayName((ord.tier || "pro").toLowerCase()))}</span></td>
         <td><code style="color: var(--text-muted);">${escapeHtml(ord.order_id || ord.customer_id)}</code></td>
-        <td><strong style="color: var(--green);">₹${amountLabel}</strong></td>
-        <td>${escapeHtml(ord.gateway_environment || "UNKNOWN")}</td>
+        <td><strong style="color: ${statusColor};">₹${amountLabel}</strong></td>
+        <td><span style="color: ${statusColor}; font-weight: 600;">${escapeHtml(environment)}</span></td>
         <td>${dateStr}</td>
-        <td><span style="color: var(--green); font-weight: 600;">● ${escapeHtml(ord.status || "Paid")}</span></td>
+        <td><span style="color: ${statusColor}; font-weight: 600;">● ${escapeHtml(ord.status || (isProduction ? "Paid" : "Unclassified paid"))}</span></td>
       </tr>`;
     }).join("");
   }

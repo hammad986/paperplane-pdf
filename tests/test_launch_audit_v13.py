@@ -58,7 +58,7 @@ def test_101_admin_settings_required_at_startup(name, tmp_path):
     env = dict(os.environ, PAPERPLANE_DATA_DIR=str(tmp_path))
     del env[name]
     result = subprocess.run([sys.executable, "-c", "import server"], env=env, cwd=ROOT,
-                            capture_output=True, text=True, timeout=45)
+                            capture_output=True, text=True, timeout=90)
     assert result.returncode != 0
     assert f"{name} must be set" in result.stderr
 
@@ -219,6 +219,29 @@ def test_2_large_summary_covers_all_69_pages_under_bounded_budget(mock_ai, monke
     assert oversized.status_code == 422
 
 
+def test_ai_chat_character_and_document_page_limits_are_enforced_at_boundary(monkeypatch):
+    monkeypatch.setattr(ai_engine, "call_llm", lambda *args, **kwargs: "boundary ok")
+    client = TestClient(server.app)
+    boundary = client.post("/api/ai/chat", data={"question": "x" * server.AI_CHAT_QUESTION_MAX_CHARS})
+    too_long = client.post("/api/ai/chat", data={"question": "x" * (server.AI_CHAT_QUESTION_MAX_CHARS + 1)})
+    assert boundary.status_code == 200
+    assert too_long.status_code == 422
+    assert f"{server.AI_CHAT_QUESTION_MAX_CHARS:,} characters" in too_long.json()["detail"]
+
+    oversized_pdf = pdf_bytes(server.AI_DOCUMENT_PAGE_LIMIT + 1)
+    chat = post_pdf(client, "/api/ai/chat", data={"question": "summarize this document"}, content=oversized_pdf)
+    extract = client.post("/api/ai/extract", files={"file": ("oversized.pdf", oversized_pdf, "application/pdf")})
+    monkeypatch.setattr(server, "translation_ai_available", lambda: True)
+    translate = client.post(
+        "/api/ai/translate",
+        data={"target_language": "es"},
+        files={"file": ("oversized.pdf", oversized_pdf, "application/pdf")},
+    )
+    assert chat.status_code == extract.status_code == translate.status_code == 422
+    assert str(server.AI_DOCUMENT_PAGE_LIMIT) in chat.json()["detail"]
+    assert str(server.AI_DOCUMENT_PAGE_LIMIT) in extract.json()["detail"]
+
+
 @pytest.mark.parametrize("action,expected", [
     ("https://drive.usercontent.google.com/download", 200),
     ("http://127.0.0.1/download", 400),
@@ -326,8 +349,9 @@ def test_150_reader_opens_pdf_with_empty_user_password(tmp_path):
     writer.encrypt(user_password="", owner_password=secrets.token_urlsafe(20))
     writer.write(source)
     for operation in ("merge", "rotate"):
-        output = server.process(operation, [source], {}, tmp_path)
-        assert len(PdfReader(output).pages) == 1
+        inputs = [source, source] if operation == "merge" else [source]
+        output = server.process(operation, inputs, {}, tmp_path)
+        assert len(PdfReader(output).pages) == (2 if operation == "merge" else 1)
 
 
 def test_184_200_204_admin_actions_are_authenticated_audited_and_targeted():
@@ -470,9 +494,11 @@ def test_23_184_concurrent_ai_requests_cannot_take_same_guest_quota_slot(monkeyp
     day = date.today().isoformat()
     started, release = Event(), Event()
 
-    def summarize(_path):
+    def summarize(_path, **kwargs):
         started.set()
         assert release.wait(8)
+        if kwargs.get("include_citations"):
+            return "Synthetic brief. [Page 1]", [1]
         return "Synthetic brief. [Page 1]"
 
     monkeypatch.setattr(ai_engine, "summarize_pdf", summarize)

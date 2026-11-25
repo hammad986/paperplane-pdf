@@ -22,8 +22,9 @@ services:
       PAPERPLANE_PUBLIC_URL: "https://${PAPERPLANE_DOMAIN:-localhost}"
       PAPERPLANE_TRUSTED_HOSTS: "paperplane,localhost,127.0.0.1,${PAPERPLANE_DOMAIN:-localhost}"
       PAPERPLANE_TRUSTED_PROXY_HOSTS: "127.0.0.1,::1,${PAPERPLANE_PROXY_NGINX_IP:-172.30.250.2},${PAPERPLANE_PROXY_GATEWAY_IP:-172.18.0.4}"
+      PAPERPLANE_GEOIP_DB: "${PAPERPLANE_GEOIP_DB:-/geoip/GeoLite2-City.mmdb}"
       PAPERPLANE_ALLOWED_ORIGINS: "http://localhost:8501,http://127.0.0.1:8501,https://${PAPERPLANE_DOMAIN:-localhost}"
-      PAPERPLANE_ADMIN_KEY: "${PAPERPLANE_ADMIN_KEY}"
+      PAPERPLANE_ADMIN_KEY: "${PAPERPLANE_ADMIN_KEY:?PAPERPLANE_ADMIN_KEY must be set}"
       PAPERPLANE_ADMIN_CODE: "${PAPERPLANE_ADMIN_CODE:?PAPERPLANE_ADMIN_CODE must be set}"
       PAPERPLANE_ALLOW_TEST_PAYMENTS: "${PAPERPLANE_ALLOW_TEST_PAYMENTS:-false}"
     volumes:
@@ -37,7 +38,9 @@ services:
       - ./config.py:/app/config.py:ro
       - ./app.py:/app/app.py:ro
       - ./watermark_job_worker.py:/app/watermark_job_worker.py:ro
+      - ./pdf_to_word_job_worker.py:/app/pdf_to_word_job_worker.py:ro
       - ./deploy/fonts:/app/deploy/fonts:ro
+      - "${PAPERPLANE_GEOIP_HOST_DIR:-./deploy/geoip}:/geoip:ro"
       - ./web:/app/web:ro
     networks:
       paperplane_proxy:

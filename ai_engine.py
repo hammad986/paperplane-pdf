@@ -536,15 +536,15 @@ def align_answer_citations(answer: str, eligible_pages: list[int] | set[int]) ->
         parts = [str(start) if start == end else f"{start}-{end}" for start, end in ranges]
         label = "Page" if len(kept) == 1 else "Pages"
         citation = f"[{label} {', '.join(parts)}]"
-        # Keep inline citations readable for very scattered provider output.
-        # The complete verified page set is still returned for the separate
-        # source chips; the suffix makes omitted inline ranges explicit.
         if len(citation) > 120:
             visible = parts[:8]
             omitted = len(kept) - sum(
                 (end - start + 1) for start, end in ranges[:len(visible)]
             )
             citation = f"[{label} {', '.join(visible)}, … +{omitted} more pages]"
+        # Keep scattered citations readable. Callers that need the complete
+        # citation-chip list should request the tuple from summarize_pdf so
+        # they do not re-parse this intentionally abbreviated label.
         return citation
 
     text = answer or ""
@@ -1022,6 +1022,56 @@ def _safe_provider_failure_label(error: BaseException) -> str:
     return type(error).__name__
 
 
+def complete_with_configured_fallback(
+    system_prompt: str,
+    user_prompt: str,
+    primary_error: BaseException,
+    timeout_seconds: float | None = None,
+) -> str | None:
+    """Complete a failed chat stream through the configured fallback, if present.
+
+    This is used only after streaming fails. It calls the fallback directly so
+    the failed primary stream is not restarted and charged a second time.
+    """
+    credentials = _runtime_ai_config()
+    fallback = credentials.get("fallback")
+    if not isinstance(fallback, dict) or not fallback.get("api_key") or not fallback.get("model"):
+        return None
+    primary_provider = str(credentials.get("provider") or "unavailable")
+    primary_label = _safe_provider_failure_label(primary_error)
+    primary_failure = "rate_limit" if "429" in str(primary_error) else (
+        "network" if "network" in primary_label or "timeout" in primary_label else "provider_error"
+    )
+    try:
+        answer = _provider_request(
+            system_prompt,
+            user_prompt,
+            fallback,
+            timeout_seconds=timeout_seconds,
+            max_attempts=2,
+        )
+    except Exception as fallback_error:
+        fallback_label = _safe_provider_failure_label(fallback_error)
+        fallback_failure = "rate_limit" if "429" in str(fallback_error) else (
+            "network" if "network" in fallback_label or "timeout" in fallback_label else "provider_error"
+        )
+        _record_ai_provider_status(
+            "rate_limited" if fallback_failure == "rate_limit" else "unavailable",
+            str(fallback.get("provider") or primary_provider),
+            failure=fallback_failure,
+        )
+        raise RuntimeError(
+            f"AI service failed ({primary_label}); configured fallback failed ({fallback_label}). Please retry later."
+        ) from fallback_error
+    _record_ai_provider_status(
+        "rate_limited" if primary_failure == "rate_limit" else "unavailable",
+        primary_provider,
+        fallback_active=True,
+        failure=primary_failure,
+    )
+    return answer
+
+
 def _call_selected_provider_with_status(
     system_prompt: str,
     user_prompt: str,
@@ -1091,7 +1141,8 @@ def _offline_rag_fallback(system_prompt: str, user_prompt: str) -> str:
     if "Executive Summary" in system_prompt or "summariz" in system_prompt.lower():
         doc_text = user_prompt.replace("DOCUMENT CONTENT:\n\n", "")
         pages = re.split(r"--- Page (\d+) ---", doc_text)
-        summary_points = []
+        parsed_pages: list[tuple[str, list[str]]] = []
+        line_frequency: dict[str, int] = {}
         for index in range(1, len(pages) - 1, 2):
             number, page_text = pages[index], pages[index + 1]
             lines = [
@@ -1104,13 +1155,60 @@ def _offline_rag_fallback(system_prompt: str, user_prompt: str) -> str:
                     re.IGNORECASE,
                 )
             ]
+            parsed_pages.append((number, lines))
             for line in lines:
-                summary_points.append(f"{line[:300]} [Page {number}]")
+                normalized = re.sub(r"\s+", " ", line.lower()).strip()
+                line_frequency[normalized] = line_frequency.get(normalized, 0) + 1
+
+        summary_points = []
+        priority_terms = re.compile(
+            r"\b(?:decision|deadline|due|total|amount|finding|fact|completion|risk|action|"
+            r"approved|approval|recommend(?:ation)?|required|result|milestone|final|conclusion)\b",
+            re.IGNORECASE,
+        )
+        for number, lines in parsed_pages:
+            ranked: list[tuple[float, int, str]] = []
+            for line_index, line in enumerate(lines):
+                normalized = re.sub(r"\s+", " ", line.lower()).strip()
+                score = 4.0 * len(priority_terms.findall(line))
+                # Values, percentages, and dates often carry the key fact even
+                # when the source line has no explicit heading word.
+                if re.search(r"(?:[$€£₹]|\b\d{1,4}(?:[.,]\d+)?\s*(?:%|percent|days?|weeks?|months?|years?))", line, re.I):
+                    score += 4.0
+                if len(line.strip()) >= 18:
+                    score += 1.0
+                if line_frequency.get(normalized, 0) > 1:
+                    score -= 3.0
+                if score > 0:
+                    ranked.append((score, line_index, line))
+            # Pick high-value lines across a page before filling slots by score.
+            # Score-only selection favored early lines and could omit a unique
+            # decision near the bottom of a long page.
+            selected_by_region: dict[int, tuple[float, int, str]] = {}
+            for entry in ranked:
+                region = min(2, (entry[1] * 3) // max(1, len(lines)))
+                current = selected_by_region.get(region)
+                if current is None or (entry[0], -entry[1]) > (current[0], -current[1]):
+                    selected_by_region[region] = entry
+            selected = sorted(selected_by_region.values(), key=lambda entry: entry[1])
+            selected_indices = {entry[1] for entry in selected}
+            for entry in sorted(ranked, key=lambda value: (-value[0], value[1])):
+                if len(selected) >= 4:
+                    break
+                if entry[1] not in selected_indices:
+                    selected.append(entry)
+                    selected_indices.add(entry[1])
+            selected.sort(key=lambda entry: entry[1])
+            if not selected and lines:
+                selected = [(0.0, idx, line) for idx, line in enumerate(lines[:2])]
+            for _score, _line_index, line in selected:
+                summary_points.append(f"{line[:240]} [Page {number}]")
 
         pts = "\n".join(f"- {pt}" for pt in summary_points) if summary_points else "- General document overview available."
         return (
             "### Executive Summary (Offline Analysis)\n\n"
-            "This document was indexed and analyzed using Paperplane's deterministic local extraction engine.\n\n"
+            "This document was reviewed with deterministic local extraction, showing up to four page-grounded highlights per text page. "
+            "This concise extractive fallback is not a complete synthesis; review the source pages.\n\n"
             "#### Key Findings & Extracted Topics\n"
             f"{pts}\n\n"
             "*(Generated from local document text analysis.)*"
@@ -1190,13 +1288,19 @@ _SUMMARY_CURRENCY_AMOUNT = re.compile(
     r"(?P<suffix_amount>\d(?:[\d,]*\d)?(?:\.\d+)?)\s*(?P<suffix>[$€£₹¥]|\b(?:USD|EUR|GBP|INR|JPY|CAD|AUD|RMB|CNY|Rs\.?|rupees?|dollars?|euros?|pounds?)\b))",
     re.IGNORECASE,
 )
-_SUMMARY_SOURCE_NUMBER = re.compile(r"(?<![\w.])\d(?:[\d,]*\d)?(?:\.\d+)?(?![\w.])")
+_SUMMARY_SOURCE_NUMBER = re.compile(r"(?<![\w.])(?:\d[\d,]*\d|\d)(?:\.\d+)?(?!\w|,\d|\.\d)")
 _SUMMARY_CURRENCY_PREFIX = re.compile(
     r"(?:[$€£₹¥]|\b(?:USD|EUR|GBP|INR|JPY|CAD|AUD|RMB|CNY|Rs\.?|rupees?|dollars?|euros?|pounds?)\b)\s*$",
     re.IGNORECASE,
 )
 _SUMMARY_CURRENCY_SUFFIX = re.compile(
     r"^\s*[\(\[]?\s*(?:[$€£₹¥]|\b(?:USD|EUR|GBP|INR|JPY|CAD|AUD|RMB|CNY|Rs\.?|rupees?|dollars?|euros?|pounds?)\b)\s*[\)\]]?(?!\s*\d)",
+    re.IGNORECASE,
+)
+_SUMMARY_UNSPECIFIED_CURRENCY = re.compile(
+    r"(?P<amount>\d(?:[\d,]*\d)?(?:\.\d+)?)\s*"
+    r"(?:\(\s*currency\s+(?:unspecified|not\s+specified|unidentified)\s*\)|"
+    r"\[\s*currency\s+(?:unspecified|not\s+specified|unidentified)\s*\])",
     re.IGNORECASE,
 )
 
@@ -1206,16 +1310,50 @@ def _numeric_amount_key(amount: str) -> str:
     return amount.replace(",", "").lstrip("0") or "0"
 
 
-def _source_amount_has_currency(source_text: str, amount: str) -> bool:
+def _source_amount_currency(source_text: str, amount: str) -> str | None:
     amount_key = _numeric_amount_key(amount)
     for source_match in _SUMMARY_SOURCE_NUMBER.finditer(source_text):
         if _numeric_amount_key(source_match.group()) != amount_key:
             continue
         prefix = source_text[max(0, source_match.start() - 24):source_match.start()]
         suffix = source_text[source_match.end():source_match.end() + 24]
-        if _SUMMARY_CURRENCY_PREFIX.search(prefix) or _SUMMARY_CURRENCY_SUFFIX.search(suffix):
-            return True
-    return False
+        currency_match = _SUMMARY_CURRENCY_PREFIX.search(prefix) or _SUMMARY_CURRENCY_SUFFIX.search(suffix)
+        if not currency_match:
+            continue
+        token = currency_match.group().strip().strip("()[] ")
+        folded = token.casefold().rstrip(".")
+        if token == "₹" or folded in {"inr", "rs", "rupee", "rupees"}:
+            return "INR"
+        if folded in {"usd", "dollar", "dollars"}:
+            return "USD"
+        if folded in {"eur", "euro", "euros"}:
+            return "EUR"
+        if folded in {"gbp", "pound", "pounds"}:
+            return "GBP"
+        if folded in {"jpy"}:
+            return "JPY"
+        if folded in {"cad"}:
+            return "CAD"
+        if folded in {"aud"}:
+            return "AUD"
+        if folded in {"rmb", "cny"}:
+            return "CNY"
+        return token
+    return None
+
+
+def _source_amount_has_currency(source_text: str, amount: str) -> bool:
+    return _source_amount_currency(source_text, amount) is not None
+
+
+def _restore_explicit_summary_currency(summary: str, source_text: str) -> str:
+    """Restore a source currency the model marked unspecified for a matching amount."""
+    def restore(match: re.Match[str]) -> str:
+        amount = match.group("amount")
+        currency = _source_amount_currency(source_text, amount)
+        return f"{currency} {amount}" if currency else match.group()
+
+    return _SUMMARY_UNSPECIFIED_CURRENCY.sub(restore, summary)
 
 
 def _remove_unsupported_summary_currency(summary: str, source_text: str) -> str:
@@ -1248,6 +1386,33 @@ def _remove_unsupported_summary_absence_claims(summary: str, source_text: str) -
 # ----------------------------------------------------------------------
 # PUBLIC AI CAPABILITIES
 # ----------------------------------------------------------------------
+
+def sparse_document_text_response(chunks: list[DocumentChunk], page_count: int, question: str) -> dict | None:
+    """Return explicit OCR guidance for broad questions on image-heavy PDFs."""
+    broad_document_question = bool(re.search(
+        r"\b(?:what is|tell me about|describe) (?:this|the) (?:pdf|document)|\b(?:overview|summar(?:y|ize|ise))\b",
+        question,
+        re.IGNORECASE,
+    ))
+    if not broad_document_question:
+        return None
+    extracted_chars = sum(len(re.sub(r"\s+", "", chunk.text)) for chunk in chunks)
+    sparse_text_limit = max(240, page_count * 50)
+    if extracted_chars >= sparse_text_limit:
+        return None
+    return {
+        "answer": (
+            f"This PDF has very little searchable text ({extracted_chars} characters across "
+            f"{page_count} pages), so I cannot reliably identify its subject. It may "
+            "contain scanned pages or a photo gallery. Run OCR to make its text searchable, "
+            "then ask again."
+        ),
+        "citations": [],
+        "retrieval_method": "Sparse PDF Text Check",
+        "fallback_used": True,
+        "relevant_passages": [],
+    }
+
 
 def chat_with_pdf(pdf_path: Path, question: str, filename: str | None = None) -> dict:
     """Queries the PDF via RAG with BM25 probabilistic keyword retrieval and verified page citations."""
@@ -1341,26 +1506,14 @@ def chat_with_pdf(pdf_path: Path, question: str, filename: str | None = None) ->
     is_short_document = document_page_count <= 5 or len(chunks) <= 6
     context_chunks = retrieved_chunks
     citation_chunks = retrieved_chunks
+    sparse_response = sparse_document_text_response(chunks, document_page_count, question)
+    if sparse_response:
+        return sparse_response
     broad_document_question = bool(re.search(
         r"\b(?:what is|tell me about|describe) (?:this|the) (?:pdf|document)|\b(?:overview|summar(?:y|ize|ise))\b",
         question,
         re.IGNORECASE,
     ))
-    extracted_chars = sum(len(re.sub(r"\s+", "", chunk.text)) for chunk in chunks)
-    sparse_text_limit = max(240, document_page_count * 50)
-    if broad_document_question and extracted_chars < sparse_text_limit:
-        return {
-            "answer": (
-                f"This PDF has very little searchable text ({extracted_chars} characters across "
-                f"{document_page_count} pages), so I cannot reliably identify its subject. It may "
-                "contain scanned pages or a photo gallery. Run OCR to make its text searchable, "
-                "then ask again."
-            ),
-            "citations": [],
-            "retrieval_method": "Sparse PDF Text Check",
-            "fallback_used": True,
-            "relevant_passages": [],
-        }
     if broad_document_question and chunks:
         context_chunks = chunks[:24]
         citation_chunks = context_chunks
@@ -1501,6 +1654,30 @@ def _guard_ai_output(answer: str) -> str:
 SUMMARY_PAGE_LIMIT = 120
 SUMMARY_CALL_TIMEOUT_SECONDS = 55.0
 DOCUMENT_AI_BUDGET_SECONDS = 275.0
+SUMMARY_CHUNK_PAGE_COUNT = 12
+SUMMARY_CHUNK_CHAR_BUDGET = 20_400
+
+
+def _bound_summary_page_text(page_text: str, max_chars: int) -> str:
+    """Keep representative beginning, middle, and ending text from long pages."""
+    if len(page_text) <= max_chars:
+        return page_text
+    marker = "\n[… text omitted …]\n"
+    payload_chars = max(3, max_chars - (2 * len(marker)))
+    window = payload_chars // 3
+    remainder = payload_chars - (window * 3)
+    first_size = window + remainder
+    last_size = window
+    middle_size = window
+    middle_center = len(page_text) // 2
+    middle_start = middle_center - (middle_size // 2)
+    middle_end = middle_start + middle_size
+    last_start = len(page_text) - last_size
+    return marker.join((
+        page_text[:first_size],
+        page_text[middle_start:middle_end],
+        page_text[last_start:],
+    ))
 
 
 def _bounded_document_timeout(deadline: float, call_timeout: float, remaining_calls: int = 1) -> float:
@@ -1513,19 +1690,30 @@ def _bounded_document_timeout(deadline: float, call_timeout: float, remaining_ca
     return min(call_timeout, per_call_budget)
 
 
-def summarize_pdf(pdf_path: Path, max_pages: int | None = None) -> str:
+def summarize_pdf(
+    pdf_path: Path,
+    max_pages: int | None = None,
+    *,
+    include_citations: bool = False,
+) -> str | tuple[str, list[int]]:
     """Summarizes document into executive overview and bulleted key takeaways."""
     deadline = time.monotonic() + DOCUMENT_AI_BUDGET_SECONDS
     with fitz.open(str(pdf_path)) as doc:
         page_limit = min(doc.page_count, max_pages) if max_pages and max_pages > 0 else doc.page_count
         if page_limit > SUMMARY_PAGE_LIMIT:
             raise ValueError(f"Executive Brief accepts up to {SUMMARY_PAGE_LIMIT} pages. Split the PDF and try again.")
-        page_budget = max(250, min(1500, 22000 // max(1, page_limit)))
+        # Text is sent in page-labelled chunks below. Bound each provider
+        # request, not the entire document: dividing a whole-document budget
+        # by page count silently truncated a 69-page source to ~318 chars/page.
+        page_budget = max(
+            250,
+            min(1700, SUMMARY_CHUNK_CHAR_BUDGET // min(SUMMARY_CHUNK_PAGE_COUNT, max(1, page_limit))),
+        )
         page_texts: list[tuple[int, str]] = []
         for number in range(page_limit):
             page_text = doc[number].get_text("text").strip()
             if page_text:
-                page_texts.append((number + 1, page_text[:page_budget]))
+                page_texts.append((number + 1, _bound_summary_page_text(page_text, page_budget)))
 
     if not page_texts:
         return "The document contains no extractable text."
@@ -1556,7 +1744,7 @@ def summarize_pdf(pdf_path: Path, max_pages: int | None = None) -> str:
         # Long documents are summarized in bounded, page-labelled sections so
         # one provider request does not have to fit the whole source at once.
         chunk_notes: list[str] = []
-        chunk_size = 12
+        chunk_size = SUMMARY_CHUNK_PAGE_COUNT
         chunk_count = (len(page_texts) + chunk_size - 1) // chunk_size
         for chunk_index, start in enumerate(range(0, len(page_texts), chunk_size)):
             chunk = page_texts[start:start + chunk_size]
@@ -1628,9 +1816,13 @@ def summarize_pdf(pdf_path: Path, max_pages: int | None = None) -> str:
         full_text = "\n\n".join(f"--- Page {number} ---\n{text}" for number, text in page_texts)
         summary = _offline_rag_fallback(system_prompt, f"DOCUMENT CONTENT:\n\n{full_text}")
     summary = _remove_unsupported_summary_absence_claims(summary, source_text)
-    summary = _remove_unsupported_summary_currency(_guard_ai_output(summary), source_text)
+    summary = _restore_explicit_summary_currency(_guard_ai_output(summary), source_text)
+    summary = _remove_unsupported_summary_currency(summary, source_text)
     eligible_pages = {page_number for page_number, _ in page_texts}
-    return align_answer_citations(summary, eligible_pages)[0]
+    aligned_summary, citations = align_answer_citations(summary, eligible_pages)
+    if include_citations:
+        return aligned_summary, citations
+    return aligned_summary
 
 
 def _generate_clean_csv(extracted: dict) -> str:
@@ -2175,7 +2367,11 @@ def extract_metadata_entities(pdf_path: Path, doc_type: str = "auto") -> dict:
 # attempts, so 55 seconds left only about 12 seconds per attempt; document-wide
 # work still remains capped by DOCUMENT_AI_BUDGET_SECONDS.
 TRANSLATION_CALL_TIMEOUT_SECONDS = 90.0
-TRANSLATION_BATCH_SIZE = 8
+TRANSLATION_BATCH_SIZE = 16
+# Keep average text-heavy batches small enough for a bounded JSON response.
+# Long blocks are already split into 1,600-character chunks; this second limit
+# prevents one request from growing beyond a predictable prompt size.
+TRANSLATION_BATCH_MAX_CHARACTERS = 12_000
 # Keep provider fan-out below common per-key rate limits while preserving
 # useful overlap for multi-page translations and transient retries.
 TRANSLATION_MAX_PARALLEL_BATCHES = 2
@@ -2198,6 +2394,36 @@ def _translation_chunks(text: str, limit: int = 1600) -> list[str]:
     if remaining:
         chunks.append(remaining)
     return chunks
+
+
+def _build_translation_batches(
+    segments: list[tuple[int, str]],
+    max_segments: int | None = None,
+    max_characters: int | None = None,
+) -> list[list[tuple[int, str]]]:
+    """Batch small PDF text blocks efficiently without creating huge prompts."""
+    max_segments = max(1, int(TRANSLATION_BATCH_SIZE if max_segments is None else max_segments))
+    max_characters = max(
+        1,
+        int(TRANSLATION_BATCH_MAX_CHARACTERS if max_characters is None else max_characters),
+    )
+    batches: list[list[tuple[int, str]]] = []
+    current: list[tuple[int, str]] = []
+    current_characters = 0
+    for segment in segments:
+        segment_characters = len(segment[1])
+        if current and (
+            len(current) >= max_segments
+            or current_characters + segment_characters > max_characters
+        ):
+            batches.append(current)
+            current = []
+            current_characters = 0
+        current.append(segment)
+        current_characters += segment_characters
+    if current:
+        batches.append(current)
+    return batches
 
 
 def _parse_translation_batch(response: str, expected_ids: list[int]) -> dict[int, str]:
@@ -2299,6 +2525,30 @@ def _translation_change_fraction(source_text: str, translated_text: str) -> floa
     return max(0.0, 1.0 - unchanged / total)
 
 
+def _translation_block_rotations(page: Any) -> dict[tuple[float, float, float, float], int]:
+    """Map text-block bounds to their nearest right-angle reading orientation."""
+    rotations: dict[tuple[float, float, float, float], int] = {}
+    for block in page.get_text("dict").get("blocks", []):
+        if block.get("type") != 0:
+            continue
+        lines = block.get("lines") or []
+        if not lines:
+            continue
+        directions = [line.get("dir", (1.0, 0.0)) for line in lines]
+        # A mixed-direction block has no single safe raster rotation. Leave it
+        # in standard orientation rather than rotating neighboring lines.
+        if any(abs(directions[0][0] - direction[0]) > 0.01
+               or abs(directions[0][1] - direction[1]) > 0.01
+               for direction in directions[1:]):
+            continue
+        dx, dy = directions[0]
+        angle = int(round(math.degrees(math.atan2(-dy, dx)) / 90) * 90) % 360
+        bounds = tuple(round(float(value), 2) for value in block.get("bbox", ()))
+        if len(bounds) == 4 and angle:
+            rotations[bounds] = angle
+    return rotations
+
+
 def translate_pdf_layout(
     pdf_path: Path,
     output_path: Path,
@@ -2322,18 +2572,23 @@ def translate_pdf_layout(
         "blocks_seen": 0,
         "blocks_translated": 0,
         "blocks_preserved": 0,
+        "blocks_rotated": 0,
         "fallback_used": False,
         "warnings": [],
     })
     with fitz.open(str(pdf_path)) as doc, fitz.open() as out_doc, fitz.open() as overlays:
         report_data["pages_seen"] = doc.page_count
         blocks: list[tuple[int, fitz.Rect, str]] = []
+        block_rotations: list[int] = []
         for page in doc:
+            rotations_by_bounds = _translation_block_rotations(page)
             for block in page.get_text("blocks"):
                 if len(block) < 7 or block[6] != 0 or len(block[4].strip()) < 2:
                     continue
                 report_data["blocks_seen"] += 1
                 blocks.append((page.number, fitz.Rect(block[:4]), block[4].strip()))
+                bounds_key = tuple(round(float(value), 2) for value in block[:4])
+                block_rotations.append(rotations_by_bounds.get(bounds_key, 0))
 
         segments: list[tuple[int, str]] = []
         block_segments: list[list[tuple[int, str]]] = []
@@ -2348,8 +2603,7 @@ def translate_pdf_layout(
                 segments.append((len(segments), chunk))
                 cursor = position + len(chunk)
             block_segments.append(ids)
-        batches = [segments[start:start + TRANSLATION_BATCH_SIZE]
-                   for start in range(0, len(segments), TRANSLATION_BATCH_SIZE)]
+        batches = _build_translation_batches(segments)
         translated_segments: dict[int, str] = {}
         batch_failures: list[tuple[int, list[int], str]] = []
         with ThreadPoolExecutor(max_workers=TRANSLATION_MAX_PARALLEL_BATCHES,
@@ -2460,7 +2714,7 @@ def translate_pdf_layout(
         # be removed from the searchable layer rather than hidden under a box.
         out_doc.insert_pdf(doc, links=True, annots=True)
 
-        placed: list[tuple[int, fitz.Rect, str, int]] = []
+        placed: list[tuple[int, fitz.Rect, str, int, int]] = []
         placed_block_ids: set[int] = set()
         placed_source_chars = 0
         changed_source_chars = 0.0
@@ -2469,38 +2723,46 @@ def translate_pdf_layout(
             bounds &= out_doc[number].rect
             if bounds.is_empty:
                 continue
-            overlay = overlays.new_page(width=bounds.width, height=bounds.height)
+            rotation = block_rotations[index]
+            vertical = rotation in (90, 270)
+            overlay_width, overlay_height = (
+                (bounds.height, bounds.width) if vertical else (bounds.width, bounds.height)
+            )
+            overlay = overlays.new_page(width=overlay_width, height=overlay_height)
             # MuPDF's HTML renderer uses shaped Unicode fonts, including Devanagari.
+            font_size = 5.5 if vertical else 10
+            scale_low = 0.7 if vertical else 0.45
             spare, _ = overlay.insert_htmlbox(
                 overlay.rect,
                 escape(translation).replace("\n", "<br>"),
-                css=("body { margin: 0; font: 10pt 'Noto Sans Devanagari', 'Nirmala UI', "
+                css=(f"body {{ margin: 0; font: {font_size}pt 'Noto Sans Devanagari', 'Nirmala UI', "
                      "'Mangal', 'DejaVu Sans', sans-serif; color: #19202a; }"),
-                scale_low=0.45,
+                scale_low=scale_low,
             )
             if spare < 0:
                 continue
-            placed.append((number, bounds, translation, overlay.number))
+            placed.append((number, bounds, translation, overlay.number, rotation))
             placed_block_ids.add(index)
             placed_source_chars += len(blocks[index][2])
             changed_source_chars += len(source_text) * _translation_change_fraction(source_text, translation)
+            report_data["blocks_rotated"] += int(bool(rotation))
 
         # Redact only blocks for which a replacement fitted. Keep images and
         # vector artwork, and leave failed/untranslated blocks intact.
-        for number, bounds, _, _ in placed:
+        for number, bounds, _, _, _ in placed:
             out_doc[number].add_redact_annot(bounds, fill=False, cross_out=False)
-        for number in {number for number, _, _, _ in placed}:
+        for number in {number for number, _, _, _, _ in placed}:
             out_doc[number].apply_redactions(images=0, graphics=0)
 
         # MuPDF currently shapes Devanagari visually but can write a broken
         # ToUnicode map for its generated PDF text. Rasterize only translated
         # text boxes, then add an invisible standards-based Unicode text layer
         # below with ReportLab's embedded TrueType font.
-        for number, bounds, _, overlay_number in placed:
+        for number, bounds, _, overlay_number, rotation in placed:
             page = out_doc[number]
             text_page = overlays[overlay_number]
             rendered = text_page.get_pixmap(matrix=fitz.Matrix(4, 4), alpha=True)
-            page.insert_image(bounds, stream=rendered.tobytes("png"), overlay=True)
+            page.insert_image(bounds, stream=rendered.tobytes("png"), overlay=True, rotate=rotation)
             report_data["blocks_translated"] += 1
 
         report_data["blocks_preserved"] = report_data["blocks_seen"] - report_data["blocks_translated"]
@@ -2622,7 +2884,7 @@ def translate_pdf_layout(
     hidden_stream = io.BytesIO()
     hidden = reportlab_canvas.Canvas(hidden_stream, pagesize=(float(base.pages[0].mediabox.width), float(base.pages[0].mediabox.height)))
     by_page: dict[int, list[tuple[fitz.Rect, str]]] = {}
-    for number, bounds, translation, _ in placed:
+    for number, bounds, translation, _, _ in placed:
         by_page.setdefault(number, []).append((bounds, translation))
     for page_number, base_page in enumerate(base.pages):
         width, height = float(base_page.mediabox.width), float(base_page.mediabox.height)

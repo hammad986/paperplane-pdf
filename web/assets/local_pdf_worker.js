@@ -1,6 +1,6 @@
 importScripts('/assets/pdf-lib.min.js');
 
-const { PDFDocument, StandardFonts, degrees, rgb } = self.PDFLib;
+const { PDFDocument, PDFName, PDFString, PDFNumber, StandardFonts, degrees, rgb } = self.PDFLib;
 
 function pageIndices(input, count) {
   const indices = [];
@@ -27,7 +27,7 @@ async function copyPages(document, indices) {
 
 // PDF streams are already compressed. ZIP store mode avoids recompressing
 // every file and keeps the result readable by standard ZIP tools.
-function zipPages(files, extension = 'pdf') {
+function zipPages(files, extension = 'pdf', pageNumbers = null) {
   const encoder = new TextEncoder();
   const crcTable = Uint32Array.from({ length: 256 }, (_, byte) => {
     let crc = byte;
@@ -39,8 +39,9 @@ function zipPages(files, extension = 'pdf') {
   let offset = 0;
   let directorySize = 0;
   for (const [index, data] of files.entries()) {
+    const pageNumber = Array.isArray(pageNumbers) ? pageNumbers[index] : index + 1;
     const name = encoder.encode(extension === 'jpg'
-      ? `page_${String(index + 1).padStart(3, '0')}.jpg`
+      ? `page_${String(pageNumber).padStart(3, '0')}.jpg`
       : `page-${index + 1}.pdf`);
     let crc = 0xffffffff;
     for (const byte of data) crc = (crc >>> 8) ^ crcTable[(crc ^ byte) & 255];
@@ -78,6 +79,41 @@ function zipPages(files, extension = 'pdf') {
 }
 
 async function transform({ operation, files, options }) {
+  if (operation === 'annotate') {
+    const annotations = options?.annotations;
+    if (!files.length || files[0].byteLength > 50 * 1024 * 1024 || !Array.isArray(annotations) || !annotations.length || annotations.length > 500) {
+      throw new Error('The browser received an invalid or oversized annotation request. Choose Server Processing.');
+    }
+    const pdf = await PDFDocument.load(files[0]);
+    for (const item of annotations) {
+      const pageIndex = Number(item.page);
+      const rect = Array.isArray(item.rect) ? item.rect.map(Number) : [];
+      const subtype = { highlight: 'Highlight', underline: 'Underline', strikeout: 'StrikeOut' }[item.type];
+      if (!subtype || !Number.isInteger(pageIndex) || pageIndex < 0 || pageIndex >= pdf.getPageCount()
+          || rect.length !== 4 || !rect.every(Number.isFinite) || rect[2] <= rect[0] || rect[3] <= rect[1]) {
+        throw new Error('The browser received invalid annotation geometry. Choose Server Processing.');
+      }
+      const page = pdf.getPage(pageIndex);
+      const pageSize = page.getSize();
+      const [x1, y1, x2, y2] = rect;
+      if (x1 < 0 || y1 < 0 || x2 > pageSize.width || y2 > pageSize.height) {
+        throw new Error('The selected text falls outside the PDF page bounds. Choose Server Processing.');
+      }
+      const context = pdf.context;
+      const annotation = context.obj({
+        Type: PDFName.of('Annot'), Subtype: PDFName.of(subtype),
+        Rect: context.obj(rect), F: PDFNumber.of(4),
+      });
+      annotation.set(PDFName.of('C'), context.obj([1, 0.8, 0]));
+      annotation.set(PDFName.of('CA'), PDFNumber.of(item.type === 'highlight' ? 0.35 : 1));
+      annotation.set(PDFName.of('Contents'), PDFString.of(String(item.text || '').slice(0, 2000)));
+      annotation.set(PDFName.of('T'), PDFString.of('Paperplane'));
+      annotation.set(PDFName.of('P'), page.ref);
+      annotation.set(PDFName.of('QuadPoints'), context.obj([x1, y2, x2, y2, x1, y1, x2, y1]));
+      page.node.addAnnot(context.register(annotation));
+    }
+    return { filename: 'annotated.pdf', output: await pdf.save() };
+  }
   if (operation === 'grayscale_pages') {
     const pageSizes = options?.pageSizes;
     if (!Array.isArray(pageSizes) || pageSizes.length !== files.length || !files.length || files.length > 100) {
@@ -102,7 +138,11 @@ async function transform({ operation, files, options }) {
     if (files.reduce((total, bytes) => total + bytes.byteLength, 0) > 256 * 1024 * 1024) {
       throw new Error('The rendered JPGs exceed the browser ZIP limit. Choose Server Processing.');
     }
-    return { filename: 'pdf-pages-jpg.zip', output: zipPages(files.map(bytes => new Uint8Array(bytes)), 'jpg') };
+    const pageNumbers = options?.pageNumbers;
+    if (!Array.isArray(pageNumbers) || pageNumbers.length !== files.length || pageNumbers.some(number => !Number.isInteger(number) || number < 1)) {
+      throw new Error('The browser received an invalid page selection. Choose the pages again.');
+    }
+    return { filename: 'pdf-pages-jpg.zip', output: zipPages(files.map(bytes => new Uint8Array(bytes)), 'jpg', pageNumbers) };
   }
   if (operation === 'merge') {
     const result = await PDFDocument.create();
@@ -229,6 +269,24 @@ async function transform({ operation, files, options }) {
     return { filename: 'filled-forms.pdf', output: await pdf.save() };
   }
   if (operation === 'flatten') {
+    // PDFLib's form.flatten() only burns AcroForm widgets. It leaves regular
+    // page annotations (for example Highlight/Underline/StrikeOut) in /Annots,
+    // which made browser-local Flatten report success without flattening them.
+    // The server path can bake their appearance streams, so fail closed here
+    // and let the app offer its explicit temporary-upload confirmation.
+    const annotationSubtype = PDFName.of('Subtype');
+    const widgetSubtype = PDFName.of('Widget');
+    for (const page of pdf.getPages()) {
+      const annotations = page.node.Annots();
+      if (!annotations) continue;
+      for (let index = 0; index < annotations.size(); index++) {
+        const reference = annotations.get(index);
+        const annotation = pdf.context.lookup(reference);
+        if (!annotation || annotation.get(annotationSubtype)?.toString() !== widgetSubtype.toString()) {
+          throw new Error('Browser processing cannot flatten visual PDF annotations. Choose Server Processing to bake their appearance into the page.');
+        }
+      }
+    }
     const form = pdf.getForm();
     form.flatten();
     return { filename: 'flattened.pdf', output: await pdf.save() };

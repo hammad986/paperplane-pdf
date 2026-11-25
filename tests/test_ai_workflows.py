@@ -305,6 +305,36 @@ def test_hindi_translation_embeds_extractable_devanagari_text(tmp_path, monkeypa
         assert report["blocks_translated"] == 1
 
 
+@pytest.mark.parametrize(("language", "translated_text"), [("Spanish", "es"), ("Hindi", "हाँ")])
+def test_translation_preserves_vertical_text_orientation_and_searchability(tmp_path, monkeypatch, language, translated_text):
+    source = tmp_path / "vertical-source.pdf"
+    output = tmp_path / "vertical-translated.pdf"
+    with fitz.open() as document:
+        page = document.new_page()
+        page.insert_text((150, 150), "It", fontsize=7.78, rotate=90)
+        document.save(source)
+
+    monkeypatch.setattr(ai_engine, "AI_KILL_SWITCH", False)
+    monkeypatch.setattr(ai_engine, "_current_bluesminds_api_key", lambda: "controlled-test-key")
+    monkeypatch.setattr(ai_engine, "_translate_text_batch", lambda batch, *args, **kwargs: {
+        block_id: translated_text for block_id, _ in batch
+    })
+    report = {}
+
+    ai_engine.translate_pdf_layout(source, output, target_language=language, report=report)
+
+    with fitz.open(output) as translated:
+        page = translated[0]
+        extracted = page.get_text()
+        assert translated_text in extracted
+        assert "It" not in extracted
+        assert report["blocks_translated"] == 1
+        assert report["blocks_preserved"] == 0
+        assert report["blocks_rotated"] == 1
+        assert report["translation_status"] == "translated"
+        assert page.get_images(full=True)
+
+
 def test_sparse_gallery_question_explains_low_searchable_text_instead_of_no_match(tmp_path, monkeypatch):
     source = tmp_path / "sparse-gallery.pdf"
     with fitz.open() as document:
@@ -358,6 +388,51 @@ def test_bluesminds_stream_retries_transient_failure_before_first_token(monkeypa
     with patch("ai_engine._open_ai_request", side_effect=[HTTPError("https://provider.invalid", 503, "busy", {}, None), FakeResponse()]) as open_url, patch("ai_engine.time.sleep"):
         assert list(ai_engine.stream_bluesminds("system", "user")) == ["recovered"]
     assert open_url.call_count == 2
+
+
+def test_configured_fallback_completes_a_failed_stream_without_recalling_primary(monkeypatch):
+    credentials = {
+        "provider": "bluesminds",
+        "api_key": "primary-test-key",
+        "fallback": {"provider": "openrouter", "api_key": "fallback-test-key", "model": "test-model", "base_url": "https://fallback.invalid/v1"},
+    }
+    monkeypatch.setattr(ai_engine, "_runtime_ai_config", lambda: credentials)
+    calls = []
+
+    def provider_request(system_prompt, user_prompt, config, **kwargs):
+        calls.append(config["provider"])
+        assert config is credentials["fallback"]
+        return "A safe fallback answer."
+
+    monkeypatch.setattr(ai_engine, "_provider_request", provider_request)
+    answer = ai_engine.complete_with_configured_fallback("system", "question", RuntimeError("AI service returned HTTP 429. Please try again."))
+
+    assert answer == "A safe fallback answer."
+    assert calls == ["openrouter"]
+    status = ai_engine._get_ai_provider_status()
+    assert status["last_status"] == "rate_limited"
+    assert status["fallback_active"] is True
+
+
+def test_chat_stream_replaces_failed_provider_stream_with_configured_fallback(monkeypatch):
+    from fastapi.testclient import TestClient
+    from server import app
+
+    monkeypatch.setattr(ai_engine, "AI_KILL_SWITCH", False)
+    monkeypatch.setattr(ai_engine, "_current_bluesminds_api_key", lambda: "primary-test-key")
+
+    def failed_stream(*_args, **_kwargs):
+        raise RuntimeError("AI service returned HTTP 429. Please try again.")
+        yield  # pragma: no cover
+
+    monkeypatch.setattr(ai_engine, "stream_bluesminds", failed_stream)
+    monkeypatch.setattr(ai_engine, "complete_with_configured_fallback", lambda *_args, **_kwargs: "Fallback answer for the question.")
+    response = TestClient(app).post("/api/ai/chat/stream", data={"question": "Explain why the sky looks blue."})
+
+    assert response.status_code == 200
+    assert 'event: replace\ndata: {"text": "Fallback answer for the question."}' in response.text
+    assert '"mode": "provider_fallback"' in response.text
+    assert response.text.count("event: done") == 1
 
 
 def test_bluesminds_stream_does_not_restart_after_partial_output(monkeypatch):
@@ -450,6 +525,35 @@ def test_ai_chat_stream_reports_document_stages_and_page_citation(tmp_path, monk
     positions = [body.index(stage) for stage in ordered]
     assert positions == sorted(positions)
     assert '"citations": [1]' in body
+
+
+def test_ai_chat_stream_sparse_gallery_returns_ocr_guidance_instead_of_no_match(tmp_path, monkeypatch):
+    from fastapi.testclient import TestClient
+    from server import app
+
+    source = tmp_path / "sparse-gallery-stream.pdf"
+    with fitz.open() as document:
+        for number in range(1, 25):
+            page = document.new_page()
+            page.insert_text((72, 72), f"Photo {number}")
+        document.save(source)
+
+    monkeypatch.setattr(ai_engine, "AI_KILL_SWITCH", False)
+    monkeypatch.setattr(ai_engine, "_current_bluesminds_api_key", lambda: "")
+    monkeypatch.setattr(ai_engine, "stream_bluesminds", lambda *_args, **_kwargs: pytest.fail("sparse subject queries must not call a provider"))
+    with source.open("rb") as handle:
+        response = TestClient(app).post(
+            "/api/ai/chat/stream",
+            data={"question": "What is this document about?"},
+            files={"file": (source.name, handle, "application/pdf")},
+        )
+
+    body = response.text
+    assert response.status_code == 200
+    assert "very little searchable text" in body
+    assert "Run OCR" in body
+    assert "No relevant information found" not in body
+    assert '"mode": "sparse_text_guidance"' in body
 
 
 def test_ai_chat_answers_general_question_without_pdf(monkeypatch):
@@ -551,7 +655,7 @@ def test_ai_summary_timeout_and_translation_failure_return_actionable_gateway_er
     client = TestClient(server.app)
 
     monkeypatch.setattr(server, "AI_SUMMARY_REQUEST_TIMEOUT_SECONDS", 0.02)
-    monkeypatch.setattr(ai_engine, "summarize_pdf", lambda _path: (time.sleep(0.15), "late response")[1])
+    monkeypatch.setattr(ai_engine, "summarize_pdf", lambda _path, **_kwargs: (time.sleep(0.15), "late response")[1])
     with source.open("rb") as handle:
         summary = client.post("/api/ai/summarize", files={"file": (source.name, handle, "application/pdf")})
     assert summary.status_code == 504
@@ -687,6 +791,120 @@ def test_large_summary_chunks_all_pages_and_preserves_supported_citations(tmp_pa
     assert all(1 <= timeout <= ai_engine.SUMMARY_CALL_TIMEOUT_SECONDS for _, timeout, _temperature in calls)
     assert all(temperature == 0.0 for _, _, temperature in calls)
     assert "[Page 1]" in summary and "[Page 69]" in summary
+
+
+def test_summary_returns_full_citations_when_inline_label_is_bounded(tmp_path, monkeypatch):
+    import re
+
+    source = tmp_path / "summary-scattered-citations-120-pages.pdf"
+    with fitz.open() as pdf:
+        for page_no in range(1, 121):
+            page = pdf.new_page()
+            page.insert_text((72, 72), f"Page {page_no} records its audited fact.")
+        pdf.save(source)
+
+    expected_pages = list(range(1, 120, 2))
+
+    def summarize_chunk(_system, prompt, **_kwargs):
+        if prompt.startswith("Synthesize these page-grounded section notes"):
+            cited = ", ".join(map(str, expected_pages))
+            return f"The audited findings vary across the source. [Pages {cited}]"
+        pages = [int(value) for value in re.findall(r"--- Page (\d+) ---", prompt)]
+        return f"Section findings include [Page {pages[0]}] and [Page {pages[-1]}]."
+
+    monkeypatch.setattr(ai_engine, "call_llm", summarize_chunk)
+    summary, citations = ai_engine.summarize_pdf(source, include_citations=True)
+
+    assert citations == expected_pages
+    assert "… +52 more pages" in summary
+    assert len(re.search(r"\[Pages [^\]]+\]", summary).group(0)) <= 120
+
+
+def test_large_summary_preserves_late_page_text_within_each_provider_chunk(tmp_path, monkeypatch):
+    source = tmp_path / "summary-69-pages-late-facts.pdf"
+    doc = fitz.open()
+    for page_num in range(1, 70):
+        page = doc.new_page()
+        leading_context = (
+            f"Page {page_num} operational context includes findings, ownership, impact, and recommended follow-up. "
+            * 12
+        )
+        page_tail = f"LATE-PAGE-FACT-{page_num:02d}"
+        page.insert_textbox(fitz.Rect(50, 50, 545, 790), leading_context + page_tail, fontsize=9)
+    doc.save(str(source))
+    doc.close()
+
+    provider_prompts = []
+
+    def capture_chunk(system, prompt, timeout_seconds=None, max_attempts=2, **kwargs):
+        if prompt.startswith("Synthesize these page-grounded"):
+            return "The document covers its opening and closing sections [Page 1] [Page 69]."
+        provider_prompts.append(prompt)
+        pages = [int(value) for value in __import__("re").findall(r"--- Page (\d+) ---", prompt)]
+        return f"Section findings are documented on [Page {pages[0]}] and [Page {pages[-1]}]."
+
+    monkeypatch.setattr(ai_engine, "call_llm", capture_chunk)
+    result = ai_engine.summarize_pdf(source)
+
+    assert len(provider_prompts) == 6
+    for page_num in range(1, 70):
+        assert f"LATE-PAGE-FACT-{page_num:02d}" in "\n".join(provider_prompts)
+    assert "[Page 1]" in result and "[Page 69]" in result
+
+
+def test_large_summary_keeps_beginning_middle_and_end_of_long_pages(tmp_path, monkeypatch):
+    source = tmp_path / "summary-69-pages-long-text.pdf"
+    doc = fitz.open()
+    for page_num in range(1, 70):
+        page = doc.new_page()
+        for row in range(30):
+            position = "beginning" if row == 0 else "middle" if row == 15 else "ending" if row == 29 else "detail"
+            marker = f"PAGE-{page_num:02d}-{position.upper()}-FACT"
+            page.insert_text(
+                (45, 58 + row * 22),
+                f"{marker} operational finding {row:02d}. " + ("Routine monitoring and control detail. " * 3),
+                fontsize=8,
+            )
+    doc.save(str(source))
+    doc.close()
+
+    provider_prompts = []
+
+    def capture_chunk(system, prompt, timeout_seconds=None, max_attempts=2, **kwargs):
+        if prompt.startswith("Synthesize these page-grounded"):
+            return "The report records its opening and final findings [Page 1] [Page 69]."
+        provider_prompts.append(prompt)
+        pages = [int(value) for value in __import__("re").findall(r"--- Page (\d+) ---", prompt)]
+        return f"The section records findings [Page {pages[0]}] and [Page {pages[-1]}]."
+
+    monkeypatch.setattr(ai_engine, "call_llm", capture_chunk)
+    result = ai_engine.summarize_pdf(source)
+    transmitted = "\n".join(provider_prompts)
+
+    assert len(provider_prompts) == 6
+    assert len(transmitted) > 0
+    for page_num in range(1, 70):
+        for position in ("BEGINNING", "MIDDLE", "ENDING"):
+            assert f"PAGE-{page_num:02d}-{position}-FACT" in transmitted
+    assert "[Page 1]" in result and "[Page 69]" in result
+
+
+def test_offline_executive_brief_is_concise_and_keeps_numeric_and_decision_facts():
+    repeated = "Repeated operational boilerplate describes routine controls and follow-up actions."
+    prompt = "DOCUMENT CONTENT:\n\n" + "\n\n".join([
+        "--- Page 1 ---\nQuarterly operations review\nCompletion rate was 23 percent.\n" + "\n".join([repeated] * 12),
+        "--- Page 2 ---\nDecision: retain all 69 records for the final audit.\nBudget approved: $42,000.\n" + "\n".join([repeated] * 12),
+    ])
+
+    brief = ai_engine._offline_rag_fallback("Executive Summary", prompt)
+    page_one_points = [line for line in brief.splitlines() if line.startswith("-") and "[Page 1]" in line]
+    page_two_points = [line for line in brief.splitlines() if line.startswith("-") and "[Page 2]" in line]
+
+    assert len(page_one_points) <= 4 and len(page_two_points) <= 4
+    assert "Completion rate was 23 percent." in brief
+    assert "Decision: retain all 69 records for the final audit." in brief
+    assert "$42,000" in brief
+    assert "up to four page-grounded highlights per text page" in brief
 
 
 def test_large_summary_chunk_failure_falls_back_with_all_section_lines_and_citations(tmp_path, monkeypatch):
@@ -845,6 +1063,17 @@ def test_translation_repairs_segments_omitted_from_partial_provider_batch(tmp_pa
     assert "Párrafo traducido 0" in text
     assert "Párrafo traducido 1" in text
     assert "Párrafo traducido 2" in text
+
+
+def test_translation_batches_cap_count_and_prompt_characters_without_dropping_segments():
+    segments = [(index, "x" * length) for index, length in enumerate([20] * 40 + [1_600] * 10)]
+    batches = ai_engine._build_translation_batches(segments)
+
+    assert ai_engine.TRANSLATION_BATCH_SIZE == 16
+    assert ai_engine.TRANSLATION_BATCH_MAX_CHARACTERS == 12_000
+    assert [segment for batch in batches for segment in batch] == segments
+    assert all(len(batch) <= 16 for batch in batches)
+    assert all(sum(len(text) for _, text in batch) <= 12_000 for batch in batches)
 
 
 def test_translation_repairs_a_fully_failed_provider_batch_with_smaller_retries(tmp_path, monkeypatch):

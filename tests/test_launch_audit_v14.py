@@ -19,10 +19,11 @@ import time
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_101_compose_requires_admin_code_without_a_fallback():
+@pytest.mark.parametrize("setting_name", ["PAPERPLANE_ADMIN_KEY", "PAPERPLANE_ADMIN_CODE"])
+def test_101_compose_requires_admin_credentials_without_fallback(setting_name):
     lines = (ROOT / "docker-compose.yml").read_text(encoding="utf-8").splitlines()
-    setting = next(line.strip() for line in lines if line.strip().startswith("PAPERPLANE_ADMIN_CODE:"))
-    assert setting == 'PAPERPLANE_ADMIN_CODE: "${PAPERPLANE_ADMIN_CODE:?PAPERPLANE_ADMIN_CODE must be set}"'
+    setting = next(line.strip() for line in lines if line.strip().startswith(f"{setting_name}:"))
+    assert setting == f'{setting_name}: "${{{setting_name}:?{setting_name} must be set}}"'
 
 
 def test_101_secret_scanner_catches_compose_fallbacks():
@@ -52,7 +53,7 @@ def test_101_secret_scanner_allowlists_only_test_fixture_and_redaction_marker():
 def test_206_runtime_cache_key_changes_from_stale_v13():
     page = (ROOT / "web/index.html").read_text(encoding="utf-8")
     runtime = (ROOT / "web/assets/pdf_runtime.js").read_text(encoding="utf-8")
-    assert '/assets/pdf_runtime.js?v=25' in page
+    assert '/assets/pdf_runtime.js?v=27' in page
     assert 'transformLocalPdf,' in runtime
 
 
@@ -94,7 +95,8 @@ def test_206_served_runtime_probe_requires_worker_api(monkeypatch):
 
 def test_229_file_picker_is_not_blocked_by_auth_wait():
     source = (ROOT / "web/assets/app.js").read_text(encoding="utf-8")
-    browse_handler = source.split("$('#browse').onclick = async () => {", 1)[1].split("};", 1)[0]
+    browse_handler = source.split("$('#browse').onclick = async event => {", 1)[1].split("};", 1)[0]
+    assert "event.stopPropagation()" in browse_handler
     assert "waitForInitialAuth" not in browse_handler
     assert "$('#file-input').click()" in browse_handler
     picker_handler = source.split("$('#file-input').onchange = async e => {", 1)[1].split("};", 1)[0]

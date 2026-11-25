@@ -14,7 +14,7 @@
   
 
   <script src="/assets/theme-init.js?v=13"></script>
-  <link rel="stylesheet" href="/assets/styles.css?v=61" />
+  <link rel="stylesheet" href="/assets/styles.css?v=90" />
 
 </head>
 <body class="light-mode auth-pending">
@@ -62,7 +62,7 @@
             <span>Convert to / from</span>
             <span class="nav-cat-badge">12</span>
           </button>
-          <button class="nav-category-tab" data-category="Edit" aria-label="Edit and sign PDF" title="Edit and sign PDF">
+          <button class="nav-category-tab" data-category="Edit" aria-label="Edit PDF tools" title="Edit PDF tools">
             <span class="nav-cat-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></span>
             <span>Edit PDF</span>
             <span class="nav-cat-badge">8</span>
@@ -72,7 +72,7 @@
             <span>Sign &amp; Protect</span>
             <span class="nav-cat-badge">6</span>
           </button>
-          <button class="nav-category-tab" data-category="AI" aria-label="PDF intelligence tools" title="PDF intelligence tools">
+          <button class="nav-category-tab" data-category="AI" aria-label="PDF Intelligence, 4 workflows" title="4 workflows: Chat, Smart Metadata, Executive Brief, and Translate">
             <span class="nav-cat-icon"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a6 6 0 0 0-3.8 10.64c.84.68 1.3 1.38 1.3 2.36h5c0-.98.46-1.68 1.3-2.36A6 6 0 0 0 12 3z"/><path d="M10 19h4m-3 3h2"/></svg></span>
             <span>PDF Intelligence</span>
             <span class="nav-cat-badge">4</span>
@@ -114,7 +114,7 @@
             <span class="toggle-slider-sm"></span>
           </label>
         </div>
-        <small id="privacy-mode-support" class="privacy-mode-support">Available for Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Scan to PDF, JPG/PNG to PDF, PDF-to-JPG, Grayscale PDF, Crop PDF, Add Text & Stamps, Sign PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Compare PDF text, PDF-to-Markdown (basic), PDF-to-Word (text-first), Page Numbers, text and image watermarks, and photo tools</small>
+        <small id="privacy-mode-support" class="privacy-mode-support">Available for Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Scan to PDF, JPG/PNG to PDF, PDF-to-JPG, Grayscale PDF, Crop PDF, Add Text & Stamps, Sign PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Compare PDF text, PDF-to-Markdown (basic), PDF-to-Word (text-first), Page Numbers, text and image watermarks, basic Annotate PDF text markup for exact single-block phrases (not sticky notes or rectangles), and photo tools</small>
 
         <!-- Freemium Daily Quota Tracker -->
         <div class="quota-container" id="quota-container">
@@ -165,7 +165,8 @@
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
           </button>
           <button type="button" class="mobile-brand" data-workspace-view="tool-desk" aria-label="Paperplane home">paperplane<span>.</span></button>
-          <span id="mobile-view-pill" class="mobile-view-pill" aria-live="polite">Tool Desk</span>
+          <span id="mobile-view-pill" class="mobile-view-pill" aria-hidden="true" title="Tool Desk workspace">Tool Desk</span>
+          <span id="mobile-view-pill-sr" class="sr-only" aria-live="polite">Tool Desk workspace</span>
           <div class="breadcrumb-trail">
             <span>Paperplane</span>
             <span class="crumb-sep">/</span>
@@ -191,12 +192,12 @@
           </button>
           <button type="button" class="tab-pill" id="tab-download-view" title="Join the Native Apps Waitlist">
             <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            <span>Apps Waitlist</span>
+            <span>Native Apps</span>
           </button>
         </div>
 
         <div class="topbar-right">
-          <button type="button" class="topbar-action-btn pwa-install-btn" id="install-app-btn" hidden aria-describedby="install-app-status">Install</button>
+          <button type="button" class="topbar-action-btn pwa-install-btn" id="install-app-btn" hidden aria-label="Install Web App" aria-describedby="install-app-status">Install Web App</button>
           <span id="install-app-status" class="visually-hidden" role="status" aria-live="polite"></span>
           <button type="button" class="topbar-upgrade-pill" id="topbar-upgrade-btn">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
@@ -238,9 +239,12 @@
         </section>
         <section id="view-faq" class="workspace-page" hidden>
           <h1>Frequently asked questions</h1>
-          <details><summary>Where are files processed?</summary><p>Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Scan to PDF, JPG/PNG to PDF, PDF-to-JPG, Grayscale PDF, Crop PDF, Add Text & Stamps, Sign PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Compare PDF text, PDF-to-Markdown (basic), PDF-to-Word (text-first), Page Numbers, text and image watermarks, and photo tools can run in your browser when browser processing is selected. Grayscale renders colored pages at 150 DPI and may remove searchable text; already-grayscale files stay unchanged. Browser-local Scan to PDF skips automatic contrast/sharpness enhancement; choose temporary server processing for enhancement. Image watermarks and other tasks use temporary server processing after your choice; expired job files are removed on the configured cleanup schedule (2-hour retention by default).</p></details>
+          <details><summary>Where are files processed?</summary><p>Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Scan to PDF, JPG/PNG to PDF, PDF-to-JPG, Grayscale PDF, Crop PDF, Add Text & Stamps, Sign PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Compare PDF text, PDF-to-Markdown (basic), PDF-to-Word (text-first), Page Numbers, text and image watermarks, basic Annotate PDF text markup for exact single-block phrases (not sticky notes or rectangles), and photo tools can run in your browser when browser processing is selected. Grayscale renders colored pages at 150 DPI and may remove searchable text; already-grayscale files stay unchanged. Browser-local Scan to PDF skips automatic contrast/sharpness enhancement; choose temporary server processing for enhancement. Image watermarks and other tasks use temporary server processing after your choice; expired job files are removed on the configured cleanup schedule (2-hour retention by default).</p></details>
           <details><summary>What PDF operations are available?</summary><p>The catalog covers organizing, compression, conversion, editing, security, and document intelligence workflows.</p></details>
           <details><summary>Does Paperplane work on phones?</summary><p>Yes. The public web workspace is responsive and uses touch-sized controls on mobile browsers.</p></details>
+          <details><summary>Where can I check plan prices and usage limits?</summary><p><a href="/pricing">Pricing</a> lists current plan prices. File-size and usage limits depend on your account and the tool; check the limit shown in the workspace before starting a job.</p></details>
+          <details><summary>Where can I find refund information?</summary><p>The <a href="/refund">Refunds page</a> is still a draft pending owner approval. Review the current purchase terms before paying; this FAQ does not promise a refund.</p></details>
+          <details><summary>How do I report a problem or contact the team?</summary><p>Use the <a href="/feedback">Feedback form</a> to report a problem or suggest an improvement. The Contact page is still marked as a draft.</p></details>
           <details><summary>Does Paperplane keep a job history?</summary><p>No. This version does not provide a recent-files or job-history page. Download the result when processing finishes; temporary server job files are removed by the retention cleanup.</p></details>
         </section>
         <section id="view-feedback" class="workspace-page" hidden>
@@ -328,10 +332,10 @@
               <div class="drop-icon-circle">
                 <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               </div>
-              <h3>Drop your document here</h3>
-              <p>
-                or <button type="button" class="browse-link" id="browse">browse files</button>
-                or <button type="button" class="browse-link" id="cloud-drop-btn">import from Google Drive / Dropbox</button>
+              <h2>Drop your document here</h2>
+              <p class="dropzone-options">
+                <span class="dropzone-option">or <button type="button" class="browse-link" id="browse">browse files</button></span>
+                <span class="dropzone-option">or <button type="button" class="browse-link" id="cloud-drop-btn">Import from a cloud link</button></span>
               </p>
               <div class="scan-camera-control" id="scan-camera-control" hidden>
                 <input id="scan-camera-input" class="visually-hidden-file-input" type="file" accept="image/*" capture="environment" aria-label="Take a document photo with your camera" />
@@ -372,9 +376,9 @@
               <progress class="progress-bar-fill" id="progress-bar-fill" max="100" aria-label="Document upload and processing progress"></progress>
             </div>
             <div class="progress-steps" id="job-progress-steps">
-              <span class="progress-step active" id="step-1">1. Stream Upload</span>
-              <span class="progress-step" id="step-2">2. Engine Transform</span>
-              <span class="progress-step" id="step-3">3. Stream Optimization</span>
+              <span class="progress-step active" id="step-1">1. Prepare Files</span>
+              <span class="progress-step" id="step-2">2. Process Pages</span>
+              <span class="progress-step" id="step-3">3. Prepare Output</span>
               <span class="progress-step" id="step-4">4. Ready</span>
             </div>
           </div>
@@ -408,8 +412,6 @@
           </div>
 
         </div>
-
-        
 
         <!-- ------------------------------------------------------------------
              VIEW 2: Next-Level In-App PDF Studio (Viewer & Editor)
@@ -469,7 +471,7 @@
                     <span class="tool-btn-text">New Page</span>
                   </button>
                   <button type="button" class="studio-tool-btn studio-clear-pdf-btn" id="studio-clear-pdf-btn" title="Clear the PDF from Studio" aria-label="Clear Studio PDF">
-                    <span class="tool-btn-text">Clear Studio PDF</span>
+                    <span class="tool-btn-text">Clear PDF</span>
                   </button>
                   <input type="file" id="studio-file-input" accept="application/pdf" hidden aria-label="Upload PDF to Studio">
                 </div>
@@ -998,7 +1000,7 @@
                 <div>
                   <h3>Data Privacy & Temporary Processing</h3>
                   <p><strong>DRAFT — do not treat this as approved legal wording.</strong> Server-powered job files are scheduled for removal after the configured retention period (2 hours by default). Browser-saved Studio and AI Docs work remains on this device until you clear it. Confirm the production settings and statements below before launch.</p>
-                  <p>Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Scan to PDF, JPG/PNG to PDF, PDF-to-JPG, Grayscale PDF, Crop PDF, Add Text & Stamps, Sign PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Compare PDF text, PDF-to-Markdown (basic), PDF-to-Word (text-first), Page Numbers, text and image watermarks, and the photo tools can run in your browser. Grayscale may rasterize colored pages and remove searchable text; already-grayscale PDFs are preserved. PNG and JPEG image watermarks up to 25 MiB can also run locally; other image formats and tools use temporary server processing.</p>
+                  <p>Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Scan to PDF, JPG/PNG to PDF, PDF-to-JPG, Grayscale PDF, Crop PDF, Add Text & Stamps, Sign PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Compare PDF text, PDF-to-Markdown (basic), PDF-to-Word (text-first), Page Numbers, text and image watermarks, basic Annotate PDF text markup for exact single-block phrases (not sticky notes or rectangles), and the photo tools can run in your browser. Grayscale may rasterize colored pages and remove searchable text; already-grayscale PDFs are preserved. PNG and JPEG image watermarks up to 25 MiB can also run locally; other image formats and tools use temporary server processing.</p>
                 </div>
               </div>
 
@@ -1059,7 +1061,7 @@
 
                 <section>
                   <h3>3. Processing Limitations & Availability</h3>
-                  <p>Free users may run up to %%FREE_DAILY%% PDF operations per day and process files up to %%FREE_MB%% MB each. Paid plans have no daily operation cap and allow files up to %%PRO_MB%% MB each. Merge, JPG/PNG to PDF, and Scan to PDF accept up to %%BATCH_FILES%% files per run; Compare accepts 2 files; other tools accept 1 file per run. Service availability may vary.</p>
+                  <p>Visitors may run up to %%FREE_DAILY%% accepted server operations per day and upload files up to %%GUEST_MB%% MB each. Signed-in Free accounts share the daily operation cap and have no plan-specific per-file cap within the %%FREE_MB%% MB service maximum. AI document tools accept up to %%AI_PAGES%% pages per PDF; AI Chat questions are limited to %%AI_CHAT_CHARS%% characters. Exam Pass (Premium Pack) uploads are limited to %%PREMIUM_MB%% MB per file. Recurring paid plans have no daily operation cap and have no plan-specific per-file cap within the %%PRO_MB%% MB service maximum. Merge, JPG/PNG to PDF, and Scan to PDF accept up to %%BATCH_FILES%% files per run; Compare accepts 2 files; other tools accept 1 file per run. Service availability may vary.</p>
                 </section>
 
                 <section>
@@ -1414,15 +1416,15 @@ async function convertFileInBrowser(file, operation = 'compress') {
               <span>Back to Workspace</span>
             </button>
             <div class="view-header-title">
-              <h2>Paperplane Apps Early Access</h2>
-              <span class="view-header-badge">No installers available yet</span>
+              <h2 id="download-view-heading">Native Apps Early Access</h2>
+              <span class="view-header-badge">Native installers coming later</span>
             </div>
             <div>
-              <span class="download-badge-fast">Apps waitlist</span>
+              <span class="download-badge-fast">Native app waitlist</span>
             </div>
           </div>
 
-          <div class="download-content-wrapper">
+          <div id="apps-waitlist-content" class="download-content-wrapper">
             <!-- Hero Banner -->
             <div class="download-hero-banner">
               <div class="download-hero-icon">
@@ -1430,12 +1432,12 @@ async function convertFileInBrowser(file, operation = 'compress') {
               </div>
               <div class="download-hero-text">
                 <h3>Native PDF Apps, Coming Soon</h3>
-                  <p>Use Paperplane’s browser-based PDF tools while native desktop and mobile apps are in development. No installers are available yet; join the waitlist for release updates.</p>
+                  <p>Use Paperplane in your browser, or install the web app when your browser offers the Install Web App button. Native desktop and mobile installers are still in development; join this waitlist for their release updates.</p>
               </div>
             </div>
 
             <section class="download-howto-section" aria-labelledby="download-howto-title">
-              <h3 id="download-howto-title">How the apps waitlist works</h3>
+              <h3 id="download-howto-title">How the native apps waitlist works</h3>
               <div class="seo-howto-grid">
                 <article class="seo-howto-step"><span>01</span><h3>Choose a platform</h3><p>Select the desktop or mobile platform you want updates about.</p></article>
                 <article class="seo-howto-step"><span>02</span><h3>Enter your email</h3><p>Provide an address where Paperplane can send app availability updates.</p></article>
@@ -1447,7 +1449,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
             <div class="waitlist-card">
               <div class="waitlist-card-header">
                 <div>
-                  <h4>Join the Apps Waitlist</h4>
+                  <h4>Join the Native Apps Waitlist</h4>
                   <p>We will email you when native Paperplane apps are available for your platform.</p>
                 </div>
                 <div class="waitlist-stats-pill">
@@ -1596,6 +1598,21 @@ async function convertFileInBrowser(file, operation = 'compress') {
             </div>
 
           </div>
+          <section id="web-download-content" class="download-content-wrapper" hidden aria-labelledby="web-download-heading">
+            <div class="download-hero-banner">
+              <div class="download-hero-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              </div>
+              <div class="download-hero-text">
+                <h1 id="web-download-heading">Paperplane Downloads</h1>
+                <p>There are no native desktop or mobile installers available yet. You can use the full Paperplane PDF workspace in your browser, or install it as a web app when your browser offers that option.</p>
+              </div>
+            </div>
+            <div class="download-actions">
+              <a class="btn-primary-action" href="/tool-desk">Open the PDF workspace</a>
+              <a class="btn-demo-upgrade" href="/apps">See native app availability</a>
+            </div>
+          </section>
 
         </div>
 
@@ -1790,7 +1807,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
               <strong style="font-size: 20px; color: var(--text-main);" id="settings-tier-name">Free</strong>
               <span style="font-size: 12.5px; color: var(--text-muted);" id="settings-daily-limit">(%%FREE_DAILY%% operations / day)</span>
             </div>
-            <p id="settings-quota-description" style="font-size: 12.5px; color: var(--text-muted); margin: 0 0 14px 0; line-height: 1.5;">Free accounts and guests: up to %%FREE_DAILY%% server operations per day and files up to %%FREE_MB%% MB each. Paid web tools: no daily operation cap and files up to %%PRO_MB%% MB each. Merge, JPG/PNG to PDF, and Scan to PDF accept up to %%BATCH_FILES%% files per run; Compare accepts 2 files; other tools accept 1 file per run.</p>
+            <p id="settings-quota-description" style="font-size: 12.5px; color: var(--text-muted); margin: 0 0 14px 0; line-height: 1.5;">Guests: files up to %%GUEST_MB%% MB. Signed-in Free accounts and recurring paid plans have no plan-specific per-file cap within the %%FREE_MB%% MB service maximum; Exam Pass is limited to %%PREMIUM_MB%% MB per file. Free and guest accounts: up to %%FREE_DAILY%% accepted server operations per day. AI Chat questions are limited to %%AI_CHAT_CHARS%% characters. AI document tools accept PDFs up to %%AI_PAGES%% pages; a batch counts once. Browser-local work and requests rejected before acceptance do not count. A queued PDF/photo job still counts if processing later fails; failed AI or Studio requests refund their reservation when the failure is reported. Paid web tools: no daily operation cap. Merge, JPG/PNG to PDF, and Scan to PDF accept up to %%BATCH_FILES%% files per run; Compare accepts 2 files; other tools accept 1 file per run.</p>
             <div class="quota-container" style="margin-bottom: 16px;">
               <div class="quota-label-row">
                 <span>Operations Today</span>
@@ -1846,14 +1863,14 @@ async function convertFileInBrowser(file, operation = 'compress') {
            <div class="settings-card-item privacy-settings-card">
              <span class="settings-eyebrow">DATA CONTROL</span>
              <h4>Ephemeral encrypted storage</h4>
-             <p>Temporary server job files expire after the configured retention period (2 hours by default). Browser-saved Studio and AI Docs work remains on this device until you clear it. Browser-local processing is available for Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Scan to PDF, JPG/PNG to PDF, PDF-to-JPG, Grayscale PDF, Crop PDF, Add Text & Stamps, Sign PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Compare PDF text, PDF-to-Markdown (basic), PDF-to-Word (text-first), Page Numbers, text and image watermarks, and the photo tools. Grayscale renders colored pages at 150 DPI and may remove searchable text; the original is kept unchanged when the PDF is already grayscale. Image watermarks use temporary server processing after your choice.</p>
+             <p>Temporary server job files expire after the configured retention period (2 hours by default). Browser-saved Studio and AI Docs work remains on this device until you clear it. Browser-local processing is available for Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Scan to PDF, JPG/PNG to PDF, PDF-to-JPG, Grayscale PDF, Crop PDF, Add Text & Stamps, Sign PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Compare PDF text, PDF-to-Markdown (basic), PDF-to-Word (text-first), Page Numbers, text and image watermarks, basic Annotate PDF text markup for exact single-block phrases (not sticky notes or rectangles), and the photo tools. Grayscale renders colored pages at 150 DPI and may remove searchable text; the original is kept unchanged when the PDF is already grayscale. Image watermarks use temporary server processing after your choice.</p>
              <div class="settings-privacy-toggle-row">
                <div>
-                 <strong>Browser processing</strong>
-                 <small id="settings-client-privacy-support">Available for Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Scan to PDF, JPG/PNG to PDF, PDF-to-JPG, Grayscale PDF, Crop PDF, Add Text & Stamps, Sign PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Compare PDF text, PDF-to-Markdown (basic), PDF-to-Word (text-first), Page Numbers, text and image watermarks, and photo tools.</small>
+                 <strong>Use browser processing</strong>
+                 <small id="settings-client-privacy-support">Available for Merge, Split / extract, Remove pages, Rotate PDF, Page Organizer, Scan to PDF, JPG/PNG to PDF, PDF-to-JPG, Grayscale PDF, Crop PDF, Add Text & Stamps, Sign PDF, Fill PDF Forms, Flatten PDF forms, Edit PDF Metadata, PDF-to-Text, Compare PDF text, PDF-to-Markdown (basic), PDF-to-Word (text-first), Page Numbers, text and image watermarks, basic Annotate PDF text markup for exact single-block phrases (not sticky notes or rectangles), and photo tools.</small>
                </div>
                <label class="toggle-switch-sm">
-                 <input type="checkbox" id="settings-client-privacy-toggle" aria-label="Prefer browser processing for supported tools" aria-describedby="settings-client-privacy-support" />
+                 <input type="checkbox" id="settings-client-privacy-toggle" aria-label="Use browser processing for supported tools" aria-describedby="settings-client-privacy-support" />
                  <span class="toggle-slider-sm"></span>
                </label>
              </div>
@@ -2036,10 +2053,10 @@ async function convertFileInBrowser(file, operation = 'compress') {
 
   <!-- Modal: Cloud File Import -->
   <div class="modal-backdrop" id="cloud-modal" hidden>
-    <div class="modal-card">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="cloud-modal-title" tabindex="-1">
       <div class="modal-header">
-        <h3>Cloud Document Import</h3>
-        <button class="close-modal-btn" id="close-cloud-modal"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        <h3 id="cloud-modal-title">Cloud Document Import</h3>
+        <button type="button" class="close-modal-btn" id="close-cloud-modal" aria-label="Close Cloud Import dialog"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
       </div>
       <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">Import a direct, publicly accessible PDF link from Google Drive, Dropbox, OneDrive, or HTTPS. Use the matching converter to upload image or Office files.</p>
       <form id="cloud-form">
@@ -2080,8 +2097,8 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <div class="tier-price-box"><div class="tier-price-main"><span class="tier-price-val">₹0</span><span class="tier-price-period">/ always</span></div><span class="tier-price-alt">No payment required</span></div>
           <ul class="tier-features-list">
             <li><span>✓</span><strong>Browser processing for supported tools:</strong> Merge, split, rotate, photo compress &amp; resize run in your browser when browser processing is selected.</li>
-            <li><span>✓</span><strong>%%FREE_DAILY%% Cloud &amp; AI operations per day:</strong> Word to PDF, OCR, Aadhaar mask &amp; AI.</li>
-            <li><span>✓</span>Files up to %%FREE_MB%% MB each with instant download.</li>
+            <li><span>✓</span><strong>%%FREE_DAILY%% server operations per day:</strong> One accepted server tool, AI, or Studio action counts once; a multi-file batch counts once. AI Chat questions are limited to %%AI_CHAT_CHARS%% characters; AI PDF workflows accept up to %%AI_PAGES%% pages per document. Browser-local processing and requests rejected before acceptance do not count. A queued PDF/photo job still counts if processing later fails; failed AI or Studio requests refund their reservation when the failure is reported.</li>
+            <li><span>✓</span>Guest uploads up to %%GUEST_MB%% MB; signed-in Free accounts have no plan-specific per-file cap within the %%FREE_MB%% MB service maximum.</li>
           </ul>
           <div class="tier-actions"><span class="tier-price-alt">Included automatically</span></div>
         </div>
@@ -2107,7 +2124,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <ul class="tier-features-list">
             <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>100% Ad-Free Experience:</strong> Clean, lightning-fast workflow.</li>
             <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Govt Exam Resizer:</strong> Exact 20KB-50KB photo &amp; signature presets.</li>
-            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Unlimited Cloud &amp; AI Access:</strong> Up to 500 MB per file for 24 hours.</li>
+            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Unlimited Cloud &amp; AI Access:</strong> Up to %%PREMIUM_MB%% MB per file for 24 hours.</li>
           </ul>
           <div class="tier-actions">
             <button type="button" class="btn-primary-action tier-subscribe-btn" id="exam-cashfree-checkout-btn" style="background: #3b82f6;">
@@ -2116,7 +2133,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
           </div>
         </div>
 
-        <!-- TIER 2: Student & Educator (₹%%STUDENT_PRICE%%/month or ₹399/year) -->
+        <!-- TIER 2: Student & Educator (₹%%STUDENT_PRICE%% per 30 days) -->
         <div class="pricing-tier-card" data-plan-tier="student_pro">
           <span class="tier-current-plan" hidden>Current plan</span>
           <div class="tier-popular-tag" style="background: #10b981;">STUDENT DISCOUNT</div>
@@ -2130,7 +2147,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <div class="tier-price-box">
             <div class="tier-price-main">
               <span class="tier-price-val">₹%%STUDENT_PRICE%%</span>
-              <span class="tier-price-period">/30 days</span>
+              <span class="tier-price-period">/ 30 days</span>
             </div>
             <span class="tier-price-alt">One-time payment · No automatic renewal</span>
           </div>
@@ -2146,10 +2163,10 @@ async function convertFileInBrowser(file, operation = 'compress') {
           </div>
         </div>
 
-        <!-- TIER 3: All-in-One Pro, Cyber Café & Developer (₹%%CAFE_PRICE%%/month) -->
+        <!-- TIER 3: All-In-One Pro & Developer (₹%%CAFE_PRICE%% per 30 days) -->
         <div class="pricing-tier-card popular" data-plan-tier="cyber_cafe">
           <span class="tier-current-plan" hidden>Current plan</span>
-          <div class="tier-popular-tag" style="background: #8b5cf6;">ALL-IN-ONE PRO</div>
+          <div class="tier-popular-tag" style="background: #8b5cf6;">ALL-IN-ONE PRO &amp; DEVELOPER</div>
           <div class="tier-card-header">
             <span style="font-size: 20px;">🏪</span>
             <div>
@@ -2160,7 +2177,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <div class="tier-price-box">
             <div class="tier-price-main">
               <span class="tier-price-val">₹%%CAFE_PRICE%%</span>
-              <span class="tier-price-period">/30 days</span>
+              <span class="tier-price-period">/ 30 days</span>
             </div>
             <span class="tier-price-alt">One-time payment · No automatic renewal</span>
           </div>
@@ -2694,6 +2711,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
           </div>
           <div id="compress-stat-opp" style="margin-top: 8px; color: #38bdf8; font-size: 11px;"></div>
         </div>
+        <div id="compress-error-box" role="alert" hidden style="margin: 0 0 14px; padding: 10px 12px; border: 1px solid #f87171; border-radius: 8px; color: #fecaca; background: rgba(127,29,29,.2);"></div>
 
         <div class="form-group-row">
           <label>Compression Preset</label>
@@ -2875,10 +2893,10 @@ async function convertFileInBrowser(file, operation = 'compress') {
 
   <!-- Phase 5: Professional Conversion Center Modal -->
   <div class="modal-backdrop" id="convert-modal" hidden>
-    <div class="modal-card page-modal-card convert-modal-card">
+    <div class="modal-card page-modal-card convert-modal-card" role="dialog" aria-modal="true" aria-labelledby="convert-modal-title" tabindex="-1">
       <div class="modal-header">
         <div>
-          <h3 style="margin: 0; font-size: 16px;">Document Conversion Center</h3>
+          <h3 id="convert-modal-title" style="margin: 0; font-size: 16px;">Document Conversion Center</h3>
           <span style="font-size: 11px; color: var(--text-muted);">High-fidelity document conversion between PDF, Office, Images, and Text</span>
         </div>
         <button type="button" class="modal-close" id="modal-close-convert" aria-label="Close conversion dialog"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
@@ -2949,7 +2967,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
 
             <div class="format-card" data-format="png">
               <div class="format-card-header">
-                <span class="format-icon">SVG</span>
+                <span class="format-icon">PNG</span>
                 <span class="format-badge badge-full">FULL</span>
               </div>
               <div class="format-name">PNG Images</div>
@@ -2958,7 +2976,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
 
             <div class="format-card" data-format="webp">
               <div class="format-card-header">
-                <span class="format-icon">HTML</span>
+                <span class="format-icon">WEBP</span>
                 <span class="format-badge badge-full">FULL</span>
               </div>
               <div class="format-name">WebP Images</div>
@@ -2967,7 +2985,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
 
             <div class="format-card" data-format="md">
               <div class="format-card-header">
-                <span class="format-icon">TXT</span>
+                <span class="format-icon">MD</span>
                 <span class="format-badge badge-full">FULL</span>
               </div>
               <div class="format-name">Markdown (.md)</div>
@@ -2976,7 +2994,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
 
             <div class="format-card" data-format="txt">
               <div class="format-card-header">
-                <span class="format-icon">MD</span>
+                <span class="format-icon">TXT</span>
                 <span class="format-badge badge-full">FULL</span>
               </div>
               <div class="format-name">Plain Text (.txt)</div>
@@ -3416,7 +3434,6 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <div style="padding: 10px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; font-size: 11.5px; color: #fca5a5; margin-top: 8px;">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> <strong>Irreversible Redaction:</strong> Character glyphs and vector content covered by the redaction are permanently removed from the output PDF.
           </div>
-          <button type="button" class="btn-primary-action" id="btn-apply-hardened-redact" style="margin-top: 12px; background: #dc2626; border-color: #b91c1c;">Execute Hardened Redaction →</button>
         </div>
       </div>
 
@@ -3435,36 +3452,36 @@ async function convertFileInBrowser(file, operation = 'compress') {
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>
       <span>Tool Desk</span>
     </button>
-    <button type="button" class="mobile-nav-btn" id="mob-nav-studio" data-workspace-view="studio">
+    <button type="button" class="mobile-nav-btn" id="mob-nav-studio" data-workspace-view="studio" aria-label="Open PDF Studio">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
       <span>Studio</span>
     </button>
-    <button type="button" class="mobile-nav-btn" id="mob-nav-ai" data-workspace-view="ai">
+    <button type="button" class="mobile-nav-btn" id="mob-nav-ai" data-workspace-view="ai" aria-label="Open AI Intelligence workspace">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a8 8 0 0 0-8 8c0 3.37 2.08 6.25 5 7.42V20a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-2.58c2.92-1.17 5-4.05 5-7.42a8 8 0 0 0-8-8z"/></svg>
-      <span>AI Intelligence</span>
+      <span>AI</span>
     </button>
     <button type="button" class="mobile-nav-btn" id="mob-nav-download" data-workspace-view="download" aria-label="Apps Waitlist">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      <span>Waitlist</span>
+      <span>Apps</span>
     </button>
   </nav>
 
   <!-- PDF engines are loaded on demand by the first feature that needs them. -->
-  <script src="/assets/pdf_runtime.js?v=25" defer></script>
+  <script src="/assets/pdf_runtime.js?v=27" defer></script>
 
   <!-- Phase 6 PDF Forms, Signing & Security Engine -->
-  <script src="/assets/security_forms.js?v=6.2.3" defer></script>
+  <script src="/assets/security_forms.js?v=6.2.4" defer></script>
   <!-- Phase 5 Professional PDF Conversion Engine -->
-  <script src="/assets/conversion_engine.js?v=5.2.0" defer></script>
+  <script src="/assets/conversion_engine.js?v=5.2.2" defer></script>
   <!-- Phase 4 Compression, Repair & OCR Engine -->
-  <script src="/assets/optimization_engine.js?v=4.2.1" defer></script>
+  <script src="/assets/optimization_engine.js?v=4.2.3" defer></script>
   <!-- Phase 3 Professional Page Management Engine -->
-  <script src="/assets/page_organizer.js?v=20" defer></script>
+  <script src="/assets/page_organizer.js?v=21" defer></script>
   <!-- Phase 2 Professional Editor Engine -->
-<script src="/assets/editor.js?v=14" defer></script>
+<script src="/assets/editor.js?v=15" defer></script>
   <!-- Application Controller -->
-  <script src="/assets/app.js?v=154" defer></script>
+  <script src="/assets/app.js?v=239" defer></script>
   <!-- Floating Customer Feedback Widget -->
-  <script src="/assets/feedback.js?v=17" defer></script>
+  <script src="/assets/feedback.js?v=19" defer></script>
 </body>
 </html>

@@ -39,7 +39,7 @@
   async function createStudioRenderSession(bytes, password = '') {
     if (typeof Worker !== 'function' || typeof OffscreenCanvas !== 'function'
         || !(bytes instanceof ArrayBuffer) || bytes.byteLength > 64 * 1024 * 1024) return null;
-    const worker = new Worker('/assets/studio_render_worker.js?v=4');
+    const worker = new Worker('/assets/studio_render_worker.js?v=6');
     let nextRequestId = 1;
     const pending = new Map();
     let closed = false;
@@ -151,7 +151,7 @@
   async function transformLocalPdf(operation, files, options) {
     const buffers = await Promise.all(files.map(file => file.arrayBuffer()));
     return new Promise((resolve, reject) => {
-      const worker = new Worker('/assets/local_pdf_worker.js?v=26');
+      const worker = new Worker('/assets/local_pdf_worker.js?v=29');
       const release = () => {
         worker.terminate();
         window.removeEventListener('pagehide', onPageHide);

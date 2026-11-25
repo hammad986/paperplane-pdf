@@ -64,6 +64,18 @@ def test_resize_photo_scale_percent(tmp_path):
         assert im.size == (200, 200)
 
 
+@pytest.mark.parametrize("as_pdf", [False, True])
+def test_exam_resizer_obeys_strict_decimal_max_byte_cap(tmp_path, as_pdf):
+    import random
+
+    source = tmp_path / "detailed-429kb.jpg"
+    pixels = random.Random(20261117).randbytes(1200 * 900 * 3)
+    Image.frombytes("RGB", (1200, 900), pixels).save(source, format="JPEG", quality=52, optimize=True)
+    output = converters.resize_exam_image(source, tmp_path / ("strict-cap.pdf" if as_pdf else "strict-cap.jpg"),
+                                          preset="ssc_photo", as_pdf=as_pdf)
+    assert output.stat().st_size <= 50_000
+
+
 def test_merge_photos_vertical_horizontal_grid(tmp_path):
     img1 = _make_sample_image(tmp_path / "img1.jpg", 100, 100, (255, 0, 0))
     img2 = _make_sample_image(tmp_path / "img2.jpg", 100, 100, (0, 255, 0))

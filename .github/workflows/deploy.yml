@@ -5,19 +5,57 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
-  deploy:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install application and test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-test.txt
+
+      - name: Run full test suite
+        run: python -m pytest -q
+
+  deploy:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Require SSH host key fingerprint
+        env:
+          ORACLE_HOST_FINGERPRINT: ${{ secrets.ORACLE_HOST_FINGERPRINT }}
+        run: |
+          if [[ -z "$ORACLE_HOST_FINGERPRINT" ]]; then
+            echo "Missing required ORACLE_HOST_FINGERPRINT repository secret." >&2
+            exit 1
+          fi
 
       - name: Deploy to Oracle Cloud via SSH
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
         with:
           host: ${{ secrets.ORACLE_HOST }}
           username: ${{ secrets.ORACLE_USER || 'ubuntu' }}
           key: ${{ secrets.ORACLE_SSH_KEY }}
+          fingerprint: ${{ secrets.ORACLE_HOST_FINGERPRINT }}
           script: |
             cd ~/paperplane-pdf
             set -e

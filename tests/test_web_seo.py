@@ -104,7 +104,7 @@ def test_workflow_cards_have_useful_body_copy_without_claiming_missing_controls(
         "pdf-to-word": ("Select a text-based PDF", "OCR settings selector"),
         "pdf-to-excel": ("Convert the extracted content, then review the workbook", "table-region previews"),
         "pdf-to-powerpoint": ("Convert the pages into slides", "text reconstruction options"),
-        "pdf-to-jpg": ("After upload, choose an export resolution", "page and image quality options"),
+        "pdf-to-jpg": ("Optionally enter page numbers or ranges, then choose an export resolution", "page and image quality options"),
         "excel-to-pdf": ("Convert the workbook and review its pages", "sheet selector"),
         "annotate-pdf": ("Choose an annotation type", "Load the PDF into Studio"),
         "watermark-pdf": ("Enter watermark text or select an image", "position"),
@@ -153,7 +153,7 @@ def test_spa_seo_endpoint_returns_the_same_route_content_model():
     assert "does not provide a recent-files or job-history page" in payload["faqs"][-1][1]
 
 
-def test_faq_workspace_matches_the_four_home_page_faqs():
+def test_faq_workspace_matches_the_seven_home_page_faqs():
     home = client.get("/").text
     faq_page = client.get("/faq").text
     home_section = re.search(r'<div class="seo-faq">(.*?)</div>\s*<nav class="seo-related"', home, re.S)
@@ -162,14 +162,17 @@ def test_faq_workspace_matches_the_four_home_page_faqs():
 
     def entries(section: str) -> list[tuple[str, str]]:
         values = re.findall(r'<details[^>]*>\s*<summary>(.*?)</summary>\s*<p>(.*?)</p>\s*</details>', section, re.S)
-        return [(html.unescape(re.sub(r"<[^>]+>", " ", question)).strip(),
-                 html.unescape(re.sub(r"<[^>]+>", " ", answer)).strip())
+        return [(re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", question))).strip(),
+                 re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", answer))).strip())
                 for question, answer in values]
 
     home_entries = entries(home_section.group(1))
     workspace_entries = entries(workspace_section.group(1))
-    assert len(home_entries) == 4
+    assert len(home_entries) == 7
     assert workspace_entries == home_entries
+    assert "Where can I check plan prices and usage limits?" in [question for question, _ in home_entries]
+    assert "Where can I find refund information?" in [question for question, _ in home_entries]
+    assert "How do I report a problem or contact the team?" in [question for question, _ in home_entries]
 
 
 def test_developer_api_docs_use_configured_free_app_quota():
@@ -186,8 +189,9 @@ def test_howto_and_faq_copy_does_not_promise_missing_pdf_controls():
     assert "page-range controls" not in text_pages_faq
 
     pdf_to_jpg = client.get("/api/seo/pdf_to_jpg").json()
-    assert "every document page" in pdf_to_jpg["intro"]
-    assert "selected document pages" not in pdf_to_jpg["intro"]
+    assert "Choose specific pages" in pdf_to_jpg["intro"]
+    assert "full document" in pdf_to_jpg["intro"]
+    assert "Yes. Enter page numbers or ranges" in dict(pdf_to_jpg["faqs"])["Can I convert only selected PDF pages?"]
 
     compare = client.get("/api/seo/compare").json()
     assert "plain-text report" in compare["description"]
@@ -294,7 +298,7 @@ def test_delivery_shell_keeps_heavy_assets_deferred_and_uses_clean_urls():
     launcher = (root / "app.py").read_text(encoding="utf-8")
 
     assert "window.history.pushState({ view: 'desk', op: state.operation }, '', targetPath)" in app_js
-    assert '<script src="/assets/pdf_runtime.js?v=25" defer></script>' in index_html
+    assert '<script src="/assets/pdf_runtime.js?v=27" defer></script>' in index_html
     assert '<script src="/assets/pdf.min.js" defer></script>' not in index_html
     assert '<script src="/assets/pdf-lib.min.js" defer></script>' not in index_html
     assert "ensurePdfJs" in pdf_runtime_js and "ensurePdfLib" in pdf_runtime_js

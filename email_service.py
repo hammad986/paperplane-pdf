@@ -7,6 +7,7 @@ import re
 import smtplib
 import urllib.error
 import urllib.request
+import time
 from datetime import datetime, timezone
 from html import escape
 from email.mime.multipart import MIMEMultipart
@@ -66,18 +67,41 @@ def _send_resend_api(to_email: str, subject: str, html_body: str, text_body: str
             },
             method="POST"
         )
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            if resp.status in (200, 201):
-                logger.info("Email delivered via Resend API to %s: %s", to_email, subject)
-                return True
-            logger.warning("Resend API returned status %s for %s", resp.status, to_email)
-            return False
-    except urllib.error.HTTPError as http_err:
-        err_body = http_err.read().decode("utf-8", errors="ignore")
-        logger.warning("Resend API HTTP error for %s (%s): %s", to_email, http_err.code, err_body)
+        retry_delays = (0.25, 0.75)
+        for attempt in range(len(retry_delays) + 1):
+            try:
+                with urllib.request.urlopen(req, timeout=10) as resp:
+                    if 200 <= resp.status < 300:
+                        logger.info("Transactional email accepted by Resend API")
+                        return True
+                    status = int(resp.status)
+            except urllib.error.HTTPError as http_err:
+                status = int(http_err.code)
+                if status not in (408, 425, 429) and status < 500:
+                    logger.warning("Resend rejected transactional email with non-retryable HTTP status %s", status)
+                    return False
+            except (urllib.error.URLError, TimeoutError, OSError) as exc:
+                if attempt >= len(retry_delays):
+                    logger.warning("Resend transport failed after %s attempts (%s)", attempt + 1, type(exc).__name__)
+                    return False
+                logger.warning("Resend transport failed (%s); retry %s/%s", type(exc).__name__, attempt + 1, len(retry_delays))
+                time.sleep(retry_delays[attempt])
+                continue
+            except Exception as exc:
+                logger.warning("Resend dispatch failed (%s)", type(exc).__name__)
+                return False
+
+            if status not in (408, 425, 429) and status < 500:
+                logger.warning("Resend returned non-retryable HTTP status %s", status)
+                return False
+            if attempt >= len(retry_delays):
+                logger.warning("Resend exhausted retries after HTTP status %s", status)
+                return False
+            logger.warning("Resend returned transient HTTP status %s; retry %s/%s", status, attempt + 1, len(retry_delays))
+            time.sleep(retry_delays[attempt])
         return False
     except Exception as exc:
-        logger.warning("Failed to dispatch email to %s via Resend API: %s", to_email, exc)
+        logger.warning("Resend setup failed (%s)", type(exc).__name__)
         return False
 
 
@@ -113,10 +137,10 @@ def _send_smtp(to_email: str, subject: str, html_body: str, text_body: str) -> b
 
         server.sendmail(SMTP_FROM_EMAIL, [to_email], msg.as_string())
         server.quit()
-        logger.info("Email delivered successfully to %s: %s", to_email, subject)
+        logger.info("Transactional email accepted by SMTP")
         return True
     except Exception as exc:
-        logger.warning("Failed to send transactional email to %s via SMTP (%s): %s", to_email, SMTP_HOST, exc)
+        logger.warning("SMTP transactional delivery failed (%s)", type(exc).__name__)
         return False
 
 
@@ -408,7 +432,7 @@ def send_waitlist_alert(signup_email: str, platform: str = "all", waitlist_posit
 
 
 def send_password_reset_email(to_email: str, reset_token: str, base_url: str | None = None) -> bool:
-    """Sends a cryptographically secure 1-hour password reset link."""
+    """Sends a cryptographically secure 30-minute password reset link."""
     domain = (base_url or PAPERPLANE_PUBLIC_URL).rstrip("/")
     reset_url = f"{domain}/?reset_token={reset_token}"
     safe_to_email = escape(str(to_email), quote=True)
@@ -418,7 +442,7 @@ def send_password_reset_email(to_email: str, reset_token: str, base_url: str | N
     text_body = (
         f"Hello,\n\n"
         f"We received a request to reset your Paperplane PDF password.\n"
-        f"To reset your password, click the link below (valid for 1 hour):\n\n"
+        f"To reset your password, click the link below (valid for 30 minutes):\n\n"
         f"{reset_url}\n\n"
         f"If you did not request a password reset, please ignore this email.\n\n"
         f"The Paperplane PDF Team"
@@ -435,7 +459,7 @@ def send_password_reset_email(to_email: str, reset_token: str, base_url: str | N
     </div>
     <h2 style="font-size: 20px; color: #f0f5f4; margin-top: 0; margin-bottom: 12px;">Reset Your Password</h2>
     <p style="color: #a3b8b6; font-size: 14px; line-height: 1.5; margin-bottom: 24px;">
-      We received a request to reset the password for <strong style="color: #ffffff;">{safe_to_email}</strong>. Click the button below to choose a new password. This link expires in 60 minutes.
+      We received a request to reset the password for <strong style="color: #ffffff;">{safe_to_email}</strong>. Click the button below to choose a new password. This link expires in 30 minutes.
     </p>
     <div style="text-align: center; margin-bottom: 28px;">
       <a href="{safe_reset_url}" style="background-color: #ff4b26; color: #ffffff; padding: 12px 28px; font-size: 14px; font-weight: 600; text-decoration: none; border-radius: 8px; display: inline-block;">
