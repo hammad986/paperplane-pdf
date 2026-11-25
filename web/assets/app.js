@@ -58,7 +58,7 @@ const CLIENT_SIDE_IMAGE_OPERATIONS = new Set(['photo_compress', 'photo_resize', 
 const PROCESSING_MODE_KEY = 'paperplane-pdf-processing-mode';
 const MAX_PHOTO_BATCH = 12;
 const externalSdkPromises = new Map();
-function loadExternalSdk(src, isReady) {
+function loadExternalSdk(src, isReady, timeoutMs = 15000) {
   if (isReady()) return Promise.resolve();
   if (externalSdkPromises.has(src)) return externalSdkPromises.get(src);
   const script = document.createElement('script');
@@ -76,7 +76,7 @@ function loadExternalSdk(src, isReady) {
       else if (isReady()) resolve();
       else { script.remove(); reject(new Error('The external service SDK loaded without its expected interface.')); }
     };
-    const timeout = setTimeout(() => finish(new Error('The external service SDK timed out.')), 15000);
+    const timeout = setTimeout(() => finish(new Error('The external service SDK timed out.')), timeoutMs);
     script.onload = () => finish();
     script.onerror = () => finish(new Error('The external service SDK could not be loaded.'));
     document.head.appendChild(script);
@@ -9154,12 +9154,43 @@ async function completeGoogleAuthPayload(payload) {
   }
 }
 
+function setGoogleButtonBusy(busy) {
+  const btn = $('#google-auth-btn');
+  const label = $('#google-btn-text');
+  if (btn) btn.disabled = Boolean(busy);
+  if (label) label.textContent = busy ? 'Connecting to Google…' : 'Continue with Google';
+}
+
+function handleGoogleButtonClick() {
+  const errEl = $('#auth-error');
+  if (errEl) {
+    errEl.hidden = true;
+    errEl.textContent = '';
+  }
+  if (googleCodeClient) {
+    // Call synchronously inside click handler to preserve transient user activation for window.open popups.
+    try {
+      googleCodeClient.requestCode();
+    } catch (error) {
+      console.warn('Google popup launch threw synchronously:', error);
+      renderGoogleFallbackButton();
+      if (errEl) {
+        errEl.textContent = 'Google Sign-In popup could not open. Use the Google button below or sign in with email.';
+        errEl.hidden = false;
+      }
+    }
+    return;
+  }
+  void startGoogleSignIn();
+}
+
 async function startGoogleSignIn() {
   const errEl = $('#auth-error');
   if (errEl) {
     errEl.hidden = true;
     errEl.textContent = '';
   }
+  setGoogleButtonBusy(true);
   try {
     const config = await getGoogleAuthConfig();
     if (!config?.google_enabled || !config.google_client_id) {
@@ -9168,25 +9199,32 @@ async function startGoogleSignIn() {
     }
     await initGoogleAuth({ loadSdk: true });
     if (googleCodeClient) {
+      renderGoogleFallbackButton();
       googleCodeClient.requestCode();
       return;
     }
-    window.google.accounts.id.prompt(notification => {
-      if (notification?.isNotDisplayed?.() || notification?.isSkippedMoment?.()) {
-        renderGoogleFallbackButton();
-        if (errEl) {
-          errEl.textContent = 'Google One Tap was suppressed by this browser. Use the Google button below or sign in with email.';
-          errEl.hidden = false;
+    if (window.google?.accounts?.id) {
+      window.google.accounts.id.prompt(notification => {
+        if (notification?.isNotDisplayed?.() || notification?.isSkippedMoment?.()) {
+          renderGoogleFallbackButton();
+          if (errEl) {
+            errEl.textContent = 'Google One Tap was suppressed by this browser. Use the Google button below or sign in with email.';
+            errEl.hidden = false;
+          }
         }
-      }
-    });
+      });
+      return;
+    }
+    throw new Error('Google Sign-In script loaded without account APIs.');
   } catch (error) {
     console.warn('Google Sign-In could not start:', error);
     if (errEl) {
-      errEl.textContent = 'Google Sign-In could not start. Check your popup settings or sign in with email below.';
+      errEl.textContent = 'Could not load Google Sign-In (check network or third-party script blockers). You can sign in with email/password below.';
       errEl.hidden = false;
     }
     showToast('Google Sign-In is unavailable right now. Please use email/password and try again later.', 'warning', 6000);
+  } finally {
+    setGoogleButtonBusy(false);
   }
 }
 
@@ -9194,7 +9232,7 @@ async function initGoogleAuth({ loadSdk = false } = {}) {
   const manualBtn = $('#google-auth-btn');
   if (manualBtn && !manualBtn.hasAttribute('data-bound')) {
     manualBtn.setAttribute('data-bound', 'true');
-    manualBtn.onclick = () => { void startGoogleSignIn(); };
+    manualBtn.onclick = handleGoogleButtonClick;
   }
   if (googleAuthInitialized) return;
 
@@ -9207,7 +9245,7 @@ async function initGoogleAuth({ loadSdk = false } = {}) {
   if (googleAuthInitPromise) return googleAuthInitPromise;
 
   googleAuthInitPromise = (async () => {
-    await loadExternalSdk(GOOGLE_IDENTITY_SDK_URL, () => Boolean(window.google?.accounts?.id || window.google?.accounts?.oauth2));
+    await loadExternalSdk(GOOGLE_IDENTITY_SDK_URL, () => Boolean(window.google?.accounts?.id || window.google?.accounts?.oauth2), 8000);
     if (window.google?.accounts?.id) {
       window.google.accounts.id.initialize({
         client_id: config.google_client_id,
@@ -9882,6 +9920,7 @@ async function init() {
 
   initBillingHandlers();
   initMobileNav();
+  void initGoogleAuth({ loadSdk: false }).catch(() => {});
   installOverlayEscapeStack();
   initFooterReveal();
   addEndpointTableMobileLabels();

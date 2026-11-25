@@ -926,9 +926,21 @@ body.light-mode .tab-pill.active {
   color: var(--text-main);
   background: var(--bg-panel);
   border: 1px solid var(--border-light);
+  max-width: 170px;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+#topbar-username {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .user-avatar-sm {
+  flex-shrink: 0;
   width: 22px;
   height: 22px;
   border-radius: 50%;
@@ -8173,6 +8185,17 @@ body:not(.dark-mode) .waitlist-email-input {
 /* Keep the full workspace navigation inside the column left by the desktop sidebar. */
 .mobile-brand { display: none; }
 
+@media (min-width: 1361px) and (max-width: 1520px) {
+  .topbar { padding: 0 16px; gap: 10px; }
+  .topbar-left { flex: 0 1 auto; }
+  .breadcrumb-trail { max-width: 195px; }
+  .workspace-tabs { flex: 0 1 auto; min-width: 0; }
+  .tab-pill { padding: 6px 10px; font-size: 12px; white-space: nowrap; }
+  .topbar-right { gap: 6px; flex-shrink: 0; }
+  .topbar-upgrade-pill { padding: 6px 10px; white-space: nowrap; }
+  .topbar-user-pill { max-width: 150px; }
+}
+
 @media (min-width: 901px) and (max-width: 1360px) {
   .topbar {
     display: grid;
@@ -9961,10 +9984,10 @@ section, h1, h2, h3 { scroll-margin-top: 104px; }
   html.studio-active body #studio-mobile-page-slot #page-indicator { display: inline-flex; align-items: center; gap: 3px; padding: 4px; }
   html.studio-active body #studio-mobile-page-slot #page-jump-input { width: 36px; min-width: 36px; height: 34px; padding: 0 2px; font-size: 13px; text-align: center; }
   html.studio-active body #studio-mobile-page-slot #page-total-indicator { min-width: 17px; text-align: center; font-size: 12px; }
-  html.studio-active body #studio-mobile-zoom-slot { flex: 1 1 auto; justify-content: center; }
-  html.studio-active body #studio-mobile-zoom-slot .studio-tool-group { display: flex; align-items: center; gap: 2px; }
-  html.studio-active body #studio-mobile-zoom-slot button { width: 38px; min-width: 38px !important; padding: 0; }
-  html.studio-active body #studio-mobile-zoom-slot .zoom-select { width: 56px; min-width: 56px; height: 38px; min-height: 38px; line-height: 38px; padding: 0 4px !important; font-size: 11px; }
+  html.studio-active body #studio-mobile-zoom-slot { flex: 0 1 auto; min-width: 0; justify-content: center; overflow: hidden; }
+  html.studio-active body #studio-mobile-zoom-slot .studio-tool-group { display: inline-flex; align-items: center; gap: 3px; max-width: 100%; }
+  html.studio-active body #studio-mobile-zoom-slot button { width: 32px !important; min-width: 32px !important; height: 38px !important; min-height: 38px !important; padding: 0 !important; }
+  html.studio-active body #studio-mobile-zoom-slot .zoom-select { width: 52px !important; min-width: 52px !important; height: 38px !important; min-height: 38px !important; line-height: 38px !important; padding: 0 2px !important; font-size: 11px !important; text-align: center !important; text-align-last: center !important; }
   html.studio-active body .studio-mobile-properties-panel {
     display: block;
     position: fixed;
@@ -10550,7 +10573,6 @@ html.footer-revealed .app-global-footer { visibility: visible; opacity: 1; point
   html.studio-active body .studio-mode-switcher { min-width: 0 !important; max-width: 100%; }
   html.studio-active body .studio-sub-ribbon > .studio-tool-group[title="Page Operations"] { flex: 1 1 100% !important; flex-wrap: wrap !important; }
   html.studio-active body .studio-sub-ribbon > .studio-tool-group[title="Page Operations"] .studio-tool-btn { flex: 0 0 auto !important; }
-  html.studio-active body #studio-mobile-zoom-slot .zoom-select,
   html.studio-active body .studio-primary-ribbon .zoom-select { width: 76px !important; min-width: 76px !important; }
   html.studio-active body .studio-tool-btn .tool-btn-text,
   html.studio-active body .studio-mode-btn span { font-size: 10px !important; }
@@ -11139,12 +11161,17 @@ body.high-contrast #run-button:disabled {
   .dynamic-workspace { padding-block-start: 12px !important; }
   .tool-desk-container { gap: 8px; }
   .tool-desk-nav-bar { margin-block-end: 4px; }
-  .tool-hero-card { padding-block: 8px !important; }
+  .tool-hero-card { padding-block: 6px !important; gap: 4px !important; }
+  #tool-title { font-size: clamp(18px, 4.8vw, 21px) !important; line-height: 1.18; }
+  #tool-tier-badge { font-size: 10px !important; padding: 2px 7px !important; }
   #tool-description { display: none; }
   .dropzone { padding-block: 12px; }
+  .drop-icon-circle { width: 38px; height: 38px; margin-bottom: 4px; font-size: 16px; }
   .dropzone-options { gap: 4px; }
   .options-panel { padding: 10px 12px; gap: 8px; }
-  .option-field { gap: 4px; }
+  .option-field { gap: 4px; font-size: 12px; line-height: 1.35; }
+  .option-field p, .option-field small { margin-block: 0; font-size: 11.5px; line-height: 1.35; }
+  .action-bar { padding-block: 2px; gap: 6px; }
   #options:has(#title) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   #options:has(#title) #title { grid-column: 1 / -1; }
 }
