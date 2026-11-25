@@ -621,7 +621,10 @@ function renderAiConversation(messages = []) {
   container.querySelectorAll('.chat-bubble').forEach(node => node.remove());
   const emptyState = $('#ai-empty-state');
   if (emptyState) container.prepend(emptyState);
-  messages.forEach(message => {
+  const visibleMessages = state.files[0]
+    ? messages
+    : messages.filter(message => message.kind !== 'document-greeting');
+  visibleMessages.forEach(message => {
     const bubble = document.createElement('div');
     const isDocumentRequired = message.kind === 'document-required';
     bubble.className = `chat-bubble ${message.role === 'user' ? 'user' : 'ai'}${isDocumentRequired ? ' ai-document-required' : ''}`;
@@ -2746,7 +2749,9 @@ function openSettingsModal(defaultTab = 'account') {
 function switchSettingsTab(tabName) {
   const buttons = $$('.settings-tab-btn');
   buttons.forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.tab === tabName);
+    const selected = btn.dataset.tab === tabName;
+    btn.classList.toggle('active', selected);
+    btn.setAttribute('aria-selected', String(selected));
   });
   const activeTab = Array.from(buttons).find(btn => btn.dataset.tab === tabName);
   const tabStrip = activeTab?.closest('.settings-tabs');
@@ -2795,15 +2800,6 @@ if ($('#settings-guest-actions')) {
     }
   };
 }
-if ($('#settings-signout-btn')) {
-  $('#settings-signout-btn').onclick = () => {
-    localStorage.removeItem('paperplane_token');
-    document.cookie = 'paperplane_token=; path=/; max-age=0; SameSite=Lax';
-    checkAuthStatus();
-    closeSettingsModal();
-    showToast('Signed out of Paperplane.');
-  };
-}
 
 // Appearance Theme Controls in Settings
 function applyTheme(themeName) {
@@ -2849,6 +2845,10 @@ if ($('#settings-upgrade-plan-btn')) {
 async function loadSettingsApiKeys() {
   const list = $('#settings-api-keys-list');
   if (!list) return;
+  if (!state.user) {
+    list.innerHTML = '<div style="color: var(--text-muted); font-size: 12.5px; padding: 10px;">Sign in with an All-In-One Pro &amp; Developer account to view or generate REST API keys.</div>';
+    return;
+  }
   list.innerHTML = '<div style="color: var(--text-muted); font-size: 12.5px; padding: 10px;">Loading active API keys…</div>';
 
   try {
@@ -6303,7 +6303,7 @@ function renderTranslationResult(blob, name, targetLanguage, translatedPercent, 
     ? `<p class="translation-review-note" role="status">The translation reported ${warningCountValue} ${warningLabel}. Review the translated PDF before sharing it.</p>`
     : '';
   const downloadLabel = isPartial ? 'Download partial translation' : 'Download translated PDF';
-  showRichAiResult(resultTitle, resultSummary, `<p>${resultMessage}</p>${warningNotice}<div class="ai-result-actions"><a class="btn-download" href="${url}" download="${escapeHtml(name)}">${downloadLabel}</a><button type="button" class="btn-secondary-action" id="translation-view-studio-btn">View in Studio</button></div>`, { showStudio: false, keepTranslationUrl: true });
+  showRichAiResult(resultTitle, resultSummary, `<p>${resultMessage}</p>${warningNotice}<div class="ai-result-actions"><a class="btn-download" href="${url}" download="${escapeHtml(name)}">${downloadLabel}</a><button type="button" class="btn-secondary-action" id="translation-view-studio-btn">View in Studio</button></div>`, { keepTranslationUrl: true });
   $('#translation-view-studio-btn')?.addEventListener('click', async event => {
     event.currentTarget.disabled = true;
     event.currentTarget.textContent = 'Opening in Studio…';
@@ -6333,7 +6333,13 @@ function showRichAiResult(title, meta, contentHtml, actions = {}) {
   content.innerHTML = contentHtml;
   content.hidden = false;
   $('#result-download-link').hidden = true;
-  $('#result-view-studio-btn').hidden = actions.showStudio !== false;
+  // Rich AI results render their own context-specific actions. The generic
+  // tool-result button can retain an old PDF handoff handler and duplicate it.
+  const genericStudioButton = $('#result-view-studio-btn');
+  if (genericStudioButton) {
+    genericStudioButton.hidden = true;
+    genericStudioButton.onclick = null;
+  }
   result.hidden = false;
   // AI chat/summary/translation use this rich-result path rather than
   // showDownloadResult; bring the newly-rendered result into view as well.
@@ -6402,7 +6408,6 @@ function showAiChatDeskResult(data) {
     'Grounded AI answer',
     uniqueCitations.length ? 'Document-grounded answer' : 'Direct answer',
     `<div class="ai-result-answer">${renderMarkdown(data.answer)}</div><div class="ai-result-citations"><strong>Verified sources</strong>${citations}</div><button type="button" class="btn-primary-action ai-open-studio-result-btn">Open in Full AI Interactive Studio →</button>`,
-    { showStudio: true },
   );
   $('.ai-open-studio-result-btn')?.addEventListener('click', () => switchWorkspaceView('ai'));
 }
@@ -6440,7 +6445,6 @@ function showSummaryDeskResult(summary, citations = [], summaryMode = null) {
     'Executive briefing ready',
     `${fileName} · formatted Markdown · ${mode.detail}`,
     `<article class="ai-result-markdown">${renderMarkdown(currentSummaryText)}</article>${summaryCitationHtml(citations)}<div class="ai-result-actions"><button type="button" class="btn-demo-upgrade" id="desk-copy-summary-btn">Copy Summary</button><button type="button" class="btn-demo-upgrade" id="desk-download-summary-txt-btn">Download TXT</button><button type="button" class="btn-demo-upgrade" id="desk-download-summary-pdf-btn">Download PDF</button></div>`,
-    { showStudio: false },
   );
   $('#desk-copy-summary-btn')?.addEventListener('click', async () => {
     await navigator.clipboard.writeText(currentSummaryText);
@@ -6532,7 +6536,7 @@ async function runDeskAiWorkflow(options, signal, isCurrent = () => true) {
     );
     if (!isCurrent()) return;
     renderExtractionResultsModal(data.data);
-    showRichAiResult('Structured extraction ready', `${data.data.document_type || 'general'} · interactive viewer opened`, '<p>Review the structured fields, source pages, warnings, and export controls in the extraction viewer.</p>', { showStudio: false });
+    showRichAiResult('Structured extraction ready', `${data.data.document_type || 'general'} · interactive viewer opened`, '<p>Review the structured fields, source pages, warnings, and export controls in the extraction viewer.</p>');
     $('#extraction-results-modal').hidden = false;
     showToast('Structured entities rendered in the interactive viewer.', 'success');
     return;
@@ -6552,7 +6556,7 @@ async function runDeskAiWorkflow(options, signal, isCurrent = () => true) {
     const name = `${(state.files[0]?.name || 'document').replace(/\.[^/.]+$/, '')}_translated.pdf`;
     const targetLanguage = options.target_language || 'es';
     if (mode === 'failed' || mode === 'source_preserved') {
-      showRichAiResult('Translation failed', `${targetLanguage} · no translated text produced · ${formatTranslationWarningCount(warningCount)}`, '<p>No translated PDF is available. The source document was not changed. Check the provider connection and retry.</p>', { showStudio: false });
+      showRichAiResult('Translation failed', `${targetLanguage} · no translated text produced · ${formatTranslationWarningCount(warningCount)}`, '<p>No translated PDF is available. The source document was not changed. Check the provider connection and retry.</p>');
       showToast('Translation failed. No translated download was created.', 'error');
       return;
     }
@@ -7834,6 +7838,11 @@ function updateAiDocBar() {
     if (summaryBtn) summaryBtn.disabled = executiveBriefAvailable === false;
     ensureAiDocumentGreeting(file);
   } else {
+    const hadStaleGreeting = state.aiConversation.some(message => message.kind === 'document-greeting');
+    if (hadStaleGreeting) {
+      state.aiConversation = state.aiConversation.filter(message => message.kind !== 'document-greeting');
+      persistAiConversation();
+    }
     if (uploadZone) uploadZone.hidden = false;
     if (activeBar) activeBar.hidden = true;
     if (pageContext) pageContext.hidden = true;
@@ -9084,6 +9093,7 @@ let googleAuthConfig = null;
 let googleAuthConfigPromise = null;
 let googleAuthInitPromise = null;
 let googleAuthInitialized = false;
+let googleCodeClient = null;
 const GOOGLE_IDENTITY_SDK_URL = 'https://accounts.google.com/gsi/client';
 
 async function getGoogleAuthConfig() {
@@ -9097,7 +9107,59 @@ async function getGoogleAuthConfig() {
   return googleAuthConfigPromise;
 }
 
+function renderGoogleFallbackButton() {
+  const gisContainer = $('#google-gis-container');
+  if (!gisContainer || !window.google?.accounts?.id?.renderButton) return false;
+  gisContainer.hidden = false;
+  gisContainer.style.display = 'flex';
+  gisContainer.style.justifyContent = 'center';
+  gisContainer.style.marginBottom = '10px';
+  if (!gisContainer.hasChildNodes()) {
+    window.google.accounts.id.renderButton(gisContainer, {
+      theme: document.body.classList.contains('dark-mode') ? 'filled_black' : 'outline',
+      size: 'large',
+      width: Math.min(340, Math.max(220, gisContainer.parentElement?.clientWidth ? gisContainer.parentElement.clientWidth - 48 : 300)),
+      text: 'continue_with',
+    });
+  }
+  return true;
+}
+
+async function completeGoogleAuthPayload(payload) {
+  const errEl = $('#auth-error');
+  if (errEl) {
+    errEl.hidden = true;
+    errEl.textContent = '';
+  }
+  const btn = $('#google-auth-btn');
+  if (btn) btn.disabled = true;
+  try {
+    const data = await safeFetch('/api/auth/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (data.status === 'success' || data.user_id) {
+      $('#auth-modal').hidden = true;
+      await checkAuthStatus();
+      showToast('Signed in with Google successfully!');
+    }
+  } catch (err) {
+    if (errEl) {
+      errEl.textContent = err.message || 'Google token verification failed.';
+      errEl.hidden = false;
+    }
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
 async function startGoogleSignIn() {
+  const errEl = $('#auth-error');
+  if (errEl) {
+    errEl.hidden = true;
+    errEl.textContent = '';
+  }
   try {
     const config = await getGoogleAuthConfig();
     if (!config?.google_enabled || !config.google_client_id) {
@@ -9105,9 +9167,25 @@ async function startGoogleSignIn() {
       return;
     }
     await initGoogleAuth({ loadSdk: true });
-    window.google.accounts.id.prompt();
+    if (googleCodeClient) {
+      googleCodeClient.requestCode();
+      return;
+    }
+    window.google.accounts.id.prompt(notification => {
+      if (notification?.isNotDisplayed?.() || notification?.isSkippedMoment?.()) {
+        renderGoogleFallbackButton();
+        if (errEl) {
+          errEl.textContent = 'Google One Tap was suppressed by this browser. Use the Google button below or sign in with email.';
+          errEl.hidden = false;
+        }
+      }
+    });
   } catch (error) {
     console.warn('Google Sign-In could not start:', error);
+    if (errEl) {
+      errEl.textContent = 'Google Sign-In could not start. Check your popup settings or sign in with email below.';
+      errEl.hidden = false;
+    }
     showToast('Google Sign-In is unavailable right now. Please use email/password and try again later.', 'warning', 6000);
   }
 }
@@ -9129,13 +9207,32 @@ async function initGoogleAuth({ loadSdk = false } = {}) {
   if (googleAuthInitPromise) return googleAuthInitPromise;
 
   googleAuthInitPromise = (async () => {
-    await loadExternalSdk(GOOGLE_IDENTITY_SDK_URL, () => Boolean(window.google?.accounts?.id));
-    window.google.accounts.id.initialize({
-      client_id: config.google_client_id,
-      callback: handleGoogleAuthCallback,
-      auto_select: false,
-      cancel_on_tap_outside: true,
-    });
+    await loadExternalSdk(GOOGLE_IDENTITY_SDK_URL, () => Boolean(window.google?.accounts?.id || window.google?.accounts?.oauth2));
+    if (window.google?.accounts?.id) {
+      window.google.accounts.id.initialize({
+        client_id: config.google_client_id,
+        callback: handleGoogleAuthCallback,
+        auto_select: false,
+        cancel_on_tap_outside: true,
+      });
+    }
+    if (config.google_code_flow_enabled && window.google?.accounts?.oauth2?.initCodeClient) {
+      googleCodeClient = window.google.accounts.oauth2.initCodeClient({
+        client_id: config.google_client_id,
+        scope: 'openid email profile',
+        ux_mode: 'popup',
+        callback: handleGoogleCodeCallback,
+        error_callback: err => {
+          const errEl = $('#auth-error');
+          if (errEl) {
+            errEl.textContent = err?.type === 'popup_closed'
+              ? 'Google Sign-In window was closed before completing login.'
+              : 'Google Sign-In popup could not open. Allow popups for this site or use email sign-in below.';
+            errEl.hidden = false;
+          }
+        },
+      });
+    }
     googleAuthInitialized = true;
   })();
   try {
@@ -9154,25 +9251,16 @@ async function handleGoogleAuthCallback(response) {
     $('#auth-error').hidden = false;
     return;
   }
-  const btn = $('#google-auth-btn');
-  if (btn) btn.disabled = true;
-  try {
-    const data = await safeFetch('/api/auth/google', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ credential: response.credential })
-    });
-    if (data.status === 'success' || data.user_id) {
-      $('#auth-modal').hidden = true;
-      await checkAuthStatus();
-      showToast('Signed in with Google successfully!');
-    }
-  } catch (err) {
-    $('#auth-error').textContent = err.message || 'Google token verification failed.';
+  await completeGoogleAuthPayload({ credential: response.credential });
+}
+
+async function handleGoogleCodeCallback(response) {
+  if (!response || response.error || !response.code) {
+    $('#auth-error').textContent = response?.error_description || response?.error || 'Google authentication was cancelled.';
     $('#auth-error').hidden = false;
-  } finally {
-    if (btn) btn.disabled = false;
+    return;
   }
+  await completeGoogleAuthPayload({ code: response.code });
 }
 
 // Secure Logout Handler
@@ -9395,7 +9483,7 @@ if (forgotPwForm) {
       msg.className = 'result-card success';
       msg.replaceChildren();
       const message = document.createElement('p');
-      message.style.cssText = 'margin: 0; color: #34d399;';
+      message.style.cssText = 'margin: 0; color: inherit; font-weight: 500;';
       message.textContent = typeof res.message === 'string' && res.message
         ? res.message : 'If an account exists, a password reset link has been dispatched.';
       msg.appendChild(message);

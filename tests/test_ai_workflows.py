@@ -1065,6 +1065,78 @@ def test_translation_repairs_segments_omitted_from_partial_provider_batch(tmp_pa
     assert "Párrafo traducido 2" in text
 
 
+def test_translation_reuses_identical_segments_across_repeated_pages(tmp_path, monkeypatch):
+    """A provider with a small response budget should translate repeated page text once."""
+    source = tmp_path / "repeated-pages.pdf"
+    output = tmp_path / "translated-repeated-pages.pdf"
+    repeated = (
+        "Free local PDF tools for everyone.",
+        "This page demonstrates document translation.",
+        "Every sample file is available for testing.",
+        "No account, upload, or tracking is required.",
+    )
+    with fitz.open() as document:
+        for number in range(1, 6):
+            page = document.new_page()
+            for index, text in enumerate((f"Page {number} translation sample.", *repeated)):
+                page.insert_text((72, 72 + 45 * index), text)
+        document.save(source)
+
+    requested: list[int] = []
+
+    def response_limited_provider(batch, *_args, **_kwargs):
+        # The live provider returned only 10 of 25 repeated blocks. Model a
+        # ten-item response ceiling; smaller repair calls cannot recover more.
+        if len(batch) <= 2:
+            raise RuntimeError("provider response budget exhausted")
+        requested.extend(block_id for block_id, _ in batch)
+        return {block_id: f"Texto traducido {block_id}." for block_id, _ in batch[:10]}
+
+    monkeypatch.setattr(ai_engine, "_translate_text_batch", response_limited_provider)
+    report = {}
+    ai_engine.translate_pdf_layout(source, output, target_lang="es", report=report)
+
+    assert output.exists()
+    assert report["blocks_seen"] == 25
+    assert report["blocks_translated"] == 25
+    assert report["text_segments_seen"] == 25
+    assert report["text_segments_unique"] == 9
+    assert report["translated_segment_fraction"] == 1.0
+    assert len(requested) == 9
+    with fitz.open(output) as translated:
+        assert translated.page_count == 5
+        assert all("Texto traducido" in page.get_text() for page in translated)
+
+
+def test_translation_keeps_light_text_readable_on_dark_page_header(tmp_path, monkeypatch):
+    source = tmp_path / "dark-header.pdf"
+    output = tmp_path / "translated-dark-header.pdf"
+    with fitz.open() as document:
+        page = document.new_page()
+        page.draw_rect(fitz.Rect(0, 0, page.rect.width, 92), color=None, fill=(0.04, 0.16, 0.48))
+        page.insert_text((48, 55), "White title on a blue header", fontsize=24, color=(1, 1, 1))
+        page.insert_text((48, 145), "Ordinary body paragraph", fontsize=13, color=(0.15, 0.15, 0.2))
+        document.save(source)
+
+    def translate(batch, *_args, **_kwargs):
+        return {segment_id: ("Título blanco traducido" if text.startswith("White title")
+                             else "Párrafo del contenido traducido") for segment_id, text in batch}
+
+    monkeypatch.setattr(ai_engine, "_translate_text_batch", translate)
+    report = {}
+    ai_engine.translate_pdf_layout(source, output, target_lang="es", report=report)
+    assert report["blocks_translated"] == 2
+    with fitz.open(output) as translated:
+        page = translated[0]
+        assert "Título blanco traducido" in page.get_text()
+        title_pixels = page.get_pixmap(matrix=fitz.Matrix(2, 2),
+                                       clip=fitz.Rect(48, 30, 360, 65), alpha=False)
+        samples = title_pixels.samples
+        bright_pixels = sum(1 for index in range(0, len(samples), title_pixels.n)
+                            if all(channel > 220 for channel in samples[index:index + 3]))
+        assert bright_pixels > 50, bright_pixels
+
+
 def test_translation_batches_cap_count_and_prompt_characters_without_dropping_segments():
     segments = [(index, "x" * length) for index, length in enumerate([20] * 40 + [1_600] * 10)]
     batches = ai_engine._build_translation_batches(segments)

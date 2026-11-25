@@ -66,7 +66,7 @@ from config import (
     DEV_TIER_PRICE_INR,
     EXAM_PASS_PRICE_INR, STUDENT_PRO_PRICE_INR, STUDENT_ANNUAL_PRICE_INR, CYBER_CAFE_PRICE_INR,
     TRUSTED_HOSTS,
-    ALLOW_BILLING_SIMULATION, ALLOW_TEST_PAYMENTS, ENVIRONMENT, GOOGLE_CLIENT_ID, SECURE_COOKIES, COOKIE_SAMESITE,
+    ALLOW_BILLING_SIMULATION, ALLOW_TEST_PAYMENTS, ENVIRONMENT, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, SECURE_COOKIES, COOKIE_SAMESITE,
     SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, SMTP_FROM, SMTP_USE_TLS,
     AGENTROUTER_API_KEY, AGENTROUTER_BASE_URL, AGENTROUTER_MODEL,
     FREE_API_CALLS_PER_DAY, FREE_AI_CALLS_PER_DAY, FREE_MAX_FILE_SIZE_MB, FREE_CONCURRENT_JOBS,
@@ -3638,17 +3638,104 @@ async def resend_otp(request: Request, background_tasks: BackgroundTasks):
     return res
 
 
+def _validate_google_claims(claims: dict) -> str:
+    """Validate Google OAuth2 ID token claims and return the verified email address."""
+    if claims.get("iss") not in ("accounts.google.com", "https://accounts.google.com"):
+        raise HTTPException(401, "Invalid Google token: issuer mismatch.")
+    if claims.get("aud") != GOOGLE_CLIENT_ID:
+        raise HTTPException(401, "Invalid Google token: audience mismatch.")
+    if claims.get("email_verified") not in (True, "true"):
+        raise HTTPException(401, "Google email is not verified.")
+    email = str(claims.get("email") or "").strip()
+    if not email:
+        raise HTTPException(401, "No email in Google token.")
+    return email
+
+
+def _verify_google_id_token(credential: str) -> str:
+    """Verify a Google JWT ID token via google-auth with tokeninfo endpoint fallback."""
+    if HAS_GOOGLE_AUTH:
+        try:
+            id_info = google_id_token.verify_oauth2_token(
+                credential,
+                google_requests.Request(),
+                GOOGLE_CLIENT_ID,
+            )
+            return _validate_google_claims(id_info)
+        except HTTPException:
+            raise
+        except Exception:
+            pass
+
+    try:
+        tokeninfo_url = f"https://oauth2.googleapis.com/tokeninfo?{urllib.parse.urlencode({'id_token': credential})}"
+        req = urllib.request.Request(tokeninfo_url, headers={"User-Agent": "Paperplane/2.0"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        return _validate_google_claims(data)
+    except HTTPException:
+        raise
+    except Exception as err:
+        raise HTTPException(401, f"Google token verification failed: {err}") from err
+
+
+def _exchange_google_auth_code(code: str) -> str:
+    """Exchange a GIS popup OAuth2 authorization code for a verified Google ID token."""
+    if not GOOGLE_CLIENT_SECRET:
+        raise HTTPException(
+            503,
+            "Google OAuth2 authorization-code flow is not configured (missing GOOGLE_CLIENT_SECRET).",
+        )
+    form_body = urllib.parse.urlencode({
+        "code": code,
+        "client_id": GOOGLE_CLIENT_ID,
+        "client_secret": GOOGLE_CLIENT_SECRET,
+        "redirect_uri": "postmessage",
+        "grant_type": "authorization_code",
+    }).encode("utf-8")
+    req = urllib.request.Request(
+        "https://oauth2.googleapis.com/token",
+        data=form_body,
+        headers={
+            "Content-Type": "application/x-www-form-urlencoded",
+            "User-Agent": "Paperplane/2.0",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            token_data = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as err:
+        detail = "Google authorization code exchange failed."
+        try:
+            err_body = json.loads(err.read().decode("utf-8", errors="replace"))
+            err_desc = err_body.get("error_description") or err_body.get("error")
+            if err_desc:
+                detail = f"Google sign-in failed: {err_desc}"
+        except Exception:
+            pass
+        raise HTTPException(401, detail) from err
+    except Exception as err:
+        raise HTTPException(502, "Could not reach Google OAuth token endpoint.") from err
+
+    id_token = str(token_data.get("id_token") or "").strip()
+    if not id_token:
+        raise HTTPException(401, "Google token exchange did not return an ID token.")
+    return id_token
+
+
 @app.post("/api/auth/google")
 def google_auth(response: Response, request: Request, background_tasks: BackgroundTasks, payload: dict = Body(default={})):
     """
-    Authenticates via Google OAuth2 ID Token.
+    Authenticates via Google OAuth2 ID Token or popup authorization code.
     Verifies signature, audience, and issuer against Google's public keys.
     If Google OAuth is not configured on this host, returns 503 Service Unavailable.
     """
     client_ip = get_client_ip(request)
     enforce_rate_limit(f"google_auth:{client_ip}", limit=20)
 
-    credential = payload.get("credential") or payload.get("id_token")
+    credential = str(payload.get("credential") or payload.get("id_token") or "").strip()
+    auth_code = str(payload.get("code") or "").strip()
     if not GOOGLE_CLIENT_ID:
         # In non-production testing environment, allow test credential if simulation explicitly enabled
         if ALLOW_BILLING_SIMULATION and ENVIRONMENT != "production" and payload.get("test_mode") and payload.get("email"):
@@ -3659,52 +3746,11 @@ def google_auth(response: Response, request: Request, background_tasks: Backgrou
                 detail="Google OAuth2 authentication is not configured in this deployment (missing GOOGLE_CLIENT_ID). Please use email/password sign-in."
             )
     else:
+        if not credential and auth_code:
+            credential = _exchange_google_auth_code(auth_code)
         if not credential:
-            raise HTTPException(400, "Missing Google credential or id_token.")
-        # Verify Google JWT using google-auth library with tokeninfo fallback
-        email = None
-        verified = False
-        if HAS_GOOGLE_AUTH:
-            try:
-                id_info = google_id_token.verify_oauth2_token(
-                    credential,
-                    google_requests.Request(),
-                    GOOGLE_CLIENT_ID
-                )
-                if id_info.get("iss") not in ("accounts.google.com", "https://accounts.google.com"):
-                    raise HTTPException(401, "Invalid Google token: issuer mismatch.")
-                if id_info.get("aud") != GOOGLE_CLIENT_ID:
-                    raise HTTPException(401, "Invalid Google token: audience mismatch.")
-                if not id_info.get("email_verified") in (True, "true"):
-                    raise HTTPException(401, "Google email is not verified.")
-                email = id_info.get("email")
-                if not email:
-                    raise HTTPException(401, "No email in Google token.")
-                verified = True
-            except HTTPException:
-                raise
-            except Exception:
-                verified = False
-
-        if not verified:
-            try:
-                tokeninfo_url = f"https://oauth2.googleapis.com/tokeninfo?id_token={credential}"
-                req = urllib.request.Request(tokeninfo_url, headers={"User-Agent": "Paperplane/2.0"})
-                with urllib.request.urlopen(req, timeout=10) as resp:
-                    data = json.loads(resp.read().decode("utf-8"))
-                if data.get("aud") != GOOGLE_CLIENT_ID:
-                    raise HTTPException(401, "Invalid Google token: audience mismatch.")
-                if data.get("iss") not in ("accounts.google.com", "https://accounts.google.com"):
-                    raise HTTPException(401, "Invalid Google token: issuer mismatch.")
-                if not data.get("email_verified") in (True, "true"):
-                    raise HTTPException(401, "Google email is not verified.")
-                email = data.get("email")
-                if not email:
-                    raise HTTPException(401, "No email in Google token.")
-            except HTTPException:
-                raise
-            except Exception as err:
-                raise HTTPException(401, f"Google token verification failed: {err}") from err
+            raise HTTPException(400, "Missing Google credential, id_token, or authorization code.")
+        email = _verify_google_id_token(credential)
 
     try:
         session = create_google_session(email)
@@ -3733,6 +3779,7 @@ def get_auth_config():
     return {
         "google_enabled": bool(GOOGLE_CLIENT_ID),
         "google_client_id": GOOGLE_CLIENT_ID or None,
+        "google_code_flow_enabled": bool(GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET),
     }
 
 

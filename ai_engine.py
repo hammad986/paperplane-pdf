@@ -2525,10 +2525,12 @@ def _translation_change_fraction(source_text: str, translated_text: str) -> floa
     return max(0.0, 1.0 - unchanged / total)
 
 
-def _translation_block_rotations(page: Any) -> dict[tuple[float, float, float, float], int]:
+def _translation_block_rotations(
+    page: Any, text_dict: dict[str, Any] | None = None
+) -> dict[tuple[float, float, float, float], int]:
     """Map text-block bounds to their nearest right-angle reading orientation."""
     rotations: dict[tuple[float, float, float, float], int] = {}
-    for block in page.get_text("dict").get("blocks", []):
+    for block in (text_dict or page.get_text("dict")).get("blocks", []):
         if block.get("type") != 0:
             continue
         lines = block.get("lines") or []
@@ -2547,6 +2549,28 @@ def _translation_block_rotations(page: Any) -> dict[tuple[float, float, float, f
         if len(bounds) == 4 and angle:
             rotations[bounds] = angle
     return rotations
+
+
+def _translation_block_styles(
+    text_dict: dict[str, Any]
+) -> dict[tuple[float, float, float, float], tuple[str, float]]:
+    """Keep each translated block's dominant source color and font size."""
+    styles = {}
+    for block in text_dict.get("blocks", []):
+        if block.get("type") != 0:
+            continue
+        spans = [span for line in block.get("lines", []) for span in line.get("spans", [])
+                 if str(span.get("text", "")).strip()]
+        if not spans:
+            continue
+        dominant = max(spans, key=lambda span: len(str(span.get("text", "")).strip()))
+        bounds = tuple(round(float(value), 2) for value in block.get("bbox", ()))
+        if len(bounds) != 4:
+            continue
+        color = f"#{int(dominant.get('color', 0x19202A)) & 0xFFFFFF:06x}"
+        size = float(dominant.get("size", 10))
+        styles[bounds] = (color, size if math.isfinite(size) and size > 0 else 10.0)
+    return styles
 
 
 def translate_pdf_layout(
@@ -2580,8 +2604,11 @@ def translate_pdf_layout(
         report_data["pages_seen"] = doc.page_count
         blocks: list[tuple[int, fitz.Rect, str]] = []
         block_rotations: list[int] = []
+        block_styles: list[tuple[str, float]] = []
         for page in doc:
-            rotations_by_bounds = _translation_block_rotations(page)
+            text_dict = page.get_text("dict")
+            rotations_by_bounds = _translation_block_rotations(page, text_dict)
+            styles_by_bounds = _translation_block_styles(text_dict)
             for block in page.get_text("blocks"):
                 if len(block) < 7 or block[6] != 0 or len(block[4].strip()) < 2:
                     continue
@@ -2589,9 +2616,11 @@ def translate_pdf_layout(
                 blocks.append((page.number, fitz.Rect(block[:4]), block[4].strip()))
                 bounds_key = tuple(round(float(value), 2) for value in block[:4])
                 block_rotations.append(rotations_by_bounds.get(bounds_key, 0))
+                block_styles.append(styles_by_bounds.get(bounds_key, ("#19202a", 10.0)))
 
         segments: list[tuple[int, str]] = []
         block_segments: list[list[tuple[int, str]]] = []
+        segment_ids_by_text: dict[str, int] = {}
         for index, (_, _, source_text) in enumerate(blocks):
             ids = []
             cursor = 0
@@ -2599,8 +2628,14 @@ def translate_pdf_layout(
                 position = source_text.find(chunk, cursor)
                 separator = source_text[cursor:position]
                 joiner = "\n" if "\n" in separator else " " if separator else ""
-                ids.append((len(segments), joiner))
-                segments.append((len(segments), chunk))
+                # Repeated headers, footers, and form labels need one provider
+                # translation, but each occurrence still gets its own overlay.
+                segment_id = segment_ids_by_text.get(chunk)
+                if segment_id is None:
+                    segment_id = len(segments)
+                    segment_ids_by_text[chunk] = segment_id
+                    segments.append((segment_id, chunk))
+                ids.append((segment_id, joiner))
                 cursor = position + len(chunk)
             block_segments.append(ids)
         batches = _build_translation_batches(segments)
@@ -2628,6 +2663,9 @@ def translate_pdf_layout(
         # IDs from valid JSON or an entire first-pass batch failed transiently.
         # Keep retries bounded across the document so provider truncation cannot
         # silently strand every missing segment after only the first few groups.
+        all_rate_limited = bool(batch_failures) and not translated_segments and all(
+            "429" in reason for _, _, reason in batch_failures
+        )
         all_missing_ids = {
             block_id for batch in batches for block_id, _ in batch if block_id not in translated_segments
         }
@@ -2635,7 +2673,7 @@ def translate_pdf_layout(
         requested_ids: set[int] = set()
         repaired_ids: set[int] = set()
         repair_requests = 0
-        while repair_requests < TRANSLATION_MAX_REPAIR_REQUESTS:
+        while repair_requests < TRANSLATION_MAX_REPAIR_REQUESTS and not all_rate_limited:
             remaining_budget = deadline - time.monotonic()
             if remaining_budget <= 0:
                 break
@@ -2730,13 +2768,14 @@ def translate_pdf_layout(
             )
             overlay = overlays.new_page(width=overlay_width, height=overlay_height)
             # MuPDF's HTML renderer uses shaped Unicode fonts, including Devanagari.
-            font_size = 5.5 if vertical else 10
-            scale_low = 0.7 if vertical else 0.45
+            source_color, source_size = block_styles[index]
+            font_size = 5.5 if vertical else min(48, max(5.5, source_size))
+            scale_low = 0.7 if vertical else min(0.45, 4.5 / font_size)
             spare, _ = overlay.insert_htmlbox(
                 overlay.rect,
                 escape(translation).replace("\n", "<br>"),
                 css=(f"body {{ margin: 0; font: {font_size}pt 'Noto Sans Devanagari', 'Nirmala UI', "
-                     "'Mangal', 'DejaVu Sans', sans-serif; color: #19202a; }"),
+                     f"'Mangal', 'DejaVu Sans', sans-serif; color: {source_color}; }}"),
                 scale_low=scale_low,
             )
             if spare < 0:
@@ -2773,12 +2812,14 @@ def translate_pdf_layout(
         report_data["translated_fraction"] = (
             translated_source_chars / total_source_chars if total_source_chars else 0.0
         )
-        report_data["text_segments_seen"] = len(segments)
+        report_data["text_segments_seen"] = sum(len(ids) for ids in block_segments)
+        report_data["text_segments_unique"] = len(segments)
         report_data["text_segments_translated"] = sum(
             len(block_segments[index]) for index in placed_block_ids
         )
         report_data["translated_segment_fraction"] = (
-            report_data["text_segments_translated"] / len(segments) if segments else 0.0
+            report_data["text_segments_translated"] / report_data["text_segments_seen"]
+            if report_data["text_segments_seen"] else 0.0
         )
         report_data["translated_block_fraction"] = (
             report_data["blocks_translated"] / report_data["blocks_seen"]

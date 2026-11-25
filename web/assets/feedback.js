@@ -172,7 +172,9 @@
         border: 1px solid #283a3f;
         border-radius: 14px;
         box-shadow: 0 20px 48px rgba(0, 0, 0, 0.6);
-        z-index: 81;
+        z-index: 1260;
+        max-height: calc(100dvh - 110px);
+        overflow-y: auto;
         display: none;
         flex-direction: column;
         overflow: hidden;
@@ -324,17 +326,25 @@
       }
 
       /* Mobile adjustment so it sits nicely above mobile bar */
+      @media (max-width: 900px) {
+        .pp-feedback-card {
+          bottom: calc(82px + env(safe-area-inset-bottom, 0px));
+          right: 16px;
+          width: calc(100vw - 32px);
+          max-height: calc(100dvh - 156px);
+          overflow-y: auto;
+        }
+        body.studio-active .pp-feedback-card {
+          bottom: calc(182px + env(safe-area-inset-bottom, 0px));
+          max-height: calc(100dvh - 252px);
+        }
+      }
       @media (max-width: 768px) {
         .pp-feedback-btn {
           bottom: calc(76px + env(safe-area-inset-bottom, 0px));
           right: 16px;
           padding: 7px 13px;
           font-size: 12px;
-        }
-        .pp-feedback-card {
-          bottom: calc(126px + env(safe-area-inset-bottom, 0px));
-          right: 16px;
-          width: calc(100vw - 32px);
         }
       }
 

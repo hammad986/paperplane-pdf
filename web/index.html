@@ -14,7 +14,7 @@
   
 
   <script src="/assets/theme-init.js?v=13"></script>
-  <link rel="stylesheet" href="/assets/styles.css?v=90" />
+  <link rel="stylesheet" href="/assets/styles.css?v=91" />
 
 </head>
 <body class="light-mode auth-pending">
@@ -199,7 +199,7 @@
         <div class="topbar-right">
           <button type="button" class="topbar-action-btn pwa-install-btn" id="install-app-btn" hidden aria-label="Install Web App" aria-describedby="install-app-status">Install Web App</button>
           <span id="install-app-status" class="visually-hidden" role="status" aria-live="polite"></span>
-          <button type="button" class="topbar-upgrade-pill" id="topbar-upgrade-btn">
+          <button type="button" class="topbar-upgrade-pill" id="topbar-upgrade-btn" aria-label="View pricing plans">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
             <span>View plans</span>
           </button>
@@ -471,6 +471,7 @@
                     <span class="tool-btn-text">New Page</span>
                   </button>
                   <button type="button" class="studio-tool-btn studio-clear-pdf-btn" id="studio-clear-pdf-btn" title="Clear the PDF from Studio" aria-label="Clear Studio PDF">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                     <span class="tool-btn-text">Clear PDF</span>
                   </button>
                   <input type="file" id="studio-file-input" accept="application/pdf" hidden aria-label="Upload PDF to Studio">
@@ -1741,7 +1742,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <div id="settings-user-actions" hidden style="margin-top: 18px;">
             <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.5;">You are securely authenticated. Your documents and usage quotas are synchronized across sessions.</p>
             
-            <div style="background: rgba(30, 41, 59, 0.45); border: 1px solid var(--border-light); border-radius: 8px; padding: 14px; margin-bottom: 16px;">
+            <div class="settings-password-card">
               <h5 style="margin: 0 0 10px 0; font-size: 13px; color: var(--text-main); font-weight: 600;">Change Account Password</h5>
               <form id="settings-change-password-form">
                 <div class="option-field" style="margin-bottom: 10px;">
@@ -1770,7 +1771,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
         </div>
 
         <!-- Tab 2: Appearance -->
-        <div class="settings-pane" id="pane-appearance" hidden>
+        <div class="settings-pane" id="pane-appearance" role="tabpanel" aria-labelledby="settings-tab-btn-appearance" hidden>
           <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">Select your preferred workspace visual theme and contrast level.</p>
           <div class="theme-options-grid">
             <button type="button" class="theme-choice-card" id="theme-dark-btn">
@@ -1797,7 +1798,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
         </div>
 
         <!-- Tab 3: Billing & Plans -->
-        <div class="settings-pane" id="pane-billing" hidden>
+        <div class="settings-pane" id="pane-billing" role="tabpanel" aria-labelledby="settings-tab-btn-billing" hidden>
           <div class="billing-status-summary">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
               <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">ACTIVE PLAN</span>
@@ -1824,7 +1825,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
         </div>
 
         <!-- Tab 4: Developer API -->
-         <div class="settings-pane" id="pane-api" hidden>
+         <div class="settings-pane" id="pane-api" role="tabpanel" aria-labelledby="settings-tab-btn-api" hidden>
           <div class="api-info-callout">
             <div class="api-info-icon">Info</div>
             <div class="api-info-text">
@@ -1850,7 +1851,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
          </div>
 
          <!-- Tab 5: Ephemeral Storage & Privacy -->
-         <div class="settings-pane" id="pane-privacy" hidden>
+         <div class="settings-pane" id="pane-privacy" role="tabpanel" aria-labelledby="settings-tab-btn-privacy" hidden>
            <div class="settings-card-item saved-work-controls">
              <span class="settings-eyebrow">BROWSER DATA</span>
              <h4>Clear saved workspace data</h4>
@@ -2083,7 +2084,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <h3 style="margin: 0; font-size: 21px; font-weight: 800;">Choose Your Paperplane Plan</h3>
           <span style="font-size: 12.5px; color: var(--text-muted);">Scale your document intelligence and high-volume operations</span>
         </div>
-        <button class="close-modal-btn" id="close-upgrade-modal"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        <button type="button" class="close-modal-btn" id="close-upgrade-modal" aria-label="Close pricing dialog"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
       </div>
 
       <div id="upgrade-context-alert" class="result-card error" hidden style="margin-bottom: 14px; padding: 10px; font-size: 12.5px;"></div>
@@ -3480,8 +3481,8 @@ async function convertFileInBrowser(file, operation = 'compress') {
   <!-- Phase 2 Professional Editor Engine -->
 <script src="/assets/editor.js?v=15" defer></script>
   <!-- Application Controller -->
-  <script src="/assets/app.js?v=239" defer></script>
+  <script src="/assets/app.js?v=241" defer></script>
   <!-- Floating Customer Feedback Widget -->
-  <script src="/assets/feedback.js?v=19" defer></script>
+  <script src="/assets/feedback.js?v=20" defer></script>
 </body>
 </html>

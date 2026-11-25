@@ -160,3 +160,47 @@ def test_otp_dispatch_never_reports_simulated_delivery_success(monkeypatch):
     monkeypatch.setattr(email_service, "SMTP_HOST", "")
     monkeypatch.setattr(email_service, "SMTP_FROM_EMAIL", "security@paperplane.example")
     assert email_service.send_otp_email("person@example.test", "123456", "login") is False
+
+
+def test_authenticated_mailbox_smtp_allows_matching_gmail_sender(monkeypatch):
+    sent = []
+
+    class FakeSMTP:
+        def __init__(self, host, port, timeout=10):
+            sent.append(("init", host, port))
+        def ehlo(self):
+            pass
+        def starttls(self):
+            sent.append(("starttls",))
+        def login(self, user, password):
+            sent.append(("login", user, password))
+        def sendmail(self, from_addr, to_addrs, msg):
+            sent.append(("sendmail", from_addr, to_addrs))
+        def quit(self):
+            sent.append(("quit",))
+
+    monkeypatch.setattr(email_service, "RESEND_API_KEY", "")
+    monkeypatch.setattr(email_service, "SMTP_ENABLED", True)
+    monkeypatch.setattr(email_service, "SMTP_HOST", "smtp.gmail.com")
+    monkeypatch.setattr(email_service, "SMTP_PORT", 587)
+    monkeypatch.setattr(email_service, "SMTP_USER", "owner@gmail.com")
+    monkeypatch.setattr(email_service, "SMTP_PASSWORD", "abcd1234efgh5678")
+    monkeypatch.setattr(email_service, "SMTP_FROM_EMAIL", "owner@gmail.com")
+    monkeypatch.setattr(email_service.smtplib, "SMTP", FakeSMTP)
+
+    assert email_service.send_otp_email("user@example.test", "654321", "login") is True
+    assert ("login", "owner@gmail.com", "abcd1234efgh5678") in sent
+    assert ("sendmail", "owner@gmail.com", ["user@example.test"]) in sent
+
+
+def test_authenticated_mailbox_smtp_rejects_mismatched_consumer_sender(monkeypatch):
+    monkeypatch.setattr(email_service, "RESEND_API_KEY", "")
+    monkeypatch.setattr(email_service, "SMTP_ENABLED", True)
+    monkeypatch.setattr(email_service, "SMTP_HOST", "smtp.gmail.com")
+    monkeypatch.setattr(email_service, "SMTP_USER", "other@gmail.com")
+    monkeypatch.setattr(email_service, "SMTP_PASSWORD", "abcd1234efgh5678")
+    monkeypatch.setattr(email_service, "SMTP_FROM_EMAIL", "owner@gmail.com")
+    monkeypatch.setattr(email_service, "_send_smtp", lambda *args: pytest.fail("must not dispatch mismatched sender"))
+
+    assert email_service.send_otp_email("user@example.test", "654321", "login") is False
+

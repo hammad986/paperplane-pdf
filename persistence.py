@@ -458,6 +458,7 @@ def create_google_session(email: str) -> dict:
     token_hash = hashlib.sha256(token.encode()).hexdigest()
     with closing(connect()) as connection:
         connection.execute("INSERT INTO sessions VALUES (?, ?, ?)", (token_hash, user_id, expires_at))
+        connection.execute("UPDATE users SET last_seen_at = ? WHERE id = ?", (time.time(), user_id))
         connection.commit()
     user_data = get_user(user_id)
     return {

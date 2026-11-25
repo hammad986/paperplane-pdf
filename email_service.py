@@ -21,14 +21,13 @@ SMTP_HOST = os.getenv("SMTP_HOST", "")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER = os.getenv("SMTP_USER", "")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "").replace(" ", "").strip()
-SMTP_FROM_EMAIL = os.getenv("SMTP_FROM_EMAIL", os.getenv("SMTP_USER", "noreply@paperplane-pdf.com"))
+SMTP_FROM_EMAIL = os.getenv("SMTP_FROM_EMAIL", "").strip() or os.getenv("SMTP_USER", "").strip() or "noreply@paperplane-pdf.com"
 SMTP_FROM_NAME = os.getenv("SMTP_FROM_NAME", "Paperplane PDF Security")
 SMTP_ENABLED = os.getenv("SMTP_ENABLED", "false").lower() in ("true", "1", "yes")
 PAPERPLANE_PUBLIC_URL = os.getenv("PAPERPLANE_PUBLIC_URL", "http://localhost:8000").rstrip("/")
 
-# Consumer mailbox domains are unsuitable as an application's transactional
-# From address: they cannot authenticate Paperplane's sending infrastructure
-# with aligned SPF/DKIM/DMARC and frequently trigger spoofing/spam signals.
+# Consumer mailbox domains are unsuitable when unauthenticated or paired with a
+# separate API relay, because third-party relays cannot align SPF/DKIM/DMARC.
 _CONSUMER_MAIL_DOMAINS = frozenset({
     "gmail.com", "googlemail.com", "yahoo.com", "yahoo.co.uk", "outlook.com",
     "hotmail.com", "live.com", "icloud.com", "me.com", "aol.com",
@@ -40,6 +39,15 @@ def _has_transactional_sender() -> bool:
     address = SMTP_FROM_EMAIL.strip()
     match = re.fullmatch(r"[^@\s<>]+@([^@\s<>]+)", address)
     return bool(match and "." in match.group(1) and match.group(1).lower() not in _CONSUMER_MAIL_DOMAINS)
+
+
+def _has_authenticated_mailbox_smtp() -> bool:
+    """Return whether SMTP is explicitly authenticated for the exact configured mailbox."""
+    from_addr = SMTP_FROM_EMAIL.strip().lower()
+    user_addr = SMTP_USER.strip().lower()
+    if not (SMTP_ENABLED and SMTP_HOST.strip() and user_addr and SMTP_PASSWORD.strip()):
+        return False
+    return bool(re.fullmatch(r"[^@\s<>]+@[^@\s<>]+\.[^@\s<>]+", from_addr) and from_addr == user_addr)
 
 
 def _send_resend_api(to_email: str, subject: str, html_body: str, text_body: str) -> bool:
@@ -109,8 +117,8 @@ def _send_smtp(to_email: str, subject: str, html_body: str, text_body: str) -> b
     """Dispatches an email synchronously via SMTP with TLS. Returns True on success."""
     if not SMTP_ENABLED or not SMTP_HOST:
         return False
-    if not _has_transactional_sender():
-        logger.error("Transactional email refused: From address must use a controlled sending domain, not a consumer mailbox.")
+    if not _has_transactional_sender() and not _has_authenticated_mailbox_smtp():
+        logger.error("Transactional email refused: From address must use a controlled sending domain or matching authenticated SMTP mailbox.")
         return False
 
     try:
@@ -146,19 +154,22 @@ def _send_smtp(to_email: str, subject: str, html_body: str, text_body: str) -> b
 
 def _dispatch_email(to_email: str, subject: str, html_body: str, text_body: str, *, allow_simulated: bool = True) -> bool:
     """Prefer the authenticated transactional API, then SMTP, with no false delivery success."""
-    if not _has_transactional_sender():
+    has_provider = bool(RESEND_API_KEY or (SMTP_ENABLED and SMTP_HOST))
+    can_resend = bool(RESEND_API_KEY and _has_transactional_sender())
+    can_smtp = bool(SMTP_ENABLED and SMTP_HOST and (_has_transactional_sender() or _has_authenticated_mailbox_smtp()))
+    if has_provider and not (can_resend or can_smtp):
         logger.error("Transactional email refused: configure a From address on a controlled, authenticated sending domain.")
         return False
 
     # Prefer the API sender because it provides provider-managed domain
     # authentication and delivery reporting; SMTP is a fallback only.
-    if RESEND_API_KEY:
+    if can_resend:
         resend_ok = _send_resend_api(to_email, subject, html_body, text_body)
         if resend_ok:
             return True
         logger.warning("Resend API failed, checking SMTP fallback...")
 
-    if SMTP_ENABLED and SMTP_HOST:
+    if can_smtp:
         smtp_ok = _send_smtp(to_email, subject, html_body, text_body)
         if smtp_ok:
             return True

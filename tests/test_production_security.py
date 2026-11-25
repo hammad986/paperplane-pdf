@@ -135,13 +135,14 @@ def test_operations_catalog_truthful_capabilities():
 
 
 def test_auth_config_endpoint():
-    """Verify /api/auth/config exposes google_enabled and google_client_id safely."""
+    """Verify /api/auth/config exposes google flags safely without leaking secret values."""
     res = client.get("/api/auth/config")
     assert res.status_code == 200
     data = res.json()
     assert "google_enabled" in data
     assert "google_client_id" in data
-    # Client secret must NEVER be exposed
+    assert "google_code_flow_enabled" in data
+    # Client secret value or key must NEVER be exposed
     assert "google_client_secret" not in data
     assert "secret" not in str(data).lower()
 
@@ -289,6 +290,60 @@ def test_google_auth_valid_session_and_logout_lifecycle(monkeypatch):
     revoked_res = auth_client.get("/api/auth/me")
     assert revoked_res.status_code == 200
     assert revoked_res.json() == {"authenticated": False}
+
+
+def test_google_auth_code_exchange_requires_client_secret(monkeypatch):
+    """Verify 503 when authorization code flow is attempted without GOOGLE_CLIENT_SECRET."""
+    monkeypatch.setattr("server.GOOGLE_CLIENT_ID", "expected-client-id.apps.googleusercontent.com")
+    monkeypatch.setattr("server.GOOGLE_CLIENT_SECRET", "")
+    res = client.post("/api/auth/google", json={"code": "4/sample-auth-code"})
+    assert res.status_code == 503
+    assert "GOOGLE_CLIENT_SECRET" in res.json()["detail"]
+
+
+def test_google_auth_code_exchange_valid_session(monkeypatch):
+    """Verify OAuth2 popup code exchange posts postmessage redirect_uri and verifies id_token."""
+    expected_cid = "expected-client-id.apps.googleusercontent.com"
+    monkeypatch.setattr("server.GOOGLE_CLIENT_ID", expected_cid)
+    monkeypatch.setattr("server.GOOGLE_CLIENT_SECRET", "test-client-secret")
+    monkeypatch.setattr("server.HAS_GOOGLE_AUTH", True)
+
+    captured_token_requests = []
+
+    class MockTokenResp:
+        def __enter__(self): return self
+        def __exit__(self, *_args): return False
+        def read(self):
+            return b'{"id_token": "exchanged.id.token", "access_token": "ya29.test"}'
+
+    def mock_urlopen(req, timeout=10):
+        captured_token_requests.append((req.full_url, req.data.decode("utf-8")))
+        return MockTokenResp()
+
+    def mock_verify_oauth2_token(token, req, client_id):
+        assert token == "exchanged.id.token"
+        return {
+            "iss": "https://accounts.google.com",
+            "aud": expected_cid,
+            "email": "codeflow@example.com",
+            "email_verified": True,
+        }
+
+    monkeypatch.setattr("server.urllib.request.urlopen", mock_urlopen)
+    monkeypatch.setattr("server.google_id_token.verify_oauth2_token", mock_verify_oauth2_token)
+
+    res = client.post("/api/auth/google", json={"code": "4/0AvalidPopupCode"})
+    assert res.status_code == 200
+    body = res.json()
+    assert body["email"] == "codeflow@example.com"
+    assert "token" in body
+    assert len(captured_token_requests) == 1
+    url, form_payload = captured_token_requests[0]
+    assert url == "https://oauth2.googleapis.com/token"
+    assert "redirect_uri=postmessage" in form_payload
+    assert "grant_type=authorization_code" in form_payload
+    assert "code=4%2F0AvalidPopupCode" in form_payload
+
 
 
 def test_favicon_and_legal_routes():
