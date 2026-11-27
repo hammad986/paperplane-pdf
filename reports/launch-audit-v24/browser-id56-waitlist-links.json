@@ -1,0 +1,47 @@
+{
+  "build": "http://127.0.0.1:8766/assets/app.js?v=191",
+  "route": "/download",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "platform_checks": [
+    {
+      "platform": "windows",
+      "form_visible": true,
+      "platform_selected": true,
+      "email_focused": true,
+      "email_required": true
+    },
+    {
+      "platform": "macos",
+      "form_visible": true,
+      "platform_selected": true,
+      "email_focused": true,
+      "email_required": true
+    },
+    {
+      "platform": "linux",
+      "form_visible": true,
+      "platform_selected": true,
+      "email_focused": true,
+      "email_required": true
+    },
+    {
+      "platform": "android",
+      "form_visible": true,
+      "platform_selected": true,
+      "email_focused": true,
+      "email_required": true
+    },
+    {
+      "platform": "ios",
+      "form_visible": true,
+      "platform_selected": true,
+      "email_focused": true,
+      "email_required": true
+    }
+  ],
+  "browser_errors": [],
+  "passed": true
+}

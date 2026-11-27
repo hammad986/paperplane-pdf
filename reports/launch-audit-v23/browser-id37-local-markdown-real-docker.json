@@ -1,0 +1,28 @@
+{
+  "base": "http://127.0.0.1:18502",
+  "runtime": "Docker image",
+  "image_id": "sha256:3c13be4fc0e39da403df62e8dd592d1a71205a4c1b97caaeaf69d3be77331190",
+  "fixture": "C:\\Users\\mdham\\Downloads\\notes.pdf",
+  "rounds": [
+    {
+      "round": 1,
+      "status": 200,
+      "fixture_pages": 69,
+      "custom_font_math_fallback_shown": true,
+      "server_upload_requires_consent": true,
+      "cancelled_without_upload_or_download": true,
+      "job_posts": [],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "status": 200,
+      "fixture_pages": 69,
+      "custom_font_math_fallback_shown": true,
+      "server_upload_requires_consent": true,
+      "cancelled_without_upload_or_download": true,
+      "job_posts": [],
+      "page_errors": []
+    }
+  ]
+}

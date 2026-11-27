@@ -1,0 +1,15 @@
+{
+  "image": "paperplane-v23-audit:codex-v153-railway-port",
+  "image_id": "sha256:adc65c3af1d4adf3fdfa433312e08a985629dfca4ee5a6ba2b054f8d3326387f",
+  "port_environment": {
+    "PORT": 18528,
+    "PAPERPLANE_PORT": 8501
+  },
+  "app_health_http": 200,
+  "railway_health_host_http": 200,
+  "docker_health": "unhealthy",
+  "cause": "Dockerfile health check targeted fixed port 8501 while the app correctly bound to injected PORT 18528",
+  "operation_catalog": "41 verified downloads, one SSRF block, two provider-only unavailable operations in each of two rounds",
+  "page_errors": 0,
+  "evidence": "browser-id28-v148-current-image-catalog-current-v153-railway-2026-11-22.json"
+}

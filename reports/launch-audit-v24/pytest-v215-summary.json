@@ -1,0 +1,59 @@
+{
+  "candidate": {
+    "app_js": 211,
+    "styles_css": 75,
+    "pdf_runtime_js": 27,
+    "local_pdf_worker_js": 28,
+    "service_worker_shell": 169,
+    "translation_engine": "v215 local source"
+  },
+  "focused_tests": [
+    {
+      "command": "pytest -q tests/test_ai_workflows.py::test_translation_preserves_vertical_text_orientation_and_searchability tests/test_ai_workflows.py::test_hindi_translation_embeds_extractable_devanagari_text",
+      "passed": 3,
+      "failed": 0,
+      "duration_seconds": 6.26
+    },
+    {
+      "command": "pytest -q tests/test_ai_workflows.py tests/test_launch_audit_v23.py -k translation",
+      "passed": 22,
+      "failed": 0,
+      "deselected": 188,
+      "warnings": 1,
+      "duration_seconds": 32.3
+    }
+  ],
+  "full_suite": [
+    {
+      "run": 1,
+      "command": "pytest -q",
+      "exit_code": 0,
+      "passed": 709,
+      "failed": 0,
+      "warnings": 4,
+      "duration_seconds": 357.69,
+      "summary": "709 passed, 4 warnings in 357.69s"
+    },
+    {
+      "run": 2,
+      "command": "pytest -q",
+      "exit_code": 0,
+      "passed": 709,
+      "failed": 0,
+      "warnings": 4,
+      "duration_seconds": 359.44,
+      "summary": "709 passed, 4 warnings in 359.44s"
+    }
+  ],
+  "warnings": [
+    "Starlette deprecation: httpx-based TestClient is deprecated; install httpx2.",
+    "Three per-request cookie deprecation warnings in metadata job tests."
+  ],
+  "browser_evidence": {
+    "translation": "reports/launch-audit-v24/browser-id1-real-arxiv-v215-vertical.json",
+    "responsive_routes": "reports/launch-audit-v24/browser-v214-44-tool-mobile-layout.json",
+    "self_found_cta": "reports/launch-audit-v24/browser-self-found-cta-clearance-v214.json"
+  },
+  "docker_compose_config": "passed: docker compose config -q",
+  "deployment_image_build": "not verified: Docker daemon unavailable/hung on info probe"
+}

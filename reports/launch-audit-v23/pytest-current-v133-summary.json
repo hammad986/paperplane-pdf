@@ -1,0 +1,23 @@
+{
+  "command": "python -m pytest -q",
+  "runs_sequential": true,
+  "dotenv_disabled": true,
+  "credential_environment_removed": true,
+  "production_endpoints_contacted": false,
+  "runs": [
+    {
+      "run": 1,
+      "exit_code": 0,
+      "duration_seconds": 160.8,
+      "summary": "624 passed, 4 warnings in 154.86s (0:02:34)",
+      "log": "pytest-current-v133-run1.log"
+    },
+    {
+      "run": 2,
+      "exit_code": 0,
+      "duration_seconds": 156.2,
+      "summary": "624 passed, 4 warnings in 150.55s (0:02:30)",
+      "log": "pytest-current-v133-run2.log"
+    }
+  ]
+}

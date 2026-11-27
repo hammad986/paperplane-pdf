@@ -1,0 +1,12 @@
+{
+  "tool": "Gitleaks v8.24.2 via the same container image as CI",
+  "target": "C:/Users/mdham/Downloads/paperplane-redacted-v24-prepared.git",
+  "scope": "all refs / all 49 commits in the isolated rewritten bare mirror",
+  "approximate_bytes_scanned": 159161343,
+  "result": "no leaks found",
+  "exit_code": 0,
+  "repeat_runs": 2,
+  "repeat_result": "both runs scanned the same 49 commits and returned no leaks",
+  "configuration": "current workspace .gitleaks.toml with narrow file/path and placeholder allowlists for reviewed synthetic tests and documentation",
+  "important_limit": "The mirror does not include the current uncommitted code or scanner-config changes. Rebuild and rerun after those changes are committed; this result does not certify a future rewritten history."
+}

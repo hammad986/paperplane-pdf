@@ -1,0 +1,43 @@
+{
+  "base": "http://127.0.0.1:55839",
+  "rounds": [
+    {
+      "round": 1,
+      "viewport": "390x844 touch emulation",
+      "camera_capture": "environment",
+      "manifest_content_type": "application/manifest+json",
+      "service_worker_scope_header": "/",
+      "install_prompt": "shown only after browser event; accepted mock hides consumed button",
+      "pdf_download": "id357-mobile-camera-scan-round1.pdf",
+      "pdf_pages": 1,
+      "page_size_points": [
+        612,
+        792
+      ],
+      "processing": "browser local, zero server jobs",
+      "cached_offline_shell_http": 200,
+      "horizontal_overflow": false,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "viewport": "390x844 touch emulation",
+      "camera_capture": "environment",
+      "manifest_content_type": "application/manifest+json",
+      "service_worker_scope_header": "/",
+      "install_prompt": "shown only after browser event; dismissed mock hides consumed button",
+      "pdf_download": "id357-mobile-camera-scan-round2.pdf",
+      "pdf_pages": 1,
+      "page_size_points": [
+        612,
+        792
+      ],
+      "processing": "browser local, zero server jobs",
+      "cached_offline_shell_http": 200,
+      "horizontal_overflow": false,
+      "page_errors": []
+    }
+  ],
+  "cache_name": "paperplane-shell-v63",
+  "app_asset": "/assets/app.js?v=129"
+}

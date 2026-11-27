@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import base64
 import csv
 import html
@@ -7,6 +8,7 @@ import io
 import ipaddress
 import logging
 import math
+import operator
 import os
 import re
 import signal
@@ -373,7 +375,10 @@ def word_to_pdf(source: Path, output: Path) -> Path:
         leftMargin=54,
         rightMargin=54,
         topMargin=54,
-        bottomMargin=54
+        bottomMargin=54,
+        title="",
+        author="",
+        subject="",
     )
     styles = getSampleStyleSheet()
     story: list[Any] = []
@@ -425,6 +430,168 @@ def word_to_pdf(source: Path, output: Path) -> Path:
     return output
 
 
+_EXCEL_CELL_REF_RE = re.compile(r"(?<![A-Z0-9_])\$?([A-Z]{1,3})\$?(\d+)(?::\$?([A-Z]{1,3})\$?(\d+))?")
+_EXCEL_BIN_OPS = {
+    ast.Add: operator.add,
+    ast.Sub: operator.sub,
+    ast.Mult: operator.mul,
+    ast.Div: operator.truediv,
+}
+_EXCEL_UNARY_OPS = {
+    ast.UAdd: operator.pos,
+    ast.USub: operator.neg,
+}
+
+
+def _excel_col_to_index(col_label: str) -> int:
+    idx = 0
+    for ch in col_label.upper():
+        idx = idx * 26 + (ord(ch) - ord("A") + 1)
+    return idx - 1
+
+
+def _format_evaluated_excel_number(val: float | int) -> str:
+    if isinstance(val, bool):
+        return str(val)
+    if isinstance(val, int):
+        return str(val)
+    if isinstance(val, float):
+        if math.isnan(val) or math.isinf(val):
+            raise ValueError("Non-finite result")
+        if abs(val - round(val)) < 1e-9:
+            return str(int(round(val)))
+        return f"{val:.6f}".rstrip("0").rstrip(".")
+    return str(val)
+
+
+def _evaluate_excel_formula(
+    formula: str,
+    cached_grid: list[list[Any]],
+    formula_grid: list[list[str | None]],
+    memo: dict[tuple[int, int], float | int | None],
+    visiting: set[tuple[int, int]],
+) -> str | None:
+    """Safely evaluate basic arithmetic and summary formulas when openpyxl cached values are absent."""
+    raw = str(formula or "").strip()
+    if not raw.startswith("="):
+        return None
+    expr = raw[1:].strip()
+    if not expr or len(expr) > 256:
+        return None
+
+    def get_cell_numeric(r_idx: int, c_idx: int) -> float | None:
+        key = (r_idx, c_idx)
+        if key in memo:
+            cached = memo[key]
+            return float(cached) if isinstance(cached, (int, float)) and not isinstance(cached, bool) else None
+        if key in visiting or r_idx < 0 or c_idx < 0 or r_idx >= len(cached_grid):
+            return None
+        row_vals = cached_grid[r_idx]
+        if c_idx >= len(row_vals):
+            return None
+        val = row_vals[c_idx]
+        if isinstance(val, (int, float)) and not isinstance(val, bool):
+            memo[key] = val
+            return float(val)
+        f_text = formula_grid[r_idx][c_idx] if r_idx < len(formula_grid) and c_idx < len(formula_grid[r_idx]) else None
+        if f_text and str(f_text).startswith("="):
+            visiting.add(key)
+            try:
+                computed = _eval_node_for_expr(str(f_text)[1:].strip())
+                memo[key] = computed
+                return float(computed) if isinstance(computed, (int, float)) else None
+            except Exception:
+                memo[key] = None
+                return None
+            finally:
+                visiting.discard(key)
+        return None
+
+    def iter_range(c1: str, r1: str, c2: str, r2: str) -> list[float]:
+        col1, row1 = _excel_col_to_index(c1), int(r1) - 1
+        col2, row2 = _excel_col_to_index(c2), int(r2) - 1
+        r_lo, r_hi = max(0, min(row1, row2)), min(len(cached_grid) - 1, max(row1, row2))
+        c_lo, c_hi = max(0, min(col1, col2)), max(col1, col2)
+        if (r_hi - r_lo + 1) * (c_hi - c_lo + 1) > 5000:
+            raise ValueError("Range too large")
+        vals: list[float] = []
+        for rr in range(r_lo, r_hi + 1):
+            for cc in range(c_lo, c_hi + 1):
+                num = get_cell_numeric(rr, cc)
+                if num is not None:
+                    vals.append(num)
+        return vals
+
+    def eval_ast(node: ast.AST) -> float:
+        if isinstance(node, ast.Expression):
+            return eval_ast(node.body)
+        if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)) and not isinstance(node.value, bool):
+            return float(node.value)
+        if isinstance(node, ast.BinOp) and type(node.op) in _EXCEL_BIN_OPS:
+            return float(_EXCEL_BIN_OPS[type(node.op)](eval_ast(node.left), eval_ast(node.right)))
+        if isinstance(node, ast.UnaryOp) and type(node.op) in _EXCEL_UNARY_OPS:
+            return float(_EXCEL_UNARY_OPS[type(node.op)](eval_ast(node.operand)))
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and not node.keywords:
+            fname = node.func.id.upper()
+            if fname == "__CELL__":
+                if len(node.args) != 2 or not all(isinstance(a, ast.Constant) and isinstance(a.value, int) for a in node.args):
+                    raise ValueError("Bad cell reference")
+                num = get_cell_numeric(node.args[0].value, node.args[1].value)
+                return 0.0 if num is None else num
+            if fname == "__RANGE__":
+                raise ValueError("Range only allowed inside aggregate functions")
+            flattened: list[float] = []
+            for arg in node.args:
+                if (
+                    isinstance(arg, ast.Call)
+                    and isinstance(arg.func, ast.Name)
+                    and arg.func.id == "__RANGE__"
+                    and len(arg.args) == 4
+                    and all(isinstance(a, ast.Constant) and isinstance(a.value, str) for a in arg.args)
+                ):
+                    flattened.extend(iter_range(*(a.value for a in arg.args)))
+                else:
+                    flattened.append(eval_ast(arg))
+            if fname == "SUM":
+                return float(sum(flattened))
+            if fname in ("AVERAGE", "AVG"):
+                if not flattened:
+                    raise ValueError("Empty average")
+                return float(sum(flattened) / len(flattened))
+            if fname == "MIN":
+                if not flattened:
+                    raise ValueError("Empty min")
+                return float(min(flattened))
+            if fname == "MAX":
+                if not flattened:
+                    raise ValueError("Empty max")
+                return float(max(flattened))
+            if fname in ("COUNT", "COUNTA"):
+                return float(len(flattened))
+            if fname == "ABS" and len(flattened) == 1:
+                return float(abs(flattened[0]))
+            if fname == "ROUND" and len(flattened) == 2:
+                return float(round(flattened[0], int(flattened[1])))
+        raise ValueError("Unsupported formula syntax")
+
+    def _eval_node_for_expr(sub_expr: str) -> float:
+        def replace_ref(m: re.Match[str]) -> str:
+            c1, r1, c2, r2 = m.groups()
+            if c2 and r2:
+                return f'__RANGE__("{c1}", "{r1}", "{c2}", "{r2}")'
+            return f"__CELL__({int(r1) - 1}, {_excel_col_to_index(c1)})"
+
+        normalized = _EXCEL_CELL_REF_RE.sub(replace_ref, sub_expr)
+        tree = ast.parse(normalized, mode="eval")
+        return eval_ast(tree)
+
+    try:
+        computed = _eval_node_for_expr(expr)
+        return _format_evaluated_excel_number(computed)
+    except Exception:
+        return None
+
+
 def excel_to_pdf(source: Path, output: Path) -> Path:
     """Convert an Excel workbook or CSV into a readable, wrapped PDF table."""
     suffix = source.suffix.lower()
@@ -456,18 +623,30 @@ def excel_to_pdf(source: Path, output: Path) -> Path:
             formula_wb = openpyxl.load_workbook(str(source), data_only=False, read_only=True)
             sheets = []
             for sheet, formula_sheet in zip(wb.worksheets, formula_wb.worksheets):
-                rows = []
                 max_row = min(sheet.max_row or 1, 150)
                 max_col = min(sheet.max_column or 1, 15)
-                value_rows = sheet.iter_rows(min_row=1, max_row=max_row, max_col=max_col, values_only=True)
-                formula_rows = formula_sheet.iter_rows(min_row=1, max_row=max_row, max_col=max_col)
-                for value_row, formula_row in zip(value_rows, formula_rows):
+                cached_grid = [
+                    list(r) for r in sheet.iter_rows(min_row=1, max_row=max_row, max_col=max_col, values_only=True)
+                ]
+                formula_rows = list(formula_sheet.iter_rows(min_row=1, max_row=max_row, max_col=max_col))
+                formula_grid = [
+                    [str(cell.value) if cell.data_type == "f" else None for cell in f_row]
+                    for f_row in formula_rows
+                ]
+                memo: dict[tuple[int, int], float | int | None] = {}
+                rows = []
+                for r_idx, value_row in enumerate(cached_grid):
                     row = list(value_row)
+                    f_row = formula_rows[r_idx] if r_idx < len(formula_rows) else ()
                     for index, value in enumerate(row):
-                        formula_cell = formula_row[index]
-                        if value is None and formula_cell.data_type == "f":
+                        formula_cell = f_row[index] if index < len(f_row) else None
+                        if value is None and formula_cell is not None and formula_cell.data_type == "f":
                             formula = str(formula_cell.value or "")
-                            row[index] = f"Formula result unavailable (not calculated in workbook): {formula}"
+                            computed = _evaluate_excel_formula(formula, cached_grid, formula_grid, memo, {(r_idx, index)})
+                            if computed is not None:
+                                row[index] = f"{computed} (Formula result unavailable in workbook; computed from {formula})"
+                            else:
+                                row[index] = f"Formula result unavailable (not calculated in workbook): {formula}"
                     rows.append(row)
                 sheets.append((sheet.title, rows))
             wb.close()
@@ -481,7 +660,10 @@ def excel_to_pdf(source: Path, output: Path) -> Path:
         leftMargin=36,
         rightMargin=36,
         topMargin=36,
-        bottomMargin=36
+        bottomMargin=36,
+        title="",
+        author="",
+        subject="",
     )
     styles = getSampleStyleSheet()
     story: list[Any] = []
@@ -541,7 +723,10 @@ def powerpoint_to_pdf(source: Path, output: Path) -> Path:
         leftMargin=40,
         rightMargin=40,
         topMargin=40,
-        bottomMargin=40
+        bottomMargin=40,
+        title="",
+        author="",
+        subject="",
     )
     styles = getSampleStyleSheet()
     story: list[Any] = []
@@ -794,7 +979,10 @@ def text_to_pdf(
         leftMargin=margin_pt,
         rightMargin=margin_pt,
         topMargin=margin_pt,
-        bottomMargin=margin_pt
+        bottomMargin=margin_pt,
+        title="",
+        author="",
+        subject="",
     )
     pdf.build(story)
     return output
@@ -949,34 +1137,53 @@ def pdf_to_word(source: Path, output: Path, pages: str = "all") -> Path:
     out_docx = docx.Document()
     for page in doc:
         text = page.get_text("text").strip()
+        raw_blocks = page.get_text("dict").get("blocks", [])
+        image_blocks = [b for b in raw_blocks if b.get("type") == 1]
         if text:
             tables = page.find_tables().tables
             table_boxes = [fitz.Rect(table.bbox) for table in tables]
-            for block in page.get_text("blocks", sort=True):
-                if block[6] != 0 or any(box.contains(fitz.Rect(block[:4])) for box in table_boxes):
-                    continue
-                if block[4].strip():
-                    out_docx.add_paragraph(_sanitize_xml_text(block[4].strip()))
-            for table in tables:
-                rows = table.extract()
-                if not rows:
-                    continue
-                target = out_docx.add_table(rows=len(rows), cols=max(map(len, rows)))
-                target.style = "Table Grid"
-                for row_index, row in enumerate(rows):
-                    for column_index, value in enumerate(row):
-                        target.cell(row_index, column_index).text = _sanitize_xml_text(value)
             section = out_docx.sections[-1]
             max_width = section.page_width - section.left_margin - section.right_margin
-            for block in page.get_text("dict")["blocks"]:
-                if block["type"] != 1:
+            elements: list[tuple[float, float, str, Any]] = []
+            for block in page.get_text("blocks", sort=True):
+                if block[6] != 0:
                     continue
-                image = Image.open(io.BytesIO(block["image"])).convert("RGB")
-                image.thumbnail((1600, 2000), Image.Resampling.LANCZOS)
-                buffer = io.BytesIO()
-                image.save(buffer, format="JPEG", quality=85)
-                buffer.seek(0)
-                out_docx.add_picture(buffer, width=min(max_width, docx.shared.Pt(block["bbox"][2] - block["bbox"][0])))
+                b_rect = fitz.Rect(block[:4])
+                if any(box.contains(b_rect) or (b_rect.intersect(box).get_area() > 0.6 * max(1.0, b_rect.get_area())) for box in table_boxes):
+                    continue
+                if block[4].strip():
+                    elements.append((float(block[1]), float(block[0]), "text", block[4].strip()))
+            for table in tables:
+                rows = table.extract()
+                if rows:
+                    elements.append((float(table.bbox[1]), float(table.bbox[0]), "table", rows))
+            for img_block in image_blocks:
+                bbox = img_block.get("bbox", [0, 0, 0, 0])
+                if (bbox[2] - bbox[0]) < 8 or (bbox[3] - bbox[1]) < 8:
+                    continue
+                elements.append((float(bbox[1]), float(bbox[0]), "image", img_block))
+
+            elements.sort(key=lambda item: (round(item[0], 1), round(item[1], 1)))
+            for _y0, _x0, kind, payload in elements:
+                if kind == "text":
+                    out_docx.add_paragraph(_sanitize_xml_text(payload))
+                elif kind == "table":
+                    target = out_docx.add_table(rows=len(payload), cols=max(map(len, payload)))
+                    target.style = "Table Grid"
+                    for row_index, row in enumerate(payload):
+                        for column_index, value in enumerate(row):
+                            target.cell(row_index, column_index).text = _sanitize_xml_text(value)
+                elif kind == "image":
+                    try:
+                        image = Image.open(io.BytesIO(payload["image"])).convert("RGB")
+                        image.thumbnail((1600, 2000), Image.Resampling.LANCZOS)
+                        buffer = io.BytesIO()
+                        image.save(buffer, format="JPEG", quality=85)
+                        buffer.seek(0)
+                        width_pt = max(24.0, float(payload["bbox"][2] - payload["bbox"][0]))
+                        out_docx.add_picture(buffer, width=min(max_width, docx.shared.Pt(width_pt)))
+                    except Exception:
+                        continue
         else:
             pixmap = page.get_pixmap(matrix=fitz.Matrix(150 / 72, 150 / 72), alpha=False)
             image = io.BytesIO(pixmap.tobytes("png"))
@@ -986,7 +1193,25 @@ def pdf_to_word(source: Path, output: Path, pages: str = "all") -> Path:
         if page.number < doc.page_count - 1:
             out_docx.add_page_break()
     properties = out_docx.core_properties
-    properties.title = _sanitize_xml_text(source.stem)
+    raw_meta_title = str((doc.metadata or {}).get("title") or "").strip()
+    internal_prefix_re = r"^(?:[a-f0-9]{20,}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})(?:[_-]|$)"
+    clean_meta_title = (
+        raw_meta_title
+        if raw_meta_title
+        and raw_meta_title.lower() != "untitled"
+        and not re.match(internal_prefix_re, raw_meta_title, re.I)
+        else ""
+    )
+    stem_title = source.stem.strip()
+    clean_stem_title = (
+        stem_title
+        if stem_title
+        and stem_title.lower() != "untitled"
+        and not re.match(internal_prefix_re, stem_title, re.I)
+        else ""
+    )
+    chosen_title = clean_meta_title or clean_stem_title
+    properties.title = _sanitize_xml_text(chosen_title) if chosen_title else ""
     for field_name in ("author", "subject", "keywords", "comments", "category", "identifier", "language", "last_modified_by"):
         value = getattr(properties, field_name, None)
         if isinstance(value, str):
@@ -1321,6 +1546,17 @@ def pdf_to_markdown(
         # Space-only spans must still be retained; dropping them concatenates
         # words in PDFs whose text layer stores spaces as separate runs.
         d = page.get_text("rawdict", sort=True)
+        body_sizes: list[float] = []
+        for b in d.get("blocks", []):
+            if b.get("type") != 0:
+                continue
+            if any(fitz.Rect(b.get("bbox")).intersects(tr) for tr in table_rects):
+                continue
+            for l in b.get("lines", []):
+                for s in l.get("spans", []):
+                    body_sizes.append(float(s.get("size", 10.0)))
+        body_font_size = sorted(body_sizes)[len(body_sizes) // 2] if body_sizes else 10.0
+
         for b in d.get("blocks", []):
             if b.get("type") == 0:
                 bbox = fitz.Rect(b.get("bbox"))
@@ -1330,7 +1566,9 @@ def pdf_to_markdown(
                 for l in b.get("lines", []):
                     span_texts = []
                     max_size = 0.0
-                    is_bold = False
+                    nonspace_chars = 0
+                    bold_chars = 0
+                    weighted_size = 0.0
                     previous_char = None
                     for s in l.get("spans", []):
                         chars = s.get("chars") or []
@@ -1338,6 +1576,7 @@ def pdf_to_markdown(
                         if not t:
                             continue
                         sz = float(s.get("size", 10.0))
+                        span_is_bold = bool(s.get("flags", 0) & 16)
                         if chars:
                             for char in chars:
                                 char_text = char.get("c", "")
@@ -1346,10 +1585,6 @@ def pdf_to_markdown(
                                 if previous_char is not None and not char_text.isspace():
                                     prev_end = float(previous_char.get("bbox", [0, 0, 0, 0])[2])
                                     this_start = float(char.get("bbox", [0, 0, 0, 0])[0])
-                                    # Leave normal font kerning gaps intact;
-                                    # infer a word boundary only when the
-                                    # geometric gap is clearly larger than
-                                    # intra-word spacing.
                                     threshold = max(0.25, sz * 0.05)
                                     if (this_start - prev_end > threshold
                                             and not "".join(span_texts).endswith((" ", "-", "\u2010"))):
@@ -1358,17 +1593,34 @@ def pdf_to_markdown(
                                 previous_char = char
                         else:
                             span_bbox = s.get("bbox", [0, 0, 0, 0])
+                            if previous_char is not None and not t[0].isspace():
+                                prev_end = float(previous_char.get("bbox", [0, 0, 0, 0])[2])
+                                this_start = float(span_bbox[0])
+                                threshold = max(0.25, sz * 0.05)
+                                if (this_start - prev_end > threshold
+                                        and not "".join(span_texts).endswith((" ", "-", "\u2010"))):
+                                    span_texts.append(" ")
                             span_texts.append(t)
                             previous_char = {"bbox": span_bbox}
+                        visible_count = sum(1 for ch in t if not ch.isspace())
+                        nonspace_chars += visible_count
+                        if span_is_bold:
+                            bold_chars += visible_count
+                        weighted_size += sz * max(1, visible_count)
                         if sz > max_size:
                             max_size = sz
-                        if s.get("flags", 0) & 16:
-                            is_bold = True
                     line_str = "".join(span_texts).strip()
                     if line_str:
-                        if max_size >= 18 or (max_size >= 15 and is_bold):
+                        avg_size = weighted_size / max(1, nonspace_chars) if nonspace_chars else max_size
+                        is_majority_bold = nonspace_chars > 0 and (bold_chars / nonspace_chars) >= 0.75
+                        if max_size >= 18 or (avg_size >= 15 and is_majority_bold):
                             line_str = f"# {line_str}"
-                        elif max_size >= 14 or (max_size >= 12 and is_bold):
+                        elif (avg_size >= 14 and avg_size >= body_font_size + 2) or (
+                            is_majority_bold
+                            and avg_size >= max(12.0, body_font_size + 1.0)
+                            and len(line_str) <= 100
+                            and not line_str.endswith((",", ";"))
+                        ):
                             line_str = f"## {line_str}"
                         elif line_str.startswith(("- ", "* ", "• ")):
                             line_str = "- " + line_str.lstrip("-*• ")
@@ -1382,6 +1634,8 @@ def pdf_to_markdown(
         md_sections.append("\n\n".join(page_md))
 
     metadata_title = (doc.metadata or {}).get("title", "").strip()
+    if metadata_title.lower() == "untitled":
+        metadata_title = ""
     # Storage/job identifiers are not document titles. Leave the heading absent
     # when neither PDF metadata nor the original filename has a trustworthy title.
     internal_title_prefix = r"^(?:[a-f0-9]{20,}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})(?:[_-]|$)"
@@ -1871,7 +2125,7 @@ def ocr_pdf(
 
     chk = fitz.open(str(source))
     try:
-        if chk.is_encrypted or chk.needs_pass:
+        if chk.needs_pass and not chk.authenticate(""):
             raise ValueError("This document is password-protected. Please unlock it before running OCR.")
     finally:
         chk.close()
@@ -2060,7 +2314,7 @@ def compress_pdf(
 
     chk = fitz.open(str(source))
     try:
-        if chk.is_encrypted or chk.needs_pass:
+        if chk.needs_pass and not chk.authenticate(""):
             raise ValueError("This document is password-protected. Please unlock it before compressing.")
     finally:
         chk.close()
@@ -2332,7 +2586,8 @@ def repair_pdf(source: Path, output: Path, mode: str = "automatic") -> Path:
         output.unlink(missing_ok=True)
         if "severely corrupted" in str(e):
             raise
-        raise ValueError(f"Document is severely corrupted and could not be reconstructed into readable pages ({e}).")
+        logger.warning("PDF repair validation failed for %s: %s", source.name, e)
+        raise ValueError("Document is severely corrupted and could not be reconstructed into readable pages.")
     return output
 
 
@@ -2463,7 +2718,8 @@ def repair_pdf_advanced(source: Path, output: Path, mode: str = "automatic") -> 
             "message": "PDF structure successfully rebuilt and sanitized."
         }
 
-    raise ValueError(f"Unable to recover document: {'; '.join(detected_issues)}")
+    logger.warning("Unable to recover PDF %s: %s", source.name, "; ".join(detected_issues))
+    raise ValueError("Unable to repair this corrupted PDF: no readable pages could be salvaged from the damaged file.")
 
 
 def scan_to_pdf(images: list[Path], output: Path, enhance: bool = True, page_size: str = "a4") -> Path:
@@ -2904,7 +3160,12 @@ def annotate_pdf(source: Path, output: Path | list[dict], annotations: list[dict
             if atype in {"highlight", "underline", "strikeout"}:
                 search_text = str(ann.get("text", "")).strip()
                 if search_text:
-                    rectangles = page.search_for(search_text)
+                    flags = getattr(fitz, "TEXT_DEHYPHENATE", 0)
+                    rectangles = page.search_for(search_text, flags=flags)
+                    if not rectangles:
+                        normalized = re.sub(r"\s+", " ", search_text).strip()
+                        if normalized != search_text:
+                            rectangles = page.search_for(normalized, flags=flags)
                     if not rectangles:
                         raise ValueError(f'The text "{search_text}" was not found on page {page_num + 1}.')
                 else:
@@ -3685,7 +3946,7 @@ def convert_pdf_to_grayscale(source: Path, output: Path) -> dict:
 
     chk = fitz.open(str(source))
     try:
-        if chk.is_encrypted or chk.needs_pass:
+        if chk.needs_pass and not chk.authenticate(""):
             raise ValueError("This document is password-protected. Please unlock it before converting to grayscale.")
         if len(chk) == 0:
             raise ValueError("Cannot convert an empty PDF document.")

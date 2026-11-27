@@ -1,0 +1,58 @@
+{
+  "runtime": "production-mode Docker image paperplane-v23-audit:codex-v124",
+  "image_id": "sha256:a5df4a859eed7a2969ef601a43cb783169eadde1d33b41e322406070022d2fde",
+  "offline_rounds": [
+    {
+      "round": 1,
+      "cache": {
+        "caches": [
+          "paperplane-shell-v57"
+        ],
+        "assets": {
+          "app": true,
+          "css": true,
+          "organizer": true
+        }
+      },
+      "offline_status": 200,
+      "offline_page": {
+        "controller": true,
+        "title": "Paperplane PDF \u2014 Free Online PDF Tools & Private Editor",
+        "app": "/assets/app.js?v=124",
+        "css": "/assets/styles.css?v=56",
+        "organizer": true,
+        "bodyWidth": 390,
+        "documentWidth": 390,
+        "viewportWidth": 390,
+        "background": "rgb(244, 246, 243)"
+      },
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "cache": {
+        "caches": [
+          "paperplane-shell-v57"
+        ],
+        "assets": {
+          "app": true,
+          "css": true,
+          "organizer": true
+        }
+      },
+      "offline_status": 200,
+      "offline_page": {
+        "controller": true,
+        "title": "Paperplane PDF \u2014 Free Online PDF Tools & Private Editor",
+        "app": "/assets/app.js?v=124",
+        "css": "/assets/styles.css?v=56",
+        "organizer": true,
+        "bodyWidth": 390,
+        "documentWidth": 390,
+        "viewportWidth": 390,
+        "background": "rgb(244, 246, 243)"
+      },
+      "page_errors": []
+    }
+  ]
+}

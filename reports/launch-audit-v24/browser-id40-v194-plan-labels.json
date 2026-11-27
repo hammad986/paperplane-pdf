@@ -1,0 +1,14 @@
+{
+  "candidate": "Docker production-mode image app.js v194 / service-worker v146",
+  "item": 40,
+  "browser": "User Chrome via CUA",
+  "url": "http://127.0.0.1:8768/pricing",
+  "checks": {
+    "pricing_plan_heading": "Student & Educator",
+    "per_tool_batch_label": "Free/Student & Educator/Exam Pass",
+    "old_student_pro_alias_present": false,
+    "page_errors": [],
+    "console_errors_and_warnings": []
+  },
+  "result": "partial: quota guidance alias corrected and browser checked; remaining plan-name and price-format variants from the source list still need audit"
+}

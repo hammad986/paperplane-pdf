@@ -1,0 +1,21 @@
+{
+  "run": "local Cashfree TEST sandbox; creates unpaid INR 1.00 order only",
+  "completed_utc": "2026-11-19T08:15:43.100669+00:00",
+  "exit_code": 0,
+  "safe_classifications": [
+    "sandbox_order_amount_verified",
+    "checkout_modal_loaded",
+    "no_payment_attempted"
+  ],
+  "payment_submitted": false,
+  "checkout_modal_loaded": true,
+  "checkout_modal_no_payment_submitted": true,
+  "github_latest_scheduled_run": {
+    "run_id": 44357454438,
+    "branch": "main",
+    "commit": "03436d90d9fc233eedf3a614eaa5de4f520137ca",
+    "status": "failed",
+    "probe_reason": "GitHub Actions did not configure CASHFREE_APP_ID and CASHFREE_SECRET_KEY; only presence/absence recorded, no secret values accessed.",
+    "workflow_run_url": "https://github.com/hammad986/paperplane-pdf/actions/runs/44357454438"
+  }
+}

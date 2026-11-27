@@ -1,0 +1,169 @@
+{
+  "viewport": {
+    "w": 390,
+    "h": 844
+  },
+  "document": {
+    "height": 3318,
+    "scrollY": 0,
+    "bodyHeight": 3318
+  },
+  "shell": {
+    "tag": "DIV",
+    "id": "app-shell",
+    "cls": "app-shell ai-active",
+    "top": 0,
+    "bottom": 3318,
+    "height": 3318,
+    "scrollHeight": 3318,
+    "clientHeight": 3318,
+    "scrollTop": 0,
+    "overflowY": "visible",
+    "paddingBottom": "76px",
+    "scrollPaddingBottom": "auto"
+  },
+  "main": {
+    "tag": "MAIN",
+    "id": "",
+    "cls": "main-area",
+    "top": 0,
+    "bottom": 3242,
+    "height": 3242,
+    "scrollHeight": 3242,
+    "clientHeight": 3242,
+    "scrollTop": 0,
+    "overflowY": "visible",
+    "paddingBottom": "74px",
+    "scrollPaddingBottom": "auto"
+  },
+  "workspace": {
+    "tag": "DIV",
+    "id": "",
+    "cls": "dynamic-workspace",
+    "top": 64,
+    "bottom": 1624,
+    "height": 1560,
+    "scrollHeight": 1560,
+    "clientHeight": 1560,
+    "scrollTop": 0,
+    "overflowY": "visible",
+    "paddingBottom": "22px",
+    "scrollPaddingBottom": "auto"
+  },
+  "nav": {
+    "tag": "NAV",
+    "id": "",
+    "cls": "mobile-workspace-bar",
+    "top": 778,
+    "bottom": 844,
+    "height": 66,
+    "scrollHeight": 65,
+    "clientHeight": 65,
+    "scrollTop": 0,
+    "overflowY": "visible",
+    "paddingBottom": "0px",
+    "scrollPaddingBottom": "auto"
+  },
+  "scrollers": [
+    {
+      "tag": "DIV",
+      "id": "",
+      "cls": "sidebar-scroll-area",
+      "top": 155,
+      "bottom": 519,
+      "height": 364,
+      "scrollHeight": 834,
+      "clientHeight": 364,
+      "scrollTop": 0,
+      "overflowY": "auto",
+      "paddingBottom": "14px",
+      "scrollPaddingBottom": "auto"
+    },
+    {
+      "tag": "DIV",
+      "id": "chat-messages",
+      "cls": "ai-chat-messages",
+      "top": 141,
+      "bottom": 421,
+      "height": 280,
+      "scrollHeight": 301,
+      "clientHeight": 280,
+      "scrollTop": 0,
+      "overflowY": "auto",
+      "paddingBottom": "14px",
+      "scrollPaddingBottom": "auto"
+    }
+  ],
+  "buttons": [
+    {
+      "tag": "BUTTON",
+      "id": "trigger-extract-btn",
+      "cls": "btn-primary-action",
+      "top": 726,
+      "bottom": 772,
+      "height": 46,
+      "scrollHeight": 46,
+      "clientHeight": 46,
+      "scrollTop": 0,
+      "overflowY": "visible",
+      "paddingBottom": "14px",
+      "scrollPaddingBottom": "auto"
+    },
+    {
+      "tag": "BUTTON",
+      "id": "trigger-summary-btn",
+      "cls": "btn-primary-action",
+      "top": 965,
+      "bottom": 1011,
+      "height": 46,
+      "scrollHeight": 46,
+      "clientHeight": 46,
+      "scrollTop": 0,
+      "overflowY": "visible",
+      "paddingBottom": "14px",
+      "scrollPaddingBottom": "auto"
+    },
+    {
+      "tag": "BUTTON",
+      "id": "mob-nav-ai",
+      "cls": "mobile-nav-btn active",
+      "top": 779,
+      "bottom": 844,
+      "height": 65,
+      "scrollHeight": 65,
+      "clientHeight": 65,
+      "scrollTop": 0,
+      "overflowY": "visible",
+      "paddingBottom": "5px",
+      "scrollPaddingBottom": "auto"
+    }
+  ],
+  "after_window_bottom": {
+    "scrollY": 2482,
+    "docHeight": 3326,
+    "mainScroll": 0,
+    "navTop": 778,
+    "buttons": [
+      {
+        "id": "trigger-extract-btn",
+        "top": -1756,
+        "bottom": -1710
+      },
+      {
+        "id": "trigger-summary-btn",
+        "top": -1517,
+        "bottom": -1471
+      }
+    ]
+  },
+  "after_summary_focus": {
+    "scrollY": 167,
+    "docHeight": 3326,
+    "mainScroll": 0,
+    "navTop": 778,
+    "button": {
+      "top": 798,
+      "bottom": 844
+    }
+  }
+}

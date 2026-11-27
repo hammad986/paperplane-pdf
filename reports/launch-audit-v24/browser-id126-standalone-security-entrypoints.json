@@ -1,0 +1,29 @@
+{
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "checks": [
+    {
+      "route": "/protect-pdf",
+      "http_status": 200,
+      "app_src": "/assets/app.js?v=206",
+      "modal_visible": true,
+      "audit_pane_visible": true,
+      "sanitize_button_count": 1,
+      "uploaded_filename": "security-entrypoint.pdf"
+    },
+    {
+      "route": "/unlock-pdf",
+      "http_status": 200,
+      "app_src": "/assets/app.js?v=206",
+      "modal_visible": true,
+      "audit_pane_visible": true,
+      "sanitize_button_count": 1,
+      "uploaded_filename": "security-entrypoint.pdf"
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "result": "passed"
+}

@@ -1,0 +1,34 @@
+{
+  "build": "app.js v191/styles.css v71/service-worker v143",
+  "operation": "Page Organizer",
+  "browser_rounds": [
+    {
+      "round": 1,
+      "page_count": 3,
+      "order_field": "1,3,2",
+      "page_markers": [
+        "PAGE_A",
+        "PAGE_C",
+        "PAGE_B"
+      ],
+      "download_name": "organized.pdf",
+      "file_bytes": 1060,
+      "content_checked": true
+    },
+    {
+      "round": 2,
+      "page_count": 3,
+      "order_field": "1,3,2",
+      "page_markers": [
+        "PAGE_A",
+        "PAGE_C",
+        "PAGE_B"
+      ],
+      "download_name": "organized.pdf",
+      "file_bytes": 1060,
+      "content_checked": true
+    }
+  ],
+  "browser_errors": [],
+  "passed": true
+}

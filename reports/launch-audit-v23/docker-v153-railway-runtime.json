@@ -1,0 +1,24 @@
+{
+  "image": "paperplane-v23-audit:codex-v153-railway-port",
+  "image_id": "sha256:adc65c3af1d4adf3fdfa433312e08a985629dfca4ee5a6ba2b054f8d3326387f",
+  "health": {
+    "status": "ok",
+    "service": "paperplane-pdf",
+    "version": "2.0.0",
+    "auth_required": false,
+    "workers": 4,
+    "max_file_size_mb": 500,
+    "job_ttl_hours": 24
+  },
+  "railway_health_host_status": 200,
+  "port_environment": {
+    "PORT": 18528,
+    "PAPERPLANE_PORT": 8501
+  },
+  "catalog_exit_code": 0,
+  "catalog_evidence": "browser-id28-v148-current-image-catalog-current-v153-railway-2026-11-22.json",
+  "catalog_log": "browser-id28-current-v153-catalog.log",
+  "storage": "temporary container with tmpfs only",
+  "real_payment": false,
+  "provider_credentials": false
+}

@@ -1,0 +1,47 @@
+{
+  "candidate": "app.js v192 / service-worker v144",
+  "item": 92,
+  "rounds": [
+    {
+      "round": 1,
+      "confirmation": "Start a new blank page? Your current PDF will be removed from this browser workspace.",
+      "cancel_kept_source": true,
+      "blank_source_bytes": 342,
+      "editor_source_bytes": 342,
+      "export": {
+        "filename": "edited_document.pdf",
+        "bytes": 440,
+        "pages": 1,
+        "text": ""
+      },
+      "reload": {
+        "pages": "0",
+        "src": null,
+        "toast": ""
+      },
+      "no_invalid_zero_byte_restore": true
+    },
+    {
+      "round": 2,
+      "confirmation": "Start a new blank page? Your current PDF will be removed from this browser workspace.",
+      "cancel_kept_source": true,
+      "blank_source_bytes": 342,
+      "editor_source_bytes": 342,
+      "export": {
+        "filename": "edited_document.pdf",
+        "bytes": 440,
+        "pages": 1,
+        "text": ""
+      },
+      "reload": {
+        "pages": "0",
+        "src": null,
+        "toast": ""
+      },
+      "no_invalid_zero_byte_restore": true
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "result": "passed"
+}

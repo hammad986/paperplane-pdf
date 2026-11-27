@@ -1,0 +1,23 @@
+{
+  "base": "http://127.0.0.1:61888",
+  "route": "/developers",
+  "rounds": [
+    {
+      "round": 1,
+      "http_status": 200,
+      "uses_env_api_key": true,
+      "uses_idempotency_variable": true,
+      "credential_literals_absent": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "http_status": 200,
+      "uses_env_api_key": true,
+      "uses_idempotency_variable": true,
+      "credential_literals_absent": true,
+      "page_errors": []
+    }
+  ],
+  "verdict": "PASS"
+}

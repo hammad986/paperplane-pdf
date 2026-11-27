@@ -1,0 +1,136 @@
+{
+  "candidate": "app.js v234/styles.css v90/service-worker v210",
+  "checks": [
+    {
+      "width": 320,
+      "height": 640,
+      "scrollWidth": 320,
+      "resultTop": 90.0625,
+      "resultBottom": 476.0625,
+      "actions": [
+        {
+          "name": "Download PDF",
+          "top": 235.0625,
+          "bottom": 279.0625,
+          "height": 44,
+          "display": "flex"
+        },
+        {
+          "name": "Open in Studio",
+          "top": 287.0625,
+          "bottom": 331.0625,
+          "height": 44,
+          "display": "block"
+        }
+      ],
+      "nav": {
+        "top": 574,
+        "bottom": 640,
+        "height": 66
+      },
+      "viewport": "320x640",
+      "actions_visible": true,
+      "actions_clear_of_nav": true,
+      "result": "passed"
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "scrollWidth": 390,
+      "resultTop": 346.171875,
+      "resultBottom": 680.171875,
+      "actions": [
+        {
+          "name": "Download PDF",
+          "top": 491.171875,
+          "bottom": 535.171875,
+          "height": 44,
+          "display": "flex"
+        },
+        {
+          "name": "Open in Studio",
+          "top": 488.171875,
+          "bottom": 532.171875,
+          "height": 44,
+          "display": "block"
+        }
+      ],
+      "nav": {
+        "top": 778,
+        "bottom": 844,
+        "height": 66
+      },
+      "viewport": "390x844",
+      "actions_visible": true,
+      "actions_clear_of_nav": true,
+      "result": "passed"
+    },
+    {
+      "width": 768,
+      "height": 900,
+      "scrollWidth": 768,
+      "resultTop": 473.5,
+      "resultBottom": 735.5,
+      "actions": [
+        {
+          "name": "Download PDF",
+          "top": 602.5,
+          "bottom": 646.5,
+          "height": 44,
+          "display": "flex"
+        },
+        {
+          "name": "Open in Studio",
+          "top": 599.5,
+          "bottom": 643.5,
+          "height": 44,
+          "display": "block"
+        }
+      ],
+      "nav": {
+        "top": 834,
+        "bottom": 900,
+        "height": 66
+      },
+      "viewport": "768x900",
+      "actions_visible": true,
+      "actions_clear_of_nav": true,
+      "result": "passed"
+    },
+    {
+      "width": 1366,
+      "height": 900,
+      "scrollWidth": 1366,
+      "resultTop": 361.5,
+      "resultBottom": 601.5,
+      "actions": [
+        {
+          "name": "Download PDF",
+          "top": 490.5,
+          "bottom": 528.5,
+          "height": 38,
+          "display": "flex"
+        },
+        {
+          "name": "Open in Studio",
+          "top": 487.5,
+          "bottom": 525.5,
+          "height": 38,
+          "display": "block"
+        }
+      ],
+      "nav": {
+        "top": 0,
+        "bottom": 0,
+        "height": 0
+      },
+      "viewport": "1366x900",
+      "actions_visible": true,
+      "actions_clear_of_nav": true,
+      "result": "passed"
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "result": "passed"
+}

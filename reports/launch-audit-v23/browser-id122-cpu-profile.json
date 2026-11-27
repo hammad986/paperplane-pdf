@@ -1,0 +1,294 @@
+{
+  "fixture": "C:\\Users\\mdham\\Downloads\\notes.pdf",
+  "pages": 69,
+  "viewport": [
+    390,
+    844
+  ],
+  "dpr": 3,
+  "cpu_throttle": 4,
+  "profile_duration_seconds": 6.04,
+  "top_functions": [
+    {
+      "function": "(program)",
+      "url": "",
+      "line": -1,
+      "column": -1,
+      "samples": 1866
+    },
+    {
+      "function": "(idle)",
+      "url": "",
+      "line": -1,
+      "column": -1,
+      "samples": 892
+    },
+    {
+      "function": "scrollTo",
+      "url": "",
+      "line": -1,
+      "column": -1,
+      "samples": 311
+    },
+    {
+      "function": "refresh",
+      "url": "http://127.0.0.1:63146/assets/app.js?v=110",
+      "line": 8143,
+      "column": 18,
+      "samples": 76
+    },
+    {
+      "function": "(garbage collector)",
+      "url": "",
+      "line": -1,
+      "column": -1,
+      "samples": 44
+    },
+    {
+      "function": "showText",
+      "url": "http://127.0.0.1:63146/assets/pdf.min.js",
+      "line": 21,
+      "column": 135542,
+      "samples": 33
+    },
+    {
+      "function": "querySelectorAll",
+      "url": "",
+      "line": -1,
+      "column": -1,
+      "samples": 30
+    },
+    {
+      "function": "",
+      "url": "http://127.0.0.1:63146/assets/app.js?v=110",
+      "line": 57,
+      "column": 19,
+      "samples": 26
+    },
+    {
+      "function": "createStudioPageSlot",
+      "url": "http://127.0.0.1:63146/assets/app.js?v=110",
+      "line": 2804,
+      "column": 29,
+      "samples": 26
+    },
+    {
+      "function": "renderToolDeskDirectory",
+      "url": "http://127.0.0.1:63146/assets/app.js?v=110",
+      "line": 1747,
+      "column": 32,
+      "samples": 23
+    },
+    {
+      "function": "switchWorkspaceView",
+      "url": "http://127.0.0.1:63146/assets/app.js?v=110",
+      "line": 1245,
+      "column": 28,
+      "samples": 22
+    },
+    {
+      "function": "getStudioPageScale",
+      "url": "http://127.0.0.1:63146/assets/app.js?v=110",
+      "line": 2868,
+      "column": 27,
+      "samples": 22
+    },
+    {
+      "function": "init",
+      "url": "http://127.0.0.1:63146/assets/app.js?v=110",
+      "line": 8225,
+      "column": 19,
+      "samples": 18
+    },
+    {
+      "function": "_setupCanvas",
+      "url": "http://127.0.0.1:63146/assets/editor.js?v=14",
+      "line": 608,
+      "column": 14,
+      "samples": 18
+    },
+    {
+      "function": "renderStudioPageNow",
+      "url": "http://127.0.0.1:63146/assets/app.js?v=110",
+      "line": 2964,
+      "column": 34,
+      "samples": 17
+    },
+    {
+      "function": "renderThumbnails",
+      "url": "http://127.0.0.1:63146/assets/page_organizer.js?v=15",
+      "line": 547,
+      "column": 26,
+      "samples": 17
+    },
+    {
+      "function": "renderToolDeskDirectory",
+      "url": "http://127.0.0.1:63146/assets/app.js?v=110",
+      "line": 1747,
+      "column": 32,
+      "samples": 10
+    },
+    {
+      "function": "query",
+      "url": "",
+      "line": 5259,
+      "column": 20,
+      "samples": 10
+    },
+    {
+      "function": "__w_pdfjs_require__",
+      "url": "http://127.0.0.1:63146/assets/pdf.min.js",
+      "line": 21,
+      "column": 314230,
+      "samples": 9
+    },
+    {
+      "function": "prepareStudioPageStack",
+      "url": "http://127.0.0.1:63146/assets/app.js?v=110",
+      "line": 2822,
+      "column": 37,
+      "samples": 9
+    },
+    {
+      "function": "prepareStudioPageStack",
+      "url": "http://127.0.0.1:63146/assets/app.js?v=110",
+      "line": 2822,
+      "column": 37,
+      "samples": 9
+    },
+    {
+      "function": "",
+      "url": "http://127.0.0.1:63146/assets/app.js?v=110",
+      "line": 0,
+      "column": 0,
+      "samples": 8
+    },
+    {
+      "function": "syncStudioMobilePagesPanelPosition",
+      "url": "http://127.0.0.1:63146/assets/app.js?v=110",
+      "line": 1084,
+      "column": 43,
+      "samples": 8
+    },
+    {
+      "function": "",
+      "url": "https://accounts.google.com/gsi/client",
+      "line": 0,
+      "column": 60,
+      "samples": 8
+    },
+    {
+      "function": "loadDocumentIntoStudio",
+      "url": "http://127.0.0.1:63146/assets/app.js?v=110",
+      "line": 2659,
+      "column": 37,
+      "samples": 8
+    },
+    {
+      "function": "executeOperatorList",
+      "url": "http://127.0.0.1:63146/assets/pdf.min.js",
+      "line": 21,
+      "column": 121480,
+      "samples": 8
+    },
+    {
+      "function": "syncStudioMobilePagesPanelPosition",
+      "url": "http://127.0.0.1:63146/assets/app.js?v=110",
+      "line": 1084,
+      "column": 43,
+      "samples": 8
+    },
+    {
+      "function": "__w_pdfjs_require__",
+      "url": "http://127.0.0.1:63146/assets/pdf.min.js",
+      "line": 21,
+      "column": 314230,
+      "samples": 7
+    },
+    {
+      "function": "setFont",
+      "url": "http://127.0.0.1:63146/assets/pdf.min.js",
+      "line": 21,
+      "column": 133250,
+      "samples": 7
+    },
+    {
+      "function": "MessageHandler._onComObjOnMessage",
+      "url": "http://127.0.0.1:63146/assets/pdf.min.js",
+      "line": 21,
+      "column": 160955,
+      "samples": 6
+    },
+    {
+      "function": "createNativeFontFace",
+      "url": "http://127.0.0.1:63146/assets/pdf.min.js",
+      "line": 21,
+      "column": 110004,
+      "samples": 6
+    },
+    {
+      "function": "",
+      "url": "http://127.0.0.1:63146/assets/theme-init.js?v=13",
+      "line": 0,
+      "column": 0,
+      "samples": 5
+    },
+    {
+      "function": "placeStudioControl",
+      "url": "http://127.0.0.1:63146/assets/app.js?v=110",
+      "line": 1047,
+      "column": 27,
+      "samples": 5
+    },
+    {
+      "function": "",
+      "url": "http://127.0.0.1:63146/assets/app.js?v=110",
+      "line": 57,
+      "column": 19,
+      "samples": 5
+    },
+    {
+      "function": "t",
+      "url": "https://accounts.google.com/gsi/client",
+      "line": 4,
+      "column": 263,
+      "samples": 5
+    },
+    {
+      "function": "init",
+      "url": "http://127.0.0.1:63146/assets/page_organizer.js?v=15",
+      "line": 129,
+      "column": 8,
+      "samples": 4
+    },
+    {
+      "function": "setInitialView",
+      "url": "http://127.0.0.1:63146/assets/app.js?v=110",
+      "line": 8504,
+      "column": 25,
+      "samples": 4
+    },
+    {
+      "function": "placeStudioControl",
+      "url": "http://127.0.0.1:63146/assets/app.js?v=110",
+      "line": 1047,
+      "column": 27,
+      "samples": 4
+    },
+    {
+      "function": "",
+      "url": "http://127.0.0.1:63146/assets/app.js?v=110",
+      "line": 70,
+      "column": 18,
+      "samples": 4
+    },
+    {
+      "function": "__w_pdfjs_require__",
+      "url": "http://127.0.0.1:63146/assets/pdf.min.js",
+      "line": 21,
+      "column": 314230,
+      "samples": 4
+    }
+  ],
+  "total_samples": 3862
+}

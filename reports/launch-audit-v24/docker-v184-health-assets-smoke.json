@@ -1,0 +1,22 @@
+{
+  "result": "passed",
+  "image": "pdf_splitter-paperplane:latest",
+  "image_id": "sha256:e571458c39a8f86a3b082a1b236e7480895dfc587de7bfc419c792803220e188",
+  "mode": "isolated production-mode container",
+  "container": "paperplane-v24-v184-style67-smoke",
+  "storage": "temporary tmpfs /data and /tmp; container auto-removed after check",
+  "public_url": "https://paperplane.example.invalid (synthetic config only)",
+  "health": "ok",
+  "served_assets": {
+    "app_js": "v184",
+    "styles_css": "v67",
+    "service_worker_shell": "v132"
+  },
+  "assertions": {
+    "translation_warning_helper": true,
+    "mobile_toast_rule": true
+  },
+  "provider_credentials": false,
+  "real_payment": false,
+  "production_endpoint_contacted": false
+}

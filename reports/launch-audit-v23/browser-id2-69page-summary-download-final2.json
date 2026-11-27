@@ -1,0 +1,293 @@
+{
+  "local_url": "http://127.0.0.1:8501/ai-intelligence",
+  "fixture_pages": 69,
+  "http_status": 200,
+  "summary_mode": "offline_extractive",
+  "citations_count": 69,
+  "citation_min": 1,
+  "citation_max": 69,
+  "cites_first_page": true,
+  "cites_final_page": true,
+  "offline_mode_explicit": true,
+  "ui_badge_matches_offline_mode": true,
+  "ui_does_not_claim_synthesis": true,
+  "final_page_fact_present": true,
+  "summary_headings": 1,
+  "ui_mode_badge": "Offline Analysis",
+  "page_errors": [],
+  "downloaded_pdf": {
+    "filename": "v23-id2-69-pages_executive_brief.pdf",
+    "pages": 4,
+    "text_chars": 10203,
+    "has_offline_disclosure": true,
+    "has_final_page_fact": true,
+    "has_page_69_citation": true,
+    "passed": true
+  },
+  "before_summary_layout": [
+    {
+      "viewport": "390x844",
+      "documentWidth": 390,
+      "viewportWidth": 390,
+      "chat": {
+        "left": 12,
+        "right": 378,
+        "width": 366
+      },
+      "metadata": {
+        "left": 12,
+        "right": 378,
+        "width": 366
+      },
+      "summary": {
+        "left": 12,
+        "right": 378,
+        "width": 366
+      }
+    },
+    {
+      "viewport": "820x900",
+      "documentWidth": 820,
+      "viewportWidth": 820,
+      "chat": {
+        "left": 12,
+        "right": 808,
+        "width": 796
+      },
+      "metadata": {
+        "left": 12,
+        "right": 808,
+        "width": 796
+      },
+      "summary": {
+        "left": 12,
+        "right": 808,
+        "width": 796
+      }
+    },
+    {
+      "viewport": "1280x720",
+      "documentWidth": 1280,
+      "viewportWidth": 1280,
+      "chat": {
+        "left": 284,
+        "right": 946,
+        "width": 662
+      },
+      "metadata": {
+        "left": 962,
+        "right": 1266,
+        "width": 304
+      },
+      "summary": {
+        "left": 962,
+        "right": 1266,
+        "width": 304
+      }
+    },
+    {
+      "viewport": "1920x1080",
+      "documentWidth": 1920,
+      "viewportWidth": 1920,
+      "chat": {
+        "left": 284,
+        "right": 1480,
+        "width": 1196
+      },
+      "metadata": {
+        "left": 1496,
+        "right": 1906,
+        "width": 410
+      },
+      "summary": {
+        "left": 1496,
+        "right": 1906,
+        "width": 410
+      }
+    }
+  ],
+  "post_summary_layout_checks": [
+    {
+      "viewport": "390x844",
+      "before": {
+        "viewport": "390x844",
+        "documentWidth": 390,
+        "viewportWidth": 390,
+        "chat": {
+          "left": 12,
+          "right": 378,
+          "width": 366
+        },
+        "metadata": {
+          "left": 12,
+          "right": 378,
+          "width": 366
+        },
+        "summary": {
+          "left": 12,
+          "right": 378,
+          "width": 366
+        }
+      },
+      "after": {
+        "viewport": "390x844",
+        "documentWidth": 390,
+        "viewportWidth": 390,
+        "chat": {
+          "left": 12,
+          "right": 378,
+          "width": 366
+        },
+        "metadata": {
+          "left": 12,
+          "right": 378,
+          "width": 366
+        },
+        "summary": {
+          "left": 12,
+          "right": 378,
+          "width": 366
+        }
+      },
+      "columns_stable": true,
+      "passed": true
+    },
+    {
+      "viewport": "820x900",
+      "before": {
+        "viewport": "820x900",
+        "documentWidth": 820,
+        "viewportWidth": 820,
+        "chat": {
+          "left": 12,
+          "right": 808,
+          "width": 796
+        },
+        "metadata": {
+          "left": 12,
+          "right": 808,
+          "width": 796
+        },
+        "summary": {
+          "left": 12,
+          "right": 808,
+          "width": 796
+        }
+      },
+      "after": {
+        "viewport": "820x900",
+        "documentWidth": 820,
+        "viewportWidth": 820,
+        "chat": {
+          "left": 12,
+          "right": 808,
+          "width": 796
+        },
+        "metadata": {
+          "left": 12,
+          "right": 808,
+          "width": 796
+        },
+        "summary": {
+          "left": 12,
+          "right": 808,
+          "width": 796
+        }
+      },
+      "columns_stable": true,
+      "passed": true
+    },
+    {
+      "viewport": "1280x720",
+      "before": {
+        "viewport": "1280x720",
+        "documentWidth": 1280,
+        "viewportWidth": 1280,
+        "chat": {
+          "left": 284,
+          "right": 946,
+          "width": 662
+        },
+        "metadata": {
+          "left": 962,
+          "right": 1266,
+          "width": 304
+        },
+        "summary": {
+          "left": 962,
+          "right": 1266,
+          "width": 304
+        }
+      },
+      "after": {
+        "viewport": "1280x720",
+        "documentWidth": 1280,
+        "viewportWidth": 1280,
+        "chat": {
+          "left": 284,
+          "right": 946,
+          "width": 662
+        },
+        "metadata": {
+          "left": 962,
+          "right": 1266,
+          "width": 304
+        },
+        "summary": {
+          "left": 962,
+          "right": 1266,
+          "width": 304
+        }
+      },
+      "columns_stable": true,
+      "passed": true
+    },
+    {
+      "viewport": "1920x1080",
+      "before": {
+        "viewport": "1920x1080",
+        "documentWidth": 1920,
+        "viewportWidth": 1920,
+        "chat": {
+          "left": 284,
+          "right": 1480,
+          "width": 1196
+        },
+        "metadata": {
+          "left": 1496,
+          "right": 1906,
+          "width": 410
+        },
+        "summary": {
+          "left": 1496,
+          "right": 1906,
+          "width": 410
+        }
+      },
+      "after": {
+        "viewport": "1920x1080",
+        "documentWidth": 1920,
+        "viewportWidth": 1920,
+        "chat": {
+          "left": 284,
+          "right": 1480,
+          "width": 1196
+        },
+        "metadata": {
+          "left": 1496,
+          "right": 1906,
+          "width": 410
+        },
+        "summary": {
+          "left": 1496,
+          "right": 1906,
+          "width": 410
+        }
+      },
+      "columns_stable": true,
+      "passed": true
+    }
+  ],
+  "missing_mode_is_neutral": true,
+  "provider_mode_is_labeled_synthesis": true
+}

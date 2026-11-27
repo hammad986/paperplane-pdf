@@ -1,0 +1,44 @@
+{
+  "base": "http://127.0.0.1:18502",
+  "rounds": [
+    {
+      "round": 1,
+      "change": "file",
+      "stale_result_hidden": true,
+      "page_errors": [],
+      "new_file_download_content_checked": true
+    },
+    {
+      "round": 1,
+      "change": "tool",
+      "stale_result_hidden": true,
+      "page_errors": []
+    },
+    {
+      "round": 1,
+      "change": "photo file",
+      "stale_result_hidden": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "change": "file",
+      "stale_result_hidden": true,
+      "page_errors": [],
+      "new_file_download_content_checked": true
+    },
+    {
+      "round": 2,
+      "change": "tool",
+      "stale_result_hidden": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "change": "photo file",
+      "stale_result_hidden": true,
+      "page_errors": []
+    }
+  ],
+  "result": "PASS"
+}

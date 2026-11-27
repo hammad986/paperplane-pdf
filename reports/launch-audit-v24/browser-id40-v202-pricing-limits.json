@@ -1,0 +1,47 @@
+{
+  "build": "v202",
+  "url": "/pricing",
+  "checks": [
+    {
+      "viewport": [
+        1366,
+        900
+      ],
+      "status": 200,
+      "rows": 44,
+      "has_guest_50mb": true,
+      "has_exam_pass_500mb": true,
+      "free_and_paid_no_plan_cap": true,
+      "service_max_500mb": true,
+      "layout": {
+        "innerWidth": 1366,
+        "documentWidth": 1366,
+        "tableWidth": 918,
+        "tableScrollWidth": 916,
+        "parentScrollWidth": 990
+      },
+      "no_document_overflow": true
+    },
+    {
+      "viewport": [
+        390,
+        844
+      ],
+      "status": 200,
+      "rows": 44,
+      "has_guest_50mb": true,
+      "has_exam_pass_500mb": true,
+      "free_and_paid_no_plan_cap": true,
+      "service_max_500mb": true,
+      "layout": {
+        "innerWidth": 390,
+        "documentWidth": 390,
+        "tableWidth": 268,
+        "tableScrollWidth": 266,
+        "parentScrollWidth": 340
+      },
+      "no_document_overflow": true
+    }
+  ],
+  "page_errors": []
+}

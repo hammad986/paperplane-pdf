@@ -1,0 +1,18 @@
+{
+  "site": "https://paperplane.qd.je",
+  "source": "generated one-page guest PDF; idempotency key and job id redacted",
+  "route_status": 200,
+  "result": {
+    "first_status": 202,
+    "second_status": 200,
+    "same_job": true,
+    "idempotent": true,
+    "completed": true,
+    "download_status": 200,
+    "download_bytes": 839,
+    "pdf_signature": true,
+    "pages": 1,
+    "content_checked": true
+  },
+  "page_errors": []
+}

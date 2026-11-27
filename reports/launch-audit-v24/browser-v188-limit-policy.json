@@ -1,0 +1,88 @@
+{
+  "image": "pdf_splitter-paperplane:latest",
+  "image_id": "sha256:5669d0e9d8a7148fc40e01a7de736bd0522ea8c75ec7846c8cfa6d1f3ef74e99",
+  "status": 200,
+  "observed": {
+    "title": "PDF to Word | Paperplane",
+    "appScript": "http://127.0.0.1:8766/assets/app.js?v=188",
+    "serviceWorker": "http://127.0.0.1:8766/service-worker.js",
+    "guestBadge": "\u26a1 Free Guest Tool \u00b7 No Account Required (10 server operations/day \u00b7 up to 50 MB/file)",
+    "uploadHint": "Guests up to 50 MB/file \u00b7 signed-in Free and recurring paid plans have no plan-specific file cap (service max 500 MB) \u00b7 Exam Pass up to 500 MB/file \u00b7 This tool processes 1 file per run",
+    "planLimits": {
+      "free_operations_per_day": 10,
+      "guest_max_file_size_mb": 50,
+      "free_max_file_size_mb": 500,
+      "exam_pass_max_file_size_mb": 500,
+      "pro_max_file_size_mb": 500,
+      "platform_max_file_size_mb": 500,
+      "authenticated": 0,
+      "max_batch_files": 10
+    },
+    "horizontalOverflow": false,
+    "pricing": {
+      "title": "Per-tool upload and usage limits",
+      "rowCount": 44,
+      "text": "Per-tool upload and usage limits\n\nServer submissions count as one daily operation per run. Browser-local processing does not use the daily server allowance. AI requests share the same daily allowance; no separate page or word allowance is currently published. Provider, memory, and processing-time constraints may apply.\n\nTool\tBatch\tFile size\tDaily allowance\tPage limit\nMerge PDF\t10 Free/Student Pro/Exam Pass \u00b7 100 Full Pro/Developer/All-In-One files per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nSplit / extract\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nRemove pages\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nRotate PDF\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nPage Organizer\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nScan to PDF\t10 Free/Student Pro/Exam Pass \u00b7 100 Full Pro/Developer/All-In-One files per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nCompress PDF\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nRepair PDF\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nOCR PDF\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nJPG/PNG to PDF\t10 Free/Student Pro/Exam Pass \u00b7 100 Full Pro/Developer/All-In-One files per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nWord to PDF\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nExcel to PDF\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nPowerPoint to PDF\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nHTML to PDF\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nPDF to JPG\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nPDF to Word\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nPDF to Excel\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nPDF to PowerPoint\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nPDF to PDF/A\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nPDF to Text\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nPDF to Markdown\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nAdd Text & Stamps\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nAnnotate PDF\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nCrop PDF\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nRedact PDF\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nWatermark PDF\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nPage Numbers\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nProtect PDF\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nUnlock PDF\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nSign PDF\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nCompare PDF\t2 files per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nFill PDF Form\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nPDF Metadata\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nAI PDF Chat\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 requests/day shared (Free)\tNo separate page-count cap published\nSmart Metadata\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 requests/day shared (Free)\tNo separate page-count cap published\nAI Summarize\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 requests/day shared (Free)\tNo separate page-count cap published\nAI Translate\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 requests/day shared (Free)\tNo separate page-count cap published\nExam Photo & Signature Resizer\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nCompress Photo / Image\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nResize Photo Dimensions\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nMerge Photos into One\t2\u201310 files per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nMask Aadhaar Card\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nConvert to Grayscale\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published\nFlatten PDF Forms\t1 file per run\tGuest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)\t10 server runs/day shared (Free)\tNo separate page-count cap published",
+      "horizontalOverflow": false
+    },
+    "pricingResponsive": [
+      {
+        "width": 320,
+        "documentWidth": 320,
+        "sectionRight": 259,
+        "regionClientWidth": 160,
+        "regionScrollWidth": 160,
+        "noPageOverflow": true,
+        "sectionWithinViewport": true,
+        "tableHasNamedScrollRegion": true
+      },
+      {
+        "width": 390,
+        "documentWidth": 390,
+        "sectionRight": 329,
+        "regionClientWidth": 230,
+        "regionScrollWidth": 230,
+        "noPageOverflow": true,
+        "sectionWithinViewport": true,
+        "tableHasNamedScrollRegion": true
+      },
+      {
+        "width": 820,
+        "documentWidth": 820,
+        "sectionRight": 759,
+        "regionClientWidth": 658,
+        "regionScrollWidth": 760,
+        "noPageOverflow": true,
+        "sectionWithinViewport": true,
+        "tableHasNamedScrollRegion": true
+      },
+      {
+        "width": 1366,
+        "documentWidth": 1366,
+        "sectionRight": 1277,
+        "regionClientWidth": 878,
+        "regionScrollWidth": 878,
+        "noPageOverflow": true,
+        "sectionWithinViewport": true,
+        "tableHasNamedScrollRegion": true
+      }
+    ]
+  },
+  "page_console_errors": [],
+  "checks": {
+    "http_200": true,
+    "app_v188": true,
+    "guest_50mb": true,
+    "free_and_paid_no_plan_cap_with_500_service_max": true,
+    "exam_pass_500mb": true,
+    "bootstrap_limits": true,
+    "no_horizontal_overflow": true,
+    "pricing_http_200": true,
+    "pricing_has_44_tool_rows": true,
+    "pricing_discloses_all_plan_caps": true,
+    "pricing_no_horizontal_overflow": true,
+    "pricing_responsive_320_390_820_1366": true,
+    "no_page_console_errors": true
+  },
+  "passed": true
+}

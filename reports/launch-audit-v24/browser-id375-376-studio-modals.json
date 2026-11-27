@@ -1,0 +1,25 @@
+{
+  "page_errors": [],
+  "console_errors": [
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 504 (Gateway Timeout)"
+  ],
+  "compress": {
+    "failure_kept_modal_open": true,
+    "error_copy": "Compression failed: Controlled compression failure. Your original PDF is still open. Retry when ready.",
+    "retry_succeeded": true,
+    "output_page_count": 1
+  },
+  "ocr": {
+    "failure_kept_modal_open": true,
+    "error_copy": "OCR failed: Controlled OCR timeout. Your original PDF is unchanged. Retry when ready.",
+    "retry_succeeded": true,
+    "output_page_count": 1
+  },
+  "expected_injected_console_errors": [
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 504 (Gateway Timeout)"
+  ],
+  "unexpected_console_errors": [],
+  "result": "passed"
+}

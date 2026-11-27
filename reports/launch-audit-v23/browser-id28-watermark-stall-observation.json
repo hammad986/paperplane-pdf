@@ -1,0 +1,28 @@
+{
+  "date": "2026-11-19",
+  "runtime": "paperplane-v23-audit:codex-current, production mode, four workers, tmpfs data, synthetic fixture",
+  "image_id": "sha256:b3a5c5c0da22de2de0eec8a65824ef8c18be68550a4a3707e65525fc55c91d47",
+  "observation": {
+    "catalog_round": 2,
+    "completed_outputs_before_timeout": 24,
+    "operation": "watermark",
+    "browser_harness_result": "failed after 340.67 seconds",
+    "last_direct_job_state_observed": "processing",
+    "last_direct_progress_percent_observed": 20,
+    "job_age_seconds_at_last_observation": 443.3,
+    "error_reported_by_job": null,
+    "browser_page_errors": 0,
+    "source": "synthetic 2-page audit PDF; 2,492 bytes; text AUDIT_WATERMARK"
+  },
+  "follow_up": {
+    "direct_local_processing_seconds": 0.084,
+    "fresh_chromium_watermark_repeats": 20,
+    "fresh_repeat_downloads_content_checked": 20,
+    "fresh_repeat_failures": 0,
+    "subsequent_full_catalog_rounds": [
+      {"completed_outputs": 41, "ssrf_blocked": 1, "provider_unavailable": 2, "failures": 0},
+      {"completed_outputs": 41, "ssrf_blocked": 1, "provider_unavailable": 2, "failures": 0}
+    ],
+    "interpretation": "A single full-catalog run left a job processing beyond seven minutes; repeated isolated Watermark runs and a subsequent full-catalog run did not reproduce it. Treat as an unresolved intermittent worker stall, not as a confirmed fix or a clean failure reproduction."
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "status": 200,
+  "app_asset": "/assets/app.js?v=233",
+  "styles": "/assets/styles.css?v=88",
+  "input_bytes": 21124058,
+  "output_bytes": 70579,
+  "output_name": "id376-two-page-scanned-ocr-v2.pdf",
+  "reduction_percent": 99.67,
+  "api_responses": [
+    {
+      "status": 200,
+      "headers": {
+        "x-original-size": "21124058",
+        "x-output-size": "70579",
+        "x-percent-saved": "99.7",
+        "x-target-achieved": "true"
+      }
+    }
+  ],
+  "input_pages": 2,
+  "output_pages": 2,
+  "page_visuals": [
+    {
+      "page": 1,
+      "dimensions_equal": true,
+      "mean_abs_pixel_difference": 0.0
+    },
+    {
+      "page": 2,
+      "dimensions_equal": true,
+      "mean_abs_pixel_difference": 0.4920296717171717
+    }
+  ],
+  "toast": "OK\nCompressed! Saved 20.1 MB (99.7% reduction).",
+  "page_errors": [],
+  "console_errors": []
+}

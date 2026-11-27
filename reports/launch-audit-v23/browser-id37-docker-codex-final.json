@@ -1,0 +1,61 @@
+{
+  "base": "http://127.0.0.1:18502",
+  "results": [
+    {
+      "operation": "fill_forms",
+      "output_bytes": 1711,
+      "field_value_checked": true,
+      "source_text_checked": true
+    },
+    {
+      "operation": "edit_metadata",
+      "output_bytes": 985,
+      "updated_json_checked": true,
+      "preserved_metadata_checked": true,
+      "source_text_checked": true
+    },
+    {
+      "operation": "crop",
+      "output_bytes": 974,
+      "page_dimensions_checked": [
+        270,
+        160
+      ],
+      "source_text_checked": true
+    },
+    {
+      "operation": "watermark_text",
+      "output_bytes": 1496,
+      "watermark_text_checked": true,
+      "configured_color_pixels": 2229
+    },
+    {
+      "operation": "scan_to_pdf",
+      "output_bytes": 2852,
+      "pages": 2,
+      "letter_dimensions_checked": true,
+      "sampled_image_colors_checked": true
+    },
+    {
+      "operation": "wide_scan_original",
+      "source_pixels": [
+        9000,
+        20
+      ],
+      "page_points": [
+        3240,
+        7.2
+      ],
+      "embedded_image_checked": true
+    },
+    {
+      "operation": "jpg_png_to_pdf",
+      "output_bytes": 2938,
+      "pages": 2,
+      "a4_auto_orientation_checked": true,
+      "sampled_image_colors_checked": true
+    }
+  ],
+  "api_job_posts": [],
+  "page_errors": []
+}

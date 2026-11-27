@@ -1,0 +1,21 @@
+{
+  "command": "python -m pytest -q",
+  "runs_sequential": true,
+  "production_endpoints_contacted": false,
+  "results": [
+    {
+      "run": 1,
+      "exit_code": 0,
+      "duration_seconds": 152.78,
+      "summary": "679 passed, 4 warnings in 147.90s (0:02:27)",
+      "log": "pytest-html-to-pdf-profile-run1.log"
+    },
+    {
+      "run": 2,
+      "exit_code": 0,
+      "duration_seconds": 148.22,
+      "summary": "679 passed, 4 warnings in 143.64s (0:02:23)",
+      "log": "pytest-html-to-pdf-profile-run2.log"
+    }
+  ]
+}

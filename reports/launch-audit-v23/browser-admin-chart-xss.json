@@ -1,0 +1,44 @@
+{
+  "runtime": "local Chromium against isolated current-source server",
+  "synthetic_payload_only": true,
+  "checks": {
+    "adminScript": "http://127.0.0.1:65163/assets/admin.js?v=18",
+    "labelText": "\"><img src=x onerror=\"window.__paperplane_admin_chart_xss=true\">",
+    "labelElementCount": 0,
+    "barTitle": "\"><img src=x onerror=\"window.__paperplane_admin_chart_xss=true\">: 0 signups",
+    "barHeight": "6%",
+    "injectedImages": 0,
+    "markerExecuted": false
+  },
+  "responsive_layouts": [
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "chartWidth": 250,
+      "chartScrollWidth": 311
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "chartWidth": 320,
+      "chartScrollWidth": 320
+    },
+    {
+      "viewport": 820,
+      "documentWidth": 820,
+      "bodyWidth": 820,
+      "chartWidth": 730,
+      "chartScrollWidth": 730
+    },
+    {
+      "viewport": 1366,
+      "documentWidth": 1366,
+      "bodyWidth": 1366,
+      "chartWidth": 806,
+      "chartScrollWidth": 806
+    }
+  ],
+  "page_errors": []
+}

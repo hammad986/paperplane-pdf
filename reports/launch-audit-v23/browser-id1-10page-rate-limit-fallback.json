@@ -1,10 +1,17 @@
 {
   "fixture": "synthetic 10-page text PDF matching the named acceptance shape; exact owner fixture unavailable",
   "provider_mode": "controlled primary HTTP 429 on every primary attempt; configured secondary returns valid translations",
+  "translation_batch_size": 2,
+  "translation_worker_limit": 2,
+  "peak_controlled_provider_concurrency": 2,
   "provider_calls": {
-    "primary_429": 36,
-    "fallback_ok": 9,
-    "undercoverage_mode": false
+    "primary_429": 116,
+    "fallback_ok": 29,
+    "undercoverage_mode": false,
+    "partial_mode": false,
+    "partial_fallback_calls": 6,
+    "active_fallback_requests": 0,
+    "peak_fallback_requests": 2
   },
   "results": [
     {

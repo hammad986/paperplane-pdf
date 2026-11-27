@@ -1,0 +1,67 @@
+{
+  "base": "https://paperplane.qd.je",
+  "checked_at_local": "2026-11-19",
+  "browser": "Chromium",
+  "viewport_width": 390,
+  "routes": [
+    {
+      "path": "/",
+      "http_status": 200,
+      "document_width": 390,
+      "body_width": 390,
+      "app_asset": "/assets/app.js?v=91"
+    },
+    {
+      "path": "/pdf-to-word",
+      "http_status": 200,
+      "document_width": 390,
+      "body_width": 390,
+      "app_asset": "/assets/app.js?v=91"
+    },
+    {
+      "path": "/compress-pdf",
+      "http_status": 200,
+      "document_width": 390,
+      "body_width": 390,
+      "app_asset": "/assets/app.js?v=91"
+    },
+    {
+      "path": "/studio",
+      "http_status": 200,
+      "document_width": 390,
+      "body_width": 390,
+      "app_asset": "/assets/app.js?v=91"
+    },
+    {
+      "path": "/ai-chat",
+      "http_status": 200,
+      "document_width": 390,
+      "body_width": 390,
+      "app_asset": "/assets/app.js?v=91"
+    },
+    {
+      "path": "/pricing",
+      "http_status": 200,
+      "document_width": 390,
+      "body_width": 390,
+      "app_asset": "/assets/app.js?v=91"
+    },
+    {
+      "path": "/privacy",
+      "http_status": 200,
+      "document_width": 390,
+      "body_width": 390,
+      "app_asset": "/assets/app.js?v=91"
+    },
+    {
+      "path": "/status",
+      "http_status": 200,
+      "document_width": 390,
+      "body_width": 390,
+      "app_asset": "/assets/app.js?v=91"
+    }
+  ],
+  "page_errors": [],
+  "scope": "Read-only route/version/responsive shell check; no authentication, upload, payment, or data mutation.",
+  "result": "All eight routes returned HTTP 200 with no horizontal overflow or page errors; deployed app bundle remains v91, behind local v115."
+}

@@ -1,0 +1,74 @@
+{
+  "runtime": "production-mode Docker image",
+  "image_id": "sha256:87359c457a7dc60fc36faeef968cbabd6a3f199f90f9d208b332f2830a2fa89f",
+  "cache_name": "paperplane-shell-v60",
+  "app_asset": "/assets/app.js?v=127",
+  "offline_rounds": [
+    {
+      "round": 1,
+      "cached_shell": {
+        "caches": [
+          "paperplane-shell-v60"
+        ],
+        "assets": [
+          "/",
+          "/manifest.webmanifest",
+          "/assets/styles.css?v=56",
+          "/assets/theme-init.js?v=13",
+          "/assets/app.js?v=127",
+          "/assets/page_organizer.js?v=16",
+          "/assets/pdf_runtime.js?v=23",
+          "/assets/local_pdf_worker.js?v=26",
+          "/assets/favicon.svg",
+          "/assets/app-192.png",
+          "/assets/app-512.png"
+        ]
+      },
+      "offline_status": 200,
+      "offline_page": {
+        "controller": true,
+        "title": "Paperplane PDF \u2014 Free Online PDF Tools & Private Editor",
+        "app": "/assets/app.js?v=127",
+        "css": "/assets/styles.css?v=56",
+        "bodyWidth": 390,
+        "documentWidth": 390,
+        "viewportWidth": 390,
+        "background": "rgb(244, 246, 243)"
+      },
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "cached_shell": {
+        "caches": [
+          "paperplane-shell-v60"
+        ],
+        "assets": [
+          "/",
+          "/manifest.webmanifest",
+          "/assets/styles.css?v=56",
+          "/assets/theme-init.js?v=13",
+          "/assets/app.js?v=127",
+          "/assets/page_organizer.js?v=16",
+          "/assets/pdf_runtime.js?v=23",
+          "/assets/local_pdf_worker.js?v=26",
+          "/assets/favicon.svg",
+          "/assets/app-192.png",
+          "/assets/app-512.png"
+        ]
+      },
+      "offline_status": 200,
+      "offline_page": {
+        "controller": true,
+        "title": "Paperplane PDF \u2014 Free Online PDF Tools & Private Editor",
+        "app": "/assets/app.js?v=127",
+        "css": "/assets/styles.css?v=56",
+        "bodyWidth": 390,
+        "documentWidth": 390,
+        "viewportWidth": 390,
+        "background": "rgb(244, 246, 243)"
+      },
+      "page_errors": []
+    }
+  ]
+}

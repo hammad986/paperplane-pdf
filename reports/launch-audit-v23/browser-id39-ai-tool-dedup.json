@@ -115,7 +115,7 @@
           "href": "/compare-pdf"
         },
         {
-          "title": "Edit PDF",
+          "title": "Add Text & Stamps",
           "href": "/edit-pdf"
         },
         {
@@ -178,8 +178,8 @@
       "workspaceNote": [
         "Open AI Intelligence"
       ],
-      "badge": "41 PDF TOOLS",
-      "toolMeta": "41 tools available"
+      "badge": "44 PDF TOOLS",
+      "toolMeta": "44 tools available"
     },
     "ai_category_filter_titles": [
       "AI Translate"
@@ -321,7 +321,7 @@
           "href": "/compare-pdf"
         },
         {
-          "title": "Edit PDF",
+          "title": "Add Text & Stamps",
           "href": "/edit-pdf"
         },
         {
@@ -361,18 +361,6 @@
           "href": "/mask-aadhaar-card-online"
         },
         {
-          "title": "AI PDF Chat",
-          "href": "/ai-pdf-chat"
-        },
-        {
-          "title": "AI Summarize",
-          "href": "/summarize-pdf"
-        },
-        {
-          "title": "Smart Metadata",
-          "href": "/extract-pdf-data"
-        },
-        {
           "title": "AI Translate",
           "href": "/translate-pdf"
         },
@@ -393,14 +381,13 @@
           "href": "/merge-photos-online"
         }
       ],
-      "workspaceNote": [],
+      "workspaceNote": [
+        "Open AI Intelligence"
+      ],
       "badge": "44 PDF TOOLS",
       "toolMeta": "44 tools available"
     },
     "ai_category_filter_titles": [
-      "AI PDF Chat",
-      "AI Summarize",
-      "Smart Metadata",
       "AI Translate"
     ],
     "ai_intelligence_status": 200,
@@ -415,7 +402,7 @@
     "mobile_tool_desk": {
       "viewport": 390,
       "documentWidth": 390,
-      "workspaceNoteInsideViewport": false
+      "workspaceNoteInsideViewport": true
     },
     "legacy_ai_chat_status": 200,
     "legacy_ai_chat_route": {
@@ -431,7 +418,7 @@
     "local_ai_filter_has_no_duplicate_workflows": true,
     "local_legacy_chat_route_preserved": true,
     "local_mobile_layout_fits": true,
-    "live_still_has_duplicate_chat_card": true,
+    "live_still_has_duplicate_chat_card": false,
     "passed": true
   }
 }

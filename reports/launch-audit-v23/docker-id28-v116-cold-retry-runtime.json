@@ -1,0 +1,28 @@
+{
+  "image": "sha256:4d831e49507f4880b29502e5d1ee12788d85b63feafec240240b69e7938a1e88",
+  "runtime": "fresh isolated production-mode container; four workers; UID 1001 processes",
+  "health": {
+    "status": "ok",
+    "service": "paperplane-pdf",
+    "version": "2.0.0",
+    "auth_required": false,
+    "workers": 4,
+    "max_file_size_mb": 500,
+    "job_ttl_hours": 2
+  },
+  "targeted_browser_rounds": [
+    {
+      "round": 1,
+      "statuses": {
+        "completed": 2
+      }
+    },
+    {
+      "round": 2,
+      "statuses": {
+        "completed": 2
+      }
+    }
+  ],
+  "page_errors": []
+}

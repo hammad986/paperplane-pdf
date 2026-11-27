@@ -32,10 +32,11 @@ def test_ai_desk_workflows_are_on_screen_contracts():
     assert 'id="result-content"' in INDEX
     assert 'id="question"' in APP
     assert "runDeskAiWorkflow" in APP
+    assert "submitAsyncAiJob" in APP
     assert "/api/ai/chat" in APP
-    assert "/api/ai/summarize" in APP
+    assert "/api/ai/summarize/pdf" in APP
     assert "/api/ai/extract" in APP
-    assert "/api/ai/translate" in APP
+    assert "/api/jobs" in APP
     assert "Open in Full AI Interactive Studio" in APP
     assert "Download PDF" in INDEX
 
@@ -108,14 +109,14 @@ def test_studio_annotations_are_saved_restored_and_cleared_with_their_pdf():
     assert "readLocalWork('studio-edits')" in APP
     assert "removeLocalWork('studio-pdf', 'studio-position', 'studio-edits')" in APP
     assert "studioEditRecordMatchesFile(saved.edits, file)" in APP
-    assert "'/assets/editor.js?v=15'" in (ROOT / "web" / "assets" / "service-worker.js").read_text(encoding="utf-8")
+    assert "'/assets/editor.js?v=17'" in (ROOT / "web" / "assets" / "service-worker.js").read_text(encoding="utf-8")
 
 
 def test_studio_organizer_page_number_stays_inside_narrow_tile():
     assert ".thumb-header {" in STYLES
     assert "grid-template-columns: minmax(20px, 1fr) 18px auto;" in STYLES
     assert ".thumb-page-num" in STYLES and "white-space: nowrap;" in STYLES
-    assert 'href="/assets/styles.css?v=93"' in INDEX
+    assert 'href="/assets/styles.css?v=98"' in INDEX
 
 
 def test_studio_page_sizes_do_not_fall_back_to_a4_and_use_pdfjs_page_view():
@@ -123,8 +124,8 @@ def test_studio_page_sizes_do_not_fall_back_to_a4_and_use_pdfjs_page_view():
     assert "height: Number.isFinite(meta.height) && meta.height > 0 ? meta.height : null" in PAGE_ORGANIZER
     assert "page.getViewport({ scale: 1.0 })" in PAGE_ORGANIZER
     assert "sizeLabel.textContent = `${Math.round(baseVp.width)}×${Math.round(baseVp.height)}pt`" in PAGE_ORGANIZER
-    assert "page_organizer.js?v=21" in INDEX
-    assert "'/assets/page_organizer.js?v=21'" in (ROOT / "web" / "assets" / "service-worker.js").read_text(encoding="utf-8")
+    assert "page_organizer.js?v=23" in INDEX
+    assert "'/assets/page_organizer.js?v=23'" in (ROOT / "web" / "assets" / "service-worker.js").read_text(encoding="utf-8")
 
 
 def test_global_footer_is_revealed_when_a_short_page_has_no_scroll_range():
@@ -282,4 +283,14 @@ def test_waitlist_input_styling_and_no_clipping_contract():
     assert 'line-height: 1.6' in STYLES
 
 
+def test_ai_workspace_scroll_compress_options_and_auth_hydration_contracts():
+    assert "#app-shell.ai-active .main-area" in STYLES
+    assert "overflow-y: auto !important;" in STYLES
+    assert "#app-shell.ai-active .app-global-footer" in STYLES
+    assert ".option-field select {\n  white-space: nowrap;" in STYLES
+    assert "function syncCompressCustomFields()" not in APP  # scoped inside renderOptions
+    assert "syncCompressCustomFields();" in APP
+    assert "if (qualityField) qualityField.hidden = !isCustom;" in APP
+    assert "Promise.allSettled([" in APP
+    assert ".auth-pending #user-avatar, .auth-restoring #user-avatar { visibility: hidden; }" in STYLES
 

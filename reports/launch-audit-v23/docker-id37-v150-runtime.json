@@ -1,0 +1,30 @@
+{
+  "image": "paperplane-v23-audit:codex-v150",
+  "image_id": "sha256:ce6c9b11f426043bc73a05efb9640a02d2b0638c63ab5d29f3feeb93a5c5b04a",
+  "health": {
+    "status": "ok",
+    "service": "paperplane-pdf",
+    "version": "2.0.0",
+    "auth_required": false,
+    "workers": 4,
+    "max_file_size_mb": 500,
+    "job_ttl_hours": 2
+  },
+  "container_status": "healthy then stopped and removed",
+  "browser_results": [
+    {
+      "script": "browser_id37_processing_disclosure.py",
+      "exit_code": 0,
+      "evidence": "browser-id37-processing-disclosure-v150-docker.json"
+    },
+    {
+      "script": "browser_id37_local_pdf_to_word.py",
+      "exit_code": 0,
+      "evidence": "browser-id37-local-pdf-to-word-v150-docker.json"
+    }
+  ],
+  "storage": "disposable tmpfs",
+  "synthetic_credentials": true,
+  "provider_credentials": false,
+  "real_payment": false
+}

@@ -1,0 +1,80 @@
+{
+  "runtime": "current production-mode Docker image",
+  "image_id": "sha256:4cc2351fa28d24b283458b629de8ceef09924d89d121bfccdb62f1669993fc29",
+  "cache_name": "paperplane-shell-v78",
+  "assets": {
+    "app": "/assets/app.js?v=138",
+    "css": "/assets/styles.css?v=61",
+    "organizer": "/assets/page_organizer.js?v=19"
+  },
+  "offline_rounds": [
+    {
+      "round": 1,
+      "cached": {
+        "names": [
+          "paperplane-shell-v78"
+        ],
+        "assets": [
+          "/",
+          "/manifest.webmanifest",
+          "/assets/styles.css?v=61",
+          "/assets/theme-init.js?v=13",
+          "/assets/app.js?v=138",
+          "/assets/page_organizer.js?v=19",
+          "/assets/pdf_runtime.js?v=23",
+          "/assets/local_pdf_worker.js?v=26",
+          "/assets/favicon.svg",
+          "/assets/app-192.png",
+          "/assets/app-512.png"
+        ]
+      },
+      "offline_status": 200,
+      "loaded": {
+        "controller": true,
+        "title": "Paperplane PDF \u2014 Free Online PDF Tools & Private Editor",
+        "app": "/assets/app.js?v=138",
+        "css": "/assets/styles.css?v=61",
+        "organizer": true,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "viewportWidth": 390,
+        "background": "rgb(244, 246, 243)"
+      },
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "cached": {
+        "names": [
+          "paperplane-shell-v78"
+        ],
+        "assets": [
+          "/",
+          "/manifest.webmanifest",
+          "/assets/styles.css?v=61",
+          "/assets/theme-init.js?v=13",
+          "/assets/app.js?v=138",
+          "/assets/page_organizer.js?v=19",
+          "/assets/pdf_runtime.js?v=23",
+          "/assets/local_pdf_worker.js?v=26",
+          "/assets/favicon.svg",
+          "/assets/app-192.png",
+          "/assets/app-512.png"
+        ]
+      },
+      "offline_status": 200,
+      "loaded": {
+        "controller": true,
+        "title": "Paperplane PDF \u2014 Free Online PDF Tools & Private Editor",
+        "app": "/assets/app.js?v=138",
+        "css": "/assets/styles.css?v=61",
+        "organizer": true,
+        "documentWidth": 390,
+        "bodyWidth": 390,
+        "viewportWidth": 390,
+        "background": "rgb(244, 246, 243)"
+      },
+      "page_errors": []
+    }
+  ]
+}

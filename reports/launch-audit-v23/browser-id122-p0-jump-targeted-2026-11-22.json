@@ -1,0 +1,19 @@
+{
+  "before": {
+    "input": "1",
+    "disabled": false,
+    "total": 69,
+    "page": 1
+  },
+  "operation": "Studio page jump",
+  "page_errors": [],
+  "fixture": "generated 69-page synthetic PDF",
+  "runtime": "isolated local server",
+  "result": "PASS",
+  "after": {
+    "input": "69",
+    "disabled": false,
+    "total": 69,
+    "page": 69
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "base": "http://127.0.0.1:18502",
+  "runtime": "Docker image",
+  "image_id": "sha256:e31b7c4b3a994a49553a736601f7279a0fc42ce364219922b8e9c3b7cfd955e6",
+  "rounds": [
+    {
+      "round": 1,
+      "filename": "comparison-old_vs_comparison-new_comparison.txt",
+      "has_context": true,
+      "insertion_and_replacement_detected": true,
+      "diff_algorithm_cases": 6,
+      "diff_work_limit_enforced": true,
+      "job_posts": [],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "filename": "comparison-old_vs_comparison-new_comparison.txt",
+      "has_context": true,
+      "insertion_and_replacement_detected": true,
+      "diff_algorithm_cases": 6,
+      "diff_work_limit_enforced": true,
+      "job_posts": [],
+      "page_errors": []
+    }
+  ]
+}

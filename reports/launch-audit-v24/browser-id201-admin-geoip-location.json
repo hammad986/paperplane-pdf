@@ -1,0 +1,20 @@
+{
+  "heading": "Event Type\tTarget Email\tIP Address\tApproximate location\tTimestamp\tDetails\n",
+  "rows": [
+    "login_success\tfixture@example.test\t8.8.8.8\tMountain View, California, United States\t26/11/2026, 05:30:00\tcontrolled GeoIP response"
+  ],
+  "overflow": false,
+  "apiCalls": [
+    "http://127.0.0.1:8774/api/admin/auth/status",
+    "http://127.0.0.1:8774/api/admin/dashboard",
+    "http://127.0.0.1:8774/api/admin/dashboard",
+    "http://127.0.0.1:8774/api/admin/users",
+    "http://127.0.0.1:8774/api/admin/waitlist",
+    "http://127.0.0.1:8774/api/admin/revenue",
+    "http://127.0.0.1:8774/api/admin/ai-config",
+    "http://127.0.0.1:8774/api/admin/ai-health",
+    "http://127.0.0.1:8774/api/admin/feedback",
+    "http://127.0.0.1:8774/api/admin/sessions"
+  ],
+  "pageErrors": []
+}

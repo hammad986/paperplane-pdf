@@ -1,0 +1,48 @@
+{
+  "site": "https://paperplane.qd.je",
+  "route": "/merge-pdf",
+  "read_only": true,
+  "status": 200,
+  "assets": [
+    "https://paperplane.qd.je/assets/styles.css?v=51",
+    "https://paperplane.qd.je/assets/app.js?v=91"
+  ],
+  "layout": {
+    "viewport": 1024,
+    "documentWidth": 1024,
+    "topbar": {
+      "clientWidth": 754,
+      "scrollWidth": 754,
+      "boxes": [
+        {
+          "selector": "topbar-left",
+          "left": 284,
+          "right": 722,
+          "top": 18.5,
+          "bottom": 33.5
+        },
+        {
+          "selector": "workspace-tabs",
+          "left": 417,
+          "right": 877,
+          "top": 35.5,
+          "bottom": 83.5
+        },
+        {
+          "selector": "topbar-right",
+          "left": 734,
+          "right": 1010,
+          "top": 8,
+          "bottom": 44
+        }
+      ],
+      "overlaps": [
+        [
+          "workspace-tabs",
+          "topbar-right"
+        ]
+      ]
+    }
+  },
+  "page_errors": []
+}

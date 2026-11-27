@@ -1,0 +1,33 @@
+{
+  "cases": [
+    {
+      "http_status": 429,
+      "rejected": true,
+      "message": "Translation provider rate limited (HTTP 429).",
+      "status": 429,
+      "retryAfterMs": 3000
+    },
+    {
+      "http_status": 503,
+      "rejected": true,
+      "message": "Translation service temporarily unavailable.",
+      "status": 503,
+      "retryAfterMs": 3000
+    },
+    {
+      "http_status": 502,
+      "rejected": true,
+      "message": "Request failed with status 502",
+      "status": 502,
+      "retryAfterMs": 3000
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [
+    "Failed to load resource: the server responded with a status of 429 (Too Many Requests)",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+  ],
+  "unexpected_console_errors": [],
+  "result": true
+}

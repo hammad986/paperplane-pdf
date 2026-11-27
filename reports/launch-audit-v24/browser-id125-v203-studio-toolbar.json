@@ -1,0 +1,936 @@
+{
+  "checks": [
+    {
+      "width": 1920,
+      "height": 1080,
+      "toolbar": {
+        "x": 551,
+        "y": 76,
+        "width": 1368,
+        "height": 76
+      },
+      "rows": [
+        84,
+        78,
+        122
+      ],
+      "buttonCount": 33,
+      "buttons": [
+        {
+          "id": "studio-pages-toggle-btn",
+          "text": "Pages",
+          "y": 84,
+          "x": 557,
+          "w": 55,
+          "h": 25
+        },
+        {
+          "id": "studio-upload-btn",
+          "text": "Open PDF",
+          "y": 84,
+          "x": 615,
+          "w": 72,
+          "h": 25
+        },
+        {
+          "id": "studio-open-ai-btn",
+          "text": "AI Docs",
+          "y": 84,
+          "x": 691,
+          "w": 60,
+          "h": 25
+        },
+        {
+          "id": "studio-close-doc-btn",
+          "text": "New Page",
+          "y": 84,
+          "x": 755,
+          "w": 73,
+          "h": 25
+        },
+        {
+          "id": "studio-clear-pdf-btn",
+          "text": "Clear PDF",
+          "y": 84,
+          "x": 832,
+          "w": 55,
+          "h": 25
+        },
+        {
+          "id": "prev-page-btn",
+          "text": "",
+          "y": 84,
+          "x": 898,
+          "w": 25,
+          "h": 25
+        },
+        {
+          "id": "next-page-btn",
+          "text": "",
+          "y": 84,
+          "x": 1010,
+          "w": 25,
+          "h": 25
+        },
+        {
+          "id": "zoom-out-btn",
+          "text": "",
+          "y": 84,
+          "x": 1046,
+          "w": 25,
+          "h": 25
+        },
+        {
+          "id": "zoom-in-btn",
+          "text": "",
+          "y": 84,
+          "x": 1159,
+          "w": 25,
+          "h": 25
+        },
+        {
+          "id": "editor-undo-btn",
+          "text": "Undo",
+          "y": 84,
+          "x": 1195,
+          "w": 50,
+          "h": 25
+        },
+        {
+          "id": "editor-redo-btn",
+          "text": "Redo",
+          "y": 84,
+          "x": 1249,
+          "w": 51,
+          "h": 25
+        },
+        {
+          "id": "btn-mode-annotate",
+          "text": "Annotate",
+          "y": 84,
+          "x": 1314,
+          "w": 71,
+          "h": 25
+        },
+        {
+          "id": "btn-mode-organize",
+          "text": "Organize",
+          "y": 84,
+          "x": 1387,
+          "w": 69,
+          "h": 25
+        },
+        {
+          "id": "btn-more-tools-trigger",
+          "text": "More Tools",
+          "y": 84,
+          "x": 1470,
+          "w": 90,
+          "h": 25
+        },
+        {
+          "id": "clear-canvas-btn",
+          "text": "Clear",
+          "y": 84,
+          "x": 1737,
+          "w": 50,
+          "h": 25
+        },
+        {
+          "id": "save-studio-btn",
+          "text": "Export PDF",
+          "y": 78,
+          "x": 1791,
+          "w": 122,
+          "h": 36
+        },
+        {
+          "id": "tool-select-btn",
+          "text": "Select",
+          "y": 122,
+          "x": 557,
+          "w": 56,
+          "h": 25
+        },
+        {
+          "id": "tool-pan-btn",
+          "text": "Pan",
+          "y": 122,
+          "x": 617,
+          "w": 43,
+          "h": 25
+        },
+        {
+          "id": "tool-text-btn",
+          "text": "Text",
+          "y": 122,
+          "x": 664,
+          "w": 46,
+          "h": 25
+        },
+        {
+          "id": "tool-draw-btn",
+          "text": "Draw",
+          "y": 122,
+          "x": 714,
+          "w": 50,
+          "h": 25
+        },
+        {
+          "id": "tool-highlight-btn",
+          "text": "Highlight",
+          "y": 122,
+          "x": 768,
+          "w": 66,
+          "h": 25
+        },
+        {
+          "id": "tool-redact-btn",
+          "text": "Redact",
+          "y": 122,
+          "x": 838,
+          "w": 59,
+          "h": 25
+        },
+        {
+          "id": "tool-sig-btn",
+          "text": "Sign",
+          "y": 122,
+          "x": 901,
+          "w": 46,
+          "h": 25
+        },
+        {
+          "id": "tool-rect-btn",
+          "text": "Rectangle",
+          "y": 122,
+          "x": 958,
+          "w": 72,
+          "h": 25
+        },
+        {
+          "id": "tool-ellipse-btn",
+          "text": "Circle",
+          "y": 122,
+          "x": 1034,
+          "w": 52,
+          "h": 25
+        },
+        {
+          "id": "tool-arrow-btn",
+          "text": "Arrow",
+          "y": 122,
+          "x": 1090,
+          "w": 53,
+          "h": 25
+        },
+        {
+          "id": "tool-image-btn",
+          "text": "Image",
+          "y": 122,
+          "x": 1147,
+          "w": 54,
+          "h": 25
+        },
+        {
+          "id": "tool-stamp-btn",
+          "text": "Stamp",
+          "y": 122,
+          "x": 1205,
+          "w": 56,
+          "h": 25
+        },
+        {
+          "id": "editor-delete-obj-btn",
+          "text": "Delete object",
+          "y": 122,
+          "x": 1387,
+          "w": 89,
+          "h": 25
+        },
+        {
+          "id": "editor-insert-page-btn",
+          "text": "Add Page",
+          "y": 122,
+          "x": 1487,
+          "w": 70,
+          "h": 25
+        },
+        {
+          "id": "editor-dup-page-btn",
+          "text": "Duplicate",
+          "y": 122,
+          "x": 1561,
+          "w": 69,
+          "h": 25
+        },
+        {
+          "id": "editor-extract-page-btn",
+          "text": "Extract",
+          "y": 122,
+          "x": 1634,
+          "w": 58,
+          "h": 25
+        },
+        {
+          "id": "editor-delete-page-btn",
+          "text": "Delete page",
+          "y": 122,
+          "x": 1696,
+          "w": 83,
+          "h": 25
+        }
+      ],
+      "docWidth": 1920,
+      "docHeight": 1080,
+      "canvasVisible": true
+    },
+    {
+      "width": 1366,
+      "height": 900,
+      "toolbar": {
+        "x": 544,
+        "y": 77,
+        "width": 821,
+        "height": 76
+      },
+      "rows": [
+        85,
+        79,
+        123
+      ],
+      "buttonCount": 33,
+      "buttons": [
+        {
+          "id": "studio-pages-toggle-btn",
+          "text": "",
+          "y": 85,
+          "x": 546,
+          "w": 19,
+          "h": 25
+        },
+        {
+          "id": "studio-upload-btn",
+          "text": "",
+          "y": 85,
+          "x": 565,
+          "w": 19,
+          "h": 25
+        },
+        {
+          "id": "studio-open-ai-btn",
+          "text": "",
+          "y": 85,
+          "x": 588,
+          "w": 19,
+          "h": 25
+        },
+        {
+          "id": "studio-close-doc-btn",
+          "text": "",
+          "y": 85,
+          "x": 611,
+          "w": 19,
+          "h": 25
+        },
+        {
+          "id": "studio-clear-pdf-btn",
+          "text": "",
+          "y": 85,
+          "x": 634,
+          "w": 6,
+          "h": 25
+        },
+        {
+          "id": "prev-page-btn",
+          "text": "",
+          "y": 85,
+          "x": 645,
+          "w": 19,
+          "h": 25
+        },
+        {
+          "id": "next-page-btn",
+          "text": "",
+          "y": 85,
+          "x": 751,
+          "w": 19,
+          "h": 25
+        },
+        {
+          "id": "zoom-out-btn",
+          "text": "",
+          "y": 85,
+          "x": 775,
+          "w": 19,
+          "h": 25
+        },
+        {
+          "id": "zoom-in-btn",
+          "text": "",
+          "y": 85,
+          "x": 850,
+          "w": 19,
+          "h": 25
+        },
+        {
+          "id": "editor-undo-btn",
+          "text": "",
+          "y": 85,
+          "x": 874,
+          "w": 19,
+          "h": 25
+        },
+        {
+          "id": "editor-redo-btn",
+          "text": "",
+          "y": 85,
+          "x": 897,
+          "w": 19,
+          "h": 25
+        },
+        {
+          "id": "btn-mode-annotate",
+          "text": "Annotate",
+          "y": 85,
+          "x": 924,
+          "w": 63,
+          "h": 25
+        },
+        {
+          "id": "btn-mode-organize",
+          "text": "Organize",
+          "y": 85,
+          "x": 989,
+          "w": 61,
+          "h": 25
+        },
+        {
+          "id": "btn-more-tools-trigger",
+          "text": "",
+          "y": 85,
+          "x": 1058,
+          "w": 34,
+          "h": 25
+        },
+        {
+          "id": "clear-canvas-btn",
+          "text": "",
+          "y": 85,
+          "x": 1092,
+          "w": 19,
+          "h": 25
+        },
+        {
+          "id": "save-studio-btn",
+          "text": "Export PDF",
+          "y": 79,
+          "x": 1115,
+          "w": 122,
+          "h": 36
+        },
+        {
+          "id": "tool-select-btn",
+          "text": "",
+          "y": 123,
+          "x": 550,
+          "w": 25,
+          "h": 25
+        },
+        {
+          "id": "tool-pan-btn",
+          "text": "",
+          "y": 123,
+          "x": 579,
+          "w": 25,
+          "h": 25
+        },
+        {
+          "id": "tool-text-btn",
+          "text": "",
+          "y": 123,
+          "x": 608,
+          "w": 25,
+          "h": 25
+        },
+        {
+          "id": "tool-draw-btn",
+          "text": "",
+          "y": 123,
+          "x": 637,
+          "w": 25,
+          "h": 25
+        },
+        {
+          "id": "tool-highlight-btn",
+          "text": "",
+          "y": 123,
+          "x": 666,
+          "w": 25,
+          "h": 25
+        },
+        {
+          "id": "tool-redact-btn",
+          "text": "",
+          "y": 123,
+          "x": 695,
+          "w": 25,
+          "h": 25
+        },
+        {
+          "id": "tool-sig-btn",
+          "text": "",
+          "y": 123,
+          "x": 724,
+          "w": 25,
+          "h": 25
+        },
+        {
+          "id": "tool-rect-btn",
+          "text": "",
+          "y": 123,
+          "x": 760,
+          "w": 25,
+          "h": 25
+        },
+        {
+          "id": "tool-ellipse-btn",
+          "text": "",
+          "y": 123,
+          "x": 789,
+          "w": 25,
+          "h": 25
+        },
+        {
+          "id": "tool-arrow-btn",
+          "text": "",
+          "y": 123,
+          "x": 818,
+          "w": 25,
+          "h": 25
+        },
+        {
+          "id": "tool-image-btn",
+          "text": "",
+          "y": 123,
+          "x": 847,
+          "w": 25,
+          "h": 25
+        },
+        {
+          "id": "tool-stamp-btn",
+          "text": "",
+          "y": 123,
+          "x": 876,
+          "w": 25,
+          "h": 25
+        },
+        {
+          "id": "editor-delete-obj-btn",
+          "text": "",
+          "y": 123,
+          "x": 1027,
+          "w": 25,
+          "h": 25
+        },
+        {
+          "id": "editor-insert-page-btn",
+          "text": "",
+          "y": 123,
+          "x": 1063,
+          "w": 25,
+          "h": 25
+        },
+        {
+          "id": "editor-dup-page-btn",
+          "text": "",
+          "y": 123,
+          "x": 1092,
+          "w": 25,
+          "h": 25
+        },
+        {
+          "id": "editor-extract-page-btn",
+          "text": "",
+          "y": 123,
+          "x": 1121,
+          "w": 25,
+          "h": 25
+        },
+        {
+          "id": "editor-delete-page-btn",
+          "text": "",
+          "y": 123,
+          "x": 1150,
+          "w": 25,
+          "h": 25
+        }
+      ],
+      "docWidth": 1366,
+      "docHeight": 900,
+      "canvasVisible": true
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "toolbar": {
+        "x": 8,
+        "y": 64,
+        "width": 374,
+        "height": 118
+      },
+      "rows": [
+        70,
+        128
+      ],
+      "buttonCount": 20,
+      "buttons": [
+        {
+          "id": "studio-upload-btn",
+          "text": "Open PDF",
+          "y": 70,
+          "x": 198,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "studio-open-ai-btn",
+          "text": "AI Docs",
+          "y": 70,
+          "x": 258,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "studio-clear-pdf-btn",
+          "text": "Clear PDF",
+          "y": 70,
+          "x": 318,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "prev-page-btn",
+          "text": "",
+          "y": 70,
+          "x": 379,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "next-page-btn",
+          "text": "",
+          "y": 70,
+          "x": 439,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "btn-mode-annotate",
+          "text": "Annotate",
+          "y": 70,
+          "x": 16,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "btn-mode-organize",
+          "text": "Organize",
+          "y": 70,
+          "x": 75,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "btn-more-tools-trigger",
+          "text": "More Tools",
+          "y": 70,
+          "x": 137,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "tool-select-btn",
+          "text": "Select",
+          "y": 128,
+          "x": 15,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "tool-pan-btn",
+          "text": "Pan",
+          "y": 128,
+          "x": 75,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "tool-text-btn",
+          "text": "Text",
+          "y": 128,
+          "x": 135,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "tool-draw-btn",
+          "text": "Draw",
+          "y": 128,
+          "x": 195,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "tool-highlight-btn",
+          "text": "Highlight",
+          "y": 128,
+          "x": 255,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "tool-redact-btn",
+          "text": "Redact",
+          "y": 128,
+          "x": 315,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "tool-sig-btn",
+          "text": "Sign",
+          "y": 128,
+          "x": 375,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "tool-rect-btn",
+          "text": "Rectangle",
+          "y": 128,
+          "x": 436,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "tool-ellipse-btn",
+          "text": "Circle",
+          "y": 128,
+          "x": 496,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "tool-arrow-btn",
+          "text": "Arrow",
+          "y": 128,
+          "x": 556,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "tool-image-btn",
+          "text": "Image",
+          "y": 128,
+          "x": 616,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "tool-stamp-btn",
+          "text": "Stamp",
+          "y": 128,
+          "x": 676,
+          "w": 56,
+          "h": 48
+        }
+      ],
+      "docWidth": 390,
+      "docHeight": 1137,
+      "canvasVisible": true
+    },
+    {
+      "width": 320,
+      "height": 740,
+      "toolbar": {
+        "x": 8,
+        "y": 64,
+        "width": 304,
+        "height": 118
+      },
+      "rows": [
+        70,
+        128
+      ],
+      "buttonCount": 20,
+      "buttons": [
+        {
+          "id": "studio-upload-btn",
+          "text": "Open PDF",
+          "y": 70,
+          "x": 198,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "studio-open-ai-btn",
+          "text": "AI Docs",
+          "y": 70,
+          "x": 258,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "studio-clear-pdf-btn",
+          "text": "Clear PDF",
+          "y": 70,
+          "x": 318,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "prev-page-btn",
+          "text": "",
+          "y": 70,
+          "x": 379,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "next-page-btn",
+          "text": "",
+          "y": 70,
+          "x": 439,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "btn-mode-annotate",
+          "text": "Annotate",
+          "y": 70,
+          "x": 16,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "btn-mode-organize",
+          "text": "Organize",
+          "y": 70,
+          "x": 75,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "btn-more-tools-trigger",
+          "text": "More Tools",
+          "y": 70,
+          "x": 137,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "tool-select-btn",
+          "text": "Select",
+          "y": 128,
+          "x": 15,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "tool-pan-btn",
+          "text": "Pan",
+          "y": 128,
+          "x": 75,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "tool-text-btn",
+          "text": "Text",
+          "y": 128,
+          "x": 135,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "tool-draw-btn",
+          "text": "Draw",
+          "y": 128,
+          "x": 195,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "tool-highlight-btn",
+          "text": "Highlight",
+          "y": 128,
+          "x": 255,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "tool-redact-btn",
+          "text": "Redact",
+          "y": 128,
+          "x": 315,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "tool-sig-btn",
+          "text": "Sign",
+          "y": 128,
+          "x": 375,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "tool-rect-btn",
+          "text": "Rectangle",
+          "y": 128,
+          "x": 436,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "tool-ellipse-btn",
+          "text": "Circle",
+          "y": 128,
+          "x": 496,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "tool-arrow-btn",
+          "text": "Arrow",
+          "y": 128,
+          "x": 556,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "tool-image-btn",
+          "text": "Image",
+          "y": 128,
+          "x": 616,
+          "w": 56,
+          "h": 48
+        },
+        {
+          "id": "tool-stamp-btn",
+          "text": "Stamp",
+          "y": 128,
+          "x": 676,
+          "w": 56,
+          "h": 48
+        }
+      ],
+      "docWidth": 320,
+      "docHeight": 1124,
+      "canvasVisible": true
+    }
+  ],
+  "pageErrors": [],
+  "consoleErrors": []
+}

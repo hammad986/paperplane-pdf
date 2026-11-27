@@ -107,12 +107,25 @@ def round_result(number, server, checks, base):
                 detail = {"dimensions": size, "verified": verified}
             else:
                 detail = checks["verify_output_content"](runner, operation, output, data, output.suffix.lower(), paths)
-            record.update(status="completed", bytes=len(data), checks=checks["redact_id_text"](detail))
+            record.update(status="completed" if detail.get("verified") is True else "failed",
+                          bytes=len(data), checks=checks["redact_id_text"](detail))
+            if record["status"] == "failed":
+                record["failure_hint"] = "output_content_mismatch"
         except Exception as error:
-            if operation == "html_to_pdf" and ("forbidden" in str(error).lower() or "security guard" in str(error).lower()):
+            if operation == "html_to_pdf" and (
+                "forbidden" in str(error).lower()
+                or "security guard" in str(error).lower()
+                or "not allowed (private or internal network)" in str(error).lower()
+            ):
                 record.update(status="ssrf_blocked")
             else:
-                record.update(status="failed", exception=type(error).__name__)
+                message = str(error).lower()
+                failure_hint = ("job_poll_timeout" if "job timeout" in message
+                                else "converter_timeout" if "timed out" in message
+                                else "job_failed" if "job failed" in message
+                                else "download_failed" if "download" in message
+                                else "other")
+                record.update(status="failed", exception=type(error).__name__, failure_hint=failure_hint)
         record["seconds"] = round(time.monotonic() - started, 3)
         results.append(record)
     return {"round": number, "results": results}

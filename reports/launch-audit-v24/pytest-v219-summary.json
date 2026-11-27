@@ -1,0 +1,26 @@
+{
+  "candidate": "v219",
+  "suite_runs": [
+    {
+      "command": "pytest -q",
+      "result": "712 passed, 4 warnings",
+      "duration_seconds": 275.83
+    },
+    {
+      "command": "pytest -q",
+      "result": "712 passed, 4 warnings",
+      "duration_seconds": 241.81
+    }
+  ],
+  "warnings": [
+    "1 StarletteDeprecationWarning: httpx with starlette.testclient is deprecated",
+    "3 per-request cookies deprecation warnings from one existing metadata-job test"
+  ],
+  "browser_evidence": "browser-id352-ai-limits-v219.json",
+  "syntax": [
+    "node --check web/assets/app.js",
+    "node --check web/assets/service-worker.js"
+  ],
+  "compose": "docker compose config -q passed",
+  "image_build": "not run"
+}

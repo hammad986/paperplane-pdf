@@ -1,0 +1,30 @@
+{
+  "base": "http://127.0.0.1:18502",
+  "image": "paperplane-v23-audit:domslots-v121-20261119",
+  "shell": "paperplane-shell-v53",
+  "rounds": [
+    {
+      "round": 1,
+      "status": 200,
+      "cache": [
+        "paperplane-shell-v53"
+      ],
+      "app_cached": true,
+      "styles_cached": true,
+      "app_loaded_offline": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "status": 200,
+      "cache": [
+        "paperplane-shell-v53"
+      ],
+      "app_cached": true,
+      "styles_cached": true,
+      "app_loaded_offline": true,
+      "page_errors": []
+    }
+  ],
+  "page_errors": []
+}

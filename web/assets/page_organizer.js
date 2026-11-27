@@ -40,7 +40,7 @@
         this.pages.push({
           id: uid('page'),
           pageNum: i,
-          rotation: meta.rotation || 0,
+          rotation: Number.isFinite(meta.rotation) ? meta.rotation : null,
           // Unknown dimensions stay unknown until PDF.js reads the real page
           // view. Showing A4 here mislabels Letter and cropped pages.
           width: Number.isFinite(meta.width) && meta.width > 0 ? meta.width : null,
@@ -275,9 +275,10 @@
           try {
             const resp = await fetch('/api/studio/documents/split', { method: 'POST', body: form });
             if (!resp.ok) {
-              let msg = 'Split failed.';
-              try { const j = await resp.json(); msg = j.detail || msg; } catch {}
-              window.showToast(msg, 'error');
+              const msg = window.readStudioResponseError
+                ? await window.readStudioResponseError(resp, `Split failed (${resp.status}).`)
+                : `Split failed (${resp.status}).`;
+              if (msg) window.showToast(msg, 'error');
               return;
             }
 
@@ -497,9 +498,10 @@
           try {
             const resp = await fetch('/api/studio/pages/import', { method: 'POST', body: form });
             if (!resp.ok) {
-              let msg = 'Import failed.';
-              try { const j = await resp.json(); msg = j.detail || msg; } catch {}
-              window.showToast(msg, 'error');
+              const msg = window.readStudioResponseError
+                ? await window.readStudioResponseError(resp, `Import failed (${resp.status}).`)
+                : `Import failed (${resp.status}).`;
+              if (msg) window.showToast(msg, 'error');
               return;
             }
 
@@ -546,6 +548,7 @@
       this.pdfDoc = pdfDoc;
       this.sourceFile = file;
       this.sourceName = name || (file && file.name) || 'document.pdf';
+      if (this.observer) this.observer.disconnect();
       this._clearThumbnailCache();
       this.state.setPages(totalPages, metadata);
 
@@ -690,37 +693,57 @@
       const previewWrap = card.querySelector('.thumb-preview-wrap');
       if (!previewWrap) return;
 
-      const cacheKey = `p_${pageNum}_rot_${this.state.getPage(pageNum)?.rotation || 0}`;
-      if (this.state.thumbnailCache.has(cacheKey)) {
-        const cachedImg = document.createElement('img');
-        cachedImg.className = 'thumb-rendered-img';
-        cachedImg.src = this.state.thumbnailCache.get(cacheKey);
-        previewWrap.replaceChildren(cachedImg);
-        return;
+      const pageState = this.state.getPage(pageNum);
+      if (Number.isFinite(pageState?.rotation)) {
+        const knownCacheKey = `p_${pageNum}_rot_${pageState.rotation}`;
+        if (this.state.thumbnailCache.has(knownCacheKey)) {
+          const cachedImg = document.createElement('img');
+          cachedImg.className = 'thumb-rendered-img';
+          cachedImg.draggable = false;
+          cachedImg.src = this.state.thumbnailCache.get(knownCacheKey);
+          previewWrap.replaceChildren(cachedImg);
+          return;
+        }
       }
 
       try {
         const page = await sourceDoc.getPage(pageNum);
         if (sourceDoc !== this.pdfDoc || renderEpoch !== this.thumbnailRenderEpoch || !card.isConnected) return;
-        const baseVp = page.getViewport({ scale: 1.0 });
-        const pageState = this.state.getPage(pageNum);
+        const nativeRotate = Number(page.rotate) || 0;
+        const pageRotation = Number.isFinite(pageState?.rotation)
+          ? pageState.rotation
+          : nativeRotate;
+        if (pageState) pageState.rotation = pageRotation;
+        const cacheKey = `p_${pageNum}_rot_${pageRotation}`;
+        if (this.state.thumbnailCache.has(cacheKey)) {
+          const cachedImg = document.createElement('img');
+          cachedImg.className = 'thumb-rendered-img';
+          cachedImg.draggable = false;
+          cachedImg.src = this.state.thumbnailCache.get(cacheKey);
+          previewWrap.replaceChildren(cachedImg);
+          return;
+        }
+        const baseVp = pageRotation !== nativeRotate
+          ? page.getViewport({ scale: 1.0, rotation: pageRotation })
+          : page.getViewport({ scale: 1.0 });
         if (pageState && Number.isFinite(baseVp.width) && Number.isFinite(baseVp.height) && baseVp.width > 0 && baseVp.height > 0) {
           pageState.width = baseVp.width;
           pageState.height = baseVp.height;
+          pageState.orientation = baseVp.height >= baseVp.width ? 'portrait' : 'landscape';
           const sizeLabel = card.querySelector('.thumb-meta-text');
           if (sizeLabel) sizeLabel.textContent = `${Math.round(baseVp.width)}×${Math.round(baseVp.height)}pt`;
         }
         // Calculate thumbnail scale to fit ~120px width
         const thumbScale = Math.min(0.28, 120 / baseVp.width);
-        const viewport = page.getViewport({ scale: thumbScale, rotation: this.state.getPage(pageNum)?.rotation || 0 });
+        const viewport = page.getViewport({ scale: thumbScale, rotation: pageRotation });
 
         const canvas = document.createElement('canvas');
         canvas.className = 'thumb-rendered-canvas';
-        canvas.width = Math.floor(viewport.width);
-        canvas.height = Math.floor(viewport.height);
+        canvas.width = Math.max(1, Math.floor(viewport.width));
+        canvas.height = Math.max(1, Math.floor(viewport.height));
         const ctx = canvas.getContext('2d');
 
-        const rotation = this.state.getPage(pageNum)?.rotation || 0;
+        const rotation = pageRotation;
         const renderSession = window.PaperplanePdfRuntime?.getStudioRenderSession?.();
         let renderedBitmap = null;
         if (renderSession) {
@@ -752,11 +775,32 @@
 
         const img = document.createElement('img');
         img.className = 'thumb-rendered-img';
+        img.draggable = false;
         img.src = objectUrl;
         img.alt = `Page ${pageNum}`;
         previewWrap.replaceChildren(img);
       } catch (err) {
-        previewWrap.innerHTML = `<div class="thumb-err">Error</div>`;
+        if (sourceDoc !== this.pdfDoc || renderEpoch !== this.thumbnailRenderEpoch || !card.isConnected || err?.name === 'RenderingCancelledException') {
+          return;
+        }
+        try {
+          const fallbackPage = await sourceDoc.getPage(pageNum);
+          if (sourceDoc !== this.pdfDoc || renderEpoch !== this.thumbnailRenderEpoch || !card.isConnected) return;
+          const fallbackRot = Number.isFinite(pageState?.rotation) ? pageState.rotation : (Number(fallbackPage.rotate) || 0);
+          const fallbackBase = fallbackPage.getViewport({ scale: 1.0, rotation: fallbackRot });
+          const fallbackScale = Math.min(0.28, 120 / fallbackBase.width);
+          const fallbackVp = fallbackPage.getViewport({ scale: fallbackScale, rotation: fallbackRot });
+          const fallbackCanvas = document.createElement('canvas');
+          fallbackCanvas.className = 'thumb-rendered-canvas';
+          fallbackCanvas.width = Math.max(1, Math.floor(fallbackVp.width));
+          fallbackCanvas.height = Math.max(1, Math.floor(fallbackVp.height));
+          await fallbackPage.render({ canvasContext: fallbackCanvas.getContext('2d'), viewport: fallbackVp }).promise;
+          if (sourceDoc !== this.pdfDoc || renderEpoch !== this.thumbnailRenderEpoch || !card.isConnected) return;
+          previewWrap.replaceChildren(fallbackCanvas);
+        } catch {
+          if (sourceDoc !== this.pdfDoc || renderEpoch !== this.thumbnailRenderEpoch || !card.isConnected) return;
+          previewWrap.innerHTML = `<div class="thumb-err">Error</div>`;
+        }
       }
     }
 
@@ -838,6 +882,18 @@
         });
       }
 
+      const computeIsAfter = (targetCard, clientX, clientY) => {
+        const grid = document.getElementById('organizer-grid');
+        const isHorizontal = grid?.classList.contains('strip-mode') && window.matchMedia('(max-width: 900px)').matches;
+        const isGrid = grid?.classList.contains('grid-mode');
+        const rect = targetCard.getBoundingClientRect();
+        if (isHorizontal) return clientX > rect.left + rect.width / 2;
+        if (isGrid) return (clientY > rect.bottom - rect.height * 0.25) || (clientX > rect.left + rect.width / 2 && clientY > rect.top + rect.height * 0.25);
+        return clientY > rect.top + rect.height / 2;
+      };
+
+      card.addEventListener('selectstart', e => e.preventDefault());
+
       // Drag and Drop
       card.addEventListener('dragstart', (e) => {
         this.draggedPage = pageNum;
@@ -865,8 +921,7 @@
       card.addEventListener('drop', (e) => {
         e.preventDefault();
         const targetPage = parseInt(card.dataset.page, 10);
-        const rect = card.getBoundingClientRect();
-        const isAfter = (e.clientY > rect.top + rect.height / 2) || (e.clientX > rect.left + rect.width / 2);
+        const isAfter = computeIsAfter(card, e.clientX, e.clientY);
         this._executeDropReorder(targetPage, isAfter);
       });
 
@@ -874,6 +929,7 @@
       // native HTML drag-and-drop is unavailable.
       const dragHandle = card.querySelector('.thumb-grip');
       if (dragHandle) {
+        dragHandle.draggable = false;
         dragHandle.addEventListener('click', e => {
           e.preventDefault();
           e.stopPropagation();
@@ -910,9 +966,8 @@
           e.preventDefault();
           const targetCard = document.elementFromPoint(e.clientX, e.clientY)?.closest('.organizer-thumb-card');
           if (!targetCard) return;
-          const rect = targetCard.getBoundingClientRect();
           drag.targetPage = parseInt(targetCard.dataset.page, 10);
-          drag.isAfter = (e.clientY > rect.top + rect.height / 2) || (e.clientX > rect.left + rect.width / 2);
+          drag.isAfter = computeIsAfter(targetCard, e.clientX, e.clientY);
           this._updateDropIndicator(targetCard, e);
         });
         const finishPointerDrag = (e, cancelled = false) => {
@@ -1187,7 +1242,7 @@
       const delPageBtn = document.getElementById('editor-delete-page-btn');
       if (delPageBtn) {
         delPageBtn.onclick = () => {
-          const cur = this.state.activePage || 1;
+          const cur = Math.max(1, Number(document.getElementById('page-jump-input')?.value) || this.state.activePage || 1);
           this.deletePages([cur]);
         };
       }
@@ -1258,8 +1313,9 @@
         return null;
       }
 
+      const safeFile = window.toSafeUploadFile ? await window.toSafeUploadFile(file, this.sourceName) : file;
       const form = new FormData();
-      form.append('file', file, this.sourceName);
+      form.append('file', safeFile, this.sourceName);
       Object.entries(formFields).forEach(([k, v]) => form.append(k, v));
 
       try {
@@ -1327,8 +1383,14 @@
       const total = this.state.totalCount;
       const currentOrder = Array.from({ length: total }, (_, i) => i + 1);
 
-      if (delta < 0 && selected[0] === 1) return; // Already at start
-      if (delta > 0 && selected[selected.length - 1] === total) return; // Already at end
+      if (delta < 0 && selected[0] === 1) {
+        window.showToast('Selected page is already first.', 'info');
+        return;
+      }
+      if (delta > 0 && selected[selected.length - 1] === total) {
+        window.showToast('Selected page is already last.', 'info');
+        return;
+      }
 
       const newOrder = [...currentOrder];
       if (delta < 0) {
@@ -1391,7 +1453,7 @@
     }
 
     async deletePages(pages) {
-      const total = Number(this.pdfDoc?.numPages) || Number(this.state.totalCount) || 0;
+      const total = Number(this.pdfDoc?.numPages) || Number(this.state.totalCount) || Number(document.getElementById('studio-page-count')?.textContent) || 0;
       const validPages = [...new Set((pages || []).map(Number).filter(page => Number.isInteger(page) && page >= 1 && page <= total))];
       if (!total || !validPages.length) {
         window.showToast('No valid pages are selected for deletion.', 'error');
@@ -1470,9 +1532,10 @@
       try {
         const resp = await fetch('/api/studio/pages/extract', { method: 'POST', body: form });
         if (!resp.ok) {
-          let detail = `Extraction failed (${resp.status}).`;
-          try { const body = await resp.json(); detail = body.detail || detail; } catch { /* non-JSON failure response */ }
-          window.showToast(detail, 'error', 7000);
+          const detail = window.readStudioResponseError
+            ? await window.readStudioResponseError(resp, `Extraction failed (${resp.status}).`)
+            : `Extraction failed (${resp.status}).`;
+          if (detail) window.showToast(detail, 'error', 7000);
           return;
         }
 

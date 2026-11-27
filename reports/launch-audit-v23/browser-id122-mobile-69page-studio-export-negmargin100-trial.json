@@ -1,0 +1,26 @@
+{
+  "item": 122,
+  "trial": "IntersectionObserver rootMargin = -100px 0px",
+  "source_change": false,
+  "browser": "Chromium mobile emulation 390x844, DPR3; 4x CPU throttle",
+  "rounds": 1,
+  "outcome": "REJECTED",
+  "observed": {
+    "http_status": 200,
+    "source_pages": 69,
+    "pdf_loaded": true,
+    "organizer_panel": "open",
+    "page1_card_rect": {
+      "top": 408,
+      "bottom": 600
+    },
+    "observer_root_rect": {
+      "top": 327,
+      "bottom": 489
+    },
+    "page1_thumbnail_rendered": false,
+    "page1_preview": "skeleton remained visible",
+    "browser_error": "Playwright timed out waiting for visible page 1 thumbnail"
+  },
+  "reason": "The negative margin shrank the observer root past the visible page card, so even a partially visible thumbnail stayed blank. This harms responsiveness/usability and does not meet the regression criteria; change was only injected by the test route and no product source was altered."
+}

@@ -1,5 +1,5 @@
 {
-  "round": "race",
+  "round": "final-app-v109-round1",
   "routes": [
     {
       "operation": "merge",
@@ -70,13 +70,13 @@
       "operation": "scan_pdf",
       "slug": "scan-to-pdf",
       "http_status": 200,
-      "is_local_supported": false,
+      "is_local_supported": true,
       "localStorageChoice": null,
-      "checked": false,
-      "disabled": true,
-      "label": "Browser processing is off for Scan to PDF; files use temporary server processing.",
-      "mode": "Scan to PDF uploads files for temporary server processing.",
-      "support": "Scan to PDF uploads files for temporary server processing.",
+      "checked": true,
+      "disabled": false,
+      "label": "Browser processing is on for Scan to PDF; files stay on this device.",
+      "mode": "Scan to PDF runs in your browser; files stay on this device and are not uploaded.",
+      "support": "Scan to PDF runs in your browser; files stay on this device and are not uploaded.",
       "passed": true
     },
     {
@@ -122,13 +122,13 @@
       "operation": "jpg_to_pdf",
       "slug": "jpg-to-pdf",
       "http_status": 200,
-      "is_local_supported": false,
+      "is_local_supported": true,
       "localStorageChoice": null,
-      "checked": false,
-      "disabled": true,
-      "label": "Browser processing is off for JPG/PNG to PDF; files use temporary server processing.",
-      "mode": "JPG/PNG to PDF uploads files for temporary server processing.",
-      "support": "JPG/PNG to PDF uploads files for temporary server processing.",
+      "checked": true,
+      "disabled": false,
+      "label": "Browser processing is on for JPG/PNG to PDF; files stay on this device.",
+      "mode": "JPG/PNG to PDF runs in your browser; files stay on this device and are not uploaded.",
+      "support": "JPG/PNG to PDF runs in your browser; files stay on this device and are not uploaded.",
       "passed": true
     },
     {
@@ -187,13 +187,13 @@
       "operation": "pdf_to_jpg",
       "slug": "pdf-to-jpg",
       "http_status": 200,
-      "is_local_supported": false,
+      "is_local_supported": true,
       "localStorageChoice": null,
-      "checked": false,
-      "disabled": true,
-      "label": "Browser processing is off for PDF to JPG; files use temporary server processing.",
-      "mode": "PDF to JPG uploads files for temporary server processing.",
-      "support": "PDF to JPG uploads files for temporary server processing.",
+      "checked": true,
+      "disabled": false,
+      "label": "Browser processing is on for PDF to JPG; files stay on this device.",
+      "mode": "PDF to JPG runs in your browser; files stay on this device and are not uploaded.",
+      "support": "PDF to JPG runs in your browser; files stay on this device and are not uploaded.",
       "passed": true
     },
     {
@@ -278,13 +278,13 @@
       "operation": "edit",
       "slug": "edit-pdf",
       "http_status": 200,
-      "is_local_supported": false,
+      "is_local_supported": true,
       "localStorageChoice": null,
-      "checked": false,
-      "disabled": true,
-      "label": "Browser processing is off for Add Text & Stamps; files use temporary server processing.",
-      "mode": "Add Text & Stamps uploads files for temporary server processing.",
-      "support": "Add Text & Stamps uploads files for temporary server processing.",
+      "checked": true,
+      "disabled": false,
+      "label": "Browser processing is on for Add Text & Stamps; files stay on this device.",
+      "mode": "Add Text & Stamps runs in your browser; files stay on this device and are not uploaded.",
+      "support": "Add Text & Stamps runs in your browser; files stay on this device and are not uploaded.",
       "passed": true
     },
     {
@@ -330,13 +330,13 @@
       "operation": "watermark",
       "slug": "watermark-pdf",
       "http_status": 200,
-      "is_local_supported": false,
+      "is_local_supported": true,
       "localStorageChoice": null,
-      "checked": false,
-      "disabled": true,
-      "label": "Browser processing is off for Watermark PDF; files use temporary server processing.",
-      "mode": "Watermark PDF uploads files for temporary server processing.",
-      "support": "Watermark PDF uploads files for temporary server processing.",
+      "checked": true,
+      "disabled": false,
+      "label": "Browser processing is on for Watermark PDF; files stay on this device.",
+      "mode": "Watermark PDF runs in your browser; files stay on this device and are not uploaded.",
+      "support": "Watermark PDF runs in your browser; files stay on this device and are not uploaded.",
       "passed": true
     },
     {
@@ -382,13 +382,13 @@
       "operation": "sign",
       "slug": "sign-pdf",
       "http_status": 200,
-      "is_local_supported": false,
+      "is_local_supported": true,
       "localStorageChoice": null,
-      "checked": false,
-      "disabled": true,
-      "label": "Browser processing is off for Sign PDF; files use temporary server processing.",
-      "mode": "Sign PDF uploads files for temporary server processing.",
-      "support": "Sign PDF uploads files for temporary server processing.",
+      "checked": true,
+      "disabled": false,
+      "label": "Browser processing is on for Sign PDF; files stay on this device.",
+      "mode": "Sign PDF runs in your browser; files stay on this device and are not uploaded.",
+      "support": "Sign PDF runs in your browser; files stay on this device and are not uploaded.",
       "passed": true
     },
     {
@@ -620,14 +620,14 @@
     {
       "operation": "metadata",
       "output_name": "metadata-updated.pdf",
-      "output_bytes": 1015,
+      "output_bytes": 1014,
       "server_job_posts_during_run": 0,
       "content_checked": true
     },
     {
       "operation": "flatten",
       "output_name": "flattened.pdf",
-      "output_bytes": 1589,
+      "output_bytes": 1588,
       "server_job_posts_during_run": 0,
       "content_checked": true
     },
@@ -635,6 +635,13 @@
       "operation": "pdf_to_text",
       "output_name": "local-two-pages-text.txt",
       "output_bytes": 44,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "pdf_to_jpg",
+      "output_name": "local-two-pages-jpg.zip",
+      "output_bytes": 15342,
       "server_job_posts_during_run": 0,
       "content_checked": true
     },
@@ -648,7 +655,105 @@
     {
       "operation": "crop",
       "output_name": "cropped.pdf",
-      "output_bytes": 1060,
+      "output_bytes": 1059,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "edit",
+      "output_name": "text-stamped.pdf",
+      "output_bytes": 1475,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "edit",
+      "output_name": "text-stamped.pdf",
+      "output_bytes": 1481,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "sign",
+      "output_name": "local-two-pages-signed.pdf",
+      "output_bytes": 1621,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "sign",
+      "output_name": "local-two-pages-signed.pdf",
+      "output_bytes": 4086,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "sign",
+      "output_name": "local-rotated-signed.pdf",
+      "output_bytes": 1620,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "sign",
+      "output_name": "local-dark-signature-signed.pdf",
+      "output_bytes": 4688,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "watermark",
+      "output_name": "watermarked.pdf",
+      "output_bytes": 1865,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "watermark",
+      "output_name": "watermarked.pdf",
+      "output_bytes": 2282,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "watermark",
+      "output_name": "watermarked.pdf",
+      "output_bytes": 2572,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "scan_pdf",
+      "output_name": "scanned-document.pdf",
+      "output_bytes": 2872,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "scan_pdf",
+      "output_name": "scanned-document.pdf",
+      "output_bytes": 2840,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "scan_pdf",
+      "output_name": "scanned-document.pdf",
+      "output_bytes": 2844,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "scan_pdf",
+      "output_name": "scanned-document.pdf",
+      "output_bytes": 3263,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "jpg_to_pdf",
+      "output_name": "images-to-pdf.pdf",
+      "output_bytes": 2872,
       "server_job_posts_during_run": 0,
       "content_checked": true
     },
@@ -683,7 +788,7 @@
   ],
   "page_errors": [],
   "server_job_posts": [
-    "http://127.0.0.1:53707/api/jobs"
+    "http://127.0.0.1:59206/api/jobs"
   ],
   "preference_persistence": {
     "server_choice_survived_reload": true,
@@ -700,9 +805,100 @@
     "mode_after_server_completion": "Merge PDF runs in your browser; files stay on this device and are not uploaded.",
     "changed_selection_did_not_upload": true
   },
+  "pdf_to_jpg": {
+    "selected_dpi": 150,
+    "archive_bytes": 15342,
+    "images": [
+      {
+        "name": "page_001.jpg",
+        "dimensions": [
+          625,
+          417
+        ],
+        "reference_mean_red_difference": 0.735
+      },
+      {
+        "name": "page_002.jpg",
+        "dimensions": [
+          625,
+          417
+        ],
+        "reference_mean_red_difference": 0.82
+      }
+    ]
+  },
+  "edit_stamp": {
+    "target_page": 2,
+    "text": "LOCAL-STAMP-SECOND",
+    "rect": [
+      90.0,
+      94.94999694824219,
+      253.3520050048828,
+      114.18599700927734
+    ],
+    "invalid_page_rejected_without_upload": true,
+    "rotated_page_rect": [
+      90.0,
+      94.94999694824219,
+      263.4460144042969,
+      114.18599700927734
+    ],
+    "rotated_visible_pixels_box": [
+      89,
+      91,
+      101,
+      264
+    ]
+  },
+  "signatures": {
+    "typed_signer_extractable": true,
+    "drawn_signer_extractable": true,
+    "drawn_image_embedded": true,
+    "drawn_visible_pixels_box": [
+      41,
+      58,
+      261,
+      183
+    ],
+    "rotated_signature_visible": true,
+    "dark_background_bright_outline_pixels": 474
+  },
+  "image_watermark": {
+    "pages": 2,
+    "embedded_image_on_each_page": true,
+    "source_text_preserved": true,
+    "center_pixels": [
+      [
+        170,
+        195,
+        242
+      ],
+      [
+        170,
+        195,
+        242
+      ]
+    ],
+    "png_download_content_checked": true,
+    "jpeg_download_content_checked": true,
+    "jpeg_center_pixels": [
+      [
+        165,
+        197,
+        245
+      ],
+      [
+        165,
+        197,
+        245
+      ]
+    ],
+    "server_job_posts": 0,
+    "content_checked": true
+  },
   "route_count": 44,
   "route_failures": [],
-  "local_operation_count": 15,
+  "local_operation_count": 30,
   "local_operation_outputs_checked": true,
   "all_local_runs_stayed_off_api_jobs": true,
   "result": true

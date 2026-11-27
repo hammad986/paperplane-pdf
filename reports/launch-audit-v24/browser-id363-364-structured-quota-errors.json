@@ -1,0 +1,23 @@
+{
+  "success": [
+    "empty AcroForm state rendered",
+    "security inspection summary rendered"
+  ],
+  "quota_rounds": [
+    {
+      "round": 1,
+      "forms_message": "Error inspecting forms: Daily guest limit reached (10/10 operations). Create a free account or choose a paid plan.",
+      "audit_message": "Audit error: Daily guest limit reached (10/10 operations). Create a free account or choose a paid plan.",
+      "upgrade_message": true
+    },
+    {
+      "round": 2,
+      "forms_message": "Error inspecting forms: Daily guest limit reached (10/10 operations). Create a free account or choose a paid plan.",
+      "audit_message": "Audit error: Daily guest limit reached (10/10 operations). Create a free account or choose a paid plan.",
+      "upgrade_message": true
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "passed": true
+}

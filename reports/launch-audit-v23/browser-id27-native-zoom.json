@@ -1,0 +1,20 @@
+{
+  "native_browser_zoom_verified": true,
+  "attempt": "Playwright Control+Equal key events in headed Chrome",
+  "observed_state_after_attempt": {
+    "innerWidth": 1366,
+    "innerHeight": 900,
+    "dpr": 1.0000000149011612,
+    "documentWidth": 1366,
+    "bodyWidth": 1366
+  },
+  "reason": "The CSS viewport remained 1366px and devicePixelRatio remained 1; the shortcut did not change Chrome browser zoom. Route results from that run are excluded because zoom was not applied.",
+  "follow_up": "The prior Playwright keyboard shortcut and URL-policy-gated attempt remain excluded; a separate real Chrome native zoom check is now recorded above. Owner M-1–M-11 screenshot comparison and physical-device checks remain open.",
+  "latest_native_chrome_ui_observation": {
+    "date": "2026-11-19",
+    "route": "/merge-pdf",
+    "zoom_percent": 400,
+    "result": "Upload action buttons reflowed onto separate lines; the Google Drive / Dropbox import action remained visible by normal document scrolling. No inaccessible or horizontally clipped upload action was observed.",
+    "screenshot": "browser-id27-native-zoom-400-upload-actions.jpg"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "page_errors": [],
+  "console_errors": [],
+  "after_reset": {
+    "url": "/rotate-pdf",
+    "result_hidden": true,
+    "upload_visible": true,
+    "file_count": 0,
+    "selected_file_name": null,
+    "restart_label": "Process Another File",
+    "run_disabled": true
+  },
+  "next_file": {
+    "result_hidden": true,
+    "file_count": 1,
+    "file_name": "id158-second.pdf",
+    "run_enabled": true,
+    "path_unchanged": true
+  },
+  "same_tool_route_after_action": true,
+  "other_tool": {
+    "path": "/compress-pdf",
+    "result_hidden": true,
+    "file_count": 1,
+    "file_name": "id158-second.pdf",
+    "run_enabled": true
+  },
+  "http_status": 200,
+  "overall": "passed"
+}

@@ -1,0 +1,23 @@
+{
+  "command": "python -m pytest -q",
+  "runs_sequential": true,
+  "dotenv_disabled": true,
+  "credential_environment_removed": true,
+  "production_endpoints_contacted": false,
+  "runs": [
+    {
+      "run": 1,
+      "exit_code": 0,
+      "duration_seconds": 154.74,
+      "summary": "621 passed, 4 warnings in 149.85s (0:02:29)",
+      "log": "pytest-watermark-release-run1.log"
+    },
+    {
+      "run": 2,
+      "exit_code": 0,
+      "duration_seconds": 155.57,
+      "summary": "621 passed, 4 warnings in 149.34s (0:02:29)",
+      "log": "pytest-watermark-release-run2.log"
+    }
+  ]
+}

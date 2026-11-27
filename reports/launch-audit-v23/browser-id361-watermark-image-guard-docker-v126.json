@@ -1,0 +1,52 @@
+[
+  {
+    "round": 1,
+    "runtime": "production-mode Docker image paperplane-v23-audit:codex-v126",
+    "base": "http://127.0.0.1:18502",
+    "api": {
+      "httpStatus": 202,
+      "jobId": "6e197ddd156d463fbde1c293d64dac6f",
+      "status": "failed",
+      "error": "Watermark image exceeds the 20-megapixel processing limit. Choose a smaller image."
+    },
+    "truncatedDataUrl": {
+      "httpStatus": 202,
+      "status": "failed",
+      "error": "Watermark image data URL is invalid. Choose a supported PNG or JPEG file."
+    },
+    "validWatermark": {
+      "httpStatus": 202,
+      "status": "completed",
+      "downloadStatus": 200,
+      "filename": "attachment; filename=\"source_watermark.pdf\"",
+      "pdfContentChecked": true
+    },
+    "pageErrors": [],
+    "passed": true
+  },
+  {
+    "round": 2,
+    "runtime": "production-mode Docker image paperplane-v23-audit:codex-v126",
+    "base": "http://127.0.0.1:18502",
+    "api": {
+      "httpStatus": 202,
+      "jobId": "93bc0afd38034decbcf01080b9a6c8d0",
+      "status": "failed",
+      "error": "Watermark image exceeds the 20-megapixel processing limit. Choose a smaller image."
+    },
+    "truncatedDataUrl": {
+      "httpStatus": 202,
+      "status": "failed",
+      "error": "Watermark image data URL is invalid. Choose a supported PNG or JPEG file."
+    },
+    "validWatermark": {
+      "httpStatus": 202,
+      "status": "completed",
+      "downloadStatus": 200,
+      "filename": "attachment; filename=\"source_watermark.pdf\"",
+      "pdfContentChecked": true
+    },
+    "pageErrors": [],
+    "passed": true
+  }
+]

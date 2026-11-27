@@ -1,0 +1,35 @@
+{
+  "browser_errors": [],
+  "console_errors": [],
+  "api_responses": [
+    {
+      "url": "stream",
+      "status": 200
+    }
+  ],
+  "checks": {
+    "route_status": 200,
+    "active_document": "sparse-gallery-24.pdf",
+    "file_size": 8435,
+    "question_sent": true,
+    "sparse_text_explanation": true,
+    "recommends_OCR": true,
+    "misleading_no_match": false,
+    "assistant_text": "This PDF has very little searchable text (159 characters across 24 pages), so I cannot reliably identify its subject. It may contain scanned pages or a photo gallery. Run OCR to make its text searchable, then ask again.",
+    "send_button": {
+      "visible": true,
+      "disabled": false,
+      "rect": [
+        307,
+        635.875,
+        367,
+        683.875
+      ]
+    },
+    "viewport": [
+      390,
+      844
+    ]
+  },
+  "passed": true
+}

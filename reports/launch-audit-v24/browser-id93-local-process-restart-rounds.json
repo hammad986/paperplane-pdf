@@ -1,0 +1,20 @@
+{
+  "runs": [
+    {
+      "round": 1,
+      "result": "passed",
+      "same_user_survived": true,
+      "studio_marker_restored": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "result": "passed",
+      "same_user_survived": true,
+      "studio_marker_restored": true,
+      "page_errors": []
+    }
+  ],
+  "consecutive_passes": true,
+  "scope": "isolated local data-directory process restarts only; not deployed volume/redeploy proof"
+}

@@ -1,0 +1,11 @@
+{
+  "runtime": "isolated container shell; no provider request",
+  "missing_credentials": {
+    "exit_code": 1,
+    "generic_error_only": true
+  },
+  "dummy_credentials": {
+    "exit_code": 0,
+    "no_secret_echo": true
+  }
+}

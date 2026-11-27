@@ -1,0 +1,36 @@
+{
+  "checked_at": "2026-11-23",
+  "target": "https://paperplane.qd.je",
+  "browser": "Google Chrome via CUA",
+  "build_assets": {
+    "app_js": "/assets/app.js?v=154",
+    "styles_css": "/assets/styles.css?v=61",
+    "pdf_runtime_js": "/assets/pdf_runtime.js?v=25"
+  },
+  "fixture": "Public W3C dummy.pdf; no user file uploaded",
+  "cases": [
+    {
+      "entry_point": "Tool Desk topbar Cloud Import",
+      "import_result": "Imported dummy.pdf · 0.01 MB · 1 page",
+      "after_navigation": "On the PDF-to-Text route, the old temporary import was not restored; the page advised selecting it again."
+    },
+    {
+      "entry_point": "PDF to Text tool Cloud Import",
+      "import_result": "Imported dummy.pdf · 0.01 MB · 1 page",
+      "tool_file_list": "dummy.pdf · 13.0 KB",
+      "operation": "PDF to Text completed in browser; result card showed dummy-text.txt · 21 B",
+      "download_content_checked": false,
+      "limitation": "The CUA browser controller cannot retrieve this blob: downloadMedia reports blob downloads are unsupported; the result text content was not checked."
+    }
+  ],
+  "payment_or_account_changes": false,
+  "result": "partial live observation; not sufficient to close Cloud Import acceptance",
+  "console_log_check": {
+    "entries": [],
+    "levels": [
+      "error",
+      "warn"
+    ],
+    "result": "no console errors or warnings returned by CUA log reader"
+  }
+}

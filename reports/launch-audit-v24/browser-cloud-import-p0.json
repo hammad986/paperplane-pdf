@@ -1,0 +1,40 @@
+{
+  "cases": [
+    {
+      "case": "w3c_testfiles",
+      "ui_error": "",
+      "ui_filename_visible": true,
+      "api_status": 200,
+      "filename": "dummy.pdf",
+      "bytes": 13264,
+      "signature": "%PDF-",
+      "page_count": 1,
+      "content_marker": "Dummy PDF file\n"
+    },
+    {
+      "case": "arxiv_direct",
+      "ui_error": "",
+      "ui_filename_visible": true,
+      "api_status": 200,
+      "filename": "1706.03762v7.pdf",
+      "bytes": 2215244,
+      "signature": "%PDF-",
+      "page_count": 15,
+      "content_marker": "Provided proper attribution is provided, Google hereby grants permission to\nreproduce the tables and figures in this paper solely for use in journalistic or\nscholarly works.\nAttention Is All You Need\nAshish Vaswani\u2217\nGoog"
+    },
+    {
+      "case": "public_drive_view",
+      "ui_error": "",
+      "ui_filename_visible": true,
+      "api_status": 200,
+      "filename": "August 2025 Spirit Week Flyers - English and Spanish.pdf",
+      "bytes": 7901402,
+      "signature": "%PDF-",
+      "page_count": 2,
+      "content_marker": "\u201cThrowback Thursday!\u201d\nYou can\u2019t welcome the future without taking \na look at the past! Dress like your favorite\ndecade! Rock the roaring twenties or slide with\nthat 70s vibe!\nThursday, Aug. 21th\nWednesday, Aug. 20th\n\u201cWay"
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "result": "passed"
+}

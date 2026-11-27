@@ -1,0 +1,49 @@
+{
+  "base": "https://paperplane.qd.je",
+  "routes": [
+    {
+      "path": "/",
+      "status": 200,
+      "app_assets": [
+        "/assets/app.js?v=91"
+      ],
+      "style_assets": [
+        "/assets/styles.css?v=51"
+      ],
+      "has_44_tools": true
+    },
+    {
+      "path": "/pdf-to-word",
+      "status": 200,
+      "app_assets": [
+        "/assets/app.js?v=91"
+      ],
+      "style_assets": [
+        "/assets/styles.css?v=51"
+      ],
+      "has_44_tools": true
+    },
+    {
+      "path": "/compress-pdf",
+      "status": 200,
+      "app_assets": [
+        "/assets/app.js?v=91"
+      ],
+      "style_assets": [
+        "/assets/styles.css?v=51"
+      ],
+      "has_44_tools": true
+    },
+    {
+      "path": "/studio",
+      "status": 200,
+      "app_assets": [
+        "/assets/app.js?v=91"
+      ],
+      "style_assets": [
+        "/assets/styles.css?v=51"
+      ],
+      "has_44_tools": true
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "candidate": "local v215 source",
+  "source": "owner_drive_link",
+  "drive_file_id_recorded": false,
+  "probes": [
+    {
+      "variant": "normalized Drive share URL",
+      "status": "HTTP 200 upstream",
+      "content_type": "image/png",
+      "bytes": 35874,
+      "pdf_signature": false,
+      "final_host": "drive.usercontent.google.com",
+      "final_path": "/download"
+    },
+    {
+      "variant": "drive.google.com/uc?export=download&id=\u2026",
+      "status": "HTTP 200 upstream",
+      "content_type": "image/png",
+      "bytes": 35874,
+      "pdf_signature": false,
+      "final_host": "drive.usercontent.google.com",
+      "final_path": "/download"
+    },
+    {
+      "variant": "drive.google.com/uc?export=download&id=\u2026&confirm=t",
+      "status": "HTTP 200 upstream",
+      "content_type": "image/png",
+      "bytes": 35874,
+      "pdf_signature": false,
+      "final_host": "drive.usercontent.google.com",
+      "final_path": "/download"
+    }
+  ],
+  "browser": {
+    "http_status": 400,
+    "ui_error": "Google Drive returned image/png, not a PDF. Check that the shared link points to the PDF itself and is available to anyone with the link.",
+    "page_errors": 0,
+    "console_errors": 1,
+    "console_error": "Expected browser console resource error corresponding to the handled HTTP 400"
+  },
+  "result": "The provided link identifies or resolves to a PNG, so it is not a valid PDF import fixture. No response body, filename, or share identifier retained. Recheck requires the owner to supply a public PDF share URL."
+}

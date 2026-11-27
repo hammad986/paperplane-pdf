@@ -1,0 +1,121 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "snapshot": {
+        "injected": [],
+        "executionCount": 0,
+        "names": [
+          "name\"><img id=\"pp-xss-name\" src=\"x\" onerror=\"window.__pdfXss++\">",
+          "choice\"><img id=\"pp-xss-choice-name\" src=\"x\" onerror=\"window.__pdfXss++\">",
+          "check\"><img id=\"pp-xss-check\" src=\"x\" onerror=\"window.__pdfXss++\">"
+        ],
+        "values": [
+          "value\"><img id=\"pp-xss-value\" src=\"x\" onerror=\"window.__pdfXss++\">"
+        ],
+        "optionLabels": [
+          "allowed",
+          "choice\"><img id=\"pp-xss-choice\" src=\"x\" onerror=\"window.__pdfXss++\">"
+        ],
+        "controls": [
+          {
+            "name": "name\"><img id=\"pp-xss-name\" src=\"x\" onerror=\"window.__pdfXss++\">",
+            "type": "text",
+            "value": "value\"><img id=\"pp-xss-value\" src=\"x\" onerror=\"window.__pdfXss++\">",
+            "checked": false
+          },
+          {
+            "name": "choice\"><img id=\"pp-xss-choice-name\" src=\"x\" onerror=\"window.__pdfXss++\">",
+            "type": "select-one",
+            "value": "allowed",
+            "checked": null
+          },
+          {
+            "name": "check\"><img id=\"pp-xss-check\" src=\"x\" onerror=\"window.__pdfXss++\">",
+            "type": "checkbox",
+            "value": "on",
+            "checked": true
+          }
+        ],
+        "formControls": 3
+      },
+      "audit": {
+        "injected": [],
+        "text": "\n          \n            Encryption: AES\"><img id=\"pp-xss-encryption\" src=\"x\" onerror=\"window.__pdfXss++\">\n            Password Required: No\n            Active JavaScript: Clean\n            File Attachments: 0\"><img id=\"pp-xss-attachments\" src=\"x\" onerror=\"window.__pdfXss++\">\n            Form Fields: 3\"><img id=\"pp-xss-count\" src=\"x\" onerror=\"window.__pdfXss++\">\n            Digitally Signed: No\n          \n          \n            Active User Permissions\n            Print: Allowed \u00b7 Copy Text: Allowed \u00b7 Modify: Blocked\n          \n        "
+      },
+      "signatures": {
+        "injected": [],
+        "text": "\n          \n            \n              INVALID SIGNATURE\n              UNKNOWN\"><img id=\"pp-xss-overall\" src=\"x\" onerror=\"window.__pdfXss++\">\n            \n            Total Signatures: 1\n          \n        \n            \n              \n                Signature #1\n                INVALID\"><img id=\"pp-xss-signature\" src=\"x\" onerror=\"window.__pdfXss++\">\n              \n              \n                Subject: fixture\n                Issuer: fixture\n                ByteRange: [0, 10, 20, 30]\n                \n                Document byte stream integrity intact.\n              \n            \n          "
+      },
+      "repair_report": {
+        "injected": [],
+        "text": "\u2022 xref\"><img id=\"pp-xss-repair\" src=\"x\" onerror=\"window.__pdfXss++\">",
+        "html": "\u2022 xref\"&gt;&lt;img id=\"pp-xss-repair\" src=\"x\" onerror=\"window.__pdfXss++\"&gt;"
+      },
+      "page_label": {
+        "injected": [],
+        "text": "page\"><img id=\"pp-xss-page-label\" src=\"x\" onerror=\"window.__pdfXss++\">"
+      },
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "snapshot": {
+        "injected": [],
+        "executionCount": 0,
+        "names": [
+          "name\"><img id=\"pp-xss-name\" src=\"x\" onerror=\"window.__pdfXss++\">",
+          "choice\"><img id=\"pp-xss-choice-name\" src=\"x\" onerror=\"window.__pdfXss++\">",
+          "check\"><img id=\"pp-xss-check\" src=\"x\" onerror=\"window.__pdfXss++\">"
+        ],
+        "values": [
+          "value\"><img id=\"pp-xss-value\" src=\"x\" onerror=\"window.__pdfXss++\">"
+        ],
+        "optionLabels": [
+          "allowed",
+          "choice\"><img id=\"pp-xss-choice\" src=\"x\" onerror=\"window.__pdfXss++\">"
+        ],
+        "controls": [
+          {
+            "name": "name\"><img id=\"pp-xss-name\" src=\"x\" onerror=\"window.__pdfXss++\">",
+            "type": "text",
+            "value": "value\"><img id=\"pp-xss-value\" src=\"x\" onerror=\"window.__pdfXss++\">",
+            "checked": false
+          },
+          {
+            "name": "choice\"><img id=\"pp-xss-choice-name\" src=\"x\" onerror=\"window.__pdfXss++\">",
+            "type": "select-one",
+            "value": "allowed",
+            "checked": null
+          },
+          {
+            "name": "check\"><img id=\"pp-xss-check\" src=\"x\" onerror=\"window.__pdfXss++\">",
+            "type": "checkbox",
+            "value": "on",
+            "checked": true
+          }
+        ],
+        "formControls": 3
+      },
+      "audit": {
+        "injected": [],
+        "text": "\n          \n            Encryption: AES\"><img id=\"pp-xss-encryption\" src=\"x\" onerror=\"window.__pdfXss++\">\n            Password Required: No\n            Active JavaScript: Clean\n            File Attachments: 0\"><img id=\"pp-xss-attachments\" src=\"x\" onerror=\"window.__pdfXss++\">\n            Form Fields: 3\"><img id=\"pp-xss-count\" src=\"x\" onerror=\"window.__pdfXss++\">\n            Digitally Signed: No\n          \n          \n            Active User Permissions\n            Print: Allowed \u00b7 Copy Text: Allowed \u00b7 Modify: Blocked\n          \n        "
+      },
+      "signatures": {
+        "injected": [],
+        "text": "\n          \n            \n              INVALID SIGNATURE\n              UNKNOWN\"><img id=\"pp-xss-overall\" src=\"x\" onerror=\"window.__pdfXss++\">\n            \n            Total Signatures: 1\n          \n        \n            \n              \n                Signature #1\n                INVALID\"><img id=\"pp-xss-signature\" src=\"x\" onerror=\"window.__pdfXss++\">\n              \n              \n                Subject: fixture\n                Issuer: fixture\n                ByteRange: [0, 10, 20, 30]\n                \n                Document byte stream integrity intact.\n              \n            \n          "
+      },
+      "repair_report": {
+        "injected": [],
+        "text": "\u2022 xref\"><img id=\"pp-xss-repair\" src=\"x\" onerror=\"window.__pdfXss++\">",
+        "html": "\u2022 xref\"&gt;&lt;img id=\"pp-xss-repair\" src=\"x\" onerror=\"window.__pdfXss++\"&gt;"
+      },
+      "page_label": {
+        "injected": [],
+        "text": "page\"><img id=\"pp-xss-page-label\" src=\"x\" onerror=\"window.__pdfXss++\">"
+      },
+      "page_errors": []
+    }
+  ],
+  "passed": true
+}

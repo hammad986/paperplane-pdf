@@ -1,0 +1,48 @@
+{
+  "page_errors": [],
+  "console_errors": [],
+  "post_requests": [],
+  "phases": [
+    {
+      "phase": "after_upload_1",
+      "cloud_modal_hidden": true,
+      "file_count": 1
+    },
+    {
+      "phase": "after_run_1",
+      "result_visible": true,
+      "cloud_modal_hidden": true,
+      "meta": "exam-photo.jpg \u00b7 19.5 KB \u00b7 350 \u00d7 450 px"
+    },
+    {
+      "phase": "after_restart",
+      "cloud_modal_hidden": true,
+      "run_enabled": false
+    },
+    {
+      "phase": "after_upload_2",
+      "cloud_modal_hidden": true,
+      "file_count": 1
+    },
+    {
+      "phase": "after_run_2",
+      "result_visible": true,
+      "cloud_modal_hidden": true,
+      "meta": "exam-photo.jpg \u00b7 19.5 KB \u00b7 350 \u00d7 450 px"
+    }
+  ],
+  "second_download": {
+    "name": "exam-photo.jpg",
+    "dimensions": [
+      350,
+      450
+    ],
+    "bytes": 20000,
+    "format": "JPEG"
+  },
+  "page_size": {
+    "width": 390,
+    "doc": 390
+  },
+  "result": "passed"
+}

@@ -1,0 +1,78 @@
+{
+  "build": {
+    "app_asset": "/assets/app.js?v=191",
+    "styles_asset": "/assets/styles.css?v=70",
+    "service_worker_cache": "paperplane-shell-v142",
+    "docker_image_id": "sha256:bffa608ec4f393db9d10bbf89cf19f518c733c7031798a19b8f3f6a0c920edff"
+  },
+  "runs": [
+    {
+      "log": "pytest-v191-round1.log",
+      "result": "687 passed, 4 warnings in 148.51s",
+      "exit_code": 0
+    },
+    {
+      "log": "pytest-v191-round2.log",
+      "result": "687 passed, 4 warnings in 152.15s",
+      "exit_code": 0
+    }
+  ],
+  "browser_checks": [
+    {
+      "evidence": "browser-id52-ai-empty-state-bounds.json",
+      "passed": true
+    },
+    {
+      "evidence": "browser-id56-waitlist-links-round1.json",
+      "passed": true
+    },
+    {
+      "evidence": "browser-id56-waitlist-links-round2.json",
+      "passed": true
+    },
+    {
+      "evidence": "browser-id80-settings-mobile-bounds.json",
+      "passed": true
+    },
+    {
+      "evidence": "browser-id84-escape-stack-round1.json",
+      "passed": true
+    },
+    {
+      "evidence": "browser-id84-escape-stack-round2.json",
+      "passed": true
+    },
+    {
+      "evidence": "browser-v191-limit-policy.json",
+      "passed": true
+    },
+    {
+      "evidence": "browser-p0-current-v191-round1.json and browser-p0-current-v191-round2.json",
+      "passed_for_local_matrix": "60 checks per round; zero page errors; Protect and Sign downloads content-checked in both rounds",
+      "open_case": "Owner Drive URL returned image/png instead of a PDF in both rounds; provider/live acceptance remains open"
+    },
+    {
+      "evidence": "browser-id72-result-to-studio-scroll.json",
+      "passed": true
+    },
+    {
+      "evidence": "browser-id62-export-after-resize.json",
+      "passed": true
+    },
+    {
+      "evidence": "browser-id73-studio-restore-page-sync.json",
+      "passed": true
+    },
+    {
+      "evidence": "route-layout-matrix.json",
+      "passed": true,
+      "details": "220 tool-route × viewport checks over 320/390/820/1366/1920 px; zero failures; checked latest app.js?v=191/styles.css?v=70 source"
+    },
+    {
+      "evidence": "browser-id28-v191-style70-current-image-catalog-v191-style70-clearpdf-2026-11-23.json",
+      "passed": "44 operations per round, two rounds; 41 content-checked outputs per round; zero page errors",
+      "open_cases": "AI Summarize and Translate unavailable without provider credentials; localhost HTML-to-PDF SSRF rejection was expected and is not an output failure"
+    }
+  ],
+  "warnings": "Four existing test warnings were reported in each full-suite run."
+}

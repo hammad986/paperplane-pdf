@@ -1,0 +1,12 @@
+{
+  "candidate": "local v215 source",
+  "browser": "Google Chrome via Playwright",
+  "source": "owner_drive_link",
+  "page_errors": [],
+  "console_errors": [
+    "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+  ],
+  "http_status": 400,
+  "error_detail": "Google Drive returned image/png, not a PDF. Check that the shared link points to the PDF itself and is available to anyone with the link.",
+  "result": "owner_link_rejected"
+}

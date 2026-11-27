@@ -1,0 +1,44 @@
+{
+  "candidate": "Docker production image app.js v192 / CSS v71 / SW v144",
+  "rounds": [
+    {
+      "fixture": "w3c",
+      "ui_error": "",
+      "filename_visible": true,
+      "api_status": 200,
+      "download_name": "dummy.pdf",
+      "bytes": 13264,
+      "pdf_signature": "%PDF-",
+      "pages": 1,
+      "marker_found": true,
+      "content_checked": true
+    },
+    {
+      "fixture": "arxiv",
+      "ui_error": "",
+      "filename_visible": true,
+      "api_status": 200,
+      "download_name": "1706.03762v7.pdf",
+      "bytes": 2215244,
+      "pdf_signature": "%PDF-",
+      "pages": 15,
+      "marker_found": true,
+      "content_checked": true
+    },
+    {
+      "fixture": "public_drive",
+      "ui_error": "",
+      "filename_visible": true,
+      "api_status": 200,
+      "download_name": "August 2025 Spirit Week Flyers - English and Spanish.pdf",
+      "bytes": 7901402,
+      "pdf_signature": "%PDF-",
+      "pages": 2,
+      "marker_found": true,
+      "content_checked": true
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "result": "passed"
+}

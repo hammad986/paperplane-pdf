@@ -1,0 +1,33 @@
+{
+  "build": "app.js?v=191",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "rounds": [
+    {
+      "round": 1,
+      "scroll_before_handoff": 500,
+      "view": "app-shell studio-active",
+      "windowScrollY": 0,
+      "mainScrollTop": 0,
+      "pageCount": 1,
+      "pageText": "Studio handoff page marker",
+      "toolbarVisible": true,
+      "noHorizontalOverflow": true
+    },
+    {
+      "round": 2,
+      "scroll_before_handoff": 500,
+      "view": "app-shell studio-active",
+      "windowScrollY": 0,
+      "mainScrollTop": 0,
+      "pageCount": 1,
+      "pageText": "Studio handoff page marker",
+      "toolbarVisible": true,
+      "noHorizontalOverflow": true
+    }
+  ],
+  "browser_errors": [],
+  "passed": true
+}

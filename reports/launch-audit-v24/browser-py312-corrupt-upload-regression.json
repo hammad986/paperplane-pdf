@@ -1,0 +1,23 @@
+{
+  "candidate": "Python 3.12 isolated local server; installed Google Chrome via Playwright",
+  "cases": [
+    {
+      "name": "studio_security_inspect",
+      "status": 422,
+      "detail": "The uploaded PDF is damaged or unreadable. Please choose a valid PDF."
+    },
+    {
+      "name": "job_upload",
+      "status": 422,
+      "detail": "The uploaded PDF is damaged or unreadable. Please choose a valid PDF."
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "expected_http_error_console_entries": [
+    "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)",
+    "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)"
+  ],
+  "rejected_job_temp_entries": [],
+  "result": "passed"
+}

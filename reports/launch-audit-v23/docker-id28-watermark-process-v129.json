@@ -1,0 +1,70 @@
+{
+  "image": "paperplane-v23-audit:codex-v129",
+  "image_digest": "sha256:2001f466a1e1f1488e4311ab504242f87916775eacb0c04958f590353ff2e05c",
+  "runtime": "production-mode Docker; Python 3.12; 4 app workers",
+  "health": "ok",
+  "application_and_workers_uid": 1001,
+  "browser_rounds": [
+    {
+      "round": 1,
+      "runtime": "production-mode Docker v129",
+      "base": "http://127.0.0.1:18501",
+      "api": {
+        "httpStatus": 202,
+        "jobId": "c015b7d9e88e4a0d8da9bfecc3eddaf4",
+        "status": "failed",
+        "error": "Watermark image exceeds the 20-megapixel processing limit. Choose a smaller image."
+      },
+      "truncatedDataUrl": {
+        "httpStatus": 202,
+        "status": "failed",
+        "error": "Watermark image data URL is invalid. Choose a supported PNG or JPEG file."
+      },
+      "validWatermark": {
+        "httpStatus": 202,
+        "status": "completed",
+        "downloadStatus": 200,
+        "filename": "attachment; filename=\"source_watermark.pdf\"",
+        "pdfContentChecked": true
+      },
+      "pageErrors": [],
+      "passed": true
+    },
+    {
+      "round": 2,
+      "runtime": "production-mode Docker v129",
+      "base": "http://127.0.0.1:18501",
+      "api": {
+        "httpStatus": 202,
+        "jobId": "d112def15f5f483eae83bfcdea70685a",
+        "status": "failed",
+        "error": "Watermark image exceeds the 20-megapixel processing limit. Choose a smaller image."
+      },
+      "truncatedDataUrl": {
+        "httpStatus": 202,
+        "status": "failed",
+        "error": "Watermark image data URL is invalid. Choose a supported PNG or JPEG file."
+      },
+      "validWatermark": {
+        "httpStatus": 202,
+        "status": "completed",
+        "downloadStatus": 200,
+        "filename": "attachment; filename=\"source_watermark.pdf\"",
+        "pdfContentChecked": true
+      },
+      "pageErrors": [],
+      "passed": true
+    }
+  ],
+  "process_timeout_test": {
+    "executed_as_uid": 1001,
+    "timeout_seconds": 0.001,
+    "worker_terminated": true,
+    "terminal_timeout": true,
+    "partial_output_exists": false,
+    "temporary_images_left": false
+  },
+  "page_errors": [],
+  "container_removed": true,
+  "payment_attempted": false
+}

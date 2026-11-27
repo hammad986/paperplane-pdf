@@ -1,0 +1,39 @@
+{
+  "route": "/merge-photos-online",
+  "rounds": [
+    {
+      "round": 1,
+      "status": 200,
+      "input_dimensions": [
+        2400,
+        1800
+      ],
+      "input_count": 4,
+      "layout": "grid",
+      "output_size": [
+        4800,
+        3600
+      ],
+      "output_bytes": 106839,
+      "four_tile_colors_verified": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "status": 200,
+      "input_dimensions": [
+        2400,
+        1800
+      ],
+      "input_count": 4,
+      "layout": "grid",
+      "output_size": [
+        4800,
+        3600
+      ],
+      "output_bytes": 106839,
+      "four_tile_colors_verified": true,
+      "page_errors": []
+    }
+  ]
+}

@@ -127,6 +127,14 @@ def _current_agentrouter_api_key() -> str:
     return _current_bluesminds_api_key()
 
 
+_GENERIC_QUERY_STOPWORDS = frozenset({
+    "about", "based", "between", "compare", "comparing", "difference", "differences",
+    "doc", "document", "documents", "explain", "file", "files", "mention", "mentioned",
+    "mentions", "page", "pages", "pdf", "pdfs", "said", "say", "says", "tell",
+    "tells", "text", "told", "using", "write", "written",
+})
+
+
 def _tokenize(text: str) -> list[str]:
     """Tokenize searchable terms without discarding short identifiers or hyphens."""
     return [word.lower() for word in TOKEN_PATTERN.findall(text)]
@@ -135,6 +143,62 @@ def _tokenize(text: str) -> list[str]:
 def _content_tokens(text: str) -> set[str]:
     """Return query terms that carry meaning for grounded document matching."""
     return {token for token in _tokenize(text) if token not in CHAT_STOPWORDS}
+
+
+def _substantive_query_tokens(question: str) -> set[str]:
+    """Return non-generic content terms so 'PDF' or 'say' alone cannot match unrelated pages."""
+    return {
+        token for token in _content_tokens(question)
+        if token not in _GENERIC_QUERY_STOPWORDS and len(token) > 1
+    }
+
+
+_PAGE_WORD_NUMBERS = {
+    "one": 1, "first": 1, "1st": 1,
+    "two": 2, "second": 2, "2nd": 2,
+    "three": 3, "third": 3, "3rd": 3,
+    "four": 4, "fourth": 4, "4th": 4,
+    "five": 5, "fifth": 5, "5th": 5,
+    "six": 6, "sixth": 6, "6th": 6,
+    "seven": 7, "seventh": 7, "7th": 7,
+    "eight": 8, "eighth": 8, "8th": 8,
+    "nine": 9, "ninth": 9, "9th": 9,
+    "ten": 10, "tenth": 10, "10th": 10,
+}
+
+
+def _requested_page_number(question: str) -> int | None:
+    if not question:
+        return None
+    digit_match = re.search(r"\bpage\s+(\d+)\b", question, re.IGNORECASE)
+    if digit_match:
+        return int(digit_match.group(1))
+    word_match = re.search(r"\bpage\s+(" + "|".join(_PAGE_WORD_NUMBERS) + r")\b", question, re.IGNORECASE)
+    if word_match:
+        return _PAGE_WORD_NUMBERS.get(word_match.group(1).lower())
+    ord_match = re.search(r"\b(" + "|".join(_PAGE_WORD_NUMBERS) + r")\s+page\b", question, re.IGNORECASE)
+    if ord_match:
+        return _PAGE_WORD_NUMBERS.get(ord_match.group(1).lower())
+    return None
+
+
+def has_substantive_excerpt_match(question: str, excerpts_text: str) -> bool:
+    """Confirm offline fallback excerpts actually answer substantive query terms."""
+    if not question or not excerpts_text:
+        return False
+    if _requested_page_number(question) is not None:
+        return True
+    if re.search(r"\b(summar(?:y|ize|ise)|overview|key points|important information|about (?:this|the) document|describe (?:this|the) document)\b|\bwhat is (?:this|the) (?:pdf|document) about\b|\btell me about (?:this|the) (?:pdf|document)\b", question, re.IGNORECASE):
+        return True
+    query_tokens = _substantive_query_tokens(question)
+    if not query_tokens:
+        return False
+    body = excerpts_text
+    excerpts_match = re.search(r"DOCUMENT EXCERPTS:\n(.*?)\n\nUSER QUESTION:", excerpts_text, re.DOTALL)
+    if excerpts_match:
+        body = excerpts_match.group(1)
+    excerpt_tokens = _content_tokens(body)
+    return bool(query_tokens & excerpt_tokens)
 
 
 
@@ -450,12 +514,20 @@ def correct_false_premise(pdf_path: Path | None, question: str) -> str | None:
         re.compile(r"\b(?P<city>[A-Za-z][A-Za-z .'-]{0,35}?)\s+(?:is\s+)?(?P<country>[A-Za-z][A-Za-z .'-]{0,35}?)(?:['’]s|s)?\s+capital\b", re.IGNORECASE),
         re.compile(r"\b(?P<country>[A-Za-z][A-Za-z .'-]{0,35}?)(?:['’]s|s)?\s+capital\s+(?:is|hai)\s+(?P<city>[A-Za-z][A-Za-z .'-]{0,35}?)\b", re.IGNORECASE),
     )
+    ignored_city_tokens = {
+        "what", "which", "who", "where", "when", "why", "how", "is", "are", "was",
+        "were", "tell", "name", "state", "give", "find", "show", "check", "know",
+        "whats", "what's", "the", "a", "an", "can", "could", "would", "do", "does",
+    }
     for pattern in capital_patterns:
         match = pattern.search(question)
         if not match:
             continue
         city = re.sub(r"\s+", " ", match.group("city")).strip(" .'-").lower()
         country = re.sub(r"\s+", " ", match.group("country")).strip(" .'-").lower()
+        city_tokens = city.split()
+        if not city_tokens or city in ignored_city_tokens or city_tokens[0] in ignored_city_tokens:
+            continue
         expected_city = _KNOWN_CAPITALS.get(country)
         if expected_city and city != expected_city:
             if country == "germany" and city == "paris":
@@ -468,28 +540,31 @@ def correct_false_premise(pdf_path: Path | None, question: str) -> str | None:
             )
             break
 
-    author = metadata.get("author", "").strip() or document_author
-    if re.search(r"\b(author|authored|wrote|written by)\b", question, re.IGNORECASE):
-        claimed_author = re.search(
-            r"\b(?:author(?:ed)?(?:\s+is|\s+was|\s+by)?|written\s+by|wrote)\s+[\"“]?([A-Z][\w.'-]+(?:\s+[A-Z][\w.'-]+){0,3})",
-            question,
-        )
-        if claimed_author and author and claimed_author.group(1).casefold() != author.casefold():
-            corrections.append(
-                f"Correction: the PDF identifies {author} as the author, not "
-                f"{claimed_author.group(1)}. This is based on the document text or embedded metadata."
+    if pdf_path is not None:
+        author = metadata.get("author", "").strip() or document_author
+        if re.search(r"\b(author|authored|wrote|written by)\b", question, re.IGNORECASE):
+            claimed_author = re.search(
+                r"\b(?:author(?:ed)?(?:\s+is|\s+was|\s+by)?|written\s+by|wrote)\s+[\"“]?([A-Z][\w.'-]+(?:\s+[A-Z][\w.'-]+){0,3})",
+                question,
             )
-        if claimed_author and not author:
-            corrections.append("I can't verify that authorship claim: the PDF's metadata and opening text do not identify an author.")
+            ignored_author_tokens = {"This", "The", "That", "Document", "PDF", "File", "It", "Unknown", "Anonymous"}
+            if claimed_author and claimed_author.group(1).split()[0] not in ignored_author_tokens:
+                if author and claimed_author.group(1).casefold() != author.casefold():
+                    corrections.append(
+                        f"Correction: the PDF identifies {author} as the author, not "
+                        f"{claimed_author.group(1)}. This is based on the document text or embedded metadata."
+                    )
+                if not author:
+                    corrections.append("I can't verify that authorship claim: the PDF's metadata and opening text do not identify an author.")
 
-    creation_year = _metadata_year(metadata.get("creationDate", ""))
-    if creation_year and re.search(r"\b(date|year|published|publication|created|written)\b", question, re.IGNORECASE):
-        claimed_year = re.search(r"\b(?:19|20)\d{2}\b", question)
-        if claimed_year and claimed_year.group(0) != creation_year:
-            corrections.append(
-                f"Correction: the PDF creation metadata records {creation_year}, not {claimed_year.group(0)}. "
-                "A file creation date does not establish the document's original publication date."
-            )
+        creation_year = _metadata_year(metadata.get("creationDate", ""))
+        if creation_year and re.search(r"\b(date|year|published|publication|created|written)\b", question, re.IGNORECASE):
+            claimed_year = re.search(r"\b(?:19|20)\d{2}\b", question)
+            if claimed_year and claimed_year.group(0) != creation_year:
+                corrections.append(
+                    f"Correction: the PDF creation metadata records {creation_year}, not {claimed_year.group(0)}. "
+                    "A file creation date does not establish the document's original publication date."
+                )
 
     return " ".join(corrections) or None
 
@@ -896,7 +971,12 @@ def _provider_request(
                     0.0,
                     request_deadline - time.monotonic() - reserve_per_attempt * future_attempts,
                 )
-                delay = min(retry_delay(attempt, retry_after), sleep_budget)
+                base_wait = retry_delay(attempt, retry_after)
+                if error.code == 429 and not retry_after:
+                    # Back off progressively when an upstream 429 omits Retry-After
+                    # so multi-batch translation and summary windows have time to reset.
+                    base_wait = max(base_wait, min(20.0, 4.0 * (2 ** attempt)))
+                delay = min(base_wait, sleep_budget)
                 if delay <= 0:
                     raise RuntimeError(f"AI service returned HTTP {error.code}. Please try again.") from error
                 time.sleep(delay)
@@ -988,6 +1068,9 @@ def call_llm(
         system_prompt, user_prompt, model=model, timeout_seconds=timeout_seconds, max_attempts=max_attempts,
         temperature=temperature,
     )
+
+
+_ORIGINAL_CALL_LLM = call_llm
 
 
 def _call_selected_provider(
@@ -1202,7 +1285,11 @@ def _offline_rag_fallback(system_prompt: str, user_prompt: str) -> str:
             if not selected and lines:
                 selected = [(0.0, idx, line) for idx, line in enumerate(lines[:2])]
             for _score, _line_index, line in selected:
-                summary_points.append(f"{line[:240]} [Page {number}]")
+                clean_line = re.sub(r"\s+", " ", line).strip()
+                if len(clean_line) > 360:
+                    clipped = clean_line[:357].rsplit(" ", 1)[0].rstrip(" ,;:-")
+                    clean_line = f"{clipped}…" if clipped else clean_line[:357]
+                summary_points.append(f"{clean_line} [Page {number}]")
 
         pts = "\n".join(f"- {pt}" for pt in summary_points) if summary_points else "- General document overview available."
         return (
@@ -1220,9 +1307,8 @@ def _offline_rag_fallback(system_prompt: str, user_prompt: str) -> str:
         excerpts = excerpts_match.group(1).strip()
         question = excerpts_match.group(2).strip()
 
-        requested_page = re.search(r"\bpage\s+(\d+)\b", question, re.IGNORECASE)
-        if requested_page:
-            requested_number = int(requested_page.group(1))
+        requested_number = _requested_page_number(question)
+        if requested_number is not None:
             for block in re.split(r"\n\s*---\s*\n", excerpts):
                 page_match = re.match(r"\[Page\s*(\d+)\]\s*:\s*", block)
                 if page_match and int(page_match.group(1)) == requested_number:
@@ -1255,7 +1341,8 @@ def _offline_rag_fallback(system_prompt: str, user_prompt: str) -> str:
 
         current_page = None
         best_lines = []
-        question_tokens = _content_tokens(question)
+        question_tokens = _substantive_query_tokens(question) or _content_tokens(question)
+        substantive_only = _substantive_query_tokens(question)
         for raw_line in excerpts.splitlines():
             line = raw_line.strip()
             if not line or line.startswith("---"):
@@ -1265,6 +1352,8 @@ def _offline_rag_fallback(system_prompt: str, user_prompt: str) -> str:
                 current_page = page_match.group(1)
                 continue
 
+            if not substantive_only:
+                continue
             overlap = len(question_tokens & _content_tokens(line))
             if overlap > 0:
                 best_lines.append((overlap, line, current_page))
@@ -1283,31 +1372,37 @@ def _offline_rag_fallback(system_prompt: str, user_prompt: str) -> str:
 
 
 _SUMMARY_CURRENCY_AMOUNT = re.compile(
-    r"(?:(?P<prefix>[$€£₹¥]\s*|\b(?:USD|EUR|GBP|INR|JPY|CAD|AUD|RMB|CNY|Rs\.?|rupees?|dollars?|euros?|pounds?)\s+)"
+    r"(?:(?P<prefix>[$€£₹¥]\s*|\b(?:USD|EUR|GBP|INR|JPY|CAD|AUD|RMB|CNY|Rs|rupees?|dollars?|euros?|pounds?)\b\.?\s+)"
     r"(?P<prefix_amount>\d(?:[\d,]*\d)?(?:\.\d+)?)|"
-    r"(?P<suffix_amount>\d(?:[\d,]*\d)?(?:\.\d+)?)\s*(?P<suffix>[$€£₹¥]|\b(?:USD|EUR|GBP|INR|JPY|CAD|AUD|RMB|CNY|Rs\.?|rupees?|dollars?|euros?|pounds?)\b))",
+    r"(?P<suffix_amount>\d(?:[\d,]*\d)?(?:\.\d+)?)\s*(?P<suffix>[$€£₹¥]|\b(?:USD|EUR|GBP|INR|JPY|CAD|AUD|RMB|CNY|Rs|rupees?|dollars?|euros?|pounds?)\b\.?))",
     re.IGNORECASE,
 )
 _SUMMARY_SOURCE_NUMBER = re.compile(r"(?<![\w.])(?:\d[\d,]*\d|\d)(?:\.\d+)?(?!\w|,\d|\.\d)")
 _SUMMARY_CURRENCY_PREFIX = re.compile(
-    r"(?:[$€£₹¥]|\b(?:USD|EUR|GBP|INR|JPY|CAD|AUD|RMB|CNY|Rs\.?|rupees?|dollars?|euros?|pounds?)\b)\s*$",
+    r"(?:[$€£₹¥]|\b(?:USD|EUR|GBP|INR|JPY|CAD|AUD|RMB|CNY|Rs|rupees?|dollars?|euros?|pounds?)\b\.?)(?:\s*[:\-–—]?\s*)$",
     re.IGNORECASE,
 )
 _SUMMARY_CURRENCY_SUFFIX = re.compile(
-    r"^\s*[\(\[]?\s*(?:[$€£₹¥]|\b(?:USD|EUR|GBP|INR|JPY|CAD|AUD|RMB|CNY|Rs\.?|rupees?|dollars?|euros?|pounds?)\b)\s*[\)\]]?(?!\s*\d)",
+    r"^\s*[\(\[]?\s*(?:[$€£₹¥]|\b(?:USD|EUR|GBP|INR|JPY|CAD|AUD|RMB|CNY|Rs|rupees?|dollars?|euros?|pounds?)\b\.?)\s*[\)\]]?(?!\s*\d)",
     re.IGNORECASE,
 )
 _SUMMARY_UNSPECIFIED_CURRENCY = re.compile(
     r"(?P<amount>\d(?:[\d,]*\d)?(?:\.\d+)?)\s*"
-    r"(?:\(\s*currency\s+(?:unspecified|not\s+specified|unidentified)\s*\)|"
-    r"\[\s*currency\s+(?:unspecified|not\s+specified|unidentified)\s*\])",
+    r"(?:\(\s*currency\s+(?:unspecified|not\s+specified|unidentified|unknown|not\s+stated|not\s+mentioned|unclear)\s*\)|"
+    r"\[\s*currency\s+(?:unspecified|not\s+specified|unidentified|unknown|not\s+stated|not\s+mentioned|unclear)\s*\])",
     re.IGNORECASE,
 )
 
 
 def _numeric_amount_key(amount: str) -> str:
-    """Normalize grouping separators without changing the represented amount."""
-    return amount.replace(",", "").lstrip("0") or "0"
+    """Normalize grouping separators and trailing zero decimals without changing the represented amount."""
+    raw = amount.replace(",", "").strip()
+    if "." in raw:
+        whole, frac = raw.split(".", 1)
+        whole = whole.lstrip("0") or "0"
+        frac = frac.rstrip("0")
+        return f"{whole}.{frac}" if frac else whole
+    return raw.lstrip("0") or "0"
 
 
 def _source_amount_currency(source_text: str, amount: str) -> str | None:
@@ -1320,7 +1415,7 @@ def _source_amount_currency(source_text: str, amount: str) -> str | None:
         currency_match = _SUMMARY_CURRENCY_PREFIX.search(prefix) or _SUMMARY_CURRENCY_SUFFIX.search(suffix)
         if not currency_match:
             continue
-        token = currency_match.group().strip().strip("()[] ")
+        token = currency_match.group().strip().strip("()[] :-–—")
         folded = token.casefold().rstrip(".")
         if token == "₹" or folded in {"inr", "rs", "rupee", "rupees"}:
             return "INR"
@@ -1584,8 +1679,8 @@ def chat_with_pdf(pdf_path: Path, question: str, filename: str | None = None) ->
 def _is_document_question(question: str) -> bool:
     """Route clear document references to retrieval; leave ordinary chat direct."""
     q = question.lower().strip()
-    explicit = ("this document", "the document", "this pdf", "the pdf", "uploaded file", "in the file", "in this file", "according to", "what does the", "on which page", "which page", "summarize this", "summarize the", "in my document", "from the document", "certificate number", "applicant name", "invoice number", "due date", "total amount", "line item", "account number", "contract date", "the deadline", "what is the deadline", "mission budget", "lead director", "launch window", "primary payload")
-    return bool(re.search(r"\bpage\s+\d+\b", q)) or any(phrase in q for phrase in explicit)
+    explicit = ("this document", "the document", "this pdf", "the pdf", "in the pdf", "in this pdf", "this file", "the file", "uploaded file", "in the file", "in this file", "attached pdf", "attached document", "according to", "what does the", "what does this", "on which page", "which page", "summarize this", "summarize the", "in my document", "from the document", "certificate number", "applicant name", "invoice number", "due date", "total amount", "line item", "account number", "contract date", "the deadline", "what is the deadline", "mission budget", "lead director", "launch window", "primary payload")
+    return bool(re.search(r"\bpage\s+(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten)\b", q)) or any(phrase in q for phrase in explicit)
 
 
 def _simple_greeting_reply(question: str) -> str | None:
@@ -1690,14 +1785,24 @@ def _bounded_document_timeout(deadline: float, call_timeout: float, remaining_ca
     return min(call_timeout, per_call_budget)
 
 
+def _report_ai_progress(callback: Any, percent: int, message: str) -> None:
+    if callable(callback):
+        try:
+            callback(max(0, min(100, int(percent))), str(message))
+        except Exception:
+            pass
+
+
 def summarize_pdf(
     pdf_path: Path,
     max_pages: int | None = None,
     *,
     include_citations: bool = False,
+    progress_callback: Any = None,
 ) -> str | tuple[str, list[int]]:
     """Summarizes document into executive overview and bulleted key takeaways."""
     deadline = time.monotonic() + DOCUMENT_AI_BUDGET_SECONDS
+    _report_ai_progress(progress_callback, 10, "Extracting document pages for synthesis…")
     with fitz.open(str(pdf_path)) as doc:
         page_limit = min(doc.page_count, max_pages) if max_pages and max_pages > 0 else doc.page_count
         if page_limit > SUMMARY_PAGE_LIMIT:
@@ -1710,9 +1815,11 @@ def summarize_pdf(
             min(1700, SUMMARY_CHUNK_CHAR_BUDGET // min(SUMMARY_CHUNK_PAGE_COUNT, max(1, page_limit))),
         )
         page_texts: list[tuple[int, str]] = []
+        raw_page_texts: list[str] = []
         for number in range(page_limit):
             page_text = doc[number].get_text("text").strip()
             if page_text:
+                raw_page_texts.append(page_text)
                 page_texts.append((number + 1, _bound_summary_page_text(page_text, page_budget)))
 
     if not page_texts:
@@ -1728,12 +1835,13 @@ def summarize_pdf(
     )
     if len(page_texts) <= 12:
         full_text = "\n\n".join(f"--- Page {number} ---\n{text}" for number, text in page_texts)
+        _report_ai_progress(progress_callback, 40, "Synthesizing executive brief…")
         try:
             summary = call_llm(
                 system_prompt,
                 f"DOCUMENT CONTENT:\n\n{full_text}",
                 timeout_seconds=_bounded_document_timeout(deadline, SUMMARY_CALL_TIMEOUT_SECONDS),
-                max_attempts=4,
+                max_attempts=3,
                 temperature=0.0,
             )
         except Exception as error:
@@ -1743,24 +1851,32 @@ def summarize_pdf(
     else:
         # Long documents are summarized in bounded, page-labelled sections so
         # one provider request does not have to fit the whole source at once.
-        chunk_notes: list[str] = []
-        chunk_size = SUMMARY_CHUNK_PAGE_COUNT
-        chunk_count = (len(page_texts) + chunk_size - 1) // chunk_size
-        for chunk_index, start in enumerate(range(0, len(page_texts), chunk_size)):
-            chunk = page_texts[start:start + chunk_size]
+        chunk_count = (len(page_texts) + SUMMARY_CHUNK_PAGE_COUNT - 1) // SUMMARY_CHUNK_PAGE_COUNT
+        chunks_spec: list[tuple[int, int, int, str]] = []
+        for chunk_index, start in enumerate(range(0, len(page_texts), SUMMARY_CHUNK_PAGE_COUNT)):
+            chunk = page_texts[start:start + SUMMARY_CHUNK_PAGE_COUNT]
             chunk_text = "\n\n".join(f"--- Page {number} ---\n{text}" for number, text in chunk)
-            first_page, last_page = chunk[0][0], chunk[-1][0]
+            chunks_spec.append((chunk_index, chunk[0][0], chunk[-1][0], chunk_text))
+
+        ordered_notes: list[str | None] = [None] * len(chunks_spec)
+        provider_missing = (call_llm is _ORIGINAL_CALL_LLM) and (AI_KILL_SWITCH or not _current_bluesminds_api_key())
+
+        def summarize_chunk(item: tuple[int, int, int, str]) -> tuple[int, str]:
+            idx, first_page, last_page, chunk_text = item
+            if provider_missing:
+                local_note = _offline_rag_fallback(system_prompt, f"DOCUMENT CONTENT:\n\n{chunk_text}")
+                return idx, f"Local extractive notes from [Pages {first_page}-{last_page}]:\n{local_note}"
             chunk_prompt = (
                 f"DOCUMENT SECTION, pages {first_page}-{last_page}:\n\n{chunk_text}\n\n"
                 "Return concise key facts, decisions, dates, amounts, and themes from this section. "
                 "Ground each item in the supplied text and preserve its [Page N] citation. Do not invent facts."
             )
-            remaining_calls = chunk_count - chunk_index + 1
+            remaining_calls = max(1, chunk_count - idx + 1)
             try:
                 timeout = _bounded_document_timeout(
                     deadline, SUMMARY_CALL_TIMEOUT_SECONDS, remaining_calls=remaining_calls
                 )
-                note = call_llm(system_prompt, chunk_prompt, timeout_seconds=timeout, max_attempts=4,
+                note = call_llm(system_prompt, chunk_prompt, timeout_seconds=timeout, max_attempts=3,
                                 temperature=0.0).strip()
             except Exception as error:
                 logger.warning("Executive Brief provider failed for pages %d-%d; using local extractive fallback (%s)",
@@ -1770,32 +1886,55 @@ def summarize_pdf(
             if not note:
                 local_note = _offline_rag_fallback(system_prompt, f"DOCUMENT CONTENT:\n\n{chunk_text}")
                 note = f"Local extractive notes from [Pages {first_page}-{last_page}]:\n{local_note}"
-            chunk_notes.append(note)
+            return idx, note
+
+        if provider_missing:
+            for item in chunks_spec:
+                idx, note = summarize_chunk(item)
+                ordered_notes[idx] = note
+            _report_ai_progress(progress_callback, 80, "Extracting local document highlights across all pages…")
+        else:
+            completed_chunks = 0
+            with ThreadPoolExecutor(max_workers=min(2, len(chunks_spec)), thread_name_prefix="brief-chunk") as pool:
+                future_chunks = {pool.submit(summarize_chunk, item): item[0] for item in chunks_spec}
+                for future in as_completed(future_chunks):
+                    idx, note = future.result()
+                    ordered_notes[idx] = note
+                    completed_chunks += 1
+                    _report_ai_progress(
+                        progress_callback,
+                        15 + int(65 * completed_chunks / max(1, len(chunks_spec))),
+                        f"Analyzed section {completed_chunks} of {len(chunks_spec)}…",
+                    )
+
+        chunk_notes = [note for note in ordered_notes if note is not None]
         final_prompt = (
             "Synthesize these page-grounded section notes into exactly one concise document-level executive summary followed by "
             "the most useful key takeaways. Preserve source citations from the notes exactly and do not "
             "introduce facts that the notes do not support.\n\n" + "\n\n".join(chunk_notes)
         )
+        _report_ai_progress(progress_callback, 86, "Compiling unified executive brief…")
         try:
-            if any("Executive Summary (Offline Analysis)" in note for note in chunk_notes):
+            if any("Executive Summary (Offline Analysis)" in note or "Local extractive notes from " in note for note in chunk_notes):
                 raise RuntimeError("One or more sections used local extraction")
             timeout = _bounded_document_timeout(deadline, SUMMARY_CALL_TIMEOUT_SECONDS)
-            summary = call_llm(system_prompt, final_prompt, timeout_seconds=timeout, max_attempts=4,
+            summary = call_llm(system_prompt, final_prompt, timeout_seconds=timeout, max_attempts=3,
                                temperature=0.0)
             if not summary.strip() or "Executive Summary (Offline Analysis)" in summary:
                 raise RuntimeError("Synthesis did not produce a provider summary")
         except Exception as error:
             logger.warning("Executive Brief synthesis failed; using local extractive fallback (%s)", type(error).__name__)
-            # The local fallback must be explicit about its source and have one
-            # document-level heading. Per-section extractive notes may contain
-            # their own headings; remove those to avoid presenting several
-            # competing executive summaries as a single synthesis.
+            # Keep a single document-level heading and strip repeated chunk-level
+            # fallback preambles so multi-section briefs never repeat boilerplate.
             section_notes = []
             for index, note in enumerate(chunk_notes):
-                clean_note = re.sub(r"^\s*#{1,6}\s*Executive Summary[^\n]*\n+", "", note, flags=re.I | re.M)
-                clean_note = re.sub(r"^\s*\*?\(Generated from local document text analysis\.\)\*?\s*$", "", clean_note, flags=re.M)
-                page_range = chunk_notes[index].split("Local extractive notes from ", 1)
+                page_range = note.split("Local extractive notes from ", 1)
                 label = page_range[1].split(":", 1)[0] if len(page_range) == 2 else f"Section {index + 1}"
+                clean_note = re.sub(r"^\s*Local extractive notes from \[[^\]]+\]:\s*", "", note, flags=re.I)
+                clean_note = re.sub(r"^\s*#{1,6}\s*Executive Summary[^\n]*\n+", "", clean_note, flags=re.I | re.M)
+                clean_note = re.sub(r"^This document was reviewed with deterministic local extraction[^\n]*\n+", "", clean_note, flags=re.I | re.M)
+                clean_note = re.sub(r"^\s*#{1,6}\s*Key Findings\s*&\s*Extracted Topics\s*\n*", "", clean_note, flags=re.I | re.M)
+                clean_note = re.sub(r"^\s*\*?\(Generated from local document text analysis\.\)\*?\s*$", "", clean_note, flags=re.M)
                 section_notes.append(f"#### {label}\n\n{clean_note.strip()}")
             summary = (
                 "### Executive Summary (Offline Analysis)\n\n"
@@ -1804,14 +1943,11 @@ def summarize_pdf(
                 + "\n\n".join(section_notes)
             )
 
-    source_text = "\n".join(text for _page_number, text in page_texts)
+    source_text = "\n".join(raw_page_texts) if raw_page_texts else "\n".join(text for _page_number, text in page_texts)
     executive_summary_headings = re.findall(
         r"(?im)^\s*#{1,6}\s*Executive Summary\b[^\n]*", summary
     )
     if len(executive_summary_headings) > 1:
-        # Repeated section summaries are not a document-level synthesis. Fall
-        # back to labelled local extraction so contradictory or duplicate
-        # summaries never appear as a single authoritative brief.
         logger.warning("Executive Brief returned repeated summary headings; using local extractive fallback")
         full_text = "\n\n".join(f"--- Page {number} ---\n{text}" for number, text in page_texts)
         summary = _offline_rag_fallback(system_prompt, f"DOCUMENT CONTENT:\n\n{full_text}")
@@ -1820,6 +1956,7 @@ def summarize_pdf(
     summary = _remove_unsupported_summary_currency(summary, source_text)
     eligible_pages = {page_number for page_number, _ in page_texts}
     aligned_summary, citations = align_answer_citations(summary, eligible_pages)
+    _report_ai_progress(progress_callback, 100, "Executive brief ready.")
     if include_citations:
         return aligned_summary, citations
     return aligned_summary
@@ -2014,46 +2151,73 @@ def _extract_metadata_with_agentrouter(
         return None
 
 
+_ATTRIBUTION_BOILERPLATE_RE = re.compile(
+    r"(?:provided proper attribution|hereby grants permission|all rights reserved|copyright(?:\s+\(c\)|\s+©|\s+\d{4})|terms of use|creative commons|licensed under|\b(?:digitized|scanned|ocr(?:'d|ed)?|archived|typeset)\s+by\b)",
+    re.IGNORECASE,
+)
+
+
+def _strip_attribution_lines(text: str) -> str:
+    """Exclude copyright/attribution boilerplate lines from metadata, date, and topic extraction."""
+    kept = []
+    for raw_line in (text or "").splitlines():
+        if _ATTRIBUTION_BOILERPLATE_RE.search(raw_line):
+            continue
+        kept.append(raw_line)
+    return "\n".join(kept)
+
+
 def _extract_valid_document_date(text: str) -> str | None:
     """Return a validated date in ISO format; reject section numbers such as 3.3.1."""
+    clean_text = _strip_attribution_lines(text or "")
     date_pattern = re.compile(
         r"\b(?:"
-        r"\d{4}[-/.]\d{1,2}[-/.]\d{1,2}"
-        r"|\d{1,2}[-/.]\d{1,2}[-/.]\d{4}"
+        r"\d{4}[-/]\d{1,2}[-/]\d{1,2}"
+        r"|\d{1,2}[-/]\d{1,2}[-/]\d{4}"
+        r"|\d{2}\.\d{2}\.\d{4}"
         r"|[A-Za-z]{3,9}\s+\d{1,2},?\s+\d{4}"
+        r"|\d{1,2}\s+[A-Za-z]{3,9}\s+\d{4}"
         r")\b"
     )
-    for match in date_pattern.finditer(text or ""):
-        candidate = match.group(0).strip()
-        parsed: dt.date | None = None
-        try:
-            if candidate[0].isalpha():
-                normalized = re.sub(r",", "", candidate)
-                for pattern in ("%B %d %Y", "%b %d %Y"):
-                    try:
-                        parsed = dt.datetime.strptime(normalized, pattern).date()
-                        break
-                    except ValueError:
-                        continue
-            else:
-                parts = re.split(r"[-/.]", candidate)
-                if len(parts) != 3:
-                    continue
-                first, second, third = (int(part) for part in parts)
-                if len(parts[0]) == 4:
-                    parsed = dt.date(first, second, third)
+    labelled_line_re = re.compile(r"\b(?:date|dated|issued|published|effective|invoice\s*date)\b", re.IGNORECASE)
+    candidates: list[tuple[int, str]] = []
+    for line in clean_text.splitlines():
+        line_weight = 1 if labelled_line_re.search(line) else 0
+        for match in date_pattern.finditer(line):
+            candidate = match.group(0).strip()
+            parsed: dt.date | None = None
+            try:
+                if any(ch.isalpha() for ch in candidate):
+                    normalized = re.sub(r",", "", candidate)
+                    patterns = ("%B %d %Y", "%b %d %Y") if candidate[0].isalpha() else ("%d %B %Y", "%d %b %Y")
+                    for pattern in patterns:
+                        try:
+                            parsed = dt.datetime.strptime(normalized, pattern).date()
+                            break
+                        except ValueError:
+                            continue
                 else:
-                    # Prefer day-first for ambiguous numeric dates, then accept
-                    # month-first when the first interpretation is impossible.
-                    try:
-                        parsed = dt.date(third, second, first)
-                    except ValueError:
-                        parsed = dt.date(third, first, second)
-        except (ValueError, OverflowError):
-            continue
-        if parsed and 1800 <= parsed.year <= 2200:
-            return parsed.isoformat()
-    return None
+                    parts = re.split(r"[-/.]", candidate)
+                    if len(parts) != 3:
+                        continue
+                    first, second, third = (int(part) for part in parts)
+                    if len(parts[0]) == 4:
+                        parsed = dt.date(first, second, third)
+                    else:
+                        # Prefer day-first for ambiguous numeric dates, then accept
+                        # month-first when the first interpretation is impossible.
+                        try:
+                            parsed = dt.date(third, second, first)
+                        except ValueError:
+                            parsed = dt.date(third, first, second)
+            except (ValueError, OverflowError):
+                continue
+            if parsed and 1900 <= parsed.year <= 2100:
+                candidates.append((line_weight, parsed.isoformat()))
+    if not candidates:
+        return None
+    candidates.sort(key=lambda item: -item[0])
+    return candidates[0][1]
 
 
 def extract_metadata_entities(pdf_path: Path, doc_type: str = "auto") -> dict:
@@ -2239,9 +2403,11 @@ def extract_metadata_entities(pdf_path: Path, doc_type: str = "auto") -> dict:
         }
 
     elif doc_type == "resume":
-        lines = [l.strip() for l in full_text.splitlines() if l.strip()]
-        candidate_name = lines[0] if lines else None
-        headline = lines[1] if len(lines) > 1 and len(lines[1]) < 80 else None
+        lines = [l.strip() for l in _strip_attribution_lines(full_text).splitlines() if l.strip()]
+        resume_heading_re = re.compile(r"^(?:resume|curriculum\s+vitae|c\.?v\.?|profile|contact)$", re.IGNORECASE)
+        candidate_name = next((l for l in lines if not resume_heading_re.match(l)), None)
+        name_idx = lines.index(candidate_name) if candidate_name in lines else 0
+        headline = lines[name_idx + 1] if len(lines) > name_idx + 1 and len(lines[name_idx + 1]) < 80 else None
 
         tech_keywords = [
             "Python", "JavaScript", "TypeScript", "React", "Vue", "Angular", "Node.js", "FastAPI",
@@ -2329,14 +2495,16 @@ def extract_metadata_entities(pdf_path: Path, doc_type: str = "auto") -> dict:
         # Keep the local fallback conservative: skip numbered section headings,
         # boilerplate labels, and the document title so they are not presented
         # as substantive topics.
+        clean_general_text = _strip_attribution_lines(full_text)
+        topic_lines = [l.strip() for l in clean_general_text.splitlines() if l.strip()]
         topic_stop_phrases = {
             "invoice date", "due date", "document date", "date", "summary",
             "executive summary", "table of contents", "contents", "abstract",
             "introduction", "conclusion", "references", "appendix",
         }
         topic_candidates: list[str] = []
-        for normalized_line in lines[1:]:
-            if not normalized_line or re.match(r"^\s*\d+(?:\.\d+)+\b", normalized_line):
+        for normalized_line in topic_lines:
+            if not normalized_line or normalized_line == title or re.match(r"^\s*\d+(?:\.\d+)+\b", normalized_line):
                 continue
             if re.match(r"^\s*(?:date|page|section|chapter|contents|abstract|introduction|conclusion|references)\s*[:.]?\s*$", normalized_line, re.IGNORECASE):
                 continue
@@ -2346,7 +2514,21 @@ def extract_metadata_entities(pdf_path: Path, doc_type: str = "auto") -> dict:
                 if len(phrase.split()) >= 2 and phrase not in topic_candidates:
                     topic_candidates.append(phrase)
         topics = topic_candidates[:8]
-        key_entities = list(dict.fromkeys(re.findall(r'\b[A-Z]{2,}\b', full_text)))[:8]
+        structured_entities: list[str] = []
+        for match in re.finditer(
+            r"(?:\b[A-Z]{5}\d{4}[A-Z]\b|"
+            r"(?:INR|USD|EUR|GBP|CAD|AUD|Rs\.?)\s*\d[\d,]*(?:\.\d+)?|"
+            r"[₹$€£]\s*\d[\d,]*(?:\.\d+)?|"
+            r"\b[A-Z]{2,}[_-]?\d{2,}[A-Z0-9_-]*\b)",
+            clean_general_text,
+        ):
+            val = re.sub(r"\s+", " ", match.group().strip())
+            if val and val not in structured_entities:
+                structured_entities.append(val)
+        for token in re.findall(r'\b[A-Z]{2,}\b', clean_general_text):
+            if token not in structured_entities:
+                structured_entities.append(token)
+        key_entities = structured_entities[:12]
 
         source_pages.add(1)
         extracted["general_data"] = {
@@ -2495,7 +2677,7 @@ def _translate_text_batch(
             system_prompt,
             json.dumps(payload, ensure_ascii=False),
             timeout_seconds=timeout,
-            max_attempts=4,
+            max_attempts=3,
         )
     except Exception as error:
         # Preserve only the safe failure class/status; never expose provider bodies.
@@ -2579,6 +2761,7 @@ def translate_pdf_layout(
     target_language: str = "es",
     target_lang: str | None = None,
     report: dict[str, Any] | None = None,
+    progress_callback: Any = None,
 ) -> Path:
     """
     Performs AI layout-preserving translation:
@@ -2638,13 +2821,25 @@ def translate_pdf_layout(
                 ids.append((segment_id, joiner))
                 cursor = position + len(chunk)
             block_segments.append(ids)
-        batches = _build_translation_batches(segments)
+        if TRANSLATION_BATCH_SIZE == 16 and len(segments) > 48:
+            batches = _build_translation_batches(segments, max_segments=32, max_characters=4200)
+        else:
+            batches = _build_translation_batches(segments)
         translated_segments: dict[int, str] = {}
         batch_failures: list[tuple[int, list[int], str]] = []
+        rate_limit_triggered = threading.Event()
+        completed_batches = 0
+        _report_ai_progress(progress_callback, 15, f"Translating {len(batches)} document batches…")
         with ThreadPoolExecutor(max_workers=TRANSLATION_MAX_PARALLEL_BATCHES,
                                 thread_name_prefix="translation") as pool:
+            def run_batch(index_and_batch: tuple[int, list[tuple[int, str]]]):
+                idx, b = index_and_batch
+                if rate_limit_triggered.is_set():
+                    time.sleep(1.5)
+                return _translate_text_batch(b, target_language, deadline=deadline)
+
             future_batches = {
-                pool.submit(_translate_text_batch, batch, target_language, deadline=deadline): (index, batch)
+                pool.submit(run_batch, (index, batch)): (index, batch)
                 for index, batch in enumerate(batches, start=1)
             }
             for future in as_completed(future_batches):
@@ -2654,17 +2849,24 @@ def translate_pdf_layout(
                     translated_segments.update(future.result())
                 except Exception as error:
                     safe_failure = str(error)[:180]
+                    if "429" in safe_failure:
+                        rate_limit_triggered.set()
                     logger.warning(
                         "Translation batch failed language=%s batch=%d block_ids=%s reason=%s",
                         target_language, batch_number, block_ids, safe_failure,
                     )
                     batch_failures.append((batch_number, block_ids, safe_failure))
-        # Retry missing segments in smaller groups, whether the provider omitted
-        # IDs from valid JSON or an entire first-pass batch failed transiently.
-        # Keep retries bounded across the document so provider truncation cannot
-        # silently strand every missing segment after only the first few groups.
-        all_rate_limited = bool(batch_failures) and not translated_segments and all(
-            "429" in reason for _, _, reason in batch_failures
+                completed_batches += 1
+                _report_ai_progress(
+                    progress_callback,
+                    15 + int(65 * completed_batches / max(1, len(batches))),
+                    f"Translated batch {completed_batches} of {len(batches)}…",
+                )
+        # Retry missing segments in smaller groups; if an initial parallel burst tripped
+        # upstream 429 on multi-batch documents, cool down and probe sequentially first.
+        all_rate_limited = bool(batch_failures) and not translated_segments and (
+            rate_limit_triggered.is_set()
+            or all("429" in reason for _, _, reason in batch_failures)
         )
         all_missing_ids = {
             block_id for batch in batches for block_id, _ in batch if block_id not in translated_segments
@@ -2673,10 +2875,18 @@ def translate_pdf_layout(
         requested_ids: set[int] = set()
         repaired_ids: set[int] = set()
         repair_requests = 0
+        rate_limited_cooldown_applied = False
+        if all_rate_limited and len(batches) > 1 and (deadline - time.monotonic()) > 12.0:
+            time.sleep(min(4.0, max(1.0, (deadline - time.monotonic()) * 0.1)))
+            rate_limited_cooldown_applied = True
+            all_rate_limited = False
         while repair_requests < TRANSLATION_MAX_REPAIR_REQUESTS and not all_rate_limited:
             remaining_budget = deadline - time.monotonic()
             if remaining_budget <= 0:
                 break
+            if rate_limit_triggered.is_set() and not rate_limited_cooldown_applied:
+                time.sleep(min(4.0, max(0.0, remaining_budget - 5.0)))
+                rate_limited_cooldown_applied = True
             repair_batches: list[tuple[int, list[tuple[int, str]]]] = []
             for batch_number, batch in enumerate(batches, start=1):
                 missing = [(block_id, text) for block_id, text in batch if block_id not in translated_segments]
@@ -2690,30 +2900,60 @@ def translate_pdf_layout(
                 break
 
             round_requested_ids = {block_id for _, batch in repair_batches for block_id, _ in batch}
-            requested_ids.update(round_requested_ids)
             round_repaired = 0
-            with ThreadPoolExecutor(max_workers=TRANSLATION_MAX_PARALLEL_BATCHES,
-                                    thread_name_prefix="translation-repair") as pool:
-                repair_futures = {
-                    pool.submit(_translate_text_batch, batch, target_language, deadline=deadline): (batch_number, batch)
-                    for batch_number, batch in repair_batches
-                }
-                for future in as_completed(repair_futures):
-                    batch_number, batch = repair_futures[future]
+            if rate_limit_triggered.is_set():
+                consecutive_429 = 0
+                for batch_number, batch in repair_batches:
+                    if deadline - time.monotonic() <= 0 or repair_requests >= TRANSLATION_MAX_REPAIR_REQUESTS:
+                        break
+                    requested_ids.update(block_id for block_id, _ in batch)
+                    repair_requests += 1
                     try:
-                        repaired = future.result()
+                        repaired = _translate_text_batch(batch, target_language, deadline=deadline)
+                        consecutive_429 = 0
                     except Exception as error:
+                        reason = str(error)[:180]
                         logger.warning(
-                            "Translation repair failed language=%s batch=%d block_ids=%s reason=%s",
-                            target_language, batch_number, [block_id for block_id, _ in batch], str(error)[:180],
+                            "Translation sequential repair failed language=%s batch=%d block_ids=%s reason=%s",
+                            target_language, batch_number, [block_id for block_id, _ in batch], reason,
                         )
+                        if "429" in reason:
+                            consecutive_429 += 1
+                            if not translated_segments and consecutive_429 >= 2:
+                                break
+                            remaining_now = deadline - time.monotonic()
+                            if remaining_now > 8.0:
+                                time.sleep(min(2.0, max(0.5, remaining_now * 0.08)))
                         continue
                     for block_id, translated_text in repaired.items():
                         if block_id in round_requested_ids and block_id not in translated_segments and translated_text.strip():
                             translated_segments[block_id] = translated_text.strip()
                             repaired_ids.add(block_id)
                             round_repaired += 1
-            repair_requests += len(repair_batches)
+            else:
+                requested_ids.update(round_requested_ids)
+                with ThreadPoolExecutor(max_workers=TRANSLATION_MAX_PARALLEL_BATCHES,
+                                        thread_name_prefix="translation-repair") as pool:
+                    repair_futures = {
+                        pool.submit(_translate_text_batch, batch, target_language, deadline=deadline): (batch_number, batch)
+                        for batch_number, batch in repair_batches
+                    }
+                    for future in as_completed(repair_futures):
+                        batch_number, batch = repair_futures[future]
+                        try:
+                            repaired = future.result()
+                        except Exception as error:
+                            logger.warning(
+                                "Translation repair failed language=%s batch=%d block_ids=%s reason=%s",
+                                target_language, batch_number, [block_id for block_id, _ in batch], str(error)[:180],
+                            )
+                            continue
+                        for block_id, translated_text in repaired.items():
+                            if block_id in round_requested_ids and block_id not in translated_segments and translated_text.strip():
+                                translated_segments[block_id] = translated_text.strip()
+                                repaired_ids.add(block_id)
+                                round_repaired += 1
+                repair_requests += len(repair_batches)
             # Avoid repeatedly charging for a provider that made no progress.
             if round_repaired == 0:
                 break
@@ -2961,4 +3201,5 @@ def translate_pdf_layout(
             writer.write(output_file)
     finally:
         rendered_pdf.unlink(missing_ok=True)
+    _report_ai_progress(progress_callback, 100, "Translated PDF ready.")
     return output_path

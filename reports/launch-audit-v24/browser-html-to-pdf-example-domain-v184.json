@@ -1,0 +1,27 @@
+{
+  "image": "pdf_splitter-paperplane:latest",
+  "container_id": "52467239efbd2e4276f81241b88d444666cb14d9104999d93fcdef4e847b8db2",
+  "base": "http://127.0.0.1:18585",
+  "target_url": "https://example.com/",
+  "provider_credentials": false,
+  "real_payment": false,
+  "page_errors": [],
+  "console_errors": [],
+  "health": {
+    "status": "ok",
+    "service": "paperplane-pdf",
+    "version": "2.0.0",
+    "auth_required": false,
+    "workers": 4,
+    "max_file_size_mb": 500,
+    "job_ttl_hours": 2
+  },
+  "job_status": "completed",
+  "output_name": "document_html_to_pdf.pdf",
+  "output_bytes": 35710,
+  "pdf_signature": "%PDF-1.4",
+  "page_count": 1,
+  "example_domain_text_found": true,
+  "text_sample": "This domain is for use in documentation examples\nwithout needing permission. This is not a service;\navoid relying on it for testing and monitoring\npurposes.\nLearn more\n.\u0647\u0630\u0627 \u0627\u0644\u0646\u0637\u0627\u0642 \u064f\u0645\u062e\u0635\u0635 \u0644\u0627\u0644\u0633\u062a\u062e\u062f\u0627\u0645 \u0641\u064a \u0623\u0645\u062b\u0644\u0629 \u0627\u0644\u062a\u0648\u062b\u064a\u0642 \u062f\u0648\u0646 \u0627\u0644\u062d\u0627\u062c\u0629 \u0625\u0644\u0649 \u0625\u0630\u0646\n.\u0647\u0630\u0647 \u0644\u064a\u0633\u062a \u062e\u062f\u0645\u0629\u060c \u064f\u064a\u0631\u062c\u0649 \u062a\u062c\u0646\u0628  \u0627\u0644\u0639\u062a\u0645\u0627\u062f \u0639\u0644\u064a\u0647\u0627 \u0623\u0644\u063a\u0631\u0627\u0636  \u0627\u0644\u062e\u062a\u0628\u0627\u0631 \u0648\u0627\u0644\u0645\u0631\u0627\u0642\u0628\u0629\n\u0000\u57df\u540d\u4ec5\u7528\u4e8e\u6587\u6863\u793a\u4f8b\uff0c\u65e0\u9700\u83b7\u5f97\u8bb8\u53ef\u3002\u8fd9\u5e76\u975e\u4e00\u9879\u670d\u52a1\uff0c\u8bf7\u52ff\u5c06\u5176\u7528\u4e8e\u6d4b\u8bd5\u548c\u76d1\u63a7\u76ee\u7684\u3002\nL\u2019usage de ce domaine est r\u00e9serv\u00e9 \u00e0 des exemples de\ndocumen",
+  "result": "passed"
+}

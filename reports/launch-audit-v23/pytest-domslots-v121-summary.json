@@ -1,0 +1,23 @@
+{
+  "command": "python -m pytest -q",
+  "runs_sequential": true,
+  "dotenv_disabled": true,
+  "credential_environment_removed": true,
+  "production_endpoints_contacted": false,
+  "runs": [
+    {
+      "run": 1,
+      "exit_code": 0,
+      "duration_seconds": 201.62,
+      "summary": "614 passed, 4 warnings in 138.92s (0:02:18)",
+      "log": "pytest-domslots-v121-run1.log"
+    },
+    {
+      "run": 2,
+      "exit_code": 0,
+      "duration_seconds": 132.49,
+      "summary": "614 passed, 4 warnings in 127.95s (0:02:07)",
+      "log": "pytest-domslots-v121-run2.log"
+    }
+  ]
+}

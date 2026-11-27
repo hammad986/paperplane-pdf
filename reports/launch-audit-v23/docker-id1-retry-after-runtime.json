@@ -1,0 +1,23 @@
+{
+  "health": {
+    "status": "ok",
+    "service": "paperplane-pdf",
+    "version": "2.0.0",
+    "auth_required": false,
+    "workers": 4,
+    "max_file_size_mb": 500,
+    "job_ttl_hours": 2
+  },
+  "processes": [
+    "PID                 PPID                USER                UID                 GID                 COMMAND",
+    "37636               37611               1001                1001                1001                python app.py",
+    "37668               37636               1001                1001                1001                /usr/local/bin/python -B -c from multiprocessing.resource_tracker import main;main(6)",
+    "37669               37636               1001                1001                1001                /usr/local/bin/python -B -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=7, pipe_handle=9) --multiprocessing-fork",
+    "37670               37636               1001                1001                1001                /usr/local/bin/python -B -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=7, pipe_handle=13) --multiprocessing-fork",
+    "37671               37636               1001                1001                1001                /usr/local/bin/python -B -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=7, pipe_handle=17) --multiprocessing-fork",
+    "37672               37636               1001                1001                1001                /usr/local/bin/python -B -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=7, pipe_handle=21) --multiprocessing-fork"
+  ],
+  "data": "1001:1001 1777 /data",
+  "app_asset": "app.js?v=113",
+  "image_id": "sha256:40c222991c6430501ca35e08501b45355f76989dc656d235da31555afe6e7dac"
+}

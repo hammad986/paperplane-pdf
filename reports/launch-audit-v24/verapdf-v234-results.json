@@ -1,0 +1,83 @@
+{"report":{"buildInformation":{"releaseDetails":[{
+  "id" : "core",
+  "version" : "1.30.4",
+  "buildDate" : 1794229680000
+},{
+  "id" : "validation-model",
+  "version" : "1.30.4",
+  "buildDate" : 1794229860000
+},{
+  "id" : "apps",
+  "version" : "1.30.4",
+  "buildDate" : 1794231600000
+}]},"jobs":[{"itemDetails":{
+  "name" : "/data/round-1/notes-69page_pdf_to_pdfa.pdf",
+  "size" : 777219
+},"validationResult":[ {
+  "details" : {
+    "passedRules" : 129,
+    "failedRules" : 0,
+    "passedChecks" : 11071,
+    "failedChecks" : 0,
+    "ruleSummaries" : [ ]
+  },
+  "jobEndStatus" : "normal",
+  "profileName" : "PDF/A-1b validation profile",
+  "statement" : "PDF file is compliant with Validation Profile requirements.",
+  "compliant" : true
+} ],"processingTime":{
+  "start" : 1795597562766,
+  "finish" : 1795597564817,
+  "duration" : "00:00:02.051",
+  "difference" : 2051
+}},{"itemDetails":{
+  "name" : "/data/round-2/notes-69page_pdf_to_pdfa.pdf",
+  "size" : 777219
+},"validationResult":[ {
+  "details" : {
+    "passedRules" : 129,
+    "failedRules" : 0,
+    "passedChecks" : 11071,
+    "failedChecks" : 0,
+    "ruleSummaries" : [ ]
+  },
+  "jobEndStatus" : "normal",
+  "profileName" : "PDF/A-1b validation profile",
+  "statement" : "PDF file is compliant with Validation Profile requirements.",
+  "compliant" : true
+} ],"processingTime":{
+  "start" : 1795597565015,
+  "finish" : 1795597565429,
+  "duration" : "00:00:00.414",
+  "difference" : 414
+}}],"batchSummary":{
+  "duration" : {
+    "start" : 1795597561965,
+    "finish" : 1795597565434,
+    "duration" : "00:00:03.469",
+    "difference" : 3469
+  },
+  "totalJobs" : 2,
+  "outOfMemory" : 0,
+  "veraExceptions" : 0,
+  "failedEncryptedJobs" : 0,
+  "failedParsingJobs" : 0,
+  "validationSummary" : {
+    "nonCompliantPdfaCount" : 0,
+    "failedJobCount" : 0,
+    "totalJobCount" : 2,
+    "compliantPdfaCount" : 2,
+    "successfulJobCount" : 2
+  },
+  "featuresSummary" : {
+    "failedJobCount" : 0,
+    "totalJobCount" : 0,
+    "successfulJobCount" : 0
+  },
+  "repairSummary" : {
+    "failedJobCount" : 0,
+    "totalJobCount" : 0,
+    "successfulJobCount" : 0
+  },
+  "multiJob" : true
+}}}

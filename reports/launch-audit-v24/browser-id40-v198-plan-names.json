@@ -1,0 +1,21 @@
+{
+  "item_id": 40,
+  "candidate": {
+    "image_tag": "paperplane-codex:v198",
+    "image_digest": "sha256:521522724bbd97c42da6ee259ea6fc357e4315468e49dbc602b206375d7f517f",
+    "app_js": "198",
+    "styles_css": "73",
+    "service_worker_cache": "v150"
+  },
+  "browser": "Google Chrome via CUA on Windows",
+  "url": "http://127.0.0.1:8769/pricing",
+  "checks": {
+    "pricing_plan_heading": "All-In-One Pro & Developer",
+    "per_tool_rows": 44,
+    "merge_batch_limit": "10 files (Free / Student & Educator / Exam Pass) · 100 files (All-In-One Pro & Developer) per run",
+    "merge_file_size_limit": "Guest 50 MB / Free no plan cap (service max 500 MB) / Exam Pass 500 MB / paid no plan cap (service max 500 MB)",
+    "stale_paid_plan_alias_present": false,
+    "browser_console_errors_or_warnings": []
+  },
+  "scope_note": "Local synthetic production-mode candidate only; this does not verify the live deployed site. Broader price-format and tool-name checks remain open."
+}

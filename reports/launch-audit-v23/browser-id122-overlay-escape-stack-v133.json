@@ -1,0 +1,25 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "overlay_order": [
+        "settings-modal",
+        "auth-modal"
+      ],
+      "closed_first": "auth-modal",
+      "closed_second": "settings-modal",
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "overlay_order": [
+        "settings-modal",
+        "auth-modal"
+      ],
+      "closed_first": "auth-modal",
+      "closed_second": "settings-modal",
+      "page_errors": []
+    }
+  ],
+  "verdict": "PASS"
+}

@@ -1,0 +1,112 @@
+{
+  "operation": "annotate",
+  "fixture": "synthetic selectable one-page PDF",
+  "rounds": [
+    {
+      "round": 1,
+      "type": "highlight",
+      "viewport": 1366,
+      "status": 200,
+      "output_bytes": 1452,
+      "page_count": 1,
+      "annotation_type": "Highlight",
+      "annotation_rect": [
+        50.0,
+        474.96,
+        276.13,
+        494.04
+      ],
+      "text_bbox": [
+        50.0,
+        100.65,
+        276.13,
+        125.38
+      ],
+      "pdfjs_annotation": {
+        "count": 1,
+        "subtypes": [
+          "Highlight"
+        ],
+        "annotation_pixels_changed": 3210
+      },
+      "pymupdf_annotation": "validated",
+      "text_preserved": true,
+      "server_job_posts": 0,
+      "page_errors": [],
+      "console_errors": []
+    },
+    {
+      "round": 2,
+      "type": "underline",
+      "viewport": 820,
+      "status": 200,
+      "output_bytes": 1453,
+      "page_count": 1,
+      "annotation_type": "Underline",
+      "annotation_rect": [
+        50.0,
+        474.96,
+        276.13,
+        494.04
+      ],
+      "text_bbox": [
+        50.0,
+        100.65,
+        276.13,
+        125.38
+      ],
+      "pdfjs_annotation": {
+        "count": 1,
+        "subtypes": [
+          "Underline"
+        ],
+        "annotation_pixels_changed": 454
+      },
+      "pymupdf_annotation": "validated",
+      "text_preserved": true,
+      "server_job_posts": 0,
+      "page_errors": [],
+      "console_errors": []
+    },
+    {
+      "round": 3,
+      "type": "strikeout",
+      "viewport": 390,
+      "status": 200,
+      "output_bytes": 1453,
+      "page_count": 1,
+      "annotation_type": "StrikeOut",
+      "annotation_rect": [
+        50.0,
+        474.96,
+        276.13,
+        494.04
+      ],
+      "text_bbox": [
+        50.0,
+        100.65,
+        276.13,
+        125.38
+      ],
+      "pdfjs_annotation": {
+        "count": 1,
+        "subtypes": [
+          "StrikeOut"
+        ],
+        "annotation_pixels_changed": 227
+      },
+      "pymupdf_annotation": "validated",
+      "text_preserved": true,
+      "server_job_posts": 0,
+      "page_errors": [],
+      "console_errors": []
+    }
+  ],
+  "unsupported_local_cases": {
+    "note_disclosure": "Please confirm\n\nBrowser mode currently supports text highlight, underline, and strikeout. Sticky notes and rectangles require Server Processing. To retry, upload the selected files for temporary server processing? This uses your daily server allowance.\n\nCancel\nUpload and retry",
+    "multi_block_text_disclosure": "Please confirm\n\nBrowser mode needs the full text block exactly as it appears. This phrase spans only part of a block; choose Server Processing to annotate it precisely. To retry, upload the selected files for temporary server processing? This uses your daily server allowance.\n\nCancel\nUpload and retry",
+    "cancelled_uploads": 0,
+    "page_errors": []
+  },
+  "result": "PASS"
+}

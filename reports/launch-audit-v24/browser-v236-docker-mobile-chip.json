@@ -1,0 +1,41 @@
+{
+  "base": "http://127.0.0.1:18501",
+  "checks": [
+    {
+      "route": "/ai-intelligence",
+      "status": 200,
+      "visible": "AI",
+      "ariaHidden": "true",
+      "spoken": "AI Intelligence workspace",
+      "title": "AI Intelligence workspace",
+      "overflow": false,
+      "loginOverlap": false,
+      "passed": true
+    },
+    {
+      "route": "/apps",
+      "status": 200,
+      "visible": "Apps",
+      "ariaHidden": "true",
+      "spoken": "Native Apps workspace",
+      "title": "Native Apps workspace",
+      "overflow": false,
+      "loginOverlap": false,
+      "passed": true
+    },
+    {
+      "route": "/download",
+      "status": 200,
+      "visible": "Apps",
+      "ariaHidden": "true",
+      "spoken": "Downloads workspace",
+      "title": "Downloads workspace",
+      "overflow": false,
+      "loginOverlap": false,
+      "passed": true
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "passed": true
+}

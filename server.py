@@ -567,8 +567,15 @@ async def count_ai_and_studio_operations(request: Request, call_next):
                 content={"detail": "AI request limit exceeded. Try again in a minute."},
                 headers={"Retry-After": "60"},
             )
+    _non_billable_studio_posts = {
+        "/api/studio/forms/analyze",
+        "/api/studio/security/inspect",
+        "/api/studio/compress/analyze",
+        "/api/studio/sign/verify",
+    }
     billable = request.method == "POST" and (
-        path in _BILLABLE_AI_ENDPOINTS or path.startswith("/api/studio/")
+        path in _BILLABLE_AI_ENDPOINTS
+        or (path.startswith("/api/studio/") and path not in _non_billable_studio_posts)
     )
     if not billable:
         return await call_next(request)
@@ -612,6 +619,7 @@ async def count_ai_and_studio_operations(request: Request, call_next):
                     persistence.refund_daily_usage(subject, usage_day)
 
         response.body_iterator = refund_incomplete_stream()
+        response.headers["X-Paperplane-Operations-Today"] = str(count)
         return response
 
     response.headers["X-Paperplane-Operations-Today"] = str(count)
@@ -1471,6 +1479,22 @@ SEO_LANDING_PAGES = {
         "intro": "Enter your new password to regain access to your Paperplane account and cloud document storage.",
         "related": ("protect", "unlock", "sign", "merge"),
     },
+    "about": {
+        "title": "About Paperplane PDF — Privacy-First Document Tools",
+        "description": "Learn how Paperplane combines browser-local PDF tools with temporary isolated processing, OCR, conversion, and AI document intelligence.",
+        "heading": "About Paperplane PDF",
+        "category": "Company & Architecture",
+        "intro": "Paperplane is a focused PDF workspace where supported document tools can run directly inside your browser and server-powered conversions clean up temporary files automatically.",
+        "related": ("merge", "compress", "ocr", "ai_chat"),
+    },
+    "security": {
+        "title": "Security & File Handling | Paperplane PDF",
+        "description": "Review Paperplane's browser-local processing model, AES-256 PDF protection, permanent redaction, Aadhaar masking, and automatic temporary file cleanup.",
+        "heading": "Document security and processing controls",
+        "category": "Security",
+        "intro": "Choose browser-local execution for supported edits and forms, encrypt files with AES-256 PDF protection, or permanently flatten, sanitize, and redact sensitive regions.",
+        "related": ("protect", "redact", "mask_aadhaar", "unlock"),
+    },
     "developers": {
         "title": "Developer REST API & Code Workbench | Paperplane",
         "description": f"Integrate {len(OPERATIONS)} PDF, Office, and image tools into your application with the Paperplane REST API.",
@@ -1834,7 +1858,7 @@ def render_web_page(request: Request, operation: str | None = None, landing_slug
   """
     html = html.replace("<!-- SEO_META_SLOT -->", meta)
     html = html.replace("<!-- SEO_CONTENT_SLOT -->", render_seo_content(context) if landing_slug not in WORKSPACE_PAGES else "")
-    if landing_slug in SEO_LANDING_PAGES and landing_slug not in {"privacy", "terms", "developers", "reset-password"}:
+    if landing_slug in SEO_LANDING_PAGES and landing_slug not in {"privacy", "terms", "developers", "reset-password", "download", "apps"}:
         # These are focused landing pages that share the SPA shell. Keep a
         # route-specific page heading available for the initial browser view.
         html = html.replace("<h1>Tool Desk</h1>", f"<h1>{html_escape(context['heading'])}</h1>", 1)
@@ -1845,8 +1869,10 @@ def render_web_page(request: Request, operation: str | None = None, landing_slug
     elif landing_slug == "reset-password":
         reset_heading = html_escape(context["heading"])
         html = html.replace('<h3 id="reset-password-title">Create New Password</h3>', f'<h1 id="reset-password-title">{reset_heading}</h1>', 1)
-    elif landing_slug in {"download", "apps"}:
+    elif landing_slug == "apps":
         html = html.replace("<h3>Native PDF Apps, Coming Soon</h3>", f"<h1>{html_escape(context['heading'])}</h1>", 1)
+    elif landing_slug == "download":
+        html = html.replace('<h1 id="web-download-heading">Paperplane Downloads</h1>', f"<h1>{html_escape(context['heading'])}</h1>", 1)
     if landing_slug in WORKSPACE_PAGES:
         title, description = WORKSPACE_PAGES[landing_slug]
         html = html.replace('<div id="view-home" class="home-container">', '<div id="view-home" class="home-container" hidden>', 1)
@@ -1857,7 +1883,8 @@ def render_web_page(request: Request, operation: str | None = None, landing_slug
         else:
             html = html.replace(f'id="view-{landing_slug}" class="workspace-page" hidden',
                                 f'id="view-{landing_slug}" class="workspace-page"', 1)
-    html = html.replace("<title>Paperplane PDF - Online PDF Tools &amp; Editor</title>", f"<title>{title}</title>")
+    page_title = title if landing_slug not in WORKSPACE_PAGES or "| Paperplane" in title else f"{title} | Paperplane"
+    html = html.replace("<title>Paperplane PDF - Online PDF Tools &amp; Editor</title>", f"<title>{page_title}</title>")
 
     # Render the first meaningful viewport for crawlers and no-JavaScript
     # visitors.  The browser still hydrates the same shell after the
@@ -1869,6 +1896,7 @@ def render_web_page(request: Request, operation: str | None = None, landing_slug
         accept = info["accept"]
         if accept == "url":
             hint = "Public HTTP or HTTPS website URL. No file upload required."
+            html = html.replace('<div class="dropzone" id="dropzone">', '<div class="dropzone" id="dropzone" hidden>', 1)
         else:
             file_kind = {"image": "Images", "office": "Office documents", "pdf_or_image": "PDFs and images"}.get(accept, "PDF files")
             batch = {
@@ -1905,7 +1933,7 @@ def render_web_page(request: Request, operation: str | None = None, landing_slug
             1,
         )
         html = html.replace(
-            '<p id="tool-description">Combine PDFs in the order you add them into one unified document.</p>',
+            '<p id="tool-description">Combine multiple PDFs into one unified document with custom ordering.</p>',
             f'<p id="tool-description">{html_escape(info["description"])}</p>',
             1,
         )
@@ -2004,6 +2032,51 @@ def render_web_page(request: Request, operation: str | None = None, landing_slug
         # Home directory view: ensure topbar breadcrumb accurately shows Directory
         html = html.replace('<span id="crumb-category">Organize PDF</span>', '<span id="crumb-category">All Tools</span>', 1)
         html = html.replace('<b id="crumb-tool">Merge PDF</b>', '<b id="crumb-tool">Directory</b>', 1)
+
+    # Keep only the active view's heading as <h1> so crawlers and screen
+    # readers never hit a hidden drawer/modal <h1> ahead of the page title.
+    active_h1_marker = None
+    if operation is not None:
+        active_h1_marker = 'id="tool-title"'
+    elif landing_slug in {"privacy", "terms"}:
+        active_h1_marker = 'id="legal-page-title"'
+    elif landing_slug == "reset-password":
+        active_h1_marker = 'id="reset-password-title"'
+    elif landing_slug == "studio":
+        active_h1_marker = 'id="studio-page-heading"'
+    elif landing_slug == "download":
+        active_h1_marker = "<h1>Paperplane Downloads</h1>"
+    elif landing_slug == "apps":
+        active_h1_marker = "<h1>Paperplane Apps for Desktop and Mobile</h1>"
+    elif landing_slug == "ai-intelligence":
+        active_h1_marker = "AI Document Intelligence"
+    elif landing_slug in {"settings", "pricing", "faq", "feedback", "history"}:
+        active_h1_marker = WORKSPACE_PAGES[landing_slug][0]
+    elif landing_slug in SEO_LANDING_PAGES:
+        active_h1_marker = html_escape(SEO_LANDING_PAGES[landing_slug]["heading"])
+    else:
+        active_h1_marker = ">Tool Desk<"
+
+    def _demote_inactive_h1(match: re.Match) -> str:
+        full_tag = match.group(0)
+        if active_h1_marker and active_h1_marker in full_tag:
+            return full_tag
+        attrs = match.group(1) or ""
+        inner = match.group(2)
+        if 'class="' in attrs:
+            attrs = re.sub(r'class="([^"]*)"', r'class="\1 workspace-fallback-heading"', attrs, count=1)
+        else:
+            attrs = f'{attrs} class="workspace-fallback-heading"'
+        return f"<h2{attrs}>{inner}</h2>"
+
+    seo_slot_marker = "<!-- Crawlable tool education and FAQ content is injected per route. -->"
+    if seo_slot_marker in html:
+        head_part, tail_part = html.split(seo_slot_marker, 1)
+        head_part = re.sub(r"<h1([^>]*)>(.*?)</h1>", _demote_inactive_h1, head_part, flags=re.DOTALL)
+        html = head_part + seo_slot_marker + tail_part
+    else:
+        html = re.sub(r"<h1([^>]*)>(.*?)</h1>", _demote_inactive_h1, html, flags=re.DOTALL)
+
     if page_user_id:
         # The first page render already includes the account's effective limits.
         # Keep this personalized HTML out of shared caches so a later guest or
@@ -2557,26 +2630,68 @@ def _safe_int(val, default: int) -> int:
         return default
 
 
+def _open_pypdf_reader(path: Path, password: str = "") -> PdfReader | None:
+    """Open a PDF with pypdf, unlocking owner-only encrypted PDFs via PyMuPDF when needed."""
+    reader = PdfReader(str(path), strict=False)
+    if not reader.is_encrypted:
+        return reader
+    if reader.decrypt(password):
+        return reader
+    with fitz.open(str(path)) as fdoc:
+        if fdoc.needs_pass and not fdoc.authenticate(password):
+            return None
+        unlocked_bytes = fdoc.tobytes()
+    return PdfReader(io.BytesIO(unlocked_bytes), strict=False)
+
+
 def _merge_pdf_inputs(inputs: list[Path], output: Path, options: dict) -> Path:
     passwords = options.get("passwords", {})
     global_pw = str(options.get("password", ""))
     writer = PdfWriter()
+    merged_metadata: dict[str, str] = {}
     for idx, path in enumerate(inputs):
-        reader = PdfReader(str(path), strict=False)
-        if reader.is_encrypted:
-            pw = passwords.get(path.name) or passwords.get(str(idx)) or global_pw
-            if not reader.decrypt(pw):
-                raise ValueError(f"File '{path.name}' is password protected. Please provide a valid password.")
+        pw = passwords.get(path.name) or passwords.get(str(idx)) or global_pw
+        reader = _open_pypdf_reader(path, pw)
+        if reader is None:
+            raise ValueError(f"File '{path.name}' is password protected. Please provide a valid password.")
+        if not merged_metadata and reader.metadata:
+            for key in ("/Title", "/Author", "/Subject", "/Keywords"):
+                val = str(reader.metadata.get(key) or "").strip()
+                if val and val.lower() not in {"untitled", "anonymous", "unspecified"}:
+                    merged_metadata[key] = val
         for page in reader.pages:
             writer.add_page(page)
+    if merged_metadata:
+        writer.add_metadata(merged_metadata)
     output.write_bytes(pdf_bytes(writer))
     return output
 
 
+def _clean_output_stem(source: Path | None, options: dict | None = None) -> str:
+    orig = str((options or {}).get("_original_filename") or "").strip()
+    raw = Path(orig.replace("\\", "/")).stem if orig else (source.stem if source else "document")
+    cleaned = re.sub(r"^(?:\d{1,4}_)?[0-9a-fA-F]{16,32}_", "", raw).strip(" _-")
+    return cleaned or "document"
+
+
 def process(operation: str, inputs: list[Path], options: dict, output_dir: Path) -> Path:
     source = inputs[0] if inputs else None
-    stem = source.stem.split("_", 1)[-1] if source else "document"
+    stem = _clean_output_stem(source, options)
     output = output_dir / f"{stem}_{operation}.pdf"
+
+    def write_job_progress(percent: int, message: str) -> None:
+        progress_path = output_dir / ".job-progress.json"
+        tmp_path = output_dir / ".job-progress.json.tmp"
+        try:
+            clamped = max(0, min(100, int(percent)))
+            tmp_path.write_text(
+                json.dumps({"progress": clamped, "message": str(message)}),
+                encoding="utf-8",
+            )
+            tmp_path.replace(progress_path)
+        except Exception:
+            pass
+
     if operation == "merge":
         if len(inputs) < 2:
             raise ValueError("Select at least two PDFs to merge.")
@@ -2775,7 +2890,34 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
 
     if operation == "translate":
         target_lang = str(options.get("target_language", "es")).strip() or "es"
-        return ai_engine.translate_pdf_layout(source, output, target_lang=target_lang)
+        translation_report: dict = {}
+        try:
+            result_path = ai_engine.translate_pdf_layout(
+                source,
+                output,
+                target_lang=target_lang,
+                report=translation_report,
+                progress_callback=write_job_progress,
+            )
+        except RuntimeError as exc:
+            _status_code, detail, _headers = translation_failure_response(exc)
+            raise RuntimeError(detail) from exc
+        meta_path = output_dir / ".job-meta.json"
+        meta_tmp = output_dir / ".job-meta.json.tmp"
+        meta_tmp.write_text(
+            json.dumps(
+                {
+                    "translation_status": translation_report.get("translation_status", "failed"),
+                    "translated_fraction": float(translation_report.get("translated_fraction", 0.0)),
+                    "translated_block_fraction": float(translation_report.get("translated_block_fraction", 0.0)),
+                    "warnings_count": len(translation_report.get("warnings", [])),
+                },
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+        meta_tmp.replace(meta_path)
+        return result_path
 
     if operation == "annotate":
         annots = options.get("annotations", [])
@@ -2800,7 +2942,28 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
         return converters.annotate_pdf(source, output, annotations=annots)
 
     if operation == "summarize":
-        summary = ai_engine.summarize_pdf(source)
+        enforce_ai_document_page_limit(source)
+        summary_res = ai_engine.summarize_pdf(
+            source,
+            include_citations=True,
+            progress_callback=write_job_progress,
+        )
+        summary, citations = summary_res if isinstance(summary_res, tuple) else (str(summary_res), [])
+        offline = "Executive Summary (Offline Analysis)" in summary
+        meta_path = output_dir / ".job-meta.json"
+        meta_tmp = output_dir / ".job-meta.json.tmp"
+        meta_tmp.write_text(
+            json.dumps(
+                {
+                    "summary": summary,
+                    "citations": citations,
+                    "summary_mode": "offline_extractive" if offline else "provider_synthesized",
+                },
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+        meta_tmp.replace(meta_path)
         res_file = output.with_suffix(".txt")
         res_file.write_text(summary, encoding="utf-8")
         return res_file
@@ -2859,9 +3022,15 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
             if not terms:
                 raise ValueError("Enter at least one term to redact.")
             matches = 0
+            flags = getattr(fitz, "TEXT_DEHYPHENATE", 0)
             for page in document:
                 for term in terms:
-                    for rect in page.search_for(term):
+                    rects = page.search_for(term, flags=flags)
+                    if not rects:
+                        normalized_term = re.sub(r"\s+", " ", term).strip()
+                        if normalized_term != term:
+                            rects = page.search_for(normalized_term, flags=flags)
+                    for rect in rects:
                         page.add_redact_annot(rect, fill=(0, 0, 0))
                         matches += 1
                 page.apply_redactions()
@@ -2892,9 +3061,12 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
         return result
 
     # 5. Reader / Writer operations
-    reader = PdfReader(str(source), strict=False)
-    if reader.is_encrypted and operation != "unlock" and not reader.decrypt(""):
-        raise ValueError("This PDF is encrypted. Use Unlock PDF first.")
+    if operation == "unlock":
+        reader = PdfReader(str(source), strict=False)
+    else:
+        reader = _open_pypdf_reader(source, "")
+        if reader is None:
+            raise ValueError("This PDF is encrypted. Use Unlock PDF first.")
 
     writer = PdfWriter()
 
@@ -3036,7 +3208,11 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
         editable_fields = {"title": "/Title", "author": "/Author", "subject": "/Subject", "creator": "/Creator"}
         for option_name, pdf_name in editable_fields.items():
             if option_name in options:
-                metadata[pdf_name] = str(options[option_name] or "")
+                val = str(options[option_name] or "").strip()
+                if val:
+                    metadata[pdf_name] = val
+                else:
+                    metadata.pop(pdf_name, None)
         if metadata:
             writer.add_metadata(metadata)
 
@@ -3794,7 +3970,10 @@ def logout(response: Response, request: Request, user_id: str | None = Depends(c
         delete_session(token)
     response.delete_cookie(
         key="paperplane_token",
-        path="/"
+        path="/",
+        httponly=True,
+        secure=SECURE_COOKIES,
+        samesite=COOKIE_SAMESITE,
     )
     return {"status": "success", "authenticated": False, "message": "Logged out successfully."}
 
@@ -4185,6 +4364,7 @@ def billing_status(request: Request, user_id: str | None = Depends(current_user)
         "usage_today": usage,
         "remaining_today": "Unlimited" if is_pro else max(0, FREE_TIER_DAILY_LIMIT - usage),
         "pricing": public_pricing_catalog(),
+        "plan_limits": plan_limits_payload(tier, authenticated=bool(user_id)),
         "subscription_status": user.get("subscription_status", "inactive") if user else "inactive",
         "has_payment_customer": bool(user and user.get("payment_customer_id")),
     }
@@ -4460,8 +4640,15 @@ async def ai_chat(
         return await asyncio.to_thread(ai_engine.chat_with_pdf, temp_pdf, question)
     except ValueError as ve:
         raise HTTPException(status_code=503, detail=str(ve))
-    except RuntimeError as re:
-        raise HTTPException(status_code=502, detail=str(re))
+    except RuntimeError as re_err:
+        err_str = str(re_err)
+        if "429" in err_str or "rate" in err_str.lower():
+            raise HTTPException(
+                status_code=429,
+                detail="The AI provider is temporarily rate-limited (HTTP 429). Please retry shortly.",
+                headers={"Retry-After": "15"},
+            )
+        raise HTTPException(status_code=502, detail=err_str)
     except HTTPException:
         raise
     except Exception as err:
@@ -4557,13 +4744,22 @@ async def ai_chat_stream(
                 else:
                     chosen = ai_engine.LightweightRAG(chunks).search(question, top_k=8)
                 if not chosen:
-                    yield frame("replace", text="No relevant information found in the document for your question.")
-                    yield frame("done", citations=[])
-                    return
-                citations = sorted({chunk.page_number for chunk in chosen})
-                context = "\n\n---\n\n".join(f"[Page {chunk.page_number}]:\n{chunk.text}" for chunk in chosen)
-                system_prompt += " Answer accurately using only the provided document excerpts and cite factual claims as [Page X]."
-                user_prompt = f"DOCUMENT EXCERPTS:\n{context}\n\nUSER QUESTION: {question}"
+                    if document_question:
+                        yield frame("replace", text="No relevant information found in the document for your question.")
+                        yield frame("done", citations=[])
+                        return
+                    if ai_engine.AI_KILL_SWITCH or not ai_engine._current_bluesminds_api_key():
+                        yield frame("replace", text="No matching passage was found in the open PDF. Clear the PDF or ask about text inside the document.")
+                        yield frame("done", citations=[])
+                        return
+                    citations = []
+                    system_prompt = ai_engine._PAPERPLANE_SYSTEM_PROMPT + " No matching passage was found in the open PDF; answer the user's general question concisely without inventing PDF citations."
+                    user_prompt = question
+                else:
+                    citations = sorted({chunk.page_number for chunk in chosen})
+                    context = "\n\n---\n\n".join(f"[Page {chunk.page_number}]:\n{chunk.text}" for chunk in chosen)
+                    system_prompt += " Answer accurately using only the provided document excerpts and cite factual claims as [Page X]."
+                    user_prompt = f"DOCUMENT EXCERPTS:\n{context}\n\nUSER QUESTION: {question}"
             else:
                 if file is None and document_question:
                     yield frame("replace", text="No PDF is open. Upload a document for a cited answer, or ask a general question directly.")
@@ -4662,8 +4858,30 @@ async def ai_chat_stream(
             yield frame("error", message="AI provider is not configured")
         except Exception as exc:
             logging.getLogger("paperplane").warning("AI stream failed: %s", exc)
-            safe_message = str(exc)
-            if not safe_message.startswith("AI service "):
+            raw_msg = str(exc)
+            is_rate_limit = "429" in raw_msg or "rate" in raw_msg.lower()
+            if is_rate_limit and file is not None and user_prompt and "DOCUMENT EXCERPTS:\n" in user_prompt:
+                can_answer_from_excerpts = document_question and ai_engine.has_substantive_excerpt_match(question, user_prompt)
+                if not can_answer_from_excerpts:
+                    yield frame(
+                        "error",
+                        message="The AI provider is temporarily rate-limited or unavailable. Please try again shortly.",
+                    )
+                    return
+                local_answer = ai_engine._offline_rag_fallback(system_prompt, user_prompt)
+                local_answer, local_citations = ai_engine.align_answer_citations(local_answer, citations)
+                noted_answer = (
+                    f"{local_answer}\n\n"
+                    "*(AI provider was temporarily rate-limited; showing deterministic local document extraction.)*"
+                )
+                yield frame("replace", text=noted_answer)
+                yield frame("done", citations=local_citations, mode="local_extraction")
+                return
+            if is_rate_limit:
+                safe_message = "The AI provider is temporarily rate-limited (HTTP 429). Please retry in a few moments."
+            elif raw_msg.startswith("AI service "):
+                safe_message = raw_msg
+            else:
                 safe_message = "Paperplane AI could not complete the request. Please try again."
             yield frame("error", message=safe_message[:240])
         finally:
@@ -4686,7 +4904,8 @@ async def ai_summarize(
         enforce_ai_document_page_limit(temp_pdf)
 
         def build_summary() -> tuple[str, list[int]]:
-            return ai_engine.summarize_pdf(temp_pdf, include_citations=True)
+            res = ai_engine.summarize_pdf(temp_pdf, include_citations=True)
+            return res if isinstance(res, tuple) else (str(res), [])
 
         summary_task = asyncio.create_task(asyncio.to_thread(build_summary))
         try:
@@ -4810,6 +5029,113 @@ async def ai_translate_endpoint(
     finally:
         if not defer_temp_cleanup:
             shutil.rmtree(temp_dir, ignore_errors=True)
+
+
+def _render_executive_brief_pdf(summary_text: str, title: str = "Executive Brief") -> bytes:
+    """Render an Executive Brief into a multi-page Unicode PDF without WinAnsi fallback loss."""
+    from html import escape as html_escape
+
+    font_dir = Path(__file__).resolve().parent / "deploy" / "fonts"
+    local_font = font_dir / "FreeSans.ttf"
+    archive = fitz.Archive(str(font_dir)) if local_font.is_file() else None
+
+    def inline_html(raw: str) -> str:
+        escaped = html_escape(raw)
+        escaped = re.sub(r"\*\*([^*]+)\*\*", r"<strong>\1</strong>", escaped)
+        escaped = re.sub(r"\*([^*]+)\*", r"<em>\1</em>", escaped)
+        return escaped
+
+    blocks_html: list[str] = [
+        f"<h1>{html_escape(title or 'Executive Brief')}</h1>",
+        "<p class=\"subtitle\">Paperplane PDF · AI Document Intelligence Brief</p>",
+    ]
+    in_list = False
+    for raw_line in summary_text.splitlines():
+        line = raw_line.strip()
+        if not line:
+            if in_list:
+                blocks_html.append("</ul>")
+                in_list = False
+            continue
+        heading_match = re.match(r"^(#{1,6})\s+(.*)$", line)
+        if heading_match:
+            if in_list:
+                blocks_html.append("</ul>")
+                in_list = False
+            level = min(4, max(2, len(heading_match.group(1))))
+            blocks_html.append(f"<h{level}>{inline_html(heading_match.group(2))}</h{level}>")
+            continue
+        if re.match(r"^[-*•]\s+", line):
+            if not in_list:
+                blocks_html.append("<ul>")
+                in_list = True
+            bullet_text = inline_html(re.sub(r"^[-*•]\s+", "", line))
+            blocks_html.append(f"<li>{bullet_text}</li>")
+            continue
+        if in_list:
+            blocks_html.append("</ul>")
+            in_list = False
+        blocks_html.append(f"<p>{inline_html(line)}</p>")
+    if in_list:
+        blocks_html.append("</ul>")
+
+    font_face_css = (
+        "@font-face { font-family: 'PaperplaneBody'; src: url('FreeSans.ttf'); font-weight: normal; }"
+        if local_font.is_file()
+        else ""
+    )
+    css = (
+        f"{font_face_css}"
+        "body { font-family: 'PaperplaneBody', 'Noto Sans Devanagari', 'DejaVu Sans', sans-serif; "
+        "font-size: 10.5pt; line-height: 1.48; color: #162124; margin: 0; }"
+        "h1 { font-size: 18pt; margin: 0 0 4pt 0; color: #0f172a; }"
+        ".subtitle { font-size: 9pt; color: #526266; margin: 0 0 14pt 0; border-bottom: 1pt solid #d9e2ec; padding-bottom: 6pt; }"
+        "h2, h3 { font-size: 13pt; margin: 12pt 0 5pt 0; color: #0f172a; }"
+        "h4 { font-size: 11pt; margin: 10pt 0 4pt 0; color: #1e3a4c; }"
+        "p { margin: 0 0 6pt 0; }"
+        "ul { margin: 2pt 0 8pt 14pt; padding-left: 10pt; }"
+        "li { margin: 0 0 4pt 0; }"
+    )
+    html_doc = f"<!DOCTYPE html><html><head><meta charset='utf-8'><style>{css}</style></head><body>{''.join(blocks_html)}</body></html>"
+    story = fitz.Story(html=html_doc, archive=archive) if archive is not None else fitz.Story(html=html_doc)
+    buffer = io.BytesIO()
+    writer = fitz.DocumentWriter(buffer)
+    mediabox = fitz.paper_rect("letter")
+    where = mediabox + fitz.Rect(48, 48, -48, -48)
+    more = True
+    pages_rendered = 0
+    while more and pages_rendered < 250:
+        pages_rendered += 1
+        device = writer.begin_page(mediabox)
+        more, _ = story.place(where)
+        story.draw(device, None)
+        writer.end_page()
+    writer.close()
+    return buffer.getvalue()
+
+
+@app.post("/api/ai/summarize/pdf")
+def ai_summarize_pdf_export(payload: dict = Body(default={})):
+    """Export an Executive Brief directly as a formatted multi-page Unicode PDF."""
+    summary = str(payload.get("summary") or "").strip()
+    if not summary:
+        raise HTTPException(422, "Executive brief text is required to generate a PDF.")
+    if len(summary) > 512_000:
+        raise HTTPException(413, "Executive brief exceeds the maximum export length.")
+    raw_name = str(payload.get("filename") or "document_executive_brief.pdf").strip()
+    clean_stem = re.sub(r'[^A-Za-z0-9._-]+', '_', Path(raw_name.replace("\\", "/")).stem).strip("._") or "executive_brief"
+    out_name = clean_stem if clean_stem.endswith(".pdf") else f"{clean_stem}.pdf"
+    title = str(payload.get("title") or clean_stem.replace("_", " ")).strip()[:140] or "Executive Brief"
+    try:
+        pdf_bytes_out = _render_executive_brief_pdf(summary, title=title)
+    except Exception as err:
+        logger.warning("Executive Brief PDF generation failed: %s", err)
+        raise HTTPException(500, "Could not generate Executive Brief PDF.") from err
+    return StreamingResponse(
+        io.BytesIO(pdf_bytes_out),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{out_name}"'},
+    )
 
 
 @app.get("/api/ai/capabilities", tags=["AI Intelligence"])
@@ -5029,11 +5355,10 @@ async def studio_page_delete(
             doc.delete_page(p - 1)
 
         out_path = temp_dir / "deleted_page.pdf"
-        # A one-page delete already rewrites the page tree. Deep garbage
-        # collection (level 4) scans and deduplicates every object, which made
-        # large Studio deletes unnecessarily slow. Level 1 drops unreferenced
-        # objects while keeping the mutation bounded and the output valid.
-        doc.save(str(out_path), garbage=1, deflate=True)
+        # A one-page delete already rewrites the page tree. Skipping full stream
+        # re-deflation alongside level-1 garbage collection keeps Studio page
+        # deletion fast on large multi-page PDFs while keeping output valid.
+        doc.save(str(out_path), garbage=1, deflate=False)
         doc.close()
 
         return StreamingResponse(
@@ -6503,13 +6828,14 @@ _DRIVE_CONFIRM_FIELDS = {"id", "export", "confirm", "uuid", "resourcekey"}
 
 
 class _DriveDownloadForm(HTMLParser):
-    """Extract only the public Drive download form, never arbitrary links."""
+    """Extract only the public Drive download form or explicit download link, never arbitrary links."""
 
     def __init__(self):
         super().__init__()
         self.action: str | None = None
         self.fields: dict[str, str] = {}
         self.in_download_form = False
+        self.direct_link: str | None = None
 
     def handle_starttag(self, tag, attrs):
         props = dict(attrs)
@@ -6521,6 +6847,11 @@ class _DriveDownloadForm(HTMLParser):
             name = (props.get("name") or "").lower()
             if name in _DRIVE_CONFIRM_FIELDS and props.get("type") == "hidden":
                 self.fields[name] = (props.get("value") or "")[:256]
+        elif tag == "a" and not self.direct_link:
+            href = props.get("href") or ""
+            anchor_id = (props.get("id") or "").lower()
+            if (anchor_id == "uc-download-link" or ("export=download" in href and "confirm=" in href)):
+                self.direct_link = href
 
     def handle_endtag(self, tag):
         if tag == "form":
@@ -6549,17 +6880,27 @@ def _confirm_drive_download(raw: bytes, final_url: str, file_id: str, params: di
         return None
     form = _DriveDownloadForm()
     form.feed(raw.decode("utf-8", "replace"))
-    if not form.action or form.fields.get("id") != file_id:
-        return None
-    target = urllib.parse.urlsplit(urllib.parse.urljoin(final_url, form.action))
-    if (target.scheme != "https" or target.hostname not in _DRIVE_DOWNLOAD_HOSTS
-            or target.username or target.password or target.port not in (None, 443)
-            or target.path not in _DRIVE_DOWNLOAD_PATHS):
-        return None
-    fields = {**params, **{name: value for name, value in form.fields.items()
-                          if re.fullmatch(r"[A-Za-z0-9_-]{1,256}", value)}}
-    fields["export"] = "download"
-    return urllib.parse.urlunsplit(("https", target.hostname, target.path, urllib.parse.urlencode(fields), ""))
+    if form.action and form.fields.get("id") == file_id:
+        target = urllib.parse.urlsplit(urllib.parse.urljoin(final_url, form.action))
+        if (target.scheme != "https" or target.hostname not in _DRIVE_DOWNLOAD_HOSTS
+                or target.username or target.password or target.port not in (None, 443)
+                or target.path not in _DRIVE_DOWNLOAD_PATHS):
+            return None
+        fields = {**params, **{name: value for name, value in form.fields.items()
+                              if re.fullmatch(r"[A-Za-z0-9_-]{1,256}", value)}}
+        fields["export"] = "download"
+        return urllib.parse.urlunsplit(("https", target.hostname, target.path, urllib.parse.urlencode(fields), ""))
+    if form.direct_link:
+        target = urllib.parse.urlsplit(urllib.parse.urljoin(final_url, form.direct_link))
+        if (target.scheme == "https" and target.hostname in _DRIVE_DOWNLOAD_HOSTS
+                and not target.username and not target.password and target.port in (None, 443)
+                and target.path in _DRIVE_DOWNLOAD_PATHS):
+            q = urllib.parse.parse_qs(target.query)
+            if q.get("id", [""])[0] == file_id:
+                fields = {k: v[0] for k, v in q.items() if k in _DRIVE_CONFIRM_FIELDS and v and re.fullmatch(r"[A-Za-z0-9_-]{1,256}", v[0])}
+                fields["export"] = "download"
+                return urllib.parse.urlunsplit(("https", target.hostname, target.path, urllib.parse.urlencode(fields), ""))
+    return None
 
 
 @app.post("/api/cloud/sync")
@@ -6696,9 +7037,10 @@ def cloud_sync(
             "Cloud import fetch failed provider=%s host=%s error_type=%s",
             provider, hostname or "unknown", type(err).__name__,
         )
+        reason = type(err).__name__
         if provider == "Google Drive":
-            raise HTTPException(400, "Google Drive could not be reached. Confirm public sharing or use a direct PDF download URL.") from err
-        raise HTTPException(400, "Cloud file sync failed. Check that the link is public and points directly to a PDF file.") from err
+            raise HTTPException(400, f"Google Drive could not be reached ({reason}). Confirm public sharing or use a direct PDF download URL.") from err
+        raise HTTPException(400, f"Cloud file sync failed ({reason}). Check that the link is public and points directly to a PDF file.") from err
 
 
 # ----------------------------------------------------------------------
@@ -6757,7 +7099,8 @@ def run_job(
     except Exception as error:
         if usage_reservation:
             persistence.refund_daily_usage(*usage_reservation)
-        update_job(job_id, status="failed", progress=100, error=str(error))
+        error_msg = str(error.detail) if isinstance(error, HTTPException) else str(error)
+        update_job(job_id, status="failed", progress=100, error=error_msg)
 
 
 @app.get("/api/jobs/{job_id}")
@@ -6773,6 +7116,38 @@ def job_status(
     res = dict(row)
     res.pop("guest_token", None)
     res.pop("user_id", None)
+    job_dir_resolved = (JOBS / job_id).resolve()
+    if res.get("status") in {"queued", "processing"}:
+        progress_path = (job_dir_resolved / ".job-progress.json").resolve()
+        if progress_path.parent == job_dir_resolved and progress_path.is_file():
+            try:
+                prog_data = json.loads(progress_path.read_text(encoding="utf-8"))
+                if isinstance(prog_data, dict):
+                    if isinstance(prog_data.get("progress"), (int, float)):
+                        res["progress"] = max(0, min(100, int(prog_data["progress"])))
+                    if prog_data.get("message"):
+                        res["progress_message"] = str(prog_data["message"])
+            except Exception:
+                pass
+    if res.get("status") == "completed":
+        meta_path = (job_dir_resolved / ".job-meta.json").resolve()
+        if meta_path.parent == job_dir_resolved and meta_path.is_file():
+            try:
+                meta_data = json.loads(meta_path.read_text(encoding="utf-8"))
+                if isinstance(meta_data, dict):
+                    for key in (
+                        "summary",
+                        "citations",
+                        "summary_mode",
+                        "translation_status",
+                        "translated_fraction",
+                        "translated_block_fraction",
+                        "warnings_count",
+                    ):
+                        if key in meta_data:
+                            res[key] = meta_data[key]
+            except Exception as error:
+                logger.warning("Could not read metadata for job %s (%s)", job_id, type(error).__name__)
     if res.get("status") == "completed" and str(res.get("output_name") or "").lower().endswith(".pdf"):
         job_dir = (JOBS / job_id).resolve()
         output_path = (job_dir / str(res["output_name"])).resolve()
@@ -7108,9 +7483,13 @@ def create_job_endpoint(
         raise HTTPException(503, "AI translation is unavailable because the Paperplane AI translation service is not configured or enabled.")
 
     parsed_options = parse_options(options)
+    if operation == "translate":
+        target_language = str(parsed_options.get("target_language", "es")).strip() or "es"
+        if not re.fullmatch(r"[a-zA-Z]{2,3}(?:-[a-zA-Z]{2,8})?", target_language):
+            raise HTTPException(422, "Choose a supported target language.")
 
-    if operation == "pdf_to_markdown" and files:
-        parsed_options["_original_filename"] = Path((files[0].filename or "document.pdf").replace("\\", "/")).name
+    if files:
+        parsed_options.setdefault("_original_filename", Path((files[0].filename or "document.pdf").replace("\\", "/")).name)
 
     # Allow url conversion without files
     if operation == "html_to_pdf":
@@ -7172,6 +7551,8 @@ def create_job_endpoint(
 
         if operation == "merge" and len(paths) < 2:
             raise HTTPException(400, "Select at least two PDFs to merge.")
+        if operation in {"translate", "summarize", "ai_extract", "ai_chat"} and paths:
+            enforce_ai_document_page_limit(paths[0])
 
         # Failed uploads never spend quota. Keep a reservation for queued AI
         # work so that failure can refund the day on which it was submitted.
@@ -7283,11 +7664,15 @@ def download(
 
     # Fallback to any non-upload file
     if directory.exists():
-        candidates = [p for p in directory.iterdir() if p.is_file() and not p.name.endswith(".tmp")]
+        candidates = [
+            p for p in directory.iterdir()
+            if p.is_file() and not p.name.endswith(".tmp") and not p.name.startswith(".job-")
+        ]
         if candidates:
             cand = candidates[-1].resolve()
             if cand.is_relative_to(directory.resolve()) and cand.exists():
-                return owner_scoped_file(cand, cand.name)
+                clean_name = re.sub(r"^(?:\d{1,4}_)?[0-9a-fA-F]{16,32}_", "", cand.name) or cand.name
+                return owner_scoped_file(cand, clean_name)
 
     raise HTTPException(404, "Job output not found or expired.")
 
@@ -7443,6 +7828,12 @@ async def create_v1_job(
         shutil.rmtree(staging_dir, ignore_errors=True)
         refund_developer_quota(user_id, is_ai=is_ai)
         raise HTTPException(400, f"Invalid options JSON: {parse_err}") from parse_err
+    if operation == "translate":
+        target_language = str(parsed_options.get("target_language", "es")).strip() or "es"
+        if not re.fullmatch(r"[a-zA-Z]{2,3}(?:-[a-zA-Z]{2,8})?", target_language):
+            shutil.rmtree(staging_dir, ignore_errors=True)
+            refund_developer_quota(user_id, is_ai=is_ai)
+            raise HTTPException(422, "Choose a supported target language.")
 
     if operation == "pdf_to_markdown" and staged_files:
         # Preserve the user-visible upload name for the Markdown H1; staged
@@ -7720,6 +8111,14 @@ def download_page(request: Request):
     return render_web_page(request, landing_slug=page_slug if page_slug in {"download", "apps"} else "download")
 
 
+@app.get("/login", response_class=HTMLResponse, include_in_schema=False)
+@app.get("/signin", response_class=HTMLResponse, include_in_schema=False)
+@app.get("/signup", response_class=HTMLResponse, include_in_schema=False)
+@app.get("/register", response_class=HTMLResponse, include_in_schema=False)
+def auth_entry_page(request: Request):
+    return render_web_page(request, landing_slug="tool-desk")
+
+
 @app.get("/tool-desk", response_class=HTMLResponse, include_in_schema=False)
 def tool_desk_page(request: Request):
     return render_web_page(request, landing_slug="tool-desk")
@@ -7752,7 +8151,20 @@ def pricing_page(request: Request):
 
 @app.get("/dashboard", include_in_schema=False)
 def dashboard_redirect():
-    return RedirectResponse(url="/tool-desk", status_code=301)
+    resp = RedirectResponse(url="/tool-desk", status_code=301)
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    resp.set_cookie(
+        key="paperplane_dashboard_notice",
+        value="1",
+        max_age=30,
+        httponly=False,
+        samesite=COOKIE_SAMESITE,
+        secure=SECURE_COOKIES,
+        path="/",
+    )
+    return resp
 
 
 @app.get("/ai-docs", include_in_schema=False)
@@ -7914,10 +8326,11 @@ def robots_txt(request: Request):
 @app.get("/sitemap.xml", include_in_schema=False)
 def sitemap_xml(request: Request):
     site_url = public_site_url(request)
-    paths = ["/"]
+    paths = ["/", "/tool-desk", "/studio"]
     paths.extend(f"/{slug}" for slug in OPERATION_SLUGS.values())
     paths.extend(f"/{slug}" for slug in SEO_LANDING_PAGES)
     paths.extend(("/pricing", "/faq", "/ai-intelligence"))
+    paths = list(dict.fromkeys(paths))
     urls = "".join(
         f"<url><loc>{html_escape(site_url + path, quote=True)}</loc><changefreq>weekly</changefreq><priority>{'1.0' if path != '/' else '1.0'}</priority></url>"
         for path in paths
@@ -7965,6 +8378,19 @@ LEGACY_SLUG_REDIRECTS = {
     "grayscale-pdf": "convert-pdf-to-grayscale",
     "pdf-to-ppt": "pdf-to-powerpoint",
     "ppt-to-pdf": "powerpoint-to-pdf",
+    "png-to-pdf": "jpg-to-pdf",
+    "image-to-pdf": "jpg-to-pdf",
+    "images-to-pdf": "jpg-to-pdf",
+    "compress-pdf-to-500kb": "compress-pdf",
+    "delete-pages": "remove-pages-pdf",
+    "delete-pdf-pages": "remove-pages-pdf",
+    "reorder-pdf": "organize-pdf",
+    "reorder-pages": "organize-pdf",
+    "edit": "edit-pdf",
+    "pdf-converter": "convert-pdf",
+    "compress-image": "compress-image-online",
+    "resize-image": "resize-image-dimensions",
+    "merge-photos": "merge-photos-online",
 }
 
 
@@ -9540,8 +9966,10 @@ def admin_test_ai(_: None = Depends(_require_admin)):
 
 @app.exception_handler(404)
 async def custom_404_handler(request: Request, exc: HTTPException):
-    accept = request.headers.get("accept", "")
-    if "text/html" in accept and not request.url.path.startswith("/api/"):
+    accept = (request.headers.get("accept") or "").lower()
+    is_api_or_static = request.url.path.startswith(("/api/", "/assets/", "/static/", "/spec/"))
+    wants_json = "application/json" in accept and "text/html" not in accept
+    if not is_api_or_static and not wants_json and request.method in {"GET", "HEAD"}:
         return HTMLResponse(
             status_code=404,
             content="""<!doctype html>

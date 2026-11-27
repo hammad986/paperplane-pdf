@@ -1,0 +1,210 @@
+{
+  "routes": {
+    "/ocr-pdf": {
+      "status": 200,
+      "steps": [
+        {
+          "heading": "Upload a scanned PDF",
+          "body": "Select a scanned PDF in the upload area; supported size limits are shown beside it."
+        },
+        {
+          "heading": "After upload, select an available OCR language",
+          "body": "After selecting the file, choose a language from the available control before recognition; no quality setting is shown."
+        },
+        {
+          "heading": "Download the searchable PDF",
+          "body": "Download the searchable copy and check several pages for recognition quality."
+        }
+      ],
+      "visible_controls_preupload": [
+        {
+          "id": "language",
+          "label": "OCR Language"
+        }
+      ]
+    },
+    "/translate-pdf": {
+      "status": 200,
+      "steps": [
+        {
+          "heading": "Upload a text-based or OCR PDF",
+          "body": "Select a text PDF or an OCR-processed scan in the upload area above."
+        },
+        {
+          "heading": "Choose the target language in the visible selector",
+          "body": "The target-language selector is available before upload; choose a language before starting the translation."
+        },
+        {
+          "heading": "Review and download the translated copy",
+          "body": "Review the translated pages and text layer before sharing the output."
+        }
+      ],
+      "visible_controls_preupload": [
+        {
+          "id": "target_language",
+          "label": "Target Language"
+        }
+      ]
+    },
+    "/html-to-pdf": {
+      "status": 200,
+      "steps": [
+        {
+          "heading": "Enter an allowed public URL",
+          "body": "Enter a public web address in the URL field above; private network destinations are blocked."
+        },
+        {
+          "heading": "Review the URL and start the conversion",
+          "body": "Check the URL you entered, then run the conversion. This form does not offer separate page-size controls."
+        },
+        {
+          "heading": "Download the rendered PDF",
+          "body": "Open the generated PDF and review its page breaks, fonts, and images."
+        }
+      ],
+      "visible_controls_preupload": [
+        {
+          "id": "url",
+          "label": "Public URL to convert"
+        }
+      ]
+    },
+    "/jpg-to-pdf": {
+      "status": 200,
+      "steps": [
+        {
+          "heading": "Select JPG or other supported images",
+          "body": "The upload area above lists the supported file types and limits for this tool."
+        },
+        {
+          "heading": "Upload them in the order you want in the PDF",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed."
+        },
+        {
+          "heading": "Download the generated PDF",
+          "body": "Review the result details, then download and open the output to check it."
+        }
+      ],
+      "visible_controls_preupload": []
+    },
+    "/pdf-to-jpg": {
+      "status": 200,
+      "steps": [
+        {
+          "heading": "Upload the source PDF",
+          "body": "Select the PDF whose pages should become images."
+        },
+        {
+          "heading": "After upload, choose an export resolution",
+          "body": "After selecting the PDF, choose an export resolution from the available control; the tool exports every page."
+        },
+        {
+          "heading": "Download the JPG image bundle",
+          "body": "Download the ZIP and review the page images at the selected resolution."
+        }
+      ],
+      "visible_controls_preupload": [
+        {
+          "id": "dpi",
+          "label": "Export Resolution"
+        }
+      ]
+    },
+    "/pdf-to-word": {
+      "status": 200,
+      "steps": [
+        {
+          "heading": "Select a text-based PDF",
+          "body": "Select a text-based PDF. Scanned documents need OCR before conversion."
+        },
+        {
+          "heading": "Convert the document and review its text layout",
+          "body": "The converter uses its built-in layout reconstruction; this page has no OCR settings selector."
+        },
+        {
+          "heading": "Download the editable DOCX file",
+          "body": "Open the DOCX output and check paragraphs, tables, and page layout."
+        }
+      ],
+      "visible_controls_preupload": []
+    },
+    "/pdf-to-excel": {
+      "status": 200,
+      "steps": [
+        {
+          "heading": "Upload a table-containing PDF",
+          "body": "Select a PDF that contains tables or aligned text."
+        },
+        {
+          "heading": "Convert the extracted content, then review the workbook",
+          "body": "The conversion extracts available tabular content; it does not show table-region previews before running."
+        },
+        {
+          "heading": "Download the XLSX workbook",
+          "body": "Open the XLSX output and check row and column alignment in a spreadsheet app."
+        }
+      ],
+      "visible_controls_preupload": []
+    },
+    "/pdf-to-powerpoint": {
+      "status": 200,
+      "steps": [
+        {
+          "heading": "Choose the source PDF",
+          "body": "Select the PDF whose pages you want to reuse as slides."
+        },
+        {
+          "heading": "Convert the pages into slides",
+          "body": "The converter creates slides from the source pages using its built-in reconstruction behavior."
+        },
+        {
+          "heading": "Download and review the PPTX presentation",
+          "body": "Open the PPTX output and review text, images, and slide order."
+        }
+      ],
+      "visible_controls_preupload": []
+    },
+    "/watermark-pdf": {
+      "status": 200,
+      "steps": [
+        {
+          "heading": "Choose a PDF",
+          "body": "Select a PDF in the upload area above."
+        },
+        {
+          "heading": "Enter watermark text or select an image, then set opacity",
+          "body": "Enter watermark text or select an image, then set opacity. Placement uses the tool's built-in layout."
+        },
+        {
+          "heading": "Apply the watermark and download",
+          "body": "Download the watermarked PDF and check that the mark is legible without obscuring content."
+        }
+      ],
+      "visible_controls_preupload": [
+        {
+          "id": "text",
+          "label": "Watermark text (or choose an image below)"
+        },
+        {
+          "id": "opacity",
+          "label": "Opacity (0.05 to 0.8)"
+        },
+        {
+          "id": "mark_color",
+          "label": "Mark colour"
+        },
+        {
+          "id": "mark_background",
+          "label": "Page background behind mark"
+        },
+        {
+          "id": "watermark_image_file",
+          "label": "Or Select Watermark Image"
+        }
+      ]
+    }
+  },
+  "page_errors": [],
+  "console_errors": [],
+  "overall": "passed"
+}

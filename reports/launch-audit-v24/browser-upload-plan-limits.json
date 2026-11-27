@@ -1,0 +1,27 @@
+{
+  "rounds": [],
+  "page_errors": [],
+  "console_errors": [],
+  "http_status": 200,
+  "visible_copy": "Guests up to 50 MB/file \u00b7 signed-in Free and recurring paid plans have no plan-specific file cap (service max 500 MB) \u00b7 Exam Pass up to 500 MB/file \u00b7 Select 2\u201310 PDFs to merge",
+  "checks": {
+    "guest_50mb_allowed": true,
+    "guest_over_50mb_blocked": true,
+    "signed_in_free_500mb_allowed": true,
+    "signed_in_free_over_service_max_blocked": true,
+    "exam_pass_500mb_allowed": true,
+    "exam_pass_over_500mb_blocked": true,
+    "paid_500mb_allowed": true,
+    "limits": {
+      "free_operations_per_day": 10,
+      "guest_max_file_size_mb": 50,
+      "free_max_file_size_mb": 500,
+      "exam_pass_max_file_size_mb": 500,
+      "pro_max_file_size_mb": 500,
+      "platform_max_file_size_mb": 500,
+      "max_batch_files": 10,
+      "authenticated": 0
+    }
+  },
+  "result": true
+}

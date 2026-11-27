@@ -1,0 +1,259 @@
+{
+  "checks": 12,
+  "widths": [
+    390,
+    820,
+    1104,
+    1366
+  ],
+  "routes": [
+    "/ocr-pdf",
+    "/remove-pages-pdf",
+    "/convert-pdf-to-grayscale"
+  ],
+  "overlaps": 0,
+  "page_errors": [],
+  "result": "passed",
+  "results": [
+    {
+      "width": 390,
+      "route": "/ocr-pdf",
+      "status": 200,
+      "overlap": false,
+      "topbar": {
+        "top": 0,
+        "bottom": 64,
+        "left": 0,
+        "right": 390
+      },
+      "title": {
+        "top": 262,
+        "bottom": 292,
+        "left": 23,
+        "right": 367
+      },
+      "mainScrollTop": 0,
+      "scrollMarginTop": "104px"
+    },
+    {
+      "width": 390,
+      "route": "/remove-pages-pdf",
+      "status": 200,
+      "overlap": false,
+      "topbar": {
+        "top": 0,
+        "bottom": 64,
+        "left": 0,
+        "right": 390
+      },
+      "title": {
+        "top": 262,
+        "bottom": 292,
+        "left": 23,
+        "right": 367
+      },
+      "mainScrollTop": 0,
+      "scrollMarginTop": "104px"
+    },
+    {
+      "width": 390,
+      "route": "/convert-pdf-to-grayscale",
+      "status": 200,
+      "overlap": false,
+      "topbar": {
+        "top": 0,
+        "bottom": 64,
+        "left": 0,
+        "right": 390
+      },
+      "title": {
+        "top": 262,
+        "bottom": 292,
+        "left": 23,
+        "right": 367
+      },
+      "mainScrollTop": 0,
+      "scrollMarginTop": "104px"
+    },
+    {
+      "width": 820,
+      "route": "/ocr-pdf",
+      "status": 200,
+      "overlap": false,
+      "topbar": {
+        "top": 0,
+        "bottom": 64,
+        "left": 0,
+        "right": 820
+      },
+      "title": {
+        "top": 242,
+        "bottom": 272,
+        "left": 29,
+        "right": 654.5625
+      },
+      "mainScrollTop": 0,
+      "scrollMarginTop": "104px"
+    },
+    {
+      "width": 820,
+      "route": "/remove-pages-pdf",
+      "status": 200,
+      "overlap": false,
+      "topbar": {
+        "top": 0,
+        "bottom": 64,
+        "left": 0,
+        "right": 820
+      },
+      "title": {
+        "top": 242,
+        "bottom": 272,
+        "left": 29,
+        "right": 654.5625
+      },
+      "mainScrollTop": 0,
+      "scrollMarginTop": "104px"
+    },
+    {
+      "width": 820,
+      "route": "/convert-pdf-to-grayscale",
+      "status": 200,
+      "overlap": false,
+      "topbar": {
+        "top": 0,
+        "bottom": 64,
+        "left": 0,
+        "right": 820
+      },
+      "title": {
+        "top": 242,
+        "bottom": 272,
+        "left": 29,
+        "right": 679
+      },
+      "mainScrollTop": 0,
+      "scrollMarginTop": "104px"
+    },
+    {
+      "width": 1104,
+      "route": "/ocr-pdf",
+      "status": 200,
+      "overlap": false,
+      "topbar": {
+        "top": 0,
+        "bottom": 109,
+        "left": 270,
+        "right": 1104
+      },
+      "title": {
+        "top": 327,
+        "bottom": 357,
+        "left": 335,
+        "right": 911.765625
+      },
+      "mainScrollTop": 0,
+      "scrollMarginTop": "104px"
+    },
+    {
+      "width": 1104,
+      "route": "/remove-pages-pdf",
+      "status": 200,
+      "overlap": false,
+      "topbar": {
+        "top": 0,
+        "bottom": 109,
+        "left": 270,
+        "right": 1104
+      },
+      "title": {
+        "top": 327,
+        "bottom": 357,
+        "left": 335,
+        "right": 911.765625
+      },
+      "mainScrollTop": 0,
+      "scrollMarginTop": "104px"
+    },
+    {
+      "width": 1104,
+      "route": "/convert-pdf-to-grayscale",
+      "status": 200,
+      "overlap": false,
+      "topbar": {
+        "top": 0,
+        "bottom": 109,
+        "left": 270,
+        "right": 1104
+      },
+      "title": {
+        "top": 327,
+        "bottom": 357,
+        "left": 335,
+        "right": 915.703125
+      },
+      "mainScrollTop": 0,
+      "scrollMarginTop": "104px"
+    },
+    {
+      "width": 1366,
+      "route": "/ocr-pdf",
+      "status": 200,
+      "overlap": false,
+      "topbar": {
+        "top": 0,
+        "bottom": 76,
+        "left": 270,
+        "right": 1366
+      },
+      "title": {
+        "top": 263,
+        "bottom": 293,
+        "left": 335,
+        "right": 960.5625
+      },
+      "mainScrollTop": 0,
+      "scrollMarginTop": "104px"
+    },
+    {
+      "width": 1366,
+      "route": "/remove-pages-pdf",
+      "status": 200,
+      "overlap": false,
+      "topbar": {
+        "top": 0,
+        "bottom": 76,
+        "left": 270,
+        "right": 1366
+      },
+      "title": {
+        "top": 263,
+        "bottom": 293,
+        "left": 335,
+        "right": 960.5625
+      },
+      "mainScrollTop": 0,
+      "scrollMarginTop": "104px"
+    },
+    {
+      "width": 1366,
+      "route": "/convert-pdf-to-grayscale",
+      "status": 200,
+      "overlap": false,
+      "topbar": {
+        "top": 0,
+        "bottom": 76,
+        "left": 270,
+        "right": 1366
+      },
+      "title": {
+        "top": 263,
+        "bottom": 293,
+        "left": 335,
+        "right": 985
+      },
+      "mainScrollTop": 0,
+      "scrollMarginTop": "104px"
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import fitz, json, socket, sys, time
+import os
 from playwright.sync_api import sync_playwright
 
 ROOT=Path(__file__).resolve().parents[2]
@@ -13,13 +14,15 @@ with TemporaryDirectory(prefix='paperplane-id71-') as temp:
     with fitz.open() as doc:
         page=doc.new_page(width=612,height=792);page.insert_text((72,100),'ID71 exact marker for annotation',fontsize=18)
         doc.save(source)
-    app,base,_=helper.start_server(root/'data')
+    external_base = os.environ.get('PAPERPLANE_AUDIT_BASE')
+    app,base,_ = (None, external_base.rstrip('/'), None) if external_base else helper.start_server(root/'data')
     try:
-        port=int(base.rsplit(':',1)[1])
-        for _ in range(100):
-            try:
-                with socket.create_connection(('127.0.0.1',port),timeout=.2):break
-            except OSError:time.sleep(.15)
+        if not external_base:
+            port=int(base.rsplit(':',1)[1])
+            for _ in range(100):
+                try:
+                    with socket.create_connection(('127.0.0.1',port),timeout=.2):break
+                except OSError:time.sleep(.15)
         rounds=[]
         with sync_playwright() as p:
             browser=p.chromium.launch(channel='chrome',headless=True)
@@ -45,6 +48,12 @@ with TemporaryDirectory(prefix='paperplane-id71-') as temp:
                 rounds.append({'round':number,'pages':page_count,'annotation_count':len(annotations),'annotation_content':annotation_content,'source_text_retained':'ID71 exact marker for annotation' in text,'page_errors':errors})
                 context.close()
             browser.close()
-        data={'rounds':rounds};(OUT/'browser-id71-annotate-output.json').write_text(json.dumps(data,indent=2),encoding='utf-8');print(json.dumps(data,indent=2))
+        data={'base':base,'runtime':'external-production-mode-image' if external_base else 'isolated-local-server','rounds':rounds}
+        evidence=OUT/'browser-id71-annotate-output.json'
+        if external_base:
+            image_tag = os.environ.get('PAPERPLANE_EVIDENCE_TAG', 'v132')
+            evidence=OUT/f'browser-id71-annotate-output-docker-{image_tag}.json'
+        evidence.write_text(json.dumps(data,indent=2),encoding='utf-8');print(json.dumps(data,indent=2))
     finally:
-        app.terminate();app.wait(timeout=5)
+        if app is not None:
+            app.terminate();app.wait(timeout=5)

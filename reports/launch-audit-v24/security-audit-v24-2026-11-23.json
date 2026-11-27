@@ -1,0 +1,68 @@
+{
+  "date": "2026-11-23",
+  "live_target": "https://paperplane.qd.je",
+  "scope": "Passive HTTPS/TLS/header/path checks and local source/dependency review; not a penetration test",
+  "live_checks": {
+    "https_redirect": true,
+    "http_status": 200,
+    "tls_negotiated": "TLSv1.3",
+    "certificate_valid": true,
+    "certificate_expiry": "2027-01-29",
+    "days_until_expiry_at_check": 68,
+    "headers": {
+      "strict_transport_security": "present",
+      "content_security_policy": "present",
+      "x_content_type_options": "nosniff",
+      "x_frame_options": "SAMEORIGIN",
+      "referrer_policy": "strict-origin-when-cross-origin",
+      "permissions_policy": "present"
+    },
+    "server_header": "nginx",
+    "common_exposure_paths": {
+      "checked": 9,
+      "non_404_or_error_candidates": 0,
+      "paths_returning_404": 9
+    }
+  },
+  "local_checks": {
+    "pip_audit": "No known vulnerabilities found in requirements.txt",
+    "tracked_production_source_secret_scan": {
+      "high_confidence_credentials_found": 0,
+      "generic_pattern_matches": 2,
+      "review": "A test-only password literal and a placeholder API key in a hidden documentation example; neither is an active credential."
+    },
+    "broad_workspace_secret_scan": {
+      "potential_matches": 80,
+      "review": "73 generic matches were test fixtures, examples, or old audit scripts. Seven private-key blocks were found: six generated pytest certificate fixtures plus the workspace TLS key at deploy/certs/privkey.pem. That TLS key is ignored by Git and excluded from the Docker build context; it was not tracked. The workspace still contains this local deployment secret, so keep the workspace private. No secret values were copied into evidence."
+    },
+    "gitleaks_ci": "Configured in .github/workflows/secrets.yml using v8.24.2. Full-history scan of the new sanitized mirror via the CI container scanned 49 commits (~159 MB) and returned no leaks using the current workspace config; narrow allowlists cover reviewed documentation placeholders and synthetic test values. The config edits are uncommitted and the final mirror must be rebuilt and rescanned after commit.",
+    "docker_image_tls_key_check": "The production image does not contain /app/deploy/certs/privkey.pem."
+  },
+  "history_purge_preparation": {
+    "result": "Prepared and scanned an isolated sanitized bare mirror; the known historical admin-code fallback was absent from all remaining Git objects.",
+    "path": "C:/Users/mdham/Downloads/paperplane-history-purge-v24-prep",
+    "source_worktree_modified": false,
+    "remote_modified": false,
+    "uncommitted_work_included": false,
+    "publish_ready": false,
+    "next": "After the owner rotates affected credentials and the source work is committed, review/rebuild the sanitized mirror from the final source, then coordinate any history rewrite and push.",
+    "additional_artifact": {
+      "path": "C:/Users/mdham/Downloads/paperplane-redacted-v24-prepared.git",
+      "known_historical_value_absent_from_remaining_git_objects": true,
+      "remote_configured": false,
+      "owner_review_marker_present": true,
+      "includes_uncommitted_workspace_changes": false,
+      "publish_ready": false,
+      "protected_v14_mirror_modified": false
+    }
+    ,"gitleaks_full_history_scan": "reports/launch-audit-v24/gitleaks-history-purge-scan.json; two scans of 49 commits each; no leaks found after reviewed narrow allowlists.",
+    "preparation_script_smoke_test": "Ran scripts/prepare_admin_history_purge.py into a disposable temporary mirror; verified OWNER-REVIEW-REQUIRED.txt remained and git remote -v was empty. The temp directory was automatically cleaned."
+  },
+  "findings": [
+    {
+      "severity": "Low",
+      "finding": "The live response still identifies the server as nginx, without a version number.",
+      "status": "Generic server name only; no version leak observed."
+    }
+  ]
+}

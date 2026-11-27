@@ -1,0 +1,87 @@
+{
+  "page_errors": [],
+  "console_errors": [],
+  "viewports": [
+    {
+      "width": 320,
+      "targets": {
+        "browse": {
+          "rect": [
+            129.5,
+            205.5,
+            543,
+            591
+          ],
+          "hit": "browse"
+        },
+        "cloud-drop-btn": {
+          "rect": [
+            94,
+            241,
+            591,
+            639
+          ],
+          "hit": "cloud-drop-btn"
+        }
+      },
+      "browse_opens_picker_only": true,
+      "import_button_opens_modal": true
+    },
+    {
+      "width": 390,
+      "targets": {
+        "browse": {
+          "rect": [
+            74.5,
+            150.5,
+            486,
+            534
+          ],
+          "hit": "browse"
+        },
+        "cloud-drop-btn": {
+          "rect": [
+            183.5,
+            330.5,
+            486,
+            534
+          ],
+          "hit": "cloud-drop-btn"
+        }
+      },
+      "browse_opens_picker_only": true,
+      "import_button_opens_modal": true
+    },
+    {
+      "width": 1366,
+      "targets": {
+        "browse": {
+          "rect": [
+            355,
+            431,
+            512.546875,
+            529.546875
+          ],
+          "hit": "browse"
+        },
+        "cloud-drop-btn": {
+          "rect": [
+            460,
+            607,
+            512.546875,
+            529.546875
+          ],
+          "hit": "cloud-drop-btn"
+        }
+      },
+      "browse_opens_picker_only": true,
+      "import_button_opens_modal": true
+    }
+  ],
+  "versions": {
+    "app_js": 181,
+    "styles_css": 64,
+    "shell": 126
+  },
+  "result": "passed"
+}

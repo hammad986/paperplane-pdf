@@ -1,0 +1,15 @@
+{
+  "checked_at": "2026-11-23",
+  "target": "https://paperplane.qd.je",
+  "browser": "Google Chrome via CUA",
+  "build_assets": {"app_js":"/assets/app.js?v=154","styles_css":"/assets/styles.css?v=61","pdf_runtime_js":"/assets/pdf_runtime.js?v=25"},
+  "fixture": "Public W3C dummy.pdf · 13.0 KB · 1 page; no user-owned file uploaded",
+  "cases": [
+    {"language":"hi","visible_result":"Translation complete","character_coverage":"100%","text_block_coverage":"100%","warnings":1,"studio_pages":1,"download_content_checked":false},
+    {"language":"es","visible_result":"Translation complete","character_coverage":"100%","text_block_coverage":"100%","warnings":0,"studio_pages":1,"studio_visible_text":"Archivo PDF de prueba","download_content_checked":false}
+  ],
+  "console_errors_and_warnings": [],
+  "payment_or_account_changes": false,
+  "limitations": ["Each language was run once on a public one-page fixture; this does not meet the intended multi-page, two-consecutive-round acceptance check.", "The browser controller could not expose the translated blob as a downloadable path; output PDF text was not independently parsed.", "The deployed build was v154; local candidate is v181."],
+  "result":"partial live provider evidence; P0 ID 1 remains open"
+}

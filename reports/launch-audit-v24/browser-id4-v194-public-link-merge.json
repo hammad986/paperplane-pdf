@@ -1,0 +1,38 @@
+{
+  "candidate": "Docker production-mode image app.js v194 / styles.css v71 / service-worker v146",
+  "browser": "Real Chrome via CUA",
+  "url": "http://127.0.0.1:8768/merge-pdf",
+  "imports": [
+    {
+      "source": "W3C public dummy PDF",
+      "visible_filename": "dummy.pdf",
+      "visible_size": "13.0 KB",
+      "import_result": "success"
+    },
+    {
+      "source": "arXiv 1706.03762 public PDF",
+      "visible_filename": "1706.03762v7.pdf",
+      "visible_size": "2.11 MB",
+      "visible_pages": 15,
+      "import_result": "success"
+    }
+  ],
+  "merge": {
+    "ui_status": "Your document is ready!",
+    "visible_filename": "merged-PDF.pdf",
+    "visible_size": "1.75 MB",
+    "visible_pages": 16
+  },
+  "download": {
+    "path": "C:\\Users\\mdham\\Downloads\\merged-PDF.pdf",
+    "bytes": 1829766,
+    "sha256": "f34eebc932bc0064e63999e97d433de2e8cda933bd41610cc54abd0547cc28e8",
+    "pdf_pages": 16,
+    "page_1_marker": "Dummy PDF file",
+    "arxiv_marker": "Attention Is All You Need",
+    "content_checked": true
+  },
+  "console_errors_and_warnings": [],
+  "owner_drive_url_tested": false,
+  "result": "public-link fixtures and output passed; owner-provided Drive URL and live deployment remain open"
+}

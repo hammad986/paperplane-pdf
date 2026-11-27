@@ -1,0 +1,38 @@
+{
+  "runtime": "local Chromium against isolated current-source server",
+  "synthetic_payload_only": true,
+  "checks": {
+    "appScript": "http://127.0.0.1:52503/assets/app.js?v=124",
+    "itemCount": 1,
+    "injectedImages": 0,
+    "markerExecuted": false,
+    "key": "evil<img src=x onerror=\"window.__paperplane_command_palette_xss=true\">",
+    "labelText": "<img src=x onerror=\"window.__paperplane_command_palette_xss=true\">",
+    "descriptionText": "<img src=x onerror=\"window.__paperplane_command_palette_xss=true\">",
+    "categoryText": "<img src=x onerror=\"window.__paperplane_command_palette_xss=true\">",
+    "role": "button",
+    "tabindex": "0",
+    "sidebar": {
+      "images": 0,
+      "buttonText": "<img src=x onerror=\"window.__paperplane_command_palette_xss=true\">",
+      "operation": "merge"
+    },
+    "home": {
+      "images": 0,
+      "title": "<img src=x onerror=\"window.__paperplane_command_palette_xss=true\">",
+      "description": "<img src=x onerror=\"window.__paperplane_command_palette_xss=true\">",
+      "badge": "<img src=x onerror=\"window.__paperplane_command_palette_xss=true\">"
+    },
+    "runButton": {
+      "images": 0,
+      "text": "<img src=x onerror=\"window.__paperplane_command_palette_xss=true\"> Now \u2192"
+    },
+    "unavailableButton": {
+      "images": 0,
+      "text": "<img src=x onerror=\"window.__paperplane_command_palette_xss=true\"> unavailable \u2715"
+    },
+    "pageWidth": 390,
+    "viewportWidth": 390
+  },
+  "page_errors": []
+}

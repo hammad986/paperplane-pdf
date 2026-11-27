@@ -1,0 +1,40 @@
+{
+  "source": "C:\\Users\\mdham\\Downloads\\notes.pdf",
+  "sourceBytes": 5456746,
+  "rounds": [
+    {
+      "inputBytes": 5456746,
+      "outputBytes": 5446228,
+      "reductionPercent": 0.193,
+      "pages": {
+        "input": 69,
+        "output": 69
+      },
+      "textChars": {
+        "input": 109299,
+        "output": 109299
+      },
+      "exactTextMatch": true,
+      "elapsedMs": 252,
+      "round": 1
+    },
+    {
+      "inputBytes": 5456746,
+      "outputBytes": 5446228,
+      "reductionPercent": 0.193,
+      "pages": {
+        "input": 69,
+        "output": 69
+      },
+      "textChars": {
+        "input": 109299,
+        "output": 109299
+      },
+      "exactTextMatch": true,
+      "elapsedMs": 139,
+      "round": 2
+    }
+  ],
+  "pageErrors": [],
+  "note": "Browser-only pdf-lib load/save feasibility probe; not a product implementation or a compression quality claim."
+}

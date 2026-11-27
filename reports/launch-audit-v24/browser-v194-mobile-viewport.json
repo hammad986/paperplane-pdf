@@ -1,0 +1,933 @@
+{
+  "candidate": "app.js v194/styles.css v71/service-worker v146",
+  "routes": 46,
+  "viewport_widths": [
+    320,
+    390
+  ],
+  "checks": [
+    {
+      "route": "/",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Tool Desk"
+      ]
+    },
+    {
+      "route": "/pricing",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Paperplane Pricing"
+      ]
+    },
+    {
+      "route": "/merge-pdf",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Merge PDF"
+      ]
+    },
+    {
+      "route": "/split-pdf",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Split / extract"
+      ]
+    },
+    {
+      "route": "/remove-pages-pdf",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Remove pages"
+      ]
+    },
+    {
+      "route": "/rotate-pdf",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Rotate PDF"
+      ]
+    },
+    {
+      "route": "/organize-pdf",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Page Organizer"
+      ]
+    },
+    {
+      "route": "/scan-to-pdf",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Scan to PDF"
+      ]
+    },
+    {
+      "route": "/compress-pdf",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Compress PDF"
+      ]
+    },
+    {
+      "route": "/repair-pdf",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Repair PDF"
+      ]
+    },
+    {
+      "route": "/ocr-pdf",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "OCR PDF"
+      ]
+    },
+    {
+      "route": "/jpg-to-pdf",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "JPG/PNG to PDF"
+      ]
+    },
+    {
+      "route": "/word-to-pdf",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Word to PDF"
+      ]
+    },
+    {
+      "route": "/excel-to-pdf",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Excel to PDF"
+      ]
+    },
+    {
+      "route": "/powerpoint-to-pdf",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "PowerPoint to PDF"
+      ]
+    },
+    {
+      "route": "/html-to-pdf",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "HTML to PDF"
+      ]
+    },
+    {
+      "route": "/pdf-to-jpg",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "PDF to JPG"
+      ]
+    },
+    {
+      "route": "/pdf-to-word",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "PDF to Word"
+      ]
+    },
+    {
+      "route": "/pdf-to-excel",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "PDF to Excel"
+      ]
+    },
+    {
+      "route": "/pdf-to-powerpoint",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "PDF to PowerPoint"
+      ]
+    },
+    {
+      "route": "/pdf-to-pdfa",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "PDF to PDF/A"
+      ]
+    },
+    {
+      "route": "/pdf-to-text",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "PDF to Text"
+      ]
+    },
+    {
+      "route": "/pdf-to-markdown",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "PDF to Markdown"
+      ]
+    },
+    {
+      "route": "/edit-pdf",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Add Text & Stamps"
+      ]
+    },
+    {
+      "route": "/annotate-pdf",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Annotate PDF"
+      ]
+    },
+    {
+      "route": "/crop-pdf",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Crop PDF"
+      ]
+    },
+    {
+      "route": "/redact-pdf",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Redact PDF"
+      ]
+    },
+    {
+      "route": "/watermark-pdf",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Watermark PDF"
+      ]
+    },
+    {
+      "route": "/add-page-numbers-to-pdf",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Page Numbers"
+      ]
+    },
+    {
+      "route": "/protect-pdf",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Protect PDF"
+      ]
+    },
+    {
+      "route": "/unlock-pdf",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Unlock PDF"
+      ]
+    },
+    {
+      "route": "/sign-pdf",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Sign PDF"
+      ]
+    },
+    {
+      "route": "/compare-pdf",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Compare PDF"
+      ]
+    },
+    {
+      "route": "/fill-pdf-form",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Fill PDF Form"
+      ]
+    },
+    {
+      "route": "/pdf-metadata",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "PDF Metadata"
+      ]
+    },
+    {
+      "route": "/ai-pdf-chat",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "AI Document Intelligence"
+      ]
+    },
+    {
+      "route": "/extract-pdf-data",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Smart Metadata"
+      ]
+    },
+    {
+      "route": "/summarize-pdf",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "AI Summarize"
+      ]
+    },
+    {
+      "route": "/translate-pdf",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "AI Translate"
+      ]
+    },
+    {
+      "route": "/ssc-photo-resizer",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Exam Photo & Signature Resizer"
+      ]
+    },
+    {
+      "route": "/compress-image-online",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Compress Photo / Image"
+      ]
+    },
+    {
+      "route": "/resize-image-dimensions",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Resize Photo Dimensions"
+      ]
+    },
+    {
+      "route": "/merge-photos-online",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Merge Photos into One"
+      ]
+    },
+    {
+      "route": "/mask-aadhaar-card-online",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Mask Aadhaar Card"
+      ]
+    },
+    {
+      "route": "/convert-pdf-to-grayscale",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Convert to Grayscale"
+      ]
+    },
+    {
+      "route": "/flatten-pdf",
+      "status": 200,
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "visibleH1": [
+        "Flatten PDF Forms"
+      ]
+    },
+    {
+      "route": "/",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Tool Desk"
+      ]
+    },
+    {
+      "route": "/pricing",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Paperplane Pricing"
+      ]
+    },
+    {
+      "route": "/merge-pdf",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Merge PDF"
+      ]
+    },
+    {
+      "route": "/split-pdf",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Split / extract"
+      ]
+    },
+    {
+      "route": "/remove-pages-pdf",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Remove pages"
+      ]
+    },
+    {
+      "route": "/rotate-pdf",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Rotate PDF"
+      ]
+    },
+    {
+      "route": "/organize-pdf",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Page Organizer"
+      ]
+    },
+    {
+      "route": "/scan-to-pdf",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Scan to PDF"
+      ]
+    },
+    {
+      "route": "/compress-pdf",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Compress PDF"
+      ]
+    },
+    {
+      "route": "/repair-pdf",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Repair PDF"
+      ]
+    },
+    {
+      "route": "/ocr-pdf",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "OCR PDF"
+      ]
+    },
+    {
+      "route": "/jpg-to-pdf",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "JPG/PNG to PDF"
+      ]
+    },
+    {
+      "route": "/word-to-pdf",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Word to PDF"
+      ]
+    },
+    {
+      "route": "/excel-to-pdf",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Excel to PDF"
+      ]
+    },
+    {
+      "route": "/powerpoint-to-pdf",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "PowerPoint to PDF"
+      ]
+    },
+    {
+      "route": "/html-to-pdf",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "HTML to PDF"
+      ]
+    },
+    {
+      "route": "/pdf-to-jpg",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "PDF to JPG"
+      ]
+    },
+    {
+      "route": "/pdf-to-word",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "PDF to Word"
+      ]
+    },
+    {
+      "route": "/pdf-to-excel",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "PDF to Excel"
+      ]
+    },
+    {
+      "route": "/pdf-to-powerpoint",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "PDF to PowerPoint"
+      ]
+    },
+    {
+      "route": "/pdf-to-pdfa",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "PDF to PDF/A"
+      ]
+    },
+    {
+      "route": "/pdf-to-text",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "PDF to Text"
+      ]
+    },
+    {
+      "route": "/pdf-to-markdown",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "PDF to Markdown"
+      ]
+    },
+    {
+      "route": "/edit-pdf",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Add Text & Stamps"
+      ]
+    },
+    {
+      "route": "/annotate-pdf",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Annotate PDF"
+      ]
+    },
+    {
+      "route": "/crop-pdf",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Crop PDF"
+      ]
+    },
+    {
+      "route": "/redact-pdf",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Redact PDF"
+      ]
+    },
+    {
+      "route": "/watermark-pdf",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Watermark PDF"
+      ]
+    },
+    {
+      "route": "/add-page-numbers-to-pdf",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Page Numbers"
+      ]
+    },
+    {
+      "route": "/protect-pdf",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Protect PDF"
+      ]
+    },
+    {
+      "route": "/unlock-pdf",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Unlock PDF"
+      ]
+    },
+    {
+      "route": "/sign-pdf",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Sign PDF"
+      ]
+    },
+    {
+      "route": "/compare-pdf",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Compare PDF"
+      ]
+    },
+    {
+      "route": "/fill-pdf-form",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Fill PDF Form"
+      ]
+    },
+    {
+      "route": "/pdf-metadata",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "PDF Metadata"
+      ]
+    },
+    {
+      "route": "/ai-pdf-chat",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "AI Document Intelligence"
+      ]
+    },
+    {
+      "route": "/extract-pdf-data",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Smart Metadata"
+      ]
+    },
+    {
+      "route": "/summarize-pdf",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "AI Summarize"
+      ]
+    },
+    {
+      "route": "/translate-pdf",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "AI Translate"
+      ]
+    },
+    {
+      "route": "/ssc-photo-resizer",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Exam Photo & Signature Resizer"
+      ]
+    },
+    {
+      "route": "/compress-image-online",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Compress Photo / Image"
+      ]
+    },
+    {
+      "route": "/resize-image-dimensions",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Resize Photo Dimensions"
+      ]
+    },
+    {
+      "route": "/merge-photos-online",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Merge Photos into One"
+      ]
+    },
+    {
+      "route": "/mask-aadhaar-card-online",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Mask Aadhaar Card"
+      ]
+    },
+    {
+      "route": "/convert-pdf-to-grayscale",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Convert to Grayscale"
+      ]
+    },
+    {
+      "route": "/flatten-pdf",
+      "status": 200,
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "visibleH1": [
+        "Flatten PDF Forms"
+      ]
+    }
+  ],
+  "issues": [],
+  "browser_errors": [],
+  "passed": true
+}

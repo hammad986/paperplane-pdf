@@ -1,0 +1,26 @@
+{
+  "route_attempts": [
+    502,
+    200
+  ],
+  "provider_attempts": [
+    {
+      "route_attempts": "2",
+      "provider_attempts": "2"
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "expected_http_error_console_entries": [
+    "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+  ],
+  "result_text": "GENERAL\nExtracted\nDocument Metadata Results\n\nFile: metadata.pdf \u2022 1 Page \u2022 Structured extraction\n\n\u00d7\nStructured View\nDeveloper JSON\n\u2022 The proposed document date could not be verified in the source text.\nDOCUMENT TITLE\nMachine Learning Notes\nDETECTED TOPICS COUNT\n1 topic\nDETECTED CONTACTS\nNo contact details found\nSOURCE PAGES\nPage 1\n Export JSON\n Export CSV\nCopy JSON\nDone",
+  "document_date_absent": true,
+  "topic_visible": true,
+  "route_attempts_counted": 2,
+  "http_status_sequence": [
+    502,
+    200
+  ],
+  "result": "passed"
+}

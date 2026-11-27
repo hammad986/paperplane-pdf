@@ -1,0 +1,46 @@
+{
+  "base": "http://127.0.0.1:8501",
+  "target": "local",
+  "fixture": "notes.pdf",
+  "source_pages": 69,
+  "rounds": [
+    {
+      "round": 1,
+      "fixture_pages": 69,
+      "http_status": 200,
+      "mode": "offline_extractive",
+      "summary_chars": 26000,
+      "citations_count": 69,
+      "citation_min": 1,
+      "citation_max": 69,
+      "has_offline_label": true,
+      "has_source_terms": true,
+      "has_page_69_citation": true,
+      "download_filename": "notes_executive_brief.txt",
+      "download_type": "UTF-8 TXT fallback",
+      "download_pages": null,
+      "download_chars": 26000,
+      "page_errors": [],
+      "passed": true
+    },
+    {
+      "round": 2,
+      "fixture_pages": 69,
+      "http_status": 200,
+      "mode": "offline_extractive",
+      "summary_chars": 26000,
+      "citations_count": 69,
+      "citation_min": 1,
+      "citation_max": 69,
+      "has_offline_label": true,
+      "has_source_terms": true,
+      "has_page_69_citation": true,
+      "download_filename": "notes_executive_brief.txt",
+      "download_type": "UTF-8 TXT fallback",
+      "download_pages": null,
+      "download_chars": 26000,
+      "page_errors": [],
+      "passed": true
+    }
+  ]
+}

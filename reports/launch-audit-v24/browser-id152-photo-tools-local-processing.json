@@ -1,0 +1,120 @@
+{
+  "build": "app191/styles71",
+  "feature": "four photo/image tools process in browser",
+  "checks": [
+    {
+      "round": 1,
+      "route": "/ssc-photo-resizer",
+      "download": "exam-photo.jpg",
+      "bytes": 38858,
+      "image_dimensions": [
+        350,
+        450
+      ],
+      "pdf_pages": null,
+      "local_toggle_checked": true,
+      "toggle_disabled": true,
+      "file_operation_api_requests": []
+    },
+    {
+      "round": 1,
+      "route": "/compress-image-online",
+      "download": "compress-1-compressed.jpg",
+      "bytes": 28616,
+      "image_dimensions": [
+        800,
+        600
+      ],
+      "pdf_pages": null,
+      "local_toggle_checked": true,
+      "toggle_disabled": true,
+      "file_operation_api_requests": []
+    },
+    {
+      "round": 1,
+      "route": "/resize-image-dimensions",
+      "download": "resize-1-resized.jpg",
+      "bytes": 6843,
+      "image_dimensions": [
+        160,
+        120
+      ],
+      "pdf_pages": null,
+      "local_toggle_checked": true,
+      "toggle_disabled": true,
+      "file_operation_api_requests": []
+    },
+    {
+      "round": 1,
+      "route": "/merge-photos-online",
+      "download": "merged-photos.jpg",
+      "bytes": 882,
+      "image_dimensions": [
+        120,
+        160
+      ],
+      "pdf_pages": null,
+      "local_toggle_checked": true,
+      "toggle_disabled": true,
+      "file_operation_api_requests": []
+    },
+    {
+      "round": 2,
+      "route": "/ssc-photo-resizer",
+      "download": "exam-photo.jpg",
+      "bytes": 38858,
+      "image_dimensions": [
+        350,
+        450
+      ],
+      "pdf_pages": null,
+      "local_toggle_checked": true,
+      "toggle_disabled": true,
+      "file_operation_api_requests": []
+    },
+    {
+      "round": 2,
+      "route": "/compress-image-online",
+      "download": "compress-2-compressed.jpg",
+      "bytes": 28616,
+      "image_dimensions": [
+        800,
+        600
+      ],
+      "pdf_pages": null,
+      "local_toggle_checked": true,
+      "toggle_disabled": true,
+      "file_operation_api_requests": []
+    },
+    {
+      "round": 2,
+      "route": "/resize-image-dimensions",
+      "download": "resize-2-resized.jpg",
+      "bytes": 6843,
+      "image_dimensions": [
+        160,
+        120
+      ],
+      "pdf_pages": null,
+      "local_toggle_checked": true,
+      "toggle_disabled": true,
+      "file_operation_api_requests": []
+    },
+    {
+      "round": 2,
+      "route": "/merge-photos-online",
+      "download": "merged-photos.jpg",
+      "bytes": 882,
+      "image_dimensions": [
+        120,
+        160
+      ],
+      "pdf_pages": null,
+      "local_toggle_checked": true,
+      "toggle_disabled": true,
+      "file_operation_api_requests": []
+    }
+  ],
+  "browser_errors": [],
+  "passed": true
+}

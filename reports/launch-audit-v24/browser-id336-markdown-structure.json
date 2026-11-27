@@ -1,0 +1,63 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "markdown_bytes": 169,
+      "checks": {
+        "document_title_heading": true,
+        "section_heading": true,
+        "single_bullet_marker": true,
+        "no_doubled_bullet": true,
+        "browser_discloses_table_limit": true
+      },
+      "result_warning": "structure-test.md \u00b7 169 B \u00b7 Basic browser Markdown preserves selectable text and basic headings/lists; tables, math layout, and scanned text are not reconstructed.",
+      "markdown_excerpt": "# structure-test\n\n## Page 1\n\n# Heading From Source\n## Section One: Report Findings\nRegular descriptive paragraph.\n- Normalize the broken bullet.\nItem Amount\nRevenue 12%\n"
+    },
+    {
+      "round": 2,
+      "markdown_bytes": 169,
+      "checks": {
+        "document_title_heading": true,
+        "section_heading": true,
+        "single_bullet_marker": true,
+        "no_doubled_bullet": true,
+        "browser_discloses_table_limit": true
+      },
+      "result_warning": "structure-test.md \u00b7 169 B \u00b7 Basic browser Markdown preserves selectable text and basic headings/lists; tables, math layout, and scanned text are not reconstructed.",
+      "markdown_excerpt": "# structure-test\n\n## Page 1\n\n# Heading From Source\n## Section One: Report Findings\nRegular descriptive paragraph.\n- Normalize the broken bullet.\nItem Amount\nRevenue 12%\n"
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "server_rounds": [
+    {
+      "round": 1,
+      "markdown_bytes": 216,
+      "checks": {
+        "document_title_heading": true,
+        "section_heading": true,
+        "single_bullet_marker": true,
+        "no_doubled_bullet": true,
+        "table_header": true,
+        "table_data": true,
+        "table_separator": true
+      },
+      "markdown_excerpt": "# structure-test\r\n\r\n## Page 1\r\n\r\n\r\n# Heading From Source\r\n\r\n## Section One: Report Findings\r\n\r\nRegular descriptive paragraph.\r\n\r\n- Normalize the broken bullet.\r\n\r\n| Item | Amount |\r\n| --- | --- |\r\n| Revenue | 12% |\r\n"
+    },
+    {
+      "round": 2,
+      "markdown_bytes": 216,
+      "checks": {
+        "document_title_heading": true,
+        "section_heading": true,
+        "single_bullet_marker": true,
+        "no_doubled_bullet": true,
+        "table_header": true,
+        "table_data": true,
+        "table_separator": true
+      },
+      "markdown_excerpt": "# structure-test\r\n\r\n## Page 1\r\n\r\n\r\n# Heading From Source\r\n\r\n## Section One: Report Findings\r\n\r\nRegular descriptive paragraph.\r\n\r\n- Normalize the broken bullet.\r\n\r\n| Item | Amount |\r\n| --- | --- |\r\n| Revenue | 12% |\r\n"
+    }
+  ],
+  "passed": true
+}

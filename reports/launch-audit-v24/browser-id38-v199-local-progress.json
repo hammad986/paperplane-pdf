@@ -1,0 +1,78 @@
+{
+  "candidate": "paperplane-codex:v199",
+  "base": "http://127.0.0.1:8770",
+  "fixture": "id2-docker-v188-69page.pdf",
+  "pages": 69,
+  "rounds": [
+    {
+      "route": "/sign-pdf",
+      "http_status": 200,
+      "duration_s": 0.489,
+      "progress_samples": [
+        {
+          "elapsed_s": 0.283,
+          "visible": true,
+          "title": "Processing in your browser\u2026",
+          "percent": "Working",
+          "barValue": 0,
+          "indeterminate": true,
+          "result": false,
+          "error": "\n            \n              Your document is ready!\n              \n            \n            \n            \n              \n                \n                Download File\n              \n              \n                \n                View in Studio\n              \n              \n                \n                Process Another File\n              \n              \n                \n                All Tools\n              \n            \n\n          "
+        },
+        {
+          "elapsed_s": 0.485,
+          "visible": false,
+          "title": "Complete",
+          "percent": "100%",
+          "barValue": 100,
+          "indeterminate": false,
+          "result": true,
+          "error": "Your document is ready!\nid2-docker-v188-69page-signed.pdf \u00b7 30.7 KB \u00b7 Reading page count\u2026\nDownload File\nView in Studio\nProcess Another File\nAll Tools"
+        }
+      ],
+      "outcome": {
+        "resultVisible": true,
+        "text": "Your document is ready!\nid2-docker-v188-69page-signed.pdf \u00b7 30.7 KB \u00b7 Reading page count\u2026\nDownload File\nView in Studio\nProcess Another File\nAll Tools",
+        "download": "id2-docker-v188-69page-signed.pdf",
+        "href": "blob:http://127.0.0.1:8770/b4e784db-e79f-451c-932f-332089349fcf",
+        "href_scheme": "blob"
+      }
+    },
+    {
+      "route": "/flatten-pdf",
+      "http_status": 200,
+      "duration_s": 0.404,
+      "progress_samples": [
+        {
+          "elapsed_s": 0.146,
+          "visible": true,
+          "title": "Processing in your browser\u2026",
+          "percent": "Working",
+          "barValue": 0,
+          "indeterminate": true,
+          "result": false,
+          "error": "\n            \n              Your document is ready!\n              \n            \n            \n            \n              \n                \n                Download File\n              \n              \n                \n                View in Studio\n              \n              \n                \n                Process Another File\n              \n              \n                \n                All Tools\n              \n            \n\n          "
+        },
+        {
+          "elapsed_s": 0.354,
+          "visible": false,
+          "title": "Complete",
+          "percent": "100%",
+          "barValue": 100,
+          "indeterminate": false,
+          "result": true,
+          "error": "Your document is ready!\nflattened.pdf \u00b7 30.2 KB \u00b7 Reading page count\u2026\nDownload File\nView in Studio\nProcess Another File\nAll Tools"
+        }
+      ],
+      "outcome": {
+        "resultVisible": true,
+        "text": "Your document is ready!\nflattened.pdf \u00b7 30.2 KB \u00b7 Reading page count\u2026\nDownload File\nView in Studio\nProcess Another File\nAll Tools",
+        "download": "flattened.pdf",
+        "href": "blob:http://127.0.0.1:8770/f4100c67-fd44-4ffd-9ac7-6e546d6cf7b2",
+        "href_scheme": "blob"
+      }
+    }
+  ],
+  "page_errors": [],
+  "result": "passed"
+}

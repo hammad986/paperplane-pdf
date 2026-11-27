@@ -1,0 +1,19 @@
+{
+  "tag": "paperplane-v23-audit:codex-v135",
+  "image_id": "sha256:7a6fbdcf3decc3a0862d89db56889df27a3a082a447060a4e91b2e4fca23b785",
+  "container_id": "e4b23810947d1241ac8b7df01c14f64aa5e00d868316bc199d43facd73885044",
+  "configured_user": "root",
+  "tmpfs": {
+    "/data": "rw,size=1g,uid=1001,gid=1001",
+    "/tmp": "rw,size=2g,mode=1777"
+  },
+  "app_workers_uid_1001": true,
+  "synthetic_values_only": true,
+  "real_payment_attempted": false,
+  "stopped_after_test": true,
+  "status_before_stop": "running",
+  "health_before_stop": "healthy",
+  "container_configured_user": "root (entrypoint drops app workers to UID 1001)",
+  "status_after_test": "stopped and removed",
+  "browser_download_content_checked": true
+}

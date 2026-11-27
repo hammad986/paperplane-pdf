@@ -1,0 +1,371 @@
+{
+  "item": 28,
+  "test": "in-process concurrent current-source watermark stress",
+  "source_pages": 20,
+  "rounds": 5,
+  "concurrency_per_round": 8,
+  "jobs_total": 40,
+  "all_jobs_complete": true,
+  "all_page_counts_preserved": true,
+  "all_source_markers_preserved": true,
+  "all_unique_watermarks_present": true,
+  "max_job_seconds": 2.887,
+  "round_results": [
+    {
+      "round": 1,
+      "concurrency": 8,
+      "elapsed_seconds": 2.568,
+      "jobs": [
+        {
+          "job": 0,
+          "elapsed_seconds": 2.233,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27424
+        },
+        {
+          "job": 1,
+          "elapsed_seconds": 2.334,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27424
+        },
+        {
+          "job": 2,
+          "elapsed_seconds": 2.241,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27424
+        },
+        {
+          "job": 3,
+          "elapsed_seconds": 2.476,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27424
+        },
+        {
+          "job": 4,
+          "elapsed_seconds": 2.562,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27424
+        },
+        {
+          "job": 5,
+          "elapsed_seconds": 2.393,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27424
+        },
+        {
+          "job": 6,
+          "elapsed_seconds": 2.423,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27424
+        },
+        {
+          "job": 7,
+          "elapsed_seconds": 2.502,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27424
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "concurrency": 8,
+      "elapsed_seconds": 2.718,
+      "jobs": [
+        {
+          "job": 8,
+          "elapsed_seconds": 2.0,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27424
+        },
+        {
+          "job": 9,
+          "elapsed_seconds": 2.433,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27424
+        },
+        {
+          "job": 10,
+          "elapsed_seconds": 2.155,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27425
+        },
+        {
+          "job": 11,
+          "elapsed_seconds": 2.493,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27425
+        },
+        {
+          "job": 12,
+          "elapsed_seconds": 2.67,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27425
+        },
+        {
+          "job": 13,
+          "elapsed_seconds": 2.36,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27425
+        },
+        {
+          "job": 14,
+          "elapsed_seconds": 2.704,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27425
+        },
+        {
+          "job": 15,
+          "elapsed_seconds": 2.527,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27425
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "concurrency": 8,
+      "elapsed_seconds": 2.735,
+      "jobs": [
+        {
+          "job": 16,
+          "elapsed_seconds": 2.387,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27425
+        },
+        {
+          "job": 17,
+          "elapsed_seconds": 2.325,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27425
+        },
+        {
+          "job": 18,
+          "elapsed_seconds": 2.578,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27425
+        },
+        {
+          "job": 19,
+          "elapsed_seconds": 2.352,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27425
+        },
+        {
+          "job": 20,
+          "elapsed_seconds": 2.446,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27425
+        },
+        {
+          "job": 21,
+          "elapsed_seconds": 2.578,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27424
+        },
+        {
+          "job": 22,
+          "elapsed_seconds": 2.692,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27425
+        },
+        {
+          "job": 23,
+          "elapsed_seconds": 2.676,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27425
+        }
+      ]
+    },
+    {
+      "round": 4,
+      "concurrency": 8,
+      "elapsed_seconds": 2.903,
+      "jobs": [
+        {
+          "job": 24,
+          "elapsed_seconds": 2.201,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27425
+        },
+        {
+          "job": 25,
+          "elapsed_seconds": 2.494,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27425
+        },
+        {
+          "job": 26,
+          "elapsed_seconds": 2.77,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27425
+        },
+        {
+          "job": 27,
+          "elapsed_seconds": 2.588,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27425
+        },
+        {
+          "job": 28,
+          "elapsed_seconds": 2.887,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27425
+        },
+        {
+          "job": 29,
+          "elapsed_seconds": 2.523,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27425
+        },
+        {
+          "job": 30,
+          "elapsed_seconds": 2.769,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27425
+        },
+        {
+          "job": 31,
+          "elapsed_seconds": 2.873,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27425
+        }
+      ]
+    },
+    {
+      "round": 5,
+      "concurrency": 8,
+      "elapsed_seconds": 2.768,
+      "jobs": [
+        {
+          "job": 32,
+          "elapsed_seconds": 2.578,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27425
+        },
+        {
+          "job": 33,
+          "elapsed_seconds": 2.378,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27425
+        },
+        {
+          "job": 34,
+          "elapsed_seconds": 2.763,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27425
+        },
+        {
+          "job": 35,
+          "elapsed_seconds": 2.37,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27425
+        },
+        {
+          "job": 36,
+          "elapsed_seconds": 2.565,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27426
+        },
+        {
+          "job": 37,
+          "elapsed_seconds": 2.698,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27425
+        },
+        {
+          "job": 38,
+          "elapsed_seconds": 2.628,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27425
+        },
+        {
+          "job": 39,
+          "elapsed_seconds": 2.62,
+          "pages": 20,
+          "source_markers_preserved": true,
+          "own_watermark_present": true,
+          "output_bytes": 27425
+        }
+      ]
+    }
+  ],
+  "limitation": "This does not reproduce the intermittent queued-job stall or prove its root cause/fix."
+}

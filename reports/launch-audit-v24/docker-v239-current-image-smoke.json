@@ -1,0 +1,26 @@
+{
+  "image": "paperplane-codex:v239-current",
+  "image_id": "sha256:9f5bc33a8ccda03fd7e9d67efc90263dd41c3fb95d5e6c2b1b609c82f7ac8df3",
+  "health": {
+    "status": "ok",
+    "service": "paperplane-pdf",
+    "workers": 4,
+    "max_file_size_mb": 500,
+    "job_ttl_hours": 2
+  },
+  "assets": {
+    "app_js": "v238",
+    "styles_css": "v90",
+    "service_worker_shell": "v214",
+    "precache_app_js": "v238"
+  },
+  "worker": "PDF-to-Word isolated killable child with page-count-scaled deadline",
+  "browser_catalog": "browser-id28-v239-docker-current-catalog.json",
+  "p0_rounds": [
+    "browser-p0-v239-current.json",
+    "browser-p0-v239-current-round2.json"
+  ],
+  "container_removed": true,
+  "temporary_volume_removed": true,
+  "passed": true
+}

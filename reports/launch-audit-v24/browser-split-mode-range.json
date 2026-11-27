@@ -1,0 +1,31 @@
+{
+  "rounds": [
+    {
+      "all_pages_mode": {
+        "mode": "all_pages",
+        "rangeHidden": true,
+        "rangeDisabled": true,
+        "help": "All pages will be split into separate PDFs. Custom page ranges are disabled for this mode."
+      },
+      "invalid_range_inline_validation": {
+        "value": "11",
+        "focused": true,
+        "invalid": "true",
+        "help": "Enter page numbers from 1 to 10. This PDF has 10 pages.",
+        "uploadPromptShown": false
+      },
+      "custom_mode_range_enabled": true,
+      "custom_range": "2-3",
+      "download_name": "extracted-pages.pdf",
+      "output_page_count": 2,
+      "page_text": [
+        "SPLIT FIXTURE PAGE 2",
+        "SPLIT FIXTURE PAGE 3"
+      ],
+      "output_content_checked": true
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "result": true
+}

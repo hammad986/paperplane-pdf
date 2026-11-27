@@ -1,0 +1,32 @@
+{
+  "route": "/mask-aadhaar-card-online",
+  "fixture": "synthetic image with 1234 5678 9012; output blackens leading digits and preserves suffix region",
+  "rounds": [
+    {
+      "round": 1,
+      "output_dimensions": [
+        1200,
+        800
+      ],
+      "download_name": "synthetic-id_mask_aadhaar.png",
+      "black_pixels_in_first_eight_region": 29127,
+      "last_four_region_unchanged": true,
+      "server_posts": 1,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "output_dimensions": [
+        1200,
+        800
+      ],
+      "download_name": "synthetic-id_mask_aadhaar.png",
+      "black_pixels_in_first_eight_region": 29127,
+      "last_four_region_unchanged": true,
+      "server_posts": 1,
+      "page_errors": []
+    }
+  ],
+  "source_image": "browser-id188-synthetic-image-source.png",
+  "masked_output": "browser-id188-synthetic-image-masked.png"
+}

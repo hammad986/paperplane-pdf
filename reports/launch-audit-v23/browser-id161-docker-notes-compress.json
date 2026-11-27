@@ -1,0 +1,41 @@
+{
+  "image": "paperplane-v23-audit:codex-current",
+  "image_id": "sha256:d0352418d4c2aaf1fd1c5fb1f73a5c17c4f7050c157081015f815768e10da233",
+  "fixture": "C:\\Users\\mdham\\Downloads\\notes.pdf",
+  "source_pages": 69,
+  "source_marker": "Introduction to Machine Learning Class Notes",
+  "rounds": [
+    {
+      "round": 1,
+      "http_status": 200,
+      "source_bytes": 5456746,
+      "source_sha256": "9e436e944e5901bd8b7030c9c184aea83af5a80b632fcd2e5d44ead1314ab8bb",
+      "output_bytes": 2838978,
+      "output_pages": 69,
+      "all_page_text_and_order_preserved": true,
+      "mean_rendered_rgb_difference_0_255": 0.1782144448009553,
+      "max_page_rendered_rgb_difference_0_255": 1.3410483064363528,
+      "target_100000_bytes_reached": false,
+      "missed_target_warning_visible": true,
+      "result_meta": "notes_compress.pdf · 2.71 MB · 69 pages · Compressed to 2772.4 KB; the requested target could not be reached while preserving document content.",
+      "download_name": "notes_compress.pdf",
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "http_status": 200,
+      "source_bytes": 5456746,
+      "source_sha256": "9e436e944e5901bd8b7030c9c184aea83af5a80b632fcd2e5d44ead1314ab8bb",
+      "output_bytes": 2838978,
+      "output_pages": 69,
+      "all_page_text_and_order_preserved": true,
+      "mean_rendered_rgb_difference_0_255": 0.1782144448009553,
+      "max_page_rendered_rgb_difference_0_255": 1.3410483064363528,
+      "target_100000_bytes_reached": false,
+      "missed_target_warning_visible": true,
+      "result_meta": "notes_compress.pdf · 2.71 MB · 69 pages · Compressed to 2772.4 KB; the requested target could not be reached while preserving document content.",
+      "download_name": "notes_compress.pdf",
+      "page_errors": []
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "item": 305,
+  "candidate": "current local source; actual API request, no mocked chat stream",
+  "expectedPdfMetadataTitle": "Aurora Field Research \u2014 2026",
+  "rounds": [
+    {
+      "round": 1,
+      "viewport": 390,
+      "title": null,
+      "answer": "The document title is \"Aurora Field Research \u2014 2026\". The file name is \"title-fixture.pdf\".",
+      "api": [
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:65506/api/ai/chat/stream"
+        }
+      ],
+      "overflow": false
+    },
+    {
+      "round": 2,
+      "viewport": 1366,
+      "title": null,
+      "answer": "The document title is \"Aurora Field Research \u2014 2026\". The file name is \"title-fixture.pdf\".",
+      "api": [
+        {
+          "status": 200,
+          "url": "http://127.0.0.1:65506/api/ai/chat/stream"
+        }
+      ],
+      "overflow": false
+    }
+  ],
+  "browserErrors": [],
+  "passed": true
+}

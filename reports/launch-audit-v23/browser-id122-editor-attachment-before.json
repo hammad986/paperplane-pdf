@@ -1,0 +1,37 @@
+{
+  "label": "before",
+  "source_sha256": "9e436e944e5901bd8b7030c9c184aea83af5a80b632fcd2e5d44ead1314ab8bb",
+  "source_bytes": 5456746,
+  "rounds": [
+    {
+      "round": 1,
+      "first_page_seconds": 1.82,
+      "attachment_calls": [
+        {
+          "page": 1,
+          "time": 6167.699999988079
+        },
+        {
+          "page": 1,
+          "time": 6183.9000000059605
+        }
+      ],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "first_page_seconds": 1.67,
+      "attachment_calls": [
+        {
+          "page": 1,
+          "time": 3600.4000000059605
+        },
+        {
+          "page": 1,
+          "time": 3619.7999999821186
+        }
+      ],
+      "page_errors": []
+    }
+  ]
+}

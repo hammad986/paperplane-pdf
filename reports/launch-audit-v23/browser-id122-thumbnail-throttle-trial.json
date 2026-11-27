@@ -1,0 +1,50 @@
+{
+  "experiment": "temporary mobile thumbnail render concurrency cap of one",
+  "disposition": "reverted; responsiveness improvement not established",
+  "fixture": "C:/Users/mdham/Downloads/notes.pdf",
+  "page_count": 69,
+  "viewport": "390x844",
+  "device_pixel_ratio": 3,
+  "cpu_throttle_rate": 4,
+  "rounds": [
+    {
+      "round": 1,
+      "first_page_readiness_seconds": 8.15,
+      "long_tasks_over_50ms": 53,
+      "maximum_long_task_ms": 647,
+      "thumbnail_peak_concurrency": 1,
+      "export_pages_and_text_order_preserved": true,
+      "page_errors": 0
+    },
+    {
+      "round": 2,
+      "first_page_readiness_seconds": 8.17,
+      "long_tasks_over_50ms": 61,
+      "maximum_long_task_ms": 458,
+      "thumbnail_peak_concurrency": 1,
+      "export_pages_and_text_order_preserved": true,
+      "page_errors": 0
+    }
+  ],
+  "fresh_baseline_after_revert": [
+    {
+      "round": 1,
+      "first_page_readiness_seconds": 7.4,
+      "long_tasks_over_50ms": 42,
+      "maximum_long_task_ms": 482,
+      "thumbnail_peak_concurrency": 9,
+      "export_pages_and_text_order_preserved": true,
+      "page_errors": 0
+    },
+    {
+      "round": 2,
+      "first_page_readiness_seconds": 7.08,
+      "long_tasks_over_50ms": 42,
+      "maximum_long_task_ms": 402,
+      "thumbnail_peak_concurrency": 9,
+      "export_pages_and_text_order_preserved": true,
+      "page_errors": 0
+    }
+  ],
+  "limitations": "The temporary-run detailed profile was overwritten by the post-revert baseline run; these values were captured from the two-round run output. They are comparative evidence, not proof that the baseline meets the 250ms target."
+}

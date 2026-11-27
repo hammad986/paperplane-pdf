@@ -1,0 +1,38 @@
+{
+  "route": "/studio",
+  "rounds": [
+    {
+      "round": 1,
+      "immediate": {
+        "controls": 100,
+        "missingNames": 0
+      },
+      "eventually_named": {
+        "controls": 100,
+        "missingNames": 0
+      },
+      "dynamic_mutation_label": {
+        "label": "Dynamically added label probe",
+        "id": "paperplane-control-1"
+      }
+    },
+    {
+      "round": 2,
+      "immediate": {
+        "controls": 100,
+        "missingNames": 0
+      },
+      "eventually_named": {
+        "controls": 100,
+        "missingNames": 0
+      },
+      "dynamic_mutation_label": {
+        "label": "Dynamically added label probe",
+        "id": "paperplane-control-1"
+      }
+    }
+  ],
+  "page_errors": [],
+  "unexpected_console_errors": [],
+  "result": "passed"
+}

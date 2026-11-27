@@ -1,0 +1,132 @@
+{
+  "duration_s": 5.28,
+  "samples": 3396,
+  "hot_paths": [
+    {
+      "samples": 33,
+      "chain": [
+        "showText@pdf.min.js:21",
+        "executeOperatorList@pdf.min.js:21",
+        "_next@pdf.min.js:21",
+        "<anon>@pdf.min.js:21",
+        "(root)@:-1"
+      ]
+    },
+    {
+      "samples": 30,
+      "chain": [
+        "querySelectorAll@:-1",
+        "syncOpenOverlayStack@app.js?v=111:8076",
+        "(root)@:-1"
+      ]
+    },
+    {
+      "samples": 21,
+      "chain": [
+        "getStudioPageScale@app.js?v=111:2862",
+        "renderStudioPageNow@app.js?v=111:2958",
+        "(root)@:-1"
+      ]
+    },
+    {
+      "samples": 20,
+      "chain": [
+        "renderStudioPageNow@app.js?v=111:2958",
+        "(root)@:-1"
+      ]
+    },
+    {
+      "samples": 2,
+      "chain": [
+        "querySelectorAll@:-1",
+        "$$@app.js?v=111:623",
+        "<anon>@app.js?v=111:0",
+        "(root)@:-1"
+      ]
+    },
+    {
+      "samples": 1,
+      "chain": [
+        "querySelectorAll@:-1",
+        "_bindSecurityModal@security_forms.js?v=6.2.3:677",
+        "init@security_forms.js?v=6.2.3:50",
+        "<anon>@security_forms.js?v=6.2.3:11",
+        "<anon>@security_forms.js?v=6.2.3:0",
+        "(root)@:-1"
+      ]
+    },
+    {
+      "samples": 1,
+      "chain": [
+        "querySelectorAll@:-1",
+        "addMissingControlLabels@app.js?v=111:53",
+        "<anon>@app.js?v=111:0",
+        "(root)@:-1"
+      ]
+    },
+    {
+      "samples": 1,
+      "chain": [
+        "querySelectorAll@:-1",
+        "syncOpenOverlayStack@app.js?v=111:8076",
+        "installOverlayEscapeStack@app.js?v=111:8116",
+        "init@app.js?v=111:8219",
+        "<anon>@app.js?v=111:0",
+        "(root)@:-1"
+      ]
+    },
+    {
+      "samples": 1,
+      "chain": [
+        "querySelectorAll@:-1",
+        "addEndpointTableMobileLabels@app.js?v=111:1905",
+        "init@app.js?v=111:8219",
+        "<anon>@app.js?v=111:0",
+        "(root)@:-1"
+      ]
+    },
+    {
+      "samples": 1,
+      "chain": [
+        "querySelectorAll@:-1",
+        "$$@app.js?v=111:623",
+        "initHomeSearchAndFilter@app.js?v=111:1797",
+        "init@app.js?v=111:8219",
+        "<anon>@app.js?v=111:0",
+        "(root)@:-1"
+      ]
+    },
+    {
+      "samples": 1,
+      "chain": [
+        "querySelectorAll@:-1",
+        "$$@app.js?v=111:623",
+        "switchWorkspaceView@app.js?v=111:1245",
+        "setInitialView@app.js?v=111:8498",
+        "handleInitialRouting@app.js?v=111:8492",
+        "init@app.js?v=111:8219",
+        "<anon>@app.js?v=111:0",
+        "(root)@:-1"
+      ]
+    },
+    {
+      "samples": 1,
+      "chain": [
+        "querySelectorAll@:-1",
+        "bindFeedbackEvents@feedback.js?v=17:398",
+        "<anon>@feedback.js?v=17:89",
+        "(root)@:-1"
+      ]
+    },
+    {
+      "samples": 1,
+      "chain": [
+        "querySelectorAll@:-1",
+        "$$@app.js?v=111:623",
+        "renderSidebarTools@app.js?v=111:1529",
+        "<anon>@app.js?v=111:8244",
+        "(root)@:-1"
+      ]
+    }
+  ]
+}

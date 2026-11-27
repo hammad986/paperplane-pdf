@@ -1,0 +1,13 @@
+{
+  "docker_compose_config": {
+    "command": "docker compose config -q",
+    "exit_code": 0,
+    "result": "valid"
+  },
+  "docker_engine": {
+    "command": "docker info --format '{{.ServerVersion}}'",
+    "result": "hung without output for over 50 seconds; interrupted",
+    "image_build": "not run because Docker daemon did not respond"
+  },
+  "deployment": "no deploy performed"
+}

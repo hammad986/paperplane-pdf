@@ -1,0 +1,21 @@
+{
+  "command": "python -m pytest -q",
+  "sequential": true,
+  "production_endpoints_contacted": false,
+  "results": [
+    {
+      "round": 1,
+      "exit_code": 0,
+      "duration_seconds": 147.54,
+      "summary": "685 passed, 4 warnings in 143.07s (0:02:23)",
+      "log": "pytest-v188-limit-policy-round1.log"
+    },
+    {
+      "round": 2,
+      "exit_code": 0,
+      "duration_seconds": 149.43,
+      "summary": "685 passed, 4 warnings in 143.93s (0:02:23)",
+      "log": "pytest-v188-limit-policy-round2.log"
+    }
+  ]
+}

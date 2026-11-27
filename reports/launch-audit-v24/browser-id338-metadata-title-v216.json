@@ -1,0 +1,12 @@
+{
+  "page_errors": [],
+  "console_errors": [],
+  "network_errors": [],
+  "structured_title_correct": true,
+  "structured_boilerplate": false,
+  "json_title_correct": true,
+  "json_boilerplate": false,
+  "structured": "GENERAL\nExtracted\nDocument Metadata Results\n\nFile: id338-attention-title-v216.pdf \u2022 1 Page \u2022 Structured extraction\n\n\u00d7\nStructured View\nDeveloper JSON\nDOCUMENT TITLE\nAttention Is All You Need\nDETECTED TOPICS COUNT\n\u2014\nDETECTED CONTACTS\nNo contact details found\nSOURCE PAGES\nPage 1\n Export JSON\n Export CSV\nCopy JSON\nDone",
+  "json": "{\n  \"document_type\": \"general\",\n  \"total_pages\": 1,\n  \"contact\": {\n    \"emails\": [],\n    \"phones\": []\n  },\n  \"source_pages\": [\n    1\n  ],\n  \"warnings\": [],\n  \"retrieval_method\": \"Page-bounded structural extraction\",\n  \"general_data\": {\n    \"title\": \"Attention Is All You Need\",\n    \"document_date\": null,\n    \"detected_topics\": [],\n    \"key_entities\": []\n  },\n  \"csv_export\": \"DocumentTitle,DocumentDate,TotalPages,Emails,Phones,Topics\\r\\nAttention Is All You Need,,1,,,\"\n}",
+  "result": "passed"
+}

@@ -1,0 +1,35 @@
+{
+  "rounds": [
+    {
+      "theme": "dark",
+      "during_load": {
+        "theme": "dark",
+        "overlayVisible": true,
+        "background": "rgb(20, 27, 29)",
+        "filter": "none",
+        "loadingText": "Loading document\u2026",
+        "previousPageStillInMemory": 1
+      },
+      "after_text": "NEW DOCUMENT CONTENT",
+      "final_new_document_loaded": true,
+      "old_document_visible_under_overlay": false
+    },
+    {
+      "theme": "light",
+      "during_load": {
+        "theme": "light",
+        "overlayVisible": true,
+        "background": "rgb(248, 250, 249)",
+        "filter": "none",
+        "loadingText": "Loading document\u2026",
+        "previousPageStillInMemory": 1
+      },
+      "after_text": "NEW DOCUMENT CONTENT",
+      "final_new_document_loaded": true,
+      "old_document_visible_under_overlay": false
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "result": "passed"
+}

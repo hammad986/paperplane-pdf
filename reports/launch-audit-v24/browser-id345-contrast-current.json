@@ -1,0 +1,61 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "operation": "watermark",
+      "bytes": 21470,
+      "marker": "DARK REPORT",
+      "red_fill": true,
+      "fill_and_outline": true,
+      "preview": "Watermark\n\nCentered diagonal watermark \u00b7 Preview on a mostly dark background; inspect each page before sharing."
+    },
+    {
+      "round": 1,
+      "operation": "page_numbers",
+      "bytes": 12360,
+      "marker": "Page 1 of 1",
+      "red_fill": true,
+      "fill_and_outline": true,
+      "preview": "Page 1 of 1\n\nFooter center \u00b7 Page 1 of 1 \u00b7 Preview on a mostly dark background; inspect each page before sharing."
+    },
+    {
+      "round": 1,
+      "operation": "sign",
+      "bytes": 1684,
+      "marker": "Audit Signer",
+      "red_fill": true,
+      "fill_and_outline": true,
+      "preview": "Signature\n\nSignature area at the lower right of page 1 \u00b7 Preview on a mostly dark background; inspect each page before sharing."
+    },
+    {
+      "round": 2,
+      "operation": "watermark",
+      "bytes": 21470,
+      "marker": "DARK REPORT",
+      "red_fill": true,
+      "fill_and_outline": true,
+      "preview": "Watermark\n\nCentered diagonal watermark \u00b7 Preview on a mostly dark background; inspect each page before sharing."
+    },
+    {
+      "round": 2,
+      "operation": "page_numbers",
+      "bytes": 12360,
+      "marker": "Page 1 of 1",
+      "red_fill": true,
+      "fill_and_outline": true,
+      "preview": "Page 1 of 1\n\nFooter center \u00b7 Page 1 of 1 \u00b7 Preview on a mostly dark background; inspect each page before sharing."
+    },
+    {
+      "round": 2,
+      "operation": "sign",
+      "bytes": 1684,
+      "marker": "Audit Signer",
+      "red_fill": true,
+      "fill_and_outline": true,
+      "preview": "Signature\n\nSignature area at the lower right of page 1 \u00b7 Preview on a mostly dark background; inspect each page before sharing."
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "passed": true
+}

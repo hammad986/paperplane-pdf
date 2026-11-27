@@ -1,0 +1,282 @@
+{
+  "cpu_throttle": 4,
+  "source_bytes": 5456746,
+  "loaf_supported": true,
+  "frames": [
+    {
+      "duration": 1752.6000000238419,
+      "startTime": 332.89999997615814,
+      "scripts": [
+        {
+          "name": "",
+          "invoker": "http://127.0.0.1:62499/assets/theme-init.js?v=13",
+          "source": "http://127.0.0.1:62499/assets/theme-init.js?v=13",
+          "line": 0,
+          "duration": 14.099999964237213,
+          "executionStart": 346.89999997615814
+        }
+      ]
+    },
+    {
+      "duration": 1220.300000011921,
+      "startTime": 2144.699999988079,
+      "scripts": [
+        {
+          "name": "",
+          "invoker": "http://127.0.0.1:62499/assets/security_forms.js?v=6.2.4",
+          "source": "http://127.0.0.1:62499/assets/security_forms.js?v=6.2.4",
+          "line": 0,
+          "duration": 7.900000035762787,
+          "executionStart": 2150.599999964237
+        },
+        {
+          "name": "",
+          "invoker": "http://127.0.0.1:62499/assets/optimization_engine.js?v=4.2.3",
+          "source": "http://127.0.0.1:62499/assets/optimization_engine.js?v=4.2.3",
+          "line": 0,
+          "duration": 15.800000011920929,
+          "executionStart": 2160.399999976158
+        },
+        {
+          "name": "",
+          "invoker": "http://127.0.0.1:62499/assets/page_organizer.js?v=21",
+          "source": "http://127.0.0.1:62499/assets/page_organizer.js?v=21",
+          "line": 0,
+          "duration": 14.199999988079071,
+          "executionStart": 2178.699999988079
+        },
+        {
+          "name": "",
+          "invoker": "http://127.0.0.1:62499/assets/app.js?v=238",
+          "source": "http://127.0.0.1:62499/assets/app.js?v=238",
+          "line": 0,
+          "duration": 1060.5999999642372,
+          "executionStart": 2197.599999964237
+        },
+        {
+          "name": "",
+          "invoker": "FrameRequestCallback",
+          "source": "http://127.0.0.1:62499/assets/app.js?v=238",
+          "line": 57709,
+          "duration": 79.90000003576279,
+          "executionStart": 3271.599999964237
+        }
+      ]
+    },
+    {
+      "duration": 217.39999997615814,
+      "startTime": 3390.899999976158,
+      "scripts": [
+        {
+          "name": "",
+          "invoker": "#document.onDOMContentLoaded",
+          "source": "http://127.0.0.1:62499/assets/conversion_engine.js?v=5.2.2",
+          "line": 25896,
+          "duration": 5.399999976158142,
+          "executionStart": 3394.199999988079
+        },
+        {
+          "name": "",
+          "invoker": "#document.onDOMContentLoaded",
+          "source": "http://127.0.0.1:62499/assets/feedback.js?v=19",
+          "line": 4331,
+          "duration": 20.19999998807907,
+          "executionStart": 3399.599999964237
+        }
+      ]
+    },
+    {
+      "duration": 301.7999999523163,
+      "startTime": 3621,
+      "scripts": [
+        {
+          "name": "",
+          "invoker": "DOMWindow.onload",
+          "source": "http://127.0.0.1:62499/assets/app.js?v=238",
+          "line": 265023,
+          "duration": 8.5,
+          "executionStart": 3659.599999964237
+        }
+      ]
+    },
+    {
+      "duration": 79.19999998807907,
+      "startTime": 3933.399999976158,
+      "scripts": []
+    },
+    {
+      "duration": 71.19999998807907,
+      "startTime": 4018,
+      "scripts": [
+        {
+          "name": "",
+          "invoker": "Response.json.then",
+          "source": "http://127.0.0.1:62499/assets/optimization_engine.js?v=4.2.3",
+          "line": 1481,
+          "duration": 6,
+          "executionStart": 4027.199999988079
+        },
+        {
+          "name": "",
+          "invoker": "Response.json.then",
+          "source": "http://127.0.0.1:62499/assets/app.js?v=238",
+          "line": 132073,
+          "duration": 23.600000023841858,
+          "executionStart": 4033.399999976158
+        },
+        {
+          "name": "",
+          "invoker": "Response.json.then",
+          "source": "http://127.0.0.1:62499/assets/app.js?v=238",
+          "line": 48561,
+          "duration": 6.300000011920929,
+          "executionStart": 4058.699999988079
+        }
+      ]
+    },
+    {
+      "duration": 128.60000002384186,
+      "startTime": 4092.899999976158,
+      "scripts": []
+    },
+    {
+      "duration": 52.89999997615814,
+      "startTime": 4373.5,
+      "scripts": []
+    },
+    {
+      "duration": 352.5999999642372,
+      "startTime": 4427.199999988079,
+      "scripts": [
+        {
+          "name": "",
+          "invoker": "http://127.0.0.1:62499/assets/pdf.min.js",
+          "source": "http://127.0.0.1:62499/assets/pdf.min.js",
+          "line": 0,
+          "duration": 325.9000000357628,
+          "executionStart": 4431.899999976158
+        }
+      ]
+    },
+    {
+      "duration": 67.5,
+      "startTime": 5431.899999976158,
+      "scripts": [
+        {
+          "name": "",
+          "invoker": "TimerHandler:setTimeout",
+          "source": "",
+          "line": -1,
+          "duration": 13.199999988079071,
+          "executionStart": 5433.599999964237
+        }
+      ]
+    },
+    {
+      "duration": 200.5,
+      "startTime": 5598.5,
+      "scripts": [
+        {
+          "name": "",
+          "invoker": "Worker.onmessage",
+          "source": "http://127.0.0.1:62499/assets/pdf_runtime.js?v=27",
+          "line": 2102,
+          "duration": 176.9000000357628,
+          "executionStart": 5610.099999964237
+        }
+      ]
+    }
+  ],
+  "page_count": "69",
+  "frames_over_250ms": [
+    {
+      "duration": 1752.6000000238419,
+      "startTime": 332.89999997615814,
+      "scripts": [
+        {
+          "name": "",
+          "invoker": "http://127.0.0.1:62499/assets/theme-init.js?v=13",
+          "source": "http://127.0.0.1:62499/assets/theme-init.js?v=13",
+          "line": 0,
+          "duration": 14.099999964237213,
+          "executionStart": 346.89999997615814
+        }
+      ]
+    },
+    {
+      "duration": 1220.300000011921,
+      "startTime": 2144.699999988079,
+      "scripts": [
+        {
+          "name": "",
+          "invoker": "http://127.0.0.1:62499/assets/security_forms.js?v=6.2.4",
+          "source": "http://127.0.0.1:62499/assets/security_forms.js?v=6.2.4",
+          "line": 0,
+          "duration": 7.900000035762787,
+          "executionStart": 2150.599999964237
+        },
+        {
+          "name": "",
+          "invoker": "http://127.0.0.1:62499/assets/optimization_engine.js?v=4.2.3",
+          "source": "http://127.0.0.1:62499/assets/optimization_engine.js?v=4.2.3",
+          "line": 0,
+          "duration": 15.800000011920929,
+          "executionStart": 2160.399999976158
+        },
+        {
+          "name": "",
+          "invoker": "http://127.0.0.1:62499/assets/page_organizer.js?v=21",
+          "source": "http://127.0.0.1:62499/assets/page_organizer.js?v=21",
+          "line": 0,
+          "duration": 14.199999988079071,
+          "executionStart": 2178.699999988079
+        },
+        {
+          "name": "",
+          "invoker": "http://127.0.0.1:62499/assets/app.js?v=238",
+          "source": "http://127.0.0.1:62499/assets/app.js?v=238",
+          "line": 0,
+          "duration": 1060.5999999642372,
+          "executionStart": 2197.599999964237
+        },
+        {
+          "name": "",
+          "invoker": "FrameRequestCallback",
+          "source": "http://127.0.0.1:62499/assets/app.js?v=238",
+          "line": 57709,
+          "duration": 79.90000003576279,
+          "executionStart": 3271.599999964237
+        }
+      ]
+    },
+    {
+      "duration": 301.7999999523163,
+      "startTime": 3621,
+      "scripts": [
+        {
+          "name": "",
+          "invoker": "DOMWindow.onload",
+          "source": "http://127.0.0.1:62499/assets/app.js?v=238",
+          "line": 265023,
+          "duration": 8.5,
+          "executionStart": 3659.599999964237
+        }
+      ]
+    },
+    {
+      "duration": 352.5999999642372,
+      "startTime": 4427.199999988079,
+      "scripts": [
+        {
+          "name": "",
+          "invoker": "http://127.0.0.1:62499/assets/pdf.min.js",
+          "source": "http://127.0.0.1:62499/assets/pdf.min.js",
+          "line": 0,
+          "duration": 325.9000000357628,
+          "executionStart": 4431.899999976158
+        }
+      ]
+    }
+  ],
+  "result": "captured"
+}

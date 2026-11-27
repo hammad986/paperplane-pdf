@@ -1,0 +1,81 @@
+{
+  "page_errors": [],
+  "console_errors": [],
+  "surfaces": [
+    {
+      "surface": "sidebar",
+      "trigger_label": "",
+      "plan_names": [
+        "Free",
+        "Exam Pass",
+        "Student & Educator",
+        "All-In-One Pro & Developer"
+      ],
+      "public_pricing": {
+        "free": {
+          "inr": 0,
+          "label": "Free"
+        },
+        "exam_pass": {
+          "inr": 19,
+          "label": "Exam Pass"
+        },
+        "student_pro": {
+          "inr": 49,
+          "label": "Student & Educator"
+        },
+        "cyber_cafe": {
+          "inr": 299,
+          "label": "All-In-One Pro & Developer"
+        }
+      },
+      "displayed_prices_match_public_catalog": {
+        "free": true,
+        "exam_pass": true,
+        "student_pro": true,
+        "cyber_cafe": true
+      },
+      "stale_legacy_name_present": false,
+      "stale_legacy_price_present": false
+    },
+    {
+      "surface": "topbar",
+      "trigger_label": "View plans",
+      "plan_names": [
+        "Free",
+        "Exam Pass",
+        "Student & Educator",
+        "All-In-One Pro & Developer"
+      ],
+      "public_pricing": {
+        "free": {
+          "inr": 0,
+          "label": "Free"
+        },
+        "exam_pass": {
+          "inr": 19,
+          "label": "Exam Pass"
+        },
+        "student_pro": {
+          "inr": 49,
+          "label": "Student & Educator"
+        },
+        "cyber_cafe": {
+          "inr": 299,
+          "label": "All-In-One Pro & Developer"
+        }
+      },
+      "displayed_prices_match_public_catalog": {
+        "free": true,
+        "exam_pass": true,
+        "student_pro": true,
+        "cyber_cafe": true
+      },
+      "stale_legacy_name_present": false,
+      "stale_legacy_price_present": false
+    }
+  ],
+  "http_status": 200,
+  "billing_status_http_status": 200,
+  "passed": true
+}

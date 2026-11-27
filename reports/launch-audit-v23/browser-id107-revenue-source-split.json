@@ -1,26 +1,576 @@
 [
   {
     "round": 1,
+    "viewport_width": 1440,
     "production_gross": "\u20b9299",
     "source_subtotals": "Verified production INR orders only. Sandbox and unclassified history are shown separately. Estimates exclude refunds, disputes, and settlement adjustments. Sandbox: \u20b93,750. Unclassified: \u20b9125.",
     "environment_column": true,
     "rows": [
-      "unknown@example.test\tFREE\torder-unknown\t\u20b9125\tUNKNOWN\t11/18/2026, 12:28:47 AM\t\u25cf Paid",
-      "test@example.test\tPRO\torder-test\t\u20b93,750\tTEST\t11/18/2026, 12:28:47 AM\t\u25cf Paid",
-      "prod@example.test\tPRO\torder-prod\t\u20b9299\tPROD\t11/18/2026, 12:28:47 AM\t\u25cf Paid"
+      "unknown@example.test\tFREE\torder-unknown\t\u20b9125\tUNKNOWN\t11/19/2026, 3:59:48 AM\t\u25cf Paid",
+      "test@example.test\tPRO\torder-test\t\u20b93,750\tTEST\t11/19/2026, 3:59:48 AM\t\u25cf Paid",
+      "prod@example.test\tPRO\torder-prod\t\u20b9299\tPROD\t11/19/2026, 3:59:48 AM\t\u25cf Paid",
+      "injected@example.test\tPRO\txss-probe\t\u20b90\tUNKNOWN\t1/1/1970, 5:30:01 AM\t\u25cf Paid"
     ],
+    "overflow": {
+      "scrollWidth": 1440,
+      "innerWidth": 1440,
+      "boxes": [
+        {
+          "selector": "header",
+          "left": 0,
+          "right": 1440,
+          "width": 1440,
+          "clientWidth": 1440,
+          "scrollWidth": 1440,
+          "overflowX": "visible"
+        },
+        {
+          "selector": "main",
+          "left": 50,
+          "right": 1390,
+          "width": 1340,
+          "clientWidth": 1340,
+          "scrollWidth": 1340,
+          "overflowX": "visible"
+        },
+        {
+          "selector": ".analytics-section",
+          "left": 74,
+          "right": 1366,
+          "width": 1292,
+          "clientWidth": 1292,
+          "scrollWidth": 1292,
+          "overflowX": "visible"
+        },
+        {
+          "selector": ".chart-card",
+          "left": 74,
+          "right": 922,
+          "width": 848,
+          "clientWidth": 846,
+          "scrollWidth": 846,
+          "overflowX": "visible"
+        },
+        {
+          "selector": "#bar-chart-container",
+          "left": 95,
+          "right": 901,
+          "width": 806,
+          "clientWidth": 806,
+          "scrollWidth": 806,
+          "overflowX": "auto"
+        },
+        {
+          "selector": "body",
+          "left": 0,
+          "right": 1440,
+          "width": 1440,
+          "clientWidth": 1440,
+          "scrollWidth": 1440,
+          "overflowX": "visible"
+        },
+        {
+          "selector": "html",
+          "left": 0,
+          "right": 1440,
+          "width": 1440,
+          "clientWidth": 1440,
+          "scrollWidth": 1440,
+          "overflowX": "visible"
+        }
+      ],
+      "elements": []
+    },
     "page_errors": []
   },
   {
     "round": 2,
+    "viewport_width": 390,
     "production_gross": "\u20b9299",
     "source_subtotals": "Verified production INR orders only. Sandbox and unclassified history are shown separately. Estimates exclude refunds, disputes, and settlement adjustments. Sandbox: \u20b93,750. Unclassified: \u20b9125.",
     "environment_column": true,
     "rows": [
-      "unknown@example.test\tFREE\torder-unknown\t\u20b9125\tUNKNOWN\t11/18/2026, 12:28:47 AM\t\u25cf Paid",
-      "test@example.test\tPRO\torder-test\t\u20b93,750\tTEST\t11/18/2026, 12:28:47 AM\t\u25cf Paid",
-      "prod@example.test\tPRO\torder-prod\t\u20b9299\tPROD\t11/18/2026, 12:28:47 AM\t\u25cf Paid"
+      "unknown@example.test\tFREE\torder-unknown\t\u20b9125\tUNKNOWN\t11/19/2026, 3:59:48 AM\t\u25cf Paid",
+      "test@example.test\tPRO\torder-test\t\u20b93,750\tTEST\t11/19/2026, 3:59:48 AM\t\u25cf Paid",
+      "prod@example.test\tPRO\torder-prod\t\u20b9299\tPROD\t11/19/2026, 3:59:48 AM\t\u25cf Paid",
+      "injected@example.test\tPRO\txss-probe\t\u20b90\tUNKNOWN\t1/1/1970, 5:30:01 AM\t\u25cf Paid"
     ],
+    "overflow": {
+      "scrollWidth": 390,
+      "innerWidth": 390,
+      "boxes": [
+        {
+          "selector": "header",
+          "left": 0,
+          "right": 390,
+          "width": 390,
+          "clientWidth": 390,
+          "scrollWidth": 390,
+          "overflowX": "visible"
+        },
+        {
+          "selector": "main",
+          "left": 0,
+          "right": 390,
+          "width": 390,
+          "clientWidth": 390,
+          "scrollWidth": 390,
+          "overflowX": "visible"
+        },
+        {
+          "selector": ".analytics-section",
+          "left": 14,
+          "right": 376,
+          "width": 362,
+          "clientWidth": 362,
+          "scrollWidth": 362,
+          "overflowX": "visible"
+        },
+        {
+          "selector": ".chart-card",
+          "left": 14,
+          "right": 376,
+          "width": 362,
+          "clientWidth": 360,
+          "scrollWidth": 360,
+          "overflowX": "visible"
+        },
+        {
+          "selector": "#bar-chart-container",
+          "left": 35,
+          "right": 355,
+          "width": 320,
+          "clientWidth": 320,
+          "scrollWidth": 538,
+          "overflowX": "auto"
+        },
+        {
+          "selector": "body",
+          "left": 0,
+          "right": 390,
+          "width": 390,
+          "clientWidth": 390,
+          "scrollWidth": 390,
+          "overflowX": "visible"
+        },
+        {
+          "selector": "html",
+          "left": 0,
+          "right": 390,
+          "width": 390,
+          "clientWidth": 390,
+          "scrollWidth": 390,
+          "overflowX": "visible"
+        }
+      ],
+      "elements": [
+        {
+          "tag": "TABLE",
+          "id": "",
+          "className": "",
+          "left": 15,
+          "right": 773,
+          "width": 758
+        },
+        {
+          "tag": "THEAD",
+          "id": "",
+          "className": "",
+          "left": 15,
+          "right": 773,
+          "width": 758
+        },
+        {
+          "tag": "TR",
+          "id": "",
+          "className": "",
+          "left": 15,
+          "right": 773,
+          "width": 758
+        },
+        {
+          "tag": "TH",
+          "id": "",
+          "className": "",
+          "left": 293,
+          "right": 394,
+          "width": 101
+        },
+        {
+          "tag": "TH",
+          "id": "",
+          "className": "",
+          "left": 394,
+          "right": 476,
+          "width": 82
+        },
+        {
+          "tag": "TH",
+          "id": "",
+          "className": "",
+          "left": 476,
+          "right": 586,
+          "width": 110
+        },
+        {
+          "tag": "TH",
+          "id": "",
+          "className": "",
+          "left": 586,
+          "right": 687,
+          "width": 101
+        },
+        {
+          "tag": "TH",
+          "id": "",
+          "className": "",
+          "left": 687,
+          "right": 773,
+          "width": 86
+        },
+        {
+          "tag": "TBODY",
+          "id": "revenue-tbody",
+          "className": "",
+          "left": 15,
+          "right": 773,
+          "width": 758
+        },
+        {
+          "tag": "TR",
+          "id": "",
+          "className": "",
+          "left": 15,
+          "right": 773,
+          "width": 758
+        },
+        {
+          "tag": "TD",
+          "id": "",
+          "className": "",
+          "left": 293,
+          "right": 394,
+          "width": 101
+        },
+        {
+          "tag": "TD",
+          "id": "",
+          "className": "",
+          "left": 394,
+          "right": 476,
+          "width": 82
+        },
+        {
+          "tag": "STRONG",
+          "id": "",
+          "className": "",
+          "left": 410,
+          "right": 438,
+          "width": 28
+        },
+        {
+          "tag": "TD",
+          "id": "",
+          "className": "",
+          "left": 476,
+          "right": 586,
+          "width": 110
+        },
+        {
+          "tag": "TD",
+          "id": "",
+          "className": "",
+          "left": 586,
+          "right": 687,
+          "width": 101
+        },
+        {
+          "tag": "TD",
+          "id": "",
+          "className": "",
+          "left": 687,
+          "right": 773,
+          "width": 86
+        },
+        {
+          "tag": "SPAN",
+          "id": "",
+          "className": "",
+          "left": 703,
+          "right": 741,
+          "width": 38
+        },
+        {
+          "tag": "TR",
+          "id": "",
+          "className": "",
+          "left": 15,
+          "right": 773,
+          "width": 758
+        },
+        {
+          "tag": "TD",
+          "id": "",
+          "className": "",
+          "left": 293,
+          "right": 394,
+          "width": 101
+        },
+        {
+          "tag": "TD",
+          "id": "",
+          "className": "",
+          "left": 394,
+          "right": 476,
+          "width": 82
+        }
+      ]
+    },
+    "page_errors": []
+  },
+  {
+    "round": 3,
+    "viewport_width": 320,
+    "production_gross": "\u20b9299",
+    "source_subtotals": "Verified production INR orders only. Sandbox and unclassified history are shown separately. Estimates exclude refunds, disputes, and settlement adjustments. Sandbox: \u20b93,750. Unclassified: \u20b9125.",
+    "environment_column": true,
+    "rows": [
+      "unknown@example.test\tFREE\torder-unknown\t\u20b9125\tUNKNOWN\t11/19/2026, 3:59:48 AM\t\u25cf Paid",
+      "test@example.test\tPRO\torder-test\t\u20b93,750\tTEST\t11/19/2026, 3:59:48 AM\t\u25cf Paid",
+      "prod@example.test\tPRO\torder-prod\t\u20b9299\tPROD\t11/19/2026, 3:59:48 AM\t\u25cf Paid",
+      "injected@example.test\tPRO\txss-probe\t\u20b90\tUNKNOWN\t1/1/1970, 5:30:01 AM\t\u25cf Paid"
+    ],
+    "overflow": {
+      "scrollWidth": 320,
+      "innerWidth": 320,
+      "boxes": [
+        {
+          "selector": "header",
+          "left": 0,
+          "right": 320,
+          "width": 320,
+          "clientWidth": 320,
+          "scrollWidth": 320,
+          "overflowX": "visible"
+        },
+        {
+          "selector": "main",
+          "left": 0,
+          "right": 320,
+          "width": 320,
+          "clientWidth": 320,
+          "scrollWidth": 320,
+          "overflowX": "visible"
+        },
+        {
+          "selector": ".analytics-section",
+          "left": 14,
+          "right": 306,
+          "width": 292,
+          "clientWidth": 292,
+          "scrollWidth": 292,
+          "overflowX": "visible"
+        },
+        {
+          "selector": ".chart-card",
+          "left": 14,
+          "right": 306,
+          "width": 292,
+          "clientWidth": 290,
+          "scrollWidth": 290,
+          "overflowX": "visible"
+        },
+        {
+          "selector": "#bar-chart-container",
+          "left": 35,
+          "right": 285,
+          "width": 250,
+          "clientWidth": 250,
+          "scrollWidth": 538,
+          "overflowX": "auto"
+        },
+        {
+          "selector": "body",
+          "left": 0,
+          "right": 320,
+          "width": 320,
+          "clientWidth": 320,
+          "scrollWidth": 320,
+          "overflowX": "visible"
+        },
+        {
+          "selector": "html",
+          "left": 0,
+          "right": 320,
+          "width": 320,
+          "clientWidth": 320,
+          "scrollWidth": 320,
+          "overflowX": "visible"
+        }
+      ],
+      "elements": [
+        {
+          "tag": "TABLE",
+          "id": "",
+          "className": "",
+          "left": 15,
+          "right": 773,
+          "width": 758
+        },
+        {
+          "tag": "THEAD",
+          "id": "",
+          "className": "",
+          "left": 15,
+          "right": 773,
+          "width": 758
+        },
+        {
+          "tag": "TR",
+          "id": "",
+          "className": "",
+          "left": 15,
+          "right": 773,
+          "width": 758
+        },
+        {
+          "tag": "TH",
+          "id": "",
+          "className": "",
+          "left": 293,
+          "right": 394,
+          "width": 101
+        },
+        {
+          "tag": "TH",
+          "id": "",
+          "className": "",
+          "left": 394,
+          "right": 476,
+          "width": 82
+        },
+        {
+          "tag": "TH",
+          "id": "",
+          "className": "",
+          "left": 476,
+          "right": 586,
+          "width": 110
+        },
+        {
+          "tag": "TH",
+          "id": "",
+          "className": "",
+          "left": 586,
+          "right": 687,
+          "width": 101
+        },
+        {
+          "tag": "TH",
+          "id": "",
+          "className": "",
+          "left": 687,
+          "right": 773,
+          "width": 86
+        },
+        {
+          "tag": "TBODY",
+          "id": "revenue-tbody",
+          "className": "",
+          "left": 15,
+          "right": 773,
+          "width": 758
+        },
+        {
+          "tag": "TR",
+          "id": "",
+          "className": "",
+          "left": 15,
+          "right": 773,
+          "width": 758
+        },
+        {
+          "tag": "TD",
+          "id": "",
+          "className": "",
+          "left": 293,
+          "right": 394,
+          "width": 101
+        },
+        {
+          "tag": "CODE",
+          "id": "",
+          "className": "",
+          "left": 309,
+          "right": 358,
+          "width": 49
+        },
+        {
+          "tag": "TD",
+          "id": "",
+          "className": "",
+          "left": 394,
+          "right": 476,
+          "width": 82
+        },
+        {
+          "tag": "STRONG",
+          "id": "",
+          "className": "",
+          "left": 410,
+          "right": 438,
+          "width": 28
+        },
+        {
+          "tag": "TD",
+          "id": "",
+          "className": "",
+          "left": 476,
+          "right": 586,
+          "width": 110
+        },
+        {
+          "tag": "TD",
+          "id": "",
+          "className": "",
+          "left": 586,
+          "right": 687,
+          "width": 101
+        },
+        {
+          "tag": "TD",
+          "id": "",
+          "className": "",
+          "left": 687,
+          "right": 773,
+          "width": 86
+        },
+        {
+          "tag": "SPAN",
+          "id": "",
+          "className": "",
+          "left": 703,
+          "right": 741,
+          "width": 38
+        },
+        {
+          "tag": "TR",
+          "id": "",
+          "className": "",
+          "left": 15,
+          "right": 773,
+          "width": 758
+        },
+        {
+          "tag": "TD",
+          "id": "",
+          "className": "",
+          "left": 293,
+          "right": 394,
+          "width": 101
+        }
+      ]
+    },
     "page_errors": []
   }
 ]

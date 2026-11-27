@@ -1,0 +1,343 @@
+{
+  "cpu_throttle": 4,
+  "source_bytes": 5456746,
+  "loaf_supported": true,
+  "frames": [
+    {
+      "duration": 2523.199999988079,
+      "startTime": 128.89999997615814,
+      "scripts": [
+        {
+          "name": "",
+          "invoker": "http://127.0.0.1:52262/assets/theme-init.js?v=13",
+          "source": "http://127.0.0.1:52262/assets/theme-init.js?v=13",
+          "line": 0,
+          "duration": 8.800000011920929,
+          "executionStart": 303.30000001192093
+        }
+      ]
+    },
+    {
+      "duration": 1135.4000000357628,
+      "startTime": 2751.399999976158,
+      "scripts": [
+        {
+          "name": "",
+          "invoker": "http://127.0.0.1:52262/assets/pdf_runtime.js?v=27",
+          "source": "http://127.0.0.1:52262/assets/pdf_runtime.js?v=27",
+          "line": 0,
+          "duration": 5.400000035762787,
+          "executionStart": 2759
+        },
+        {
+          "name": "",
+          "invoker": "http://127.0.0.1:52262/assets/security_forms.js?v=6.2.4",
+          "source": "http://127.0.0.1:52262/assets/security_forms.js?v=6.2.4",
+          "line": 0,
+          "duration": 10.100000023841858,
+          "executionStart": 2762.199999988079
+        },
+        {
+          "name": "",
+          "invoker": "http://127.0.0.1:52262/assets/optimization_engine.js?v=4.2.3",
+          "source": "http://127.0.0.1:52262/assets/optimization_engine.js?v=4.2.3",
+          "line": 0,
+          "duration": 24.19999998807907,
+          "executionStart": 2775.300000011921
+        },
+        {
+          "name": "",
+          "invoker": "http://127.0.0.1:52262/assets/page_organizer.js?v=21",
+          "source": "http://127.0.0.1:52262/assets/page_organizer.js?v=21",
+          "line": 0,
+          "duration": 19.19999998807907,
+          "executionStart": 2803.699999988079
+        },
+        {
+          "name": "",
+          "invoker": "http://127.0.0.1:52262/assets/app.js?v=234",
+          "source": "http://127.0.0.1:52262/assets/app.js?v=234",
+          "line": 0,
+          "duration": 926.5,
+          "executionStart": 2827
+        },
+        {
+          "name": "",
+          "invoker": "FrameRequestCallback",
+          "source": "http://127.0.0.1:52262/assets/app.js?v=234",
+          "line": 57709,
+          "duration": 118.90000003576279,
+          "executionStart": 3756.599999964237
+        }
+      ]
+    },
+    {
+      "duration": 108.09999996423721,
+      "startTime": 3915.5,
+      "scripts": [
+        {
+          "name": "",
+          "invoker": "#document.onDOMContentLoaded",
+          "source": "http://127.0.0.1:52262/assets/conversion_engine.js?v=5.2.2",
+          "line": 25896,
+          "duration": 6.199999988079071,
+          "executionStart": 3918.899999976158
+        },
+        {
+          "name": "",
+          "invoker": "#document.onDOMContentLoaded",
+          "source": "http://127.0.0.1:52262/assets/feedback.js?v=19",
+          "line": 4331,
+          "duration": 26.30000001192093,
+          "executionStart": 3925.099999964237
+        }
+      ]
+    },
+    {
+      "duration": 485.5999999642372,
+      "startTime": 4025.800000011921,
+      "scripts": [
+        {
+          "name": "",
+          "invoker": "DOMWindow.onload",
+          "source": "http://127.0.0.1:52262/assets/app.js?v=234",
+          "line": 263112,
+          "duration": 6.099999964237213,
+          "executionStart": 4118.5
+        }
+      ]
+    },
+    {
+      "duration": 78.79999995231628,
+      "startTime": 4558.800000011921,
+      "scripts": [
+        {
+          "name": "",
+          "invoker": "Response.json.then",
+          "source": "http://127.0.0.1:52262/assets/app.js?v=234",
+          "line": 130162,
+          "duration": 6.5,
+          "executionStart": 4563.800000011921
+        }
+      ]
+    },
+    {
+      "duration": 55.60000002384186,
+      "startTime": 4642.399999976158,
+      "scripts": []
+    },
+    {
+      "duration": 73.40000003576279,
+      "startTime": 4835.099999964237,
+      "scripts": [
+        {
+          "name": "",
+          "invoker": "INPUT#studio-file-input.onchange",
+          "source": "http://127.0.0.1:52262/assets/app.js?v=234",
+          "line": 182253,
+          "duration": 12.399999976158142,
+          "executionStart": 4838
+        }
+      ]
+    },
+    {
+      "duration": 131.20000004768372,
+      "startTime": 4915.599999964237,
+      "scripts": []
+    },
+    {
+      "duration": 525,
+      "startTime": 5048.300000011921,
+      "scripts": [
+        {
+          "name": "",
+          "invoker": "http://127.0.0.1:52262/assets/pdf.min.js",
+          "source": "http://127.0.0.1:52262/assets/pdf.min.js",
+          "line": 0,
+          "duration": 469.69999998807907,
+          "executionStart": 5050.899999976158
+        },
+        {
+          "name": "",
+          "invoker": "SCRIPT[src=\"/assets/pdf.min.js\"].onload",
+          "source": "http://127.0.0.1:52262/assets/pdf_runtime.js?v=27",
+          "line": 562,
+          "duration": 6.599999964237213,
+          "executionStart": 5518.5
+        }
+      ]
+    },
+    {
+      "duration": 62.60000002384186,
+      "startTime": 5601.599999964237,
+      "scripts": [
+        {
+          "name": "",
+          "invoker": "Promise.resolve",
+          "source": "http://127.0.0.1:52262/assets/app.js?v=234",
+          "line": 149348,
+          "duration": 36,
+          "executionStart": 5627.599999964237
+        }
+      ]
+    },
+    {
+      "duration": 50.5,
+      "startTime": 6495.300000011921,
+      "scripts": [
+        {
+          "name": "",
+          "invoker": "IDBTransaction.oncomplete",
+          "source": "http://127.0.0.1:52262/assets/app.js?v=234",
+          "line": 9416,
+          "duration": 27.5,
+          "executionStart": 6500.800000011921
+        }
+      ]
+    },
+    {
+      "duration": 155.5,
+      "startTime": 6564.800000011921,
+      "scripts": [
+        {
+          "name": "",
+          "invoker": "TimerHandler:setTimeout",
+          "source": "",
+          "line": -1,
+          "duration": 27.399999976158142,
+          "executionStart": 6565
+        }
+      ]
+    },
+    {
+      "duration": 149.0999999642372,
+      "startTime": 6823.800000011921,
+      "scripts": [
+        {
+          "name": "",
+          "invoker": "Worker.onmessage",
+          "source": "http://127.0.0.1:52262/assets/pdf_runtime.js?v=27",
+          "line": 2102,
+          "duration": 118,
+          "executionStart": 6834.199999988079
+        },
+        {
+          "name": "",
+          "invoker": "FrameRequestCallback",
+          "source": "http://127.0.0.1:52262/assets/app.js?v=234",
+          "line": 38726,
+          "duration": 5.300000011920929,
+          "executionStart": 6960.599999964237
+        }
+      ]
+    }
+  ],
+  "page_count": "69",
+  "frames_over_250ms": [
+    {
+      "duration": 2523.199999988079,
+      "startTime": 128.89999997615814,
+      "scripts": [
+        {
+          "name": "",
+          "invoker": "http://127.0.0.1:52262/assets/theme-init.js?v=13",
+          "source": "http://127.0.0.1:52262/assets/theme-init.js?v=13",
+          "line": 0,
+          "duration": 8.800000011920929,
+          "executionStart": 303.30000001192093
+        }
+      ]
+    },
+    {
+      "duration": 1135.4000000357628,
+      "startTime": 2751.399999976158,
+      "scripts": [
+        {
+          "name": "",
+          "invoker": "http://127.0.0.1:52262/assets/pdf_runtime.js?v=27",
+          "source": "http://127.0.0.1:52262/assets/pdf_runtime.js?v=27",
+          "line": 0,
+          "duration": 5.400000035762787,
+          "executionStart": 2759
+        },
+        {
+          "name": "",
+          "invoker": "http://127.0.0.1:52262/assets/security_forms.js?v=6.2.4",
+          "source": "http://127.0.0.1:52262/assets/security_forms.js?v=6.2.4",
+          "line": 0,
+          "duration": 10.100000023841858,
+          "executionStart": 2762.199999988079
+        },
+        {
+          "name": "",
+          "invoker": "http://127.0.0.1:52262/assets/optimization_engine.js?v=4.2.3",
+          "source": "http://127.0.0.1:52262/assets/optimization_engine.js?v=4.2.3",
+          "line": 0,
+          "duration": 24.19999998807907,
+          "executionStart": 2775.300000011921
+        },
+        {
+          "name": "",
+          "invoker": "http://127.0.0.1:52262/assets/page_organizer.js?v=21",
+          "source": "http://127.0.0.1:52262/assets/page_organizer.js?v=21",
+          "line": 0,
+          "duration": 19.19999998807907,
+          "executionStart": 2803.699999988079
+        },
+        {
+          "name": "",
+          "invoker": "http://127.0.0.1:52262/assets/app.js?v=234",
+          "source": "http://127.0.0.1:52262/assets/app.js?v=234",
+          "line": 0,
+          "duration": 926.5,
+          "executionStart": 2827
+        },
+        {
+          "name": "",
+          "invoker": "FrameRequestCallback",
+          "source": "http://127.0.0.1:52262/assets/app.js?v=234",
+          "line": 57709,
+          "duration": 118.90000003576279,
+          "executionStart": 3756.599999964237
+        }
+      ]
+    },
+    {
+      "duration": 485.5999999642372,
+      "startTime": 4025.800000011921,
+      "scripts": [
+        {
+          "name": "",
+          "invoker": "DOMWindow.onload",
+          "source": "http://127.0.0.1:52262/assets/app.js?v=234",
+          "line": 263112,
+          "duration": 6.099999964237213,
+          "executionStart": 4118.5
+        }
+      ]
+    },
+    {
+      "duration": 525,
+      "startTime": 5048.300000011921,
+      "scripts": [
+        {
+          "name": "",
+          "invoker": "http://127.0.0.1:52262/assets/pdf.min.js",
+          "source": "http://127.0.0.1:52262/assets/pdf.min.js",
+          "line": 0,
+          "duration": 469.69999998807907,
+          "executionStart": 5050.899999976158
+        },
+        {
+          "name": "",
+          "invoker": "SCRIPT[src=\"/assets/pdf.min.js\"].onload",
+          "source": "http://127.0.0.1:52262/assets/pdf_runtime.js?v=27",
+          "line": 562,
+          "duration": 6.599999964237213,
+          "executionStart": 5518.5
+        }
+      ]
+    }
+  ],
+  "result": "captured"
+}

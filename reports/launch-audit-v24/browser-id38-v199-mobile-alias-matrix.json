@@ -1,0 +1,101 @@
+{
+  "candidate": "paperplane-codex:v199",
+  "rounds": [
+    {
+      "viewport": 320,
+      "route": "/ssc-photo-resizer",
+      "final_url": "http://127.0.0.1:8770/ssc-photo-resizer",
+      "status": 200,
+      "options": [
+        "SSC Photo 20-50KB",
+        "SSC Signature 10-20KB",
+        "UPSC Photo 20-300KB",
+        "UPSC Sign 20-300KB",
+        "IBPS Photo 20-50KB",
+        "IBPS Sign 10-20KB"
+      ],
+      "clientWidth": 252,
+      "scrollWidth": 252,
+      "height": 48,
+      "font": "16px",
+      "dimensionHelp": "EXAM PRESET\nSSC Photo 20-50KB\nSSC Signature 10-20KB\nUPSC Photo 20-300KB\nUPSC Sign 20-300KB\nIBPS Photo 20-50KB\nIBPS Sign 10-20KB\nPixel dimensions \u2014 SSC photo 350 \u00d7 450, signature 400 \u00d7 200; UPSC photo/signature 350 \u00d7 350; IBPS photo 200 \u00d7 230, signature 140 \u00d7 60.\nOUTPUT FORMAT\nJPG Image (Standard for portals)\nPDF Document (Single-page)",
+      "overflow": false
+    },
+    {
+      "viewport": 320,
+      "route": "/split-pdf",
+      "final_url": "http://127.0.0.1:8770/split-pdf",
+      "status": 200,
+      "options": [
+        "All 10 pages as PDFs (ZIP)",
+        "Extract custom page ranges"
+      ],
+      "clientWidth": 252,
+      "scrollWidth": 252,
+      "height": 42,
+      "font": "14px",
+      "dimensionHelp": "\ud83d\udcc4 Document Analyzed: Total 10 pages found\nSPLIT MODE\nAll 10 pages as PDFs (ZIP)\nExtract custom page ranges\n\nAll pages will be split into separate PDFs. Custom page ranges are disabled for this mode.",
+      "overflow": false
+    },
+    {
+      "viewport": 390,
+      "route": "/ssc-photo-resizer",
+      "final_url": "http://127.0.0.1:8770/ssc-photo-resizer",
+      "status": 200,
+      "options": [
+        "SSC Photo 20-50KB",
+        "SSC Signature 10-20KB",
+        "UPSC Photo 20-300KB",
+        "UPSC Sign 20-300KB",
+        "IBPS Photo 20-50KB",
+        "IBPS Sign 10-20KB"
+      ],
+      "clientWidth": 322,
+      "scrollWidth": 322,
+      "height": 48,
+      "font": "16px",
+      "dimensionHelp": "EXAM PRESET\nSSC Photo 20-50KB\nSSC Signature 10-20KB\nUPSC Photo 20-300KB\nUPSC Sign 20-300KB\nIBPS Photo 20-50KB\nIBPS Sign 10-20KB\nPixel dimensions \u2014 SSC photo 350 \u00d7 450, signature 400 \u00d7 200; UPSC photo/signature 350 \u00d7 350; IBPS photo 200 \u00d7 230, signature 140 \u00d7 60.\nOUTPUT FORMAT\nJPG Image (Standard for portals)\nPDF Document (Single-page)",
+      "overflow": false
+    },
+    {
+      "viewport": 390,
+      "route": "/split-pdf",
+      "final_url": "http://127.0.0.1:8770/split-pdf",
+      "status": 200,
+      "options": [
+        "All 10 pages as PDFs (ZIP)",
+        "Extract custom page ranges"
+      ],
+      "clientWidth": 322,
+      "scrollWidth": 322,
+      "height": 42,
+      "font": "14px",
+      "dimensionHelp": "\ud83d\udcc4 Document Analyzed: Total 10 pages found\nSPLIT MODE\nAll 10 pages as PDFs (ZIP)\nExtract custom page ranges\n\nAll pages will be split into separate PDFs. Custom page ranges are disabled for this mode.",
+      "overflow": false
+    }
+  ],
+  "legacy_redirects": [
+    {
+      "legacy": "/resize-photo",
+      "canonical": "/resize-image-dimensions",
+      "status": 200
+    },
+    {
+      "legacy": "/photo-resize",
+      "canonical": "/resize-image-dimensions",
+      "status": 200
+    },
+    {
+      "legacy": "/compress-photo",
+      "canonical": "/compress-image-online",
+      "status": 200
+    },
+    {
+      "legacy": "/add-page-numbers",
+      "canonical": "/add-page-numbers-to-pdf",
+      "status": 200
+    }
+  ],
+  "page_errors": [],
+  "passed": true
+}

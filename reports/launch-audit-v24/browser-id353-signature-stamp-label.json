@@ -1,0 +1,38 @@
+{
+  "page_errors": [],
+  "console_errors": [],
+  "http_status": 200,
+  "heading": "Add a visual signature stamp",
+  "page_title": "Signature Stamp | Paperplane",
+  "intro_visible": true,
+  "warning_visible": true,
+  "catalog_label": "Signature Stamp",
+  "catalog_description": "Add a typed visual signature mark. It does not verify identity or create a certified or cryptographic signature.",
+  "seo_title": "Add a Visual Signature Stamp to a PDF | Paperplane",
+  "seo_how_to": [
+    "Upload the PDF and enter the printed name to show",
+    "Run Signature Stamp to add the visual mark",
+    "Download and review the marked PDF; the stamp is not identity verification"
+  ],
+  "seo_faqs": [
+    [
+      "Does this stamp verify who signed the document?",
+      "No. It adds a visual mark only; it does not verify identity, create a cryptographic signature, or provide a certified e-signature workflow."
+    ],
+    [
+      "Does Paperplane provide a certificate authority?",
+      "No. A visual stamp is not certificate-backed signing. Any cryptographic signature must be independently validated against a certificate chain trusted by its recipient."
+    ],
+    [
+      "Can I verify a signed PDF after downloading it?",
+      "Yes. Use the verification workflow to inspect signature status, byte ranges, and integrity information supported by the document."
+    ],
+    [
+      "Does Paperplane keep a job history?",
+      "No. This version does not provide a recent-files or job-history page. Download the result when processing finishes; temporary server job files are removed by the retention cleanup."
+    ]
+  ],
+  "directory_http_status": 200,
+  "directory_signature_stamp_visible": true,
+  "passed": true
+}

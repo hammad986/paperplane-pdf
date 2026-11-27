@@ -1,0 +1,83 @@
+{
+  "routes": [
+    {
+      "path": "/",
+      "initial_state": {
+        "authPending": true,
+        "guestGroupHidden": true,
+        "userGroupHidden": true,
+        "sidebarNameVisibility": "hidden",
+        "settingsGuestVisibility": "hidden",
+        "profileSkeleton": true
+      },
+      "hydrated_state": {
+        "email": "audit-405f98bc@example.invalid",
+        "tier": "student_pro",
+        "bodyPending": false,
+        "guestGroupHidden": true,
+        "userGroupVisible": true,
+        "settingsUserEmail": "audit-405f98bc@example.invalid"
+      }
+    },
+    {
+      "path": "/compress-pdf",
+      "initial_state": {
+        "authPending": true,
+        "guestGroupHidden": true,
+        "userGroupHidden": true,
+        "sidebarNameVisibility": "hidden",
+        "settingsGuestVisibility": "hidden",
+        "profileSkeleton": true
+      },
+      "hydrated_state": {
+        "email": "audit-405f98bc@example.invalid",
+        "tier": "student_pro",
+        "bodyPending": false,
+        "guestGroupHidden": true,
+        "userGroupVisible": true,
+        "settingsUserEmail": "audit-405f98bc@example.invalid"
+      }
+    },
+    {
+      "path": "/settings",
+      "initial_state": {
+        "authPending": true,
+        "guestGroupHidden": true,
+        "userGroupHidden": true,
+        "sidebarNameVisibility": "hidden",
+        "settingsGuestVisibility": "hidden",
+        "profileSkeleton": true
+      },
+      "hydrated_state": {
+        "email": "audit-405f98bc@example.invalid",
+        "tier": "student_pro",
+        "bodyPending": false,
+        "guestGroupHidden": true,
+        "userGroupVisible": true,
+        "settingsUserEmail": "audit-405f98bc@example.invalid"
+      }
+    },
+    {
+      "path": "/studio",
+      "initial_state": {
+        "authPending": true,
+        "guestGroupHidden": true,
+        "userGroupHidden": true,
+        "sidebarNameVisibility": "hidden",
+        "settingsGuestVisibility": "hidden",
+        "profileSkeleton": true
+      },
+      "hydrated_state": {
+        "email": "audit-405f98bc@example.invalid",
+        "tier": "student_pro",
+        "bodyPending": false,
+        "guestGroupHidden": true,
+        "userGroupVisible": true,
+        "settingsUserEmail": "audit-405f98bc@example.invalid"
+      }
+    }
+  ],
+  "auth_endpoint_deliberately_delayed_ms": 1000,
+  "page_errors": [],
+  "result": "passed"
+}

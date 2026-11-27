@@ -1,0 +1,79 @@
+{
+  "runtime": "current production-mode Docker image",
+  "image_id": "sha256:231cc30ca94616db5024d40084827e2a1410e57e04d890036ab3d1be98611fd2",
+  "cache_name": "paperplane-shell-v93",
+  "assets": {
+    "app": "/assets/app.js?v=152",
+    "css": "/assets/styles.css?v=61",
+    "organizer": "/assets/page_organizer.js?v=20",
+    "pdf_runtime": "/assets/pdf_runtime.js?v=25",
+    "studio_render_worker": "/assets/studio_render_worker.js?v=4",
+    "pdf_dependencies": [
+      "/assets/pdf.min.js",
+      "/assets/pdf.worker.min.js",
+      "/assets/pdf-lib.min.js",
+      "/assets/local_pdf_worker.js?v=26"
+    ]
+  },
+  "offline_rounds": [
+    {
+      "round": 1,
+      "offline_shell_status": 200,
+      "merge_route_status": 200,
+      "worker_cache_entries": 15,
+      "offline_merge_bytes": 961,
+      "pages": 2,
+      "text_order_preserved": true,
+      "server_job_posts": 0,
+      "offline_studio_route_status": 200,
+      "offline_studio_worker": {
+        "pages": "2",
+        "workerActive": true,
+        "workerDisabled": false,
+        "width": 390,
+        "viewport": 390
+      },
+      "offline_studio_large_pdf": {
+        "pages": "69",
+        "workerActive": true,
+        "workerDisabled": false,
+        "currentPage": 40,
+        "width": 390,
+        "viewport": 390
+      },
+      "offline_page40_rendered": true,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "offline_shell_status": 200,
+      "merge_route_status": 200,
+      "worker_cache_entries": 15,
+      "offline_merge_bytes": 961,
+      "pages": 2,
+      "text_order_preserved": true,
+      "server_job_posts": 0,
+      "offline_studio_route_status": 200,
+      "offline_studio_worker": {
+        "pages": "2",
+        "workerActive": true,
+        "workerDisabled": false,
+        "width": 390,
+        "viewport": 390
+      },
+      "offline_studio_large_pdf": {
+        "pages": "69",
+        "workerActive": true,
+        "workerDisabled": false,
+        "currentPage": 40,
+        "width": 390,
+        "viewport": 390
+      },
+      "offline_page40_rendered": true,
+      "page_errors": []
+    }
+  ],
+  "cold_offline_local_merge_passed": true,
+  "offline_studio_worker_passed": true,
+  "offline_large_pdf_studio_passed": true
+}

@@ -1,0 +1,36 @@
+{
+  "build": "v201",
+  "route": "/",
+  "viewport": [
+    390,
+    844
+  ],
+  "layout": {
+    "viewport": 390,
+    "documentWidth": 390,
+    "bodyWidth": 390,
+    "pageCount": 6,
+    "activePage": 1,
+    "canvas": {
+      "rendered": "true",
+      "context": "2d",
+      "darkPixels": 568
+    },
+    "workerFallback": true,
+    "workerFailure": "Studio worker returned a blank page; retrying with the main-thread renderer.",
+    "dock": {
+      "top": 662,
+      "bottom": 778,
+      "height": 116
+    },
+    "export": {
+      "top": 672,
+      "bottom": 716,
+      "visible": true
+    },
+    "pageHeading": "Merge PDF"
+  },
+  "no_horizontal_overflow": true,
+  "content_visible": true,
+  "page_errors": []
+}

@@ -1,0 +1,46 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "viewportWidth": 1366,
+      "httpStatus": 200,
+      "scriptVersion": "/assets/app.js?v=143",
+      "initialDisclosure": "Merge PDF runs in your browser; files stay on this device and are not uploaded.",
+      "settingsDisclosureHasWord": true,
+      "pdfToWord": {
+        "toggleEnabled": true,
+        "browserModeSelected": true,
+        "supportText": "PDF to Word runs in your browser; files stay on this device and are not uploaded.",
+        "optionsDisclosure": "Browser mode creates an editable text-first DOCX on this device and keeps page boundaries. It does not retain images, exact layout, or table structure; use Server Processing for supported table/layout reconstruction. Scanned PDFs need OCR first.",
+        "toolModeDisclosed": true
+      },
+      "compress": {
+        "toggleDisabled": true,
+        "serverModeSelected": true
+      },
+      "horizontalOverflow": false
+    },
+    {
+      "round": 2,
+      "viewportWidth": 390,
+      "httpStatus": 200,
+      "scriptVersion": "/assets/app.js?v=143",
+      "initialDisclosure": "Merge PDF runs in your browser; files stay on this device and are not uploaded.",
+      "settingsDisclosureHasWord": true,
+      "pdfToWord": {
+        "toggleEnabled": true,
+        "browserModeSelected": true,
+        "supportText": "PDF to Word runs in your browser; files stay on this device and are not uploaded.",
+        "optionsDisclosure": "Browser mode creates an editable text-first DOCX on this device and keeps page boundaries. It does not retain images, exact layout, or table structure; use Server Processing for supported table/layout reconstruction. Scanned PDFs need OCR first.",
+        "toolModeDisclosed": true
+      },
+      "compress": {
+        "toggleDisabled": true,
+        "serverModeSelected": true
+      },
+      "horizontalOverflow": false
+    }
+  ],
+  "pageErrors": [],
+  "passed": true
+}

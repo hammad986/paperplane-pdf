@@ -1,0 +1,63 @@
+{
+  "candidate": "v238-current-docker",
+  "source_pages": 69,
+  "source_bytes": 4980286,
+  "rounds": [
+    {
+      "round": 1,
+      "job_status": {
+        "id": "6876e54037c24e8cb7e776befd95baf4",
+        "operation": "pdf_to_word",
+        "status": "completed",
+        "progress": 100,
+        "error": null,
+        "warning": null,
+        "output_name": "notes-69page_pdf_to_word.docx",
+        "output_size": 1274717,
+        "created_at": 1795609658.1807027,
+        "expires_at": 1795616858.1807048
+      },
+      "elapsed_sec": 9.64,
+      "download_status": 200,
+      "docx_bytes": 1274717,
+      "paragraphs": 207,
+      "first_page_marker": true,
+      "last_page_marker": true,
+      "marker_count": 69
+    },
+    {
+      "round": 2,
+      "job_status": {
+        "id": "d86778b42d77464f99ef12fa1be02661",
+        "operation": "pdf_to_word",
+        "status": "completed",
+        "progress": 100,
+        "error": null,
+        "warning": null,
+        "output_name": "notes-69page_pdf_to_word.docx",
+        "output_size": 1274717,
+        "created_at": 1795609667.829192,
+        "expires_at": 1795616867.8291938
+      },
+      "elapsed_sec": 5.46,
+      "download_status": 200,
+      "docx_bytes": 1274717,
+      "paragraphs": 207,
+      "first_page_marker": true,
+      "last_page_marker": true,
+      "marker_count": 69
+    }
+  ],
+  "prior_catalog_job": "e89c510d022c40e6a923e8af64ccfe36",
+  "prior_job_before": {
+    "http": 200,
+    "status": "processing",
+    "progress": 20
+  },
+  "prior_job_after": {
+    "http": 200,
+    "status": "processing",
+    "progress": 20
+  },
+  "passed": true
+}

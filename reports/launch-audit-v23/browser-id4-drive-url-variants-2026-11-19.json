@@ -1,0 +1,56 @@
+{
+  "source": "exact user-provided v23 Drive test URL; value and file ID redacted",
+  "url_variants_tested": 5,
+  "results": [
+    {
+      "variant": "drive_uc_export",
+      "mime_type": "image/png",
+      "byte_count": 35874,
+      "pdf_signature": false,
+      "png_signature": true,
+      "final_host": "drive.usercontent.google.com",
+      "final_path": "/download",
+      "content_disposition_present": true
+    },
+    {
+      "variant": "drive_uc_export_confirm",
+      "mime_type": "image/png",
+      "byte_count": 35874,
+      "pdf_signature": false,
+      "png_signature": true,
+      "final_host": "drive.usercontent.google.com",
+      "final_path": "/download",
+      "content_disposition_present": true
+    },
+    {
+      "variant": "drive_uc_id_export",
+      "mime_type": "image/png",
+      "byte_count": 35874,
+      "pdf_signature": false,
+      "png_signature": true,
+      "final_host": "drive.usercontent.google.com",
+      "final_path": "/download",
+      "content_disposition_present": true
+    },
+    {
+      "variant": "drive_usercontent_without_confirm",
+      "mime_type": "image/png",
+      "byte_count": 35874,
+      "pdf_signature": false,
+      "png_signature": true,
+      "final_host": "drive.usercontent.google.com",
+      "final_path": "/download",
+      "content_disposition_present": true
+    },
+    {
+      "variant": "drive_usercontent_confirm",
+      "mime_type": "image/png",
+      "byte_count": 35874,
+      "pdf_signature": false,
+      "png_signature": true,
+      "final_host": "drive.usercontent.google.com",
+      "final_path": "/download",
+      "content_disposition_present": true
+    }
+  ]
+}

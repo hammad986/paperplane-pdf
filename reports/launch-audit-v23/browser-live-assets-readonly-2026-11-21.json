@@ -1,0 +1,30 @@
+{
+  "site": "https://paperplane.qd.je",
+  "read_only": true,
+  "current_local_candidate": {
+    "app": "/assets/app.js?v=145",
+    "page_organizer": "/assets/page_organizer.js?v=20",
+    "pdf_runtime": "/assets/pdf_runtime.js?v=25",
+    "styles": "/assets/styles.css?v=61"
+  },
+  "attempts": [
+    {
+      "browser": "Chromium",
+      "root_navigation": "HTTP 200; DOMContentLoaded reached",
+      "live_assets": ["/assets/app.js?v=91", "/assets/page_organizer.js?v=14", "/assets/pdf_runtime.js?v=18", "/assets/styles.css?v=51"],
+      "health_endpoint": "GET timed out after 20 seconds",
+      "page_errors": []
+    },
+    {
+      "browser": "Chromium",
+      "root_response": 200,
+      "root_navigation": "Timed out waiting for DOMContentLoaded after 30 seconds",
+      "response_observations": ["/ returned 200", "/assets/styles.css?v=51 returned 200", "/assets/theme-init.js?v=13 returned 200"],
+      "direct_app_asset_probe": "GET /assets/app.js?v=91 timed out after 10 seconds",
+      "health_endpoint": "GET timed out after 8 seconds",
+      "page_errors": []
+    }
+  ],
+  "candidate_assets_present_on_live": false,
+  "browser_script": "browser_live_assets_readonly_20261121.py"
+}

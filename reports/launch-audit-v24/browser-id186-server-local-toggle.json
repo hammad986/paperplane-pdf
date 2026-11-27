@@ -1,0 +1,86 @@
+{
+  "build": "app.js v191",
+  "preference_key": "paperplane-pdf-processing-mode",
+  "routes": [
+    "/merge-pdf",
+    "/split-pdf",
+    "/remove-pages-pdf",
+    "/rotate-pdf"
+  ],
+  "checks": [
+    {
+      "route": "/merge-pdf",
+      "expected_mode": "server",
+      "toggle_checked": false,
+      "toggle_enabled": true,
+      "persisted_preference": "server",
+      "runtime_mode": false,
+      "restored_after_reload": true
+    },
+    {
+      "route": "/split-pdf",
+      "expected_mode": "server",
+      "toggle_checked": false,
+      "toggle_enabled": true,
+      "persisted_preference": "server",
+      "runtime_mode": false,
+      "restored_after_reload": true
+    },
+    {
+      "route": "/remove-pages-pdf",
+      "expected_mode": "server",
+      "toggle_checked": false,
+      "toggle_enabled": true,
+      "persisted_preference": "server",
+      "runtime_mode": false,
+      "restored_after_reload": true
+    },
+    {
+      "route": "/rotate-pdf",
+      "expected_mode": "server",
+      "toggle_checked": false,
+      "toggle_enabled": true,
+      "persisted_preference": "server",
+      "runtime_mode": false,
+      "restored_after_reload": true
+    },
+    {
+      "route": "/merge-pdf",
+      "expected_mode": "local",
+      "toggle_checked": true,
+      "toggle_enabled": true,
+      "persisted_preference": "local",
+      "runtime_mode": true,
+      "restored_after_reload": true
+    },
+    {
+      "route": "/split-pdf",
+      "expected_mode": "local",
+      "toggle_checked": true,
+      "toggle_enabled": true,
+      "persisted_preference": "local",
+      "runtime_mode": true,
+      "restored_after_reload": true
+    },
+    {
+      "route": "/remove-pages-pdf",
+      "expected_mode": "local",
+      "toggle_checked": true,
+      "toggle_enabled": true,
+      "persisted_preference": "local",
+      "runtime_mode": true,
+      "restored_after_reload": true
+    },
+    {
+      "route": "/rotate-pdf",
+      "expected_mode": "local",
+      "toggle_checked": true,
+      "toggle_enabled": true,
+      "persisted_preference": "local",
+      "runtime_mode": true,
+      "restored_after_reload": true
+    }
+  ],
+  "browser_errors": [],
+  "passed": true
+}

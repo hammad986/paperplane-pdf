@@ -1,0 +1,45 @@
+{
+  "scenario": "controlled client-side proxy 502 after acceptance, on standard and >10 MiB chunk-commit submissions",
+  "standard_attempts": [
+    {
+      "job_id": "f5f2b73024634bb68fe96adf69f68211",
+      "idempotent": false,
+      "idempotency_key": "REDACTED",
+      "client_error_status": 502
+    },
+    {
+      "job_id": "f5f2b73024634bb68fe96adf69f68211",
+      "idempotent": true,
+      "idempotency_key": "REDACTED"
+    }
+  ],
+  "standard_http_statuses": [
+    202,
+    200
+  ],
+  "chunked_attempts": [
+    {
+      "job_id": "14ad1470119b4fae9ac091ebec055bbc",
+      "idempotent": false,
+      "idempotency_key": "REDACTED",
+      "client_error_status": 502
+    },
+    {
+      "job_id": "14ad1470119b4fae9ac091ebec055bbc",
+      "idempotent": true,
+      "idempotency_key": "REDACTED"
+    }
+  ],
+  "chunked_http_statuses": [
+    202,
+    200
+  ],
+  "single_job_per_submission": true,
+  "single_idempotency_record_per_submission": true,
+  "download": {
+    "pages": 1,
+    "rotation": 90,
+    "marker_preserved": true
+  },
+  "page_errors": []
+}

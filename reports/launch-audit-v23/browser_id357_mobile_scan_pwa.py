@@ -4,16 +4,35 @@ from tempfile import TemporaryDirectory
 import json
 import base64
 import os
+import atexit
+import socket
+import sys
+import time
 
 import fitz
 from PIL import Image, ImageDraw
 from playwright.sync_api import sync_playwright
 
 OUT = Path(__file__).resolve().parent
-BASE = os.environ.get("PAPERPLANE_TEST_BASE", "http://127.0.0.1:8766")
+ROOT = Path(__file__).resolve().parents[2]
+INDEX_HTML = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
+SERVICE_WORKER = (ROOT / "web" / "assets" / "service-worker.js").read_text(encoding="utf-8")
+sys.path.insert(0, str(ROOT / "reports/launch-audit-v14"))
+import browser_acceptance_v14 as helper
 results = []
 
 with TemporaryDirectory(prefix="paperplane-id357-") as temp:
+    app, BASE, _ = helper.start_server(Path(temp) / "data")
+    atexit.register(lambda: app.terminate() if app.poll() is None else None)
+    port = int(BASE.rsplit(":", 1)[1])
+    for _ in range(600):
+        try:
+            with socket.create_connection(("127.0.0.1", port), timeout=0.2):
+                break
+        except OSError:
+            time.sleep(0.2)
+    else:
+        raise RuntimeError("isolated Paperplane server did not start")
     source = Path(temp) / "camera-page.jpg"
     image = Image.new("RGB", (900, 1200), "white")
     draw = ImageDraw.Draw(image)
@@ -51,8 +70,9 @@ with TemporaryDirectory(prefix="paperplane-id357-") as temp:
             worker = page.request.get(f"{BASE}/service-worker.js")
             assert worker.status == 200 and worker.headers.get("service-worker-allowed") == "/"
             worker_source = worker.text()
-            assert "paperplane-shell-v18" in worker_source
-            assert "'/assets/app.js?v=91'" in worker_source
+            assert "paperplane-shell-v60" in worker_source
+            assert "'/assets/app.js?v=127'" in worker_source
+            assert "src=\"/assets/app.js?v=127\"" in INDEX_HTML
             page.wait_for_function("navigator.serviceWorker && navigator.serviceWorker.ready.then(() => true)", timeout=15000)
 
             camera = page.locator("#scan-camera-input")
@@ -90,29 +110,12 @@ with TemporaryDirectory(prefix="paperplane-id357-") as temp:
             page.locator("#page_size").select_option("letter")
 
             page.locator("#run-button").click()
-            page.wait_for_function("document.querySelector('#result') && !document.querySelector('#result').hidden", timeout=60000)
-            assert jobs, "Scan-to-PDF UI did not submit a server job"
-            job = jobs[-1].json()
-            assert jobs[-1].status == 202, (jobs[-1].status, job)
-            downloaded = page.evaluate("""async urls => {
-              let state;
-              for (let i=0;i<240;i++) {
-                const response = await fetch(urls.status, {credentials:'same-origin'});
-                if (!response.ok) throw new Error(`status ${response.status}`);
-                state = await response.json();
-                if (state.status === 'completed') break;
-                if (state.status === 'failed') throw new Error(state.error || 'scan job failed');
-                await new Promise(resolve => setTimeout(resolve, 250));
-              }
-              if (state?.status !== 'completed') throw new Error('scan job timed out');
-              const response = await fetch(urls.download, {credentials:'same-origin'});
-              if (!response.ok) throw new Error(`download ${response.status}`);
-              const data = new Uint8Array(await response.arrayBuffer()); let binary='';
-              for(let i=0;i<data.length;i+=8192) binary += String.fromCharCode(...data.subarray(i,i+8192));
-              return {state, data:btoa(binary)};
-            }""", {"status": job["status_url"], "download": job["download_url"]})
             output = OUT / f"id357-mobile-camera-scan-round{round_no}.pdf"
-            output.write_bytes(base64.b64decode(downloaded["data"]))
+            page.wait_for_function("document.querySelector('#result-download-link:not([hidden])')", timeout=60000)
+            with page.expect_download(timeout=30000) as download_event:
+                page.locator("#result-download-link").click()
+            download_event.value.save_as(output)
+            assert not jobs, "Browser-local Scan-to-PDF unexpectedly submitted a server job"
             with fitz.open(output) as pdf:
                 assert len(pdf) == 1
                 assert (round(pdf[0].rect.width), round(pdf[0].rect.height)) == (612, 792)
@@ -136,12 +139,16 @@ with TemporaryDirectory(prefix="paperplane-id357-") as temp:
                 "pdf_download": output.name,
                 "pdf_pages": 1,
                 "page_size_points": [612, 792],
+                "processing": "browser local, zero server jobs",
                 "cached_offline_shell_http": offline_response.status,
                 "horizontal_overflow": False,
                 "page_errors": errors,
             })
             context.close()
         browser.close()
+    app.terminate()
+    app.wait(timeout=15)
 
-(OUT / "browser-id357-mobile-scan-pwa.json").write_text(json.dumps({"base": BASE, "rounds": results}, indent=2), encoding="utf-8")
+(OUT / "browser-id357-mobile-scan-pwa-v130.json").write_text(json.dumps({"base": BASE, "rounds": results,
+    "cache_name": "paperplane-shell-v60", "app_asset": "/assets/app.js?v=127"}, indent=2), encoding="utf-8")
 print(json.dumps({"rounds": len(results), "results": results}, indent=2))

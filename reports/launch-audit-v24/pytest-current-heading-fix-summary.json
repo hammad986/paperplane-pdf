@@ -1,0 +1,30 @@
+{
+  "candidate_image_id": "sha256:5de0789092558a59adcbccc6edae6f746dcd99ba371031ab2e5917faf187c64b",
+  "assets": {
+    "app_js": "191",
+    "styles_css": "71",
+    "service_worker_cache": "paperplane-shell-v143"
+  },
+  "pytest": [
+    {
+      "round": 1,
+      "result": "688 passed, 4 warnings",
+      "duration_seconds": 153.74,
+      "capture": "console output observed during run"
+    },
+    {
+      "round": 2,
+      "result": "688 passed, 4 warnings",
+      "duration_seconds": 148.14,
+      "capture": "pytest-current-heading-fix-round2.log"
+    }
+  ],
+  "browser": {
+    "heading_routes": 44,
+    "heading_rounds": 2,
+    "mode_combinations": 8,
+    "browser_errors": 0,
+    "desktop_chrome_localhost": "stalled; automated Chromium passed"
+  },
+  "deployment_ready": false
+}

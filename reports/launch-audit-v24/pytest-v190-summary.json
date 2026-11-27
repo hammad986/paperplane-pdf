@@ -1,0 +1,17 @@
+{
+  "build": {
+    "app_asset": "/assets/app.js?v=190",
+    "service_worker_cache": "paperplane-shell-v141",
+    "docker_image_id": "sha256:a4edc8021d71564332af8c8138d3fa7e6db90e195a2306b27e49db7013398203"
+  },
+  "runs": [
+    {"log": "pytest-v190-round1.log", "result": "687 passed, 4 warnings in 147.09s", "exit_code": 0},
+    {"log": "pytest-v190-round2.log", "result": "687 passed, 4 warnings in 142.78s", "exit_code": 0}
+  ],
+  "browser_checks": [
+    {"evidence": "browser-id84-escape-stack.json", "passed": true},
+    {"evidence": "browser-id56-waitlist-links.json", "passed": true},
+    {"evidence": "browser-v190-limit-policy.json", "passed": true}
+  ],
+  "note": "Four existing pytest warnings were reported in both successful runs. Provider-backed/live-site acceptance remains outside this local run."
+}

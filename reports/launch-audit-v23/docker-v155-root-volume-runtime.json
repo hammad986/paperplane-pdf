@@ -1,0 +1,24 @@
+{
+  "image": "paperplane-v23-audit:codex-v155",
+  "image_id": "sha256:777c6337c02876a78327ba12c5308dfb39bd72289a25ae496a5c511d941e70a9",
+  "mapped_port": 18538,
+  "api_health": {
+    "status": 200,
+    "body": {
+      "status": "ok",
+      "service": "paperplane-pdf",
+      "version": "2.0.0",
+      "auth_required": false,
+      "workers": 4,
+      "max_file_size_mb": 500,
+      "job_ttl_hours": 2
+    }
+  },
+  "container_health": "healthy",
+  "pid1_uid": "1001",
+  "data_directory_owner": "1001:1001",
+  "migration_marker_owner": "1001:1001",
+  "root_owned_mount_precondition": true,
+  "payments_enabled": false,
+  "production_data_used": false
+}

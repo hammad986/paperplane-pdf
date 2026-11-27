@@ -1,0 +1,24 @@
+{
+  "cases": {
+    "compress": {
+      "requests_including_analysis": 3,
+      "failure_visible": true,
+      "retry_succeeded": true,
+      "modal_closed_on_success": true
+    },
+    "ocr": {
+      "requests": 2,
+      "failure_visible": true,
+      "failed_progress_not_reset": true,
+      "retry_succeeded": true,
+      "modal_closed_on_success": true
+    }
+  },
+  "page_errors": [],
+  "console_errors": [],
+  "controlled_failure_console_messages": [
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  ],
+  "result": "passed"
+}

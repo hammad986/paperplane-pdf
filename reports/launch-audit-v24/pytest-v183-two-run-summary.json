@@ -1,0 +1,20 @@
+{
+  "suite": "pytest -q",
+  "candidate": {
+    "app_js": "183",
+    "service_worker_shell": "v129"
+  },
+  "runs": [
+    {
+      "result": "677 passed, 4 warnings",
+      "duration_seconds": 145.87,
+      "captured_in_tool_output": true
+    },
+    {
+      "result": "677 passed, 4 warnings",
+      "duration_seconds": 143.4,
+      "log": "pytest-v183-singular-plural-run2.log"
+    }
+  ],
+  "warnings": "One Starlette TestClient httpx deprecation warning and three per-request cookies deprecation warnings from existing metadata tests."
+}

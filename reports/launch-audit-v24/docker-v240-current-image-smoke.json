@@ -1,0 +1,23 @@
+{
+  "image": "paperplane-codex:v240-current",
+  "image_id": "sha256:d0149a9dc050b707bcb7ceee70c69a0429a35aa00d2f1277d6c64da48307b4d3",
+  "health": {
+    "status": "ok",
+    "service": "paperplane-pdf",
+    "version": "2.0.0",
+    "workers": 4,
+    "max_file_size_mb": 500,
+    "job_ttl_hours": 2
+  },
+  "assets": {
+    "app_js": "v239",
+    "styles_css": "v90",
+    "service_worker_shell": "v215",
+    "precache_app_js": "v239"
+  },
+  "browser_smoke": "browser-id122-v240-docker-smoke.json",
+  "container_removed": true,
+  "temporary_volume_removed": true,
+  "image_retained_locally": true,
+  "passed": true
+}

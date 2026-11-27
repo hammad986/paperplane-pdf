@@ -25,7 +25,10 @@ with TemporaryDirectory(prefix="paperplane-live-id1-") as temp:
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(channel="chrome", headless=True)
         for round_no in (1, 2):
-            for language, code, marker in (("Spanish", "es", "página"), ("Hindi", "hi", "पृष्ठ")):
+            for language, code, translated_phrase in (
+                ("Spanish", "es", "revisión y discusión"),
+                ("Hindi", "hi", "तैयार"),
+            ):
                 context = browser.new_context(viewport={"width":1366,"height":900},accept_downloads=True)
                 page = context.new_page()
                 errors=[]
@@ -59,7 +62,8 @@ with TemporaryDirectory(prefix="paperplane-live-id1-") as temp:
                 output_path=None
                 content_checked=False
                 translated_pages=0
-                source_markers_left=None
+                preserved_page_markers=0
+                source_english_remaining=0
                 link=page.locator("#result-content a.btn-download")
                 if link.count() and link.is_visible():
                     output_name=link.get_attribute("download") or f"live-{code}.pdf"
@@ -69,17 +73,25 @@ with TemporaryDirectory(prefix="paperplane-live-id1-") as temp:
                     download.value.save_as(output_path)
                     with fitz.open(output_path) as translated:
                         texts=[p.get_text() for p in translated]
-                    translated_pages=sum(marker in text.lower() for text in texts)
-                    source_markers_left=sum("SOURCE-PAGE-" in text for text in texts)
-                    content_checked=(len(texts)==10 and translated_pages==10 and source_markers_left==0)
+                        translated_pages=sum(translated_phrase.casefold() in text.casefold() for text in texts)
+                    preserved_page_markers=sum(
+                        f"SOURCE-PAGE-{index:03d}" in text for index, text in enumerate(texts, start=1)
+                    )
+                    source_english_remaining=sum(
+                        "this paperplane document is ready for review and discussion." in text.casefold()
+                        for text in texts
+                    )
+                    content_checked=(len(texts)==10 and translated_pages==10 and
+                                     preserved_page_markers==10 and source_english_remaining==0)
                     assert len(texts)==10, len(texts)
                 result_text=page.locator("#result").inner_text() if page.locator("#result").count() else ""
                 result={"round":round_no,"language":language,"available":True,
                         "http_status":api_status[-1] if api_status else None,
                         "retry_after":api_headers[-1].get("retry-after") if api_headers else None,
                         "output_name":output_name,"download_content_checked":content_checked,
-                        "page_count":10 if output_path else None,"target_language_pages":translated_pages,
-                        "source_markers_remaining":source_markers_left,"result_text":result_text[:800],
+                        "page_count":10 if output_path else None,"expected_translation_pages":translated_pages,
+                        "preserved_page_markers":preserved_page_markers,
+                        "source_english_remaining":source_english_remaining,"result_text":result_text[:800],
                         "page_errors":errors}
                 if output_path:
                     result["download_bytes"]=output_path.stat().st_size

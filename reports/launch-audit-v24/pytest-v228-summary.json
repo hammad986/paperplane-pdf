@@ -1,0 +1,113 @@
+{
+  "candidate": {
+    "app_js": "216",
+    "styles_css": "82",
+    "service_worker_shell": "181"
+  },
+  "full_suite": [
+    {
+      "command": "pytest -q",
+      "run": 1,
+      "passed": 721,
+      "failed": 0,
+      "warnings": 4,
+      "duration_seconds": 239.13
+    },
+    {
+      "command": "pytest -q",
+      "run": 2,
+      "passed": 721,
+      "failed": 0,
+      "warnings": 4,
+      "duration_seconds": 225.43
+    }
+  ],
+  "focused": {
+    "command": "pytest -q tests/test_frontend_contracts.py tests/test_launch_audit_v23.py",
+    "passed": 184,
+    "failed": 0,
+    "warnings": 4
+  },
+  "browser": {
+    "id340": {
+      "rounds": 2,
+      "operation_viewport_checks_per_round": 264,
+      "operations": 44,
+      "viewports": [
+        320,
+        390,
+        820,
+        846,
+        900,
+        1366
+      ],
+      "intersections": 0,
+      "horizontal_overflow": 0,
+      "page_errors": 0,
+      "console_errors": 0
+    },
+    "id216": {
+      "rounds": 2,
+      "pages": 12,
+      "viewports": [
+        320,
+        390,
+        820,
+        1366
+      ],
+      "labels_outside_tiles": 0,
+      "page_errors": 0,
+      "console_errors": 0
+    },
+    "id236": {
+      "rounds": 1,
+      "visible_and_accessible_merge_limit": "Select 2\u2013100 PDFs to merge",
+      "page_errors": 0
+    },
+    "id307": {
+      "rounds": 2,
+      "protect_output": "encrypted one-page PDF with source marker",
+      "unlock_output": "unencrypted one-page PDF with source marker",
+      "page_errors": 0,
+      "console_errors": 0
+    },
+    "id341": {
+      "rounds": 2,
+      "route_viewport_checks": 16,
+      "routes": [
+        "/ai-intelligence",
+        "/merge-pdf"
+      ],
+      "viewports": [
+        320,
+        390,
+        820,
+        1366
+      ],
+      "mobile_breadcrumb_visible": false,
+      "overflow": 0,
+      "browser_errors": 0
+    },
+    "id234": {
+      "route": "/pricing",
+      "viewports": [
+        390,
+        820,
+        1366
+      ],
+      "badges_inside_cards": true,
+      "overflow": 0,
+      "page_errors": 0
+    },
+    "id281": {
+      "rounds": 1,
+      "viewports": [
+        390,
+        1366
+      ],
+      "logo_returns_to_tool_desk": true,
+      "page_errors": 0
+    }
+  },
+  "deployment_parity": "not verified; same-build deployed retest remains due"
+}

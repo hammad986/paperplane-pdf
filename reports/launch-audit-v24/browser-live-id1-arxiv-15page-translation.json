@@ -1,0 +1,39 @@
+{
+  "checked_at": "2026-11-23",
+  "target": "https://paperplane.qd.je/translate-pdf",
+  "browser": "Google Chrome via CUA",
+  "build_assets": {
+    "app_js": "/assets/app.js?v=154",
+    "styles_css": "/assets/styles.css?v=61",
+    "pdf_runtime_js": "/assets/pdf_runtime.js?v=25"
+  },
+  "fixture": {
+    "name": "1706.03762v7.pdf",
+    "source": "public arXiv PDF imported with the site's Cloud Import control",
+    "size": "2.11 MB",
+    "pages": 15,
+    "user_owned_or_sensitive_data": false
+  },
+  "cases": [
+    {
+      "language": "es",
+      "visible_result": "Processing failed",
+      "coverage": "2% of text blocks; 2% of text segments; 0% of source characters",
+      "threshold": "50% for blocks and characters",
+      "download_available": false
+    },
+    {
+      "language": "hi",
+      "visible_result": "Processing failed",
+      "coverage": "2% of text blocks; 2% of text segments; 0% of source characters",
+      "threshold": "50% for blocks and characters",
+      "download_available": false
+    }
+  ],
+  "console_errors_and_warnings": [],
+  "result": "live provider failure in both languages; no partial PDF offered",
+  "limitations": [
+    "This observes the deployed v154 build, not the local v182 candidate.",
+    "The report does not claim a product fix based on the live failure; it is reproduction evidence for P0 ID 1."
+  ]
+}

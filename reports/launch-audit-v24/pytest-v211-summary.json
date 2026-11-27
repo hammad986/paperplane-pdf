@@ -1,0 +1,16 @@
+{
+  "command": "pytest -q",
+  "rounds": [
+    {
+      "round": 1,
+      "result": "702 passed, 4 warnings in 400.32s"
+    },
+    {
+      "round": 2,
+      "result": "702 passed, 4 warnings in 439.21s"
+    }
+  ],
+  "focused": "1 passed in 5.79s",
+  "browser": "ID 293 two Chromium rounds; highlight annotation no longer present as annotation, preserved as yellow page drawing; cancellation made zero POSTs; explicit consent made one /api/jobs POST per accepted run; no page errors.",
+  "widget_regression": "Chromium local Flatten for AcroForm text widget: output has 0 widgets, 0 annotations, selectable widget value, no POSTs, no page errors."
+}

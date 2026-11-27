@@ -1,0 +1,19 @@
+{
+  "exact_tree_pytest": [
+    {
+      "round": 1,
+      "result": "711 passed, 4 deprecation warnings",
+      "duration_seconds": 298.64
+    },
+    {
+      "round": 2,
+      "result": "711 passed, 4 deprecation warnings",
+      "duration_seconds": 278.28
+    }
+  ],
+  "focused_overlay_regressions": "2 passed, 1 deprecation warning",
+  "node_check_app": "passed",
+  "node_check_service_worker": "passed",
+  "docker_compose_config": "passed",
+  "browser_id323_delayed_switch_dark_light": "passed"
+}

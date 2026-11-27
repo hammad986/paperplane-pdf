@@ -1,0 +1,21 @@
+{
+  "command": "python -m pytest -q",
+  "runs_sequential": true,
+  "production_endpoints_contacted": false,
+  "results": [
+    {
+      "run": 1,
+      "exit_code": 0,
+      "duration_seconds": 151.71,
+      "summary": "656 passed, 4 warnings in 146.95s (0:02:26)",
+      "log": "pytest-v168-style64-run1.log"
+    },
+    {
+      "run": 2,
+      "exit_code": 0,
+      "duration_seconds": 148.98,
+      "summary": "656 passed, 4 warnings in 144.02s (0:02:24)",
+      "log": "pytest-v168-style64-run2.log"
+    }
+  ]
+}

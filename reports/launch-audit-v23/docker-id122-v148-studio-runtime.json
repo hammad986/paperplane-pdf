@@ -1,0 +1,19 @@
+{
+  "image": "paperplane-v23-audit:codex-v148",
+  "image_id": "sha256:7e4a1db49661f38cf4f9d5230e565dce119c40693dec092f9add43072ab444d0",
+  "health": {
+    "status": "ok",
+    "service": "paperplane-pdf",
+    "version": "2.0.0",
+    "auth_required": false,
+    "workers": 4,
+    "max_file_size_mb": 500,
+    "job_ttl_hours": 2
+  },
+  "browser_exit_code": 0,
+  "browser_log": "browser-id122-v148-studio.log",
+  "container_status": "healthy then stopped",
+  "storage": "tmpfs only",
+  "provider_credentials": false,
+  "real_payment": false
+}

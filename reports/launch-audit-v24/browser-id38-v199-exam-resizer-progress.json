@@ -1,0 +1,27 @@
+{
+  "http_status": 200,
+  "route": "http://127.0.0.1:8770/ssc-photo-resizer",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "duration_s": 2.293,
+  "progress_samples": [
+    {
+      "elapsed_s": 0.214,
+      "visible": false,
+      "title": "Complete",
+      "percent": "100%",
+      "indeterminate": false,
+      "result": true
+    }
+  ],
+  "download_name": "exam-photo.jpg",
+  "download_bytes": 20000,
+  "download_dimensions": [
+    350,
+    450
+  ],
+  "page_errors": [],
+  "result": "passed"
+}

@@ -1,0 +1,267 @@
+{
+  "aliases": [
+    {
+      "path": "/tools",
+      "status": 301,
+      "location": "/tool-desk"
+    },
+    {
+      "path": "/all-tools",
+      "status": 301,
+      "location": "/tool-desk"
+    },
+    {
+      "path": "/scan-pdf",
+      "status": 301,
+      "location": "/scan-to-pdf"
+    }
+  ],
+  "catalogAnchors": [
+    {
+      "title": "Merge PDF",
+      "tag": "A",
+      "href": "/merge-pdf",
+      "status": 200
+    },
+    {
+      "title": "Split / extract",
+      "tag": "A",
+      "href": "/split-pdf",
+      "status": 200
+    },
+    {
+      "title": "Remove pages",
+      "tag": "A",
+      "href": "/remove-pages-pdf",
+      "status": 200
+    },
+    {
+      "title": "Rotate PDF",
+      "tag": "A",
+      "href": "/rotate-pdf",
+      "status": 200
+    },
+    {
+      "title": "Page Organizer",
+      "tag": "A",
+      "href": "/organize-pdf",
+      "status": 200
+    },
+    {
+      "title": "Scan to PDF",
+      "tag": "A",
+      "href": "/scan-to-pdf",
+      "status": 200
+    },
+    {
+      "title": "Convert to Grayscale",
+      "tag": "A",
+      "href": "/convert-pdf-to-grayscale",
+      "status": 200
+    },
+    {
+      "title": "Compress PDF",
+      "tag": "A",
+      "href": "/compress-pdf",
+      "status": 200
+    },
+    {
+      "title": "Repair PDF",
+      "tag": "A",
+      "href": "/repair-pdf",
+      "status": 200
+    },
+    {
+      "title": "OCR PDF",
+      "tag": "A",
+      "href": "/ocr-pdf",
+      "status": 200
+    },
+    {
+      "title": "PDF to Word",
+      "tag": "A",
+      "href": "/pdf-to-word",
+      "status": 200
+    },
+    {
+      "title": "Word to PDF",
+      "tag": "A",
+      "href": "/word-to-pdf",
+      "status": 200
+    },
+    {
+      "title": "PDF to Excel",
+      "tag": "A",
+      "href": "/pdf-to-excel",
+      "status": 200
+    },
+    {
+      "title": "Excel to PDF",
+      "tag": "A",
+      "href": "/excel-to-pdf",
+      "status": 200
+    },
+    {
+      "title": "PDF to PowerPoint",
+      "tag": "A",
+      "href": "/pdf-to-powerpoint",
+      "status": 200
+    },
+    {
+      "title": "PowerPoint to PDF",
+      "tag": "A",
+      "href": "/powerpoint-to-pdf",
+      "status": 200
+    },
+    {
+      "title": "PDF to JPG",
+      "tag": "A",
+      "href": "/pdf-to-jpg",
+      "status": 200
+    },
+    {
+      "title": "JPG/PNG to PDF",
+      "tag": "A",
+      "href": "/jpg-to-pdf",
+      "status": 200
+    },
+    {
+      "title": "HTML to PDF",
+      "tag": "A",
+      "href": "/html-to-pdf",
+      "status": 200
+    },
+    {
+      "title": "PDF to PDF/A",
+      "tag": "A",
+      "href": "/pdf-to-pdfa",
+      "status": 200
+    },
+    {
+      "title": "PDF to Text",
+      "tag": "A",
+      "href": "/pdf-to-text",
+      "status": 200
+    },
+    {
+      "title": "PDF to Markdown",
+      "tag": "A",
+      "href": "/pdf-to-markdown",
+      "status": 200
+    },
+    {
+      "title": "Page Numbers",
+      "tag": "A",
+      "href": "/add-page-numbers-to-pdf",
+      "status": 200
+    },
+    {
+      "title": "Watermark PDF",
+      "tag": "A",
+      "href": "/watermark-pdf",
+      "status": 200
+    },
+    {
+      "title": "Crop PDF",
+      "tag": "A",
+      "href": "/crop-pdf",
+      "status": 200
+    },
+    {
+      "title": "Compare PDF",
+      "tag": "A",
+      "href": "/compare-pdf",
+      "status": 200
+    },
+    {
+      "title": "Add Text & Stamps",
+      "tag": "A",
+      "href": "/edit-pdf",
+      "status": 200
+    },
+    {
+      "title": "Annotate PDF",
+      "tag": "A",
+      "href": "/annotate-pdf",
+      "status": 200
+    },
+    {
+      "title": "Flatten PDF Forms",
+      "tag": "A",
+      "href": "/flatten-pdf",
+      "status": 200
+    },
+    {
+      "title": "PDF Metadata",
+      "tag": "A",
+      "href": "/pdf-metadata",
+      "status": 200
+    },
+    {
+      "title": "Protect PDF",
+      "tag": "A",
+      "href": "/protect-pdf",
+      "status": 200
+    },
+    {
+      "title": "Unlock PDF",
+      "tag": "A",
+      "href": "/unlock-pdf",
+      "status": 200
+    },
+    {
+      "title": "Sign PDF",
+      "tag": "A",
+      "href": "/sign-pdf",
+      "status": 200
+    },
+    {
+      "title": "Fill PDF Form",
+      "tag": "A",
+      "href": "/fill-pdf-form",
+      "status": 200
+    },
+    {
+      "title": "Redact PDF",
+      "tag": "A",
+      "href": "/redact-pdf",
+      "status": 200
+    },
+    {
+      "title": "Mask Aadhaar Card",
+      "tag": "A",
+      "href": "/mask-aadhaar-card-online",
+      "status": 200
+    },
+    {
+      "title": "AI Translate",
+      "tag": "A",
+      "href": "/translate-pdf",
+      "status": 200
+    },
+    {
+      "title": "Exam Photo & Signature Resizer",
+      "tag": "A",
+      "href": "/ssc-photo-resizer",
+      "status": 200
+    },
+    {
+      "title": "Compress Photo / Image",
+      "tag": "A",
+      "href": "/compress-image-online",
+      "status": 200
+    },
+    {
+      "title": "Resize Photo Dimensions",
+      "tag": "A",
+      "href": "/resize-image-dimensions",
+      "status": 200
+    },
+    {
+      "title": "Merge Photos into One",
+      "tag": "A",
+      "href": "/merge-photos-online",
+      "status": 200
+    }
+  ]
+}

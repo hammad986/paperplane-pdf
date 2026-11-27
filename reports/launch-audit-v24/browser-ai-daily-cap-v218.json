@@ -1,0 +1,63 @@
+{
+  "build": "local current worktree",
+  "ai_limit": 3,
+  "requests": [
+    {
+      "attempt": 1,
+      "status": 200,
+      "detail": null,
+      "operation_header": "1",
+      "ai_header": "1"
+    },
+    {
+      "attempt": 2,
+      "status": 200,
+      "detail": null,
+      "operation_header": "2",
+      "ai_header": "2"
+    },
+    {
+      "attempt": 3,
+      "status": 200,
+      "detail": null,
+      "operation_header": "3",
+      "ai_header": "3"
+    },
+    {
+      "attempt": 4,
+      "status": 402,
+      "detail": {
+        "code": "TIER_LIMIT_REACHED",
+        "quota": "ai",
+        "message": "Daily Free AI limit reached (3/3 AI requests). Your general operation allowance is unchanged; paid plans have no daily AI cap.",
+        "limit": 3,
+        "usage": 3,
+        "tier": "free"
+      },
+      "operation_header": null,
+      "ai_header": null
+    }
+  ],
+  "browser_errors": [],
+  "console_errors": [],
+  "rendered_quota_copy": "Guests upload up to 50 MB per file; signed-in Free accounts have no plan-specific file cap within the 500 MB service maximum. Exam Pass uploads are limited to 500 MB. Recurring paid plans have no plan-specific file cap within the 500 MB service maximum. Free and guest accounts: up to 10 accepted server operations per day, including at most 3 successful AI requests. Chat, summarize, extract, and translate each count as one AI request and one server operation. One multi-file batch counts once. Browser-local processing and requests rejected before acceptance do not count. A queued PDF/photo job still counts if processing later fails; failed AI or Studio requests refund their reservation when the failure is reported. Paid plans have no daily operation or AI cap. Your plan: up to 10 files for Merge, JPG/PNG to PDF, and Scan to PDF. Free, Student & Educator, and Exam Pass are capped at 10; All-In-One Pro & Developer plans allow 100. Compare takes two PDFs. Photo Merge takes 2\u201310 images.",
+  "public_plan_limits": {
+    "free_operations_per_day": 10,
+    "free_ai_calls_per_day": 3,
+    "guest_max_file_size_mb": 50,
+    "free_max_file_size_mb": 500,
+    "exam_pass_max_file_size_mb": 500,
+    "pro_max_file_size_mb": 500,
+    "platform_max_file_size_mb": 500,
+    "authenticated": 0,
+    "max_batch_files": 10
+  },
+  "page_title": "PDF Tools | Paperplane",
+  "asset_statuses": [
+    {
+      "url": "http://127.0.0.1:64528/assets/app.js?v=213",
+      "transferSize": 462438
+    }
+  ],
+  "passed": true
+}

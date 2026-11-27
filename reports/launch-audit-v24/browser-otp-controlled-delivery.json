@@ -1,0 +1,22 @@
+{
+  "delivery_failure": {
+    "http_status": 503,
+    "message": "Email delivery is unavailable. Please try again later or contact support.",
+    "otp_step_hidden": true,
+    "guest_session_retained": true,
+    "code_not_exposed": true
+  },
+  "delivery_success": {
+    "register_status": 200,
+    "otp_required_without_dev_code": true,
+    "verification_status": 200,
+    "authenticated_after_verified_code": true,
+    "code_omitted_from_evidence": true
+  },
+  "page_errors": [],
+  "console_errors": [],
+  "expected_error_console": [
+    "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+  ],
+  "result": "passed"
+}

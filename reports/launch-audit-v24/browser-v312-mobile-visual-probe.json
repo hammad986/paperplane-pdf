@@ -1,0 +1,964 @@
+{
+  "base": "http://127.0.0.1:62479",
+  "routes": [
+    {
+      "route": "/",
+      "viewport": [
+        320,
+        568
+      ],
+      "http_status": 200,
+      "title": "PDF Tools | Paperplane",
+      "h1": [
+        "Paperplane Settings",
+        "Paperplane Pricing",
+        "Frequently asked questions",
+        "Feedback",
+        "Temporary results \u2014 no saved history",
+        "Tool Desk",
+        "Merge PDF",
+        "AI Document Intelligence",
+        "Paperplane Downloads"
+      ],
+      "scroll_width": 305,
+      "client_width": 305,
+      "scroll_height": 13538,
+      "fixed_dock": null,
+      "mobile_view_pill": {
+        "text": "Tool Desk",
+        "ariaHidden": "true",
+        "srText": "Tool Desk workspace",
+        "title": "Tool Desk workspace",
+        "x": 154.1999969482422,
+        "y": 16.600000381469727,
+        "width": 77,
+        "height": 30,
+        "top": 16.600000381469727,
+        "bottom": 46.60000038146973,
+        "left": 154.1999969482422,
+        "right": 231.1999969482422
+      },
+      "controls_overlapped_by_dock": []
+    },
+    {
+      "route": "/merge-pdf",
+      "viewport": [
+        320,
+        568
+      ],
+      "http_status": 200,
+      "title": "Merge PDF | Paperplane",
+      "h1": [
+        "Paperplane Settings",
+        "Paperplane Pricing",
+        "Frequently asked questions",
+        "Feedback",
+        "Temporary results \u2014 no saved history",
+        "Tool Desk",
+        "Merge PDF",
+        "AI Document Intelligence",
+        "Paperplane Downloads"
+      ],
+      "scroll_width": 305,
+      "client_width": 305,
+      "scroll_height": 2654,
+      "fixed_dock": null,
+      "mobile_view_pill": {
+        "text": "PDF Tool",
+        "ariaHidden": "true",
+        "srText": "PDF Tool workspace",
+        "title": "PDF Tool workspace",
+        "x": 154.1999969482422,
+        "y": 16.600000381469727,
+        "width": 72.80000305175781,
+        "height": 30,
+        "top": 16.600000381469727,
+        "bottom": 46.60000038146973,
+        "left": 154.1999969482422,
+        "right": 227
+      },
+      "controls_overlapped_by_dock": []
+    },
+    {
+      "route": "/studio",
+      "viewport": [
+        320,
+        568
+      ],
+      "http_status": 200,
+      "title": "PDF Studio | Paperplane",
+      "h1": [
+        "Paperplane Settings",
+        "Paperplane Pricing",
+        "Frequently asked questions",
+        "Feedback",
+        "Temporary results \u2014 no saved history",
+        "Tool Desk",
+        "Merge PDF",
+        "AI Document Intelligence",
+        "Paperplane Downloads"
+      ],
+      "scroll_width": 305,
+      "client_width": 305,
+      "scroll_height": 1059,
+      "fixed_dock": null,
+      "mobile_view_pill": {
+        "text": "Studio",
+        "ariaHidden": "true",
+        "srText": "Studio workspace",
+        "title": "Studio workspace",
+        "x": 154.1999969482422,
+        "y": 16.600000381469727,
+        "width": 60.79999923706055,
+        "height": 30,
+        "top": 16.600000381469727,
+        "bottom": 46.60000038146973,
+        "left": 154.1999969482422,
+        "right": 214.99999618530273
+      },
+      "controls_overlapped_by_dock": []
+    },
+    {
+      "route": "/ai-intelligence",
+      "viewport": [
+        320,
+        568
+      ],
+      "http_status": 200,
+      "title": "AI Document Intelligence | Paperplane",
+      "h1": [
+        "Paperplane Settings",
+        "Paperplane Pricing",
+        "Frequently asked questions",
+        "Feedback",
+        "Temporary results \u2014 no saved history",
+        "Tool Desk",
+        "Merge PDF",
+        "AI Document Intelligence",
+        "Paperplane Downloads"
+      ],
+      "scroll_width": 305,
+      "client_width": 305,
+      "scroll_height": 2030,
+      "fixed_dock": null,
+      "mobile_view_pill": {
+        "text": "AI",
+        "ariaHidden": "true",
+        "srText": "AI Intelligence workspace",
+        "title": "AI Intelligence workspace",
+        "x": 154.1999969482422,
+        "y": 16.600000381469727,
+        "width": 33.60000228881836,
+        "height": 30,
+        "top": 16.600000381469727,
+        "bottom": 46.60000038146973,
+        "left": 154.1999969482422,
+        "right": 187.79999923706055
+      },
+      "controls_overlapped_by_dock": [],
+      "pill_assertion_passed": true
+    },
+    {
+      "route": "/apps",
+      "viewport": [
+        320,
+        568
+      ],
+      "http_status": 200,
+      "title": "Native Apps | Paperplane",
+      "h1": [
+        "Paperplane Settings",
+        "Paperplane Pricing",
+        "Frequently asked questions",
+        "Feedback",
+        "Temporary results \u2014 no saved history",
+        "Paperplane Apps for Desktop and Mobile",
+        "Merge PDF",
+        "AI Document Intelligence",
+        "Paperplane Apps for Desktop and Mobile",
+        "Paperplane Downloads"
+      ],
+      "scroll_width": 305,
+      "client_width": 305,
+      "scroll_height": 3330,
+      "fixed_dock": null,
+      "mobile_view_pill": {
+        "text": "Apps",
+        "ariaHidden": "true",
+        "srText": "Native Apps workspace",
+        "title": "Native Apps workspace",
+        "x": 154.1999969482422,
+        "y": 16.600000381469727,
+        "width": 52.79999923706055,
+        "height": 30,
+        "top": 16.600000381469727,
+        "bottom": 46.60000038146973,
+        "left": 154.1999969482422,
+        "right": 206.99999618530273
+      },
+      "controls_overlapped_by_dock": [],
+      "pill_assertion_passed": true
+    },
+    {
+      "route": "/download",
+      "viewport": [
+        320,
+        568
+      ],
+      "http_status": 200,
+      "title": "Downloads | Paperplane",
+      "h1": [
+        "Paperplane Settings",
+        "Paperplane Pricing",
+        "Frequently asked questions",
+        "Feedback",
+        "Temporary results \u2014 no saved history",
+        "Paperplane Downloads",
+        "Merge PDF",
+        "AI Document Intelligence",
+        "Paperplane Downloads",
+        "Paperplane Downloads"
+      ],
+      "scroll_width": 305,
+      "client_width": 305,
+      "scroll_height": 1284,
+      "fixed_dock": null,
+      "mobile_view_pill": {
+        "text": "Apps",
+        "ariaHidden": "true",
+        "srText": "Downloads workspace",
+        "title": "Downloads workspace",
+        "x": 154.1999969482422,
+        "y": 16.600000381469727,
+        "width": 52.79999923706055,
+        "height": 30,
+        "top": 16.600000381469727,
+        "bottom": 46.60000038146973,
+        "left": 154.1999969482422,
+        "right": 206.99999618530273
+      },
+      "controls_overlapped_by_dock": [],
+      "pill_assertion_passed": true
+    },
+    {
+      "route": "/",
+      "viewport": [
+        390,
+        844
+      ],
+      "http_status": 200,
+      "title": "PDF Tools | Paperplane",
+      "h1": [
+        "Paperplane Settings",
+        "Paperplane Pricing",
+        "Frequently asked questions",
+        "Feedback",
+        "Temporary results \u2014 no saved history",
+        "Tool Desk",
+        "Merge PDF",
+        "AI Document Intelligence",
+        "Paperplane Downloads"
+      ],
+      "scroll_width": 375,
+      "client_width": 375,
+      "scroll_height": 12855,
+      "fixed_dock": null,
+      "mobile_view_pill": {
+        "text": "Tool Desk",
+        "ariaHidden": "true",
+        "srText": "Tool Desk workspace",
+        "title": "Tool Desk workspace",
+        "x": 154.1999969482422,
+        "y": 16.600000381469727,
+        "width": 78.4000015258789,
+        "height": 30,
+        "top": 16.600000381469727,
+        "bottom": 46.60000038146973,
+        "left": 154.1999969482422,
+        "right": 232.5999984741211
+      },
+      "controls_overlapped_by_dock": []
+    },
+    {
+      "route": "/merge-pdf",
+      "viewport": [
+        390,
+        844
+      ],
+      "http_status": 200,
+      "title": "Merge PDF | Paperplane",
+      "h1": [
+        "Paperplane Settings",
+        "Paperplane Pricing",
+        "Frequently asked questions",
+        "Feedback",
+        "Temporary results \u2014 no saved history",
+        "Tool Desk",
+        "Merge PDF",
+        "AI Document Intelligence",
+        "Paperplane Downloads"
+      ],
+      "scroll_width": 375,
+      "client_width": 375,
+      "scroll_height": 2382,
+      "fixed_dock": null,
+      "mobile_view_pill": {
+        "text": "PDF Tool",
+        "ariaHidden": "true",
+        "srText": "PDF Tool workspace",
+        "title": "PDF Tool workspace",
+        "x": 154.1999969482422,
+        "y": 16.600000381469727,
+        "width": 72.80000305175781,
+        "height": 30,
+        "top": 16.600000381469727,
+        "bottom": 46.60000038146973,
+        "left": 154.1999969482422,
+        "right": 227
+      },
+      "controls_overlapped_by_dock": []
+    },
+    {
+      "route": "/studio",
+      "viewport": [
+        390,
+        844
+      ],
+      "http_status": 200,
+      "title": "PDF Studio | Paperplane",
+      "h1": [
+        "Paperplane Settings",
+        "Paperplane Pricing",
+        "Frequently asked questions",
+        "Feedback",
+        "Temporary results \u2014 no saved history",
+        "Tool Desk",
+        "Merge PDF",
+        "AI Document Intelligence",
+        "Paperplane Downloads"
+      ],
+      "scroll_width": 375,
+      "client_width": 375,
+      "scroll_height": 1131,
+      "fixed_dock": null,
+      "mobile_view_pill": {
+        "text": "Studio",
+        "ariaHidden": "true",
+        "srText": "Studio workspace",
+        "title": "Studio workspace",
+        "x": 154.1999969482422,
+        "y": 16.600000381469727,
+        "width": 60.79999923706055,
+        "height": 30,
+        "top": 16.600000381469727,
+        "bottom": 46.60000038146973,
+        "left": 154.1999969482422,
+        "right": 214.99999618530273
+      },
+      "controls_overlapped_by_dock": []
+    },
+    {
+      "route": "/ai-intelligence",
+      "viewport": [
+        390,
+        844
+      ],
+      "http_status": 200,
+      "title": "AI Document Intelligence | Paperplane",
+      "h1": [
+        "Paperplane Settings",
+        "Paperplane Pricing",
+        "Frequently asked questions",
+        "Feedback",
+        "Temporary results \u2014 no saved history",
+        "Tool Desk",
+        "Merge PDF",
+        "AI Document Intelligence",
+        "Paperplane Downloads"
+      ],
+      "scroll_width": 375,
+      "client_width": 375,
+      "scroll_height": 2086,
+      "fixed_dock": null,
+      "mobile_view_pill": {
+        "text": "AI",
+        "ariaHidden": "true",
+        "srText": "AI Intelligence workspace",
+        "title": "AI Intelligence workspace",
+        "x": 154.1999969482422,
+        "y": 16.600000381469727,
+        "width": 33.60000228881836,
+        "height": 30,
+        "top": 16.600000381469727,
+        "bottom": 46.60000038146973,
+        "left": 154.1999969482422,
+        "right": 187.79999923706055
+      },
+      "controls_overlapped_by_dock": [],
+      "pill_assertion_passed": true
+    },
+    {
+      "route": "/apps",
+      "viewport": [
+        390,
+        844
+      ],
+      "http_status": 200,
+      "title": "Native Apps | Paperplane",
+      "h1": [
+        "Paperplane Settings",
+        "Paperplane Pricing",
+        "Frequently asked questions",
+        "Feedback",
+        "Temporary results \u2014 no saved history",
+        "Paperplane Apps for Desktop and Mobile",
+        "Merge PDF",
+        "AI Document Intelligence",
+        "Paperplane Apps for Desktop and Mobile",
+        "Paperplane Downloads"
+      ],
+      "scroll_width": 375,
+      "client_width": 375,
+      "scroll_height": 3015,
+      "fixed_dock": null,
+      "mobile_view_pill": {
+        "text": "Apps",
+        "ariaHidden": "true",
+        "srText": "Native Apps workspace",
+        "title": "Native Apps workspace",
+        "x": 154.1999969482422,
+        "y": 16.600000381469727,
+        "width": 52.79999923706055,
+        "height": 30,
+        "top": 16.600000381469727,
+        "bottom": 46.60000038146973,
+        "left": 154.1999969482422,
+        "right": 206.99999618530273
+      },
+      "controls_overlapped_by_dock": [],
+      "pill_assertion_passed": true
+    },
+    {
+      "route": "/download",
+      "viewport": [
+        390,
+        844
+      ],
+      "http_status": 200,
+      "title": "Downloads | Paperplane",
+      "h1": [
+        "Paperplane Settings",
+        "Paperplane Pricing",
+        "Frequently asked questions",
+        "Feedback",
+        "Temporary results \u2014 no saved history",
+        "Paperplane Downloads",
+        "Merge PDF",
+        "AI Document Intelligence",
+        "Paperplane Downloads",
+        "Paperplane Downloads"
+      ],
+      "scroll_width": 375,
+      "client_width": 375,
+      "scroll_height": 1225,
+      "fixed_dock": null,
+      "mobile_view_pill": {
+        "text": "Apps",
+        "ariaHidden": "true",
+        "srText": "Downloads workspace",
+        "title": "Downloads workspace",
+        "x": 154.1999969482422,
+        "y": 16.600000381469727,
+        "width": 52.79999923706055,
+        "height": 30,
+        "top": 16.600000381469727,
+        "bottom": 46.60000038146973,
+        "left": 154.1999969482422,
+        "right": 206.99999618530273
+      },
+      "controls_overlapped_by_dock": [],
+      "pill_assertion_passed": true
+    },
+    {
+      "route": "/",
+      "viewport": [
+        820,
+        900
+      ],
+      "http_status": 200,
+      "title": "PDF Tools | Paperplane",
+      "h1": [
+        "Paperplane Settings",
+        "Paperplane Pricing",
+        "Frequently asked questions",
+        "Feedback",
+        "Temporary results \u2014 no saved history",
+        "Tool Desk",
+        "Merge PDF",
+        "AI Document Intelligence",
+        "Paperplane Downloads"
+      ],
+      "scroll_width": 805,
+      "client_width": 805,
+      "scroll_height": 12005,
+      "fixed_dock": null,
+      "mobile_view_pill": {
+        "text": "Tool Desk",
+        "ariaHidden": "true",
+        "srText": "Tool Desk workspace",
+        "title": "Tool Desk workspace",
+        "x": 162.1999969482422,
+        "y": 16.600000381469727,
+        "width": 78.4000015258789,
+        "height": 30,
+        "top": 16.600000381469727,
+        "bottom": 46.60000038146973,
+        "left": 162.1999969482422,
+        "right": 240.5999984741211
+      },
+      "controls_overlapped_by_dock": []
+    },
+    {
+      "route": "/merge-pdf",
+      "viewport": [
+        820,
+        900
+      ],
+      "http_status": 200,
+      "title": "Merge PDF | Paperplane",
+      "h1": [
+        "Paperplane Settings",
+        "Paperplane Pricing",
+        "Frequently asked questions",
+        "Feedback",
+        "Temporary results \u2014 no saved history",
+        "Tool Desk",
+        "Merge PDF",
+        "AI Document Intelligence",
+        "Paperplane Downloads"
+      ],
+      "scroll_width": 805,
+      "client_width": 805,
+      "scroll_height": 2245,
+      "fixed_dock": null,
+      "mobile_view_pill": {
+        "text": "PDF Tool",
+        "ariaHidden": "true",
+        "srText": "PDF Tool workspace",
+        "title": "PDF Tool workspace",
+        "x": 162.1999969482422,
+        "y": 16.600000381469727,
+        "width": 72.80000305175781,
+        "height": 30,
+        "top": 16.600000381469727,
+        "bottom": 46.60000038146973,
+        "left": 162.1999969482422,
+        "right": 235
+      },
+      "controls_overlapped_by_dock": []
+    },
+    {
+      "route": "/studio",
+      "viewport": [
+        820,
+        900
+      ],
+      "http_status": 200,
+      "title": "PDF Studio | Paperplane",
+      "h1": [
+        "Paperplane Settings",
+        "Paperplane Pricing",
+        "Frequently asked questions",
+        "Feedback",
+        "Temporary results \u2014 no saved history",
+        "Tool Desk",
+        "Merge PDF",
+        "AI Document Intelligence",
+        "Paperplane Downloads"
+      ],
+      "scroll_width": 805,
+      "client_width": 805,
+      "scroll_height": 1068,
+      "fixed_dock": null,
+      "mobile_view_pill": {
+        "text": "Studio",
+        "ariaHidden": "true",
+        "srText": "Studio workspace",
+        "title": "Studio workspace",
+        "x": 162.1999969482422,
+        "y": 16.600000381469727,
+        "width": 60.79999923706055,
+        "height": 30,
+        "top": 16.600000381469727,
+        "bottom": 46.60000038146973,
+        "left": 162.1999969482422,
+        "right": 222.99999618530273
+      },
+      "controls_overlapped_by_dock": []
+    },
+    {
+      "route": "/ai-intelligence",
+      "viewport": [
+        820,
+        900
+      ],
+      "http_status": 200,
+      "title": "AI Document Intelligence | Paperplane",
+      "h1": [
+        "Paperplane Settings",
+        "Paperplane Pricing",
+        "Frequently asked questions",
+        "Feedback",
+        "Temporary results \u2014 no saved history",
+        "Tool Desk",
+        "Merge PDF",
+        "AI Document Intelligence",
+        "Paperplane Downloads"
+      ],
+      "scroll_width": 805,
+      "client_width": 805,
+      "scroll_height": 1822,
+      "fixed_dock": null,
+      "mobile_view_pill": {
+        "text": "AI",
+        "ariaHidden": "true",
+        "srText": "AI Intelligence workspace",
+        "title": "AI Intelligence workspace",
+        "x": 162.1999969482422,
+        "y": 16.600000381469727,
+        "width": 33.60000228881836,
+        "height": 30,
+        "top": 16.600000381469727,
+        "bottom": 46.60000038146973,
+        "left": 162.1999969482422,
+        "right": 195.79999923706055
+      },
+      "controls_overlapped_by_dock": [],
+      "pill_assertion_passed": true
+    },
+    {
+      "route": "/apps",
+      "viewport": [
+        820,
+        900
+      ],
+      "http_status": 200,
+      "title": "Native Apps | Paperplane",
+      "h1": [
+        "Paperplane Settings",
+        "Paperplane Pricing",
+        "Frequently asked questions",
+        "Feedback",
+        "Temporary results \u2014 no saved history",
+        "Paperplane Apps for Desktop and Mobile",
+        "Merge PDF",
+        "AI Document Intelligence",
+        "Paperplane Apps for Desktop and Mobile",
+        "Paperplane Downloads"
+      ],
+      "scroll_width": 805,
+      "client_width": 805,
+      "scroll_height": 2274,
+      "fixed_dock": null,
+      "mobile_view_pill": {
+        "text": "Apps",
+        "ariaHidden": "true",
+        "srText": "Native Apps workspace",
+        "title": "Native Apps workspace",
+        "x": 162.1999969482422,
+        "y": 16.600000381469727,
+        "width": 52.79999923706055,
+        "height": 30,
+        "top": 16.600000381469727,
+        "bottom": 46.60000038146973,
+        "left": 162.1999969482422,
+        "right": 214.99999618530273
+      },
+      "controls_overlapped_by_dock": [],
+      "pill_assertion_passed": true
+    },
+    {
+      "route": "/download",
+      "viewport": [
+        820,
+        900
+      ],
+      "http_status": 200,
+      "title": "Downloads | Paperplane",
+      "h1": [
+        "Paperplane Settings",
+        "Paperplane Pricing",
+        "Frequently asked questions",
+        "Feedback",
+        "Temporary results \u2014 no saved history",
+        "Paperplane Downloads",
+        "Merge PDF",
+        "AI Document Intelligence",
+        "Paperplane Downloads",
+        "Paperplane Downloads"
+      ],
+      "scroll_width": 805,
+      "client_width": 805,
+      "scroll_height": 1178,
+      "fixed_dock": null,
+      "mobile_view_pill": {
+        "text": "Apps",
+        "ariaHidden": "true",
+        "srText": "Downloads workspace",
+        "title": "Downloads workspace",
+        "x": 162.1999969482422,
+        "y": 16.600000381469727,
+        "width": 52.79999923706055,
+        "height": 30,
+        "top": 16.600000381469727,
+        "bottom": 46.60000038146973,
+        "left": 162.1999969482422,
+        "right": 214.99999618530273
+      },
+      "controls_overlapped_by_dock": [],
+      "pill_assertion_passed": true
+    },
+    {
+      "route": "/",
+      "viewport": [
+        1366,
+        900
+      ],
+      "http_status": 200,
+      "title": "PDF Tools | Paperplane",
+      "h1": [
+        "Paperplane Settings",
+        "Paperplane Pricing",
+        "Frequently asked questions",
+        "Feedback",
+        "Temporary results \u2014 no saved history",
+        "Tool Desk",
+        "Merge PDF",
+        "AI Document Intelligence",
+        "Paperplane Downloads"
+      ],
+      "scroll_width": 1366,
+      "client_width": 1366,
+      "scroll_height": 900,
+      "fixed_dock": null,
+      "mobile_view_pill": {
+        "text": "Tool Desk",
+        "ariaHidden": "true",
+        "srText": "Tool Desk workspace",
+        "title": "Tool Desk workspace",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0
+      },
+      "controls_overlapped_by_dock": []
+    },
+    {
+      "route": "/merge-pdf",
+      "viewport": [
+        1366,
+        900
+      ],
+      "http_status": 200,
+      "title": "Merge PDF | Paperplane",
+      "h1": [
+        "Paperplane Settings",
+        "Paperplane Pricing",
+        "Frequently asked questions",
+        "Feedback",
+        "Temporary results \u2014 no saved history",
+        "Tool Desk",
+        "Merge PDF",
+        "AI Document Intelligence",
+        "Paperplane Downloads"
+      ],
+      "scroll_width": 1366,
+      "client_width": 1366,
+      "scroll_height": 900,
+      "fixed_dock": null,
+      "mobile_view_pill": {
+        "text": "PDF Tool",
+        "ariaHidden": "true",
+        "srText": "PDF Tool workspace",
+        "title": "PDF Tool workspace",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0
+      },
+      "controls_overlapped_by_dock": []
+    },
+    {
+      "route": "/studio",
+      "viewport": [
+        1366,
+        900
+      ],
+      "http_status": 200,
+      "title": "PDF Studio | Paperplane",
+      "h1": [
+        "Paperplane Settings",
+        "Paperplane Pricing",
+        "Frequently asked questions",
+        "Feedback",
+        "Temporary results \u2014 no saved history",
+        "Tool Desk",
+        "Merge PDF",
+        "AI Document Intelligence",
+        "Paperplane Downloads"
+      ],
+      "scroll_width": 1366,
+      "client_width": 1366,
+      "scroll_height": 900,
+      "fixed_dock": null,
+      "mobile_view_pill": {
+        "text": "Studio",
+        "ariaHidden": "true",
+        "srText": "Studio workspace",
+        "title": "Studio workspace",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0
+      },
+      "controls_overlapped_by_dock": []
+    },
+    {
+      "route": "/ai-intelligence",
+      "viewport": [
+        1366,
+        900
+      ],
+      "http_status": 200,
+      "title": "AI Document Intelligence | Paperplane",
+      "h1": [
+        "Paperplane Settings",
+        "Paperplane Pricing",
+        "Frequently asked questions",
+        "Feedback",
+        "Temporary results \u2014 no saved history",
+        "Tool Desk",
+        "Merge PDF",
+        "AI Document Intelligence",
+        "Paperplane Downloads"
+      ],
+      "scroll_width": 1366,
+      "client_width": 1366,
+      "scroll_height": 900,
+      "fixed_dock": null,
+      "mobile_view_pill": {
+        "text": "AI",
+        "ariaHidden": "true",
+        "srText": "AI Intelligence workspace",
+        "title": "AI Intelligence workspace",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0
+      },
+      "controls_overlapped_by_dock": [],
+      "pill_assertion_passed": true
+    },
+    {
+      "route": "/apps",
+      "viewport": [
+        1366,
+        900
+      ],
+      "http_status": 200,
+      "title": "Native Apps | Paperplane",
+      "h1": [
+        "Paperplane Settings",
+        "Paperplane Pricing",
+        "Frequently asked questions",
+        "Feedback",
+        "Temporary results \u2014 no saved history",
+        "Paperplane Apps for Desktop and Mobile",
+        "Merge PDF",
+        "AI Document Intelligence",
+        "Paperplane Apps for Desktop and Mobile",
+        "Paperplane Downloads"
+      ],
+      "scroll_width": 1366,
+      "client_width": 1366,
+      "scroll_height": 900,
+      "fixed_dock": null,
+      "mobile_view_pill": {
+        "text": "Apps",
+        "ariaHidden": "true",
+        "srText": "Native Apps workspace",
+        "title": "Native Apps workspace",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0
+      },
+      "controls_overlapped_by_dock": [],
+      "pill_assertion_passed": true
+    },
+    {
+      "route": "/download",
+      "viewport": [
+        1366,
+        900
+      ],
+      "http_status": 200,
+      "title": "Downloads | Paperplane",
+      "h1": [
+        "Paperplane Settings",
+        "Paperplane Pricing",
+        "Frequently asked questions",
+        "Feedback",
+        "Temporary results \u2014 no saved history",
+        "Paperplane Downloads",
+        "Merge PDF",
+        "AI Document Intelligence",
+        "Paperplane Downloads",
+        "Paperplane Downloads"
+      ],
+      "scroll_width": 1366,
+      "client_width": 1366,
+      "scroll_height": 900,
+      "fixed_dock": null,
+      "mobile_view_pill": {
+        "text": "Apps",
+        "ariaHidden": "true",
+        "srText": "Downloads workspace",
+        "title": "Downloads workspace",
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0
+      },
+      "controls_overlapped_by_dock": [],
+      "pill_assertion_passed": true
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "passed": true
+}

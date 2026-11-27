@@ -1,0 +1,314 @@
+{
+  "asset_version": "v152/v20/v25/v4/v93",
+  "rounds": [
+    {
+      "round": 1,
+      "offline_navigation_status": 200,
+      "local_mode_default": true,
+      "outcome": "downloaded_content_checked_pdf",
+      "output_bytes": 961,
+      "browser_errors": [],
+      "console_messages": [
+        {
+          "type": "verbose",
+          "text": "[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o"
+        },
+        {
+          "type": "verbose",
+          "text": "[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o"
+        },
+        {
+          "type": "verbose",
+          "text": "[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o"
+        },
+        {
+          "type": "verbose",
+          "text": "[DOM] Password forms should have (optionally hidden) username fields for accessibility: (More info: https://goo.gl/9p2vKq) %o"
+        },
+        {
+          "type": "verbose",
+          "text": "[DOM] Input elements should have autocomplete attributes (suggested: \"new-password\"): (More info: https://goo.gl/9p2vKq) %o"
+        },
+        {
+          "type": "verbose",
+          "text": "[DOM] Password forms should have (optionally hidden) username fields for accessibility: (More info: https://goo.gl/9p2vKq) %o"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "type": "warning",
+          "text": "Failed to query installed OCR languages: TypeError: Failed to fetch\n    at PaperplaneOptimizationController._fetchInstalledLanguages (http://127.0.0.1:49787/assets/optimization_engine.js?v=4.2.1:43:28)\n    at PaperplaneOptimizationController.init (http://127.0.0.1:49787/assets/optimization_engine.js"
+        },
+        {
+          "type": "verbose",
+          "text": "[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o"
+        },
+        {
+          "type": "verbose",
+          "text": "[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o"
+        },
+        {
+          "type": "verbose",
+          "text": "[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o"
+        },
+        {
+          "type": "verbose",
+          "text": "[DOM] Password forms should have (optionally hidden) username fields for accessibility: (More info: https://goo.gl/9p2vKq) %o"
+        },
+        {
+          "type": "verbose",
+          "text": "[DOM] Input elements should have autocomplete attributes (suggested: \"new-password\"): (More info: https://goo.gl/9p2vKq) %o"
+        },
+        {
+          "type": "verbose",
+          "text": "[DOM] Password forms should have (optionally hidden) username fields for accessibility: (More info: https://goo.gl/9p2vKq) %o"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "type": "warning",
+          "text": "Could not refresh SEO content for operation: merge Error: Connection error: Could not reach server. (Failed to fetch)\n    at safeFetch (http://127.0.0.1:49787/assets/app.js?v=152:1004:29)\n    at async syncSeoContent (http://127.0.0.1:49787/assets/app.js?v=152:2021:21)"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "type": "warning",
+          "text": "Could not fetch conversion capabilities: TypeError: Failed to fetch\n    at window.fetch (http://127.0.0.1:49787/assets/app.js?v=152:2389:26)\n    at PaperplaneConversionController._fetchCapabilities (http://127.0.0.1:49787/assets/conversion_engine.js?v=5.2.0:49:28)\n    at PaperplaneConversionControll"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        }
+      ],
+      "request_failures": [
+        {
+          "url": "http://127.0.0.1:49787/api/studio/ocr/languages",
+          "error": "net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "url": "http://127.0.0.1:49787/api/seo/merge",
+          "error": "net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "url": "http://127.0.0.1:49787/api/operations",
+          "error": "net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "url": "http://127.0.0.1:49787/api/ai/capabilities",
+          "error": "net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "url": "http://127.0.0.1:49787/api/auth/me",
+          "error": "net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "url": "http://127.0.0.1:49787/api/studio/conversions/capabilities",
+          "error": "net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "url": "http://127.0.0.1:49787/api/billing/status",
+          "error": "net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "url": "http://127.0.0.1:49787/api/auth/me",
+          "error": "net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "url": "http://127.0.0.1:49787/api/billing/status",
+          "error": "net::ERR_INTERNET_DISCONNECTED"
+        }
+      ],
+      "diagnostics": {
+        "runDisabled": false,
+        "resultText": "Your document is ready!\nmerged-PDF.pdf \u00b7 961 B \u00b7 2 pages\nDownload File\nView in Studio\nProcess Another File\nAll Tools",
+        "toast": "OK\nProcessing complete! Document ready for download.",
+        "dialog": "",
+        "downloadHidden": false,
+        "localMode": true,
+        "jobPosts": []
+      },
+      "resources_loaded_before_offline": 21
+    },
+    {
+      "round": 2,
+      "offline_navigation_status": 200,
+      "local_mode_default": true,
+      "outcome": "downloaded_content_checked_pdf",
+      "output_bytes": 961,
+      "browser_errors": [],
+      "console_messages": [
+        {
+          "type": "verbose",
+          "text": "[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o"
+        },
+        {
+          "type": "verbose",
+          "text": "[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o"
+        },
+        {
+          "type": "verbose",
+          "text": "[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o"
+        },
+        {
+          "type": "verbose",
+          "text": "[DOM] Password forms should have (optionally hidden) username fields for accessibility: (More info: https://goo.gl/9p2vKq) %o"
+        },
+        {
+          "type": "verbose",
+          "text": "[DOM] Input elements should have autocomplete attributes (suggested: \"new-password\"): (More info: https://goo.gl/9p2vKq) %o"
+        },
+        {
+          "type": "verbose",
+          "text": "[DOM] Password forms should have (optionally hidden) username fields for accessibility: (More info: https://goo.gl/9p2vKq) %o"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "type": "warning",
+          "text": "Failed to query installed OCR languages: TypeError: Failed to fetch\n    at PaperplaneOptimizationController._fetchInstalledLanguages (http://127.0.0.1:49787/assets/optimization_engine.js?v=4.2.1:43:28)\n    at PaperplaneOptimizationController.init (http://127.0.0.1:49787/assets/optimization_engine.js"
+        },
+        {
+          "type": "verbose",
+          "text": "[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o"
+        },
+        {
+          "type": "verbose",
+          "text": "[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o"
+        },
+        {
+          "type": "verbose",
+          "text": "[DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o"
+        },
+        {
+          "type": "verbose",
+          "text": "[DOM] Password forms should have (optionally hidden) username fields for accessibility: (More info: https://goo.gl/9p2vKq) %o"
+        },
+        {
+          "type": "verbose",
+          "text": "[DOM] Input elements should have autocomplete attributes (suggested: \"new-password\"): (More info: https://goo.gl/9p2vKq) %o"
+        },
+        {
+          "type": "verbose",
+          "text": "[DOM] Password forms should have (optionally hidden) username fields for accessibility: (More info: https://goo.gl/9p2vKq) %o"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "type": "warning",
+          "text": "Could not refresh SEO content for operation: merge Error: Connection error: Could not reach server. (Failed to fetch)\n    at safeFetch (http://127.0.0.1:49787/assets/app.js?v=152:1004:29)\n    at async syncSeoContent (http://127.0.0.1:49787/assets/app.js?v=152:2021:21)"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "type": "warning",
+          "text": "Could not fetch conversion capabilities: TypeError: Failed to fetch\n    at window.fetch (http://127.0.0.1:49787/assets/app.js?v=152:2389:26)\n    at PaperplaneConversionController._fetchCapabilities (http://127.0.0.1:49787/assets/conversion_engine.js?v=5.2.0:49:28)\n    at PaperplaneConversionControll"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "type": "error",
+          "text": "Failed to load resource: net::ERR_INTERNET_DISCONNECTED"
+        }
+      ],
+      "request_failures": [
+        {
+          "url": "http://127.0.0.1:49787/api/studio/ocr/languages",
+          "error": "net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "url": "http://127.0.0.1:49787/api/seo/merge",
+          "error": "net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "url": "http://127.0.0.1:49787/api/operations",
+          "error": "net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "url": "http://127.0.0.1:49787/api/ai/capabilities",
+          "error": "net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "url": "http://127.0.0.1:49787/api/auth/me",
+          "error": "net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "url": "http://127.0.0.1:49787/api/studio/conversions/capabilities",
+          "error": "net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "url": "http://127.0.0.1:49787/api/billing/status",
+          "error": "net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "url": "http://127.0.0.1:49787/api/auth/me",
+          "error": "net::ERR_INTERNET_DISCONNECTED"
+        },
+        {
+          "url": "http://127.0.0.1:49787/api/billing/status",
+          "error": "net::ERR_INTERNET_DISCONNECTED"
+        }
+      ],
+      "diagnostics": {
+        "runDisabled": false,
+        "resultText": "Your document is ready!\nmerged-PDF.pdf \u00b7 961 B \u00b7 2 pages\nDownload File\nView in Studio\nProcess Another File\nAll Tools",
+        "toast": "OK\nProcessing complete! Document ready for download.",
+        "dialog": "",
+        "downloadHidden": false,
+        "localMode": true,
+        "jobPosts": []
+      },
+      "resources_loaded_before_offline": 21
+    }
+  ],
+  "cold_offline_local_merge_passed": true
+}

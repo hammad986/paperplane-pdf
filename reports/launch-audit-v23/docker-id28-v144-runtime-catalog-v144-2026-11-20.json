@@ -1,0 +1,21 @@
+{
+  "image": "paperplane-v23-audit:codex-v144",
+  "image_id": "sha256:040bcd669f0abf14a0339d93e1d5680ce03aead692a66686c891efb7ed17a882",
+  "container_status": "healthy then stopped",
+  "health": {
+    "status": "ok",
+    "service": "paperplane-pdf",
+    "version": "2.0.0",
+    "auth_required": false,
+    "workers": 4,
+    "max_file_size_mb": 500,
+    "job_ttl_hours": 2
+  },
+  "rounds": 2,
+  "catalog_exit_code": 0,
+  "catalog_evidence": "browser-id28-v144-current-image-catalog-catalog-v144-2026-11-20.json",
+  "catalog_log": "browser-id28-current-image-continuation-catalog-v144-2026-11-20.log",
+  "storage": "tmpfs only; disposable synthetic audit account and fixtures",
+  "real_payment": false,
+  "provider_credentials": false
+}

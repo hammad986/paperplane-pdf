@@ -1,0 +1,28 @@
+{
+  "server": "isolated local app.py",
+  "live_or_production_contacted": false,
+  "page_errors": [],
+  "console_errors": [],
+  "expected_console_events": [
+    "Failed to load resource: the server responded with a status of 402 (Payment Required)"
+  ],
+  "cases": [],
+  "result": {
+    "quotaResult": null,
+    "modalVisible": true,
+    "quotaText": "Daily cloud operation limit reached. Try again tomorrow.",
+    "structuredResult": "A structured export error.",
+    "objectOnly": null,
+    "loadedScripts": [
+      "http://127.0.0.1:56694/assets/app.js?v=208"
+    ],
+    "objectLeak": false
+  },
+  "actual_export": {
+    "export_api_intercepted": true,
+    "modal_visible": true,
+    "quota_message": "Studio export limit reached. Try again tomorrow."
+  },
+  "app_asset": "/assets/app.js?v=208",
+  "passed": true
+}

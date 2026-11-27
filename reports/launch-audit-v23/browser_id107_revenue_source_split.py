@@ -40,10 +40,21 @@ print(json.dumps({"admin":create_admin_session(owner)}))'''
         results = []
         with sync_playwright() as p:
             browser = p.chromium.launch(channel="chrome", headless=True)
-            for round_no in (1, 2):
-                page = browser.new_page(viewport={"width": 1440, "height": 1000})
+            for round_no, width in enumerate((1440, 390, 320), start=1):
+                page = browser.new_page(viewport={"width": width, "height": 1000})
                 errors = []
                 page.on("pageerror", lambda e: errors.append(str(e)))
+                def tamper_revenue(route):
+                    response = route.fetch()
+                    body = response.json()
+                    body["recent_transactions"].append({
+                        "email": "injected@example.test", "tier": "pro", "order_id": "xss-probe",
+                        "amount": '0<img id="pp-admin-amount-xss" src="x" onerror="window.__adminXss++">',
+                        "gateway_environment": "UNKNOWN", "created_at": 1, "status": "Paid",
+                    })
+                    route.fulfill(response=response, json=body)
+                page.route("**/api/admin/revenue", tamper_revenue)
+                page.add_init_script("window.__adminXss = 0")
                 page.add_init_script("sessionStorage.setItem('pp_admin_session'," + json.dumps(admin_token) + ")")
                 page.goto(f"http://127.0.0.1:{port}/admin", wait_until="domcontentloaded")
                 page.locator("#tab-revenue-btn").wait_for(state="visible")
@@ -59,8 +70,36 @@ print(json.dumps({"admin":create_admin_session(owner)}))'''
                 assert any("PROD" in row and "₹299" in row for row in rows), rows
                 assert any("TEST" in row and "₹3,750" in row for row in rows), rows
                 assert any("UNKNOWN" in row and "₹125" in row for row in rows), rows
+                assert any("₹0" in row for row in rows), rows
+                assert page.locator("#pp-admin-amount-xss").count() == 0
+                assert page.evaluate("window.__adminXss") == 0
+                assert page.locator("#bar-chart-container").get_attribute("role") == "region"
+                assert page.locator("#bar-chart-container").get_attribute("tabindex") == "0"
+                assert page.locator(".table-container[aria-label='Paying customers and recent transactions'][tabindex='0']").count() == 1
+                overflow = page.evaluate("""() => ({
+                  scrollWidth: document.documentElement.scrollWidth,
+                  innerWidth: window.innerWidth,
+                  boxes: ['header','main','.analytics-section','.chart-card','#bar-chart-container','body','html'].map(selector => {
+                    const element = document.querySelector(selector);
+                    if (!element) return {selector, missing:true};
+                    const rect = element.getBoundingClientRect();
+                    return {selector, left: Math.round(rect.left), right: Math.round(rect.right),
+                      width: Math.round(rect.width), clientWidth: element.clientWidth, scrollWidth: element.scrollWidth,
+                      overflowX: getComputedStyle(element).overflowX};
+                  }),
+                  elements: [...document.querySelectorAll('body *')].map(element => {
+                    const rect = element.getBoundingClientRect();
+                    return {tag: element.tagName, id: element.id, className: String(element.className).slice(0,100),
+                      left: Math.round(rect.left), right: Math.round(rect.right), width: Math.round(rect.width)};
+                  }).filter((item, index, all) => {
+                    const element = [...document.querySelectorAll('body *')][index];
+                    return !element.closest('#bar-chart-container') &&
+                      (item.right > window.innerWidth + 1 || item.left < -1);
+                  }).slice(0,20)
+                })""")
+                assert overflow["scrollWidth"] <= width, overflow
                 assert not errors, errors
-                results.append({"round": round_no, "production_gross": gross, "source_subtotals": basis, "environment_column": True, "rows": rows, "page_errors": errors})
+                results.append({"round": round_no, "viewport_width": width, "production_gross": gross, "source_subtotals": basis, "environment_column": True, "rows": rows, "overflow": overflow, "page_errors": errors})
                 page.close()
             browser.close()
         (OUT / "browser-id107-revenue-source-split.json").write_text(json.dumps(results, indent=2), encoding="utf-8")

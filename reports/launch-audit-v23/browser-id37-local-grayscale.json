@@ -1,0 +1,56 @@
+{
+  "operation": "grayscale",
+  "rounds": [
+    {
+      "round": 1,
+      "viewport": 1366,
+      "local_mode": true,
+      "downloads": [
+        {
+          "case": "colored",
+          "pages": 2,
+          "pixels_checked": 345600,
+          "max_rgb_channel_difference": 0,
+          "searchable_text_preserved": false,
+          "byte_identical_to_source": false
+        },
+        {
+          "case": "already_gray",
+          "pages": 2,
+          "pixels_checked": 345600,
+          "max_rgb_channel_difference": 0,
+          "searchable_text_preserved": true,
+          "byte_identical_to_source": true
+        }
+      ],
+      "server_job_posts": [],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "viewport": 390,
+      "local_mode": true,
+      "downloads": [
+        {
+          "case": "colored",
+          "pages": 2,
+          "pixels_checked": 345600,
+          "max_rgb_channel_difference": 0,
+          "searchable_text_preserved": false,
+          "byte_identical_to_source": false
+        },
+        {
+          "case": "already_gray",
+          "pages": 2,
+          "pixels_checked": 345600,
+          "max_rgb_channel_difference": 0,
+          "searchable_text_preserved": true,
+          "byte_identical_to_source": true
+        }
+      ],
+      "server_job_posts": [],
+      "page_errors": []
+    }
+  ],
+  "result": "PASS"
+}

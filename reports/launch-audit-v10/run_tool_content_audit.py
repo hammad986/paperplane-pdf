@@ -265,10 +265,21 @@ def verify_output_content(runner, operation: str, output_path: Path, content: by
         doc = fitz.open(stream=content, filetype="pdf")
         text = "\n".join(page.get_text() for page in doc)
         doc.close()
+        source_doc = fitz.open(str(inputs[0])) if inputs else None
+        source_text = "\n".join(page.get_text() for page in source_doc) if source_doc else ""
+        if source_doc:
+            source_doc.close()
+        synthetic_suffixes = [
+            re.sub(r"\D", "", match)[-4:]
+            for match in re.findall(r"(?<!\d)(?:\d[\s-]*){12}(?!\d)", source_text)
+        ]
+        suffixes_preserved = bool(synthetic_suffixes) and all(suffix in text for suffix in synthetic_suffixes)
         verification.update({
             "synthetic_marker_preserved": "SYNTHETIC ONLY - NOT A REAL ID" in text,
             "number_masked": not re.search(r"(?<!\d)(?:\d[\s-]*){12}(?!\d)", text),
-            "verified": "XXXX" in text and not re.search(r"(?<!\d)(?:\d[\s-]*){12}(?!\d)", text),
+            "last_four_preserved": suffixes_preserved,
+            "verified": ("XXXX" in text and suffixes_preserved
+                         and not re.search(r"(?<!\d)(?:\d[\s-]*){12}(?!\d)", text)),
         })
     return redact_id_text(verification)
 

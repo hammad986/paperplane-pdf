@@ -1,0 +1,33 @@
+{
+  "date": "2026-11-19",
+  "browser_focus_control": "AI summary PDF download focus target remains above fixed mobile navigation",
+  "image_id": "sha256:b3a5c5c0da22de2de0eec8a65824ef8c18be68550a4a3707e65525fc55c91d47",
+  "health": {
+    "status": "ok",
+    "service": "paperplane-pdf",
+    "version": "2.0.0",
+    "auth_required": false,
+    "workers": 4,
+    "max_file_size_mb": 500,
+    "job_ttl_hours": 2
+  },
+  "browser_viewports": [
+    "320x844",
+    "390x844",
+    "390x600",
+    "820x600",
+    "820x432"
+  ],
+  "page_errors": 0,
+  "browser_rounds": 2,
+  "processes": [
+    "UID                 PID                 COMMAND",
+    "1001                8631                python",
+    "1001                8654                python",
+    "1001                8655                python",
+    "1001                8656                python",
+    "1001                8657                python",
+    "1001                8658                python"
+  ],
+  "image": "paperplane-v23-audit:codex-current"
+}

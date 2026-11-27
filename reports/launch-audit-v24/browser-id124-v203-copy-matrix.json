@@ -1,0 +1,36 @@
+{
+  "checks": [
+    {
+      "route": "/merge-pdf",
+      "operation": "merge",
+      "dropzone": "Upload file for processing\nDrop your document here\n\nor\nbrowse files\n or\nImport from a cloud link\n\nGuests up to 50 MB/file \u00b7 signed-in Free and recurring paid plans have no plan-specific file cap (service max 500 MB) \u00b7 Exam Pass up to 500 MB/file \u00b7 Select 2\u201310 PDFs to merge",
+      "fileHint": "Guests up to 50 MB/file \u00b7 signed-in Free and recurring paid plans have no plan-specific file cap (service max 500 MB) \u00b7 Exam Pass up to 500 MB/file \u00b7 Select 2\u201310 PDFs to merge",
+      "fileAccept": ".pdf",
+      "multiple": true,
+      "docWidth": 390,
+      "viewportWidth": 390
+    },
+    {
+      "route": "/html-to-pdf",
+      "operation": "html_to_pdf",
+      "dropzone": "Upload file for processing\n              \n                \n              \n              Drop your document here\n              \n                or browse files\n                or Import from a cloud link\n              \n              \n                Take a document photo with your camera\n                Take a document photo\n                Use your rear camera to capture a page, then add more photos or choose existing images.\n              \n              Public HTTP or HTTPS website URL \u00b7 No file upload required",
+      "fileHint": "Public HTTP or HTTPS website URL \u00b7 No file upload required",
+      "fileAccept": "",
+      "multiple": false,
+      "docWidth": 390,
+      "viewportWidth": 390
+    },
+    {
+      "route": "/mask-aadhaar-card-online",
+      "operation": "mask_aadhaar",
+      "dropzone": "Upload file for processing\nDrop your document here\n\nor\nbrowse files\n or\nImport from a cloud link\n\nGuests up to 50 MB/file \u00b7 signed-in Free and recurring paid plans have no plan-specific file cap (service max 500 MB) \u00b7 Exam Pass up to 500 MB/file \u00b7 This tool processes 1 file per run",
+      "fileHint": "Guests up to 50 MB/file \u00b7 signed-in Free and recurring paid plans have no plan-specific file cap (service max 500 MB) \u00b7 Exam Pass up to 500 MB/file \u00b7 This tool processes 1 file per run",
+      "fileAccept": "application/pdf,image/jpeg,image/png,image/webp",
+      "multiple": false,
+      "docWidth": 390,
+      "viewportWidth": 390
+    }
+  ],
+  "pageErrors": [],
+  "consoleErrors": []
+}

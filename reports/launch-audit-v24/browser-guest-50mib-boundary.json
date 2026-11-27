@@ -1,0 +1,21 @@
+{
+  "route_status": 200,
+  "guest_no_session": true,
+  "exact_limit_bytes": 52428800,
+  "exact_limit_mib": 50,
+  "exact_limit_accepted": true,
+  "exact_limit_ui": "exact-50MiB.pdf \u00b7 50.00 MB",
+  "exact_limit_server_job": "chunked Protect completed; encrypted output opened with supplied password",
+  "output_name": "exact-50MiB_protect.pdf",
+  "output_bytes": 1101,
+  "output_page_count": 1,
+  "one_byte_over_rejected": true,
+  "over_limit_ui": {
+    "count": 0,
+    "copy": "",
+    "toast": "\u2022\n\"over-50MiB.pdf\" is over the 50 MB guest upload limit. Choose a smaller file."
+  },
+  "page_errors": [],
+  "console_errors": [],
+  "result": "passed"
+}

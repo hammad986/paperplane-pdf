@@ -1,0 +1,115 @@
+{
+  "rounds": [
+    {
+      "width": 320,
+      "http_status": 200,
+      "navVisible": true,
+      "labels": [
+        {
+          "id": "mob-nav-desk",
+          "text": "Tool Desk",
+          "ariaLabel": "Open Tool Desk directory",
+          "fits": true,
+          "ellipsis": false
+        },
+        {
+          "id": "mob-nav-studio",
+          "text": "Studio",
+          "ariaLabel": "Open PDF Studio",
+          "fits": true,
+          "ellipsis": false
+        },
+        {
+          "id": "mob-nav-ai",
+          "text": "AI",
+          "ariaLabel": "Open AI Intelligence workspace",
+          "fits": true,
+          "ellipsis": false
+        },
+        {
+          "id": "mob-nav-download",
+          "text": "Apps",
+          "ariaLabel": "Apps Waitlist",
+          "fits": true,
+          "ellipsis": false
+        }
+      ],
+      "overflow": false,
+      "navigation": [
+        {
+          "button": "mob-nav-desk",
+          "view_visible": true
+        },
+        {
+          "button": "mob-nav-studio",
+          "view_visible": true
+        },
+        {
+          "button": "mob-nav-ai",
+          "view_visible": true
+        },
+        {
+          "button": "mob-nav-download",
+          "view_visible": true
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "http_status": 200,
+      "navVisible": true,
+      "labels": [
+        {
+          "id": "mob-nav-desk",
+          "text": "Tool Desk",
+          "ariaLabel": "Open Tool Desk directory",
+          "fits": true,
+          "ellipsis": false
+        },
+        {
+          "id": "mob-nav-studio",
+          "text": "Studio",
+          "ariaLabel": "Open PDF Studio",
+          "fits": true,
+          "ellipsis": false
+        },
+        {
+          "id": "mob-nav-ai",
+          "text": "AI",
+          "ariaLabel": "Open AI Intelligence workspace",
+          "fits": true,
+          "ellipsis": false
+        },
+        {
+          "id": "mob-nav-download",
+          "text": "Apps",
+          "ariaLabel": "Apps Waitlist",
+          "fits": true,
+          "ellipsis": false
+        }
+      ],
+      "overflow": false,
+      "navigation": [
+        {
+          "button": "mob-nav-desk",
+          "view_visible": true
+        },
+        {
+          "button": "mob-nav-studio",
+          "view_visible": true
+        },
+        {
+          "button": "mob-nav-ai",
+          "view_visible": true
+        },
+        {
+          "button": "mob-nav-download",
+          "view_visible": true
+        }
+      ]
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "passed": true
+}

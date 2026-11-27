@@ -1,0 +1,30 @@
+{
+  "source_pdf": "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\tmp\\pdfs\\arxiv-1706.03762-v7.pdf",
+  "source_bytes": 2215244,
+  "cases": {
+    "pdf_to_markdown": {
+      "kind": "markdown",
+      "bytes": 40134,
+      "paper_title_text_present": true,
+      "internal_uuid_heading_absent": true,
+      "fallback_marker_count": 10,
+      "spacing_phrases_preserved": [
+        "performing models also connect the encoder and decoder through an attention mechanism.",
+        "We propose a new simple network architecture, the Transformer,"
+      ],
+      "joined_word_patterns_found": [],
+      "warning_shown": true
+    },
+    "pdf_to_word": {
+      "kind": "docx",
+      "bytes": 81173,
+      "zip_integrity": "passed",
+      "title_present": true,
+      "fallback_marker_count": 10,
+      "warning_shown": true
+    }
+  },
+  "page_errors": [],
+  "console_errors": [],
+  "result": "passed"
+}

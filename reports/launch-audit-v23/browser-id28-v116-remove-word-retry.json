@@ -1,0 +1,88 @@
+{
+  "runtime": "isolated production image; four workers; dummy local account; no AI provider or real payment",
+  "base": "http://127.0.0.1:18501",
+  "health": {
+    "status": "ok",
+    "service": "paperplane-pdf",
+    "version": "2.0.0",
+    "auth_required": false,
+    "workers": 4,
+    "max_file_size_mb": 500,
+    "job_ttl_hours": 2
+  },
+  "rounds": [
+    {
+      "round": 1,
+      "results": [
+        {
+          "operation": "remove",
+          "status": "completed",
+          "bytes": 4980702,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 4980702,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 68,
+            "text_chars": 125035,
+            "text_sample": "Page 2 of 69\nSection 2. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machine learning is the\nstudy of computer algorithms that improve automatically through experience. It is",
+            "first_text": "Page 2 of 69\nSection 2. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machi",
+            "last_text": "Page 69 of 69\nSection 69. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Mac"
+          },
+          "seconds": 2.693
+        },
+        {
+          "operation": "pdf_to_word",
+          "status": "completed",
+          "bytes": 1274717,
+          "checks": {
+            "extension": ".docx",
+            "bytes": 1274717,
+            "verified": true,
+            "paragraph_count": 207,
+            "text_sample": "Page 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machine learning is the\nstudy of computer algorithms that improve automatically through experience. It is seen as a\nsubset of artificial intelligence. Machine learning is the study of computer algorithms that\nimprove automatically through experience. It is seen as a subset of artificial intelligence.\nMachine learning is the study of computer algorithms that improve automatically through\nexperience. It is seen as a subset ",
+            "first_page_marker": true
+          },
+          "seconds": 6.841
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "results": [
+        {
+          "operation": "remove",
+          "status": "completed",
+          "bytes": 4980702,
+          "checks": {
+            "extension": ".pdf",
+            "bytes": 4980702,
+            "verified": true,
+            "opened_as_pdf": true,
+            "page_count": 68,
+            "text_chars": 125035,
+            "text_sample": "Page 2 of 69\nSection 2. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machine learning is the\nstudy of computer algorithms that improve automatically through experience. It is",
+            "first_text": "Page 2 of 69\nSection 2. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machi",
+            "last_text": "Page 69 of 69\nSection 69. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Mac"
+          },
+          "seconds": 1.859
+        },
+        {
+          "operation": "pdf_to_word",
+          "status": "completed",
+          "bytes": 1274718,
+          "checks": {
+            "extension": ".docx",
+            "bytes": 1274718,
+            "verified": true,
+            "paragraph_count": 207,
+            "text_sample": "Page 1 of 69\nSection 1. Machine learning is the study of computer algorithms that improve automatically\nthrough experience. It is seen as a subset of artificial intelligence. Machine learning is the\nstudy of computer algorithms that improve automatically through experience. It is seen as a\nsubset of artificial intelligence. Machine learning is the study of computer algorithms that\nimprove automatically through experience. It is seen as a subset of artificial intelligence.\nMachine learning is the study of computer algorithms that improve automatically through\nexperience. It is seen as a subset ",
+            "first_page_marker": true
+          },
+          "seconds": 6.714
+        }
+      ]
+    }
+  ],
+  "page_errors": []
+}

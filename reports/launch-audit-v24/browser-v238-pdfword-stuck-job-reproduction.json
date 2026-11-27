@@ -1,0 +1,27 @@
+{
+  "candidate": "paperplane-codex:v238-current",
+  "image_id": "sha256:99b8a03b45a555c554e39e688deab2e6dd4d84515830db280e72d59cb9022ebf",
+  "catalog_round": 1,
+  "completed": 40,
+  "failed": 1,
+  "unavailable": 2,
+  "expected_ssrf_blocks": 1,
+  "failed_operation": "pdf_to_word",
+  "failure_hint": "job_poll_timeout",
+  "seconds": 335.531,
+  "job_id": "e89c510d022c40e6a923e8af64ccfe36",
+  "observed_after_repeat": true,
+  "stuck_status": "processing",
+  "stuck_progress": 20,
+  "direct_same_image_converter_seconds": 4.843,
+  "direct_same_image_process_seconds": 5.16,
+  "isolated_http_rerun_seconds": [
+    9.64,
+    5.46
+  ],
+  "isolated_http_rerun_markers": [
+    69,
+    69
+  ],
+  "result": "intermittent hung job reproduced; direct and fresh HTTP runs completed"
+}

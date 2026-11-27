@@ -1,0 +1,62 @@
+{
+  "source": "id1-failed-batch-repair-source.pdf",
+  "controlled_failure": "first entire provider batch returns HTTP 504",
+  "rounds": [
+    {
+      "round": 1,
+      "http_status": 200,
+      "translation_mode": "translated",
+      "page_count": 10,
+      "page_order_and_translation_checked": true,
+      "source_removed_from_all_pages": true,
+      "coverage": "es · 100% character coverage, 100% text block coverage · 1 warning(s)",
+      "translation_repair_report": {
+        "requests": 5,
+        "segments_requested": 10,
+        "segments_recovered": 10,
+        "segments_missing": 10,
+        "segments_remaining": 0,
+        "segments_deferred": 0
+      },
+      "warnings": [
+        "Translation batch 1 initially failed (Translation provider failed (upstream HTTP 504).); smaller retries recovered all affected text."
+      ],
+      "provider_state": {
+        "fail_first_batch": false,
+        "initial_requests": 1,
+        "repair_requests": 5,
+        "max_batch_size": 10
+      },
+      "page_errors": [],
+      "download_bytes": 191852
+    },
+    {
+      "round": 2,
+      "http_status": 200,
+      "translation_mode": "translated",
+      "page_count": 10,
+      "page_order_and_translation_checked": true,
+      "source_removed_from_all_pages": true,
+      "coverage": "es · 100% character coverage, 100% text block coverage · 1 warning(s)",
+      "translation_repair_report": {
+        "requests": 5,
+        "segments_requested": 10,
+        "segments_recovered": 10,
+        "segments_missing": 10,
+        "segments_remaining": 0,
+        "segments_deferred": 0
+      },
+      "warnings": [
+        "Translation batch 1 initially failed (Translation provider failed (upstream HTTP 504).); smaller retries recovered all affected text."
+      ],
+      "provider_state": {
+        "fail_first_batch": false,
+        "initial_requests": 1,
+        "repair_requests": 5,
+        "max_batch_size": 10
+      },
+      "page_errors": [],
+      "download_bytes": 191852
+    }
+  ]
+}

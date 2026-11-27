@@ -1,0 +1,216 @@
+{
+  "input_bytes": 60817408,
+  "input_mib": 58.0,
+  "fixture": "synthetic two-page marker PDF padded with valid trailing whitespace; not the owner's reported original 58 MB file",
+  "account_tier": "signed-in Free (isolated local fixture)",
+  "generated_pdf_content_bytes": 12596805,
+  "input_pages": 2,
+  "used_chunked_upload": true,
+  "chunk_put_requests": 12,
+  "chunk_requests_deliberately_slowed": 12,
+  "upload_and_job_responses": [
+    {
+      "status": 201,
+      "path": "/api/uploads/chunked"
+    },
+    {
+      "status": 204,
+      "path": "/api/uploads/chunked/79ba1ef7fba445a68253454832ce0281/0/0"
+    },
+    {
+      "status": 204,
+      "path": "/api/uploads/chunked/79ba1ef7fba445a68253454832ce0281/0/1"
+    },
+    {
+      "status": 204,
+      "path": "/api/uploads/chunked/79ba1ef7fba445a68253454832ce0281/0/2"
+    },
+    {
+      "status": 204,
+      "path": "/api/uploads/chunked/79ba1ef7fba445a68253454832ce0281/0/3"
+    },
+    {
+      "status": 204,
+      "path": "/api/uploads/chunked/79ba1ef7fba445a68253454832ce0281/0/4"
+    },
+    {
+      "status": 204,
+      "path": "/api/uploads/chunked/79ba1ef7fba445a68253454832ce0281/0/5"
+    },
+    {
+      "status": 204,
+      "path": "/api/uploads/chunked/79ba1ef7fba445a68253454832ce0281/0/6"
+    },
+    {
+      "status": 204,
+      "path": "/api/uploads/chunked/79ba1ef7fba445a68253454832ce0281/0/7"
+    },
+    {
+      "status": 204,
+      "path": "/api/uploads/chunked/79ba1ef7fba445a68253454832ce0281/0/8"
+    },
+    {
+      "status": 204,
+      "path": "/api/uploads/chunked/79ba1ef7fba445a68253454832ce0281/0/9"
+    },
+    {
+      "status": 204,
+      "path": "/api/uploads/chunked/79ba1ef7fba445a68253454832ce0281/0/10"
+    },
+    {
+      "status": 204,
+      "path": "/api/uploads/chunked/79ba1ef7fba445a68253454832ce0281/0/11"
+    },
+    {
+      "status": 202,
+      "path": "/api/uploads/chunked/79ba1ef7fba445a68253454832ce0281/commit"
+    },
+    {
+      "status": 200,
+      "path": "/api/jobs/6015969dfc6746d68f56b2ea464cd11f"
+    },
+    {
+      "status": 200,
+      "path": "/api/jobs/6015969dfc6746d68f56b2ea464cd11f"
+    },
+    {
+      "status": 200,
+      "path": "/api/jobs/6015969dfc6746d68f56b2ea464cd11f"
+    },
+    {
+      "status": 200,
+      "path": "/api/jobs/6015969dfc6746d68f56b2ea464cd11f"
+    },
+    {
+      "status": 200,
+      "path": "/api/jobs/6015969dfc6746d68f56b2ea464cd11f"
+    },
+    {
+      "status": 200,
+      "path": "/api/jobs/6015969dfc6746d68f56b2ea464cd11f/download"
+    }
+  ],
+  "progress_samples": [
+    {
+      "title": "Uploading files\u2026",
+      "percent": "Working"
+    },
+    {
+      "title": "Uploading file 1 of 1\u2026",
+      "percent": "Working"
+    },
+    {
+      "title": "Uploading files\u2026",
+      "percent": "2%"
+    },
+    {
+      "title": "Uploading files\u2026",
+      "percent": "6%"
+    },
+    {
+      "title": "Uploading files\u2026",
+      "percent": "9%"
+    },
+    {
+      "title": "Uploading file 1 of 1\u2026",
+      "percent": "9%"
+    },
+    {
+      "title": "Uploading files\u2026",
+      "percent": "13%"
+    },
+    {
+      "title": "Uploading file 1 of 1\u2026",
+      "percent": "17%"
+    },
+    {
+      "title": "Uploading files\u2026",
+      "percent": "19%"
+    },
+    {
+      "title": "Uploading file 1 of 1\u2026",
+      "percent": "26%"
+    },
+    {
+      "title": "Uploading files\u2026",
+      "percent": "27%"
+    },
+    {
+      "title": "Uploading files\u2026",
+      "percent": "32%"
+    },
+    {
+      "title": "Uploading file 1 of 1\u2026",
+      "percent": "34%"
+    },
+    {
+      "title": "Uploading files\u2026",
+      "percent": "43%"
+    },
+    {
+      "title": "Uploading file 1 of 1\u2026",
+      "percent": "43%"
+    },
+    {
+      "title": "Uploading file 1 of 1\u2026",
+      "percent": "52%"
+    },
+    {
+      "title": "Uploading file 1 of 1\u2026",
+      "percent": "60%"
+    },
+    {
+      "title": "Uploading files\u2026",
+      "percent": "62%"
+    },
+    {
+      "title": "Uploading file 1 of 1\u2026",
+      "percent": "69%"
+    },
+    {
+      "title": "Uploading files\u2026",
+      "percent": "72%"
+    },
+    {
+      "title": "Uploading file 1 of 1\u2026",
+      "percent": "78%"
+    },
+    {
+      "title": "Uploading file 1 of 1\u2026",
+      "percent": "86%"
+    },
+    {
+      "title": "Uploading files\u2026",
+      "percent": "91%"
+    },
+    {
+      "title": "Uploading file 1 of 1\u2026",
+      "percent": "95%"
+    },
+    {
+      "title": "Uploading files\u2026",
+      "percent": "96%"
+    },
+    {
+      "title": "Uploading files\u2026",
+      "percent": "100%"
+    },
+    {
+      "title": "Upload complete. Processing your document\u2026",
+      "percent": "Working"
+    },
+    {
+      "title": "Finished!",
+      "percent": "100%"
+    }
+  ],
+  "distinct_progress_statuses": 4,
+  "output_bytes": 12597581,
+  "output_pages": 2,
+  "protected": true,
+  "password_authenticated": true,
+  "both_source_markers_present": true,
+  "page_errors": [],
+  "production_endpoints_contacted": false,
+  "result": "passed"
+}

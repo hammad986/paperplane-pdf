@@ -1,0 +1,41 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "protect": {
+        "bytes": 1463,
+        "encrypted": true,
+        "password_authenticated": true,
+        "pages": 1,
+        "source_marker": true
+      },
+      "unlock": {
+        "bytes": 784,
+        "encrypted": false,
+        "pages": 1,
+        "source_marker": true
+      },
+      "passed": true
+    },
+    {
+      "round": 2,
+      "protect": {
+        "bytes": 1463,
+        "encrypted": true,
+        "password_authenticated": true,
+        "pages": 1,
+        "source_marker": true
+      },
+      "unlock": {
+        "bytes": 784,
+        "encrypted": false,
+        "pages": 1,
+        "source_marker": true
+      },
+      "passed": true
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "passed": true
+}

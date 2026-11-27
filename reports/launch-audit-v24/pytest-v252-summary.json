@@ -1,0 +1,25 @@
+{
+  "candidate": "v252 source candidate",
+  "command": "pytest -q",
+  "runs": [
+    {
+      "run": 1,
+      "result": "passed",
+      "passed": 730,
+      "failed": 0,
+      "warnings": 4,
+      "duration_seconds": 405.07,
+      "capture": "Codex execution session; no standalone log"
+    },
+    {
+      "run": 2,
+      "result": "passed",
+      "passed": 730,
+      "failed": 0,
+      "warnings": 4,
+      "duration_seconds": 262.58,
+      "log": "pytest-v252-run-2.log"
+    }
+  ],
+  "warnings_summary": "1 Starlette TestClient/httpx deprecation warning and 3 per-request cookie deprecation warnings in an existing launch-audit test."
+}

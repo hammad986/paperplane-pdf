@@ -1,0 +1,3146 @@
+{
+  "candidate": "app.js v239 / styles.css v90 / service-worker v215",
+  "route_count": 44,
+  "widths": [
+    320,
+    390
+  ],
+  "checks": [
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "Merge PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 679.5625,
+          "bottom": 728.5625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 679.5625,
+          "bottom": 728.5625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/merge-pdf",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "Split / extract"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 679.5625,
+          "bottom": 729.5625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 679.5625,
+          "bottom": 729.5625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/split-pdf",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "Remove pages"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 705.75,
+          "bottom": 755.75,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 705.75,
+          "bottom": 755.75,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/remove-pages-pdf",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "Rotate PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 666.5625,
+          "bottom": 716.5625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 666.5625,
+          "bottom": 716.5625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/rotate-pdf",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "Page Organizer"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 717.65625,
+          "bottom": 767.65625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 717.65625,
+          "bottom": 767.65625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/organize-pdf",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "Scan to PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 880.34375,
+          "bottom": 930.34375,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 718.34375,
+          "bottom": 768.34375,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/scan-to-pdf",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "Compress PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 719.5625,
+          "bottom": 769.5625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 717.5625,
+          "bottom": 767.5625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/compress-pdf",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "Repair PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 666.5625,
+          "bottom": 716.5625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 666.5625,
+          "bottom": 716.5625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/repair-pdf",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "OCR PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 719.5625,
+          "bottom": 769.5625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 717.5625,
+          "bottom": 767.5625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/ocr-pdf",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "JPG/PNG to PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 583.5625,
+          "bottom": 633.5625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 583.5625,
+          "bottom": 633.5625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/jpg-to-pdf",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "Word to PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 675.5625,
+          "bottom": 725.5625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 675.5625,
+          "bottom": 725.5625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/word-to-pdf",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "Excel to PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 675.5625,
+          "bottom": 725.5625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 675.5625,
+          "bottom": 725.5625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/excel-to-pdf",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "PowerPoint to PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 675.5625,
+          "bottom": 725.5625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 675.5625,
+          "bottom": 725.5625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/powerpoint-to-pdf",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "HTML to PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 428,
+          "bottom": 478,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 428,
+          "bottom": 478,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/html-to-pdf",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "PDF to JPG"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 718.5625,
+          "bottom": 768.5625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 717.5625,
+          "bottom": 767.5625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/pdf-to-jpg",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "PDF to Word"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 724.5625,
+          "bottom": 774.5625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 717.5625,
+          "bottom": 767.5625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/pdf-to-word",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "PDF to Excel"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 583.5625,
+          "bottom": 633.5625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 583.5625,
+          "bottom": 633.5625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/pdf-to-excel",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "PDF to PowerPoint"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 583.5625,
+          "bottom": 633.5625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 583.5625,
+          "bottom": 633.5625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/pdf-to-powerpoint",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "PDF to PDF/A"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 719.0625,
+          "bottom": 769.0625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 718.0625,
+          "bottom": 768.0625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/pdf-to-pdfa",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "PDF to Text"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 583.5625,
+          "bottom": 633.5625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 583.5625,
+          "bottom": 633.5625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/pdf-to-text",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "PDF to Markdown"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 690.5625,
+          "bottom": 740.5625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 690.5625,
+          "bottom": 740.5625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/pdf-to-markdown",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "Add Text & Stamps"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 890.65625,
+          "bottom": 940.65625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 717.65625,
+          "bottom": 767.65625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/edit-pdf",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "Annotate PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 1047.65625,
+          "bottom": 1097.65625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 717.65625,
+          "bottom": 767.65625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/annotate-pdf",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "Crop PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 716.5625,
+          "bottom": 766.5625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 717.5625,
+          "bottom": 767.5625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/crop-pdf",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "Redact PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 689.65625,
+          "bottom": 739.65625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 689.65625,
+          "bottom": 739.65625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/redact-pdf",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "Watermark PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 1282.21875,
+          "bottom": 1350.21875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 700.21875,
+          "bottom": 768.21875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/watermark-pdf",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "Page Numbers"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 1235.03125,
+          "bottom": 1285.03125,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 718.03125,
+          "bottom": 768.03125,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/add-page-numbers-to-pdf",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "Protect PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 718.5625,
+          "bottom": 768.5625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 717.5625,
+          "bottom": 767.5625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/protect-pdf",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "Unlock PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 717.5625,
+          "bottom": 767.5625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 717.5625,
+          "bottom": 767.5625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/unlock-pdf",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "Signature Stamp"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 1509.03125,
+          "bottom": 1559.03125,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 718.03125,
+          "bottom": 768.03125,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/sign-pdf",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "Compare PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 690.5625,
+          "bottom": 740.5625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 690.5625,
+          "bottom": 740.5625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/compare-pdf",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "Fill PDF Form"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 717.75,
+          "bottom": 767.75,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 717.75,
+          "bottom": 767.75,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/fill-pdf-form",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "PDF Metadata"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 719.5625,
+          "bottom": 769.5625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 717.5625,
+          "bottom": 767.5625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/pdf-metadata",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "AI Document Intelligence"
+      ],
+      "clippedControls": [],
+      "actionLayout": null,
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/ai-pdf-chat",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "Smart Metadata"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 666.5625,
+          "bottom": 716.5625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 666.5625,
+          "bottom": 716.5625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/extract-pdf-data",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "AI Summarize"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 719.0625,
+          "bottom": 769.0625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 718.0625,
+          "bottom": 768.0625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/summarize-pdf",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "AI Translate"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 719.0625,
+          "bottom": 769.0625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 718.0625,
+          "bottom": 768.0625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/translate-pdf",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "Exam Photo & Signature Resizer"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 915.5625,
+          "bottom": 965.5625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 717.5625,
+          "bottom": 767.5625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/ssc-photo-resizer",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "Compress Photo / Image"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 718.5625,
+          "bottom": 768.5625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 717.5625,
+          "bottom": 767.5625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/compress-image-online",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "Resize Photo Dimensions"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 981.65625,
+          "bottom": 1031.65625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 717.65625,
+          "bottom": 767.65625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/resize-image-dimensions",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "Merge Photos into One"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 666.5625,
+          "bottom": 715.5625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 666.5625,
+          "bottom": 715.5625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/merge-photos-online",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "Mask Aadhaar Card"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 717.5625,
+          "bottom": 767.5625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 717.5625,
+          "bottom": 767.5625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/mask-aadhaar-card-online",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "Convert to Grayscale"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 716.5625,
+          "bottom": 766.5625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 717.5625,
+          "bottom": 767.5625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/convert-pdf-to-grayscale",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 320,
+      "documentWidth": 320,
+      "bodyWidth": 320,
+      "heading": [
+        "Flatten PDF Forms"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 720.5625,
+          "bottom": 770.5625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 717.5625,
+          "bottom": 767.5625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/flatten-pdf",
+      "status": 200,
+      "width": 320,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "Merge PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 616.171875,
+          "bottom": 665.171875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 616.171875,
+          "bottom": 665.171875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/merge-pdf",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "Split / extract"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 601.171875,
+          "bottom": 651.171875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 601.171875,
+          "bottom": 651.171875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/split-pdf",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "Remove pages"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 626.265625,
+          "bottom": 676.265625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 626.265625,
+          "bottom": 676.265625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/remove-pages-pdf",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "Rotate PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 603.171875,
+          "bottom": 653.171875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 603.171875,
+          "bottom": 653.171875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/rotate-pdf",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "Page Organizer"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 717.265625,
+          "bottom": 767.265625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 718.265625,
+          "bottom": 768.265625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/organize-pdf",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "Scan to PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 716.953125,
+          "bottom": 766.953125,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 717.953125,
+          "bottom": 767.953125,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/scan-to-pdf",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "Compress PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 719.171875,
+          "bottom": 769.171875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 718.171875,
+          "bottom": 768.171875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/compress-pdf",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "Repair PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 603.171875,
+          "bottom": 653.171875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 603.171875,
+          "bottom": 653.171875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/repair-pdf",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "OCR PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 690.171875,
+          "bottom": 740.171875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 690.171875,
+          "bottom": 740.171875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/ocr-pdf",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "JPG/PNG to PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 535.5625,
+          "bottom": 585.5625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 535.5625,
+          "bottom": 585.5625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/jpg-to-pdf",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "Word to PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 599.171875,
+          "bottom": 649.171875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 599.171875,
+          "bottom": 649.171875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/word-to-pdf",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "Excel to PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 599.171875,
+          "bottom": 649.171875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 599.171875,
+          "bottom": 649.171875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/excel-to-pdf",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "PowerPoint to PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 599.171875,
+          "bottom": 649.171875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 599.171875,
+          "bottom": 649.171875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/powerpoint-to-pdf",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "HTML to PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 428,
+          "bottom": 478,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 428,
+          "bottom": 478,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/html-to-pdf",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "PDF to JPG"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 708.171875,
+          "bottom": 758.171875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 708.171875,
+          "bottom": 758.171875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/pdf-to-jpg",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "PDF to Word"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 644.171875,
+          "bottom": 694.171875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 644.171875,
+          "bottom": 694.171875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/pdf-to-word",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "PDF to Excel"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 520.171875,
+          "bottom": 570.171875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 520.171875,
+          "bottom": 570.171875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/pdf-to-excel",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "PDF to PowerPoint"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 520.171875,
+          "bottom": 570.171875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 520.171875,
+          "bottom": 570.171875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/pdf-to-powerpoint",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "PDF to PDF/A"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 690.171875,
+          "bottom": 740.171875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 690.171875,
+          "bottom": 740.171875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/pdf-to-pdfa",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "PDF to Text"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 520.171875,
+          "bottom": 570.171875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 520.171875,
+          "bottom": 570.171875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/pdf-to-text",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "PDF to Markdown"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 627.171875,
+          "bottom": 677.171875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 627.171875,
+          "bottom": 677.171875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/pdf-to-markdown",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "Add Text & Stamps"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 719.265625,
+          "bottom": 769.265625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 718.265625,
+          "bottom": 768.265625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/edit-pdf",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "Annotate PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 963.265625,
+          "bottom": 1013.265625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 718.265625,
+          "bottom": 768.265625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/annotate-pdf",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "Crop PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 716.171875,
+          "bottom": 766.171875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 718.171875,
+          "bottom": 768.171875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/crop-pdf",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "Redact PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 626.265625,
+          "bottom": 676.265625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 626.265625,
+          "bottom": 676.265625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/redact-pdf",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "Watermark PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 1121.734375,
+          "bottom": 1189.734375,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 699.734375,
+          "bottom": 767.734375,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/watermark-pdf",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "Page Numbers"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 1087.640625,
+          "bottom": 1137.640625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 717.640625,
+          "bottom": 767.640625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/add-page-numbers-to-pdf",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "Protect PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 685.171875,
+          "bottom": 735.171875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 685.171875,
+          "bottom": 735.171875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/protect-pdf",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "Unlock PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 685.171875,
+          "bottom": 735.171875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 685.171875,
+          "bottom": 735.171875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/unlock-pdf",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "Signature Stamp"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 1298.640625,
+          "bottom": 1348.640625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 717.640625,
+          "bottom": 767.640625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/sign-pdf",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "Compare PDF"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 610.171875,
+          "bottom": 660.171875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 610.171875,
+          "bottom": 660.171875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/compare-pdf",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "Fill PDF Form"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 683.359375,
+          "bottom": 733.359375,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 683.359375,
+          "bottom": 733.359375,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/fill-pdf-form",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "PDF Metadata"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 668.171875,
+          "bottom": 718.171875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 668.171875,
+          "bottom": 718.171875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/pdf-metadata",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "AI Document Intelligence"
+      ],
+      "clippedControls": [],
+      "actionLayout": null,
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/ai-pdf-chat",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "Smart Metadata"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 603.171875,
+          "bottom": 653.171875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 603.171875,
+          "bottom": 653.171875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/extract-pdf-data",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "AI Summarize"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 680.171875,
+          "bottom": 730.171875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 680.171875,
+          "bottom": 730.171875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/summarize-pdf",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "AI Translate"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 709.671875,
+          "bottom": 759.671875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 709.671875,
+          "bottom": 759.671875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/translate-pdf",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "Exam Photo & Signature Resizer"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 717.171875,
+          "bottom": 767.171875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 718.171875,
+          "bottom": 768.171875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/ssc-photo-resizer",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "Compress Photo / Image"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 670.171875,
+          "bottom": 720.171875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 670.171875,
+          "bottom": 720.171875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/compress-image-online",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "Resize Photo Dimensions"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 719.265625,
+          "bottom": 769.265625,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 718.265625,
+          "bottom": 768.265625,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/resize-image-dimensions",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "Merge Photos into One"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 603.171875,
+          "bottom": 652.171875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 603.171875,
+          "bottom": 652.171875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/merge-photos-online",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "Mask Aadhaar Card"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 642.171875,
+          "bottom": 692.171875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 642.171875,
+          "bottom": 692.171875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/mask-aadhaar-card-online",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "Convert to Grayscale"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 672.171875,
+          "bottom": 722.171875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 672.171875,
+          "bottom": 722.171875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/convert-pdf-to-grayscale",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    },
+    {
+      "viewport": 390,
+      "documentWidth": 390,
+      "bodyWidth": 390,
+      "heading": [
+        "Flatten PDF Forms"
+      ],
+      "clippedControls": [],
+      "actionLayout": {
+        "initial": {
+          "top": 642.171875,
+          "bottom": 692.171875,
+          "nav": {
+            "top": 778,
+            "bottom": 844,
+            "height": 66
+          },
+          "clearOfNav": true
+        },
+        "controlOverlaps": [],
+        "afterScroll": {
+          "top": 642.171875,
+          "bottom": 692.171875,
+          "navTop": 778,
+          "clearOfNav": true
+        }
+      },
+      "mobileSidebar": {
+        "inert": true,
+        "ariaHidden": "true"
+      },
+      "route": "/flatten-pdf",
+      "status": 200,
+      "width": 390,
+      "result": "passed"
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "issues": [],
+  "result": "passed"
+}

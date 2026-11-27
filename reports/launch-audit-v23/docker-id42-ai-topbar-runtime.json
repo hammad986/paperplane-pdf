@@ -1,0 +1,21 @@
+{
+  "image": "sha256:cc3eebfbbe6314497c21f2d1300a92228b072a9bae5f70984adb63b95b693c89",
+  "container_status_when_checked": "healthy",
+  "health_endpoint": {
+    "status": "ok",
+    "workers": 4
+  },
+  "application_process_uid": 1001,
+  "python_process_uids": [
+    1001,
+    1001,
+    1001,
+    1001,
+    1001
+  ],
+  "tmpfs_data_dir": {
+    "owner": "1001:1001",
+    "mode": "0755"
+  },
+  "container_after_verification": "stopped and removed"
+}

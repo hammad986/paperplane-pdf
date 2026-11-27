@@ -1,0 +1,532 @@
+{
+  "tool": "Gitleaks v8.24.2",
+  "scanned_at": "2026-11-20",
+  "redaction_percent": 100,
+  "source": {
+    "commit_count": 45,
+    "bytes_scanned": 158099213,
+    "finding_count": 33,
+    "counts_by_rule": [
+      {
+        "RuleID": "curl-auth-header",
+        "Count": 24
+      },
+      {
+        "RuleID": "generic-api-key",
+        "Count": 6
+      },
+      {
+        "RuleID": "paperplane-admin-fallback",
+        "Count": 2
+      },
+      {
+        "RuleID": "paperplane-compose-admin-fallback",
+        "Count": 1
+      }
+    ],
+    "findings": [
+      {
+        "RuleID": "generic-api-key",
+        "File": "reports/launch-audit-v23/browser-id106-idempotent-submit-retry.json",
+        "Commit": "aee1c4916fde8e3c786be3c9d9dbc83377b828f4",
+        "StartLine": 7,
+        "EndLine": 7
+      },
+      {
+        "RuleID": "generic-api-key",
+        "File": "reports/launch-audit-v23/browser-id106-idempotent-submit-retry.json",
+        "Commit": "aee1c4916fde8e3c786be3c9d9dbc83377b828f4",
+        "StartLine": 13,
+        "EndLine": 13
+      },
+      {
+        "RuleID": "generic-api-key",
+        "File": "reports/launch-audit-v23/browser-id106-idempotent-submit-retry.json",
+        "Commit": "aee1c4916fde8e3c786be3c9d9dbc83377b828f4",
+        "StartLine": 24,
+        "EndLine": 24
+      },
+      {
+        "RuleID": "generic-api-key",
+        "File": "reports/launch-audit-v23/browser-id106-idempotent-submit-retry.json",
+        "Commit": "aee1c4916fde8e3c786be3c9d9dbc83377b828f4",
+        "StartLine": 30,
+        "EndLine": 30
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "aee1c4916fde8e3c786be3c9d9dbc83377b828f4",
+        "StartLine": 1162,
+        "EndLine": 1164
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "aee1c4916fde8e3c786be3c9d9dbc83377b828f4",
+        "StartLine": 1167,
+        "EndLine": 1168
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "aee1c4916fde8e3c786be3c9d9dbc83377b828f4",
+        "StartLine": 1178,
+        "EndLine": 1179
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "aee1c4916fde8e3c786be3c9d9dbc83377b828f4",
+        "StartLine": 1182,
+        "EndLine": 1183
+      },
+      {
+        "RuleID": "paperplane-compose-admin-fallback",
+        "File": "tests/test_launch_audit_v14.py",
+        "Commit": "735606858e85d5a6bbefaf6422ebd3a70b84d2a6",
+        "StartLine": 30,
+        "EndLine": 30
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "docs/AGENTROUTER_SETUP.md",
+        "Commit": "e4a2bd3ab0e30028421063944ce23cedcd3ded05",
+        "StartLine": 84,
+        "EndLine": 85
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "docs/API_GUIDE.md",
+        "Commit": "e4a2bd3ab0e30028421063944ce23cedcd3ded05",
+        "StartLine": 131,
+        "EndLine": 132
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "docs/API_GUIDE.md",
+        "Commit": "e4a2bd3ab0e30028421063944ce23cedcd3ded05",
+        "StartLine": 142,
+        "EndLine": 143
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "docs/API_GUIDE.md",
+        "Commit": "e4a2bd3ab0e30028421063944ce23cedcd3ded05",
+        "StartLine": 146,
+        "EndLine": 147
+      },
+      {
+        "RuleID": "generic-api-key",
+        "File": "docs/TEST_EVIDENCE.md",
+        "Commit": "e4a2bd3ab0e30028421063944ce23cedcd3ded05",
+        "StartLine": 156,
+        "EndLine": 156
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "03436d90d9fc233eedf3a614eaa5de4f520137ca",
+        "StartLine": 1125,
+        "EndLine": 1127
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "03436d90d9fc233eedf3a614eaa5de4f520137ca",
+        "StartLine": 1130,
+        "EndLine": 1131
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "03436d90d9fc233eedf3a614eaa5de4f520137ca",
+        "StartLine": 1141,
+        "EndLine": 1142
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "03436d90d9fc233eedf3a614eaa5de4f520137ca",
+        "StartLine": 1145,
+        "EndLine": 1146
+      },
+      {
+        "RuleID": "paperplane-admin-fallback",
+        "File": "server.py",
+        "Commit": "8dd50e6921643b659028f586abcd93dbbee7d57f",
+        "StartLine": 113,
+        "EndLine": 113
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "1596e5d135637cf36183255970e3a9a11a8614d3",
+        "StartLine": 1087,
+        "EndLine": 1089
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "1596e5d135637cf36183255970e3a9a11a8614d3",
+        "StartLine": 1092,
+        "EndLine": 1093
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "1596e5d135637cf36183255970e3a9a11a8614d3",
+        "StartLine": 1103,
+        "EndLine": 1104
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "1596e5d135637cf36183255970e3a9a11a8614d3",
+        "StartLine": 1107,
+        "EndLine": 1108
+      },
+      {
+        "RuleID": "paperplane-admin-fallback",
+        "File": "server.py",
+        "Commit": "1596e5d135637cf36183255970e3a9a11a8614d3",
+        "StartLine": 184,
+        "EndLine": 184
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "docs/AGENTROUTER_SETUP.md",
+        "Commit": "b2328243792f7aa6d606f0dfc57bd65de07930e9",
+        "StartLine": 84,
+        "EndLine": 85
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "docs/API_GUIDE.md",
+        "Commit": "b2328243792f7aa6d606f0dfc57bd65de07930e9",
+        "StartLine": 131,
+        "EndLine": 132
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "docs/API_GUIDE.md",
+        "Commit": "b2328243792f7aa6d606f0dfc57bd65de07930e9",
+        "StartLine": 142,
+        "EndLine": 143
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "docs/API_GUIDE.md",
+        "Commit": "b2328243792f7aa6d606f0dfc57bd65de07930e9",
+        "StartLine": 146,
+        "EndLine": 147
+      },
+      {
+        "RuleID": "generic-api-key",
+        "File": "docs/TEST_EVIDENCE.md",
+        "Commit": "b2328243792f7aa6d606f0dfc57bd65de07930e9",
+        "StartLine": 156,
+        "EndLine": 156
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "b2328243792f7aa6d606f0dfc57bd65de07930e9",
+        "StartLine": 1019,
+        "EndLine": 1021
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "b2328243792f7aa6d606f0dfc57bd65de07930e9",
+        "StartLine": 1024,
+        "EndLine": 1025
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "b2328243792f7aa6d606f0dfc57bd65de07930e9",
+        "StartLine": 1035,
+        "EndLine": 1036
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "b2328243792f7aa6d606f0dfc57bd65de07930e9",
+        "StartLine": 1039,
+        "EndLine": 1040
+      }
+    ]
+  },
+  "prepared_mirror": {
+    "path": "C:/Users/mdham/Downloads/pdf_splitter/paperplane-redacted-v23-prep-2026-11-19.git",
+    "commit_count": 45,
+    "bytes_scanned": 158099211,
+    "finding_count": 33,
+    "counts_by_rule": [
+      {
+        "RuleID": "curl-auth-header",
+        "Count": 24
+      },
+      {
+        "RuleID": "generic-api-key",
+        "Count": 6
+      },
+      {
+        "RuleID": "paperplane-admin-fallback",
+        "Count": 2
+      },
+      {
+        "RuleID": "paperplane-compose-admin-fallback",
+        "Count": 1
+      }
+    ],
+    "findings": [
+      {
+        "RuleID": "generic-api-key",
+        "File": "reports/launch-audit-v23/browser-id106-idempotent-submit-retry.json",
+        "Commit": "e603f55e2d39b3d2ab1bc3b1115cc354da8302d2",
+        "StartLine": 7,
+        "EndLine": 7
+      },
+      {
+        "RuleID": "generic-api-key",
+        "File": "reports/launch-audit-v23/browser-id106-idempotent-submit-retry.json",
+        "Commit": "e603f55e2d39b3d2ab1bc3b1115cc354da8302d2",
+        "StartLine": 13,
+        "EndLine": 13
+      },
+      {
+        "RuleID": "generic-api-key",
+        "File": "reports/launch-audit-v23/browser-id106-idempotent-submit-retry.json",
+        "Commit": "e603f55e2d39b3d2ab1bc3b1115cc354da8302d2",
+        "StartLine": 24,
+        "EndLine": 24
+      },
+      {
+        "RuleID": "generic-api-key",
+        "File": "reports/launch-audit-v23/browser-id106-idempotent-submit-retry.json",
+        "Commit": "e603f55e2d39b3d2ab1bc3b1115cc354da8302d2",
+        "StartLine": 30,
+        "EndLine": 30
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "e603f55e2d39b3d2ab1bc3b1115cc354da8302d2",
+        "StartLine": 1162,
+        "EndLine": 1164
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "e603f55e2d39b3d2ab1bc3b1115cc354da8302d2",
+        "StartLine": 1167,
+        "EndLine": 1168
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "e603f55e2d39b3d2ab1bc3b1115cc354da8302d2",
+        "StartLine": 1178,
+        "EndLine": 1179
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "e603f55e2d39b3d2ab1bc3b1115cc354da8302d2",
+        "StartLine": 1182,
+        "EndLine": 1183
+      },
+      {
+        "RuleID": "paperplane-compose-admin-fallback",
+        "File": "tests/test_launch_audit_v14.py",
+        "Commit": "d7a245abe2128bfc782e5832e0e4951ee134b3be",
+        "StartLine": 30,
+        "EndLine": 30
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "docs/API_GUIDE.md",
+        "Commit": "c6bd5f601ae8b229aecad61d8f17bde3301b0ec8",
+        "StartLine": 131,
+        "EndLine": 132
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "docs/API_GUIDE.md",
+        "Commit": "c6bd5f601ae8b229aecad61d8f17bde3301b0ec8",
+        "StartLine": 142,
+        "EndLine": 143
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "docs/API_GUIDE.md",
+        "Commit": "c6bd5f601ae8b229aecad61d8f17bde3301b0ec8",
+        "StartLine": 146,
+        "EndLine": 147
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "docs/AGENTROUTER_SETUP.md",
+        "Commit": "c6bd5f601ae8b229aecad61d8f17bde3301b0ec8",
+        "StartLine": 84,
+        "EndLine": 85
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "82804c1543bf0f188f114d36d42d14ce7b26686a",
+        "StartLine": 1125,
+        "EndLine": 1127
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "82804c1543bf0f188f114d36d42d14ce7b26686a",
+        "StartLine": 1130,
+        "EndLine": 1131
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "82804c1543bf0f188f114d36d42d14ce7b26686a",
+        "StartLine": 1141,
+        "EndLine": 1142
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "82804c1543bf0f188f114d36d42d14ce7b26686a",
+        "StartLine": 1145,
+        "EndLine": 1146
+      },
+      {
+        "RuleID": "generic-api-key",
+        "File": "docs/TEST_EVIDENCE.md",
+        "Commit": "c6bd5f601ae8b229aecad61d8f17bde3301b0ec8",
+        "StartLine": 156,
+        "EndLine": 156
+      },
+      {
+        "RuleID": "paperplane-admin-fallback",
+        "File": "server.py",
+        "Commit": "f49f51149eaaff8cf34c55dcb2babc0b5e8b7195",
+        "StartLine": 113,
+        "EndLine": 113
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "8ce9cac75e3c41d980203e106d624b8672f9a5ad",
+        "StartLine": 1087,
+        "EndLine": 1089
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "8ce9cac75e3c41d980203e106d624b8672f9a5ad",
+        "StartLine": 1092,
+        "EndLine": 1093
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "8ce9cac75e3c41d980203e106d624b8672f9a5ad",
+        "StartLine": 1103,
+        "EndLine": 1104
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "8ce9cac75e3c41d980203e106d624b8672f9a5ad",
+        "StartLine": 1107,
+        "EndLine": 1108
+      },
+      {
+        "RuleID": "paperplane-admin-fallback",
+        "File": "server.py",
+        "Commit": "8ce9cac75e3c41d980203e106d624b8672f9a5ad",
+        "StartLine": 184,
+        "EndLine": 184
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "docs/AGENTROUTER_SETUP.md",
+        "Commit": "b2328243792f7aa6d606f0dfc57bd65de07930e9",
+        "StartLine": 84,
+        "EndLine": 85
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "docs/API_GUIDE.md",
+        "Commit": "b2328243792f7aa6d606f0dfc57bd65de07930e9",
+        "StartLine": 131,
+        "EndLine": 132
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "docs/API_GUIDE.md",
+        "Commit": "b2328243792f7aa6d606f0dfc57bd65de07930e9",
+        "StartLine": 142,
+        "EndLine": 143
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "docs/API_GUIDE.md",
+        "Commit": "b2328243792f7aa6d606f0dfc57bd65de07930e9",
+        "StartLine": 146,
+        "EndLine": 147
+      },
+      {
+        "RuleID": "generic-api-key",
+        "File": "docs/TEST_EVIDENCE.md",
+        "Commit": "b2328243792f7aa6d606f0dfc57bd65de07930e9",
+        "StartLine": 156,
+        "EndLine": 156
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "b2328243792f7aa6d606f0dfc57bd65de07930e9",
+        "StartLine": 1019,
+        "EndLine": 1021
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "b2328243792f7aa6d606f0dfc57bd65de07930e9",
+        "StartLine": 1024,
+        "EndLine": 1025
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "b2328243792f7aa6d606f0dfc57bd65de07930e9",
+        "StartLine": 1035,
+        "EndLine": 1036
+      },
+      {
+        "RuleID": "curl-auth-header",
+        "File": "web/index.html",
+        "Commit": "b2328243792f7aa6d606f0dfc57bd65de07930e9",
+        "StartLine": 1039,
+        "EndLine": 1040
+      }
+    ],
+    "original_admin_value_in_commit_messages": 0,
+    "git_objects_scanned": 3959,
+    "objects_containing_original_admin_value": 0,
+    "git_fsck": "passed",
+    "configured_remotes": 0,
+    "refs": 10,
+    "admin_fallback_rows_containing_redaction_marker": 2
+  },
+  "notes": [
+    "All secret/match fields were excluded from this evidence.",
+    "Current source history still contains the historical admin fallback.",
+    "Prepared mirror replaces the historical value with [REDACTED]; Gitleaks still flags that marker under the custom fallback detector.",
+    "Remaining curl-auth-header and generic-api-key findings require owner review to classify historical docs/evidence; no credential values are included.",
+    "Prepared mirror predates current uncommitted v23 changes and is not publish-ready."
+  ]
+}

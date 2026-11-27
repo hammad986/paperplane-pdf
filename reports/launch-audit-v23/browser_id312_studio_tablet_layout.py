@@ -34,6 +34,8 @@ with TemporaryDirectory(prefix='paperplane-id312-') as temp:
                     page = context.new_page()
                     errors = []
                     page.on('pageerror', lambda error: errors.append(str(error)))
+                    cdp = page.context.new_cdp_session(page)
+                    cdp.send('Emulation.setSafeAreaInsetsOverride', {'insets': {'top': 30, 'right': 0, 'bottom': 20, 'left': 0}})
                     page.goto(base + '/studio', wait_until='domcontentloaded')
                     page.locator('#studio-file-input').set_input_files(str(pdf_path))
                     page.wait_for_function("document.querySelector('#pdf-canvas')?.dataset.rendered === 'true'", timeout=20000)
@@ -42,8 +44,11 @@ with TemporaryDirectory(prefix='paperplane-id312-') as temp:
                       const canvas=rect('#pdf-canvas'), toolbar=rect('#studio-toolbar'), thumbs=rect('#studio-thumbnails-bar');
                       const bottom=rect('.mobile-workspace-bar');
                       const ribbons=[...document.querySelectorAll('#studio-toolbar .studio-primary-ribbon, #studio-toolbar .studio-sub-ribbon')].map(e=>({clientWidth:e.clientWidth,scrollWidth:e.scrollWidth,clientHeight:e.clientHeight,scrollHeight:e.scrollHeight}));
-                      return {viewport:{width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth},canvas,toolbar,thumbnails:thumbs,bottom,ribbons,first_screen_canvas:!!canvas&&canvas.y<innerHeight&&canvas.y+canvas.height>0};
+                      return {viewport:{width:innerWidth,height:innerHeight,scrollWidth:document.documentElement.scrollWidth},viewportMeta:document.querySelector('meta[name="viewport"]')?.content||'',canvas,toolbar,thumbnails:thumbs,bottom,ribbons,safeArea:{top:parseFloat(getComputedStyle(document.querySelector('.topbar')).paddingTop),bottomPadding:parseFloat(getComputedStyle(document.querySelector('.mobile-workspace-bar')).paddingBottom),mainTop:parseFloat(getComputedStyle(document.querySelector('.main-area')).paddingTop)},first_screen_canvas:!!canvas&&canvas.y<innerHeight&&canvas.y+canvas.height>0};
                     }""")
+                    assert 'viewport-fit=cover' in metrics['viewportMeta'], metrics
+                    if width <= 900:
+                        assert metrics['safeArea']['top'] == 30 and metrics['safeArea']['mainTop'] == 94 and metrics['safeArea']['bottomPadding'] == 20, metrics
                     assert metrics['first_screen_canvas'], (width, metrics)
                     assert metrics['viewport']['scrollWidth'] <= width, metrics
                     assert metrics['canvas']['y'] < height, (width, metrics)

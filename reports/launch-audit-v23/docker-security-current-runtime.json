@@ -1,0 +1,23 @@
+{
+  "image_tag": "paperplane-v23-audit:security-current",
+  "image_id": "sha256:c5d7c58952244b448afdc29047da66f417f1f1d62d9c407059d20e10e085451a",
+  "container_name": "paperplane-v23-audit-security-current",
+  "container_scope": "isolated local container; synthetic credentials; disposable tmpfs /data; no production volume/provider/payment",
+  "health_status": 200,
+  "health_body": {
+    "status": "ok",
+    "service": "paperplane-pdf",
+    "version": "2.0.0",
+    "auth_required": false,
+    "workers": 4,
+    "max_file_size_mb": 500,
+    "job_ttl_hours": 2
+  },
+  "pid1_uid": 1001,
+  "data_directory": {
+    "owner": "1001:1001",
+    "mode": "755",
+    "mount": "tmpfs"
+  },
+  "stopped_after_verification": true
+}

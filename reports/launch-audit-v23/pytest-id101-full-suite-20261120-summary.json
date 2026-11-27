@@ -1,0 +1,23 @@
+{
+  "command": "python -m pytest -q",
+  "runs_sequential": true,
+  "dotenv_disabled": true,
+  "credential_environment_removed": true,
+  "production_endpoints_contacted": false,
+  "runs": [
+    {
+      "run": 1,
+      "exit_code": 0,
+      "duration_seconds": 160.77,
+      "summary": "628 passed, 4 warnings in 155.66s (0:02:35)",
+      "log": "pytest-id101-full-suite-20261120-run1.log"
+    },
+    {
+      "run": 2,
+      "exit_code": 0,
+      "duration_seconds": 152.48,
+      "summary": "628 passed, 4 warnings in 146.50s (0:02:26)",
+      "log": "pytest-id101-full-suite-20261120-run2.log"
+    }
+  ]
+}

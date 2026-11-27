@@ -63,7 +63,7 @@ async function openDocument(requestId, { bytes, password }) {
   reply(requestId, { action: 'opened', pageCount: pdfDocument.numPages });
 }
 
-async function renderPage(requestId, { pageNumber, scale, outputScale, rotation = 0 }) {
+async function renderPage(requestId, { pageNumber, scale, outputScale, rotation = null }) {
   if (cancelledRequests.delete(requestId)) {
     reply(requestId, { action: 'rendered', cancelled: true });
     return;
@@ -75,7 +75,9 @@ async function renderPage(requestId, { pageNumber, scale, outputScale, rotation 
     reply(requestId, { action: 'rendered', cancelled: true });
     return;
   }
-  const viewport = page.getViewport({ scale, rotation });
+  const viewport = Number.isFinite(rotation)
+    ? page.getViewport({ scale, rotation })
+    : page.getViewport({ scale });
   const width = Math.max(1, Math.ceil(viewport.width * outputScale));
   const height = Math.max(1, Math.ceil(viewport.height * outputScale));
   const canvas = new OffscreenCanvas(width, height);

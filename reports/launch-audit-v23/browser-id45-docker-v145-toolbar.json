@@ -1,0 +1,46 @@
+{
+  "image": "paperplane-v23-audit:codex-v145",
+  "image_id": "sha256:4cc2351fa28d24b283458b629de8ceef09924d89d121bfccdb62f1669993fc29",
+  "rounds": [
+    {
+      "round": 1,
+      "metrics": {
+        "viewport": 901,
+        "documentWidth": 901,
+        "rows": 3,
+        "buttonCount": 33,
+        "toolbarHeight": 98,
+        "primaryScroll": [
+          962,
+          439
+        ],
+        "secondaryScroll": [
+          826,
+          439
+        ],
+        "footerVisibility": "hidden"
+      }
+    },
+    {
+      "round": 2,
+      "metrics": {
+        "viewport": 901,
+        "documentWidth": 901,
+        "rows": 4,
+        "buttonCount": 33,
+        "toolbarHeight": 92,
+        "primaryScroll": [
+          697,
+          439
+        ],
+        "secondaryScroll": [
+          690,
+          439
+        ],
+        "footerVisibility": "hidden"
+      }
+    }
+  ],
+  "page_errors": [],
+  "verdict": "PASS"
+}

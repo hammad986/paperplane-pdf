@@ -1,0 +1,58 @@
+{
+  "build": "app.js v191/styles71/service-worker143",
+  "fixture": "reports/launch-audit-v23/orimi-pdf-test.pdf",
+  "checks": [
+    {
+      "round": 1,
+      "route": "/merge-pdf",
+      "download_name": "merged-PDF.pdf",
+      "bytes": 26793,
+      "pages": 2,
+      "rotations": [
+        0,
+        0
+      ],
+      "source_marker": true,
+      "result_text": "Your document is ready!\nmerged-PDF.pdf \u00b7 26.2 KB \u00b7 2 pages\nDownload File\nView in Studio\nProcess Another File\nAll Tools"
+    },
+    {
+      "round": 1,
+      "route": "/rotate-pdf",
+      "download_name": "orimi-1-rotate_rotate.pdf",
+      "bytes": 13549,
+      "pages": 1,
+      "rotations": [
+        90
+      ],
+      "source_marker": true,
+      "result_text": "Your document is ready!\norimi-1-rotate_rotate.pdf \u00b7 13.2 KB \u00b7 1 page\nDownload File\nView in Studio\nProcess Another File\nAll Tools"
+    },
+    {
+      "round": 2,
+      "route": "/merge-pdf",
+      "download_name": "merged-PDF.pdf",
+      "bytes": 26793,
+      "pages": 2,
+      "rotations": [
+        0,
+        0
+      ],
+      "source_marker": true,
+      "result_text": "Your document is ready!\nmerged-PDF.pdf \u00b7 26.2 KB \u00b7 2 pages\nDownload File\nView in Studio\nProcess Another File\nAll Tools"
+    },
+    {
+      "round": 2,
+      "route": "/rotate-pdf",
+      "download_name": "orimi-2-rotate_rotate.pdf",
+      "bytes": 13549,
+      "pages": 1,
+      "rotations": [
+        90
+      ],
+      "source_marker": true,
+      "result_text": "Your document is ready!\norimi-2-rotate_rotate.pdf \u00b7 13.2 KB \u00b7 1 page\nDownload File\nView in Studio\nProcess Another File\nAll Tools"
+    }
+  ],
+  "browser_errors": [],
+  "passed": true
+}

@@ -1,0 +1,199 @@
+{
+  "item": 28,
+  "image_id": "sha256:b3a5c5c0da22de2de0eec8a65824ef8c18be68550a4a3707e65525fc55c91d47",
+  "rounds": 4,
+  "concurrency_per_round": 4,
+  "jobs_total": 16,
+  "all_outputs_valid_pdf": true,
+  "all_page_markers_preserved": true,
+  "all_unique_watermarks_preserved": true,
+  "all_jobs_completed": true,
+  "page_errors": [],
+  "runtime_health": {
+    "status": "ok",
+    "service": "paperplane-pdf",
+    "version": "2.0.0",
+    "auth_required": false,
+    "workers": 4,
+    "max_file_size_mb": 500,
+    "job_ttl_hours": 2
+  },
+  "round_results": [
+    {
+      "round": 1,
+      "concurrency": 4,
+      "elapsed_seconds": 0.416,
+      "outputs": [
+        {
+          "id": "1-1",
+          "http_job_status": "completed",
+          "valid_pdf": true,
+          "pages": 2,
+          "source_markers_preserved": true,
+          "unique_watermark_present": true,
+          "output_bytes": 22757
+        },
+        {
+          "id": "1-2",
+          "http_job_status": "completed",
+          "valid_pdf": true,
+          "pages": 2,
+          "source_markers_preserved": true,
+          "unique_watermark_present": true,
+          "output_bytes": 22757
+        },
+        {
+          "id": "1-3",
+          "http_job_status": "completed",
+          "valid_pdf": true,
+          "pages": 2,
+          "source_markers_preserved": true,
+          "unique_watermark_present": true,
+          "output_bytes": 22756
+        },
+        {
+          "id": "1-4",
+          "http_job_status": "completed",
+          "valid_pdf": true,
+          "pages": 2,
+          "source_markers_preserved": true,
+          "unique_watermark_present": true,
+          "output_bytes": 22757
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "concurrency": 4,
+      "elapsed_seconds": 0.431,
+      "outputs": [
+        {
+          "id": "2-1",
+          "http_job_status": "completed",
+          "valid_pdf": true,
+          "pages": 2,
+          "source_markers_preserved": true,
+          "unique_watermark_present": true,
+          "output_bytes": 22757
+        },
+        {
+          "id": "2-2",
+          "http_job_status": "completed",
+          "valid_pdf": true,
+          "pages": 2,
+          "source_markers_preserved": true,
+          "unique_watermark_present": true,
+          "output_bytes": 22757
+        },
+        {
+          "id": "2-3",
+          "http_job_status": "completed",
+          "valid_pdf": true,
+          "pages": 2,
+          "source_markers_preserved": true,
+          "unique_watermark_present": true,
+          "output_bytes": 22757
+        },
+        {
+          "id": "2-4",
+          "http_job_status": "completed",
+          "valid_pdf": true,
+          "pages": 2,
+          "source_markers_preserved": true,
+          "unique_watermark_present": true,
+          "output_bytes": 22757
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "concurrency": 4,
+      "elapsed_seconds": 0.445,
+      "outputs": [
+        {
+          "id": "3-1",
+          "http_job_status": "completed",
+          "valid_pdf": true,
+          "pages": 2,
+          "source_markers_preserved": true,
+          "unique_watermark_present": true,
+          "output_bytes": 22756
+        },
+        {
+          "id": "3-2",
+          "http_job_status": "completed",
+          "valid_pdf": true,
+          "pages": 2,
+          "source_markers_preserved": true,
+          "unique_watermark_present": true,
+          "output_bytes": 22757
+        },
+        {
+          "id": "3-3",
+          "http_job_status": "completed",
+          "valid_pdf": true,
+          "pages": 2,
+          "source_markers_preserved": true,
+          "unique_watermark_present": true,
+          "output_bytes": 22757
+        },
+        {
+          "id": "3-4",
+          "http_job_status": "completed",
+          "valid_pdf": true,
+          "pages": 2,
+          "source_markers_preserved": true,
+          "unique_watermark_present": true,
+          "output_bytes": 22756
+        }
+      ]
+    },
+    {
+      "round": 4,
+      "concurrency": 4,
+      "elapsed_seconds": 0.383,
+      "outputs": [
+        {
+          "id": "4-1",
+          "http_job_status": "completed",
+          "valid_pdf": true,
+          "pages": 2,
+          "source_markers_preserved": true,
+          "unique_watermark_present": true,
+          "output_bytes": 22757
+        },
+        {
+          "id": "4-2",
+          "http_job_status": "completed",
+          "valid_pdf": true,
+          "pages": 2,
+          "source_markers_preserved": true,
+          "unique_watermark_present": true,
+          "output_bytes": 22757
+        },
+        {
+          "id": "4-3",
+          "http_job_status": "completed",
+          "valid_pdf": true,
+          "pages": 2,
+          "source_markers_preserved": true,
+          "unique_watermark_present": true,
+          "output_bytes": 22756
+        },
+        {
+          "id": "4-4",
+          "http_job_status": "completed",
+          "valid_pdf": true,
+          "pages": 2,
+          "source_markers_preserved": true,
+          "unique_watermark_present": true,
+          "output_bytes": 22756
+        }
+      ]
+    }
+  ],
+  "payment_attempted": false,
+  "provider_credentials": false,
+  "storage": "disposable tmpfs only",
+  "limitation": "A bounded concurrency run does not disprove the previously observed intermittent queued-job stall."
+}

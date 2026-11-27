@@ -1,0 +1,18 @@
+{
+  "operation": "protect",
+  "first_attempt": "controlled 502 Bad Gateway",
+  "attempt_count": 2,
+  "same_idempotency_key_reused": true,
+  "download_bytes": 1479,
+  "pages": 1,
+  "encrypted": true,
+  "password_authenticated": true,
+  "source_marker_after_unlock": true,
+  "page_errors": [],
+  "unexpected_console_errors": [],
+  "expected_console_messages_from_injected_502": [
+    "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+  ],
+  "production_endpoints_contacted": false,
+  "result": "passed"
+}

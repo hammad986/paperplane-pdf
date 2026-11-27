@@ -1,0 +1,89 @@
+{
+  "page_errors": [],
+  "console_errors": [],
+  "browser_mode_disclosure": "Browser mode creates an editable text-first DOCX on this device and keeps page boundaries. It does not retain images, exact layout, or table structure. Server Processing attempts to reconstruct detected tables and images, but overall layout can still differ. Scanned PDFs need OCR first.",
+  "browser_mode_label": "Text-only DOCX",
+  "browser_mode_docx": {
+    "bytes": 4309,
+    "valid_docx": true,
+    "paragraphs": [
+      "mixed-five-page",
+      "Page 1",
+      "Mixed-PDF-Page-1 editable text",
+      "Unique detail for page 1 remains selectable.",
+      "Item Amount",
+      "Printer $42",
+      "Paper $12",
+      "Page 2",
+      "Mixed-PDF-Page-2 editable text",
+      "Unique detail for page 2 remains selectable.",
+      "Page 3",
+      "Mixed-PDF-Page-3 editable text",
+      "Unique detail for page 3 remains selectable.",
+      "Page 4",
+      "Mixed-PDF-Page-4 editable text",
+      "Unique detail for page 4 remains selectable.",
+      "Page 5",
+      "Mixed-PDF-Page-5 editable text",
+      "Unique detail for page 5 remains selectable."
+    ],
+    "tables": [],
+    "inline_images": 0,
+    "page_markers": {
+      "Mixed-PDF-Page-1": true,
+      "Mixed-PDF-Page-2": true,
+      "Mixed-PDF-Page-3": true,
+      "Mixed-PDF-Page-4": true,
+      "Mixed-PDF-Page-5": true
+    }
+  },
+  "server_mode_docx": {
+    "bytes": 37832,
+    "valid_docx": true,
+    "paragraphs": [
+      "Mixed-PDF-Page-1 editable text",
+      "Unique detail for page 1 remains selectable.",
+      "",
+      "",
+      "Mixed-PDF-Page-2 editable text",
+      "Unique detail for page 2 remains selectable.",
+      "",
+      "Mixed-PDF-Page-3 editable text",
+      "Unique detail for page 3 remains selectable.",
+      "",
+      "",
+      "Mixed-PDF-Page-4 editable text",
+      "Unique detail for page 4 remains selectable.",
+      "",
+      "Mixed-PDF-Page-5 editable text",
+      "Unique detail for page 5 remains selectable."
+    ],
+    "tables": [
+      [
+        [
+          "Item",
+          "Amount"
+        ],
+        [
+          "Printer",
+          "$42"
+        ],
+        [
+          "Paper",
+          "$12"
+        ]
+      ]
+    ],
+    "inline_images": 2,
+    "page_markers": {
+      "Mixed-PDF-Page-1": true,
+      "Mixed-PDF-Page-2": true,
+      "Mixed-PDF-Page-3": true,
+      "Mixed-PDF-Page-4": true,
+      "Mixed-PDF-Page-5": true
+    }
+  },
+  "server_mode_label": "Server DOCX reconstruction",
+  "server_output": "id308-mixed-content-server.docx",
+  "result": "passed"
+}

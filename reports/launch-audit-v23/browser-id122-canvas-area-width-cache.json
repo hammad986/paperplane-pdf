@@ -1,0 +1,75 @@
+{
+  "fixture": "C:\\Users\\mdham\\Downloads\\notes.pdf",
+  "fixture_pages": 69,
+  "rounds": [
+    {
+      "round": 1,
+      "checks": [
+        {
+          "viewport": 390,
+          "canvas_area_cache_px": 372,
+          "client_width_px": 372,
+          "expected_scale": 0.5779,
+          "rendered_scale": 0.5778832003977987
+        },
+        {
+          "viewport": 320,
+          "canvas_area_cache_px": 302,
+          "client_width_px": 302,
+          "expected_scale": 0.4603,
+          "rendered_scale": 0.46029068868894435
+        },
+        {
+          "viewport": 820,
+          "canvas_area_cache_px": 802,
+          "client_width_px": 802,
+          "expected_scale": 1,
+          "rendered_scale": 1.0
+        },
+        {
+          "viewport": 390,
+          "canvas_area_cache_px": 372,
+          "client_width_px": 372,
+          "expected_scale": 0.5779,
+          "rendered_scale": 0.5778832003977987
+        }
+      ],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "checks": [
+        {
+          "viewport": 390,
+          "canvas_area_cache_px": 372,
+          "client_width_px": 372,
+          "expected_scale": 0.5779,
+          "rendered_scale": 0.5778832003977987
+        },
+        {
+          "viewport": 320,
+          "canvas_area_cache_px": 302,
+          "client_width_px": 302,
+          "expected_scale": 0.4603,
+          "rendered_scale": 0.46029068868894435
+        },
+        {
+          "viewport": 820,
+          "canvas_area_cache_px": 802,
+          "client_width_px": 802,
+          "expected_scale": 1,
+          "rendered_scale": 1.0
+        },
+        {
+          "viewport": 390,
+          "canvas_area_cache_px": 372,
+          "client_width_px": 372,
+          "expected_scale": 0.5779,
+          "rendered_scale": 0.5778832003977987
+        }
+      ],
+      "page_errors": []
+    }
+  ],
+  "verdict": "PASS"
+}

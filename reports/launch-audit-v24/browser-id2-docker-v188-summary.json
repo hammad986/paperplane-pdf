@@ -1,0 +1,29 @@
+{
+  "health": {
+    "status": "ok",
+    "service": "paperplane-pdf",
+    "version": "2.0.0",
+    "auth_required": false,
+    "workers": 4,
+    "max_file_size_mb": 500,
+    "job_ttl_hours": 24
+  },
+  "page_errors": [],
+  "console_errors": [],
+  "http_status": 200,
+  "summary_mode": "offline_extractive",
+  "citation_count": 69,
+  "all_pages_cited": true,
+  "summary_has_all_69_facts": true,
+  "summary_missing_facts": [],
+  "offline_disclosure": true,
+  "download": {
+    "filename": "id2-docker-v188-69page_executive_brief.pdf",
+    "pages": 4,
+    "pdf_signature": "%PDF-",
+    "all_69_page_facts": true,
+    "missing_page_facts": [],
+    "final_decision": true
+  },
+  "passed": true
+}

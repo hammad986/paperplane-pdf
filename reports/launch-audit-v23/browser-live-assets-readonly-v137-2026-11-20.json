@@ -1,0 +1,27 @@
+{
+  "site": "https://paperplane.qd.je",
+  "read_only": true,
+  "page": {
+    "http_status": 200,
+    "final_url": "https://paperplane.qd.je/",
+    "content_length": 248309,
+    "assets": [
+      "/assets/app.js?v=91",
+      "/assets/page_organizer.js?v=14",
+      "/assets/styles.css?v=51"
+    ]
+  },
+  "health": {
+    "http_status": 200,
+    "body": {
+      "status": "ok",
+      "service": "paperplane-pdf",
+      "version": "2.0.0",
+      "auth_required": false,
+      "workers": 4,
+      "max_file_size_mb": 500,
+      "job_ttl_hours": 24
+    }
+  },
+  "candidate_assets_present": false
+}

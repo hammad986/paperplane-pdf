@@ -1,0 +1,272 @@
+{
+  "candidate": "app.js v234/styles.css v89/service worker v209",
+  "checks": [
+    {
+      "route": "/split-pdf",
+      "operation": "split",
+      "viewport": "320x640",
+      "download": "extracted-pages.pdf",
+      "pages": 2,
+      "rotations": [
+        0,
+        0
+      ],
+      "content_markers": [
+        "ID85 MOBILE RESULT PAGE 2 MARKER",
+        "ID85 MOBILE RESULT PAGE 3 MARKER"
+      ],
+      "content_checked": true,
+      "actions": [
+        {
+          "label": "Download File",
+          "left": 33,
+          "right": 287,
+          "top": 98.5625,
+          "bottom": 142.5625,
+          "width": 254,
+          "height": 44
+        },
+        {
+          "label": "View in Studio",
+          "left": 33,
+          "right": 287,
+          "top": 150.14141845703125,
+          "bottom": 198.14141845703125,
+          "width": 254,
+          "height": 48
+        },
+        {
+          "label": "Process Another File",
+          "left": 33,
+          "right": 287,
+          "top": 206.5625,
+          "bottom": 254.5625,
+          "width": 254,
+          "height": 48
+        },
+        {
+          "label": "All Tools",
+          "left": 33,
+          "right": 287,
+          "top": 261.98358154296875,
+          "bottom": 309.98358154296875,
+          "width": 254,
+          "height": 48
+        }
+      ],
+      "navigation": {
+        "left": 0,
+        "right": 320,
+        "top": 574,
+        "bottom": 640,
+        "width": 320,
+        "height": 66
+      },
+      "no_overflow": true,
+      "actions_unobstructed": true,
+      "result": "passed"
+    },
+    {
+      "route": "/rotate-pdf",
+      "operation": "rotate",
+      "viewport": "320x640",
+      "download": "rotated.pdf",
+      "pages": 3,
+      "rotations": [
+        90,
+        90,
+        90
+      ],
+      "content_markers": [
+        "ID85 MOBILE RESULT PAGE 1 MARKER",
+        "ID85 MOBILE RESULT PAGE 2 MARKER",
+        "ID85 MOBILE RESULT PAGE 3 MARKER"
+      ],
+      "content_checked": true,
+      "actions": [
+        {
+          "label": "Download File",
+          "left": 33,
+          "right": 287,
+          "top": 98.5625,
+          "bottom": 142.5625,
+          "width": 254,
+          "height": 44
+        },
+        {
+          "label": "View in Studio",
+          "left": 33,
+          "right": 287,
+          "top": 149.90859985351562,
+          "bottom": 197.90859985351562,
+          "width": 254,
+          "height": 48
+        },
+        {
+          "label": "Process Another File",
+          "left": 33,
+          "right": 287,
+          "top": 206.5625,
+          "bottom": 254.5625,
+          "width": 254,
+          "height": 48
+        },
+        {
+          "label": "All Tools",
+          "left": 33,
+          "right": 287,
+          "top": 262.2164001464844,
+          "bottom": 310.2164001464844,
+          "width": 254,
+          "height": 48
+        }
+      ],
+      "navigation": {
+        "left": 0,
+        "right": 320,
+        "top": 574,
+        "bottom": 640,
+        "width": 320,
+        "height": 66
+      },
+      "no_overflow": true,
+      "actions_unobstructed": true,
+      "result": "passed"
+    },
+    {
+      "route": "/split-pdf",
+      "operation": "split",
+      "viewport": "390x844",
+      "download": "extracted-pages.pdf",
+      "pages": 2,
+      "rotations": [
+        0,
+        0
+      ],
+      "content_markers": [
+        "ID85 MOBILE RESULT PAGE 2 MARKER",
+        "ID85 MOBILE RESULT PAGE 3 MARKER"
+      ],
+      "content_checked": true,
+      "actions": [
+        {
+          "label": "Download File",
+          "left": 33,
+          "right": 357,
+          "top": 319.171875,
+          "bottom": 363.171875,
+          "width": 324,
+          "height": 44
+        },
+        {
+          "label": "View in Studio",
+          "left": 33,
+          "right": 357,
+          "top": 370.593017578125,
+          "bottom": 418.593017578125,
+          "width": 324,
+          "height": 48
+        },
+        {
+          "label": "Process Another File",
+          "left": 33,
+          "right": 357,
+          "top": 427.171875,
+          "bottom": 475.171875,
+          "width": 324,
+          "height": 48
+        },
+        {
+          "label": "All Tools",
+          "left": 33,
+          "right": 357,
+          "top": 483.171875,
+          "bottom": 531.171875,
+          "width": 324,
+          "height": 48
+        }
+      ],
+      "navigation": {
+        "left": 0,
+        "right": 390,
+        "top": 778,
+        "bottom": 844,
+        "width": 390,
+        "height": 66
+      },
+      "no_overflow": true,
+      "actions_unobstructed": true,
+      "result": "passed"
+    },
+    {
+      "route": "/rotate-pdf",
+      "operation": "rotate",
+      "viewport": "390x844",
+      "download": "rotated.pdf",
+      "pages": 3,
+      "rotations": [
+        90,
+        90,
+        90
+      ],
+      "content_markers": [
+        "ID85 MOBILE RESULT PAGE 1 MARKER",
+        "ID85 MOBILE RESULT PAGE 2 MARKER",
+        "ID85 MOBILE RESULT PAGE 3 MARKER"
+      ],
+      "content_checked": true,
+      "actions": [
+        {
+          "label": "Download File",
+          "left": 33,
+          "right": 357,
+          "top": 319.171875,
+          "bottom": 363.171875,
+          "width": 324,
+          "height": 44
+        },
+        {
+          "label": "View in Studio",
+          "left": 33,
+          "right": 357,
+          "top": 371.171875,
+          "bottom": 419.171875,
+          "width": 324,
+          "height": 48
+        },
+        {
+          "label": "Process Another File",
+          "left": 33,
+          "right": 357,
+          "top": 427.171875,
+          "bottom": 475.171875,
+          "width": 324,
+          "height": 48
+        },
+        {
+          "label": "All Tools",
+          "left": 33,
+          "right": 357,
+          "top": 483.171875,
+          "bottom": 531.171875,
+          "width": 324,
+          "height": 48
+        }
+      ],
+      "navigation": {
+        "left": 0,
+        "right": 390,
+        "top": 778,
+        "bottom": 844,
+        "width": 390,
+        "height": 66
+      },
+      "no_overflow": true,
+      "actions_unobstructed": true,
+      "result": "passed"
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "result": "passed"
+}

@@ -1,0 +1,67 @@
+{
+  "image": "paperplane-v23-audit:codex-v138",
+  "image_id": "sha256:79d24d51f249bc55bd23958997bf9e51361d853e541f980eafe7ca8dc9bcb7ea",
+  "fixture": "C:\\Users\\mdham\\Downloads\\notes.pdf",
+  "fixture_pages": 69,
+  "cpu_throttle_rate": 4,
+  "rounds": [
+    {
+      "round": 1,
+      "http_status": 200,
+      "elapsed_seconds": 12.75,
+      "output_bytes": 5535231,
+      "pages": 69,
+      "all_page_text_and_order_preserved": true,
+      "document_width": 390,
+      "mobile_mode_geometry_reads": {
+        "annotate": 1,
+        "organize": 1
+      },
+      "organizer_cards": 69,
+      "page_one_thumbnail": true,
+      "page_forty_thumbnail": true,
+      "organizer_script_cached_version": "v18",
+      "intersection_observer_root_margin": "0px 0px 0px 0px",
+      "device_pixel_ratio": 3,
+      "canvas_scale": 1.5,
+      "canvas": {
+        "devicePixelRatio": 3,
+        "width": 516,
+        "cssWidth": 344,
+        "height": 730,
+        "cssHeight": 487,
+        "nonwhitePixels": 2110
+      },
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "http_status": 200,
+      "elapsed_seconds": 13.7,
+      "output_bytes": 5535231,
+      "pages": 69,
+      "all_page_text_and_order_preserved": true,
+      "document_width": 390,
+      "mobile_mode_geometry_reads": {
+        "annotate": 1,
+        "organize": 1
+      },
+      "organizer_cards": 69,
+      "page_one_thumbnail": true,
+      "page_forty_thumbnail": true,
+      "organizer_script_cached_version": "v18",
+      "intersection_observer_root_margin": "0px 0px 0px 0px",
+      "device_pixel_ratio": 3,
+      "canvas_scale": 1.5,
+      "canvas": {
+        "devicePixelRatio": 3,
+        "width": 516,
+        "cssWidth": 344,
+        "height": 730,
+        "cssHeight": 487,
+        "nonwhitePixels": 2110
+      },
+      "page_errors": []
+    }
+  ]
+}

@@ -27,13 +27,59 @@
   async function studioRequestError(response, action) {
     const payload = await response.json().catch(() => null);
     const detail = payload?.detail;
-    const message = (typeof detail === 'string' ? detail : detail?.message)
-      || payload?.message
-      || `${action} failed (HTTP ${response.status}).`;
+    const fallback = `${action} failed (HTTP ${response.status}).`;
+    const message = window.formatStudioErrorMessage
+      ? window.formatStudioErrorMessage(payload, fallback, response.status)
+      : ((typeof detail === 'string' ? detail : detail?.message) || payload?.message || fallback);
     if (response.status === 402 || detail?.code === 'TIER_LIMIT_REACHED') {
+      ['forms-modal', 'digital-sign-modal', 'security-modal'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.hidden = true;
+      });
       window.openUpgradeModal?.(message);
     }
     return new Error(message);
+  }
+
+  async function toSafeStudioUpload(target) {
+    if (!target) return target;
+    if (typeof window.toSafeUploadFile === 'function') {
+      try {
+        return await window.toSafeUploadFile(target);
+      } catch { /* fall through to ArrayBuffer copy */ }
+    }
+    if (typeof target.arrayBuffer === 'function' && Number(target.size || 0) <= 25 * 1024 * 1024) {
+      try {
+        const buf = await target.arrayBuffer();
+        return new File([buf], target.name || 'document.pdf', {
+          type: target.type || 'application/pdf',
+          lastModified: target.lastModified || Date.now(),
+        });
+      } catch { /* keep original File reference */ }
+    }
+    return target;
+  }
+
+  async function studioFetchWithTimeout(url, formData, action, timeoutMs = 25000) {
+    const controller = typeof AbortController === 'function' ? new AbortController() : null;
+    const timer = controller
+      ? window.setTimeout(() => controller.abort(new DOMException(`${action} timed out`, 'TimeoutError')), timeoutMs)
+      : null;
+    try {
+      return await fetch(url, {
+        method: 'POST',
+        credentials: 'same-origin',
+        body: formData,
+        signal: controller?.signal,
+      });
+    } catch (err) {
+      if (err?.name === 'AbortError' || err?.name === 'TimeoutError') {
+        throw new Error(`${action} timed out after ${Math.round(timeoutMs / 1000)}s. Please try again.`);
+      }
+      throw new Error(err?.message ? `${action} network error: ${err.message}` : `${action} failed due to a network error.`);
+    } finally {
+      if (timer !== null) clearTimeout(timer);
+    }
   }
 
   function downloadBlob(blob, filename) {
@@ -165,9 +211,10 @@
       if (container) container.innerHTML = '<div style="color: var(--text-muted); font-size: 12px; padding: 12px; text-align: center;">Scanning document for AcroForm widgets...</div>';
 
       try {
+        const safeTarget = await toSafeStudioUpload(target);
         const form = new FormData();
-        form.append('file', target);
-        const resp = await fetch('/api/studio/forms/analyze', { method: 'POST', body: form });
+        form.append('file', safeTarget);
+        const resp = await studioFetchWithTimeout('/api/studio/forms/analyze', form, 'Form analysis');
         if (!resp.ok) throw await studioRequestError(resp, 'Form analysis');
         const data = await resp.json();
         this.activeFormFields = data.fields || [];
@@ -278,12 +325,13 @@
 
       try {
         window.showToast?.('Updating form field values...', 'info');
+        const safeTarget = await toSafeStudioUpload(target);
         const form = new FormData();
-        form.append('file', target);
+        form.append('file', safeTarget);
         form.append('field_values', JSON.stringify(values));
 
-        const resp = await fetch('/api/studio/forms/fill', { method: 'POST', body: form });
-        if (!resp.ok) throw new Error(`Form fill failed (${resp.status})`);
+        const resp = await studioFetchWithTimeout('/api/studio/forms/fill', form, 'Form fill');
+        if (!resp.ok) throw await studioRequestError(resp, 'Form fill');
 
         const blob = await resp.blob();
         const newFile = new File([blob], target.name, { type: 'application/pdf' });
@@ -300,17 +348,14 @@
       const target = this._getActiveFile();
       if (!target) return;
 
-      if (!confirm('Flattening will bake all form appearances permanently into page vector streams, removing all interactive form widgets. Continue?')) {
-        return;
-      }
-
       try {
         window.showToast?.('Flattening form fields...', 'info');
+        const safeTarget = await toSafeStudioUpload(target);
         const form = new FormData();
-        form.append('file', target);
+        form.append('file', safeTarget);
 
-        const resp = await fetch('/api/studio/forms/flatten', { method: 'POST', body: form });
-        if (!resp.ok) throw new Error(`Flatten failed (${resp.status})`);
+        const resp = await studioFetchWithTimeout('/api/studio/forms/flatten', form, 'Form flatten');
+        if (!resp.ok) throw await studioRequestError(resp, 'Form flatten');
 
         const blob = await resp.blob();
         const newFile = new File([blob], target.name, { type: 'application/pdf' });
@@ -327,15 +372,14 @@
       const target = this._getActiveFile();
       if (!target) return;
 
-      if (!confirm('Reset all interactive form fields to empty/default states?')) return;
-
       try {
         window.showToast?.('Resetting form fields...', 'info');
+        const safeTarget = await toSafeStudioUpload(target);
         const form = new FormData();
-        form.append('file', target);
+        form.append('file', safeTarget);
 
-        const resp = await fetch('/api/studio/forms/reset', { method: 'POST', body: form });
-        if (!resp.ok) throw new Error(`Reset failed (${resp.status})`);
+        const resp = await studioFetchWithTimeout('/api/studio/forms/reset', form, 'Form reset');
+        if (!resp.ok) throw await studioRequestError(resp, 'Form reset');
 
         const blob = await resp.blob();
         const newFile = new File([blob], target.name, { type: 'application/pdf' });
@@ -379,12 +423,13 @@
 
       try {
         window.showToast?.('Adding form field...', 'info');
+        const safeTarget = await toSafeStudioUpload(target);
         const form = new FormData();
-        form.append('file', target);
+        form.append('file', safeTarget);
         form.append('field_data', JSON.stringify(fieldData));
 
-        const resp = await fetch('/api/studio/forms/add-field', { method: 'POST', body: form });
-        if (!resp.ok) throw new Error(`Add field failed (${resp.status})`);
+        const resp = await studioFetchWithTimeout('/api/studio/forms/add-field', form, 'Add form field');
+        if (!resp.ok) throw await studioRequestError(resp, 'Add form field');
 
         const blob = await resp.blob();
         const newFile = new File([blob], target.name, { type: 'application/pdf' });
@@ -403,10 +448,11 @@
       if (!target) return;
 
       try {
+        const safeTarget = await toSafeStudioUpload(target);
         const form = new FormData();
-        form.append('file', target);
-        const resp = await fetch('/api/studio/forms/export', { method: 'POST', body: form });
-        if (!resp.ok) throw new Error(`Export failed (${resp.status})`);
+        form.append('file', safeTarget);
+        const resp = await studioFetchWithTimeout('/api/studio/forms/export', form, 'Form export');
+        if (!resp.ok) throw await studioRequestError(resp, 'Form export');
         const json = await resp.json();
         const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' });
         downloadBlob(blob, `${target.name.replace(/\.pdf$/i, '')}_form_data.json`);
@@ -429,12 +475,13 @@
 
       try {
         JSON.parse(rawText); // Validate JSON syntax
+        const safeTarget = await toSafeStudioUpload(target);
         const form = new FormData();
-        form.append('file', target);
+        form.append('file', safeTarget);
         form.append('data', rawText);
 
-        const resp = await fetch('/api/studio/forms/import', { method: 'POST', body: form });
-        if (!resp.ok) throw new Error(`Import failed (${resp.status})`);
+        const resp = await studioFetchWithTimeout('/api/studio/forms/import', form, 'Form import');
+        if (!resp.ok) throw await studioRequestError(resp, 'Form import');
 
         const blob = await resp.blob();
         const newFile = new File([blob], target.name, { type: 'application/pdf' });
@@ -541,10 +588,11 @@
           form.append('visual_appearance', JSON.stringify({ page: activePage, rect: [72, 650, 320, 720] }));
         }
 
-        const resp = await fetch('/api/studio/sign/digital', { method: 'POST', body: form });
+        const safeTarget = await toSafeStudioUpload(target);
+        form.set('file', safeTarget);
+        const resp = await studioFetchWithTimeout('/api/studio/sign/digital', form, 'Digital signing');
         if (!resp.ok) {
-          const err = await resp.json().catch(() => ({}));
-          throw new Error(err.detail || `Signing failed (${resp.status})`);
+          throw await studioRequestError(resp, 'Digital signing');
         }
 
         const blob = await resp.blob();
@@ -579,10 +627,11 @@
       if (container) container.innerHTML = '<div style="color: var(--text-muted); font-size: 12px; padding: 12px; text-align: center;">Cryptographically verifying ByteRange & certificates...</div>';
 
       try {
+        const safeTarget = await toSafeStudioUpload(target);
         const form = new FormData();
-        form.append('file', target);
-        const resp = await fetch('/api/studio/sign/verify', { method: 'POST', body: form });
-        if (!resp.ok) throw new Error(`Verification failed (${resp.status})`);
+        form.append('file', safeTarget);
+        const resp = await studioFetchWithTimeout('/api/studio/sign/verify', form, 'Signature verification');
+        if (!resp.ok) throw await studioRequestError(resp, 'Signature verification');
         const report = await resp.json();
 
         if (!container) return;
@@ -648,15 +697,16 @@
 
       try {
         window.showToast?.('Applying visual signature...', 'info');
+        const safeTarget = await toSafeStudioUpload(target);
         const form = new FormData();
-        form.append('file', target);
+        form.append('file', safeTarget);
         form.append('signature_data', typedName);
         form.append('signer_name', typedName);
         form.append('page', activePage);
         form.append('rect', JSON.stringify([72, 650, 280, 710]));
 
-        const resp = await fetch('/api/studio/sign/visual', { method: 'POST', body: form });
-        if (!resp.ok) throw new Error(`Visual signature failed (${resp.status})`);
+        const resp = await studioFetchWithTimeout('/api/studio/sign/visual', form, 'Visual signature');
+        if (!resp.ok) throw await studioRequestError(resp, 'Visual signature');
 
         const blob = await resp.blob();
         const newFile = new File([blob], target.name, { type: 'application/pdf' });
@@ -780,17 +830,15 @@
 
       try {
         window.showToast?.('Encrypting document with AES-256...', 'info');
+        const safeTarget = await toSafeStudioUpload(target);
         const form = new FormData();
-        form.append('file', target);
+        form.append('file', safeTarget);
         form.append('user_password', userPw);
         form.append('owner_password', ownerPw || userPw);
         form.append('permissions', JSON.stringify(permissions));
 
-        const resp = await fetch('/api/studio/security/protect', { method: 'POST', body: form });
-        if (!resp.ok) {
-          const err = await resp.json().catch(() => ({}));
-          throw new Error(err.detail || `Protection failed (${resp.status})`);
-        }
+        const resp = await studioFetchWithTimeout('/api/studio/security/protect', form, 'Protection');
+        if (!resp.ok) throw await studioRequestError(resp, 'Protection');
 
         const blob = await resp.blob();
         const protName = target.name.replace(/\.pdf$/i, '_protected.pdf');
@@ -818,15 +866,13 @@
 
       try {
         window.showToast?.('Authenticating password & decrypting...', 'info');
+        const safeTarget = await toSafeStudioUpload(target);
         const form = new FormData();
-        form.append('file', target);
+        form.append('file', safeTarget);
         form.append('password', password);
 
-        const resp = await fetch('/api/studio/security/unlock', { method: 'POST', body: form });
-        if (!resp.ok) {
-          const err = await resp.json().catch(() => ({}));
-          throw new Error(err.detail || 'Incorrect password.');
-        }
+        const resp = await studioFetchWithTimeout('/api/studio/security/unlock', form, 'Unlock');
+        if (!resp.ok) throw await studioRequestError(resp, 'Unlock');
 
         const blob = await resp.blob();
         const unlName = target.name.replace(/\.pdf$/i, '_unlocked.pdf');
@@ -858,9 +904,10 @@
       if (container) container.innerHTML = '<div style="color: var(--text-muted); font-size: 12px; padding: 12px; text-align: center;">Running security audit...</div>';
 
       try {
+        const safeTarget = await toSafeStudioUpload(target);
         const form = new FormData();
-        form.append('file', target);
-        const resp = await fetch('/api/studio/security/inspect', { method: 'POST', body: form });
+        form.append('file', safeTarget);
+        const resp = await studioFetchWithTimeout('/api/studio/security/inspect', form, 'Security inspection');
         if (!resp.ok) throw await studioRequestError(resp, 'Security inspection');
         const info = await resp.json();
 
@@ -911,12 +958,13 @@
 
       try {
         window.showToast?.('Sanitizing document...', 'info');
+        const safeTarget = await toSafeStudioUpload(target);
         const form = new FormData();
-        form.append('file', target);
+        form.append('file', safeTarget);
         form.append('options', JSON.stringify(opts));
 
-        const resp = await fetch('/api/studio/security/sanitize', { method: 'POST', body: form });
-        if (!resp.ok) throw new Error(`Sanitize failed (${resp.status})`);
+        const resp = await studioFetchWithTimeout('/api/studio/security/sanitize', form, 'Sanitization');
+        if (!resp.ok) throw await studioRequestError(resp, 'Sanitization');
 
         const reportHeader = resp.headers.get('X-Paperplane-Sanitize-Report');
         let details = {};
@@ -980,25 +1028,22 @@
         return;
       }
 
-      if (!confirm(`Permanently and irreversibly obliterate all occurrences of "${keyword}" across document streams? Character glyphs will be destroyed.`)) {
-        return;
-      }
-
       try {
         window.showToast?.('Executing hardened irreversible redaction...', 'info');
-        const activePage = (window.PaperplaneEditor && window.PaperplaneEditor.editorState.currentPage) ? window.PaperplaneEditor.editorState.currentPage - 1 : 0;
+        const safeTarget = await toSafeStudioUpload(target);
         const form = new FormData();
-        form.append('file', target);
-        form.append('redactions', JSON.stringify([{ page: activePage, text: keyword }]));
+        form.append('file', safeTarget);
+        form.append('redactions', JSON.stringify([{ page: 'all', text: keyword }]));
 
-        const resp = await fetch('/api/studio/security/redact', { method: 'POST', body: form });
-        if (!resp.ok) throw new Error(`Redaction failed (${resp.status})`);
+        const resp = await studioFetchWithTimeout('/api/studio/security/redact', form, 'Hardened redaction');
+        if (!resp.ok) throw await studioRequestError(resp, 'Hardened redaction');
 
         const blob = await resp.blob();
         const newFile = new File([blob], target.name, { type: 'application/pdf' });
         if (window.loadDocumentIntoStudio) await window.loadDocumentIntoStudio(newFile);
         this.currentFile = newFile;
-        document.getElementById('security-modal').hidden = true;
+        const secModal = document.getElementById('security-modal');
+        if (secModal) secModal.hidden = true;
         window.showToast?.(`Hardened redaction complete: "${keyword}" permanently eradicated!`, 'success');
       } catch (err) {
         window.showToast?.(`Redaction error: ${err.message}`, 'error');

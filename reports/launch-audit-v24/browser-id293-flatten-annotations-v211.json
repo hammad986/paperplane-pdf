@@ -1,0 +1,71 @@
+{
+  "source": "synthetic one-page searchable PDF with a visible Highlight annotation and text",
+  "rounds": [
+    {
+      "round": 1,
+      "cancel": {
+        "message": "Browser processing cannot flatten visual PDF annotations. Choose Server Processing to bake their appearance into the page. To retry, upload the selected files for temporary server processing? This uses your daily server allowance.",
+        "posts_before_cancel": 0,
+        "posts_after_cancel": 0
+      },
+      "post_paths": [
+        "/api/jobs"
+      ],
+      "output": {
+        "pages": 1,
+        "annotation_count": 0,
+        "text": "Annotation flatten reproduction",
+        "vector_drawings": 1,
+        "rendered_rgb_samples": {
+          "100,67": [
+            255,
+            255,
+            0
+          ],
+          "250,67": [
+            255,
+            255,
+            255
+          ],
+          "100,85": [
+            255,
+            255,
+            255
+          ]
+        }
+      },
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "cancel": {},
+      "post_paths": [
+        "/api/jobs"
+      ],
+      "output": {
+        "pages": 1,
+        "annotation_count": 0,
+        "text": "Annotation flatten reproduction",
+        "vector_drawings": 1,
+        "rendered_rgb_samples": {
+          "100,67": [
+            255,
+            255,
+            0
+          ],
+          "250,67": [
+            255,
+            255,
+            255
+          ],
+          "100,85": [
+            255,
+            255,
+            255
+          ]
+        }
+      },
+      "page_errors": []
+    }
+  ]
+}

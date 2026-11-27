@@ -2,13 +2,15 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 import fitz
 from playwright.sync_api import sync_playwright
 
-BASE = "http://127.0.0.1:8501"
+BASE = os.environ.get("PAPERPLANE_TEST_BASE", "http://127.0.0.1:8501")
 OUT = Path(__file__).resolve().parent
 FIXTURE = OUT / "fixtures" / "v23-id2-69-pages.pdf"
+ROUND = os.environ.get("PAPERPLANE_ID2_ROUND", "current")
 
 
 def make_fixture() -> None:
@@ -90,6 +92,29 @@ def main() -> None:
             "ui_mode_badge": mode_badge,
             "page_errors": errors,
         }
+        with page.expect_download(timeout=30000) as summary_download_wait:
+            page.locator("#download-summary-pdf-btn").click()
+        summary_download = summary_download_wait.value
+        summary_pdf = OUT / f"id2-{ROUND}-{summary_download.suggested_filename}"
+        summary_download.save_as(str(summary_pdf))
+        with fitz.open(summary_pdf) as downloaded_summary:
+            downloaded_text = "\n".join(item.get_text() for item in downloaded_summary)
+            evidence["downloaded_pdf"] = {
+                "filename": summary_download.suggested_filename,
+                "pages": len(downloaded_summary),
+                "text_chars": len(downloaded_text),
+                "has_offline_disclosure": "Offline Analysis" in downloaded_text,
+                "has_final_page_fact": "69 page records" in downloaded_text or "Page 69" in downloaded_text,
+                "has_page_69_citation": "Page 69" in downloaded_text or "Pages 1-69" in downloaded_text,
+            }
+            evidence["downloaded_pdf"]["passed"] = (
+                summary_download.suggested_filename.lower().endswith(".pdf")
+                and len(downloaded_summary) >= 1
+                and evidence["downloaded_pdf"]["text_chars"] > 100
+                and evidence["downloaded_pdf"]["has_offline_disclosure"]
+                and evidence["downloaded_pdf"]["has_final_page_fact"]
+                and evidence["downloaded_pdf"]["has_page_69_citation"]
+            )
         after_summary_layout = measure_layout(viewports)
         layout_checks = []
         for before, after in zip(before_summary_layout, after_summary_layout):
@@ -130,10 +155,10 @@ def main() -> None:
         page.wait_for_function("document.querySelector('#summary-mode-badge')?.textContent === 'AI Synthesis'")
         evidence["provider_mode_is_labeled_synthesis"] = page.locator("#summary-mode-badge").inner_text() == "AI Synthesis"
         page.screenshot(path=str(OUT / "id2-summary-mode-mapping.png"), full_page=True)
-        (OUT / "browser-id2-69page-summary.json").write_text(json.dumps(evidence, indent=2), encoding="utf-8")
+        (OUT / f"browser-id2-69page-summary-download-{ROUND}.json").write_text(json.dumps(evidence, indent=2), encoding="utf-8")
         browser.close()
     print(json.dumps(evidence, indent=2))
-    if evidence["http_status"] != 200 or evidence["summary_mode"] != "offline_extractive" or not evidence["cites_first_page"] or not evidence["cites_final_page"] or not evidence["offline_mode_explicit"] or not evidence["ui_badge_matches_offline_mode"] or not evidence["ui_does_not_claim_synthesis"] or not evidence["final_page_fact_present"] or not evidence["missing_mode_is_neutral"] or not evidence["provider_mode_is_labeled_synthesis"] or not all(item["passed"] for item in evidence["post_summary_layout_checks"]) or evidence["page_errors"]:
+    if evidence["http_status"] != 200 or evidence["summary_mode"] != "offline_extractive" or not evidence["cites_first_page"] or not evidence["cites_final_page"] or not evidence["offline_mode_explicit"] or not evidence["ui_badge_matches_offline_mode"] or not evidence["ui_does_not_claim_synthesis"] or not evidence["final_page_fact_present"] or not evidence["downloaded_pdf"]["passed"] or not evidence["missing_mode_is_neutral"] or not evidence["provider_mode_is_labeled_synthesis"] or not all(item["passed"] for item in evidence["post_summary_layout_checks"]) or evidence["page_errors"]:
         raise SystemExit(1)
 
 

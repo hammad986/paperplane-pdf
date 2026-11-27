@@ -1,0 +1,23 @@
+{
+  "checked_at": "2026-11-23",
+  "target": "https://paperplane.qd.je/translate-pdf",
+  "browser": "Google Chrome via CUA",
+  "build_assets": {
+    "app_js": "/assets/app.js?v=154",
+    "styles_css": "/assets/styles.css?v=61",
+    "pdf_runtime_js": "/assets/pdf_runtime.js?v=25"
+  },
+  "fixture": "Public W3C dummy.pdf; no user-owned file uploaded",
+  "language": "hi (Hindi)",
+  "input": "dummy.pdf · 13.0 KB · 1 page",
+  "visible_result": "Translation complete; 100% character coverage, 100% text block coverage; 1 warning; translated text rendered into original page layout",
+  "output_content_checked": false,
+  "console_errors_and_warnings": [],
+  "payment_or_account_changes": false,
+  "limitations": [
+    "One public one-page fixture only; does not satisfy the P0 two-consecutive-round requirement on the intended multi-page fixture.",
+    "CUA Playwright download event did not expose the blob download path, so translated output text and visual page content were not independently checked.",
+    "Live site build is v154, not current local candidate v181."
+  ],
+  "result": "partial live provider observation; P0 ID 1 stays open"
+}

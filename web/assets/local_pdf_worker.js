@@ -17,12 +17,36 @@ function pageIndices(input, count) {
   return indices;
 }
 
+function copyDocMetadata(source, target) {
+  try {
+    const normalize = value => {
+      const text = String(value || '').trim();
+      return text && text.toLowerCase() !== 'untitled' ? text : '';
+    };
+    const title = normalize(source.getTitle());
+    const author = normalize(source.getAuthor());
+    const subject = normalize(source.getSubject());
+    const keywords = normalize(source.getKeywords());
+    const creator = normalize(source.getCreator());
+    const creationDate = source.getCreationDate?.();
+    if (title) target.setTitle(title);
+    if (author) target.setAuthor(author);
+    if (subject) target.setSubject(subject);
+    if (keywords) target.setKeywords(keywords.split(',').map(k => k.trim()).filter(Boolean));
+    if (creator) target.setCreator(creator);
+    if (creationDate instanceof Date && Number.isFinite(creationDate.getTime())) {
+      target.setCreationDate(creationDate);
+    }
+  } catch { /* metadata fields may be absent */ }
+}
+
 async function copyPages(document, indices) {
   if (!indices.length) throw new Error('The result must contain at least one page.');
   const result = await PDFDocument.create();
+  copyDocMetadata(document, result);
   const pages = await result.copyPages(document, indices);
   pages.forEach(page => result.addPage(page));
-  return result.save();
+  return result.save({ updateMetadata: false });
 }
 
 // PDF streams are already compressed. ZIP store mode avoids recompressing
@@ -146,15 +170,23 @@ async function transform({ operation, files, options }) {
   }
   if (operation === 'merge') {
     const result = await PDFDocument.create();
+    let copiedMetadata = false;
     for (const bytes of files) {
       const source = await PDFDocument.load(bytes);
+      if (!copiedMetadata) {
+        copyDocMetadata(source, result);
+        copiedMetadata = true;
+      }
       const pages = await result.copyPages(source, source.getPageIndices());
       pages.forEach(page => result.addPage(page));
     }
-    return { filename: 'merged-PDF.pdf', output: await result.save() };
+    return { filename: 'merged-PDF.pdf', output: await result.save({ updateMetadata: false }) };
   }
 
-  const pdf = await PDFDocument.load(files[0]);
+  const pdf = await PDFDocument.load(
+    files[0],
+    operation === 'metadata' ? { updateMetadata: false } : undefined
+  );
   const count = pdf.getPageCount();
   if (operation === 'sign') {
     if (!count) throw new Error('This PDF has no page to sign.');
@@ -229,8 +261,16 @@ async function transform({ operation, files, options }) {
     return { filename: 'text-stamped.pdf', output: await pdf.save() };
   }
   if (operation === 'metadata') {
-    for (const [key, setter] of Object.entries({title: 'setTitle', author: 'setAuthor', subject: 'setSubject'})) {
-      if (Object.prototype.hasOwnProperty.call(options, key)) pdf[setter](String(options[key] || ''));
+    const infoDict = pdf.getInfoDict();
+    const keyMap = { title: ['setTitle', 'Title'], author: ['setAuthor', 'Author'], subject: ['setSubject', 'Subject'] };
+    for (const [key, [setter, pdfKey]] of Object.entries(keyMap)) {
+      if (!Object.prototype.hasOwnProperty.call(options, key)) continue;
+      const val = String(options[key] ?? '').trim();
+      if (val) {
+        pdf[setter](val);
+      } else {
+        try { infoDict.delete(PDFName.of(pdfKey)); } catch { pdf[setter](''); }
+      }
     }
     const dateString = date => date instanceof Date && Number.isFinite(date.getTime()) ? date.toISOString() : '';
     const output_metadata = {
@@ -239,7 +279,7 @@ async function transform({ operation, files, options }) {
       creation_date: dateString(pdf.getCreationDate()), modification_date: dateString(pdf.getModificationDate()),
       page_count: count,
     };
-    return { filename: 'metadata-updated.pdf', output: await pdf.save(), output_metadata };
+    return { filename: 'metadata-updated.pdf', output: await pdf.save({ updateMetadata: false }), output_metadata };
   }
   if (operation === 'forms') {
     let fields = options.fields;

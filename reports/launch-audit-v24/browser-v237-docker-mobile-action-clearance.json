@@ -1,0 +1,147 @@
+{
+  "base": "http://127.0.0.1:18502",
+  "image": "paperplane-codex:v237-current",
+  "viewport": [
+    320,
+    844
+  ],
+  "routes": [
+    {
+      "route": "/summarize-pdf",
+      "status": 200,
+      "samples": [
+        {
+          "elapsed": 2048.5,
+          "activeView": "desk",
+          "action": {
+            "top": 719.7000122070312,
+            "bottom": 769.3000144958496
+          },
+          "nav": {
+            "top": 778,
+            "bottom": 844
+          },
+          "overlap": false,
+          "viewport": 320,
+          "scrollWidth": 305
+        },
+        {
+          "elapsed": 2334.600000023842,
+          "activeView": "desk",
+          "action": {
+            "top": 719.7000122070312,
+            "bottom": 769.3000144958496
+          },
+          "nav": {
+            "top": 778,
+            "bottom": 844
+          },
+          "overlap": false,
+          "viewport": 320,
+          "scrollWidth": 305
+        },
+        {
+          "elapsed": 2731.900000035763,
+          "activeView": "desk",
+          "action": {
+            "top": 719.7000122070312,
+            "bottom": 769.3000144958496
+          },
+          "nav": {
+            "top": 778,
+            "bottom": 844
+          },
+          "overlap": false,
+          "viewport": 320,
+          "scrollWidth": 305
+        },
+        {
+          "elapsed": 3532.600000023842,
+          "activeView": "desk",
+          "action": {
+            "top": 719.7000122070312,
+            "bottom": 769.3000144958496
+          },
+          "nav": {
+            "top": 778,
+            "bottom": 844
+          },
+          "overlap": false,
+          "viewport": 320,
+          "scrollWidth": 305
+        }
+      ],
+      "passed": true
+    },
+    {
+      "route": "/translate-pdf",
+      "status": 200,
+      "samples": [
+        {
+          "elapsed": 751.2999999523163,
+          "activeView": "desk",
+          "action": {
+            "top": 720.5,
+            "bottom": 770.1000022888184
+          },
+          "nav": {
+            "top": 778,
+            "bottom": 844
+          },
+          "overlap": false,
+          "viewport": 320,
+          "scrollWidth": 305
+        },
+        {
+          "elapsed": 1054.5,
+          "activeView": "desk",
+          "action": {
+            "top": 720.5,
+            "bottom": 770.1000022888184
+          },
+          "nav": {
+            "top": 778,
+            "bottom": 844
+          },
+          "overlap": false,
+          "viewport": 320,
+          "scrollWidth": 305
+        },
+        {
+          "elapsed": 1463.7999999523163,
+          "activeView": "desk",
+          "action": {
+            "top": 720.5,
+            "bottom": 770.1000022888184
+          },
+          "nav": {
+            "top": 778,
+            "bottom": 844
+          },
+          "overlap": false,
+          "viewport": 320,
+          "scrollWidth": 305
+        },
+        {
+          "elapsed": 2253.2999999523163,
+          "activeView": "desk",
+          "action": {
+            "top": 720.5,
+            "bottom": 770.1000022888184
+          },
+          "nav": {
+            "top": 778,
+            "bottom": 844
+          },
+          "overlap": false,
+          "viewport": 320,
+          "scrollWidth": 305
+        }
+      ],
+      "passed": true
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "passed": true
+}

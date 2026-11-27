@@ -1,0 +1,20 @@
+{
+  "source": "app.js?v=115, shell v45",
+  "route": "/pdf-to-word",
+  "viewports": [320, 390, 820, 1366],
+  "rounds": 2,
+  "checks": 8,
+  "results": [
+    {"round": 1, "viewport": 320, "http": 200, "document_width": 320, "body_width": 320, "text_first_disclosure_visible": true},
+    {"round": 1, "viewport": 390, "http": 200, "document_width": 390, "body_width": 390, "text_first_disclosure_visible": true},
+    {"round": 1, "viewport": 820, "http": 200, "document_width": 820, "body_width": 820, "text_first_disclosure_visible": true},
+    {"round": 1, "viewport": 1366, "http": 200, "document_width": 1366, "body_width": 1366, "text_first_disclosure_visible": true},
+    {"round": 2, "viewport": 320, "http": 200, "document_width": 320, "body_width": 320, "text_first_disclosure_visible": true},
+    {"round": 2, "viewport": 390, "http": 200, "document_width": 390, "body_width": 390, "text_first_disclosure_visible": true},
+    {"round": 2, "viewport": 820, "http": 200, "document_width": 820, "body_width": 820, "text_first_disclosure_visible": true},
+    {"round": 2, "viewport": 1366, "http": 200, "document_width": 1366, "body_width": 1366, "text_first_disclosure_visible": true}
+  ],
+  "page_errors": [],
+  "horizontal_overflow": false,
+  "status": "PASS"
+}

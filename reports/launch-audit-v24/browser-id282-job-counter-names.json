@@ -1,0 +1,27 @@
+{
+  "cases": {
+    "upload_and_compress_name": {
+      "upload_chip": "21-original.pdf \u00b7 938 B",
+      "download_name": "21-original_compress.pdf",
+      "pdf_content_checked": true
+    },
+    "compare_diff_names": {
+      "download_name": "19-before_compare.txt",
+      "input_headers": [
+        "--- 19-before.pdf",
+        "+++ 20-after.pdf"
+      ],
+      "job_prefix_leaked": false
+    },
+    "markdown_title_and_heading_semantics": {
+      "download_name": "21-original_pdf_to_markdown.md",
+      "h1": "# 21-original",
+      "body_paragraphs_are_headings": false,
+      "real_heading_is_h2": true,
+      "job_id_leaked": false
+    }
+  },
+  "page_errors": [],
+  "console_errors": [],
+  "result": "passed"
+}

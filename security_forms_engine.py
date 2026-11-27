@@ -301,6 +301,21 @@ def flatten_pdf_forms(source: Path, output: Path) -> Path:
 
     doc = fitz.open(str(source))
     try:
+        # Ensure widgets and annotations without an explicit appearance stream
+        # synthesize their visual representation before baking into page content.
+        for page in doc:
+            for widget in page.widgets() or ():
+                if doc.xref_get_key(widget.xref, "AP")[0] == "null":
+                    try:
+                        widget.update()
+                    except Exception:
+                        pass
+            for annot in page.annots() or ():
+                if doc.xref_get_key(annot.xref, "AP")[0] == "null":
+                    try:
+                        annot.update()
+                    except Exception:
+                        pass
         # Bake both AcroForm widgets and PDF annotations into page streams.
         if hasattr(doc, "bake"):
             doc.bake(annots=True, widgets=True)
@@ -651,7 +666,7 @@ def verify_pdf_signatures(source: Path, password: str = "") -> dict[str, Any]:
     doc = None
     try:
         doc = fitz.open(str(source))
-        if doc.is_encrypted and (not password or not doc.authenticate(password)):
+        if doc.needs_pass and (not password or not doc.authenticate(password)):
             issues.append("The encrypted PDF must be unlocked before its signature fields can be inspected.")
         else:
             signature_fields = []
@@ -1087,25 +1102,32 @@ def apply_hardened_redaction(source: Path, output: Path, redactions: list[dict[s
     doc = fitz.open(str(source))
     try:
         for item in redactions:
-            page_idx = int(item.get("page", 0))
-            if page_idx < 0 or page_idx >= len(doc):
-                continue
-            page = doc[page_idx]
+            raw_page = item.get("page", 0)
+            if isinstance(raw_page, str) and raw_page.strip().lower() == "all":
+                target_pages = range(len(doc))
+            else:
+                page_idx = int(raw_page)
+                if page_idx < 0 or page_idx >= len(doc):
+                    continue
+                target_pages = (page_idx,)
 
             rect_coords = item.get("rect")
             text_target = item.get("text")
 
-            rects_to_redact: list[fitz.Rect] = []
-            if rect_coords:
-                rects_to_redact.append(fitz.Rect(rect_coords))
-            elif text_target:
-                found_rects = page.search_for(str(text_target))
-                rects_to_redact.extend(found_rects)
+            for page_idx in target_pages:
+                page = doc[page_idx]
+                rects_to_redact: list[fitz.Rect] = []
+                if rect_coords:
+                    rects_to_redact.append(fitz.Rect(rect_coords))
+                elif text_target:
+                    found_rects = page.search_for(str(text_target))
+                    rects_to_redact.extend(found_rects)
 
-            for r in rects_to_redact:
-                page.add_redact_annot(r, fill=(0, 0, 0))
+                for r in rects_to_redact:
+                    page.add_redact_annot(r, fill=(0, 0, 0))
 
-            page.apply_redactions()
+                if rects_to_redact:
+                    page.apply_redactions()
 
         out_bytes = doc.tobytes(garbage=4, clean=True, deflate=True)
     finally:

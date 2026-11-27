@@ -14,7 +14,7 @@
   
 
   <script src="/assets/theme-init.js?v=13"></script>
-  <link rel="stylesheet" href="/assets/styles.css?v=93" />
+  <link rel="stylesheet" href="/assets/styles.css?v=98" />
 
 </head>
 <body class="light-mode auth-pending">
@@ -211,10 +211,10 @@
             <button type="button" class="btn-topbar-signin" id="topbar-signin-btn">Log In</button>
             <button type="button" class="btn-topbar-register" id="topbar-register-btn">Sign Up Free</button>
           </div>
-          <div id="topbar-auth-user" class="topbar-auth-group" hidden>
+          <div id="topbar-auth-user" class="topbar-auth-group" hidden aria-hidden="true">
             <button type="button" class="topbar-user-pill" id="topbar-user-profile-btn">
-              <span class="user-avatar-sm" id="topbar-avatar">U</span>
-              <span id="topbar-username">User</span>
+              <span class="user-avatar-sm" id="topbar-avatar"></span>
+              <span id="topbar-username"></span>
             </button>
           </div>
           <button type="button" class="icon-btn" id="topbar-search-btn" title="Search tools (Ctrl+K)" aria-label="Search tools">
@@ -251,6 +251,15 @@
           <h1>Feedback</h1>
           <p>Report a bug, suggest a feature, or share how Paperplane worked for you.</p>
           <button type="button" class="btn-primary-action" id="feedback-page-open">Open feedback form</button>
+          <div id="feedback-page-confirmation" class="dashboard-redirect-notice" role="status" hidden>
+            <div class="dashboard-redirect-copy">
+              <strong>Feedback sent — thank you!</strong>
+              <span>Your message has been recorded for review by the Paperplane team.</span>
+            </div>
+            <div class="dashboard-redirect-actions">
+              <button type="button" class="btn-secondary-action" id="feedback-send-another">Send another</button>
+            </div>
+          </div>
         </section>
         <section id="view-history" class="workspace-page" hidden>
           <h1>Temporary results — no saved history</h1>
@@ -259,6 +268,16 @@
         </section>
         
         <div id="view-tool-desk-directory" class="tool-desk-directory" hidden>
+          <div id="dashboard-redirect-notice" class="dashboard-redirect-notice" role="status" hidden>
+            <div class="dashboard-redirect-copy">
+              <strong>Personal dashboard moved into Settings</strong>
+              <span id="dashboard-redirect-detail">You were redirected from <code>/dashboard</code> to Tool Desk. Your account details, usage quota, billing plan, and API keys are now inside Settings.</span>
+            </div>
+            <div class="dashboard-redirect-actions">
+              <button type="button" class="btn-secondary-action" id="dashboard-notice-settings-btn">Open Settings</button>
+              <button type="button" class="btn-ghost" id="dashboard-notice-dismiss-btn" aria-label="Dismiss dashboard notice">Dismiss</button>
+            </div>
+          </div>
           <section class="tool-desk-directory-hero">
             <span class="tool-category-badge">%%TOOL_COUNT%% PDF TOOLS</span>
             <h1>Tool Desk</h1>
@@ -306,7 +325,7 @@
           <!-- Tool Hero Card -->
           <div class="tool-hero-card">
             <div class="tool-hero-title-group">
-              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <div class="tool-hero-meta-row" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px;">
                 <span class="tool-category-badge" id="tool-hero-cat">Organize PDF</span>
                 <span class="desk-tier-badge" id="tool-tier-badge" style="font-size: 11.5px; padding: 3px 8px; border-radius: 6px; font-weight: 500; background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.25);">Checking plan…</span>
               </div>
@@ -335,7 +354,6 @@
               <h2>Drop your document here</h2>
               <p class="dropzone-options">
                 <span class="dropzone-option">or <button type="button" class="browse-link" id="browse">browse files</button></span>
-                <span class="dropzone-option">or <button type="button" class="browse-link" id="cloud-drop-btn">Import from a cloud link</button></span>
               </p>
               <div class="scan-camera-control" id="scan-camera-control" hidden>
                 <input id="scan-camera-input" class="visually-hidden-file-input" type="file" accept="image/*" capture="environment" aria-label="Take a document photo with your camera" />
@@ -343,6 +361,9 @@
                 <small>Use your rear camera to capture a page, then add more photos or choose existing images.</small>
               </div>
               <small id="file-hint">PDF tools · file size and batch limits are shown for the selected tool</small>
+              <p class="dropzone-cloud-option">
+                <button type="button" class="browse-link" id="cloud-drop-btn">Import from a cloud link</button>
+              </p>
             </div>
 
             <!-- Uploaded File Queue -->
@@ -417,6 +438,7 @@
              VIEW 2: Next-Level In-App PDF Studio (Viewer & Editor)
              ------------------------------------------------------------------ -->
         <div id="view-pdf-studio" class="pdf-studio" hidden>
+          <h1 class="sr-only" id="studio-page-heading">Paperplane PDF Studio</h1>
           <!-- Left Thumbnail Navigator & Page Organizer -->
           <aside class="studio-thumbnails-bar" id="studio-thumbnails-bar">
             <div class="studio-thumbnails-header">
@@ -822,6 +844,13 @@
           
           <!-- Top Document Context & Engine Banner -->
           <div class="ai-studio-topbar">
+            <div id="ai-restored-banner" class="ai-restored-banner" role="status" hidden>
+              <span id="ai-restored-text">Previous AI document saved locally.</span>
+              <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                <button type="button" class="btn-secondary-action" id="ai-restored-resume-btn" style="padding: 4px 10px; font-size: 11px;">Restore</button>
+                <button type="button" class="btn-demo-upgrade" id="ai-restored-clear-btn" style="padding: 4px 10px; font-size: 11px;">Clear</button>
+              </div>
+            </div>
             <!-- Active Document Card (visible when a file is loaded) -->
             <div id="ai-active-doc-bar" class="ai-active-doc-strip" hidden>
               <div class="ai-doc-info-group">
@@ -863,6 +892,7 @@
           </section>
 
           <!-- Main AI Workspace Grid -->
+          <input type="file" id="ai-file-input" class="visually-hidden-file-input" accept="application/pdf,.pdf" aria-label="Choose a PDF to chat about" />
           <div class="ai-studio-container">
             <!-- AI Document Q&A (RAG) -->
             <div class="ai-chat-card">
@@ -880,7 +910,6 @@
                 <div class="ai-empty-state" id="ai-empty-state">
                   <div class="ai-empty-copy"><strong>What can I help with?</strong><span>Ask a general question, or choose a PDF for answers with page citations.</span></div>
                   <div id="ai-upload-zone" class="ai-upload-strip">
-                    <input type="file" id="ai-file-input" class="visually-hidden-file-input" accept="application/pdf,.pdf" aria-label="Choose a PDF to chat about" />
                     <div class="ai-upload-content" id="ai-browse-trigger">
                       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                       <span><strong>Upload PDF to chat</strong><span>For cited answers, extraction, and summaries. General chat works without a document.</span></span>
@@ -1640,6 +1669,8 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <a class="footer-link" href="/pricing">Pricing</a>
           <a class="footer-link" href="/faq">FAQ</a>
           <a class="footer-link" href="/download">Apps</a>
+          <a class="footer-link" href="/about">About</a>
+          <a class="footer-link" href="/security">Security</a>
           <a class="footer-link" href="/feedback">Feedback</a>
           <a class="footer-link" href="/contact">Contact · draft</a>
           <a class="footer-link" href="/refund">Refunds · draft</a>
@@ -1936,7 +1967,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
         <div class="option-field" style="margin-bottom: 12px;">
           <label for="auth-password">Password</label>
           <div class="password-input-wrapper">
-            <input type="password" id="auth-password" name="login-password" placeholder="••••••••" autocomplete="current-password" required />
+            <input type="password" id="auth-password" name="login-password" placeholder="Enter your password" autocomplete="current-password" required />
             <button type="button" class="password-toggle-btn" id="password-toggle-btn" title="Show or hide password" aria-label="Toggle password visibility">
               <svg id="eye-icon-auth" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
@@ -1946,7 +1977,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
         <div class="option-field" id="auth-confirm-password-row" hidden style="margin-bottom: 12px;">
           <label for="auth-confirm-password">Confirm Password</label>
           <div class="password-input-wrapper">
-            <input type="password" id="auth-confirm-password" placeholder="••••••••" autocomplete="new-password" />
+            <input type="password" id="auth-confirm-password" placeholder="Re-enter your password" autocomplete="new-password" />
             <button type="button" class="password-toggle-btn" id="confirm-password-toggle-btn" title="Show or hide password" aria-label="Toggle confirm password visibility">
               <svg id="eye-icon-confirm" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
@@ -2009,7 +2040,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
       </div>
 
       <p class="auth-legal-notice">
-        By continuing, you agree to Paperplane's <a href="#" id="link-auth-terms">Terms of Service</a> and <a href="#" id="link-auth-privacy">Privacy Policy</a>.
+        By continuing, you agree to Paperplane's <a href="/terms" id="link-auth-terms" target="_blank" rel="noopener">Terms of Service</a> and <a href="/privacy" id="link-auth-privacy" target="_blank" rel="noopener">Privacy Policy</a>.
       </p>
     </div>
   </div>
@@ -2027,7 +2058,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
         <div class="option-field" style="margin-bottom: 14px;">
           <label for="reset-new-password">New password</label>
           <div class="password-input-wrapper">
-            <input type="password" id="reset-new-password" placeholder="••••••••" autocomplete="new-password" required minlength="8" />
+            <input type="password" id="reset-new-password" placeholder="At least 8 characters" autocomplete="new-password" required minlength="8" />
             <button type="button" class="password-toggle-btn" id="reset-toggle-btn-1" title="Show or hide password" aria-label="Toggle password visibility">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
@@ -2036,7 +2067,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
         <div class="option-field" style="margin-bottom: 16px;">
           <label for="reset-confirm-password">Confirm new password</label>
           <div class="password-input-wrapper">
-            <input type="password" id="reset-confirm-password" placeholder="••••••••" autocomplete="new-password" required minlength="8" />
+            <input type="password" id="reset-confirm-password" placeholder="Re-enter new password" autocomplete="new-password" required minlength="8" />
             <button type="button" class="password-toggle-btn" id="reset-toggle-btn-2" title="Show or hide password" aria-label="Toggle password visibility">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12Z"/><circle cx="12" cy="12" r="3"/></svg>
             </button>
@@ -2185,7 +2216,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
           <ul class="tier-features-list">
             <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Batch up to 100 Files:</strong> High-speed multi-form queue.</li>
             <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Document Stamps &amp; Watermarks:</strong> Center branding and seals.</li>
-            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Developer REST API Keys (`sk_live_...`):</strong> Full programmatic SDK access included.</li>
+            <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>Developer REST API Keys (<code>sk_live_...</code>):</strong> Full programmatic SDK access included.</li>
             <li><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span> <strong>100% Ad-Free &amp; Priority Queue:</strong> Zero waiting time.</li>
           </ul>
           <div class="tier-actions">
@@ -3025,7 +3056,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
         <!-- Target Configuration Options -->
         <div class="convert-options-area" id="convert-options-area" style="margin-top: 14px; padding: 12px; background: rgba(23, 33, 36, 0.7); border-radius: 8px; border: 1px solid var(--studio-border);">
           <!-- Dynamic options: pages, DPI, quality, PPTX mode, etc. -->
-          <div id="options-pages-row" style="display: flex; gap: 12px; align-items: center; margin-bottom: 8px;">
+          <div id="options-pages-row" class="convert-option-row" style="display: flex; gap: 12px; align-items: center; margin-bottom: 8px;">
             <label style="font-size: 11.5px; color: #94a3b8; min-width: 90px;">Page Selection:</label>
             <select id="convert-page-mode" class="editor-select" aria-label="Conversion page selection mode" style="flex: 1;">
               <option value="all" selected>All Document Pages</option>
@@ -3035,7 +3066,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
             <input type="text" id="convert-custom-pages" class="editor-input" aria-label="Custom pages to convert" placeholder="e.g. 1-3, 5" style="display: none; width: 110px;" />
           </div>
 
-          <div id="options-image-row" style="display: none; gap: 12px; align-items: center; margin-bottom: 8px;">
+          <div id="options-image-row" class="convert-option-row" style="display: none; gap: 12px; align-items: center; margin-bottom: 8px;">
             <label style="font-size: 11.5px; color: #94a3b8; min-width: 90px;">Resolution (DPI):</label>
             <select id="convert-dpi" class="editor-select" aria-label="Render DPI resolution" style="width: 130px;">
               <option value="72">72 DPI (Draft)</option>
@@ -3053,7 +3084,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
             </select>
           </div>
 
-          <div id="options-pptx-row" style="display: none; gap: 12px; align-items: center; margin-bottom: 8px;">
+          <div id="options-pptx-row" class="convert-option-row" style="display: none; gap: 12px; align-items: center; margin-bottom: 8px;">
             <label style="font-size: 11.5px; color: #94a3b8; min-width: 90px;">Slide Mode:</label>
             <select id="convert-pptx-mode" class="editor-select" aria-label="PowerPoint layout conversion mode" style="flex: 1;">
               <option value="visual" selected>Visual Slides (Crisp Full-Page Rasters)</option>
@@ -3063,7 +3094,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
 
           <!-- Multi-image to PDF options -->
           <div id="options-img2pdf-row" style="display: none; flex-direction: column; gap: 8px;">
-            <div style="display: flex; gap: 12px; align-items: center;">
+            <div class="convert-option-row" style="display: flex; gap: 12px; align-items: center;">
               <label style="font-size: 11.5px; color: #94a3b8; min-width: 90px;">Page Size:</label>
               <select id="convert-img2pdf-size" class="editor-select" aria-label="Image to PDF page size" style="width: 130px;">
                 <option value="a4" selected>A4 (210 x 297 mm)</option>
@@ -3078,7 +3109,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
                 <option value="landscape">Landscape</option>
               </select>
             </div>
-            <div style="display: flex; gap: 12px; align-items: center;">
+            <div class="convert-option-row" style="display: flex; gap: 12px; align-items: center;">
               <label style="font-size: 11.5px; color: #94a3b8; min-width: 90px;">Fit Mode:</label>
               <select id="convert-img2pdf-fit" class="editor-select" aria-label="Image fit mode" style="width: 130px;">
                 <option value="fit" selected>Fit Page (Preserve Aspect)</option>
@@ -3468,21 +3499,21 @@ async function convertFileInBrowser(file, operation = 'compress') {
   </nav>
 
   <!-- PDF engines are loaded on demand by the first feature that needs them. -->
-  <script src="/assets/pdf_runtime.js?v=27" defer></script>
+  <script src="/assets/pdf_runtime.js?v=29" defer></script>
 
   <!-- Phase 6 PDF Forms, Signing & Security Engine -->
-  <script src="/assets/security_forms.js?v=6.2.4" defer></script>
+  <script src="/assets/security_forms.js?v=6.2.5" defer></script>
   <!-- Phase 5 Professional PDF Conversion Engine -->
-  <script src="/assets/conversion_engine.js?v=5.2.2" defer></script>
+  <script src="/assets/conversion_engine.js?v=5.2.3" defer></script>
   <!-- Phase 4 Compression, Repair & OCR Engine -->
   <script src="/assets/optimization_engine.js?v=4.2.3" defer></script>
   <!-- Phase 3 Professional Page Management Engine -->
-  <script src="/assets/page_organizer.js?v=21" defer></script>
+  <script src="/assets/page_organizer.js?v=23" defer></script>
   <!-- Phase 2 Professional Editor Engine -->
-<script src="/assets/editor.js?v=15" defer></script>
+<script src="/assets/editor.js?v=17" defer></script>
   <!-- Application Controller -->
-  <script src="/assets/app.js?v=242" defer></script>
+  <script src="/assets/app.js?v=249" defer></script>
   <!-- Floating Customer Feedback Widget -->
-  <script src="/assets/feedback.js?v=21" defer></script>
+  <script src="/assets/feedback.js?v=22" defer></script>
 </body>
 </html>

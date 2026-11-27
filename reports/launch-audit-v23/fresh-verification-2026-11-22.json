@@ -1,0 +1,86 @@
+{
+  "date": "2026-11-22",
+  "user_browser": "Chrome CUA",
+  "site": "https://paperplane.qd.je/",
+  "visible_tool_count": 44,
+  "deployed_assets": {
+    "styles_css": "v61",
+    "app_js": "v154"
+  },
+  "cua_console_errors": 0,
+  "cua_console_warnings": 0,
+  "playwright_after_cua": {
+    "uploads_or_jobs": 0,
+    "console_errors": 0,
+    "page_errors": 0,
+    "max_upload_mb": 500,
+    "failures": 0,
+    "widths": [
+      320,
+      390,
+      683,
+      820,
+      1024,
+      1366,
+      1920
+    ],
+    "workers": 4,
+    "health": "ok",
+    "job_ttl_hours": 24,
+    "routes": 44,
+    "rounds": 2,
+    "checks": 616,
+    "passed": 616
+  },
+  "visible_h1_spot_check": {
+    "routes": [
+      "/",
+      "/merge-pdf",
+      "/studio"
+    ],
+    "hidden_first_h1_explained": "Settings panel heading hidden with 0x0 box",
+    "console_errors": 0,
+    "correct_visible_h1": true
+  },
+  "pytest": [
+    {
+      "run": 1,
+      "passed": 647,
+      "seconds": 356.59,
+      "warnings": 4,
+      "failed": 0
+    },
+    {
+      "run": 2,
+      "passed": 647,
+      "seconds": 309.97,
+      "warnings": 4,
+      "failed": 0
+    }
+  ],
+  "application_code_changed_this_turn": false,
+  "release_verdict": "HOLD",
+  "candidate_app_js": "v155",
+  "candidate_deployed": false,
+  "p0_harness_recheck": {
+    "attempts": [
+      {
+        "failure": "initial auth snapshot on /split-pdf saw auth-pending=false and guest name visible",
+        "auth_delay_seconds": 2
+      },
+      {
+        "failure": "initial auth snapshot on / saw auth-pending=false and guest name/actions visible",
+        "auth_delay_seconds": 10
+      },
+      {
+        "mode": "event-gated experiment",
+        "failure": "auth interception event not observed within 10 seconds on /"
+      },
+      {
+        "failure": "after earlier P0 checks, auth interception still was not observed within 30 seconds on /",
+        "mode": "service-worker-blocked event gate"
+      }
+    ],
+    "interpretation": "Full P0 reruns were not clean in this environment and are not counted as passes. They exposed a flaky/stress-sensitive auth-first-paint harness (fixed-delay snapshots raced the response; event-gated retries sometimes did not observe auth interception) and one full-run timeout at the 69-page Studio jump. No product regression was established: a separate current-source 69-page browser run reached page 69 and back to page 1 with zero page errors. The experimental harness edits were reverted; earlier current-source P0 rounds 119 and 120 remain the last complete 60/60 passes."
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "image": "pdf_splitter-paperplane:latest",
+  "image_id": "sha256:5669d0e9d8a7148fc40e01a7de736bd0522ea8c75ec7846c8cfa6d1f3ef74e99",
+  "health": {
+    "status": "ok",
+    "service": "paperplane-pdf",
+    "version": "2.0.0",
+    "auth_required": false,
+    "workers": 4,
+    "max_file_size_mb": 500,
+    "job_ttl_hours": 24
+  },
+  "catalog_exit_code": 0,
+  "catalog_evidence": "browser-id28-v188-style69-current-image-catalog-v188-style69-clearpdf-2026-11-23.json",
+  "catalog_log": "browser-id28-current-v188-style69-clearpdf-catalog.log",
+  "storage": "temporary container with tmpfs only",
+  "real_payment": false,
+  "provider_credentials": false
+}

@@ -1,0 +1,58 @@
+{
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "launcher_visible_on_home": true,
+  "launcher_box": {
+    "x": 309,
+    "y": 672,
+    "width": 71,
+    "height": 40
+  },
+  "modal_checks": [
+    {
+      "modal": "auth-modal",
+      "widget_container_hidden": true
+    },
+    {
+      "modal": "upgrade-modal",
+      "widget_container_hidden": true
+    }
+  ],
+  "organize_mode_opens_mobile_pages_drawer": {
+    "open": true,
+    "visible": true,
+    "thumbnail_count": 1,
+    "box": {
+      "x": 8,
+      "y": 190,
+      "width": 374,
+      "height": 300
+    }
+  },
+  "studio_control_overlap": [
+    {
+      "selector": "#zoom-in-btn",
+      "visible": true,
+      "overlap": false
+    },
+    {
+      "selector": "#zoom-out-btn",
+      "visible": true,
+      "overlap": false
+    },
+    {
+      "selector": "#page-prev-btn",
+      "visible": false,
+      "overlap": false
+    },
+    {
+      "selector": "#page-next-btn",
+      "visible": false,
+      "overlap": false
+    }
+  ],
+  "page_errors": [],
+  "result": "passed"
+}

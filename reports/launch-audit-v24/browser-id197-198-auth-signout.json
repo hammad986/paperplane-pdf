@@ -1,0 +1,31 @@
+{
+  "signed_in": {
+    "userText": "fixture@example.invalid",
+    "guestControlsHidden": true,
+    "signInVisible": false
+  },
+  "after_signout": {
+    "guestControlsHidden": false,
+    "userControlsHidden": true,
+    "userText": "Guest Explorer",
+    "signInVisible": true,
+    "authShellEmail": null,
+    "authenticated": false
+  },
+  "after_reload_401": {
+    "guestControlsHidden": false,
+    "userControlsHidden": true,
+    "signInVisible": true,
+    "userText": "Guest Explorer",
+    "authenticated": false
+  },
+  "browser_errors": {
+    "page": [],
+    "console": [],
+    "expected_auth_401_console": [
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+    ]
+  },
+  "asset": "/assets/app.js?v=205"
+}

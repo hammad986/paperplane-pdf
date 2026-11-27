@@ -1,0 +1,21 @@
+{
+  "command": "python -m pytest -q",
+  "runs_sequential": true,
+  "production_endpoints_contacted": false,
+  "results": [
+    {
+      "run": 1,
+      "exit_code": 0,
+      "duration_seconds": 181.19,
+      "summary": "668 passed, 4 warnings in 173.28s (0:02:53)",
+      "log": "pytest-v176-style64-runtime26-worker5-opt422-shell121-run1.log"
+    },
+    {
+      "run": 2,
+      "exit_code": 0,
+      "duration_seconds": 237.58,
+      "summary": "668 passed, 4 warnings in 231.91s (0:03:51)",
+      "log": "pytest-v176-style64-runtime26-worker5-opt422-shell121-run2.log"
+    }
+  ]
+}

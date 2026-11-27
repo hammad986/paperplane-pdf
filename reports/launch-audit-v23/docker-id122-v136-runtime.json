@@ -1,0 +1,26 @@
+{
+  "image": "paperplane-v23-audit:codex-v136",
+  "image_id": "sha256:51b65ece66ac87c14b9ad283628e5682b23b1cf209867af25f478f67b647799e",
+  "container_status": "healthy then stopped and removed",
+  "health": {
+    "status": "ok",
+    "service": "paperplane-pdf",
+    "version": "2.0.0",
+    "auth_required": false,
+    "workers": 4,
+    "max_file_size_mb": 500,
+    "job_ttl_hours": 2
+  },
+  "runtime_configuration": "{\"Status\":\"running\",\"Running\":true,\"Paused\":false,\"Restarting\":false,\"OOMKilled\":false,\"Dead\":false,\"Pid\":94190,\"ExitCode\":0,\"Error\":\"\",\"StartedAt\":\"2026-11-20T05:12:27.206590326Z\",\"FinishedAt\":\"0001-01-01T00:00:00Z\",\"Health\":{\"Status\":\"healthy\",\"FailingStreak\":0,\"Log\":[{\"Start\":\"2026-11-20T05:12:32.513055837Z\",\"End\":\"2026-11-20T05:12:33.20107293Z\",\"ExitCode\":0,\"Output\":\"\"}]}} {\"/data\":\"rw,nosuid,nodev,size=512m\",\"/tmp\":\"rw,nosuid,nodev,size=256m\"}",
+  "entrypoint_starts_as_root_then_drops_app_to_uid_1001": true,
+  "process_table_uids": [
+    1001,
+    1001,
+    1001,
+    1001
+  ],
+  "browser_smoke": "69-page Studio Chromium; two content-checked downloads",
+  "synthetic_secrets_only": true,
+  "real_payment": false,
+  "external_provider_credentials": false
+}

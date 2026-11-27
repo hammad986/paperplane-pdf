@@ -1,0 +1,34 @@
+{
+  "source_browser_evidence": "browser-id28-v148-current-image-catalog-catalog-v148-recheck-2026-11-21.json",
+  "validation": "pypdf strict parse + XMP PDF/A-1b + GTS_PDFA1 sRGB ICC output intent + PyMuPDF page-marker checks",
+  "rounds": [
+    {
+      "round": 1,
+      "file": "reports\\launch-audit-v23\\docker-catalog-fixtures-current-v148-20261119-catalog-v148-recheck-2026-11-21\\outputs\\round-1\\notes-69page_pdf_to_pdfa.pdf",
+      "bytes": 777215,
+      "pages": 69,
+      "pdfa_part": "1",
+      "pdfa_conformance": "B",
+      "output_intent": "/GTS_PDFA1",
+      "output_condition": "sRGB",
+      "icc_components": 3,
+      "icc_profile_bytes": 2576,
+      "producer": "GPL Ghostscript 10.05.1",
+      "first_last_page_markers_preserved": true
+    },
+    {
+      "round": 2,
+      "file": "reports\\launch-audit-v23\\docker-catalog-fixtures-current-v148-20261119-catalog-v148-recheck-2026-11-21\\outputs\\round-2\\notes-69page_pdf_to_pdfa.pdf",
+      "bytes": 777219,
+      "pages": 69,
+      "pdfa_part": "1",
+      "pdfa_conformance": "B",
+      "output_intent": "/GTS_PDFA1",
+      "output_condition": "sRGB",
+      "icc_components": 3,
+      "icc_profile_bytes": 2576,
+      "producer": "GPL Ghostscript 10.05.1",
+      "first_last_page_markers_preserved": true
+    }
+  ]
+}

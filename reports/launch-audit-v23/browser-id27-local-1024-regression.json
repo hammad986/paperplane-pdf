@@ -1,0 +1,3182 @@
+{
+  "base": "http://127.0.0.1:63637",
+  "app_js": "v129",
+  "styles_css": "v56",
+  "viewport": 1024,
+  "routes": 44,
+  "rounds": 2,
+  "checks": 88,
+  "failures": [],
+  "page_errors": [],
+  "result": "PASS",
+  "results": [
+    {
+      "round": 1,
+      "operation": "merge",
+      "route": "/merge-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 620,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 632,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "split",
+      "route": "/split-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 722,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 734,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "remove",
+      "route": "/remove-pages-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "rotate",
+      "route": "/rotate-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "organize",
+      "route": "/organize-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 719,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 731,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "scan_pdf",
+      "route": "/scan-to-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "compress",
+      "route": "/compress-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "repair",
+      "route": "/repair-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "ocr",
+      "route": "/ocr-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "jpg_to_pdf",
+      "route": "/jpg-to-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "word_to_pdf",
+      "route": "/word-to-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "excel_to_pdf",
+      "route": "/excel-to-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "powerpoint_to_pdf",
+      "route": "/powerpoint-to-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "html_to_pdf",
+      "route": "/html-to-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "pdf_to_jpg",
+      "route": "/pdf-to-jpg",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 719,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 731,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "pdf_to_word",
+      "route": "/pdf-to-word",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "pdf_to_excel",
+      "route": "/pdf-to-excel",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "pdf_to_powerpoint",
+      "route": "/pdf-to-powerpoint",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "pdf_to_pdfa",
+      "route": "/pdf-to-pdfa",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "pdf_to_text",
+      "route": "/pdf-to-text",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "pdf_to_markdown",
+      "route": "/pdf-to-markdown",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "edit",
+      "route": "/edit-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "annotate",
+      "route": "/annotate-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "crop",
+      "route": "/crop-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "redact",
+      "route": "/redact-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "watermark",
+      "route": "/watermark-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 719,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 731,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "page_numbers",
+      "route": "/add-page-numbers-to-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 719,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 731,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "protect",
+      "route": "/protect-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "unlock",
+      "route": "/unlock-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "sign",
+      "route": "/sign-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 719,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 731,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "compare",
+      "route": "/compare-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "forms",
+      "route": "/fill-pdf-form",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "metadata",
+      "route": "/pdf-metadata",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "ai_chat",
+      "route": "/ai-pdf-chat",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "ai_extract",
+      "route": "/extract-pdf-data",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "summarize",
+      "route": "/summarize-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "translate",
+      "route": "/translate-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 719,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 731,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "photo_resizer",
+      "route": "/ssc-photo-resizer",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 719,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 731,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "photo_compress",
+      "route": "/compress-image-online",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "photo_resize",
+      "route": "/resize-image-dimensions",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 719,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 731,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "photo_merge",
+      "route": "/merge-photos-online",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "mask_aadhaar",
+      "route": "/mask-aadhaar-card-online",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "grayscale",
+      "route": "/convert-pdf-to-grayscale",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 719,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 731,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 1,
+      "operation": "flatten",
+      "route": "/flatten-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "merge",
+      "route": "/merge-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "split",
+      "route": "/split-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "remove",
+      "route": "/remove-pages-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "rotate",
+      "route": "/rotate-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "organize",
+      "route": "/organize-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "scan_pdf",
+      "route": "/scan-to-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 719,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 731,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "compress",
+      "route": "/compress-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 719,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 731,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "repair",
+      "route": "/repair-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 719,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 731,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "ocr",
+      "route": "/ocr-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 719,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 731,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "jpg_to_pdf",
+      "route": "/jpg-to-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 719,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 731,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "word_to_pdf",
+      "route": "/word-to-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "excel_to_pdf",
+      "route": "/excel-to-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 719,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 731,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "powerpoint_to_pdf",
+      "route": "/powerpoint-to-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "html_to_pdf",
+      "route": "/html-to-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "pdf_to_jpg",
+      "route": "/pdf-to-jpg",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "pdf_to_word",
+      "route": "/pdf-to-word",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 719,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 731,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "pdf_to_excel",
+      "route": "/pdf-to-excel",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "pdf_to_powerpoint",
+      "route": "/pdf-to-powerpoint",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "pdf_to_pdfa",
+      "route": "/pdf-to-pdfa",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "pdf_to_text",
+      "route": "/pdf-to-text",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 719,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 731,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "pdf_to_markdown",
+      "route": "/pdf-to-markdown",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "edit",
+      "route": "/edit-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 719,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 731,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "annotate",
+      "route": "/annotate-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "crop",
+      "route": "/crop-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "redact",
+      "route": "/redact-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "watermark",
+      "route": "/watermark-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "page_numbers",
+      "route": "/add-page-numbers-to-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "protect",
+      "route": "/protect-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "unlock",
+      "route": "/unlock-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "sign",
+      "route": "/sign-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "compare",
+      "route": "/compare-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "forms",
+      "route": "/fill-pdf-form",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "metadata",
+      "route": "/pdf-metadata",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "ai_chat",
+      "route": "/ai-pdf-chat",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "ai_extract",
+      "route": "/extract-pdf-data",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "summarize",
+      "route": "/summarize-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 719,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 731,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "translate",
+      "route": "/translate-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "photo_resizer",
+      "route": "/ssc-photo-resizer",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 719,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 731,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "photo_compress",
+      "route": "/compress-image-online",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 719,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 731,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "photo_resize",
+      "route": "/resize-image-dimensions",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "photo_merge",
+      "route": "/merge-photos-online",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "mask_aadhaar",
+      "route": "/mask-aadhaar-card-online",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "grayscale",
+      "route": "/convert-pdf-to-grayscale",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    },
+    {
+      "round": 2,
+      "operation": "flatten",
+      "route": "/flatten-pdf",
+      "status": 200,
+      "layout": {
+        "width": 1024,
+        "documentWidth": 1024,
+        "topbarWidth": 754,
+        "topbarScrollWidth": 754,
+        "boxes": [
+          {
+            "selector": "topbar-left",
+            "left": 284,
+            "right": 614,
+            "top": 18.5,
+            "bottom": 33.5
+          },
+          {
+            "selector": "workspace-tabs",
+            "left": 284,
+            "right": 1010,
+            "top": 52,
+            "bottom": 100
+          },
+          {
+            "selector": "topbar-right",
+            "left": 626,
+            "right": 1010,
+            "top": 8,
+            "bottom": 44
+          }
+        ],
+        "overlaps": []
+      }
+    }
+  ]
+}

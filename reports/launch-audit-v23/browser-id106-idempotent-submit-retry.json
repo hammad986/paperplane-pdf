@@ -2,15 +2,15 @@
   "scenario": "controlled client-side proxy 502 after acceptance, on standard and >10 MiB chunk-commit submissions",
   "standard_attempts": [
     {
-      "job_id": "9cab66be96684235839723902ed50c8d",
+      "job_id": "0bc7e1dfd63e4634a2a22d068845cd48",
       "idempotent": false,
-      "idempotency_key": "50103a8912bce4b6cbd5c7830a7a49a3b87e6e86930f57fd",
+      "idempotency_key": "REDACTED",
       "client_error_status": 502
     },
     {
-      "job_id": "9cab66be96684235839723902ed50c8d",
+      "job_id": "0bc7e1dfd63e4634a2a22d068845cd48",
       "idempotent": true,
-      "idempotency_key": "50103a8912bce4b6cbd5c7830a7a49a3b87e6e86930f57fd"
+      "idempotency_key": "REDACTED"
     }
   ],
   "standard_http_statuses": [
@@ -19,15 +19,15 @@
   ],
   "chunked_attempts": [
     {
-      "job_id": "95c628a4e42c4948af027fd05b99afbe",
+      "job_id": "64bdfd9d97554467aaca128e45a413eb",
       "idempotent": false,
-      "idempotency_key": "9983183f5e005209000ba5d269a19fdefa7374068192afe2",
+      "idempotency_key": "REDACTED",
       "client_error_status": 502
     },
     {
-      "job_id": "95c628a4e42c4948af027fd05b99afbe",
+      "job_id": "64bdfd9d97554467aaca128e45a413eb",
       "idempotent": true,
-      "idempotency_key": "9983183f5e005209000ba5d269a19fdefa7374068192afe2"
+      "idempotency_key": "REDACTED"
     }
   ],
   "chunked_http_statuses": [

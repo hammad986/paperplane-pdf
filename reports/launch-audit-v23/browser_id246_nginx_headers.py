@@ -140,6 +140,8 @@ def main() -> None:
                         assert "nginx/" not in headers.get("server", "").lower(), headers.get("server")
                         assert "max-age=63072000" in headers["strict-transport-security"]
                         assert "default-src 'self'" in headers["content-security-policy"]
+                        assert "base-uri 'self'" in headers["content-security-policy"]
+                        assert "frame-ancestors 'self'" in headers["content-security-policy"]
                         statuses[label] = response.status
                     assert statuses["home"] == 200 and statuses["asset"] == 200 and statuses["api-error"] == 404, statuses
                     evidence.append({"round": round_no, "statuses": statuses, "headers_once_on_success_asset_and_404": True, "server_version_hidden": True})

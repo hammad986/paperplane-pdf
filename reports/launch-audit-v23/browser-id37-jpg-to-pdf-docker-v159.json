@@ -1,0 +1,74 @@
+{
+  "image": "paperplane-v23-audit:codex-v159",
+  "base": "http://127.0.0.1:18540",
+  "rounds": [
+    {
+      "status": "completed",
+      "outputName": "marker-1_jpg_to_pdf.pdf",
+      "outputSize": 148292,
+      "round": 1,
+      "pages": 2,
+      "page_marker_color_pixels": [
+        7623,
+        7620
+      ],
+      "content_checked": true,
+      "browser_page_errors": []
+    },
+    {
+      "status": "completed",
+      "outputName": "marker-1_jpg_to_pdf.pdf",
+      "outputSize": 148292,
+      "round": 2,
+      "pages": 2,
+      "page_marker_color_pixels": [
+        7623,
+        7620
+      ],
+      "content_checked": true,
+      "browser_page_errors": []
+    }
+  ],
+  "production_endpoints_contacted": false,
+  "payment_submitted": false,
+  "health": {
+    "status": "ok",
+    "service": "paperplane-pdf",
+    "version": "2.0.0",
+    "auth_required": false,
+    "workers": 4,
+    "max_file_size_mb": 500,
+    "job_ttl_hours": 2
+  },
+  "container_state": {
+    "Status": "running",
+    "Running": true,
+    "Paused": false,
+    "Restarting": false,
+    "OOMKilled": false,
+    "Dead": false,
+    "Pid": 15735,
+    "ExitCode": 0,
+    "Error": "",
+    "StartedAt": "2026-11-22T06:10:46.567063008Z",
+    "FinishedAt": "0001-01-01T00:00:00Z",
+    "Health": {
+      "Status": "healthy",
+      "FailingStreak": 0,
+      "Log": [
+        {
+          "Start": "2026-11-22T06:10:51.818934849Z",
+          "End": "2026-11-22T06:10:53.701982025Z",
+          "ExitCode": 1,
+          "Output": "Traceback (most recent call last):\n  File \"/usr/local/lib/python3.12/urllib/request.py\", line 1357, in do_open\n    h.request(req.get_method(), req.selector, req.data, headers,\n  File \"/usr/local/lib/python3.12/http/client.py\", line 1386, in request\n    self._send_request(method, url, body, headers, encode_chunked)\n  File \"/usr/local/lib/python3.12/http/client.py\", line 1432, in _send_request\n    self.endheaders(body, encode_chunked=encode_chunked)\n  File \"/usr/local/lib/python3.12/http/client.py\", line 1381, in endheaders\n    self._send_output(message_body, encode_chunked=encode_chunked)\n  File \"/usr/local/lib/python3.12/http/client.py\", line 1141, in _send_output\n    self.send(msg)\n  File \"/usr/local/lib/python3.12/http/client.py\", line 1085, in send\n    self.connect()\n  File \"/usr/local/lib/python3.12/http/client.py\", line 1051, in connect\n    self.sock = self._create_connection(\n                ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/socket.py\", line 865, in create_connection\n    raise exceptions[0]\n  File \"/usr/local/lib/python3.12/socket.py\", line 850, in create_connection\n    sock.connect(sa)\nConnectionRefusedError: [Errno 111] Connection refused\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"<string>\", line 1, in <module>\n  File \"/usr/local/lib/python3.12/urllib/request.py\", line 215, in urlopen\n    return opener.open(url, data, timeout)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/urllib/request.py\", line 515, in open\n    response = self._open(req, data)\n               ^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/urllib/request.py\", line 532, in _open\n    result = self._call_chain(self.handle_open, protocol, protocol +\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/urllib/request.py\", line 492, in _call_chain\n    result = func(*args)\n             ^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/urllib/request.py\", line 1386, in http_open\n    return self.do_open(http.client.HTTPConnection, req)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.12/urllib/request.py\", line 1360, in do_open\n    raise URLError(err)\nurllib.error.URLError: <urlopen error [Errno 111] Connection refused>\n"
+        },
+        {
+          "Start": "2026-11-22T06:10:58.702880823Z",
+          "End": "2026-11-22T06:10:59.191246045Z",
+          "ExitCode": 0,
+          "Output": ""
+        }
+      ]
+    }
+  }
+}

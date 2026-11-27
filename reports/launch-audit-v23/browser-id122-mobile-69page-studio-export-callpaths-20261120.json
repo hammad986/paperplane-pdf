@@ -1,0 +1,2334 @@
+{
+  "fixture": "C:\\Users\\mdham\\Downloads\\notes.pdf",
+  "fixture_pages": 69,
+  "cpu_throttle_rate": 4.0,
+  "slot_fallback_exercised": true,
+  "rounds": [
+    {
+      "round": 1,
+      "status": 200,
+      "load_to_first_page_seconds": 8.32,
+      "export_seconds": 1.44,
+      "total_seconds": 14.83,
+      "source_bytes": 5456746,
+      "output_bytes": 5535231,
+      "page_count": 69,
+      "page_text_and_order_preserved": true,
+      "organizer_cards_rendered": 69,
+      "page_one_thumbnail_rendered": true,
+      "page_forty_thumbnail_rendered": true,
+      "select_all_and_invert_checked": true,
+      "same_page_selection_check": {
+        "selectionPreserved": true,
+        "reattachments": 0
+      },
+      "single_page_slot_fallback_recreated": true,
+      "scroll_to_page_40_then_back": true,
+      "studio_page_slot_rect_reads_for_scroll": 8,
+      "viewport": 390,
+      "document_width": 390,
+      "device_pixel_ratio": 3,
+      "active_canvas": {
+        "width": 516,
+        "height": 730,
+        "cssWidth": "344px",
+        "cssHeight": "487px"
+      },
+      "active_canvas_scale": 1.5,
+      "active_page_nonwhite_pixels": 2110,
+      "long_tasks_over_50ms": [
+        {
+          "duration": 524,
+          "start": 2566,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 126,
+          "start": 3096.899999976158,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 155,
+          "start": 3223.399999976158,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 213,
+          "start": 3520.0999999940395,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 88,
+          "start": 3741.199999988079,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 73,
+          "start": 4401.5999999940395,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 54,
+          "start": 4847.199999988079,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 70,
+          "start": 4973.199999988079,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 62,
+          "start": 5063.699999988079,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 61,
+          "start": 5130.199999988079,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 295,
+          "start": 5214.399999976158,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 147,
+          "start": 5712.5999999940395,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 56,
+          "start": 5861,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 99,
+          "start": 6211.799999982119,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 190,
+          "start": 6351.199999988079,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 126,
+          "start": 7397,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 182,
+          "start": 7800.799999982119,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 54,
+          "start": 8168.0999999940395,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 60,
+          "start": 8223,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 84,
+          "start": 8937.699999988079,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 95,
+          "start": 9365.59999999404,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 51,
+          "start": 9688.5,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 73,
+          "start": 9837.899999976158,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 469,
+          "start": 9974.899999976158,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 186,
+          "start": 10459.399999976158,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 114,
+          "start": 10668.799999982119,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 117,
+          "start": 10805.799999982119,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 126,
+          "start": 10952,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 94,
+          "start": 11094.59999999404,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 89,
+          "start": 11196.5,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 108,
+          "start": 11512.299999982119,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 108,
+          "start": 11824.899999976158,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 52,
+          "start": 11974.799999982119,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 60,
+          "start": 12033.399999976158,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 120,
+          "start": 12095.399999976158,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 86,
+          "start": 12256.299999982119,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 133,
+          "start": 12349.59999999404,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 104,
+          "start": 12484.09999999404,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 59,
+          "start": 12648,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 137,
+          "start": 12737.09999999404,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 95,
+          "start": 12897.899999976158,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 84,
+          "start": 13009.59999999404,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 59,
+          "start": 13176.399999976158,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 72,
+          "start": 13585.59999999404,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 90,
+          "start": 14152.59999999404,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        }
+      ],
+      "long_tasks_before_first_page": [
+        {
+          "duration": 524,
+          "start": 2566,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 126,
+          "start": 3096.899999976158,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 155,
+          "start": 3223.399999976158,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 213,
+          "start": 3520.0999999940395,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 88,
+          "start": 3741.199999988079,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 73,
+          "start": 4401.5999999940395,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 54,
+          "start": 4847.199999988079,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 70,
+          "start": 4973.199999988079,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 62,
+          "start": 5063.699999988079,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 61,
+          "start": 5130.199999988079,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 295,
+          "start": 5214.399999976158,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 147,
+          "start": 5712.5999999940395,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 56,
+          "start": 5861,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 99,
+          "start": 6211.799999982119,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 190,
+          "start": 6351.199999988079,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 126,
+          "start": 7397,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 182,
+          "start": 7800.799999982119,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 54,
+          "start": 8168.0999999940395,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 60,
+          "start": 8223,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        }
+      ],
+      "studio_phases": [
+        {
+          "phase": "organizer-thumbnails",
+          "duration": 61.5
+        },
+        {
+          "phase": "thumbnail-page",
+          "page": 1,
+          "duration": 1228.2999999821186
+        },
+        {
+          "phase": "thumbnail-page",
+          "page": 2,
+          "duration": 1367.5999999940395
+        },
+        {
+          "phase": "thumbnail-page",
+          "page": 3,
+          "duration": 1545.199999988079
+        },
+        {
+          "phase": "thumbnail-page",
+          "page": 40,
+          "duration": 2009.7999999821186
+        },
+        {
+          "phase": "thumbnail-page",
+          "page": 42,
+          "duration": 2212.199999988079
+        },
+        {
+          "phase": "thumbnail-page",
+          "page": 41,
+          "duration": 2319.300000011921
+        }
+      ],
+      "thumbnail_peak_concurrency": 3,
+      "pdf_render_continuation_trial": null,
+      "thumbnail_url_lifecycle": {
+        "renderedThumbs": 6,
+        "objectUrlThumbs": 6,
+        "cacheSize": 6,
+        "staleSuppressed": true,
+        "allRevokedOnClear": true,
+        "createdUrls": 7,
+        "revokedUrls": 6
+      },
+      "studio_render_events": [
+        {
+          "page": 1,
+          "started": 4841.899999976158,
+          "priority": true,
+          "duration": 452.40000000596046,
+          "ended": 5294.299999982119
+        },
+        {
+          "page": 1,
+          "started": 4951.199999988079,
+          "priority": false,
+          "duration": 417.59999999403954,
+          "ended": 5368.799999982119
+        },
+        {
+          "page": 2,
+          "started": 4951.399999976158,
+          "priority": false,
+          "duration": 675.8000000119209,
+          "ended": 5627.199999988079
+        },
+        {
+          "page": 39,
+          "started": 9503.5,
+          "priority": false,
+          "duration": 1726.2999999821186,
+          "ended": 11229.799999982119
+        },
+        {
+          "page": 40,
+          "started": 9503.699999988079,
+          "priority": false,
+          "duration": 1022.3000000119209,
+          "ended": 10526
+        },
+        {
+          "page": 41,
+          "started": 9503.699999988079,
+          "priority": false,
+          "duration": 1625.0999999940395,
+          "ended": 11128.899999976158
+        },
+        {
+          "page": 1,
+          "started": 11975.199999988079,
+          "priority": false,
+          "duration": 170.30000001192093,
+          "ended": 12145.5
+        },
+        {
+          "page": 2,
+          "started": 11975.59999999404,
+          "priority": false,
+          "duration": 304.59999999403954,
+          "ended": 12280.199999988079
+        },
+        {
+          "page": 2,
+          "started": 12431,
+          "priority": true,
+          "duration": 351.89999997615814,
+          "ended": 12783
+        },
+        {
+          "page": 3,
+          "started": 12588.899999976158,
+          "priority": false,
+          "duration": 600.4000000059605,
+          "ended": 13189.299999982119
+        },
+        {
+          "page": 69,
+          "started": 12589.09999999404,
+          "priority": false,
+          "duration": 456.7999999821186,
+          "ended": 13045.899999976158
+        }
+      ],
+      "cpu_profile_hotspots": [
+        {
+          "samples": 3160,
+          "frame": "(program) @ [native]"
+        },
+        {
+          "samples": 209,
+          "frame": "(idle) @ [native]"
+        },
+        {
+          "samples": 174,
+          "frame": "getBoundingClientRect @ [native]"
+        },
+        {
+          "samples": 121,
+          "frame": "showText @ http://127.0.0.1:52396/assets/pdf.min.js"
+        },
+        {
+          "samples": 76,
+          "frame": "querySelectorAll @ [native]"
+        },
+        {
+          "samples": 71,
+          "frame": "query @ [native]"
+        },
+        {
+          "samples": 54,
+          "frame": "__w_pdfjs_require__ @ http://127.0.0.1:52396/assets/pdf.min.js"
+        },
+        {
+          "samples": 49,
+          "frame": "getStudioPageScale @ http://127.0.0.1:52396/assets/app.js?v=129"
+        },
+        {
+          "samples": 48,
+          "frame": "toBlob @ [native]"
+        },
+        {
+          "samples": 47,
+          "frame": "_setupCanvas @ http://127.0.0.1:52396/assets/editor.js?v=14"
+        },
+        {
+          "samples": 35,
+          "frame": "computeBox @ [native]"
+        },
+        {
+          "samples": 34,
+          "frame": "renderStudioPageNow @ http://127.0.0.1:52396/assets/app.js?v=129"
+        },
+        {
+          "samples": 31,
+          "frame": "(anonymous) @ [native]"
+        },
+        {
+          "samples": 27,
+          "frame": "createNativeFontFace @ http://127.0.0.1:52396/assets/pdf.min.js"
+        },
+        {
+          "samples": 25,
+          "frame": "prepareStudioPageStack @ http://127.0.0.1:52396/assets/app.js?v=129"
+        },
+        {
+          "samples": 24,
+          "frame": "querySelector @ [native]"
+        },
+        {
+          "samples": 24,
+          "frame": "renderThumbnails @ http://127.0.0.1:52396/assets/page_organizer.js?v=17"
+        },
+        {
+          "samples": 21,
+          "frame": "evaluate @ [native]"
+        },
+        {
+          "samples": 20,
+          "frame": "setFont @ http://127.0.0.1:52396/assets/pdf.min.js"
+        },
+        {
+          "samples": 14,
+          "frame": "MessageHandler._onComObjOnMessage @ http://127.0.0.1:52396/assets/pdf.min.js"
+        },
+        {
+          "samples": 14,
+          "frame": "beginDrawing @ http://127.0.0.1:52396/assets/pdf.min.js"
+        },
+        {
+          "samples": 13,
+          "frame": "(anonymous) @ http://127.0.0.1:52396/assets/app.js?v=129"
+        },
+        {
+          "samples": 12,
+          "frame": "(anonymous) @ https://accounts.google.com/gsi/client"
+        },
+        {
+          "samples": 12,
+          "frame": "loadDocumentIntoStudio @ http://127.0.0.1:52396/assets/app.js?v=129"
+        },
+        {
+          "samples": 11,
+          "frame": "(anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js"
+        }
+      ],
+      "cpu_profile_hot_call_paths": [
+        {
+          "samples": 3160,
+          "path": "(program) @ [native] <- (root) @ [native]"
+        },
+        {
+          "samples": 209,
+          "path": "(idle) @ [native] <- (root) @ [native]"
+        },
+        {
+          "samples": 121,
+          "path": "showText @ http://127.0.0.1:52396/assets/pdf.min.js <- executeOperatorList @ http://127.0.0.1:52396/assets/pdf.min.js <- _next @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- (root) @ [native]"
+        },
+        {
+          "samples": 94,
+          "path": "getBoundingClientRect @ [native] <- syncStudioMobilePagesPanelPosition @ http://127.0.0.1:52396/assets/app.js?v=129 <- syncStudioBatchPanelLocation @ http://127.0.0.1:52396/assets/app.js?v=129 <- (anonymous) @ http://127.0.0.1:52396/assets/app.js?v=129 <- (root) @ [native]"
+        },
+        {
+          "samples": 71,
+          "path": "query @ [native] <- (anonymous) @ [native] <- _cached @ [native] <- _queryCSS @ [native] <- _querySimple @ [native] <- (anonymous) @ [native] <- _cached @ [native] <- query @ [native] <- query @ [native] <- (anonymous) @ [native]"
+        },
+        {
+          "samples": 67,
+          "path": "querySelectorAll @ [native] <- syncOpenOverlayStack @ http://127.0.0.1:52396/assets/app.js?v=129 <- (root) @ [native]"
+        },
+        {
+          "samples": 49,
+          "path": "getStudioPageScale @ http://127.0.0.1:52396/assets/app.js?v=129 <- renderStudioPageNow @ http://127.0.0.1:52396/assets/app.js?v=129 <- (root) @ [native]"
+        },
+        {
+          "samples": 48,
+          "path": "toBlob @ [native] <- blob @ http://127.0.0.1:52396/assets/page_organizer.js?v=17 <- _renderCardCanvas @ http://127.0.0.1:52396/assets/page_organizer.js?v=17 <- (root) @ [native]"
+        },
+        {
+          "samples": 47,
+          "path": "_setupCanvas @ http://127.0.0.1:52396/assets/editor.js?v=14 <- EditCanvasManager @ http://127.0.0.1:52396/assets/editor.js?v=14 <- onPageRendered @ http://127.0.0.1:52396/assets/editor.js?v=14 <- renderStudioPageNow @ http://127.0.0.1:52396/assets/app.js?v=129 <- (root) @ [native]"
+        },
+        {
+          "samples": 34,
+          "path": "computeBox @ [native] <- isElementVisible @ [native] <- (anonymous) @ [native] <- evaluate @ [native] <- (anonymous) @ [native] <- (root) @ [native]"
+        },
+        {
+          "samples": 34,
+          "path": "getBoundingClientRect @ [native] <- syncStudioMobilePagesPanelPosition @ http://127.0.0.1:52396/assets/app.js?v=129 <- syncStudioBatchPanelLocation @ http://127.0.0.1:52396/assets/app.js?v=129 <- _updateBatchToolbar @ http://127.0.0.1:52396/assets/page_organizer.js?v=17 <- selAllBtn.onclick @ http://127.0.0.1:52396/assets/page_organizer.js?v=17 <- click @ [native] <- (anonymous) @ [native] <- evaluate @ [native] <- (anonymous) @ [native] <- (root) @ [native]"
+        },
+        {
+          "samples": 33,
+          "path": "renderStudioPageNow @ http://127.0.0.1:52396/assets/app.js?v=129 <- (root) @ [native]"
+        },
+        {
+          "samples": 32,
+          "path": "getBoundingClientRect @ [native] <- syncStudioMobilePagesPanelPosition @ http://127.0.0.1:52396/assets/app.js?v=129 <- syncStudioBatchPanelLocation @ http://127.0.0.1:52396/assets/app.js?v=129 <- _updateBatchToolbar @ http://127.0.0.1:52396/assets/page_organizer.js?v=17 <- invBtn.onclick @ http://127.0.0.1:52396/assets/page_organizer.js?v=17 <- click @ [native] <- (anonymous) @ [native] <- evaluate @ [native] <- (anonymous) @ [native] <- (root) @ [native]"
+        },
+        {
+          "samples": 27,
+          "path": "createNativeFontFace @ http://127.0.0.1:52396/assets/pdf.min.js <- bind @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- MessageHandler._onComObjOnMessage @ http://127.0.0.1:52396/assets/pdf.min.js <- (root) @ [native]"
+        },
+        {
+          "samples": 24,
+          "path": "prepareStudioPageStack @ http://127.0.0.1:52396/assets/app.js?v=129 <- loadDocumentIntoStudio @ http://127.0.0.1:52396/assets/app.js?v=129 <- (root) @ [native]"
+        },
+        {
+          "samples": 24,
+          "path": "renderThumbnails @ http://127.0.0.1:52396/assets/page_organizer.js?v=17 <- organizer.renderThumbnails @ [native] <- loadDocument @ http://127.0.0.1:52396/assets/page_organizer.js?v=17 <- loadDocumentIntoStudio @ http://127.0.0.1:52396/assets/app.js?v=129 <- (root) @ [native]"
+        },
+        {
+          "samples": 23,
+          "path": "__w_pdfjs_require__ @ http://127.0.0.1:52396/assets/pdf.min.js <- Object.defineProperty.value @ http://127.0.0.1:52396/assets/pdf.min.js <- __w_pdfjs_require__ @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- webpackUniversalModuleDefinition @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- (root) @ [native]"
+        },
+        {
+          "samples": 21,
+          "path": "evaluate @ [native] <- (anonymous) @ [native] <- (root) @ [native]"
+        },
+        {
+          "samples": 20,
+          "path": "setFont @ http://127.0.0.1:52396/assets/pdf.min.js <- executeOperatorList @ http://127.0.0.1:52396/assets/pdf.min.js <- _next @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- (root) @ [native]"
+        },
+        {
+          "samples": 14,
+          "path": "MessageHandler._onComObjOnMessage @ http://127.0.0.1:52396/assets/pdf.min.js <- (root) @ [native]"
+        },
+        {
+          "samples": 14,
+          "path": "beginDrawing @ http://127.0.0.1:52396/assets/pdf.min.js <- initializeGraphics @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- (root) @ [native]"
+        },
+        {
+          "samples": 13,
+          "path": "__w_pdfjs_require__ @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- webpackUniversalModuleDefinition @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- (root) @ [native]"
+        },
+        {
+          "samples": 12,
+          "path": "loadDocumentIntoStudio @ http://127.0.0.1:52396/assets/app.js?v=129 <- (root) @ [native]"
+        },
+        {
+          "samples": 12,
+          "path": "querySelector @ [native] <- (anonymous) @ [native] <- predicate @ [native] <- next @ [native] <- (root) @ [native]"
+        },
+        {
+          "samples": 12,
+          "path": "getBoundingClientRect @ [native] <- syncStudioMobilePagesPanelPosition @ http://127.0.0.1:52396/assets/app.js?v=129 <- syncStudioBatchPanelLocation @ http://127.0.0.1:52396/assets/app.js?v=129 <- _updateBatchToolbar @ http://127.0.0.1:52396/assets/page_organizer.js?v=17 <- loadDocument @ http://127.0.0.1:52396/assets/page_organizer.js?v=17 <- loadDocumentIntoStudio @ http://127.0.0.1:52396/assets/app.js?v=129 <- (root) @ [native]"
+        },
+        {
+          "samples": 11,
+          "path": "(anonymous) @ https://accounts.google.com/gsi/client <- (anonymous) @ https://accounts.google.com/gsi/client <- (root) @ [native]"
+        },
+        {
+          "samples": 11,
+          "path": "__w_pdfjs_require__ @ http://127.0.0.1:52396/assets/pdf.min.js <- Object.defineProperty.value @ http://127.0.0.1:52396/assets/pdf.min.js <- __w_pdfjs_require__ @ http://127.0.0.1:52396/assets/pdf.min.js <- Object.defineProperty.value @ http://127.0.0.1:52396/assets/pdf.min.js <- __w_pdfjs_require__ @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- webpackUniversalModuleDefinition @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js"
+        },
+        {
+          "samples": 9,
+          "path": "(anonymous) @ [native] <- evaluate @ [native] <- (anonymous) @ [native] <- (root) @ [native]"
+        },
+        {
+          "samples": 9,
+          "path": "previewNode @ [native] <- (anonymous) @ [native] <- evaluate @ [native] <- (anonymous) @ [native] <- (root) @ [native]"
+        },
+        {
+          "samples": 9,
+          "path": "(garbage collector) @ [native] <- (root) @ [native]"
+        },
+        {
+          "samples": 8,
+          "path": "InjectedScript @ [native] <- (anonymous) @ [native] <- (anonymous) @ [native] <- (root) @ [native]"
+        },
+        {
+          "samples": 8,
+          "path": "executeOperatorList @ http://127.0.0.1:52396/assets/pdf.min.js <- _next @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- (root) @ [native]"
+        },
+        {
+          "samples": 7,
+          "path": "(anonymous) @ [native] <- (anonymous) @ [native] <- (root) @ [native]"
+        },
+        {
+          "samples": 7,
+          "path": "(anonymous) @ [native] <- (root) @ [native]"
+        },
+        {
+          "samples": 7,
+          "path": "checkVisibility @ [native] <- isElementStyleVisibilityVisible @ [native] <- computeBox @ [native] <- isElementVisible @ [native] <- (anonymous) @ [native] <- evaluate @ [native] <- (anonymous) @ [native] <- (root) @ [native]"
+        },
+        {
+          "samples": 5,
+          "path": "renderAuthShell @ http://127.0.0.1:52396/assets/app.js?v=129 <- checkAuthStatus @ http://127.0.0.1:52396/assets/app.js?v=129 <- (root) @ [native]"
+        },
+        {
+          "samples": 5,
+          "path": "__w_pdfjs_require__ @ http://127.0.0.1:52396/assets/pdf.min.js <- Object.defineProperty.value @ http://127.0.0.1:52396/assets/pdf.min.js <- __w_pdfjs_require__ @ http://127.0.0.1:52396/assets/pdf.min.js <- Object.defineProperty.value @ http://127.0.0.1:52396/assets/pdf.min.js <- __w_pdfjs_require__ @ http://127.0.0.1:52396/assets/pdf.min.js <- Object.defineProperty.value @ http://127.0.0.1:52396/assets/pdf.min.js <- __w_pdfjs_require__ @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js"
+        },
+        {
+          "samples": 5,
+          "path": "(anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- MessageHandler._onComObjOnMessage @ http://127.0.0.1:52396/assets/pdf.min.js <- (root) @ [native]"
+        },
+        {
+          "samples": 4,
+          "path": "updateBillingUI @ http://127.0.0.1:52396/assets/app.js?v=129 <- renderAuthShell @ http://127.0.0.1:52396/assets/app.js?v=129 <- checkAuthStatus @ http://127.0.0.1:52396/assets/app.js?v=129 <- (root) @ [native]"
+        },
+        {
+          "samples": 4,
+          "path": "updateLauncherOverlap @ http://127.0.0.1:52396/assets/feedback.js?v=17 <- (root) @ [native]"
+        }
+      ],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "status": 200,
+      "load_to_first_page_seconds": 7.33,
+      "export_seconds": 1.22,
+      "total_seconds": 14.43,
+      "source_bytes": 5456746,
+      "output_bytes": 5535231,
+      "page_count": 69,
+      "page_text_and_order_preserved": true,
+      "organizer_cards_rendered": 69,
+      "page_one_thumbnail_rendered": true,
+      "page_forty_thumbnail_rendered": true,
+      "select_all_and_invert_checked": true,
+      "same_page_selection_check": {
+        "selectionPreserved": true,
+        "reattachments": 0
+      },
+      "single_page_slot_fallback_recreated": true,
+      "scroll_to_page_40_then_back": true,
+      "studio_page_slot_rect_reads_for_scroll": 8,
+      "viewport": 390,
+      "document_width": 390,
+      "device_pixel_ratio": 3,
+      "active_canvas": {
+        "width": 516,
+        "height": 730,
+        "cssWidth": "344px",
+        "cssHeight": "487px"
+      },
+      "active_canvas_scale": 1.5,
+      "active_page_nonwhite_pixels": 2110,
+      "long_tasks_over_50ms": [
+        {
+          "duration": 86,
+          "start": 223,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 851,
+          "start": 1753.4000000059605,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 208,
+          "start": 2614.7000000178814,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 66,
+          "start": 2823.5999999940395,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 140,
+          "start": 2947.9000000059605,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 135,
+          "start": 3178.2000000178814,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 87,
+          "start": 3746.5999999940395,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 142,
+          "start": 4213.800000011921,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 53,
+          "start": 4355.9000000059605,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 52,
+          "start": 4534.5999999940395,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 267,
+          "start": 4602.5999999940395,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 140,
+          "start": 5091.4000000059605,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 254,
+          "start": 5232.800000011921,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 88,
+          "start": 5534.5,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 218,
+          "start": 5662.700000017881,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 59,
+          "start": 6117.800000011921,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 134,
+          "start": 6177.0999999940395,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 101,
+          "start": 6502.9000000059605,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 193,
+          "start": 6607.5999999940395,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 99,
+          "start": 6802,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 65,
+          "start": 7344.5999999940395,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 216,
+          "start": 7759.4000000059605,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 75,
+          "start": 8341.700000017881,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 94,
+          "start": 8657.700000017881,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 62,
+          "start": 8760,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 196,
+          "start": 9021.700000017881,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 649,
+          "start": 9320.59999999404,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 192,
+          "start": 9975.90000000596,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 142,
+          "start": 10192.200000017881,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 126,
+          "start": 10364.5,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 107,
+          "start": 10527.40000000596,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 93,
+          "start": 10643.5,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 106,
+          "start": 10738.800000011921,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 57,
+          "start": 11197.59999999404,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 111,
+          "start": 11442.59999999404,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 51,
+          "start": 11571.09999999404,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 84,
+          "start": 11748.40000000596,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 86,
+          "start": 11835.5,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 67,
+          "start": 11935.5,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 140,
+          "start": 12004.300000011921,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 175,
+          "start": 12145.800000011921,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 79,
+          "start": 12376.59999999404,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 89,
+          "start": 12497.300000011921,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 108,
+          "start": 12614.59999999404,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 101,
+          "start": 12730.300000011921,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 116,
+          "start": 12835.5,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 56,
+          "start": 12958.40000000596,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 79,
+          "start": 13295.300000011921,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 82,
+          "start": 13823.200000017881,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        }
+      ],
+      "long_tasks_before_first_page": [
+        {
+          "duration": 86,
+          "start": 223,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 851,
+          "start": 1753.4000000059605,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 208,
+          "start": 2614.7000000178814,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 66,
+          "start": 2823.5999999940395,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 140,
+          "start": 2947.9000000059605,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 135,
+          "start": 3178.2000000178814,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 87,
+          "start": 3746.5999999940395,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 142,
+          "start": 4213.800000011921,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 53,
+          "start": 4355.9000000059605,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 52,
+          "start": 4534.5999999940395,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 267,
+          "start": 4602.5999999940395,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 140,
+          "start": 5091.4000000059605,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 254,
+          "start": 5232.800000011921,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 88,
+          "start": 5534.5,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 218,
+          "start": 5662.700000017881,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 59,
+          "start": 6117.800000011921,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 134,
+          "start": 6177.0999999940395,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 101,
+          "start": 6502.9000000059605,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 193,
+          "start": 6607.5999999940395,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        },
+        {
+          "duration": 99,
+          "start": 6802,
+          "attribution": [
+            {
+              "containerType": "window",
+              "containerName": "",
+              "containerSrc": ""
+            }
+          ]
+        }
+      ],
+      "studio_phases": [
+        {
+          "phase": "organizer-thumbnails",
+          "duration": 53.5
+        },
+        {
+          "phase": "thumbnail-page",
+          "page": 1,
+          "duration": 515.1999999880791
+        },
+        {
+          "phase": "thumbnail-page",
+          "page": 2,
+          "duration": 997.4000000059605
+        },
+        {
+          "phase": "thumbnail-page",
+          "page": 3,
+          "duration": 1837.4000000059605
+        },
+        {
+          "phase": "thumbnail-page",
+          "page": 40,
+          "duration": 2366.199999988079
+        },
+        {
+          "phase": "thumbnail-page",
+          "page": 41,
+          "duration": 2448.399999976158
+        },
+        {
+          "phase": "thumbnail-page",
+          "page": 42,
+          "duration": 2736
+        }
+      ],
+      "thumbnail_peak_concurrency": 3,
+      "pdf_render_continuation_trial": null,
+      "thumbnail_url_lifecycle": {
+        "renderedThumbs": 6,
+        "objectUrlThumbs": 6,
+        "cacheSize": 6,
+        "staleSuppressed": true,
+        "allRevokedOnClear": true,
+        "createdUrls": 7,
+        "revokedUrls": 6
+      },
+      "studio_render_events": [
+        {
+          "page": 1,
+          "started": 4207.700000017881,
+          "priority": true,
+          "duration": 490,
+          "ended": 4697.700000017881
+        },
+        {
+          "page": 1,
+          "started": 4448.800000011921,
+          "priority": false,
+          "duration": 313,
+          "ended": 4761.800000011921
+        },
+        {
+          "page": 2,
+          "started": 4449,
+          "priority": false,
+          "duration": 565.4000000059605,
+          "ended": 5014.4000000059605
+        },
+        {
+          "page": 39,
+          "started": 8824,
+          "priority": false,
+          "duration": 1930.9000000059605,
+          "ended": 10754.90000000596
+        },
+        {
+          "page": 40,
+          "started": 8824.90000000596,
+          "priority": false,
+          "duration": 1217.699999988079,
+          "ended": 10042.59999999404
+        },
+        {
+          "page": 41,
+          "started": 8825.59999999404,
+          "priority": false,
+          "duration": 1843,
+          "ended": 10668.59999999404
+        },
+        {
+          "page": 1,
+          "started": 11622.90000000596,
+          "priority": false,
+          "duration": 155.90000000596046,
+          "ended": 11778.800000011921
+        },
+        {
+          "page": 2,
+          "started": 11623.09999999404,
+          "priority": false,
+          "duration": 230.40000000596046,
+          "ended": 11853.5
+        },
+        {
+          "page": 2,
+          "started": 12089.800000011921,
+          "priority": true,
+          "duration": 793.0999999940395,
+          "ended": 12882.90000000596
+        },
+        {
+          "page": 3,
+          "started": 12321.90000000596,
+          "priority": false,
+          "duration": 654.5999999940395,
+          "ended": 12976.5
+        },
+        {
+          "page": 69,
+          "started": 12322.200000017881,
+          "priority": false,
+          "duration": 458.69999998807907,
+          "ended": 12780.90000000596
+        }
+      ],
+      "cpu_profile_hotspots": [
+        {
+          "samples": 2687,
+          "frame": "(program) @ [native]"
+        },
+        {
+          "samples": 326,
+          "frame": "getBoundingClientRect @ [native]"
+        },
+        {
+          "samples": 215,
+          "frame": "(idle) @ [native]"
+        },
+        {
+          "samples": 114,
+          "frame": "showText @ http://127.0.0.1:52396/assets/pdf.min.js"
+        },
+        {
+          "samples": 67,
+          "frame": "query @ [native]"
+        },
+        {
+          "samples": 67,
+          "frame": "__w_pdfjs_require__ @ http://127.0.0.1:52396/assets/pdf.min.js"
+        },
+        {
+          "samples": 65,
+          "frame": "querySelectorAll @ [native]"
+        },
+        {
+          "samples": 56,
+          "frame": "_setupCanvas @ http://127.0.0.1:52396/assets/editor.js?v=14"
+        },
+        {
+          "samples": 52,
+          "frame": "toBlob @ [native]"
+        },
+        {
+          "samples": 39,
+          "frame": "getStudioPageScale @ http://127.0.0.1:52396/assets/app.js?v=129"
+        },
+        {
+          "samples": 35,
+          "frame": "(anonymous) @ [native]"
+        },
+        {
+          "samples": 26,
+          "frame": "renderStudioPageNow @ http://127.0.0.1:52396/assets/app.js?v=129"
+        },
+        {
+          "samples": 23,
+          "frame": "renderThumbnails @ http://127.0.0.1:52396/assets/page_organizer.js?v=17"
+        },
+        {
+          "samples": 21,
+          "frame": "createNativeFontFace @ http://127.0.0.1:52396/assets/pdf.min.js"
+        },
+        {
+          "samples": 21,
+          "frame": "setFont @ http://127.0.0.1:52396/assets/pdf.min.js"
+        },
+        {
+          "samples": 20,
+          "frame": "(anonymous) @ http://127.0.0.1:52396/assets/app.js?v=129"
+        },
+        {
+          "samples": 16,
+          "frame": "evaluate @ [native]"
+        },
+        {
+          "samples": 16,
+          "frame": "computeBox @ [native]"
+        },
+        {
+          "samples": 14,
+          "frame": "InjectedScript @ [native]"
+        },
+        {
+          "samples": 14,
+          "frame": "prepareStudioPageStack @ http://127.0.0.1:52396/assets/app.js?v=129"
+        },
+        {
+          "samples": 13,
+          "frame": "(anonymous) @ https://accounts.google.com/gsi/client"
+        },
+        {
+          "samples": 13,
+          "frame": "loadDocumentIntoStudio @ http://127.0.0.1:52396/assets/app.js?v=129"
+        },
+        {
+          "samples": 11,
+          "frame": "(garbage collector) @ [native]"
+        },
+        {
+          "samples": 11,
+          "frame": "(anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js"
+        },
+        {
+          "samples": 11,
+          "frame": "MessageHandler._onComObjOnMessage @ http://127.0.0.1:52396/assets/pdf.min.js"
+        }
+      ],
+      "cpu_profile_hot_call_paths": [
+        {
+          "samples": 2687,
+          "path": "(program) @ [native] <- (root) @ [native]"
+        },
+        {
+          "samples": 215,
+          "path": "(idle) @ [native] <- (root) @ [native]"
+        },
+        {
+          "samples": 159,
+          "path": "getBoundingClientRect @ [native] <- syncStudioMobilePagesPanelPosition @ http://127.0.0.1:52396/assets/app.js?v=129 <- syncStudioBatchPanelLocation @ http://127.0.0.1:52396/assets/app.js?v=129 <- _updateBatchToolbar @ http://127.0.0.1:52396/assets/page_organizer.js?v=17 <- invBtn.onclick @ http://127.0.0.1:52396/assets/page_organizer.js?v=17 <- click @ [native] <- (anonymous) @ [native] <- evaluate @ [native] <- (anonymous) @ [native] <- (root) @ [native]"
+        },
+        {
+          "samples": 114,
+          "path": "showText @ http://127.0.0.1:52396/assets/pdf.min.js <- executeOperatorList @ http://127.0.0.1:52396/assets/pdf.min.js <- _next @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- (root) @ [native]"
+        },
+        {
+          "samples": 110,
+          "path": "getBoundingClientRect @ [native] <- syncStudioMobilePagesPanelPosition @ http://127.0.0.1:52396/assets/app.js?v=129 <- syncStudioBatchPanelLocation @ http://127.0.0.1:52396/assets/app.js?v=129 <- (anonymous) @ http://127.0.0.1:52396/assets/app.js?v=129 <- (root) @ [native]"
+        },
+        {
+          "samples": 65,
+          "path": "query @ [native] <- (anonymous) @ [native] <- _cached @ [native] <- _queryCSS @ [native] <- _querySimple @ [native] <- (anonymous) @ [native] <- _cached @ [native] <- query @ [native] <- query @ [native] <- (anonymous) @ [native]"
+        },
+        {
+          "samples": 58,
+          "path": "querySelectorAll @ [native] <- syncOpenOverlayStack @ http://127.0.0.1:52396/assets/app.js?v=129 <- (root) @ [native]"
+        },
+        {
+          "samples": 56,
+          "path": "_setupCanvas @ http://127.0.0.1:52396/assets/editor.js?v=14 <- EditCanvasManager @ http://127.0.0.1:52396/assets/editor.js?v=14 <- onPageRendered @ http://127.0.0.1:52396/assets/editor.js?v=14 <- renderStudioPageNow @ http://127.0.0.1:52396/assets/app.js?v=129 <- (root) @ [native]"
+        },
+        {
+          "samples": 52,
+          "path": "toBlob @ [native] <- blob @ http://127.0.0.1:52396/assets/page_organizer.js?v=17 <- _renderCardCanvas @ http://127.0.0.1:52396/assets/page_organizer.js?v=17 <- (root) @ [native]"
+        },
+        {
+          "samples": 46,
+          "path": "getBoundingClientRect @ [native] <- syncStudioMobilePagesPanelPosition @ http://127.0.0.1:52396/assets/app.js?v=129 <- syncStudioBatchPanelLocation @ http://127.0.0.1:52396/assets/app.js?v=129 <- _updateBatchToolbar @ http://127.0.0.1:52396/assets/page_organizer.js?v=17 <- selAllBtn.onclick @ http://127.0.0.1:52396/assets/page_organizer.js?v=17 <- click @ [native] <- (anonymous) @ [native] <- evaluate @ [native] <- (anonymous) @ [native] <- (root) @ [native]"
+        },
+        {
+          "samples": 39,
+          "path": "getStudioPageScale @ http://127.0.0.1:52396/assets/app.js?v=129 <- renderStudioPageNow @ http://127.0.0.1:52396/assets/app.js?v=129 <- (root) @ [native]"
+        },
+        {
+          "samples": 26,
+          "path": "renderStudioPageNow @ http://127.0.0.1:52396/assets/app.js?v=129 <- (root) @ [native]"
+        },
+        {
+          "samples": 25,
+          "path": "__w_pdfjs_require__ @ http://127.0.0.1:52396/assets/pdf.min.js <- Object.defineProperty.value @ http://127.0.0.1:52396/assets/pdf.min.js <- __w_pdfjs_require__ @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- webpackUniversalModuleDefinition @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- (root) @ [native]"
+        },
+        {
+          "samples": 23,
+          "path": "renderThumbnails @ http://127.0.0.1:52396/assets/page_organizer.js?v=17 <- organizer.renderThumbnails @ [native] <- loadDocument @ http://127.0.0.1:52396/assets/page_organizer.js?v=17 <- loadDocumentIntoStudio @ http://127.0.0.1:52396/assets/app.js?v=129 <- (root) @ [native]"
+        },
+        {
+          "samples": 21,
+          "path": "createNativeFontFace @ http://127.0.0.1:52396/assets/pdf.min.js <- bind @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- MessageHandler._onComObjOnMessage @ http://127.0.0.1:52396/assets/pdf.min.js <- (root) @ [native]"
+        },
+        {
+          "samples": 21,
+          "path": "setFont @ http://127.0.0.1:52396/assets/pdf.min.js <- executeOperatorList @ http://127.0.0.1:52396/assets/pdf.min.js <- _next @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- (root) @ [native]"
+        },
+        {
+          "samples": 16,
+          "path": "evaluate @ [native] <- (anonymous) @ [native] <- (root) @ [native]"
+        },
+        {
+          "samples": 16,
+          "path": "__w_pdfjs_require__ @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- webpackUniversalModuleDefinition @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- (root) @ [native]"
+        },
+        {
+          "samples": 14,
+          "path": "InjectedScript @ [native] <- (anonymous) @ [native] <- (anonymous) @ [native] <- (root) @ [native]"
+        },
+        {
+          "samples": 14,
+          "path": "__w_pdfjs_require__ @ http://127.0.0.1:52396/assets/pdf.min.js <- Object.defineProperty.value @ http://127.0.0.1:52396/assets/pdf.min.js <- __w_pdfjs_require__ @ http://127.0.0.1:52396/assets/pdf.min.js <- Object.defineProperty.value @ http://127.0.0.1:52396/assets/pdf.min.js <- __w_pdfjs_require__ @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- webpackUniversalModuleDefinition @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js"
+        },
+        {
+          "samples": 14,
+          "path": "prepareStudioPageStack @ http://127.0.0.1:52396/assets/app.js?v=129 <- loadDocumentIntoStudio @ http://127.0.0.1:52396/assets/app.js?v=129 <- (root) @ [native]"
+        },
+        {
+          "samples": 14,
+          "path": "computeBox @ [native] <- isElementVisible @ [native] <- (anonymous) @ [native] <- evaluate @ [native] <- (anonymous) @ [native] <- (root) @ [native]"
+        },
+        {
+          "samples": 13,
+          "path": "loadDocumentIntoStudio @ http://127.0.0.1:52396/assets/app.js?v=129 <- (root) @ [native]"
+        },
+        {
+          "samples": 11,
+          "path": "(garbage collector) @ [native] <- (root) @ [native]"
+        },
+        {
+          "samples": 11,
+          "path": "MessageHandler._onComObjOnMessage @ http://127.0.0.1:52396/assets/pdf.min.js <- (root) @ [native]"
+        },
+        {
+          "samples": 10,
+          "path": "(anonymous) @ [native] <- (anonymous) @ [native] <- (root) @ [native]"
+        },
+        {
+          "samples": 10,
+          "path": "(anonymous) @ https://accounts.google.com/gsi/client <- (anonymous) @ https://accounts.google.com/gsi/client <- (root) @ [native]"
+        },
+        {
+          "samples": 10,
+          "path": "getBoundingClientRect @ [native] <- syncStudioMobilePagesPanelPosition @ http://127.0.0.1:52396/assets/app.js?v=129 <- syncStudioBatchPanelLocation @ http://127.0.0.1:52396/assets/app.js?v=129 <- _updateBatchToolbar @ http://127.0.0.1:52396/assets/page_organizer.js?v=17 <- loadDocument @ http://127.0.0.1:52396/assets/page_organizer.js?v=17 <- loadDocumentIntoStudio @ http://127.0.0.1:52396/assets/app.js?v=129 <- (root) @ [native]"
+        },
+        {
+          "samples": 9,
+          "path": "(anonymous) @ [native] <- evaluate @ [native] <- (anonymous) @ [native] <- (root) @ [native]"
+        },
+        {
+          "samples": 9,
+          "path": "previewNode @ [native] <- (anonymous) @ [native] <- evaluate @ [native] <- (anonymous) @ [native] <- (root) @ [native]"
+        },
+        {
+          "samples": 8,
+          "path": "__w_pdfjs_require__ @ http://127.0.0.1:52396/assets/pdf.min.js <- Object.defineProperty.value @ http://127.0.0.1:52396/assets/pdf.min.js <- __w_pdfjs_require__ @ http://127.0.0.1:52396/assets/pdf.min.js <- Object.defineProperty.value @ http://127.0.0.1:52396/assets/pdf.min.js <- __w_pdfjs_require__ @ http://127.0.0.1:52396/assets/pdf.min.js <- Object.defineProperty.value @ http://127.0.0.1:52396/assets/pdf.min.js <- __w_pdfjs_require__ @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js"
+        },
+        {
+          "samples": 8,
+          "path": "executeOperatorList @ http://127.0.0.1:52396/assets/pdf.min.js <- _next @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- (root) @ [native]"
+        },
+        {
+          "samples": 6,
+          "path": "(anonymous) @ [native] <- (root) @ [native]"
+        },
+        {
+          "samples": 6,
+          "path": "(anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- (root) @ [native]"
+        },
+        {
+          "samples": 6,
+          "path": "beginDrawing @ http://127.0.0.1:52396/assets/pdf.min.js <- initializeGraphics @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- (root) @ [native]"
+        },
+        {
+          "samples": 6,
+          "path": "appendChild @ [native] <- renderThumbnails @ http://127.0.0.1:52396/assets/page_organizer.js?v=17 <- organizer.renderThumbnails @ [native] <- loadDocument @ http://127.0.0.1:52396/assets/page_organizer.js?v=17 <- loadDocumentIntoStudio @ http://127.0.0.1:52396/assets/app.js?v=129 <- (root) @ [native]"
+        },
+        {
+          "samples": 6,
+          "path": "toggle @ [native] <- (anonymous) @ http://127.0.0.1:52396/assets/page_organizer.js?v=17 <- _updateCardStates @ http://127.0.0.1:52396/assets/page_organizer.js?v=17 <- invBtn.onclick @ http://127.0.0.1:52396/assets/page_organizer.js?v=17 <- click @ [native] <- (anonymous) @ [native] <- evaluate @ [native] <- (anonymous) @ [native] <- (root) @ [native]"
+        },
+        {
+          "samples": 5,
+          "path": "_initialize @ http://127.0.0.1:52396/assets/pdf.min.js <- PDFWorker @ http://127.0.0.1:52396/assets/pdf.min.js <- getDocument @ http://127.0.0.1:52396/assets/pdf.min.js <- loadDocumentIntoStudio @ http://127.0.0.1:52396/assets/app.js?v=129 <- (root) @ [native]"
+        },
+        {
+          "samples": 5,
+          "path": "(anonymous) @ http://127.0.0.1:52396/assets/app.js?v=129 <- writeLocalWork @ http://127.0.0.1:52396/assets/app.js?v=129 <- (root) @ [native]"
+        },
+        {
+          "samples": 5,
+          "path": "bind @ http://127.0.0.1:52396/assets/pdf.min.js <- (anonymous) @ http://127.0.0.1:52396/assets/pdf.min.js <- MessageHandler._onComObjOnMessage @ http://127.0.0.1:52396/assets/pdf.min.js <- (root) @ [native]"
+        }
+      ],
+      "page_errors": []
+    }
+  ],
+  "desktop_dpr3_scale_probe": {
+    "devicePixelRatio": 3,
+    "width": 1191,
+    "cssWidth": 596,
+    "canvasScale": 1.9983221476510067
+  },
+  "verdict": "PASS"
+}

@@ -1,0 +1,22 @@
+{
+  "local_same_data_directory_process_restart": true,
+  "original_account_id_survived": true,
+  "studio_pdf_survived_browser_reload_and_server_restart": true,
+  "before_restart": {
+    "userId": "4b46cb8007dd4e0ebf0fbe58f9645291",
+    "filename": "restart-studio.pdf",
+    "pages": 1,
+    "canvas": true,
+    "studioKey": true
+  },
+  "after_restart": {
+    "userId": "4b46cb8007dd4e0ebf0fbe58f9645291",
+    "filename": "restart-studio.pdf",
+    "pages": 1,
+    "canvas": true,
+    "pageText": "ID93 RESTART SURVIVAL MARKER"
+  },
+  "page_errors": [],
+  "result": "passed",
+  "limitation": "isolated local restart only; does not prove the deployed host retains or mounts the same persistent volume across redeploy"
+}

@@ -1,0 +1,42 @@
+{
+  "duration_s": 5.33,
+  "total_samples": 3410,
+  "hot_functions": [
+    {
+      "samples": 72,
+      "function": "showText",
+      "url": "http://127.0.0.1:51397/assets/pdf.min.js",
+      "line": 21
+    },
+    {
+      "samples": 27,
+      "function": "refresh",
+      "url": "http://127.0.0.1:51397/assets/app.js?v=111",
+      "line": 8137
+    },
+    {
+      "samples": 22,
+      "function": "getStudioPageScale",
+      "url": "http://127.0.0.1:51397/assets/app.js?v=111",
+      "line": 2862
+    },
+    {
+      "samples": 19,
+      "function": "renderStudioPageNow",
+      "url": "http://127.0.0.1:51397/assets/app.js?v=111",
+      "line": 2958
+    },
+    {
+      "samples": 5,
+      "function": "createStudioPageSlot",
+      "url": "http://127.0.0.1:51397/assets/app.js?v=111",
+      "line": 2798
+    },
+    {
+      "samples": 2,
+      "function": "createStudioPageSlot",
+      "url": "http://127.0.0.1:51397/assets/app.js?v=111",
+      "line": 2798
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "build": "v202",
+  "route_status": 200,
+  "links": {
+    "swagger": "/spec/swagger",
+    "redoc": "/spec/redoc",
+    "footer": "/spec/swagger"
+  },
+  "specs": {
+    "/spec/swagger": {
+      "status": 200,
+      "marker_present": true
+    },
+    "/spec/redoc": {
+      "status": 200,
+      "marker_present": true
+    }
+  },
+  "page_errors": []
+}

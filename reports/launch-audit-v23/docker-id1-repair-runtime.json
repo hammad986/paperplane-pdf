@@ -1,0 +1,21 @@
+{
+  "container_name": "paperplane-v23-id1repair-verified",
+  "scope": "current worktree image; synthetic production config; disposable tmpfs only; no provider/payment credentials",
+  "container_state": "running",
+  "health_status": "healthy",
+  "configured_user": "root",
+  "image_id": "sha256:06ac16e8f39fbd47130fd3d6222b2ad56010e9ed6f0d72315499fb980224819c",
+  "http_health_status": 200,
+  "http_health_body": {
+    "status": "ok",
+    "service": "paperplane-pdf",
+    "version": "2.0.0",
+    "auth_required": false,
+    "workers": 4,
+    "max_file_size_mb": 500,
+    "job_ttl_hours": 2
+  },
+  "translate_route_status": 200,
+  "pid1_uid": "1  1001 python",
+  "data_owner_mode": "1001:1001 755"
+}

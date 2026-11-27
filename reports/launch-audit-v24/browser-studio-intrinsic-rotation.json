@@ -1,0 +1,112 @@
+{
+  "page_errors": [],
+  "console_errors": [],
+  "rotations": [
+    {
+      "page": 1,
+      "rotation": 0,
+      "expected": [
+        612,
+        792
+      ],
+      "base": [
+        612,
+        792
+      ],
+      "css": [
+        612,
+        792
+      ],
+      "bitmap": [
+        612,
+        792
+      ],
+      "scale": 1,
+      "overlay": [
+        612,
+        792
+      ]
+    },
+    {
+      "page": 2,
+      "rotation": 90,
+      "expected": [
+        792,
+        612
+      ],
+      "base": [
+        792,
+        612
+      ],
+      "css": [
+        688,
+        532
+      ],
+      "bitmap": [
+        688,
+        532
+      ],
+      "scale": 0.8686868686868687,
+      "overlay": [
+        688,
+        532
+      ]
+    },
+    {
+      "page": 3,
+      "rotation": 180,
+      "expected": [
+        612,
+        792
+      ],
+      "base": [
+        612,
+        792
+      ],
+      "css": [
+        612,
+        792
+      ],
+      "bitmap": [
+        612,
+        792
+      ],
+      "scale": 1,
+      "overlay": [
+        612,
+        792
+      ]
+    },
+    {
+      "page": 4,
+      "rotation": 270,
+      "expected": [
+        792,
+        612
+      ],
+      "base": [
+        792,
+        612
+      ],
+      "css": [
+        688,
+        532
+      ],
+      "bitmap": [
+        688,
+        532
+      ],
+      "scale": 0.8686868686868687,
+      "overlay": [
+        688,
+        532
+      ]
+    }
+  ],
+  "versions": {
+    "app_js": 186,
+    "styles_css": 69,
+    "shell": 136
+  },
+  "result": "passed"
+}

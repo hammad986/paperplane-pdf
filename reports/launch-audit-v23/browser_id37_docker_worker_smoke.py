@@ -8,6 +8,7 @@ import re
 from tempfile import TemporaryDirectory
 
 import fitz
+from PIL import Image
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -42,6 +43,12 @@ with TemporaryDirectory(prefix="paperplane-docker-worker-smoke-") as temporary:
         doc.set_metadata({"title": "Existing Title", "author": "Existing Author",
                           "subject": "Keep Subject", "creator": "Keep Creator"})
         doc.save(metadata)
+
+    scan_images = [temp / "scan-red.png", temp / "scan-blue.png"]
+    Image.new("RGB", (80, 40), (190, 25, 35)).save(scan_images[0])
+    Image.new("RGB", (40, 80), (25, 45, 190)).save(scan_images[1])
+    wide_scan_image = temp / "wide-scan.png"
+    Image.new("RGB", (9000, 20), (70, 140, 30)).save(wide_scan_image)
 
     with sync_playwright() as p:
         browser = p.chromium.launch(channel="chrome", headless=True)
@@ -111,10 +118,91 @@ with TemporaryDirectory(prefix="paperplane-docker-worker-smoke-") as temporary:
             assert "DOCKER-METADATA-MARKER" in doc[0].get_text()
         results.append({"operation": "crop", "output_bytes": crop_path.stat().st_size,
                         "page_dimensions_checked": [270, 160], "source_text_checked": True})
+
+        page.goto(f"{BASE}/{slugs['watermark']}", wait_until="domcontentloaded")
+        assert page.locator("#client-privacy-toggle").is_checked()
+        page.locator("#file-input").set_input_files(str(metadata))
+        page.locator("#text").fill("DOCKER LOCAL WATERMARK")
+        page.locator("#opacity").fill("0.35")
+        page.locator("#mark_color").fill("#cc2200")
+        page.locator("#run-button").click()
+        page.locator("#result-download-link:not([hidden])").wait_for(state="visible", timeout=30000)
+        with page.expect_download() as event:
+            page.locator("#result-download-link").click()
+        watermark_path = temp / event.value.suggested_filename
+        event.value.save_as(watermark_path)
+        with fitz.open(watermark_path) as doc:
+            assert len(doc) == 1 and "DOCKER LOCAL WATERMARK" in doc[0].get_text()
+            assert "DOCKER-METADATA-MARKER" in doc[0].get_text()
+            pixmap = doc[0].get_pixmap(matrix=fitz.Matrix(1, 1), alpha=False)
+            samples = pixmap.samples
+            red_pixels = sum(1 for i in range(0, len(samples), pixmap.n)
+                             if samples[i] > samples[i + 1] + 2 and samples[i] > samples[i + 2] + 4)
+            assert red_pixels > 5
+        results.append({"operation": "watermark_text", "output_bytes": watermark_path.stat().st_size,
+                        "watermark_text_checked": True, "configured_color_pixels": red_pixels})
+
+        page.goto(f"{BASE}/{slugs['scan_pdf']}", wait_until="domcontentloaded")
+        assert page.locator("#client-privacy-toggle").is_checked()
+        page.locator("#file-input").set_input_files([str(path) for path in scan_images])
+        page.locator("#page_size").select_option("letter")
+        page.locator("#run-button").click()
+        page.locator("#result-download-link:not([hidden])").wait_for(state="visible", timeout=30000)
+        with page.expect_download() as event:
+            page.locator("#result-download-link").click()
+        scan_path = temp / event.value.suggested_filename
+        event.value.save_as(scan_path)
+        with fitz.open(scan_path) as doc:
+            assert len(doc) == 2
+            expected_sizes = ((792, 612), (612, 792))
+            assert all(abs(p.rect.width - size[0]) < .1 and abs(p.rect.height - size[1]) < .1
+                       for p, size in zip(doc, expected_sizes))
+            for scan_page, color in zip(doc, ((190, 25, 35), (25, 45, 190))):
+                pix = scan_page.get_pixmap(matrix=fitz.Matrix(1, 1), alpha=False)
+                pixel = pix.pixel(pix.width // 2, pix.height // 2)
+                assert all(abs(pixel[index] - color[index]) < 50 for index in range(3)), (pixel, color)
+        results.append({"operation": "scan_to_pdf", "output_bytes": scan_path.stat().st_size,
+                        "pages": 2, "letter_dimensions_checked": True, "sampled_image_colors_checked": True})
+
+        page.goto(f"{BASE}/{slugs['scan_pdf']}", wait_until="domcontentloaded")
+        page.locator("#file-input").set_input_files(str(wide_scan_image))
+        page.locator("#page_size").select_option("original")
+        page.locator("#run-button").click()
+        page.locator("#result-download-link:not([hidden])").wait_for(state="visible", timeout=30000)
+        with page.expect_download() as event:
+            page.locator("#result-download-link").click()
+        wide_path = temp / event.value.suggested_filename
+        event.value.save_as(wide_path)
+        with fitz.open(wide_path) as doc:
+            assert len(doc) == 1 and abs(doc[0].rect.width - 3240) < .2
+            assert abs(doc[0].rect.height - 7.2) < .2 and doc[0].get_images()
+        results.append({"operation": "wide_scan_original", "source_pixels": [9000, 20],
+                        "page_points": [3240, 7.2], "embedded_image_checked": True})
+
+        page.goto(f"{BASE}/{slugs['jpg_to_pdf']}", wait_until="domcontentloaded")
+        assert page.locator("#client-privacy-toggle").is_checked()
+        page.locator("#file-input").set_input_files([str(path) for path in scan_images])
+        page.locator("#run-button").click()
+        page.locator("#result-download-link:not([hidden])").wait_for(state="visible", timeout=30000)
+        with page.expect_download() as event:
+            page.locator("#result-download-link").click()
+        images_pdf_path = temp / event.value.suggested_filename
+        event.value.save_as(images_pdf_path)
+        with fitz.open(images_pdf_path) as doc:
+            assert len(doc) == 2
+            expected_sizes = ((841.89, 595.28), (595.28, 841.89))
+            assert all(abs(p.rect.width - size[0]) < .1 and abs(p.rect.height - size[1]) < .1
+                       for p, size in zip(doc, expected_sizes))
+            for converted_page, color in zip(doc, ((190, 25, 35), (25, 45, 190))):
+                pix = converted_page.get_pixmap(matrix=fitz.Matrix(1, 1), alpha=False)
+                pixel = pix.pixel(pix.width // 2, pix.height // 2)
+                assert all(abs(pixel[index] - color[index]) < 50 for index in range(3)), (pixel, color)
+        results.append({"operation": "jpg_png_to_pdf", "output_bytes": images_pdf_path.stat().st_size,
+                        "pages": 2, "a4_auto_orientation_checked": True, "sampled_image_colors_checked": True})
         assert not jobs, jobs
         browser.close()
 
 assert not errors, errors
 report = {"base": BASE, "results": results, "api_job_posts": jobs, "page_errors": errors}
-(OUT / "browser-id37-docker-worker-smoke.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
+(OUT / "browser-id37-docker-codex-final-v111.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
 print(json.dumps(report, indent=2))

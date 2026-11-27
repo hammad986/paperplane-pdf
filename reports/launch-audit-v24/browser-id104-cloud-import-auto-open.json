@@ -1,0 +1,39 @@
+{
+  "checks": [
+    {
+      "round": 1,
+      "route": "compress-pdf",
+      "http_status": 200,
+      "modal_hidden_attribute": true,
+      "modal_display_none": true,
+      "upload_queue_visible": true
+    },
+    {
+      "round": 1,
+      "route": "pdf-to-text",
+      "http_status": 200,
+      "modal_hidden_attribute": true,
+      "modal_display_none": true,
+      "upload_queue_visible": true
+    },
+    {
+      "round": 2,
+      "route": "compress-pdf",
+      "http_status": 200,
+      "modal_hidden_attribute": true,
+      "modal_display_none": true,
+      "upload_queue_visible": true
+    },
+    {
+      "round": 2,
+      "route": "pdf-to-text",
+      "http_status": 200,
+      "modal_hidden_attribute": true,
+      "modal_display_none": true,
+      "upload_queue_visible": true
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "result": "passed"
+}

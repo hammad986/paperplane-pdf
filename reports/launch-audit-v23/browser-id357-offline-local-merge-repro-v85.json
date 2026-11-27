@@ -1,0 +1,19 @@
+{
+  "before_fix_shell": "paperplane-shell-v85",
+  "reproduction": "Two cold-offline Chromium rounds opened the cached shell and /merge-pdf at HTTP 200 with Local mode selected, but failed to produce a local Merge download and displayed the server-upload consent fallback.",
+  "instrumented_request_failures": [
+    {
+      "url": "/assets/pdf.min.js",
+      "error": "net::ERR_FAILED while offline"
+    },
+    {
+      "url": "/assets/pdf-lib.min.js",
+      "error": "net::ERR_FAILED while offline"
+    }
+  ],
+  "rounds": [
+    {"round": 1, "offline_navigation_status": 200, "local_mode_default": true, "merge_download": false, "page_errors": []},
+    {"round": 2, "offline_navigation_status": 200, "local_mode_default": true, "merge_download": false, "page_errors": []}
+  ],
+  "fix": "Shell v86 precaches PDF.js, pdf.worker.min.js, and PDF-lib. Post-fix local and production-Docker rounds content-check the offline merge output in browser-id357-offline-local-merge.json and browser-v152-docker-offline-pwa.json."
+}

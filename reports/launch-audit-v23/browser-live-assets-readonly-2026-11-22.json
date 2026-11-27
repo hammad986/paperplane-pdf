@@ -1,0 +1,128 @@
+{
+  "site": "https://paperplane.qd.je",
+  "read_only": true,
+  "navigation_status": 200,
+  "navigation_error": null,
+  "responses": [
+    {
+      "url": "https://paperplane.qd.je/",
+      "status": 200
+    },
+    {
+      "url": "https://paperplane.qd.je/assets/styles.css?v=51",
+      "status": 200
+    },
+    {
+      "url": "https://paperplane.qd.je/assets/theme-init.js?v=13",
+      "status": 200
+    },
+    {
+      "url": "https://paperplane.qd.je/assets/pdf_runtime.js?v=18",
+      "status": 200
+    },
+    {
+      "url": "https://paperplane.qd.je/assets/security_forms.js?v=6.2.2",
+      "status": 200
+    },
+    {
+      "url": "https://paperplane.qd.je/assets/editor.js?v=14",
+      "status": 200
+    },
+    {
+      "url": "https://paperplane.qd.je/assets/feedback.js?v=17",
+      "status": 200
+    },
+    {
+      "url": "https://paperplane.qd.je/assets/conversion_engine.js?v=5.2.0",
+      "status": 200
+    },
+    {
+      "url": "https://paperplane.qd.je/assets/optimization_engine.js?v=4.2.0",
+      "status": 200
+    },
+    {
+      "url": "https://paperplane.qd.je/assets/page_organizer.js?v=14",
+      "status": 200
+    },
+    {
+      "url": "https://paperplane.qd.je/assets/app.js?v=91",
+      "status": 200
+    },
+    {
+      "url": "https://paperplane.qd.je/api/studio/ocr/languages",
+      "status": 200
+    },
+    {
+      "url": "https://paperplane.qd.je/api/ai/capabilities",
+      "status": 200
+    },
+    {
+      "url": "https://paperplane.qd.je/api/auth/me",
+      "status": 200
+    },
+    {
+      "url": "https://paperplane.qd.je/api/auth/config",
+      "status": 200
+    },
+    {
+      "url": "https://paperplane.qd.je/api/studio/conversions/capabilities",
+      "status": 200
+    },
+    {
+      "url": "https://paperplane.qd.je/api/operations",
+      "status": 200
+    },
+    {
+      "url": "https://paperplane.qd.je/assets/favicon.svg",
+      "status": 200
+    }
+  ],
+  "request_failures": [],
+  "live_assets": [
+    "/assets/app.js?v=91",
+    "/assets/page_organizer.js?v=14",
+    "/assets/pdf_runtime.js?v=18",
+    "/assets/styles.css?v=51"
+  ],
+  "local_candidate_assets": [
+    "/assets/app.js?v=145",
+    "/assets/page_organizer.js?v=20",
+    "/assets/pdf_runtime.js?v=25",
+    "/assets/styles.css?v=61"
+  ],
+  "asset_probes": [
+    {
+      "asset": "/assets/app.js?v=91",
+      "status": 200,
+      "bytes": 370684
+    },
+    {
+      "asset": "/assets/page_organizer.js?v=14",
+      "status": 200,
+      "bytes": 66232
+    },
+    {
+      "asset": "/assets/pdf_runtime.js?v=18",
+      "status": 200,
+      "bytes": 2506
+    },
+    {
+      "asset": "/assets/styles.css?v=51",
+      "status": 200,
+      "bytes": 285807
+    }
+  ],
+  "api_health_status": 200,
+  "api_health": {
+    "status": "ok",
+    "service": "paperplane-pdf",
+    "version": "2.0.0",
+    "auth_required": false,
+    "workers": 4,
+    "max_file_size_mb": 500,
+    "job_ttl_hours": 24
+  },
+  "horizontal_overflow_at_1366px": false,
+  "page_errors": [],
+  "local_candidate_is_live": false
+}

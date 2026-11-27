@@ -1,0 +1,15 @@
+{
+  "provider_attempts": 0,
+  "page_errors": [],
+  "console_errors": [],
+  "http_status": 503,
+  "guest_state_retained": true,
+  "otp_step_hidden": true,
+  "code_not_exposed": true,
+  "resend_and_smtp_attempts": {
+    "http": 0,
+    "smtp": 0
+  },
+  "transport_env_used": "fake Resend key and fake SMTP credentials; no credentials or mail sent",
+  "result": "passed"
+}

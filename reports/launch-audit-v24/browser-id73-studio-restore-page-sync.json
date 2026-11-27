@@ -1,0 +1,41 @@
+{
+  "build": "app.js?v=191, styles.css?v=70",
+  "rounds": [
+    {
+      "round": 1,
+      "before_reload": {
+        "pager": "4",
+        "pageCount": 5,
+        "currentPage": 4,
+        "canvasRendered": true,
+        "pageText": "Page 4 restore marker RST04"
+      },
+      "after_reload": {
+        "pager": "4",
+        "pageCount": 5,
+        "currentPage": 4,
+        "canvasRendered": true,
+        "pageText": "Page 4 restore marker RST04"
+      }
+    },
+    {
+      "round": 2,
+      "before_reload": {
+        "pager": "4",
+        "pageCount": 5,
+        "currentPage": 4,
+        "canvasRendered": true,
+        "pageText": "Page 4 restore marker RST04"
+      },
+      "after_reload": {
+        "pager": "4",
+        "pageCount": 5,
+        "currentPage": 4,
+        "canvasRendered": true,
+        "pageText": "Page 4 restore marker RST04"
+      }
+    }
+  ],
+  "page_errors": [],
+  "passed": true
+}

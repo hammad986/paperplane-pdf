@@ -1,0 +1,42 @@
+[
+  {
+    "round": 1,
+    "runtime": "production-mode Docker image paperplane-v23-audit:codex-v125",
+    "base": "http://127.0.0.1:18502",
+    "api": {
+      "httpStatus": 202,
+      "jobId": "cf45e9b0136a46d8a505c81232002788",
+      "status": "failed",
+      "error": "Watermark image exceeds the 20-megapixel processing limit. Choose a smaller image."
+    },
+    "validWatermark": {
+      "httpStatus": 202,
+      "status": "completed",
+      "downloadStatus": 200,
+      "filename": "attachment; filename=\"source_watermark.pdf\"",
+      "pdfContentChecked": true
+    },
+    "pageErrors": [],
+    "passed": true
+  },
+  {
+    "round": 2,
+    "runtime": "production-mode Docker image paperplane-v23-audit:codex-v125",
+    "base": "http://127.0.0.1:18502",
+    "api": {
+      "httpStatus": 202,
+      "jobId": "5f65be1d66d34ba8992a8765780d255c",
+      "status": "failed",
+      "error": "Watermark image exceeds the 20-megapixel processing limit. Choose a smaller image."
+    },
+    "validWatermark": {
+      "httpStatus": 202,
+      "status": "completed",
+      "downloadStatus": 200,
+      "filename": "attachment; filename=\"source_watermark.pdf\"",
+      "pdfContentChecked": true
+    },
+    "pageErrors": [],
+    "passed": true
+  }
+]

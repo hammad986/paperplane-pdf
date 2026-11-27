@@ -1,0 +1,155 @@
+{
+  "rounds": [
+    {
+      "operation": "unlock",
+      "viewport": 360,
+      "route_status": 200,
+      "download": "toast-protected_unlock.pdf",
+      "content_checked": true,
+      "download_button": {
+        "x": 174,
+        "y": 249.883544921875,
+        "width": 153,
+        "height": 56
+      },
+      "toast": {
+        "x": 12,
+        "y": 649,
+        "width": 336,
+        "height": 43
+      },
+      "run_button": {
+        "x": 16,
+        "y": 720.1060791015625,
+        "width": 328,
+        "height": 48
+      },
+      "bottom_navigation": {
+        "x": 0,
+        "y": 778,
+        "width": 360,
+        "height": 66
+      },
+      "toast_intersects_run_button": false,
+      "toast_intersects_bottom_navigation": false,
+      "toast_intersects_button": false,
+      "toast_pointer_events": "none"
+    },
+    {
+      "operation": "sign",
+      "viewport": 360,
+      "route_status": 200,
+      "download": "toast-source-signed.pdf",
+      "content_checked": true,
+      "download_button": {
+        "x": 142.21875,
+        "y": 272.859619140625,
+        "width": 184.78125,
+        "height": 44
+      },
+      "toast": {
+        "x": 12,
+        "y": 649,
+        "width": 336,
+        "height": 43
+      },
+      "run_button": {
+        "x": 16,
+        "y": 720.0278930664062,
+        "width": 328,
+        "height": 48
+      },
+      "bottom_navigation": {
+        "x": 0,
+        "y": 778,
+        "width": 360,
+        "height": 66
+      },
+      "toast_intersects_run_button": false,
+      "toast_intersects_bottom_navigation": false,
+      "toast_intersects_button": false,
+      "toast_pointer_events": "none"
+    },
+    {
+      "operation": "photo_merge",
+      "viewport": 360,
+      "route_status": 200,
+      "download": "merged-photos.jpg",
+      "content_checked": true,
+      "image_format": "JPEG",
+      "image_dimensions": [
+        320,
+        480
+      ],
+      "first_source_color_present": true,
+      "second_source_color_present": true,
+      "download_button": {
+        "x": 143.09375,
+        "y": 306,
+        "width": 183.90625,
+        "height": 44
+      },
+      "toast": {
+        "x": 12,
+        "y": 649,
+        "width": 336,
+        "height": 43
+      },
+      "run_button": {
+        "x": 16,
+        "y": 721.1385498046875,
+        "width": 328,
+        "height": 48
+      },
+      "bottom_navigation": {
+        "x": 0,
+        "y": 778,
+        "width": 360,
+        "height": 66
+      },
+      "toast_intersects_run_button": false,
+      "toast_intersects_bottom_navigation": false,
+      "toast_intersects_button": false,
+      "toast_pointer_events": "none"
+    },
+    {
+      "operation": "annotate",
+      "viewport": 360,
+      "route_status": 200,
+      "download": "toast-source-annotated.pdf",
+      "content_checked": true,
+      "annotation_count": 1,
+      "download_button": {
+        "x": 198,
+        "y": 128,
+        "width": 129,
+        "height": 56
+      },
+      "toast": {
+        "x": 12,
+        "y": 643.21630859375,
+        "width": 336,
+        "height": 43
+      },
+      "toast_intersects_button": false,
+      "run_button": {
+        "x": 16,
+        "y": 720,
+        "width": 328,
+        "height": 48
+      },
+      "bottom_navigation": {
+        "x": 0,
+        "y": 778,
+        "width": 360,
+        "height": 66
+      },
+      "toast_intersects_run_button": false,
+      "toast_intersects_bottom_navigation": false,
+      "toast_pointer_events": "none"
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "result": true
+}

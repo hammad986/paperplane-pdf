@@ -1,0 +1,47 @@
+{
+  "routes": [
+    {
+      "route": "/merge-pdf",
+      "operation": "merge",
+      "http_status": 200,
+      "browser_processing_default": true,
+      "client_side_mode": true
+    },
+    {
+      "route": "/split-pdf",
+      "operation": "split",
+      "http_status": 200,
+      "browser_processing_default": true,
+      "client_side_mode": true
+    },
+    {
+      "route": "/remove-pages",
+      "operation": "remove",
+      "http_status": 200,
+      "browser_processing_default": true,
+      "client_side_mode": true
+    },
+    {
+      "route": "/rotate-pdf",
+      "operation": "rotate",
+      "http_status": 200,
+      "browser_processing_default": true,
+      "client_side_mode": true
+    }
+  ],
+  "merge": {
+    "download_name": "merged-PDF.pdf",
+    "output_pages": 2,
+    "markers_content_checked": true,
+    "server_processing_requests": []
+  },
+  "unexpected_upload_requests": [],
+  "page_errors": [],
+  "console_errors": [],
+  "live_or_production_contacted": false,
+  "preference_persists_across_reload": {
+    "server_mode_persisted": true,
+    "local_mode_persisted": true
+  },
+  "passed": true
+}

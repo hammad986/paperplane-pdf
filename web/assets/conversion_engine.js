@@ -273,7 +273,7 @@
         </div>
         <div class="format-card" data-format="docx_to_pdf">
           <div class="format-card-header">
-            <span class="format-icon">Note</span>
+            <span class="format-icon">DOCX</span>
             <span class="format-badge badge-full">FULL</span>
           </div>
           <div class="format-name">Word to PDF</div>
@@ -297,7 +297,7 @@
         </div>
         <div class="format-card" data-format="md_to_pdf">
           <div class="format-card-header">
-            <span class="format-icon"></span>
+            <span class="format-icon">MD</span>
             <span class="format-badge badge-full">FULL</span>
           </div>
           <div class="format-name">Markdown to PDF</div>
@@ -305,7 +305,7 @@
         </div>
         <div class="format-card" data-format="txt_to_pdf">
           <div class="format-card-header">
-            <span class="format-icon">DOC</span>
+            <span class="format-icon">TXT</span>
             <span class="format-badge badge-full">FULL</span>
           </div>
           <div class="format-name">Text to PDF</div>
@@ -567,8 +567,18 @@
         }
 
         if (!resp.ok) {
-          const errData = await resp.json().catch(() => ({}));
-          throw new Error(errData.detail || `Conversion failed with status ${resp.status}`);
+          const message = window.readStudioResponseError
+            ? await window.readStudioResponseError(resp, `Conversion failed with status ${resp.status}`)
+            : await resp.json().then(errData => (
+                window.formatStudioErrorMessage
+                  ? window.formatStudioErrorMessage(errData, `Conversion failed with status ${resp.status}`, resp.status)
+                  : ((typeof errData?.detail === 'string' ? errData.detail : errData?.detail?.message) || `Conversion failed with status ${resp.status}`)
+              )).catch(() => `Conversion failed with status ${resp.status}`);
+          if (!message) {
+            if (progLbl) progLbl.textContent = 'Daily limit reached. Upgrade to continue.';
+            return;
+          }
+          throw new Error(message);
         }
 
         if (progBar) progBar.style.width = '90%';

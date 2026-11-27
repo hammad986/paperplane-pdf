@@ -1,0 +1,26 @@
+{
+  "tested_at": "2026-11-25",
+  "command": "docker compose --env-file <isolated test-only env> config --quiet",
+  "cases": [
+    {
+      "case": "missing-key",
+      "passed": true,
+      "returncode": 1,
+      "expected_message": "PAPERPLANE_ADMIN_KEY must be set"
+    },
+    {
+      "case": "missing-code",
+      "passed": true,
+      "returncode": 1,
+      "expected_message": "PAPERPLANE_ADMIN_CODE must be set"
+    },
+    {
+      "case": "both-present",
+      "passed": true,
+      "returncode": 0,
+      "expected_message": null
+    }
+  ],
+  "credential_values_recorded": false,
+  "container_started": false
+}

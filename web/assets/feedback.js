@@ -450,7 +450,18 @@
       if (settings && !settings.classList.contains("workspace-inline-panel")) settings.hidden = true;
       openFeedback();
     });
-    document.getElementById("feedback-page-open")?.addEventListener("click", openFeedback);
+    document.getElementById("feedback-page-open")?.addEventListener("click", () => {
+      if (formBody) formBody.style.display = "block";
+      if (successBody) successBody.style.display = "none";
+      openFeedback();
+    });
+    document.getElementById("feedback-send-another")?.addEventListener("click", () => {
+      const pageConfirm = document.getElementById("feedback-page-confirmation");
+      if (pageConfirm) pageConfirm.hidden = true;
+      if (formBody) formBody.style.display = "block";
+      if (successBody) successBody.style.display = "none";
+      openFeedback();
+    });
     document.getElementById("pp-feedback-dismiss")?.addEventListener("click", dismissFeedback);
     document.addEventListener("paperplane:open-feedback", openFeedback);
     document.addEventListener("paperplane:auth-changed", event => {
@@ -522,17 +533,22 @@
             syncVisibility({ keepCardOpen: true });
             if (formBody) formBody.style.display = "none";
             if (successBody) successBody.style.display = "block";
+            const pageConfirm = document.getElementById("feedback-page-confirmation");
+            if (pageConfirm) pageConfirm.hidden = false;
+            window.dispatchEvent(new CustomEvent("paperplane:feedback-submitted", { detail: { feedbackId: result.feedback_id } }));
+            if (textArea) textArea.value = "";
+            if (emailInput) emailInput.value = "";
+            selectedRating = 5;
+            stars.forEach(s => s.classList.add("active"));
 
-            // Automatically close popover after 2.5s and reset
+            // Keep confirmation visible on /feedback; elsewhere gently close after 6s so users always see confirmation.
             setTimeout(() => {
+              const feedbackPage = document.getElementById("view-feedback");
+              if (feedbackPage && !feedbackPage.hidden) return;
               if (card) card.style.display = "none";
               if (formBody) formBody.style.display = "block";
               if (successBody) successBody.style.display = "none";
-              if (textArea) textArea.value = "";
-              if (emailInput) emailInput.value = "";
-              selectedRating = 5;
-              stars.forEach(s => s.classList.add("active"));
-            }, 2500);
+            }, 6000);
           } else {
             alert("Unable to send feedback. Please try again.");
           }

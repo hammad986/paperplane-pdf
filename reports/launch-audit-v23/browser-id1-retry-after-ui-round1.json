@@ -1,0 +1,28 @@
+{
+  "retry_after_seconds": 30,
+  "provider_calls": [
+    {
+      "timeout_seconds": 20.65,
+      "at": 44508.273
+    },
+    {
+      "timeout_seconds": 20.65,
+      "at": 44508.275
+    },
+    {
+      "timeout_seconds": 17.666,
+      "at": 44538.274
+    }
+  ],
+  "provider_retries": 1,
+  "status": "PASS",
+  "elapsed_seconds": 33.25,
+  "page_count": 10,
+  "translated_marker_count": 10,
+  "source_marker_count": 0,
+  "http_statuses": [
+    200
+  ],
+  "page_errors": [],
+  "download_bytes": 114319
+}

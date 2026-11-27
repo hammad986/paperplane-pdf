@@ -1,0 +1,12 @@
+{
+  "payload": "<img src=x onerror=\"window.__extractionXss=true\">",
+  "page_errors": [],
+  "rendered": {
+    "invoiceHTML": "<tr>\n            <td style=\"color: var(--text-muted); font-size: 11px;\">1</td>\n            <td><strong>Synthetic item</strong></td>\n            <td style=\"text-align: right;\">&lt;img src=x onerror=\"window.__extractionXss=true\"&gt;</td>\n            <td style=\"text-align: right;\">USD 1</td>\n            <td style=\"text-align: right; font-weight: 700;\">USD 1</td>\n          </tr>",
+    "invoiceText": "\n            1\n            Synthetic item\n            <img src=x onerror=\"window.__extractionXss=true\">\n            USD 1\n            USD 1\n          ",
+    "pageHTML": "<span class=\"extraction-pill\">Page &lt;img src=x onerror=\"window.__extractionXss=true\"&gt;</span>",
+    "pageText": "Page <img src=x onerror=\"window.__extractionXss=true\">",
+    "injectedImages": 0,
+    "handlerExecuted": false
+  }
+}

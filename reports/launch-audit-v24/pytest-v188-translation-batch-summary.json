@@ -1,0 +1,21 @@
+{
+  "command": "python -m pytest -q",
+  "sequential": true,
+  "production_endpoints_contacted": false,
+  "results": [
+    {
+      "round": 1,
+      "exit_code": 0,
+      "duration_seconds": 151.59,
+      "summary": "686 passed, 4 warnings in 147.38s (0:02:27)",
+      "log": "pytest-v188-translation-batch-round1.log"
+    },
+    {
+      "round": 2,
+      "exit_code": 0,
+      "duration_seconds": 148.45,
+      "summary": "686 passed, 4 warnings in 143.54s (0:02:23)",
+      "log": "pytest-v188-translation-batch-round2.log"
+    }
+  ]
+}

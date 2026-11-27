@@ -1,0 +1,33 @@
+{
+  "states": [
+    {
+      "label": "after-upload-settled",
+      "title": "AI Document Intelligence | Paperplane",
+      "active_document_visible": true,
+      "active_filename": "chat-state.pdf",
+      "empty_state_visible": false,
+      "empty_state_text": "\n                  What can I help with?Ask a general question, or choose a PDF for answers with page citations.\n                  \n                    Choose a PDF to chat about\n                    \n                      \n                      Upload PDF to chatFor cited answers, extraction, and summaries. General chat works without a document.\n                      Choose PDF\n                    \n                  \n                ",
+      "greeting_count": 1,
+      "greeting_cards": [
+        "Paperplane AI:\n\nYour PDF is ready. Ask about its content and I\u2019ll include page citations.\n\nWhat is this document about?\nWhat are the key dates and amounts?\nWhat word is written on page two?"
+      ],
+      "document_greeting_nodes": 1
+    },
+    {
+      "label": "after-reload-settled",
+      "title": "AI Document Intelligence | Paperplane",
+      "active_document_visible": true,
+      "active_filename": "chat-state.pdf",
+      "empty_state_visible": false,
+      "empty_state_text": "\n                  What can I help with?Ask a general question, or choose a PDF for answers with page citations.\n                  \n                    Choose a PDF to chat about\n                    \n                      \n                      Upload PDF to chatFor cited answers, extraction, and summaries. General chat works without a document.\n                      Choose PDF\n                    \n                  \n                ",
+      "greeting_count": 1,
+      "greeting_cards": [
+        "Paperplane AI:\n\nYour PDF is ready. Ask about its content and I\u2019ll include page citations.\n\nWhat is this document about?\nWhat are the key dates and amounts?\nWhat word is written on page two?"
+      ],
+      "document_greeting_nodes": 1
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "passed": true
+}

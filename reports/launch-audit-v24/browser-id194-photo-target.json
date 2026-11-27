@@ -1,0 +1,29 @@
+{
+  "source_bytes": 421502,
+  "target_kb": 50,
+  "page_errors": [],
+  "console_errors": [],
+  "rounds": [
+    {
+      "round": 1,
+      "http_status": 200,
+      "output_name": "photo-429kb-compressed.jpg",
+      "output_bytes": 48642,
+      "warning": "",
+      "result_text": "Your document is ready!\nphoto-429kb-compressed.jpg \u00b7 47.5 KB \u00b7 870 \u00d7 650 px\nDownload File\nProcess Another File\nAll Tools",
+      "target_met": true,
+      "miss_explained": true
+    },
+    {
+      "round": 2,
+      "http_status": 200,
+      "output_name": "photo-429kb-compressed.jpg",
+      "output_bytes": 48642,
+      "warning": "",
+      "result_text": "Your document is ready!\nphoto-429kb-compressed.jpg \u00b7 47.5 KB \u00b7 870 \u00d7 650 px\nDownload File\nProcess Another File\nAll Tools",
+      "target_met": true,
+      "miss_explained": true
+    }
+  ],
+  "passed": true
+}

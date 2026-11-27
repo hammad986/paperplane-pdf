@@ -1,0 +1,134 @@
+{
+  "checks": [
+    {
+      "round": 1,
+      "width": 877,
+      "height": 514,
+      "status": 200,
+      "layout": {
+        "viewport": {
+          "width": 877,
+          "height": 514
+        },
+        "documentWidth": 877,
+        "actionPosition": "static",
+        "action": {
+          "left": 8,
+          "right": 869,
+          "top": 805,
+          "bottom": 855,
+          "width": 861,
+          "height": 50
+        },
+        "nav": {
+          "left": 0,
+          "right": 877,
+          "top": 448,
+          "bottom": 514,
+          "width": 877,
+          "height": 66
+        },
+        "overlapsContent": [],
+        "actionNavOverlap": false
+      }
+    },
+    {
+      "round": 1,
+      "width": 768,
+      "height": 432,
+      "status": 200,
+      "layout": {
+        "viewport": {
+          "width": 768,
+          "height": 432
+        },
+        "documentWidth": 768,
+        "actionPosition": "static",
+        "action": {
+          "left": 8,
+          "right": 760,
+          "top": 805,
+          "bottom": 855,
+          "width": 752,
+          "height": 50
+        },
+        "nav": {
+          "left": 0,
+          "right": 768,
+          "top": 366,
+          "bottom": 432,
+          "width": 768,
+          "height": 66
+        },
+        "overlapsContent": [],
+        "actionNavOverlap": false
+      }
+    },
+    {
+      "round": 2,
+      "width": 877,
+      "height": 514,
+      "status": 200,
+      "layout": {
+        "viewport": {
+          "width": 877,
+          "height": 514
+        },
+        "documentWidth": 877,
+        "actionPosition": "static",
+        "action": {
+          "left": 8,
+          "right": 869,
+          "top": 807,
+          "bottom": 857,
+          "width": 861,
+          "height": 50
+        },
+        "nav": {
+          "left": 0,
+          "right": 877,
+          "top": 448,
+          "bottom": 514,
+          "width": 877,
+          "height": 66
+        },
+        "overlapsContent": [],
+        "actionNavOverlap": false
+      }
+    },
+    {
+      "round": 2,
+      "width": 768,
+      "height": 432,
+      "status": 200,
+      "layout": {
+        "viewport": {
+          "width": 768,
+          "height": 432
+        },
+        "documentWidth": 768,
+        "actionPosition": "static",
+        "action": {
+          "left": 8,
+          "right": 760,
+          "top": 810,
+          "bottom": 860,
+          "width": 752,
+          "height": 50
+        },
+        "nav": {
+          "left": 0,
+          "right": 768,
+          "top": 366,
+          "bottom": 432,
+          "width": 768,
+          "height": 66
+        },
+        "overlapsContent": [],
+        "actionNavOverlap": false
+      }
+    }
+  ],
+  "failures": [],
+  "note": "The short-viewport rule models Chrome native 175% and 200% zoom on the available desktop screen."
+}

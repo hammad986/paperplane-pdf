@@ -1,0 +1,33 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "mode": "all_pages",
+      "archive_members": [
+        "page-1.pdf",
+        "page-2.pdf",
+        "page-3.pdf",
+        "page-4.pdf"
+      ],
+      "content_checked_one_page_pdfs": 4,
+      "source_markers_preserved": true,
+      "output_media": "application/zip"
+    },
+    {
+      "round": 2,
+      "mode": "all_pages",
+      "archive_members": [
+        "page-1.pdf",
+        "page-2.pdf",
+        "page-3.pdf",
+        "page-4.pdf"
+      ],
+      "content_checked_one_page_pdfs": 4,
+      "source_markers_preserved": true,
+      "output_media": "application/zip"
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "passed": true
+}

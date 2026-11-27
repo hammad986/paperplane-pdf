@@ -1,0 +1,70 @@
+{
+  "build": "http://127.0.0.1:8766/assets/app.js?v=191",
+  "viewports": [
+    320,
+    360,
+    390
+  ],
+  "tabs_tested": [
+    "account",
+    "privacy"
+  ],
+  "measurements": [
+    {
+      "width": 320,
+      "tab": "account",
+      "cardWithinViewport": true,
+      "activeTabInsideViewport": true,
+      "activeTabInsideRail": true,
+      "activePaneWithinViewport": true,
+      "documentNoHorizontalOverflow": true
+    },
+    {
+      "width": 320,
+      "tab": "privacy",
+      "cardWithinViewport": true,
+      "activeTabInsideViewport": true,
+      "activeTabInsideRail": true,
+      "activePaneWithinViewport": true,
+      "documentNoHorizontalOverflow": true
+    },
+    {
+      "width": 360,
+      "tab": "account",
+      "cardWithinViewport": true,
+      "activeTabInsideViewport": true,
+      "activeTabInsideRail": true,
+      "activePaneWithinViewport": true,
+      "documentNoHorizontalOverflow": true
+    },
+    {
+      "width": 360,
+      "tab": "privacy",
+      "cardWithinViewport": true,
+      "activeTabInsideViewport": true,
+      "activeTabInsideRail": true,
+      "activePaneWithinViewport": true,
+      "documentNoHorizontalOverflow": true
+    },
+    {
+      "width": 390,
+      "tab": "account",
+      "cardWithinViewport": true,
+      "activeTabInsideViewport": true,
+      "activeTabInsideRail": true,
+      "activePaneWithinViewport": true,
+      "documentNoHorizontalOverflow": true
+    },
+    {
+      "width": 390,
+      "tab": "privacy",
+      "cardWithinViewport": true,
+      "activeTabInsideViewport": true,
+      "activeTabInsideRail": true,
+      "activePaneWithinViewport": true,
+      "documentNoHorizontalOverflow": true
+    }
+  ],
+  "browser_errors": [],
+  "passed": true
+}

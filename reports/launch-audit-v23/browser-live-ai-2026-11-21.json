@@ -1,0 +1,55 @@
+{
+  "site": "https://paperplane.qd.je",
+  "fixture_pages": 5,
+  "providers": {
+    "capabilities": {
+      "http_status": 200,
+      "executive_brief_available": true,
+      "reason": null
+    },
+    "summary": {
+      "http_status": 200,
+      "mode": "offline_extractive",
+      "nonempty": true,
+      "citations": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "provider_synthesis_proven": false
+    },
+    "translations": {
+      "es": [
+        {
+          "attempt": 1,
+          "http_status": 422,
+          "content_type": "application/json",
+          "error": "Only 36% of text blocks, 36% of text segments, and 38% of source characters were translated (minimum 50% for blocks and characters). No translated PDF was produced."
+        },
+        {
+          "attempt": 2,
+          "http_status": 422,
+          "content_type": "application/json",
+          "error": "Only 32% of text blocks, 32% of text segments, and 30% of source characters were translated (minimum 50% for blocks and characters). No translated PDF was produced."
+        }
+      ],
+      "hi": [
+        {
+          "attempt": 1,
+          "http_status": 429,
+          "content_type": "application/json",
+          "error": "The translation provider is rate limited (upstream HTTP 429). Please retry shortly."
+        },
+        {
+          "attempt": 2,
+          "http_status": 429,
+          "content_type": "application/json",
+          "error": "The translation provider is rate limited (upstream HTTP 429). Please retry shortly."
+        }
+      ]
+    }
+  },
+  "browser_page_errors": []
+}

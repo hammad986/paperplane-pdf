@@ -1,0 +1,21 @@
+{
+  "date": "2026-11-23",
+  "source": "Real user Chrome tab, read-only CUA inspection; no form submission or live state change performed",
+  "url": "https://paperplane.qd.je/translate-pdf",
+  "served_assets": {
+    "app_js": "/assets/app.js?v=154",
+    "styles_css": "/assets/styles.css?v=61"
+  },
+  "existing_visible_result": {
+    "status": "Processing failed",
+    "translated_text_blocks_percent": 2,
+    "translated_text_segments_percent": 2,
+    "source_characters_percent": 0,
+    "minimum_percent": 50,
+    "translated_pdf_produced": false
+  },
+  "upload_guidance": "PDF files up to 50 MB each on Free and 500 MB each on paid plans · This tool processes 1 file per run",
+  "browser_console_errors": [],
+  "browser_console_warnings": [],
+  "interpretation": "Confirms the live site is still on the older build and the existing 15-page translation result has inadequate coverage; this observation is not a new translation attempt and does not verify the v192 candidate."
+}

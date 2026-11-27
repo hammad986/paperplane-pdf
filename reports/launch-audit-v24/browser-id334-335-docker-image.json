@@ -1,0 +1,74 @@
+{
+  "image": "sha256:b3f67f1297644b560af990c4947657796828f240d1ac8d2c3b97c80e23a94e36",
+  "checks": {
+    "health": "ok",
+    "assets": {
+      "app": "/assets/app.js?v=187",
+      "stylesheet": "/assets/styles.css?v=69",
+      "service_worker": "v138 includes app.js?v=187 and styles.css?v=69"
+    },
+    "dropzone_hint_layout": [
+      {
+        "width": 320,
+        "left": 38,
+        "parentLeft": 8,
+        "right": 282,
+        "parentRight": 312,
+        "scrollWidth": 244,
+        "clientWidth": 244,
+        "height": 61.5625,
+        "display": "block"
+      },
+      {
+        "width": 390,
+        "left": 38,
+        "parentLeft": 8,
+        "right": 352,
+        "parentRight": 382,
+        "scrollWidth": 314,
+        "clientWidth": 314,
+        "height": 61.5625,
+        "display": "block"
+      },
+      {
+        "width": 1366,
+        "left": 354,
+        "parentLeft": 306,
+        "right": 1282,
+        "parentRight": 1330,
+        "scrollWidth": 928,
+        "clientWidth": 928,
+        "height": 36,
+        "display": "block"
+      }
+    ],
+    "settings_privacy_tab_at_320px": {
+      "left": 169.60000610351562,
+      "right": 292.4800109863281,
+      "selected": true,
+      "scrollLeft": 413
+    },
+    "markdown": {
+      "bytes": 40134,
+      "paper_title_present": true,
+      "internal_uuid_heading_absent": true,
+      "spacing_phrases_preserved": true,
+      "fallback_glyph_count": 10
+    },
+    "studio_clear_pdf_label_at_390px": {
+      "text": "Clear PDF",
+      "scrollHeight": 11,
+      "clientHeight": 11
+    },
+    "ai_chat_retry": {
+      "requests": 2,
+      "failed_state_user_question_count": 1,
+      "after_retry_user_question_count": 1,
+      "fallback_answer_visible": true,
+      "retry_error_removed": true
+    }
+  },
+  "page_errors": [],
+  "console_errors": [],
+  "result": "passed"
+}

@@ -1,0 +1,42 @@
+{
+  "image": "sha256:4d831e49507f4880b29502e5d1ee12788d85b63feafec240240b69e7938a1e88",
+  "status": "running",
+  "health": {
+    "status": "ok",
+    "service": "paperplane-pdf",
+    "version": "2.0.0",
+    "auth_required": false,
+    "workers": 4,
+    "max_file_size_mb": 500,
+    "job_ttl_hours": 2
+  },
+  "asset": "/assets/app.js?v=116",
+  "python_process_count": 6,
+  "processes": [
+    "1001                76873               76851               0                   09:27               ?                   00:00:06            python app.py",
+    "1001                76899               76873               0                   09:27               ?                   00:00:00            /usr/local/bin/python -B -c from multiprocessing.resource_tracker import main;main(6)",
+    "1001                76900               76873               1                   09:27               ?                   00:00:25            /usr/local/bin/python -B -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=7, pipe_handle=9) --multiprocessing-fork",
+    "1001                77360               76873               6                   09:29               ?                   00:01:41            /usr/local/bin/python -B -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=7, pipe_handle=21) --multiprocessing-fork",
+    "1001                78744               76873               8                   09:35               ?                   00:01:41            /usr/local/bin/python -B -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=7, pipe_handle=21) --multiprocessing-fork",
+    "1001                78795               76873               0                   09:36               ?                   00:00:08            /usr/local/bin/python -B -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=7, pipe_handle=20) --multiprocessing-fork"
+  ],
+  "catalog_rounds": [
+    {
+      "round": 1,
+      "statuses": {
+        "completed": 41,
+        "ssrf_blocked": 1,
+        "unavailable": 2
+      }
+    },
+    {
+      "round": 2,
+      "statuses": {
+        "completed": 41,
+        "ssrf_blocked": 1,
+        "unavailable": 2
+      }
+    }
+  ],
+  "page_errors": []
+}

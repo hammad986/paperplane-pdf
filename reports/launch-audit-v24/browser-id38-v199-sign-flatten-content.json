@@ -1,0 +1,30 @@
+{
+  "candidate": "paperplane-codex:v199",
+  "fixture": "id2-docker-v188-69page.pdf",
+  "result": [
+    {
+      "route": "/sign-pdf",
+      "duration_to_result_s": 0.819,
+      "content_check": {
+        "download_name": "id2-docker-v188-69page-signed.pdf",
+        "bytes": 31464,
+        "pages": 69,
+        "contains_signature_marker": true,
+        "contains_page_69_marker": true
+      }
+    },
+    {
+      "route": "/flatten-pdf",
+      "duration_to_result_s": 0.811,
+      "content_check": {
+        "download_name": "flattened.pdf",
+        "bytes": 30900,
+        "pages": 69,
+        "contains_signature_marker": null,
+        "contains_page_69_marker": true
+      }
+    }
+  ],
+  "page_errors": [],
+  "status": "passed"
+}

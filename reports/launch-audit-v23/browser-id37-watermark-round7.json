@@ -1,0 +1,50 @@
+{
+  "round": "round7",
+  "rounds": [
+    {
+      "status": "passed",
+      "filename": "watermarked.pdf",
+      "bytes": 2759,
+      "pages": 4,
+      "text_checked": true,
+      "rotations_checked": [
+        0,
+        90,
+        180,
+        270
+      ],
+      "watermark_centers": [
+        [
+          176.0,
+          108.5
+        ],
+        [
+          117.5,
+          172.5
+        ],
+        [
+          176.0,
+          108.5
+        ],
+        [
+          117.5,
+          172.5
+        ]
+      ],
+      "selected_color_pixels_checked": true,
+      "server_job_posts": 0
+    }
+  ],
+  "server_job_posts": [],
+  "page_errors": [],
+  "image_fallback": {
+    "confirmation_shown": true,
+    "declined": true,
+    "server_job_posts_after_decline": 0
+  },
+  "unsupported_text": {
+    "fallback_explanation_shown": true,
+    "declined": true,
+    "server_job_posts_after_decline": 0
+  }
+}

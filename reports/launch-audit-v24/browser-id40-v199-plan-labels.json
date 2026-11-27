@@ -1,0 +1,32 @@
+{
+  "item_id": 40,
+  "candidate": {
+    "image_tag": "paperplane-codex:v199",
+    "image_digest": "sha256:0fcb6dd73e2d41253edb4f0d3a575cb7bfb3348ecf163453022f94dc3f3fcb65",
+    "app_js": "199",
+    "styles_css": "73",
+    "service_worker_cache": "v151"
+  },
+  "browser": "Google Chrome via CUA on Windows",
+  "url": "http://127.0.0.1:8770/pricing",
+  "desktop_checks": {
+    "pricing_title": "All-In-One Pro & Developer",
+    "pricing_badge": "ALL-IN-ONE PRO & DEVELOPER",
+    "price": "₹299 /30 days",
+    "rows_in_limits_table": 44,
+    "stale_aliases_found": false,
+    "console_errors_or_warnings": []
+  },
+  "mobile_checks": {
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "document_horizontal_overflow": false,
+    "card_scroll_width_equals_client_width": true,
+    "badge_scroll_width_equals_client_width": true,
+    "console_errors_or_warnings": []
+  },
+  "pricing_scope": "Recurring checkout is explicitly one-time with no automatic renewal; tier is a 30-day pass, not a monthly subscription.",
+  "scope_note": "Local synthetic production-mode candidate only; live deployment and real payment were not tested. Broader user-visible tool-name and price-format audit remains open."
+}

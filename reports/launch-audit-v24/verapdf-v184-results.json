@@ -1,0 +1,83 @@
+{"report":{"buildInformation":{"releaseDetails":[{
+  "id" : "core",
+  "version" : "1.30.4",
+  "buildDate" : 1794209880000
+},{
+  "id" : "validation-model",
+  "version" : "1.30.4",
+  "buildDate" : 1794210060000
+},{
+  "id" : "apps",
+  "version" : "1.30.4",
+  "buildDate" : 1794211800000
+}]},"jobs":[{"itemDetails":{
+  "name" : "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v24\\docker-catalog-fixtures-current-v184-20261123-v184-style67-image-2026-11-23\\outputs\\round-1\\notes-69page_pdf_to_pdfa.pdf",
+  "size" : 777219
+},"validationResult":[ {
+  "details" : {
+    "passedRules" : 129,
+    "failedRules" : 0,
+    "passedChecks" : 11071,
+    "failedChecks" : 0,
+    "ruleSummaries" : [ ]
+  },
+  "jobEndStatus" : "normal",
+  "profileName" : "PDF/A-1b validation profile",
+  "statement" : "PDF file is compliant with Validation Profile requirements.",
+  "compliant" : true
+} ],"processingTime":{
+  "start" : 1795394530370,
+  "finish" : 1795394531525,
+  "duration" : "00:00:01.155",
+  "difference" : 1155
+}},{"itemDetails":{
+  "name" : "C:\\Users\\mdham\\Downloads\\pdf_splitter\\pdf_splitter\\reports\\launch-audit-v24\\docker-catalog-fixtures-current-v184-20261123-v184-style67-image-2026-11-23\\outputs\\round-2\\notes-69page_pdf_to_pdfa.pdf",
+  "size" : 777219
+},"validationResult":[ {
+  "details" : {
+    "passedRules" : 129,
+    "failedRules" : 0,
+    "passedChecks" : 11071,
+    "failedChecks" : 0,
+    "ruleSummaries" : [ ]
+  },
+  "jobEndStatus" : "normal",
+  "profileName" : "PDF/A-1b validation profile",
+  "statement" : "PDF file is compliant with Validation Profile requirements.",
+  "compliant" : true
+} ],"processingTime":{
+  "start" : 1795394531606,
+  "finish" : 1795394532033,
+  "duration" : "00:00:00.427",
+  "difference" : 427
+}}],"batchSummary":{
+  "duration" : {
+    "start" : 1795394530268,
+    "finish" : 1795394532036,
+    "duration" : "00:00:01.768",
+    "difference" : 1768
+  },
+  "totalJobs" : 2,
+  "outOfMemory" : 0,
+  "veraExceptions" : 0,
+  "repairSummary" : {
+    "failedJobCount" : 0,
+    "totalJobCount" : 0,
+    "successfulJobCount" : 0
+  },
+  "featuresSummary" : {
+    "failedJobCount" : 0,
+    "totalJobCount" : 0,
+    "successfulJobCount" : 0
+  },
+  "validationSummary" : {
+    "failedJobCount" : 0,
+    "totalJobCount" : 2,
+    "compliantPdfaCount" : 2,
+    "nonCompliantPdfaCount" : 0,
+    "successfulJobCount" : 2
+  },
+  "failedParsingJobs" : 0,
+  "failedEncryptedJobs" : 0,
+  "multiJob" : true
+}}}

@@ -1,0 +1,19 @@
+{
+  "checked_at": "2026-11-23",
+  "surface": "https://paperplane.qd.je/translate-pdf",
+  "browser": "Google Chrome via CUA",
+  "interaction": "read-only observation of an existing live test result; no upload or processing request submitted",
+  "assets": {
+    "app_js": "/assets/app.js?v=154",
+    "styles_css": "/assets/styles.css?v=61",
+    "optimization_engine": "/assets/optimization_engine.js?v=4.2.1",
+    "pdf_runtime": "/assets/pdf_runtime.js?v=25"
+  },
+  "selected_file": "1706.03762v7.pdf (2.11 MB; 15-page public arXiv fixture retained from the existing live test)",
+  "target_language": "hi (Hindi)",
+  "visible_status": "Processing failed",
+  "visible_message": "Only 2% of text blocks, 2% of text segments, and 0% of source characters were translated (minimum 50% for blocks and characters). No translated PDF was produced.",
+  "download_available": false,
+  "console_errors": [],
+  "result": "The deployed v154 Hindi translation path still fails on the recorded fixture. No code or production state was changed."
+}

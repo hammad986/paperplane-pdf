@@ -1,0 +1,21 @@
+{
+  "checks": [
+    {
+      "round": 1,
+      "http_status": 200,
+      "server_job_retention_2h_disclosed": true,
+      "browser_saved_studio_ai_retention_disclosed": true,
+      "conflicting_general_24h_deletion_claim": false
+    },
+    {
+      "round": 2,
+      "http_status": 200,
+      "server_job_retention_2h_disclosed": true,
+      "browser_saved_studio_ai_retention_disclosed": true,
+      "conflicting_general_24h_deletion_claim": false
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "result": "passed"
+}

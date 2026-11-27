@@ -1,0 +1,33 @@
+{
+  "checks": [
+    {
+      "disabled": true,
+      "text": "Select files to continue\n\u2192",
+      "background": "rgb(248, 250, 249)",
+      "color": "rgb(52, 70, 74)",
+      "opacity": "1",
+      "width": 358,
+      "docWidth": 390,
+      "viewportWidth": 390,
+      "css": "/assets/styles.css?v=73",
+      "route": "/translate-pdf",
+      "contrastRatio": 9.45
+    },
+    {
+      "disabled": true,
+      "text": "Select at least two PDFs to merge",
+      "background": "rgb(248, 250, 249)",
+      "color": "rgb(52, 70, 74)",
+      "opacity": "1",
+      "width": 358,
+      "docWidth": 390,
+      "viewportWidth": 390,
+      "css": "/assets/styles.css?v=73",
+      "route": "/merge-pdf",
+      "contrastRatio": 9.45
+    }
+  ],
+  "pageErrors": [],
+  "consoleErrors": [],
+  "providerNote": "Translation service is unavailable in this local environment; color and disabled-state were checked, not translation execution."
+}

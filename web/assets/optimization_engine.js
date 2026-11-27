@@ -18,6 +18,41 @@
     return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   }
 
+  async function studioRequestError(response, action) {
+    const err = await response.json().catch(() => ({}));
+    const detail = err?.detail;
+    const message = (typeof detail === 'string' ? detail : detail?.message) || err?.message || `${action} failed (${response.status})`;
+    if (response.status === 402 && typeof window.openUpgradeModal === 'function') {
+      window.openUpgradeModal(message);
+    }
+    return new Error(String(message));
+  }
+
+  async function postStudioForm(url, form, action) {
+    if (form instanceof FormData) {
+      const rawFile = form.get('file');
+      if (rawFile && typeof rawFile.arrayBuffer === 'function' && Number(rawFile.size || 0) <= 25 * 1024 * 1024) {
+        try {
+          const buf = await rawFile.arrayBuffer();
+          form.set('file', new File([buf], rawFile.name || 'document.pdf', {
+            type: rawFile.type || 'application/pdf',
+            lastModified: rawFile.lastModified || Date.now(),
+          }));
+        } catch { /* Keep original File handle if cloning is unavailable. */ }
+      }
+    }
+    let resp;
+    try {
+      resp = await fetch(url, { method: 'POST', credentials: 'same-origin', body: form });
+    } catch {
+      resp = await fetch(url, { method: 'POST', credentials: 'same-origin', body: form });
+    }
+    if (!resp.ok) {
+      throw await studioRequestError(resp, action);
+    }
+    return resp;
+  }
+
   class PaperplaneOptimizationController {
     constructor() {
       this.currentFile = null;
@@ -174,11 +209,7 @@
             form.append('preset', preset);
             if (targetKb) form.append('target_size_kb', targetKb);
 
-            const resp = await fetch('/api/studio/compress', { method: 'POST', body: form });
-            if (!resp.ok) {
-              const err = await resp.json().catch(() => ({}));
-              throw new Error(err.detail || `Compression failed (${resp.status})`);
-            }
+            const resp = await postStudioForm('/api/studio/compress', form, 'Compression');
 
             const origSize = parseInt(resp.headers.get('X-Original-Size') || '0', 10);
             const outSize = parseInt(resp.headers.get('X-Output-Size') || '0', 10);
@@ -319,11 +350,7 @@
             if (progressBar) progressBar.style.width = '60%';
             if (progressPct) progressPct.textContent = '60%';
 
-            const resp = await fetch('/api/studio/ocr', { method: 'POST', body: form });
-            if (!resp.ok) {
-              const err = await resp.json().catch(() => ({}));
-              throw new Error(err.detail || `OCR failed (${resp.status})`);
-            }
+            const resp = await postStudioForm('/api/studio/ocr', form, 'OCR');
 
             if (progressBar) progressBar.style.width = '100%';
             if (progressPct) progressPct.textContent = '100%';
@@ -413,11 +440,7 @@
             form.append('file', this.currentFile);
             form.append('mode', mode);
 
-            const resp = await fetch('/api/studio/repair', { method: 'POST', body: form });
-            if (!resp.ok) {
-              const err = await resp.json().catch(() => ({}));
-              throw new Error(err.detail || `Repair failed (${resp.status})`);
-            }
+            const resp = await postStudioForm('/api/studio/repair', form, 'Repair');
 
             if (mode === 'validate_only') {
               const res = await resp.json();

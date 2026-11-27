@@ -1,0 +1,19 @@
+{
+  "image": "sha256:4d831e49507f4880b29502e5d1ee12788d85b63feafec240240b69e7938a1e88",
+  "health": {
+    "status": "ok",
+    "service": "paperplane-pdf",
+    "version": "2.0.0",
+    "auth_required": false,
+    "workers": 4,
+    "max_file_size_mb": 500,
+    "job_ttl_hours": 2
+  },
+  "asset": "/assets/app.js?v=116",
+  "service_worker": "paperplane-shell-v47",
+  "python_process_count": 6,
+  "uid": "1001",
+  "browser_evidence": "browser-id2-notes-summary-docker.json",
+  "rounds": 2,
+  "all_passed": true
+}

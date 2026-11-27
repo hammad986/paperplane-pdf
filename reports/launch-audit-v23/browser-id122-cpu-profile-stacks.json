@@ -1,0 +1,70 @@
+{
+  "duration_s": 5.2,
+  "samples": 3341,
+  "hot_call_paths": [
+    {
+      "samples": 151,
+      "chain": [
+        "scrollTo@:-1",
+        "switchWorkspaceView@app.js?v=110:1245",
+        "setInitialView@app.js?v=110:8504",
+        "handleInitialRouting@app.js?v=110:8498",
+        "init@app.js?v=110:8225",
+        "<anon>@app.js?v=110:0",
+        "(root)@:-1"
+      ]
+    },
+    {
+      "samples": 56,
+      "chain": [
+        "refresh@app.js?v=110:8143",
+        "initFooterReveal@app.js?v=110:8142",
+        "init@app.js?v=110:8225",
+        "<anon>@app.js?v=110:0",
+        "(root)@:-1"
+      ]
+    },
+    {
+      "samples": 32,
+      "chain": [
+        "showText@pdf.min.js:21",
+        "executeOperatorList@pdf.min.js:21",
+        "_next@pdf.min.js:21",
+        "<anon>@pdf.min.js:21",
+        "(root)@:-1"
+      ]
+    },
+    {
+      "samples": 18,
+      "chain": [
+        "renderStudioPageNow@app.js?v=110:2964",
+        "(root)@:-1"
+      ]
+    },
+    {
+      "samples": 4,
+      "chain": [
+        "createStudioPageSlot@app.js?v=110:2804",
+        "prepareStudioPageStack@app.js?v=110:2822",
+        "(root)@:-1"
+      ]
+    },
+    {
+      "samples": 3,
+      "chain": [
+        "createStudioPageSlot@app.js?v=110:2804",
+        "prepareStudioPageStack@app.js?v=110:2822",
+        "loadDocumentIntoStudio@app.js?v=110:2659",
+        "(root)@:-1"
+      ]
+    },
+    {
+      "samples": 2,
+      "chain": [
+        "renderStudioPageNow@app.js?v=110:2964",
+        "<anon>@app.js?v=110:2957",
+        "(root)@:-1"
+      ]
+    }
+  ]
+}

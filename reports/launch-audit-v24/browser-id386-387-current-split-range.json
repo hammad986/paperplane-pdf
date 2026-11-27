@@ -1,0 +1,28 @@
+{
+  "status": 200,
+  "app_asset": "/assets/app.js?v=233",
+  "all_pages_mode": {
+    "value": "all_pages",
+    "range_hidden": true,
+    "range_disabled": true,
+    "help": "All pages will be split into separate PDFs. Custom page ranges are disabled for this mode."
+  },
+  "invalid_range": {
+    "value": "11",
+    "aria_invalid": "true",
+    "validation": "Enter page numbers from 1 to 10. This PDF has 10 pages.",
+    "upload_prompt_active": false,
+    "server_jobs_before_valid_run": 0
+  },
+  "custom_mode": "range",
+  "download_name": "extracted-pages.pdf",
+  "output_pages": 2,
+  "output_text": [
+    "CURRENT SPLIT FIXTURE PAGE 2",
+    "CURRENT SPLIT FIXTURE PAGE 3"
+  ],
+  "content_checked": true,
+  "server_jobs": [],
+  "page_errors": [],
+  "console_errors": []
+}

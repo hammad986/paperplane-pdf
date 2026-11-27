@@ -1,0 +1,63 @@
+{
+  "item": 327,
+  "candidate": "current local source",
+  "sourcePages": 3,
+  "selection": "1, 3",
+  "runs": [
+    {
+      "round": 1,
+      "mode": "browser",
+      "activeMode": "browser",
+      "width": 390,
+      "zip_bytes": 22031,
+      "members": [
+        "page_001.jpg",
+        "page_003.jpg"
+      ],
+      "mean_rgb": {
+        "page_001.jpg": [
+          224,
+          43,
+          42
+        ],
+        "page_003.jpg": [
+          39,
+          62,
+          224
+        ]
+      },
+      "api_job_posts": 0,
+      "overflow": false
+    },
+    {
+      "round": 2,
+      "mode": "server",
+      "activeMode": "server",
+      "width": 1366,
+      "zip_bytes": 12684,
+      "members": [
+        "page_001.jpg",
+        "page_003.jpg"
+      ],
+      "mean_rgb": {
+        "page_001.jpg": [
+          224,
+          43,
+          42
+        ],
+        "page_003.jpg": [
+          39,
+          63,
+          224
+        ]
+      },
+      "api_job_posts": 1,
+      "overflow": false,
+      "invalidRangeError": "Choose pages from 1 to 3.",
+      "invalidRangeTitle": "Need a little more information",
+      "invalidRangeDownloadHidden": true
+    }
+  ],
+  "browserErrors": [],
+  "passed": true
+}

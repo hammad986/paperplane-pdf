@@ -1,0 +1,13 @@
+{
+  "image": "pdf_splitter-paperplane:latest",
+  "image_id": "sha256:cee6def2644e43484dd48346aaefa35aa631b04ddbe783f74e19b096b144762b",
+  "execution": "non-root UID 1001 container; network disabled; actual Chromium process via converters.html_to_pdf(is_url=False)",
+  "input_html": "<html><body><h1>Paperplane Raw HTML Profile Test</h1></body></html>",
+  "output_bytes": 17256,
+  "pdf_signature": "%PDF-1.4",
+  "page_count": 1,
+  "expected_text_found": true,
+  "temporary_profile_isolated_and_cleaned": true,
+  "result": "passed",
+  "chromium_stderr_note": "Non-fatal D-Bus warnings were emitted; process returned zero and produced a valid PDF."
+}

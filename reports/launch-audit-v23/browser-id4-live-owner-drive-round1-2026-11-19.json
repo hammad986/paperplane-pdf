@@ -1,0 +1,28 @@
+{
+  "site": "https://paperplane.qd.je",
+  "source": "exact user-provided v23 owner Drive test link; value redacted",
+  "route_http_status": 200,
+  "api_responses": [
+    {
+      "http_status": 400,
+      "provider": null,
+      "filename_present": false,
+      "content_type": null,
+      "size_bytes": null,
+      "page_count": null,
+      "data_url_present": false,
+      "error": "Google Drive returned image/png, not a PDF. Check that the shared link points to the PDF itself and is available to anyone with the link."
+    }
+  ],
+  "ui": {
+    "modal_hidden": false,
+    "error_visible": true,
+    "error_text": "Google Drive returned image/png, not a PDF. Check that the shared link points to the PDF itself and is available to anyone with the link.",
+    "imported_file_rows": 0,
+    "imported_size_labels": [],
+    "toast_reports_import": false,
+    "toast_page_count": null,
+    "toast_present": false
+  },
+  "page_errors": []
+}

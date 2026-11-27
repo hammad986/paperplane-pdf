@@ -1473,8 +1473,14 @@ def admin_get_analytics() -> dict:
     return {
         "total_users": total_users,
         "tier_breakdown": tier_counts,
-        "pro_users": tier_counts.get("pro", 0) + tier_counts.get("student_pro", 0),
-        "dev_users": tier_counts.get("developer", 0) + tier_counts.get("dev", 0),
+        "pro_users": (
+            tier_counts.get("pro", 0)
+            + tier_counts.get("student_pro", 0)
+            + tier_counts.get("exam_pass", 0)
+            + tier_counts.get("cyber_cafe", 0)
+        ),
+        "exam_pass_users": tier_counts.get("exam_pass", 0),
+        "dev_users": tier_counts.get("developer", 0) + tier_counts.get("dev", 0) + tier_counts.get("cyber_cafe", 0),
         "free_users": tier_counts.get("free", 0),
         "today_active": today_active,
         "new_signups_7d": new_7d,
@@ -1784,8 +1790,14 @@ def admin_get_extended_analytics() -> dict:
     return {
         "total_users": total_users,
         "tier_breakdown": tier_counts,
-        "pro_users": tier_counts.get("pro", 0) + tier_counts.get("student_pro", 0),
-        "dev_users": tier_counts.get("developer", 0) + tier_counts.get("dev", 0),
+        "pro_users": (
+            tier_counts.get("pro", 0)
+            + tier_counts.get("student_pro", 0)
+            + tier_counts.get("exam_pass", 0)
+            + tier_counts.get("cyber_cafe", 0)
+        ),
+        "exam_pass_users": tier_counts.get("exam_pass", 0),
+        "dev_users": tier_counts.get("developer", 0) + tier_counts.get("dev", 0) + tier_counts.get("cyber_cafe", 0),
         "free_users": tier_counts.get("free", 0),
         "today_active": today_active,
         "new_signups_7d": new_7d,

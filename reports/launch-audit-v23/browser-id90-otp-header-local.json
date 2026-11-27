@@ -1,0 +1,13 @@
+{
+  "scenario": "real local login challenge route with controlled no-network mail success stub",
+  "mail_network_calls": 0,
+  "captured_code_digits": 6,
+  "status": 200,
+  "challenge_status": "otp_required",
+  "dev_otp_body_key_present": false,
+  "captured_code_present_in_body": false,
+  "otp_related_response_headers": [],
+  "authenticated_session_cookie_issued": false,
+  "guest_quota_cookie_only": true,
+  "page_errors": []
+}

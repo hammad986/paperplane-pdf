@@ -1,0 +1,17 @@
+{
+  "runtime": "isolated local Uvicorn + Chromium",
+  "timeout_seconds": 1.5,
+  "real_watermark_child_process_started_and_stopped": true,
+  "worker_pid": 24344,
+  "worker_alive_after_timeout": false,
+  "temporary_image_removed": true,
+  "browser_job": {
+    "submitStatus": 202,
+    "jobId": "2e93ca46d4fb4b9cbdca67b4f7c49437",
+    "status": "failed",
+    "error": "Watermark processing timed out after 1s. The worker was stopped. The document may be unusually large or complex; try fewer pages or a smaller file.",
+    "outputName": null
+  },
+  "page_errors": [],
+  "passed": true
+}

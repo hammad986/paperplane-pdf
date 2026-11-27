@@ -1,0 +1,77 @@
+{
+  "input_dimensions": [
+    2400,
+    1800
+  ],
+  "layout": "grid",
+  "rounds": [
+    {
+      "round": 1,
+      "download": "merged-photos.jpg",
+      "output": {
+        "dimensions": [
+          4800,
+          3600
+        ],
+        "quadrants": [
+          [
+            210,
+            40,
+            40
+          ],
+          [
+            40,
+            170,
+            61
+          ],
+          [
+            40,
+            80,
+            211
+          ],
+          [
+            219,
+            170,
+            31
+          ]
+        ]
+      },
+      "server_posts": 0,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "download": "merged-photos.jpg",
+      "output": {
+        "dimensions": [
+          4800,
+          3600
+        ],
+        "quadrants": [
+          [
+            210,
+            40,
+            40
+          ],
+          [
+            40,
+            170,
+            61
+          ],
+          [
+            40,
+            80,
+            211
+          ],
+          [
+            219,
+            170,
+            31
+          ]
+        ]
+      },
+      "server_posts": 0,
+      "page_errors": []
+    }
+  ]
+}

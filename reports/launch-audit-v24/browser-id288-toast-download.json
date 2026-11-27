@@ -1,0 +1,75 @@
+{
+  "rounds": [
+    {
+      "operation": "protect",
+      "viewport_width": 390,
+      "route_status": 200,
+      "download_name": "demo_protect.pdf",
+      "download_pdf_valid": true,
+      "button_state": {
+        "rect": {
+          "x": 154,
+          "y": 276.1455078125,
+          "width": 203,
+          "height": 44
+        },
+        "hidden": false,
+        "display": "flex",
+        "visibility": "visible",
+        "opacity": "1"
+      },
+      "toast_box": {
+        "x": 12,
+        "y": 76,
+        "width": 366,
+        "height": 43
+      },
+      "preexisting_success_toast_box": {
+        "x": 12,
+        "y": 82.3623275756836,
+        "width": 366,
+        "height": 43
+      },
+      "toast_intersects_download_button": false,
+      "toast_pointer_events": "none",
+      "toast_z_index": "1990"
+    },
+    {
+      "operation": "compress",
+      "viewport_width": 1366,
+      "route_status": 200,
+      "download_name": "demo_compress.pdf",
+      "download_pdf_valid": true,
+      "button_state": {
+        "rect": {
+          "x": 717,
+          "y": 700.6510009765625,
+          "width": 156,
+          "height": 38
+        },
+        "hidden": false,
+        "display": "flex",
+        "visibility": "visible",
+        "opacity": "1"
+      },
+      "toast_box": {
+        "x": 1122,
+        "y": 77.55619812011719,
+        "width": 220,
+        "height": 43
+      },
+      "preexisting_success_toast_box": {
+        "x": 1122,
+        "y": 92,
+        "width": 220,
+        "height": 43
+      },
+      "toast_intersects_download_button": false,
+      "toast_pointer_events": "none",
+      "toast_z_index": "250"
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "result": true
+}

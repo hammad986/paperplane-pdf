@@ -1,0 +1,848 @@
+{
+  "results": [
+    {
+      "case": "ai_capability_and_connection_status_match_missing_provider",
+      "capabilities": {
+        "executive_brief_available": false,
+        "reason": "ai_service_not_configured"
+      },
+      "connection_status": "configuration_missing",
+      "admin_health_status": "configuration_missing",
+      "secrets_exposed": false
+    },
+    {
+      "case": "feedback_submission_visible_in_admin_poll_without_refresh",
+      "post_status": 200,
+      "admin_row_visible": true,
+      "disposable_entry_deleted": true
+    },
+    {
+      "case": "trusted_proxy_distinct_client_ips_reach_admin_audit",
+      "attempts": [
+        {
+          "status": 401
+        },
+        {
+          "status": 401
+        }
+      ],
+      "audit_ips": {
+        "proxy-browser-13c358c7@example.invalid": "203.0.113.82",
+        "proxy-browser-a148ea40@example.invalid": "203.0.113.81"
+      },
+      "forwarded_ips": [
+        "203.0.113.81",
+        "203.0.113.82"
+      ]
+    },
+    {
+      "case": "cloud_import_does_not_open_during_dropzone_file_selection",
+      "routes": [
+        "/summarize-pdf",
+        "/compare-pdf",
+        "/edit-pdf"
+      ],
+      "cloud_modal_open": false
+    },
+    {
+      "case": "cloud_import_p0_paths_twice",
+      "results": [
+        {
+          "source": "w3c_direct_pdf",
+          "attempt": 1,
+          "status": 200,
+          "filename": "dummy.pdf",
+          "pages": 1,
+          "content_checked": true
+        },
+        {
+          "source": "w3c_direct_pdf",
+          "attempt": 2,
+          "status": 200,
+          "filename": "dummy.pdf",
+          "pages": 1,
+          "content_checked": true
+        },
+        {
+          "source": "owner_drive_view",
+          "attempt": 1,
+          "status": 400,
+          "detail": "Google Drive returned image/png, not a PDF. Check that the shared link points to the PDF itself and is available to anyone with the link."
+        },
+        {
+          "source": "owner_drive_view",
+          "attempt": 2,
+          "status": 400,
+          "detail": "Google Drive returned image/png, not a PDF. Check that the shared link points to the PDF itself and is available to anyone with the link."
+        }
+      ],
+      "owner_drive_passed": false
+    },
+    {
+      "case": "unattributed_pdf_false_author_claim",
+      "http_status": 200,
+      "answer": "I can't verify that authorship claim: the PDF's metadata and opening text do not identify an author.",
+      "citations": []
+    },
+    {
+      "case": "general_greeting_works_with_document_loaded",
+      "http_status": 200,
+      "answer": "I'm here and ready to help. What would you like to know or do with your PDF?",
+      "citations": []
+    },
+    {
+      "case": "smart_metadata_section_number_not_date",
+      "http_status": 200,
+      "document_date": null,
+      "topics": [
+        "Machine Learning"
+      ],
+      "warnings": []
+    },
+    {
+      "case": "annotate_and_redact_find_same_keyword",
+      "annotation_status": 200,
+      "redaction_status": 200,
+      "annotation_count": 1,
+      "redacted_text_verified": true
+    },
+    {
+      "case": "ai_empty_state_invites_pdf_upload_to_chat",
+      "desktop": {
+        "width": 580,
+        "scrollWidth": 578,
+        "documentWidth": 1366,
+        "buttonVisible": true
+      },
+      "mobile": {
+        "width": 332,
+        "scrollWidth": 330,
+        "documentWidth": 390,
+        "copyVisible": true,
+        "buttonVisible": true
+      },
+      "empty_after_clear_chat": true
+    },
+    {
+      "case": "ai_chat_markdown_and_nested_citation_rendering",
+      "html": "<p>Document overview from sampled pages:</p><p><span class=\"ai-citation-tag\" role=\"button\" tabindex=\"0\" data-ai-page=\"1\" title=\"Open page 1 in Studio\">Page 1</span>: Project result: total $42. The delivery deadline is 15 December 2026.</p>",
+      "text": "Document overview from sampled pages:Page 1: Project result: total $42. The delivery deadline is 15 December 2026.",
+      "citations": [
+        1
+      ]
+    },
+    {
+      "case": "tool_heading_not_obscured_after_scroll_1104px",
+      "checks": [
+        {
+          "path": "/ocr-pdf",
+          "geometry": {
+            "title": [
+              -309,
+              -279
+            ],
+            "topbar": [
+              -642,
+              -533
+            ],
+            "mobileBar": [
+              0,
+              0
+            ],
+            "mainScroll": 642
+          }
+        },
+        {
+          "path": "/remove-pages-pdf",
+          "geometry": {
+            "title": [
+              -227,
+              -197
+            ],
+            "topbar": [
+              -560,
+              -451
+            ],
+            "mobileBar": [
+              0,
+              0
+            ],
+            "mainScroll": 560
+          }
+        }
+      ]
+    },
+    {
+      "case": "developer_swagger_redoc_and_openapi_routes",
+      "links": {
+        "swagger": "/spec/swagger",
+        "redoc": "/spec/redoc",
+        "footer": "/spec/swagger"
+      },
+      "openapi_paths": 94,
+      "all_local_routes_status_200": true,
+      "no_public_bluesminds_leak": true,
+      "no_shipped_ilovepdf_reference": true
+    },
+    {
+      "case": "tool_desk_view_and_tool_route_aliases",
+      "directory_visible": true,
+      "aliases": {
+        "/fill-form": {
+          "final_url": "http://127.0.0.1:61952/fill-pdf-form",
+          "status": 1
+        },
+        "/ai-translate": {
+          "final_url": "http://127.0.0.1:61952/translate-pdf",
+          "status": 1
+        }
+      }
+    },
+    {
+      "case": "spa_tool_landing_clears_previous_workflow_faq_copy",
+      "initial_operation": "merge",
+      "previous_heading": "Merge PDF files in your preferred order",
+      "next_operation": "split",
+      "final_heading": "Split a PDF by pages or ranges",
+      "final_first_faq": "Can I split a PDF into selected pages?",
+      "old_heading_absent": true,
+      "old_faq_absent": true
+    },
+    {
+      "case": "run_button_label_does_not_split_midword",
+      "viewport": 390,
+      "label": {
+        "text": "Select files to continue\n\u2192",
+        "wordBreak": "normal",
+        "overflowWrap": "normal",
+        "whiteSpace": "normal",
+        "rect": {
+          "x": 24,
+          "y": 760,
+          "width": 342,
+          "height": 50,
+          "top": 760,
+          "right": 366,
+          "bottom": 810,
+          "left": 24
+        }
+      }
+    },
+    {
+      "case": "studio_sidebar_toggle_does_not_cover_toolbar",
+      "expanded_geometry": {
+        "sidebar": [
+          271,
+          544.1875,
+          273.1875
+        ],
+        "toolbar": [
+          544.1875,
+          1365,
+          820.8125
+        ],
+        "collapsed": false
+      }
+    },
+    {
+      "case": "studio_first_page_canvas_paints_within_5_seconds",
+      "elapsed_seconds": 0.814
+    },
+    {
+      "case": "ai_studio_has_no_obsolete_local_history_banner",
+      "banner_absent": true
+    },
+    {
+      "case": "studio_desktop_has_no_persistent_save_banner_and_fits",
+      "banner_absent": true,
+      "toolbar_height": 121,
+      "toolbar_rows": 3,
+      "visible_buttons": 33,
+      "document_width": 1366,
+      "footer_hidden_until_scroll": true,
+      "footer_revealed_after_scroll": "visible"
+    },
+    {
+      "case": "per_tool_limits_and_draft_billing_support_pages",
+      "operations": 44,
+      "draft_routes": [
+        "/privacy",
+        "/refund",
+        "/contact",
+        "/status"
+      ]
+    },
+    {
+      "case": "mobile_action_uncovered",
+      "path": "/split-pdf",
+      "viewport": [
+        846,
+        712
+      ],
+      "button": [
+        306,
+        831,
+        645,
+        881
+      ],
+      "nav": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "intersects": false
+    },
+    {
+      "case": "mobile_action_uncovered",
+      "path": "/merge-pdf",
+      "viewport": [
+        846,
+        712
+      ],
+      "button": [
+        306,
+        820,
+        502,
+        868
+      ],
+      "nav": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "intersects": false
+    },
+    {
+      "case": "mobile_action_uncovered",
+      "path": "/compress-pdf",
+      "viewport": [
+        846,
+        712
+      ],
+      "button": [
+        306,
+        464,
+        532,
+        512
+      ],
+      "nav": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "intersects": false
+    },
+    {
+      "case": "breadcrumb",
+      "viewport": [
+        1280,
+        800
+      ],
+      "text": "Paperplane\n/\nWorkspace\n/\nAI Document Intelligence",
+      "items": [
+        {
+          "text": "Paperplane",
+          "client": 66,
+          "scroll": 66
+        },
+        {
+          "text": "/",
+          "client": 5,
+          "scroll": 5
+        },
+        {
+          "text": "Workspace",
+          "client": 66,
+          "scroll": 66
+        },
+        {
+          "text": "/",
+          "client": 5,
+          "scroll": 5
+        },
+        {
+          "text": "AI Document Intelligence",
+          "client": 144,
+          "scroll": 144
+        }
+      ]
+    },
+    {
+      "case": "breadcrumb",
+      "viewport": [
+        1024,
+        768
+      ],
+      "text": "Paperplane\n/\nWorkspace\n/\nAI Document Intelligence",
+      "items": [
+        {
+          "text": "Paperplane",
+          "client": 66,
+          "scroll": 66
+        },
+        {
+          "text": "/",
+          "client": 5,
+          "scroll": 5
+        },
+        {
+          "text": "Workspace",
+          "client": 66,
+          "scroll": 66
+        },
+        {
+          "text": "/",
+          "client": 5,
+          "scroll": 5
+        },
+        {
+          "text": "AI Document Intelligence",
+          "client": 144,
+          "scroll": 144
+        }
+      ]
+    },
+    {
+      "case": "guest_daily_server_operation_cap_enforced",
+      "evidence": {
+        "statuses": [
+          202,
+          202,
+          202,
+          202,
+          202,
+          202,
+          202,
+          202,
+          202,
+          202
+        ],
+        "usageToday": 10,
+        "remaining": 0,
+        "eleventhStatus": 402,
+        "capCode": "TIER_LIMIT_REACHED",
+        "capUsage": 10
+      },
+      "isolated_browser_usage": {
+        "active_guest": 1,
+        "independent_guest": 0
+      }
+    },
+    {
+      "case": "authenticated_free_tier_cannot_bypass_daily_operation_cap",
+      "evidence": {
+        "allowed": [
+          202,
+          202,
+          202,
+          202,
+          202,
+          202,
+          202,
+          202,
+          202,
+          202
+        ],
+        "usageToday": 10,
+        "dailyLimit": 10,
+        "eleventhStatus": 402,
+        "code": "TIER_LIMIT_REACHED",
+        "tier": "free",
+        "blockedUsage": 10
+      }
+    },
+    {
+      "case": "aadhaar_mask_output_hides_first_eight_and_preserves_last_four",
+      "source": "1234 5678 9012",
+      "output_text": "Synthetic Aadhaar: \n 9012\nXXXX XXXX",
+      "rendered_mask_mean_luminance": 61.68,
+      "content_checked": true
+    },
+    {
+      "case": "flatten_bakes_highlight_appearance_and_removes_active_annotation",
+      "pages": 1,
+      "active_annotations": 0,
+      "yellow_pixels": 25759,
+      "content_checked": true
+    },
+    {
+      "case": "split_ranges_and_duplicate_selection_match_requested_content",
+      "runs": [
+        {
+          "selection": "range_1_2",
+          "page_spec": "1-2",
+          "pages": 2,
+          "texts": [
+            "Split range source page 1.",
+            "Split range source page 2."
+          ]
+        },
+        {
+          "selection": "single_page_1",
+          "page_spec": "1",
+          "pages": 1,
+          "texts": [
+            "Split range source page 1."
+          ]
+        },
+        {
+          "selection": "duplicate_selection",
+          "page_spec": "1,1,2",
+          "pages": 2,
+          "texts": [
+            "Split range source page 1.",
+            "Split range source page 2."
+          ]
+        }
+      ],
+      "content_checked": true
+    },
+    {
+      "case": "remove_pages_first_attempt_latency_on_5mb_pdf",
+      "source_bytes": 5050539,
+      "source_pages": 10,
+      "runs": [
+        {
+          "round": 1,
+          "elapsed_seconds": 2.061,
+          "output_bytes": 4546142,
+          "pages": 9,
+          "page2_is_original_page3": true
+        },
+        {
+          "round": 2,
+          "elapsed_seconds": 1.971,
+          "output_bytes": 4546142,
+          "pages": 9,
+          "page2_is_original_page3": true
+        }
+      ]
+    },
+    {
+      "case": "metadata_browser_output_preserves_provenance",
+      "content_checked": true
+    },
+    {
+      "case": "pdf_to_markdown_browser_output_content_checked",
+      "output_name": "browser-download_pdf_to_markdown.md"
+    },
+    {
+      "case": "photo_resize_browser_output_aspect_preserved",
+      "size": [
+        100,
+        100
+      ]
+    },
+    {
+      "case": "compression_missed_target_warning_content_checked",
+      "output_bytes": 114074,
+      "warning": "Compressed to 111.4 KB; the requested target could not be reached while preserving document content."
+    },
+    {
+      "case": "progress_consistency_and_toast_hit_target",
+      "evidence": {
+        "determinate": {
+          "value": 10,
+          "label": "10%"
+        },
+        "indeterminate": {
+          "hasValue": false,
+          "label": "Working"
+        },
+        "toastPointerEvents": "none",
+        "underlyingTargetReceivesPointer": true
+      }
+    },
+    {
+      "case": "/protect-pdf",
+      "round": 1,
+      "bytes": 1479,
+      "pages": 1,
+      "content_checked": true
+    },
+    {
+      "case": "/protect-pdf",
+      "round": 2,
+      "bytes": 1479,
+      "pages": 1,
+      "content_checked": true
+    },
+    {
+      "case": "/sign-pdf",
+      "round": 1,
+      "bytes": 1517,
+      "pages": 1,
+      "content_checked": true
+    },
+    {
+      "case": "/sign-pdf",
+      "round": 2,
+      "bytes": 1517,
+      "pages": 1,
+      "content_checked": true
+    },
+    {
+      "case": "executive_brief_repeated_citation_parity",
+      "rounds": 2,
+      "citations": [
+        1
+      ],
+      "summary_identical": true
+    },
+    {
+      "case": "executive_brief_pdf_download",
+      "bytes": 1242,
+      "pages": 1,
+      "content_checked": true
+    },
+    {
+      "case": "local_blob_open_in_studio",
+      "pages": 1,
+      "rendered_canvas": [
+        345,
+        487
+      ],
+      "mobile_layout": {
+        "width": 390,
+        "documentWidth": 390,
+        "boxes": {
+          "#studio-toolbar": {
+            "visible": true,
+            "rect": [
+              8,
+              64,
+              374,
+              118
+            ],
+            "scrollHeight": 116
+          },
+          "#studio-thumbnails-bar": {
+            "visible": false,
+            "rect": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "scrollHeight": 0
+          },
+          "#studio-canvas-area": {
+            "visible": true,
+            "rect": [
+              8,
+              192,
+              374,
+              557.03125
+            ],
+            "scrollHeight": 555
+          },
+          "#studio-mobile-page-summary": {
+            "visible": false,
+            "rect": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "scrollHeight": 0
+          }
+        },
+        "toolbarButtons": 27
+      }
+    },
+    {
+      "case": "studio_uses_and_persists_selected_account_theme",
+      "dark": {
+        "theme": "dark",
+        "studio": "rgb(28, 38, 40)",
+        "toolbar": "rgb(25, 36, 38)"
+      },
+      "light": {
+        "theme": "light",
+        "studio": "rgb(237, 241, 239)",
+        "canvasArea": "rgb(248, 250, 249)",
+        "toolbar": "rgb(248, 250, 249)",
+        "toolbarText": "rgb(38, 55, 58)",
+        "stored": "light"
+      },
+      "after_reload": {
+        "theme": "light",
+        "studio": "rgb(237, 241, 239)",
+        "canvasArea": "rgb(248, 250, 249)"
+      },
+      "desktop_restore_toast": {
+        "top": 226,
+        "toastRect": {
+          "left": 8,
+          "right": 321,
+          "top": 226,
+          "bottom": 269,
+          "width": 313,
+          "height": 43
+        },
+        "pageRect": {
+          "left": 657.09375,
+          "right": 1252.09375,
+          "top": 181.96875,
+          "bottom": 1023.96875
+        },
+        "dockRect": {
+          "top": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "toolbarBottom": 153.96875,
+        "active": {
+          "html": true,
+          "body": true
+        },
+        "overlaps": [],
+        "pageOverlap": false,
+        "pageHidden": false
+      },
+      "mobile_restore_toast": {
+        "top": 225,
+        "toastRect": {
+          "left": 7,
+          "right": 8,
+          "top": 225,
+          "bottom": 226,
+          "width": 1,
+          "height": 1
+        },
+        "pageRect": {
+          "left": 36,
+          "right": 354,
+          "top": 209,
+          "bottom": 1051
+        },
+        "dockRect": {
+          "top": 662,
+          "bottom": 778,
+          "width": 390,
+          "height": 116
+        },
+        "toolbarBottom": 182,
+        "active": {
+          "html": true,
+          "body": true
+        },
+        "overlaps": [],
+        "pageOverlap": false,
+        "pageHidden": true
+      },
+      "mobile_after_reload": {
+        "theme": "light",
+        "canvasArea": "rgb(248, 250, 249)",
+        "scrollWidth": 390
+      }
+    },
+    {
+      "case": "first_and_subsequent_studio_open_tool_activation",
+      "pages": 1,
+      "text_tool_active": true
+    },
+    {
+      "case": "studio_single_page_extract_download_content_checked",
+      "bytes": 847,
+      "pages": 1,
+      "download_name": "extracted_1_second-studio-open.pdf"
+    },
+    {
+      "case": "studio_page_jump_1_69_1_canvas_rendered",
+      "pages": 69,
+      "targets": [
+        1,
+        69,
+        1
+      ],
+      "canvas_nonblank": true
+    },
+    {
+      "case": "studio_delete_one_page_updates_count_and_content",
+      "deleted_page": 34,
+      "remaining_pages": 68,
+      "page34_text": "Studio jump verification page 35.",
+      "elapsed_seconds": 1.338
+    },
+    {
+      "case": "studio_page_deletion_survives_reload_after_30_seconds",
+      "initial_pages": 10,
+      "remaining_pages": 9,
+      "first_page_text": "Studio retention verification page 2.",
+      "guest_browser": true,
+      "wait_after_reload_seconds": 30
+    },
+    {
+      "case": "studio_export_retries_one_dropped_fetch_and_downloads_content_checked",
+      "attempts": 2,
+      "download_bytes": 867,
+      "pages": 1,
+      "content_checked": true
+    },
+    {
+      "case": "studio_export_retries_503_and_downloads_content_checked",
+      "attempts": 2,
+      "download_bytes": 867,
+      "pages": 1,
+      "content_checked": true
+    },
+    {
+      "case": "signed_in_first_paint_has_auth_skeleton",
+      "route": "/",
+      "guest_defaults_hidden": true,
+      "resolved_email": "audit-5d252ebd@example.invalid"
+    },
+    {
+      "case": "signed_in_first_paint_has_auth_skeleton",
+      "route": "/split-pdf",
+      "guest_defaults_hidden": true,
+      "resolved_email": "audit-5d252ebd@example.invalid"
+    },
+    {
+      "case": "signed_in_first_paint_has_auth_skeleton",
+      "route": "/merge-pdf",
+      "guest_defaults_hidden": true,
+      "resolved_email": "audit-5d252ebd@example.invalid"
+    },
+    {
+      "case": "signed_in_first_paint_has_auth_skeleton",
+      "route": "/edit-pdf",
+      "guest_defaults_hidden": true,
+      "resolved_email": "audit-5d252ebd@example.invalid"
+    },
+    {
+      "case": "signed_in_first_paint_has_auth_skeleton",
+      "route": "/compress-pdf",
+      "guest_defaults_hidden": true,
+      "resolved_email": "audit-5d252ebd@example.invalid"
+    },
+    {
+      "case": "signed_in_first_paint_has_auth_skeleton",
+      "route": "/settings",
+      "guest_defaults_hidden": true,
+      "resolved_email": "audit-5d252ebd@example.invalid"
+    },
+    {
+      "case": "signed_in_first_paint_has_auth_skeleton",
+      "route": "/studio",
+      "guest_defaults_hidden": true,
+      "resolved_email": "audit-5d252ebd@example.invalid"
+    },
+    {
+      "case": "studio_saved_document_restores_without_empty_state_flash",
+      "initial_overlay": {
+        "overlayVisible": true,
+        "overlayText": "Checking for saved PDF...",
+        "emptyStateVisible": true
+      },
+      "restored_pages": 10,
+      "restored_first_page_text": "Studio retention verification page 1."
+    }
+  ],
+  "page_errors": []
+}

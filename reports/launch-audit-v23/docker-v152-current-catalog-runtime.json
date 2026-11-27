@@ -1,0 +1,19 @@
+{
+  "image": "paperplane-v23-audit:codex-v152-offline-pdf-deps",
+  "image_id": "sha256:81d1779c172216e1a8ec4f6ea8f2131c6765ce2865d819c57b9871a349eb526b",
+  "health": {
+    "status": "ok",
+    "service": "paperplane-pdf",
+    "version": "2.0.0",
+    "auth_required": false,
+    "workers": 4,
+    "max_file_size_mb": 500,
+    "job_ttl_hours": 24
+  },
+  "catalog_exit_code": 0,
+  "catalog_evidence": "browser-id28-v148-current-image-catalog-current-v152-2026-11-22.json",
+  "catalog_log": "browser-id28-current-v152-catalog.log",
+  "storage": "temporary container with tmpfs only",
+  "real_payment": false,
+  "provider_credentials": false
+}

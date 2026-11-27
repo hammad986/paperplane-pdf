@@ -39,7 +39,7 @@
   async function createStudioRenderSession(bytes, password = '') {
     if (typeof Worker !== 'function' || typeof OffscreenCanvas !== 'function'
         || !(bytes instanceof ArrayBuffer) || bytes.byteLength > 64 * 1024 * 1024) return null;
-    const worker = new Worker('/assets/studio_render_worker.js?v=6');
+    const worker = new Worker('/assets/studio_render_worker.js?v=7');
     let nextRequestId = 1;
     const pending = new Map();
     let closed = false;
@@ -148,31 +148,47 @@
     }
   }
 
-  async function transformLocalPdf(operation, files, options) {
+  async function transformLocalPdf(operation, files, options, timeoutMs = 90000) {
     const buffers = await Promise.all(files.map(file => file.arrayBuffer()));
     return new Promise((resolve, reject) => {
-      const worker = new Worker('/assets/local_pdf_worker.js?v=29');
+      const worker = new Worker('/assets/local_pdf_worker.js?v=32');
+      let settled = false;
+      const timer = setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        release();
+        reject(new Error('Browser PDF processing timed out. Choose Server Processing or try a smaller file.'));
+      }, timeoutMs);
       const release = () => {
+        clearTimeout(timer);
         worker.terminate();
         window.removeEventListener('pagehide', onPageHide);
       };
       const onPageHide = () => {
+        if (settled) return;
+        settled = true;
         release();
         reject(new Error('Browser processing ended when the page closed.'));
       };
       window.addEventListener('pagehide', onPageHide, { once: true });
       worker.onmessage = event => {
+        if (settled) return;
+        settled = true;
         release();
         if (event.data.error) reject(new Error(event.data.error));
         else resolve(event.data);
       };
       worker.onerror = () => {
+        if (settled) return;
+        settled = true;
         release();
         reject(new Error('The browser PDF worker could not complete this operation.'));
       };
       try {
         worker.postMessage({ operation, files: buffers, options }, buffers);
       } catch (error) {
+        if (settled) return;
+        settled = true;
         release();
         reject(error);
       }

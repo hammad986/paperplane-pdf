@@ -1,0 +1,37 @@
+{
+  "date": "2026-11-19",
+  "image": "paperplane-v23-audit:codex-current",
+  "image_id": "sha256:95da3920879f457e7e39bdbceaeb1bd271c5093492f212d60b26fcac7c374f49",
+  "container_status": "running",
+  "health": {
+    "status": "ok",
+    "service": "paperplane-pdf",
+    "version": "2.0.0",
+    "auth_required": false,
+    "workers": 4,
+    "max_file_size_mb": 500,
+    "job_ttl_hours": 2
+  },
+  "rounds": 2,
+  "round_completed": [
+    41,
+    41
+  ],
+  "round_ssrf_blocked": [
+    1,
+    1
+  ],
+  "round_provider_unavailable": [
+    2,
+    2
+  ],
+  "page_errors": [],
+  "processes": [
+    "1001                91312               python",
+    "1001                91348               python",
+    "1001                91349               python",
+    "1001                91350               python",
+    "1001                91351               python",
+    "1001                91352               python"
+  ]
+}

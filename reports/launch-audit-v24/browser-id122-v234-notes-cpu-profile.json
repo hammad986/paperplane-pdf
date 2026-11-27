@@ -1,0 +1,491 @@
+{
+  "cpu_throttle": 4,
+  "source_bytes": 5456746,
+  "sample_count": 10583,
+  "profile_start_ms": 273329481882,
+  "profile_end_ms": 273336406738,
+  "hot_functions": [
+    {
+      "function": "(program)",
+      "url": "",
+      "line": -1,
+      "self_samples": 6406
+    },
+    {
+      "function": "(idle)",
+      "url": "",
+      "line": -1,
+      "self_samples": 1347
+    },
+    {
+      "function": "refresh",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 9628,
+      "self_samples": 855
+    },
+    {
+      "function": "updateStudioMobilePagesTop",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 1315,
+      "self_samples": 237
+    },
+    {
+      "function": "",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 0,
+      "self_samples": 132
+    },
+    {
+      "function": "",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 100,
+      "self_samples": 85
+    },
+    {
+      "function": "switchWorkspaceView",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 1523,
+      "self_samples": 73
+    },
+    {
+      "function": "positionStudioToast",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 819,
+      "self_samples": 62
+    },
+    {
+      "function": "query",
+      "url": "",
+      "line": 5259,
+      "self_samples": 61
+    },
+    {
+      "function": "__w_pdfjs_require__",
+      "url": "http://127.0.0.1:64975/assets/pdf.min.js",
+      "line": 21,
+      "self_samples": 53
+    },
+    {
+      "function": "__w_pdfjs_require__",
+      "url": "http://127.0.0.1:64975/assets/pdf.min.js",
+      "line": 21,
+      "self_samples": 51
+    },
+    {
+      "function": "updateStudioCanvasAreaWidth",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 1336,
+      "self_samples": 46
+    },
+    {
+      "function": "refresh",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 9628,
+      "self_samples": 46
+    },
+    {
+      "function": "loadDocumentIntoStudio",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 3024,
+      "self_samples": 46
+    },
+    {
+      "function": "prepareStudioPageStack",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 3227,
+      "self_samples": 45
+    },
+    {
+      "function": "refresh",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 9628,
+      "self_samples": 39
+    },
+    {
+      "function": "evaluate",
+      "url": "",
+      "line": 295,
+      "self_samples": 29
+    },
+    {
+      "function": "InjectedScript",
+      "url": "",
+      "line": 6396,
+      "self_samples": 25
+    },
+    {
+      "function": "__w_pdfjs_require__",
+      "url": "http://127.0.0.1:64975/assets/pdf.min.js",
+      "line": 21,
+      "self_samples": 23
+    },
+    {
+      "function": "init",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 9719,
+      "self_samples": 19
+    },
+    {
+      "function": "__w_pdfjs_require__",
+      "url": "http://127.0.0.1:64975/assets/pdf.min.js",
+      "line": 21,
+      "self_samples": 19
+    },
+    {
+      "function": "renderStudioPageNow",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 3374,
+      "self_samples": 18
+    },
+    {
+      "function": "InjectedScript",
+      "url": "",
+      "line": 6396,
+      "self_samples": 17
+    },
+    {
+      "function": "createStudioPageSlot",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 3201,
+      "self_samples": 17
+    },
+    {
+      "function": "__w_pdfjs_require__",
+      "url": "http://127.0.0.1:64975/assets/pdf.min.js",
+      "line": 21,
+      "self_samples": 16
+    },
+    {
+      "function": "(garbage collector)",
+      "url": "",
+      "line": -1,
+      "self_samples": 16
+    },
+    {
+      "function": "querySelectorAll",
+      "url": "",
+      "line": -1,
+      "self_samples": 15
+    },
+    {
+      "function": "",
+      "url": "",
+      "line": 1,
+      "self_samples": 14
+    },
+    {
+      "function": "showToast",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 806,
+      "self_samples": 14
+    },
+    {
+      "function": "init",
+      "url": "http://127.0.0.1:64975/assets/optimization_engine.js?v=4.2.3",
+      "line": 32,
+      "self_samples": 13
+    },
+    {
+      "function": "querySelector",
+      "url": "",
+      "line": -1,
+      "self_samples": 13
+    },
+    {
+      "function": "addMissingControlLabels",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 96,
+      "self_samples": 13
+    },
+    {
+      "function": "renderThumbnails",
+      "url": "http://127.0.0.1:64975/assets/page_organizer.js?v=21",
+      "line": 558,
+      "self_samples": 13
+    },
+    {
+      "function": "createStudioPageSlot",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 3201,
+      "self_samples": 12
+    },
+    {
+      "function": "",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 1844,
+      "self_samples": 11
+    },
+    {
+      "function": "injectFeedbackWidget",
+      "url": "http://127.0.0.1:64975/assets/feedback.js?v=19",
+      "line": 108,
+      "self_samples": 11
+    },
+    {
+      "function": "",
+      "url": "",
+      "line": 0,
+      "self_samples": 11
+    },
+    {
+      "function": "__w_pdfjs_require__",
+      "url": "http://127.0.0.1:64975/assets/pdf.min.js",
+      "line": 21,
+      "self_samples": 11
+    },
+    {
+      "function": "requestAnimationFrame",
+      "url": "",
+      "line": -1,
+      "self_samples": 11
+    },
+    {
+      "function": "WorkerTransport",
+      "url": "http://127.0.0.1:64975/assets/pdf.min.js",
+      "line": 21,
+      "self_samples": 11
+    },
+    {
+      "function": "__w_pdfjs_require__",
+      "url": "http://127.0.0.1:64975/assets/pdf.min.js",
+      "line": 21,
+      "self_samples": 10
+    },
+    {
+      "function": "innerSerialize",
+      "url": "",
+      "line": 178,
+      "self_samples": 9
+    },
+    {
+      "function": "positionResultToast",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 866,
+      "self_samples": 9
+    },
+    {
+      "function": "renderSidebarTools",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 1836,
+      "self_samples": 8
+    },
+    {
+      "function": "",
+      "url": "http://127.0.0.1:64975/assets/feedback.js?v=19",
+      "line": 103,
+      "self_samples": 8
+    },
+    {
+      "function": "appendChild",
+      "url": "",
+      "line": -1,
+      "self_samples": 8
+    },
+    {
+      "function": "",
+      "url": "http://127.0.0.1:64975/assets/conversion_engine.js?v=5.2.2",
+      "line": 398,
+      "self_samples": 8
+    },
+    {
+      "function": "studioFileInput.onchange",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 3713,
+      "self_samples": 8
+    },
+    {
+      "function": "getDocument",
+      "url": "http://127.0.0.1:64975/assets/pdf.min.js",
+      "line": 21,
+      "self_samples": 8
+    },
+    {
+      "function": "",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 228,
+      "self_samples": 8
+    },
+    {
+      "function": "",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 2219,
+      "self_samples": 7
+    },
+    {
+      "function": "setInitialView",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 10013,
+      "self_samples": 7
+    },
+    {
+      "function": "",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 113,
+      "self_samples": 7
+    },
+    {
+      "function": "checkAuthStatus",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 2640,
+      "self_samples": 7
+    },
+    {
+      "function": "updateBillingUI",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 2429,
+      "self_samples": 7
+    },
+    {
+      "function": "__w_pdfjs_require__",
+      "url": "http://127.0.0.1:64975/assets/pdf.min.js",
+      "line": 21,
+      "self_samples": 7
+    },
+    {
+      "function": "__w_pdfjs_require__",
+      "url": "http://127.0.0.1:64975/assets/pdf.min.js",
+      "line": 21,
+      "self_samples": 7
+    },
+    {
+      "function": "_initialize",
+      "url": "http://127.0.0.1:64975/assets/pdf.min.js",
+      "line": 21,
+      "self_samples": 7
+    },
+    {
+      "function": "createStudioRenderSession",
+      "url": "http://127.0.0.1:64975/assets/pdf_runtime.js?v=27",
+      "line": 38,
+      "self_samples": 7
+    },
+    {
+      "function": "prepareStudioPageStack",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 3227,
+      "self_samples": 7
+    },
+    {
+      "function": "",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 3367,
+      "self_samples": 7
+    },
+    {
+      "function": "_setupCanvas",
+      "url": "http://127.0.0.1:64975/assets/editor.js?v=15",
+      "line": 642,
+      "self_samples": 7
+    },
+    {
+      "function": "",
+      "url": "http://127.0.0.1:64975/assets/theme-init.js?v=13",
+      "line": 0,
+      "self_samples": 6
+    },
+    {
+      "function": "init",
+      "url": "http://127.0.0.1:64975/assets/security_forms.js?v=6.2.4",
+      "line": 62,
+      "self_samples": 6
+    },
+    {
+      "function": "addMissingControlLabels",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 96,
+      "self_samples": 6
+    },
+    {
+      "function": "applyTheme",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 2744,
+      "self_samples": 6
+    },
+    {
+      "function": "fetch",
+      "url": "",
+      "line": -1,
+      "self_samples": 6
+    },
+    {
+      "function": "MessageHandler._onComObjOnMessage",
+      "url": "http://127.0.0.1:64975/assets/pdf.min.js",
+      "line": 21,
+      "self_samples": 6
+    },
+    {
+      "function": "",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 3716,
+      "self_samples": 6
+    },
+    {
+      "function": "_bindCompressModal",
+      "url": "http://127.0.0.1:64975/assets/optimization_engine.js?v=4.2.3",
+      "line": 130,
+      "self_samples": 5
+    },
+    {
+      "function": "placeStudioControl",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 1275,
+      "self_samples": 5
+    },
+    {
+      "function": "",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 100,
+      "self_samples": 5
+    },
+    {
+      "function": "renderAuthShell",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 2611,
+      "self_samples": 5
+    },
+    {
+      "function": "",
+      "url": "",
+      "line": 0,
+      "self_samples": 5
+    },
+    {
+      "function": "querySelector",
+      "url": "",
+      "line": -1,
+      "self_samples": 5
+    },
+    {
+      "function": "",
+      "url": "http://127.0.0.1:64975/assets/app.js?v=234",
+      "line": 2217,
+      "self_samples": 4
+    },
+    {
+      "function": "fetch",
+      "url": "",
+      "line": -1,
+      "self_samples": 4
+    },
+    {
+      "function": "querySelector",
+      "url": "",
+      "line": -1,
+      "self_samples": 4
+    },
+    {
+      "function": "",
+      "url": "",
+      "line": 1,
+      "self_samples": 4
+    },
+    {
+      "function": "",
+      "url": "",
+      "line": 1,
+      "self_samples": 4
+    }
+  ],
+  "page_count": "69",
+  "result": "captured"
+}

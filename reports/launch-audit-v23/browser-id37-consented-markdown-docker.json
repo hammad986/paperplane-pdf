@@ -1,0 +1,41 @@
+{
+  "base": "http://127.0.0.1:18502",
+  "runtime": "production Docker image",
+  "image_id": "sha256:3c13be4fc0e39da403df62e8dd592d1a71205a4c1b97caaeaf69d3be77331190",
+  "fixture": "C:\\Users\\mdham\\Downloads\\notes.pdf",
+  "fixture_pages": 69,
+  "rounds": [
+    {
+      "round": 1,
+      "status": 200,
+      "job_status": 202,
+      "output_name": "notes_pdf_to_markdown.md",
+      "output_bytes": 100329,
+      "pages": 69,
+      "all_page_sections_in_order": true,
+      "minimum_page_token_coverage": 0.9298,
+      "average_page_token_coverage": 0.9878,
+      "first_and_last_page_markers": true,
+      "job_id_not_leaked": true,
+      "upload_had_explicit_consent": true,
+      "job_posts": 1,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "status": 200,
+      "job_status": 202,
+      "output_name": "notes_pdf_to_markdown.md",
+      "output_bytes": 100329,
+      "pages": 69,
+      "all_page_sections_in_order": true,
+      "minimum_page_token_coverage": 0.9298,
+      "average_page_token_coverage": 0.9878,
+      "first_and_last_page_markers": true,
+      "job_id_not_leaked": true,
+      "upload_had_explicit_consent": true,
+      "job_posts": 1,
+      "page_errors": []
+    }
+  ]
+}

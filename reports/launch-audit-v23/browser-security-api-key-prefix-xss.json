@@ -1,0 +1,21 @@
+{
+  "payload": "<img src=x onerror=\"window.__apiKeyPrefixXss=true\">",
+  "views": [
+    {
+      "global": "loadSettingsApiKeys",
+      "selector": "#settings-api-keys-list",
+      "html": "\n      <div class=\"file-row-card\">\n        <div>\n          <strong>Test key</strong> \u00b7 <code style=\"font-family: var(--font-mono); font-size: 11px;\">&lt;img src=x onerror=\"window.__apiKeyPrefixXss=true\"&gt;</code>\n          <small style=\"display: block; color: var(--text-muted);\">Created: 1/1/1970</small>\n        </div>\n        <button type=\"button\" class=\"delete-file-btn\" data-revoke-key=\"synthetic-key-id\" title=\"Revoke API Key\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><line x1=\"18\" y1=\"6\" x2=\"6\" y2=\"18\"></line><line x1=\"6\" y1=\"6\" x2=\"18\" y2=\"18\"></line></svg></button>\n      </div>\n    ",
+      "text": "\n      \n        \n          Test key \u00b7 <img src=x onerror=\"window.__apiKeyPrefixXss=true\">\n          Created: 1/1/1970\n        \n        \n      \n    ",
+      "images": 0
+    },
+    {
+      "global": "loadApiKeys",
+      "selector": "#api-keys-list",
+      "html": "\n      <div class=\"file-row-card\">\n        <div>\n          <strong>Test key</strong> \u00b7 <code style=\"font-family: var(--font-mono); font-size: 11px;\">&lt;img src=x onerror=\"window.__apiKeyPrefixXss=true\"&gt;</code>\n          <small style=\"display: block; color: var(--text-muted);\">Created: 1/1/1970</small>\n        </div>\n        <button class=\"delete-file-btn\" data-revoke-key=\"synthetic-key-id\" title=\"Revoke API Key\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><line x1=\"18\" y1=\"6\" x2=\"6\" y2=\"18\"></line><line x1=\"6\" y1=\"6\" x2=\"18\" y2=\"18\"></line></svg></button>\n      </div>\n    ",
+      "text": "\n      \n        \n          Test key \u00b7 <img src=x onerror=\"window.__apiKeyPrefixXss=true\">\n          Created: 1/1/1970\n        \n        \n      \n    ",
+      "images": 0
+    }
+  ],
+  "page_errors": [],
+  "api_intercepts": 2
+}

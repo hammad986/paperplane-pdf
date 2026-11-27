@@ -1,0 +1,23 @@
+{
+  "page_errors": [],
+  "console_errors": [],
+  "authenticated": {
+    "initial": {
+      "authenticatedLimit": 100,
+      "displayedHint": "Guests up to 50 MB/file \u00b7 signed-in Free and recurring paid plans have no plan-specific file cap (service max 500 MB) \u00b7 Exam Pass up to 500 MB/file \u00b7 Merge supports up to 100 PDF files per run",
+      "authEmail": "merge-first-render@example.invalid"
+    },
+    "settled": {
+      "authenticatedLimit": 100,
+      "displayedHint": "Guests up to 50 MB/file \u00b7 signed-in Free and recurring paid plans have no plan-specific file cap (service max 500 MB) \u00b7 Exam Pass up to 500 MB/file \u00b7 Merge supports up to 100 PDF files per run",
+      "authEmail": "merge-first-render@example.invalid"
+    },
+    "cache_control": "private, no-store",
+    "vary": "Cookie"
+  },
+  "guest": {
+    "authenticatedLimit": 10,
+    "displayedHint": "Guests up to 50 MB/file \u00b7 signed-in Free and recurring paid plans have no plan-specific file cap (service max 500 MB) \u00b7 Exam Pass up to 500 MB/file \u00b7 Merge supports up to 10 PDF files per run"
+  },
+  "result": true
+}

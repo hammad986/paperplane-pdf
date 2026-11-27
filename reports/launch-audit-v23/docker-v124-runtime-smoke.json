@@ -1,0 +1,43 @@
+{
+  "container": "paperplane-v124-candidate-smoke",
+  "image_id": "sha256:a5df4a859eed7a2969ef601a43cb783169eadde1d33b41e322406070022d2fde",
+  "container_state": "running",
+  "docker_health": "healthy",
+  "api_health": {
+    "status": "ok",
+    "service": "paperplane-pdf",
+    "version": "2.0.0",
+    "auth_required": false,
+    "workers": 4,
+    "max_file_size_mb": 500,
+    "job_ttl_hours": 2
+  },
+  "mounts": [
+    {
+      "destination": "/data",
+      "type": "tmpfs",
+      "rw": true
+    },
+    {
+      "destination": "/tmp",
+      "type": "tmpfs",
+      "rw": true
+    }
+  ],
+  "application_processes_uid_1001": true,
+  "process_table": "PID                 USER                COMMAND\n3610                1001                python app.py\n3647                1001                /usr/local/bin/python -B -c from multiprocessing.resource_tracker import main;main(6)\n3648                1001                /usr/local/bin/python -B -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=7, pipe_handle=9) --multiprocessing-fork\n3649                1001                /usr/local/bin/python -B -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=7, pipe_handle=13) --multiprocessing-fork\n3650                1001                /usr/local/bin/python -B -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=7, pipe_handle=17) --multiprocessing-fork\n3651                1001                /usr/local/bin/python -B -c from multiprocessing.spawn import spawn_main; spawn_main(tracker_fd=7, pipe_handle=21) --multiprocessing-fork\n",
+  "disposable_tmpfs_storage": true,
+  "payment_submitted": false,
+  "tmpfs_settings": {
+    "/data": "rw,nosuid,nodev,size=512m",
+    "/tmp": "rw,nosuid,nodev,size=256m"
+  },
+  "container_state_at_capture": "running",
+  "container_final_state": "stopped and removed",
+  "image_exclusion_check": {
+    "/app/.env": false,
+    "/app/deploy/certs/privkey.pem": false,
+    "/app/reports": false,
+    "/app/tests": false
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "tag": "paperplane-codex:v236-current",
+  "image_id": "sha256:ce562edce2a0c00101d3a012e7ad2aa1ec568f5c87c64b17f937d0727006630b",
+  "build": "success",
+  "runtime": {
+    "health": "healthy",
+    "api_health_status": "ok",
+    "workers": 4,
+    "max_file_size_mb": 500,
+    "job_ttl_hours": 2
+  },
+  "browser": "Installed Google Chrome, visible window, 320x844 viewport",
+  "browser_evidence": "browser-v236-docker-mobile-chip.json",
+  "browser_checks": 3,
+  "browser_routes": ["/ai-intelligence", "/apps", "/download"],
+  "browser_errors": 0,
+  "image_contents": {
+    "app_asset_v236": true,
+    "service_worker_shell_v212": true,
+    "dotenv_excluded": true,
+    "private_key_excluded": true,
+    "temporary_files_excluded": true
+  },
+  "test_credentials": "Dummy local-only values; no provider or payment credentials",
+  "deployment": "No deployment performed"
+}

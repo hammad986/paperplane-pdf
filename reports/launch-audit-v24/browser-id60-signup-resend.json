@@ -1,0 +1,39 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "page_errors": [],
+      "console_errors": [],
+      "expected_rejection_console": [
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+      ],
+      "signup_otp_required": true,
+      "resend_status": 200,
+      "resend_notice_visible": true,
+      "previous_code_rejected_status": 400,
+      "latest_code_accepted_status": 200,
+      "authenticated_only_after_latest_code": true,
+      "expected_old_code_rejection_console_count": 1,
+      "real_email_provider_used": false,
+      "result": "passed"
+    },
+    {
+      "round": 2,
+      "page_errors": [],
+      "console_errors": [],
+      "expected_rejection_console": [
+        "Failed to load resource: the server responded with a status of 400 (Bad Request)"
+      ],
+      "signup_otp_required": true,
+      "resend_status": 200,
+      "resend_notice_visible": true,
+      "previous_code_rejected_status": 400,
+      "latest_code_accepted_status": 200,
+      "authenticated_only_after_latest_code": true,
+      "expected_old_code_rejection_console_count": 1,
+      "real_email_provider_used": false,
+      "result": "passed"
+    }
+  ],
+  "result": "passed"
+}

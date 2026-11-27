@@ -632,7 +632,10 @@ class EditCanvasManager {
 
     this._onChange = opts.onChange || (() => {});
     this._onUnsaved = opts.onUnsaved || (() => {});
+    this._boundCanvases = new WeakSet();
+    this._keydownBound = false;
 
+    this._ensureEditCanvas();
     this._setupCanvas();
     this._attachEvents();
   }
@@ -640,15 +643,35 @@ class EditCanvasManager {
   // -------------------------------------------------------------------------
   // Canvas setup
   // -------------------------------------------------------------------------
+  _ensureEditCanvas() {
+    if (this._editCanvas && this._editCanvas.isConnected) return this._editCanvas;
+    const parent = (this._wrapperEl && this._wrapperEl.isConnected)
+      ? this._wrapperEl
+      : this._pdfCanvas?.parentElement;
+    let canvas = document.getElementById('pdf-draw-canvas') || parent?.querySelector('.pdf-draw-canvas');
+    if (!canvas && parent) {
+      canvas = document.createElement('canvas');
+      canvas.id = 'pdf-draw-canvas';
+      canvas.className = 'pdf-draw-canvas';
+      parent.appendChild(canvas);
+    } else if (canvas && parent && canvas.parentElement !== parent) {
+      parent.appendChild(canvas);
+    }
+    this._editCanvas = canvas || this._editCanvas || null;
+    return this._editCanvas;
+  }
+
   _setupCanvas() {
+    const editCanvas = this._ensureEditCanvas();
+    if (!editCanvas || !this._pdfCanvas) return;
     const w = this._pdfCanvas.offsetWidth || this._pdfCanvas.width;
     const h = this._pdfCanvas.offsetHeight || this._pdfCanvas.height;
-    this._editCanvas.style.width = `${w}px`;
-    this._editCanvas.style.height = `${h}px`;
-    this._editCanvas.width = this._pdfCanvas.width;
-    this._editCanvas.height = this._pdfCanvas.height;
-    this._editCanvas.style.pointerEvents = 'auto';
-    this._editCanvas.style.cursor = 'default';
+    editCanvas.style.width = `${w}px`;
+    editCanvas.style.height = `${h}px`;
+    editCanvas.width = this._pdfCanvas.width;
+    editCanvas.height = this._pdfCanvas.height;
+    editCanvas.style.pointerEvents = 'auto';
+    editCanvas.style.cursor = 'default';
   }
 
   syncSize() {
@@ -658,9 +681,11 @@ class EditCanvasManager {
 
   attachPage(pdfCanvas, editCanvasEl, wrapperEl) {
     this._pdfCanvas = pdfCanvas;
-    this._editCanvas = editCanvasEl;
-    this._wrapperEl = wrapperEl;
+    this._wrapperEl = wrapperEl || pdfCanvas?.parentElement || this._wrapperEl;
+    this._editCanvas = (editCanvasEl && editCanvasEl.isConnected) ? editCanvasEl : null;
+    this._ensureEditCanvas();
     this._setupCanvas();
+    this._attachEvents();
     this.redraw();
   }
 
@@ -688,7 +713,8 @@ class EditCanvasManager {
       note: 'cell',
       pan: 'grab',
     };
-    this._editCanvas.style.cursor = cursors[tool] || 'default';
+    const editCanvas = this._ensureEditCanvas();
+    if (editCanvas) editCanvas.style.cursor = cursors[tool] || 'default';
     if (tool !== 'select') this._selection.deselect();
     this.redraw();
   }
@@ -715,16 +741,18 @@ class EditCanvasManager {
 
   // Convert canvas rendering context to scaled coords
   _ctx() {
-    const ctx = this._editCanvas.getContext('2d');
-    return ctx;
+    const editCanvas = this._ensureEditCanvas();
+    if (!editCanvas) return null;
+    return editCanvas.getContext('2d');
   }
 
   // -------------------------------------------------------------------------
   // Object rendering
   // -------------------------------------------------------------------------
   redraw() {
-    const canvas = this._editCanvas;
+    const canvas = this._ensureEditCanvas();
     const ctx = this._ctx();
+    if (!canvas || !ctx) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const dpr = window.devicePixelRatio || 1;
@@ -1097,29 +1125,34 @@ class EditCanvasManager {
   // Pointer event handlers
   // -------------------------------------------------------------------------
   _attachEvents() {
-    const el = this._editCanvas;
+    const el = this._ensureEditCanvas();
+    if (el && !this._boundCanvases.has(el)) {
+      this._boundCanvases.add(el);
+      el.addEventListener('mousedown', e => this._onPointerDown(e));
+      el.addEventListener('mousemove', e => this._onPointerMove(e));
+      el.addEventListener('mouseup', e => this._onPointerUp(e));
+      el.addEventListener('mouseleave', e => this._onPointerUp(e));
+      // Pan mode uses the browser's native touch scrolling on the containing PDF
+      // viewport. Cancelling touch events here prevented phone users from moving
+      // through multi-page documents. Drawing/edit modes still own the gesture.
+      el.addEventListener('touchstart', e => {
+        if (this._activeTool === 'pan') return;
+        e.preventDefault();
+        this._onPointerDown(e.touches[0]);
+      }, { passive: false });
+      el.addEventListener('touchmove', e => {
+        if (this._activeTool === 'pan') return;
+        e.preventDefault();
+        this._onPointerMove(e.touches[0]);
+      }, { passive: false });
+      el.addEventListener('touchend', e => this._onPointerUp(e.changedTouches[0]));
+    }
 
-    el.addEventListener('mousedown', e => this._onPointerDown(e));
-    el.addEventListener('mousemove', e => this._onPointerMove(e));
-    el.addEventListener('mouseup', e => this._onPointerUp(e));
-    el.addEventListener('mouseleave', e => this._onPointerUp(e));
-    // Pan mode uses the browser's native touch scrolling on the containing PDF
-    // viewport. Cancelling touch events here prevented phone users from moving
-    // through multi-page documents. Drawing/edit modes still own the gesture.
-    el.addEventListener('touchstart', e => {
-      if (this._activeTool === 'pan') return;
-      e.preventDefault();
-      this._onPointerDown(e.touches[0]);
-    }, { passive: false });
-    el.addEventListener('touchmove', e => {
-      if (this._activeTool === 'pan') return;
-      e.preventDefault();
-      this._onPointerMove(e.touches[0]);
-    }, { passive: false });
-    el.addEventListener('touchend', e => this._onPointerUp(e.changedTouches[0]));
-
-    // Keyboard: Delete, Backspace → delete selected
-    document.addEventListener('keydown', e => this._onKeyDown(e));
+    if (!this._keydownBound) {
+      this._keydownBound = true;
+      // Keyboard: Delete, Backspace → delete selected
+      document.addEventListener('keydown', e => this._onKeyDown(e));
+    }
   }
 
   _onPointerDown(e) {
@@ -1743,12 +1776,14 @@ class PaperplaneEditorController {
     this.history.record('Clear page', () => this.editorState.clearPage(p));
     if (this.canvas) this.canvas.redraw();
     this._markUnsaved();
+    this._updateHistoryButtons();
   }
 
   clearAll() {
     this.history.record('Clear all edits', () => this.editorState.clearAll());
     if (this.canvas) this.canvas.redraw();
     this._markUnsaved();
+    this._updateHistoryButtons();
   }
 
   loadDocument(file, name, totalPages) {
@@ -1758,6 +1793,7 @@ class PaperplaneEditorController {
     this.selection.deselect();
     this._unsaved = false;
     this._updateUnsavedIndicator();
+    this._updateHistoryButtons();
   }
 
   restoreSerialized(objects) {
@@ -1777,6 +1813,7 @@ class PaperplaneEditorController {
   _markUnsaved() {
     this._unsaved = this.editorState.dirty;
     this._updateUnsavedIndicator();
+    this._updateHistoryButtons();
     if (this._unsaved) window.persistPaperplaneStudioEdits?.();
   }
 
@@ -1899,9 +1936,10 @@ class PaperplaneEditorController {
       body: form
     });
     if (!resp.ok) {
-      let msg = `Page operation failed (${resp.status})`;
-      try { const j = await resp.json(); msg = j.detail || msg; } catch {}
-      window.showToast(msg, 'error');
+      const msg = window.readStudioResponseError
+        ? await window.readStudioResponseError(resp, `Page operation failed (${resp.status})`)
+        : `Page operation failed (${resp.status})`;
+      if (msg) window.showToast(msg, 'error');
       return null;
     }
     const blob = await resp.blob();

@@ -1,0 +1,29 @@
+{
+  "runs": [
+    {
+      "mode": "server",
+      "download_name": "two-column-layout_pdf_to_word.docx",
+      "bytes": 37514,
+      "paragraphs": 7,
+      "tables": 1,
+      "images": 1,
+      "contains_both_columns_and_second_page": true,
+      "mode_toggle_updates_disclosure_and_restores_it": true,
+      "result_capability_disclosure": "two-column-layout_pdf_to_word.docx \u00b7 36.6 KB \u00b7 PDF-to-Word server reconstruction: editable text, detected tables, and embedded images are included where extractable; columns, spacing, and pagination may differ from the PDF. Review the DOCX before relying on its layout."
+    },
+    {
+      "mode": "browser",
+      "download_name": "two-column-layout.docx",
+      "bytes": 3523,
+      "paragraphs": 12,
+      "tables": 0,
+      "images": 0,
+      "contains_both_columns_and_second_page": true,
+      "mode_toggle_updates_disclosure_and_restores_it": true,
+      "result_capability_disclosure": "two-column-layout.docx \u00b7 3.4 KB \u00b7 Created a text-first editable DOCX locally. Page boundaries are retained; images, exact layout, and table structure are not. Use Server Processing for supported table/layout reconstruction."
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "result": "passed"
+}

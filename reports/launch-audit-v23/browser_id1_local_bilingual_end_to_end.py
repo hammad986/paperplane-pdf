@@ -62,20 +62,25 @@ def main() -> None:
 
         persistence.init_db()
 
-        def controlled_translation(blocks, target_language, deadline=None):
-            language = str(target_language).lower()
-            result = {}
-            for block_id, source_text in blocks:
+        def controlled_provider_call(system_prompt, user_prompt, timeout_seconds=None, max_attempts=2, **kwargs):
+            request_items = json.loads(user_prompt)
+            language = "hi" if "hi" in system_prompt.lower() else "es"
+            result = []
+            for item in request_items:
+                block_id = int(item["id"])
+                source_text = str(item["text"])
                 import re
                 match = re.search(r"SOURCE-PAGE-(\d{3})", source_text)
                 page_number = int(match.group(1)) if match else block_id + 1
                 if language.startswith("hi"):
-                    result[block_id] = f"पृष्ठ {page_number}: अनुवाद परीक्षण सफल और सही है।"
+                    translated = f"पृष्ठ {page_number}: अनुवाद परीक्षण सफल और सही है।"
                 else:
-                    result[block_id] = f"Página {page_number}: la prueba de traducción es correcta."
-            return result
+                    translated = f"Página {page_number}: la prueba de traducción es correcta."
+                # Simulate a provider that serializes numeric segment IDs as JSON strings.
+                result.append({"id": str(block_id), "text": translated})
+            return json.dumps({"translations": result}, ensure_ascii=False)
 
-        ai_engine._translate_text_batch = controlled_translation
+        ai_engine.call_llm = controlled_provider_call
 
         with socket.socket() as candidate:
             candidate.bind(("127.0.0.1", 0))
@@ -184,7 +189,9 @@ def main() -> None:
             (OUT / "browser-id1-local-bilingual-end-to-end.json").write_text(
                 json.dumps(evidence, ensure_ascii=False, indent=2), encoding="utf-8"
             )
-            print(json.dumps(evidence, ensure_ascii=False, indent=2))
+            # Keep the JSON evidence Unicode-rich while making console output
+            # safe on Windows shells that cannot encode Devanagari.
+            print(json.dumps(evidence, ensure_ascii=True, indent=2))
         finally:
             server.should_exit = True
             server_thread.join(timeout=10)

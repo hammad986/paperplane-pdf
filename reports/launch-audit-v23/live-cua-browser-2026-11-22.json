@@ -1,0 +1,97 @@
+{
+  "date": "2026-11-22",
+  "runtime": "https://paperplane.qd.je",
+  "method": "user Chrome via CUA plus separate headless Chrome Playwright verification",
+  "live_assets": {
+    "app_js": "/assets/app.js?v=154",
+    "styles_css": "/assets/styles.css?v=61"
+  },
+  "health": {
+    "http_status": 200,
+    "status": "ok",
+    "service": "paperplane-pdf",
+    "workers": 4,
+    "max_file_size_mb": 500,
+    "job_ttl_hours": 24,
+    "auth_required": false
+  },
+  "CUA": {
+    "routes_checked": [
+      "/",
+      "/merge-pdf",
+      "/api/health",
+      "/tool-desk",
+      "/pricing",
+      "/studio",
+      "/faq"
+    ],
+    "console_errors_and_warnings": 0,
+    "visible_layout": "desktop Chrome 1707x748; checked /merge-pdf and /studio"
+  },
+  "playwright": {
+    "route_viewport_smoke": "live-playwright-smoke-2026-11-22.json",
+    "checks": 36,
+    "rounds": 2,
+    "routes": [
+      "/",
+      "/tool-desk",
+      "/merge-pdf",
+      "/studio",
+      "/pricing",
+      "/faq"
+    ],
+    "widths": [
+      320,
+      390,
+      1024
+    ],
+    "failures": 0,
+    "console_errors": 0,
+    "page_errors": 0
+  },
+  "studio_ribbon_probe": {
+    "evidence": "live-playwright-topbar-2026-11-22.json",
+    "checks": 20,
+    "rounds": 2,
+    "routes": [
+      "/merge-pdf",
+      "/studio"
+    ],
+    "widths": [
+      320,
+      390,
+      768,
+      1024,
+      1366
+    ],
+    "document_horizontal_overflow": false,
+    "topbar_overlap": false,
+    "studio_ribbons_at_390px": {
+      "primary_client_width": 372,
+      "primary_scroll_width": 492,
+      "overflow_x": "auto",
+      "secondary_client_width": 372,
+      "secondary_scroll_width": 729
+    },
+    "interpretation": "Studio tool rows extend beyond the viewport inside their horizontally scrollable ribbons; this is expected interaction and not document-level overflow."
+  },
+  "upload_attempt": "CUA direct file chooser was blocked by Chrome extension local-file access permission; separate Playwright synthetic browser-local Merge verification succeeded.",
+  "required_user_action": "In Chrome, open chrome://extensions, select Details under the ChatGPT extension, and enable Allow access to file URLs. Then retry the synthetic live PDF upload; no other permission or account changes are needed.",
+  "local_candidate": "app.js v155; local 69-page Studio runs and focused 160-test verification recorded in existing v155 evidence. Deployed live site currently serves app.js v154, so that local patch is not yet live.",
+  "side_effects": "GET-only route checks; no login, job, file upload, payment, or production data mutation.",
+  "playwright_merge_check": {
+    "evidence": "fixtures/live-merge-browser-output.json",
+    "status": "PASS",
+    "app_asset": "/assets/app.js?v=154",
+    "mode": "browser-local",
+    "pages": 2,
+    "ordered_markers": [
+      "ALPHA",
+      "BRAVO"
+    ],
+    "content_checked": true,
+    "api_job_posts": 0,
+    "page_errors": 0,
+    "console_errors": 0
+  }
+}

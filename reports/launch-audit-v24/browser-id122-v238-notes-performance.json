@@ -1,0 +1,38 @@
+{
+  "source_bytes": 5456746,
+  "source_pages": 69,
+  "cpu_throttle": 4,
+  "rounds": [
+    {
+      "round": 1,
+      "first_page_ready_ms": 6391.4,
+      "page1_screenshot_bytes": 39473,
+      "page40_rendered": true,
+      "page_count": 69,
+      "exact_page_text_order": true,
+      "long_tasks_over_50ms": 8,
+      "long_tasks_over_250ms": 4,
+      "max_long_task_ms": 781,
+      "document_width": 390,
+      "viewport_width": 390,
+      "page40_screenshot": "browser-id122-v238-notes-page40-round1.png"
+    },
+    {
+      "round": 2,
+      "first_page_ready_ms": 6285.8,
+      "page1_screenshot_bytes": 39473,
+      "page40_rendered": true,
+      "page_count": 69,
+      "exact_page_text_order": true,
+      "long_tasks_over_50ms": 11,
+      "long_tasks_over_250ms": 3,
+      "max_long_task_ms": 620,
+      "document_width": 390,
+      "viewport_width": 390,
+      "page40_screenshot": "browser-id122-v238-notes-page40-round2.png"
+    }
+  ],
+  "page_errors": [],
+  "unexpected_console_errors": [],
+  "result": "passed"
+}

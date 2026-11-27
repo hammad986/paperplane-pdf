@@ -1,0 +1,19 @@
+{
+  "route": "http://127.0.0.1:8774/scan-to-pdf",
+  "file": "scanned-document.pdf",
+  "pages": 1,
+  "page_size_pt": [
+    864.0,
+    648.0
+  ],
+  "expected_200dpi_pt": [
+    864,
+    648
+  ],
+  "embedded_image_px": [
+    2400,
+    1800
+  ],
+  "errors": [],
+  "result_text": "scanned-document.pdf \u00b7 26.5 KB \u00b7 1 page \u00b7 Created locally without automatic contrast or sharpness enhancement."
+}

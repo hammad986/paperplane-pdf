@@ -1,0 +1,20 @@
+TARGET web/index.html
+
+[90m12:05PM[0m [32mINF[0m [1mscanned ~238620 bytes (238.62 KB) in 339ms[0m
+[90m12:05PM[0m [32mINF[0m [1mno leaks found[0m
+TARGET web/assets/styles.css
+
+[90m12:05PM[0m [32mINF[0m [1mscanned ~288935 bytes (288.93 KB) in 281ms[0m
+[90m12:05PM[0m [32mINF[0m [1mno leaks found[0m
+TARGET web/assets/service-worker.js
+
+[90m12:05PM[0m [32mINF[0m [1mscanned ~1964 bytes (1.96 KB) in 19.1ms[0m
+[90m12:05PM[0m [32mINF[0m [1mno leaks found[0m
+TARGET tests/test_launch_audit_v23.py
+
+[90m12:05PM[0m [32mINF[0m [1mscanned ~80126 bytes (80.13 KB) in 127ms[0m
+[90m12:05PM[0m [32mINF[0m [1mno leaks found[0m
+TARGET reports/launch-audit-v23
+
+[90m12:05PM[0m [32mINF[0m [1mscanned ~14692743 bytes (14.69 MB) in 8.66s[0m
+[90m12:05PM[0m [32mINF[0m [1mno leaks found[0m

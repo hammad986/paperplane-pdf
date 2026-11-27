@@ -1,0 +1,49 @@
+{
+  "image": "paperplane-v23-audit:codex-current",
+  "image_id": "sha256:f8a8c250bbc1bbefb2bebe57c5a682a071fbb704fbe6d019fb1d5cf3e9a01d61",
+  "fixture": "C:\\Users\\mdham\\Downloads\\notes.pdf",
+  "fixture_pages": 69,
+  "cpu_throttle_rate": 4,
+  "rounds": [
+    {
+      "round": 1,
+      "http_status": 200,
+      "elapsed_seconds": 6.71,
+      "output_bytes": 5535231,
+      "pages": 69,
+      "all_page_text_and_order_preserved": true,
+      "document_width": 390,
+      "device_pixel_ratio": 3,
+      "canvas_scale": 1.5,
+      "canvas": {
+        "devicePixelRatio": 3,
+        "width": 516,
+        "cssWidth": 344,
+        "height": 730,
+        "cssHeight": 487,
+        "nonwhitePixels": 2110
+      },
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "http_status": 200,
+      "elapsed_seconds": 6.21,
+      "output_bytes": 5535231,
+      "pages": 69,
+      "all_page_text_and_order_preserved": true,
+      "document_width": 390,
+      "device_pixel_ratio": 3,
+      "canvas_scale": 1.5,
+      "canvas": {
+        "devicePixelRatio": 3,
+        "width": 516,
+        "cssWidth": 344,
+        "height": 730,
+        "cssHeight": 487,
+        "nonwhitePixels": 2110
+      },
+      "page_errors": []
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "route": "/resize-image-dimensions",
+  "preset": "passport",
+  "rounds": [
+    {
+      "round": 1,
+      "fields": {
+        "width": "350",
+        "height": "450",
+        "scale": ""
+      },
+      "output_px": [
+        350,
+        450
+      ],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "fields": {
+        "width": "350",
+        "height": "450",
+        "scale": ""
+      },
+      "output_px": [
+        350,
+        450
+      ],
+      "page_errors": []
+    }
+  ]
+}

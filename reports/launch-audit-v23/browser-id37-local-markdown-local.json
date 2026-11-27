@@ -1,0 +1,29 @@
+{
+  "base": "http://127.0.0.1:64492",
+  "runtime": "local server",
+  "image_id": null,
+  "rounds": [
+    {
+      "round": 1,
+      "filename": "structured-markdown.md",
+      "metadata_title": true,
+      "heading_and_page_structure": true,
+      "paragraph_preserved": true,
+      "bullet_normalized": true,
+      "disclosed_table_and_ocr_limits": true,
+      "job_posts": [],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "filename": "structured-markdown.md",
+      "metadata_title": true,
+      "heading_and_page_structure": true,
+      "paragraph_preserved": true,
+      "bullet_normalized": true,
+      "disclosed_table_and_ocr_limits": true,
+      "job_posts": [],
+      "page_errors": []
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "source_dimensions": [
+        1200,
+        800
+      ],
+      "output_pages": 1,
+      "page_size": "A4 landscape",
+      "image_based": true,
+      "processing_mode_disclosed_before_run": true,
+      "result_discloses_enhancement_skipped": true,
+      "result_text": "scanned-document.pdf \u00b7 27.1 KB \u00b7 Reading page count\u2026 \u00b7 Created locally without automatic contrast or sharpness enhancement.",
+      "output_bytes": 27749
+    },
+    {
+      "round": 2,
+      "source_dimensions": [
+        1200,
+        800
+      ],
+      "output_pages": 1,
+      "page_size": "A4 landscape",
+      "image_based": true,
+      "processing_mode_disclosed_before_run": true,
+      "result_discloses_enhancement_skipped": true,
+      "result_text": "scanned-document.pdf \u00b7 27.1 KB \u00b7 Reading page count\u2026 \u00b7 Created locally without automatic contrast or sharpness enhancement.",
+      "output_bytes": 27749
+    }
+  ],
+  "server_rounds": [
+    {
+      "round": 1,
+      "temporary_server_mode_selected": true,
+      "source_luminance_stddev": 7.14,
+      "output_luminance_stddev": 47.33,
+      "contrast_increased": true,
+      "output_pages": 1,
+      "result_text": "low-contrast-scan_scan_pdf.pdf \u00b7 68.2 KB \u00b7 1 page",
+      "output_bytes": 69835
+    },
+    {
+      "round": 2,
+      "temporary_server_mode_selected": true,
+      "source_luminance_stddev": 7.14,
+      "output_luminance_stddev": 47.33,
+      "contrast_increased": true,
+      "output_pages": 1,
+      "result_text": "low-contrast-scan_scan_pdf.pdf \u00b7 68.2 KB \u00b7 1 page",
+      "output_bytes": 69835
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "passed": true
+}

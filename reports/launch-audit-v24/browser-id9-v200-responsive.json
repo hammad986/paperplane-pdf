@@ -1,0 +1,38 @@
+{
+  "build": "v200",
+  "route": "/extract-pdf-data",
+  "checks": [
+    {
+      "viewport": [
+        320,
+        780
+      ],
+      "status": 200,
+      "title": "Smart Metadata | Paperplane",
+      "tool_heading_visible": true,
+      "dimensions": {
+        "innerWidth": 320,
+        "docWidth": 320,
+        "bodyWidth": 320
+      },
+      "no_horizontal_overflow": true,
+      "page_errors": []
+    },
+    {
+      "viewport": [
+        390,
+        844
+      ],
+      "status": 200,
+      "title": "Smart Metadata | Paperplane",
+      "tool_heading_visible": true,
+      "dimensions": {
+        "innerWidth": 390,
+        "docWidth": 390,
+        "bodyWidth": 390
+      },
+      "no_horizontal_overflow": true,
+      "page_errors": []
+    }
+  ]
+}

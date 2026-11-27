@@ -1,0 +1,233 @@
+{
+  "operation_count": 44,
+  "checks": 132,
+  "page_errors": [],
+  "overflow": [],
+  "intersections": [
+    {
+      "width": 390,
+      "height": 844,
+      "operation": "organize",
+      "button": [
+        8,
+        804.265625,
+        382,
+        854.265625
+      ],
+      "buttonVisible": true,
+      "nav": [
+        0,
+        778,
+        390,
+        844
+      ],
+      "overlap": true,
+      "overlapPx": 39.734375,
+      "pageOverflow": false,
+      "after_wheel": {
+        "button": [
+          8,
+          720.265625,
+          382,
+          770.265625
+        ],
+        "nav": [
+          0,
+          778,
+          390,
+          844
+        ],
+        "overlap": false,
+        "scrollY": 84
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "operation": "scan_pdf",
+      "button": [
+        8,
+        815.34375,
+        382,
+        865.34375
+      ],
+      "buttonVisible": true,
+      "nav": [
+        0,
+        778,
+        390,
+        844
+      ],
+      "overlap": true,
+      "overlapPx": 28.65625,
+      "pageOverflow": false,
+      "after_wheel": {
+        "button": [
+          8,
+          719.34375,
+          382,
+          769.34375
+        ],
+        "nav": [
+          0,
+          778,
+          390,
+          844
+        ],
+        "overlap": false,
+        "scrollY": 96
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "operation": "compress",
+      "button": [
+        8,
+        808.171875,
+        382,
+        858.171875
+      ],
+      "buttonVisible": true,
+      "nav": [
+        0,
+        778,
+        390,
+        844
+      ],
+      "overlap": true,
+      "overlapPx": 35.828125,
+      "pageOverflow": false,
+      "after_wheel": {
+        "button": [
+          8,
+          720.171875,
+          382,
+          770.171875
+        ],
+        "nav": [
+          0,
+          778,
+          390,
+          844
+        ],
+        "overlap": false,
+        "scrollY": 88
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "operation": "edit",
+      "button": [
+        8,
+        827.265625,
+        382,
+        877.265625
+      ],
+      "buttonVisible": true,
+      "nav": [
+        0,
+        778,
+        390,
+        844
+      ],
+      "overlap": true,
+      "overlapPx": 16.734375,
+      "pageOverflow": false,
+      "after_wheel": {
+        "button": [
+          8,
+          720.265625,
+          382,
+          770.265625
+        ],
+        "nav": [
+          0,
+          778,
+          390,
+          844
+        ],
+        "overlap": false,
+        "scrollY": 107
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "operation": "crop",
+      "button": [
+        8,
+        802.171875,
+        382,
+        852.171875
+      ],
+      "buttonVisible": true,
+      "nav": [
+        0,
+        778,
+        390,
+        844
+      ],
+      "overlap": true,
+      "overlapPx": 41.828125,
+      "pageOverflow": false,
+      "after_wheel": {
+        "button": [
+          8,
+          719.171875,
+          382,
+          769.171875
+        ],
+        "nav": [
+          0,
+          778,
+          390,
+          844
+        ],
+        "overlap": false,
+        "scrollY": 83
+      }
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "operation": "photo_resizer",
+      "button": [
+        8,
+        767.171875,
+        382,
+        817.171875
+      ],
+      "buttonVisible": true,
+      "nav": [
+        0,
+        778,
+        390,
+        844
+      ],
+      "overlap": true,
+      "overlapPx": 39.171875,
+      "pageOverflow": false,
+      "after_wheel": {
+        "button": [
+          8,
+          720.171875,
+          382,
+          770.171875
+        ],
+        "nav": [
+          0,
+          778,
+          390,
+          844
+        ],
+        "overlap": false,
+        "scrollY": 47
+      }
+    }
+  ],
+  "no_intersections_at_390_for_short_workflows": true,
+  "wheel_scroll_clears_each_initial_intersection": true,
+  "passed": true
+}

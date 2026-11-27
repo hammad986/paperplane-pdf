@@ -1,0 +1,55 @@
+{
+  "rounds": [
+    {
+      "round": 1,
+      "browser_mode": {
+        "checked": true,
+        "label": "Use browser processing",
+        "aria": "Browser processing is on for Merge PDF; files stay on this device.",
+        "help": "Merge PDF runs in your browser; files stay on this device and are not uploaded.",
+        "slider_bg": "rgb(197, 76, 52)"
+      },
+      "settings_synced": true,
+      "settings_label": "Use browser processing",
+      "settings_aria": "Use browser processing for supported tools",
+      "server_mode": {
+        "checked": false,
+        "aria": "Browser processing is off for Merge PDF; files use temporary server processing.",
+        "help": "Merge PDF uploads files for temporary server processing.",
+        "slider_bg": "rgb(59, 80, 84)"
+      },
+      "server_only_ocr": {
+        "disabled": true,
+        "help": "OCR PDF uploads files for temporary server processing.",
+        "aria": "Browser processing is off for OCR PDF; files use temporary server processing."
+      }
+    },
+    {
+      "round": 2,
+      "browser_mode": {
+        "checked": true,
+        "label": "Use browser processing",
+        "aria": "Browser processing is on for Merge PDF; files stay on this device.",
+        "help": "Merge PDF runs in your browser; files stay on this device and are not uploaded.",
+        "slider_bg": "rgb(255, 75, 38)"
+      },
+      "settings_synced": true,
+      "settings_label": "Use browser processing",
+      "settings_aria": "Use browser processing for supported tools",
+      "server_mode": {
+        "checked": false,
+        "aria": "Browser processing is off for Merge PDF; files use temporary server processing.",
+        "help": "Merge PDF uploads files for temporary server processing.",
+        "slider_bg": "rgb(59, 80, 84)"
+      },
+      "server_only_ocr": {
+        "disabled": true,
+        "help": "OCR PDF uploads files for temporary server processing.",
+        "aria": "Browser processing is off for OCR PDF; files use temporary server processing."
+      }
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "passed": true
+}

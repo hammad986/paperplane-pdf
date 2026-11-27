@@ -1,0 +1,53 @@
+{
+  "site": "https://paperplane.qd.je",
+  "test": "4 concurrent guest Merge jobs using generated one-page PDFs",
+  "guest_contexts": 4,
+  "results": [
+    {
+      "route_status": 200,
+      "submit_status": 202,
+      "accepted": true,
+      "completed": true,
+      "download_status": 200,
+      "pdf_signature": true,
+      "pages": 1,
+      "content_checked": true,
+      "download_bytes": 828
+    },
+    {
+      "route_status": 200,
+      "submit_status": 202,
+      "accepted": true,
+      "completed": true,
+      "download_status": 200,
+      "pdf_signature": true,
+      "pages": 1,
+      "content_checked": true,
+      "download_bytes": 828
+    },
+    {
+      "route_status": 200,
+      "submit_status": 202,
+      "accepted": true,
+      "completed": true,
+      "download_status": 200,
+      "pdf_signature": true,
+      "pages": 1,
+      "content_checked": true,
+      "download_bytes": 828
+    },
+    {
+      "route_status": 200,
+      "submit_status": 202,
+      "accepted": true,
+      "completed": true,
+      "download_status": 200,
+      "pdf_signature": true,
+      "pages": 1,
+      "content_checked": true,
+      "download_bytes": 828
+    }
+  ],
+  "page_errors": [],
+  "all_content_checked": true
+}

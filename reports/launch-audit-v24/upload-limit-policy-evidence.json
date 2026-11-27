@@ -1,0 +1,29 @@
+{
+  "scope": "guest/free/exam-pass/recurring-paid upload size policy",
+  "local_source": {
+    "app_asset_after_change": "/assets/app.js?v=188",
+    "service_worker_cache_after_change": "paperplane-shell-v139",
+    "server_hard_max_bytes": 524288000,
+    "guest_file_limit_bytes": 52428800,
+    "authenticated_free_limit": "platform maximum (no additional plan-specific cap)",
+    "exam_pass_limit_bytes": 524288000,
+    "recurring_paid_limit": "platform maximum (no additional plan-specific cap)"
+  },
+  "evidence": {
+    "targeted_pytest": "3 passed, 1 Starlette deprecation warning",
+    "full_pytest_round_1": "685 passed, 4 deprecation warnings in 150.67s",
+    "full_pytest_round_2": "685 passed, 4 deprecation warnings in 150.51s",
+    "full_pytest_round_2_log": "reports/launch-audit-v24/pytest-free-limit-round2.log",
+    "chrome_local_page": "http://127.0.0.1:8765/pdf-to-word",
+    "chrome_observed_asset_before_cache_bump": "/assets/app.js?v=187",
+    "chrome_guest_badge": "Free Guest Tool · No Account Required · up to 50 MB/file",
+    "chrome_upload_guidance": "Guests up to 50 MB/file · signed-in Free and recurring paid plans have no plan-specific file cap (service max 500 MB) · Exam Pass up to 500 MB/file",
+    "live_site_check": "paperplane.qd.je still showed the prior Translate result failing on the 15-page arxiv-1706.03762v7.pdf in Hindi, with 0% source characters and no output",
+    "limitation": "Local UI was verified on the rebuilt production-mode v188/v139 image in Chromium. Production remains v154/v61 and has not received this candidate.",
+    "v188_full_suite": "685 passed, 4 warnings in each sequential round; reports/launch-audit-v24/pytest-v188-limit-policy-summary.json",
+    "docker_chromium": "reports/launch-audit-v24/browser-v188-limit-policy.json: passed; production-mode candidate image sha256:bfea61871472ff23989ebc71df0cb49140891f2d14e73706f1b93be67b10e364 returned HTTP 200, loaded app.js?v=188 and service worker cache v139, showed guest 50 MB and requested Free/paid/Exam Pass copy, no overflow or page/console errors.",
+    "latest_full_suite": "686 passed, 4 warnings in each sequential round after translation batching change; reports/launch-audit-v24/pytest-v188-translation-batch-summary.json",
+    "latest_docker_image": "sha256:5669d0e9d8a7148fc40e01a7de736bd0522ea8c75ec7846c8cfa6d1f3ef74e99; current 44-tool two-round catalog plus v188 upload-limit browser check passed.",
+    "pricing_table": "In the same rebuilt production image, Chromium loaded /pricing, rendered 44 tool rows, verified per-file caps, batch allowances and daily usage text, and found no horizontal overflow or page/console errors."
+  }
+}

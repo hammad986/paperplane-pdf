@@ -1,0 +1,810 @@
+{
+  "round": "edit-docker-round2",
+  "routes": [
+    {
+      "operation": "merge",
+      "slug": "merge-pdf",
+      "http_status": 200,
+      "is_local_supported": true,
+      "localStorageChoice": null,
+      "checked": true,
+      "disabled": false,
+      "label": "Browser processing is on for Merge PDF; files stay on this device.",
+      "mode": "Merge PDF runs in your browser; files stay on this device and are not uploaded.",
+      "support": "Merge PDF runs in your browser; files stay on this device and are not uploaded.",
+      "passed": true
+    },
+    {
+      "operation": "split",
+      "slug": "split-pdf",
+      "http_status": 200,
+      "is_local_supported": true,
+      "localStorageChoice": null,
+      "checked": true,
+      "disabled": false,
+      "label": "Browser processing is on for Split / extract; files stay on this device.",
+      "mode": "Split / extract runs in your browser; files stay on this device and are not uploaded.",
+      "support": "Split / extract runs in your browser; files stay on this device and are not uploaded.",
+      "passed": true
+    },
+    {
+      "operation": "remove",
+      "slug": "remove-pages-pdf",
+      "http_status": 200,
+      "is_local_supported": true,
+      "localStorageChoice": null,
+      "checked": true,
+      "disabled": false,
+      "label": "Browser processing is on for Remove pages; files stay on this device.",
+      "mode": "Remove pages runs in your browser; files stay on this device and are not uploaded.",
+      "support": "Remove pages runs in your browser; files stay on this device and are not uploaded.",
+      "passed": true
+    },
+    {
+      "operation": "rotate",
+      "slug": "rotate-pdf",
+      "http_status": 200,
+      "is_local_supported": true,
+      "localStorageChoice": null,
+      "checked": true,
+      "disabled": false,
+      "label": "Browser processing is on for Rotate PDF; files stay on this device.",
+      "mode": "Rotate PDF runs in your browser; files stay on this device and are not uploaded.",
+      "support": "Rotate PDF runs in your browser; files stay on this device and are not uploaded.",
+      "passed": true
+    },
+    {
+      "operation": "organize",
+      "slug": "organize-pdf",
+      "http_status": 200,
+      "is_local_supported": true,
+      "localStorageChoice": null,
+      "checked": true,
+      "disabled": false,
+      "label": "Browser processing is on for Page Organizer; files stay on this device.",
+      "mode": "Page Organizer runs in your browser; files stay on this device and are not uploaded.",
+      "support": "Page Organizer runs in your browser; files stay on this device and are not uploaded.",
+      "passed": true
+    },
+    {
+      "operation": "scan_pdf",
+      "slug": "scan-to-pdf",
+      "http_status": 200,
+      "is_local_supported": true,
+      "localStorageChoice": null,
+      "checked": true,
+      "disabled": false,
+      "label": "Browser processing is on for Scan to PDF; files stay on this device.",
+      "mode": "Scan to PDF runs in your browser; files stay on this device and are not uploaded.",
+      "support": "Scan to PDF runs in your browser; files stay on this device and are not uploaded.",
+      "passed": true
+    },
+    {
+      "operation": "compress",
+      "slug": "compress-pdf",
+      "http_status": 200,
+      "is_local_supported": false,
+      "localStorageChoice": null,
+      "checked": false,
+      "disabled": true,
+      "label": "Browser processing is off for Compress PDF; files use temporary server processing.",
+      "mode": "Compress PDF uploads files for temporary server processing.",
+      "support": "Compress PDF uploads files for temporary server processing.",
+      "passed": true
+    },
+    {
+      "operation": "repair",
+      "slug": "repair-pdf",
+      "http_status": 200,
+      "is_local_supported": false,
+      "localStorageChoice": null,
+      "checked": false,
+      "disabled": true,
+      "label": "Browser processing is off for Repair PDF; files use temporary server processing.",
+      "mode": "Repair PDF uploads files for temporary server processing.",
+      "support": "Repair PDF uploads files for temporary server processing.",
+      "passed": true
+    },
+    {
+      "operation": "ocr",
+      "slug": "ocr-pdf",
+      "http_status": 200,
+      "is_local_supported": false,
+      "localStorageChoice": null,
+      "checked": false,
+      "disabled": true,
+      "label": "Browser processing is off for OCR PDF; files use temporary server processing.",
+      "mode": "OCR PDF uploads files for temporary server processing.",
+      "support": "OCR PDF uploads files for temporary server processing.",
+      "passed": true
+    },
+    {
+      "operation": "jpg_to_pdf",
+      "slug": "jpg-to-pdf",
+      "http_status": 200,
+      "is_local_supported": true,
+      "localStorageChoice": null,
+      "checked": true,
+      "disabled": false,
+      "label": "Browser processing is on for JPG/PNG to PDF; files stay on this device.",
+      "mode": "JPG/PNG to PDF runs in your browser; files stay on this device and are not uploaded.",
+      "support": "JPG/PNG to PDF runs in your browser; files stay on this device and are not uploaded.",
+      "passed": true
+    },
+    {
+      "operation": "word_to_pdf",
+      "slug": "word-to-pdf",
+      "http_status": 200,
+      "is_local_supported": false,
+      "localStorageChoice": null,
+      "checked": false,
+      "disabled": true,
+      "label": "Browser processing is off for Word to PDF; files use temporary server processing.",
+      "mode": "Word to PDF uploads files for temporary server processing.",
+      "support": "Word to PDF uploads files for temporary server processing.",
+      "passed": true
+    },
+    {
+      "operation": "excel_to_pdf",
+      "slug": "excel-to-pdf",
+      "http_status": 200,
+      "is_local_supported": false,
+      "localStorageChoice": null,
+      "checked": false,
+      "disabled": true,
+      "label": "Browser processing is off for Excel to PDF; files use temporary server processing.",
+      "mode": "Excel to PDF uploads files for temporary server processing.",
+      "support": "Excel to PDF uploads files for temporary server processing.",
+      "passed": true
+    },
+    {
+      "operation": "powerpoint_to_pdf",
+      "slug": "powerpoint-to-pdf",
+      "http_status": 200,
+      "is_local_supported": false,
+      "localStorageChoice": null,
+      "checked": false,
+      "disabled": true,
+      "label": "Browser processing is off for PowerPoint to PDF; files use temporary server processing.",
+      "mode": "PowerPoint to PDF uploads files for temporary server processing.",
+      "support": "PowerPoint to PDF uploads files for temporary server processing.",
+      "passed": true
+    },
+    {
+      "operation": "html_to_pdf",
+      "slug": "html-to-pdf",
+      "http_status": 200,
+      "is_local_supported": false,
+      "localStorageChoice": null,
+      "checked": false,
+      "disabled": true,
+      "label": "Browser processing is off for HTML to PDF; files use temporary server processing.",
+      "mode": "HTML to PDF uploads files for temporary server processing.",
+      "support": "HTML to PDF uploads files for temporary server processing.",
+      "passed": true
+    },
+    {
+      "operation": "pdf_to_jpg",
+      "slug": "pdf-to-jpg",
+      "http_status": 200,
+      "is_local_supported": true,
+      "localStorageChoice": null,
+      "checked": true,
+      "disabled": false,
+      "label": "Browser processing is on for PDF to JPG; files stay on this device.",
+      "mode": "PDF to JPG runs in your browser; files stay on this device and are not uploaded.",
+      "support": "PDF to JPG runs in your browser; files stay on this device and are not uploaded.",
+      "passed": true
+    },
+    {
+      "operation": "pdf_to_word",
+      "slug": "pdf-to-word",
+      "http_status": 200,
+      "is_local_supported": false,
+      "localStorageChoice": null,
+      "checked": false,
+      "disabled": true,
+      "label": "Browser processing is off for PDF to Word; files use temporary server processing.",
+      "mode": "PDF to Word uploads files for temporary server processing.",
+      "support": "PDF to Word uploads files for temporary server processing.",
+      "passed": true
+    },
+    {
+      "operation": "pdf_to_excel",
+      "slug": "pdf-to-excel",
+      "http_status": 200,
+      "is_local_supported": false,
+      "localStorageChoice": null,
+      "checked": false,
+      "disabled": true,
+      "label": "Browser processing is off for PDF to Excel; files use temporary server processing.",
+      "mode": "PDF to Excel uploads files for temporary server processing.",
+      "support": "PDF to Excel uploads files for temporary server processing.",
+      "passed": true
+    },
+    {
+      "operation": "pdf_to_powerpoint",
+      "slug": "pdf-to-powerpoint",
+      "http_status": 200,
+      "is_local_supported": false,
+      "localStorageChoice": null,
+      "checked": false,
+      "disabled": true,
+      "label": "Browser processing is off for PDF to PowerPoint; files use temporary server processing.",
+      "mode": "PDF to PowerPoint uploads files for temporary server processing.",
+      "support": "PDF to PowerPoint uploads files for temporary server processing.",
+      "passed": true
+    },
+    {
+      "operation": "pdf_to_pdfa",
+      "slug": "pdf-to-pdfa",
+      "http_status": 200,
+      "is_local_supported": false,
+      "localStorageChoice": null,
+      "checked": false,
+      "disabled": true,
+      "label": "Browser processing is off for PDF to PDF/A; files use temporary server processing.",
+      "mode": "PDF to PDF/A uploads files for temporary server processing.",
+      "support": "PDF to PDF/A uploads files for temporary server processing.",
+      "passed": true
+    },
+    {
+      "operation": "pdf_to_text",
+      "slug": "pdf-to-text",
+      "http_status": 200,
+      "is_local_supported": true,
+      "localStorageChoice": null,
+      "checked": true,
+      "disabled": false,
+      "label": "Browser processing is on for PDF to Text; files stay on this device.",
+      "mode": "PDF to Text runs in your browser; files stay on this device and are not uploaded.",
+      "support": "PDF to Text runs in your browser; files stay on this device and are not uploaded.",
+      "passed": true
+    },
+    {
+      "operation": "pdf_to_markdown",
+      "slug": "pdf-to-markdown",
+      "http_status": 200,
+      "is_local_supported": false,
+      "localStorageChoice": null,
+      "checked": false,
+      "disabled": true,
+      "label": "Browser processing is off for PDF to Markdown; files use temporary server processing.",
+      "mode": "PDF to Markdown uploads files for temporary server processing.",
+      "support": "PDF to Markdown uploads files for temporary server processing.",
+      "passed": true
+    },
+    {
+      "operation": "edit",
+      "slug": "edit-pdf",
+      "http_status": 200,
+      "is_local_supported": true,
+      "localStorageChoice": null,
+      "checked": true,
+      "disabled": false,
+      "label": "Browser processing is on for Add Text & Stamps; files stay on this device.",
+      "mode": "Add Text & Stamps runs in your browser; files stay on this device and are not uploaded.",
+      "support": "Add Text & Stamps runs in your browser; files stay on this device and are not uploaded.",
+      "passed": true
+    },
+    {
+      "operation": "annotate",
+      "slug": "annotate-pdf",
+      "http_status": 200,
+      "is_local_supported": false,
+      "localStorageChoice": null,
+      "checked": false,
+      "disabled": true,
+      "label": "Browser processing is off for Annotate PDF; files use temporary server processing.",
+      "mode": "Annotate PDF uploads files for temporary server processing.",
+      "support": "Annotate PDF uploads files for temporary server processing.",
+      "passed": true
+    },
+    {
+      "operation": "crop",
+      "slug": "crop-pdf",
+      "http_status": 200,
+      "is_local_supported": true,
+      "localStorageChoice": null,
+      "checked": true,
+      "disabled": false,
+      "label": "Browser processing is on for Crop PDF; files stay on this device.",
+      "mode": "Crop PDF runs in your browser; files stay on this device and are not uploaded.",
+      "support": "Crop PDF runs in your browser; files stay on this device and are not uploaded.",
+      "passed": true
+    },
+    {
+      "operation": "redact",
+      "slug": "redact-pdf",
+      "http_status": 200,
+      "is_local_supported": false,
+      "localStorageChoice": null,
+      "checked": false,
+      "disabled": true,
+      "label": "Browser processing is off for Redact PDF; files use temporary server processing.",
+      "mode": "Redact PDF uploads files for temporary server processing.",
+      "support": "Redact PDF uploads files for temporary server processing.",
+      "passed": true
+    },
+    {
+      "operation": "watermark",
+      "slug": "watermark-pdf",
+      "http_status": 200,
+      "is_local_supported": true,
+      "localStorageChoice": null,
+      "checked": true,
+      "disabled": false,
+      "label": "Browser processing is on for Watermark PDF; files stay on this device.",
+      "mode": "Watermark PDF runs in your browser; files stay on this device and are not uploaded.",
+      "support": "Watermark PDF runs in your browser; files stay on this device and are not uploaded.",
+      "passed": true
+    },
+    {
+      "operation": "page_numbers",
+      "slug": "add-page-numbers-to-pdf",
+      "http_status": 200,
+      "is_local_supported": true,
+      "localStorageChoice": null,
+      "checked": true,
+      "disabled": false,
+      "label": "Browser processing is on for Page Numbers; files stay on this device.",
+      "mode": "Page Numbers runs in your browser; files stay on this device and are not uploaded.",
+      "support": "Page Numbers runs in your browser; files stay on this device and are not uploaded.",
+      "passed": true
+    },
+    {
+      "operation": "protect",
+      "slug": "protect-pdf",
+      "http_status": 200,
+      "is_local_supported": false,
+      "localStorageChoice": null,
+      "checked": false,
+      "disabled": true,
+      "label": "Browser processing is off for Protect PDF; files use temporary server processing.",
+      "mode": "Protect PDF uploads files for temporary server processing.",
+      "support": "Protect PDF uploads files for temporary server processing.",
+      "passed": true
+    },
+    {
+      "operation": "unlock",
+      "slug": "unlock-pdf",
+      "http_status": 200,
+      "is_local_supported": false,
+      "localStorageChoice": null,
+      "checked": false,
+      "disabled": true,
+      "label": "Browser processing is off for Unlock PDF; files use temporary server processing.",
+      "mode": "Unlock PDF uploads files for temporary server processing.",
+      "support": "Unlock PDF uploads files for temporary server processing.",
+      "passed": true
+    },
+    {
+      "operation": "sign",
+      "slug": "sign-pdf",
+      "http_status": 200,
+      "is_local_supported": false,
+      "localStorageChoice": null,
+      "checked": false,
+      "disabled": true,
+      "label": "Browser processing is off for Sign PDF; files use temporary server processing.",
+      "mode": "Sign PDF uploads files for temporary server processing.",
+      "support": "Sign PDF uploads files for temporary server processing.",
+      "passed": true
+    },
+    {
+      "operation": "compare",
+      "slug": "compare-pdf",
+      "http_status": 200,
+      "is_local_supported": false,
+      "localStorageChoice": null,
+      "checked": false,
+      "disabled": true,
+      "label": "Browser processing is off for Compare PDF; files use temporary server processing.",
+      "mode": "Compare PDF uploads files for temporary server processing.",
+      "support": "Compare PDF uploads files for temporary server processing.",
+      "passed": true
+    },
+    {
+      "operation": "forms",
+      "slug": "fill-pdf-form",
+      "http_status": 200,
+      "is_local_supported": true,
+      "localStorageChoice": null,
+      "checked": true,
+      "disabled": false,
+      "label": "Browser processing is on for Fill PDF Form; files stay on this device.",
+      "mode": "Fill PDF Form runs in your browser; files stay on this device and are not uploaded.",
+      "support": "Fill PDF Form runs in your browser; files stay on this device and are not uploaded.",
+      "passed": true
+    },
+    {
+      "operation": "metadata",
+      "slug": "pdf-metadata",
+      "http_status": 200,
+      "is_local_supported": true,
+      "localStorageChoice": null,
+      "checked": true,
+      "disabled": false,
+      "label": "Browser processing is on for PDF Metadata; files stay on this device.",
+      "mode": "PDF Metadata runs in your browser; files stay on this device and are not uploaded.",
+      "support": "PDF Metadata runs in your browser; files stay on this device and are not uploaded.",
+      "passed": true
+    },
+    {
+      "operation": "ai_chat",
+      "slug": "ai-pdf-chat",
+      "http_status": 200,
+      "is_local_supported": false,
+      "localStorageChoice": null,
+      "checked": false,
+      "disabled": true,
+      "label": "Browser processing is off for AI PDF Chat; files use temporary server processing.",
+      "mode": "AI PDF Chat uploads files for temporary server processing.",
+      "support": "AI PDF Chat uploads files for temporary server processing.",
+      "passed": true
+    },
+    {
+      "operation": "ai_extract",
+      "slug": "extract-pdf-data",
+      "http_status": 200,
+      "is_local_supported": false,
+      "localStorageChoice": null,
+      "checked": false,
+      "disabled": true,
+      "label": "Browser processing is off for Smart Metadata; files use temporary server processing.",
+      "mode": "Smart Metadata uploads files for temporary server processing.",
+      "support": "Smart Metadata uploads files for temporary server processing.",
+      "passed": true
+    },
+    {
+      "operation": "summarize",
+      "slug": "summarize-pdf",
+      "http_status": 200,
+      "is_local_supported": false,
+      "localStorageChoice": null,
+      "checked": false,
+      "disabled": true,
+      "label": "Browser processing is off for AI Summarize; files use temporary server processing.",
+      "mode": "AI Summarize uploads files for temporary server processing.",
+      "support": "AI Summarize uploads files for temporary server processing.",
+      "passed": true
+    },
+    {
+      "operation": "translate",
+      "slug": "translate-pdf",
+      "http_status": 200,
+      "is_local_supported": false,
+      "localStorageChoice": null,
+      "checked": false,
+      "disabled": true,
+      "label": "Browser processing is off for AI Translate; files use temporary server processing.",
+      "mode": "AI Translate uploads files for temporary server processing.",
+      "support": "AI Translate uploads files for temporary server processing.",
+      "passed": true
+    },
+    {
+      "operation": "photo_resizer",
+      "slug": "ssc-photo-resizer",
+      "http_status": 200,
+      "is_local_supported": true,
+      "localStorageChoice": null,
+      "checked": true,
+      "disabled": true,
+      "label": "Browser processing is on for Exam Photo & Signature Resizer; files stay on this device.",
+      "mode": "Exam Photo & Signature Resizer runs in your browser; files stay on this device and are not uploaded.",
+      "support": "Exam Photo & Signature Resizer runs in your browser; files stay on this device and are not uploaded.",
+      "passed": true
+    },
+    {
+      "operation": "photo_compress",
+      "slug": "compress-image-online",
+      "http_status": 200,
+      "is_local_supported": true,
+      "localStorageChoice": null,
+      "checked": true,
+      "disabled": true,
+      "label": "Browser processing is on for Compress Photo / Image; files stay on this device.",
+      "mode": "Compress Photo / Image runs in your browser; files stay on this device and are not uploaded.",
+      "support": "Compress Photo / Image runs in your browser; files stay on this device and are not uploaded.",
+      "passed": true
+    },
+    {
+      "operation": "photo_resize",
+      "slug": "resize-image-dimensions",
+      "http_status": 200,
+      "is_local_supported": true,
+      "localStorageChoice": null,
+      "checked": true,
+      "disabled": true,
+      "label": "Browser processing is on for Resize Photo Dimensions; files stay on this device.",
+      "mode": "Resize Photo Dimensions runs in your browser; files stay on this device and are not uploaded.",
+      "support": "Resize Photo Dimensions runs in your browser; files stay on this device and are not uploaded.",
+      "passed": true
+    },
+    {
+      "operation": "photo_merge",
+      "slug": "merge-photos-online",
+      "http_status": 200,
+      "is_local_supported": true,
+      "localStorageChoice": null,
+      "checked": true,
+      "disabled": true,
+      "label": "Browser processing is on for Merge Photos into One; files stay on this device.",
+      "mode": "Merge Photos into One runs in your browser; files stay on this device and are not uploaded.",
+      "support": "Merge Photos into One runs in your browser; files stay on this device and are not uploaded.",
+      "passed": true
+    },
+    {
+      "operation": "mask_aadhaar",
+      "slug": "mask-aadhaar-card-online",
+      "http_status": 200,
+      "is_local_supported": false,
+      "localStorageChoice": null,
+      "checked": false,
+      "disabled": true,
+      "label": "Browser processing is off for Mask Aadhaar Card; files use temporary server processing.",
+      "mode": "Mask Aadhaar Card uploads files for temporary server processing.",
+      "support": "Mask Aadhaar Card uploads files for temporary server processing.",
+      "passed": true
+    },
+    {
+      "operation": "grayscale",
+      "slug": "convert-pdf-to-grayscale",
+      "http_status": 200,
+      "is_local_supported": false,
+      "localStorageChoice": null,
+      "checked": false,
+      "disabled": true,
+      "label": "Browser processing is off for Convert to Grayscale; files use temporary server processing.",
+      "mode": "Convert to Grayscale uploads files for temporary server processing.",
+      "support": "Convert to Grayscale uploads files for temporary server processing.",
+      "passed": true
+    },
+    {
+      "operation": "flatten",
+      "slug": "flatten-pdf",
+      "http_status": 200,
+      "is_local_supported": true,
+      "localStorageChoice": null,
+      "checked": true,
+      "disabled": false,
+      "label": "Browser processing is on for Flatten PDF Forms; files stay on this device.",
+      "mode": "Flatten PDF Forms runs in your browser; files stay on this device and are not uploaded.",
+      "support": "Flatten PDF Forms runs in your browser; files stay on this device and are not uploaded.",
+      "passed": true
+    }
+  ],
+  "local_operations": [
+    {
+      "operation": "merge",
+      "output_name": "merged-PDF.pdf",
+      "output_bytes": 1114,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "split",
+      "output_name": "split-pages.zip",
+      "output_bytes": 1798,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "remove",
+      "output_name": "removed-pages.pdf",
+      "output_bytes": 792,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "rotate",
+      "output_name": "rotated.pdf",
+      "output_bytes": 1047,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "organize",
+      "output_name": "organized.pdf",
+      "output_bytes": 952,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "forms",
+      "output_name": "filled-forms.pdf",
+      "output_bytes": 1728,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "metadata",
+      "output_name": "metadata-updated.pdf",
+      "output_bytes": 1015,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "flatten",
+      "output_name": "flattened.pdf",
+      "output_bytes": 1590,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "pdf_to_text",
+      "output_name": "local-two-pages-text.txt",
+      "output_bytes": 44,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "pdf_to_jpg",
+      "output_name": "local-two-pages-jpg.zip",
+      "output_bytes": 37467,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "page_numbers",
+      "output_name": "page-numbered.pdf",
+      "output_bytes": 1721,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "crop",
+      "output_name": "cropped.pdf",
+      "output_bytes": 1060,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "edit",
+      "output_name": "text-stamped.pdf",
+      "output_bytes": 1475,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "edit",
+      "output_name": "text-stamped.pdf",
+      "output_bytes": 1482,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "watermark",
+      "output_name": "watermarked.pdf",
+      "output_bytes": 1865,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "scan_pdf",
+      "output_name": "scanned-document.pdf",
+      "output_bytes": 2872,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "scan_pdf",
+      "output_name": "scanned-document.pdf",
+      "output_bytes": 2841,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "scan_pdf",
+      "output_name": "scanned-document.pdf",
+      "output_bytes": 2844,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "scan_pdf",
+      "output_name": "scanned-document.pdf",
+      "output_bytes": 3263,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "jpg_to_pdf",
+      "output_name": "images-to-pdf.pdf",
+      "output_bytes": 2872,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "photo_compress",
+      "output_name": "photo-a-compressed.jpg",
+      "output_bytes": 788,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "photo_resize",
+      "output_name": "photo-a-resized.jpg",
+      "output_bytes": 2625,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "photo_merge",
+      "output_name": "merged-photos.jpg",
+      "output_bytes": 824,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    },
+    {
+      "operation": "photo_resizer",
+      "output_name": "exam-photo.jpg",
+      "output_bytes": 20000,
+      "server_job_posts_during_run": 0,
+      "content_checked": true
+    }
+  ],
+  "page_errors": [],
+  "server_job_posts": [
+    "http://127.0.0.1:18504/api/jobs"
+  ],
+  "preference_persistence": {
+    "server_choice_survived_reload": true,
+    "local_choice_survived_reload": true
+  },
+  "local_failure_fallback": {
+    "controlled_local_error": true,
+    "quota_disclosure_visible": true,
+    "cancel_did_not_upload": true,
+    "upload_requires_confirmation": true,
+    "server_job_posts": 1,
+    "output_content_checked": true,
+    "saved_local_preference_preserved": true,
+    "mode_after_server_completion": "Merge PDF runs in your browser; files stay on this device and are not uploaded.",
+    "changed_selection_did_not_upload": true
+  },
+  "pdf_to_jpg": {
+    "selected_dpi": 300,
+    "archive_bytes": 37467,
+    "images": [
+      {
+        "name": "page_001.jpg",
+        "dimensions": [
+          1250,
+          834
+        ],
+        "reference_mean_red_difference": 0.501
+      },
+      {
+        "name": "page_002.jpg",
+        "dimensions": [
+          1250,
+          834
+        ],
+        "reference_mean_red_difference": 0.596
+      }
+    ]
+  },
+  "edit_stamp": {
+    "target_page": 1,
+    "text": "LOCAL-STAMP-FIRST",
+    "rect": [
+      40.0,
+      84.94999694824219,
+      183.90602111816406,
+      104.18599700927734
+    ],
+    "rotated_page_rect": [
+      90.0,
+      94.94999694824219,
+      263.4460144042969,
+      114.18599700927734
+    ]
+  },
+  "route_count": 44,
+  "route_failures": [],
+  "local_operation_count": 24,
+  "local_operation_outputs_checked": true,
+  "all_local_runs_stayed_off_api_jobs": true,
+  "result": true
+}

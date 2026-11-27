@@ -1,0 +1,19 @@
+{
+  "image": "paperplane-v23-audit:codex-v151-offscreen-canvas",
+  "image_id": "sha256:a9c519f3d3ead802020b401153fa9c3f5802b2a2e70a76d3c696cd2b7c312566",
+  "health": {
+    "status": "ok",
+    "service": "paperplane-pdf",
+    "version": "2.0.0",
+    "auth_required": false,
+    "workers": 4,
+    "max_file_size_mb": 500,
+    "job_ttl_hours": 2
+  },
+  "browser_result": "two mobile 69-page Chromium rounds passed",
+  "container_status": "healthy then stopped and removed",
+  "storage": "disposable tmpfs",
+  "synthetic_credentials": true,
+  "provider_credentials": false,
+  "real_payment": false
+}

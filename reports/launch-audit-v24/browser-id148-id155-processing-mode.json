@@ -1,0 +1,473 @@
+{
+  "mode_rounds": [
+    {
+      "route": "/merge-pdf",
+      "status": 200,
+      "sidebar_checked": false,
+      "settings_preference": "server"
+    },
+    {
+      "route": "/rotate-pdf",
+      "status": 200,
+      "sidebar_checked": false,
+      "settings_preference": "server"
+    },
+    {
+      "route": "/remove-pages",
+      "status": 200,
+      "sidebar_checked": false,
+      "settings_preference": "server"
+    },
+    {
+      "route": "/merge-pdf",
+      "status": 200,
+      "sidebar_checked": true,
+      "settings_preference": "local"
+    },
+    {
+      "route": "/rotate-pdf",
+      "status": 200,
+      "sidebar_checked": true,
+      "settings_preference": "local"
+    },
+    {
+      "route": "/remove-pages",
+      "status": 200,
+      "sidebar_checked": true,
+      "settings_preference": "local"
+    }
+  ],
+  "route_matrix": [
+    {
+      "operation": "merge",
+      "route": "/merge-pdf",
+      "status": 200,
+      "checked": true,
+      "disabled": false,
+      "expected_checked": true,
+      "match": true
+    },
+    {
+      "operation": "split",
+      "route": "/split-pdf",
+      "status": 200,
+      "checked": true,
+      "disabled": false,
+      "expected_checked": true,
+      "match": true
+    },
+    {
+      "operation": "remove",
+      "route": "/remove-pages-pdf",
+      "status": 200,
+      "checked": true,
+      "disabled": false,
+      "expected_checked": true,
+      "match": true
+    },
+    {
+      "operation": "rotate",
+      "route": "/rotate-pdf",
+      "status": 200,
+      "checked": true,
+      "disabled": false,
+      "expected_checked": true,
+      "match": true
+    },
+    {
+      "operation": "organize",
+      "route": "/organize-pdf",
+      "status": 200,
+      "checked": true,
+      "disabled": false,
+      "expected_checked": true,
+      "match": true
+    },
+    {
+      "operation": "scan_pdf",
+      "route": "/scan-to-pdf",
+      "status": 200,
+      "checked": true,
+      "disabled": false,
+      "expected_checked": true,
+      "match": true
+    },
+    {
+      "operation": "compress",
+      "route": "/compress-pdf",
+      "status": 200,
+      "checked": false,
+      "disabled": true,
+      "expected_checked": false,
+      "match": true
+    },
+    {
+      "operation": "repair",
+      "route": "/repair-pdf",
+      "status": 200,
+      "checked": false,
+      "disabled": true,
+      "expected_checked": false,
+      "match": true
+    },
+    {
+      "operation": "ocr",
+      "route": "/ocr-pdf",
+      "status": 200,
+      "checked": false,
+      "disabled": true,
+      "expected_checked": false,
+      "match": true
+    },
+    {
+      "operation": "jpg_to_pdf",
+      "route": "/jpg-to-pdf",
+      "status": 200,
+      "checked": true,
+      "disabled": false,
+      "expected_checked": true,
+      "match": true
+    },
+    {
+      "operation": "word_to_pdf",
+      "route": "/word-to-pdf",
+      "status": 200,
+      "checked": false,
+      "disabled": true,
+      "expected_checked": false,
+      "match": true
+    },
+    {
+      "operation": "excel_to_pdf",
+      "route": "/excel-to-pdf",
+      "status": 200,
+      "checked": false,
+      "disabled": true,
+      "expected_checked": false,
+      "match": true
+    },
+    {
+      "operation": "powerpoint_to_pdf",
+      "route": "/powerpoint-to-pdf",
+      "status": 200,
+      "checked": false,
+      "disabled": true,
+      "expected_checked": false,
+      "match": true
+    },
+    {
+      "operation": "html_to_pdf",
+      "route": "/html-to-pdf",
+      "status": 200,
+      "checked": false,
+      "disabled": true,
+      "expected_checked": false,
+      "match": true
+    },
+    {
+      "operation": "pdf_to_jpg",
+      "route": "/pdf-to-jpg",
+      "status": 200,
+      "checked": true,
+      "disabled": false,
+      "expected_checked": true,
+      "match": true
+    },
+    {
+      "operation": "pdf_to_word",
+      "route": "/pdf-to-word",
+      "status": 200,
+      "checked": true,
+      "disabled": false,
+      "expected_checked": true,
+      "match": true
+    },
+    {
+      "operation": "pdf_to_excel",
+      "route": "/pdf-to-excel",
+      "status": 200,
+      "checked": false,
+      "disabled": true,
+      "expected_checked": false,
+      "match": true
+    },
+    {
+      "operation": "pdf_to_powerpoint",
+      "route": "/pdf-to-powerpoint",
+      "status": 200,
+      "checked": false,
+      "disabled": true,
+      "expected_checked": false,
+      "match": true
+    },
+    {
+      "operation": "pdf_to_pdfa",
+      "route": "/pdf-to-pdfa",
+      "status": 200,
+      "checked": false,
+      "disabled": true,
+      "expected_checked": false,
+      "match": true
+    },
+    {
+      "operation": "pdf_to_text",
+      "route": "/pdf-to-text",
+      "status": 200,
+      "checked": true,
+      "disabled": false,
+      "expected_checked": true,
+      "match": true
+    },
+    {
+      "operation": "pdf_to_markdown",
+      "route": "/pdf-to-markdown",
+      "status": 200,
+      "checked": true,
+      "disabled": false,
+      "expected_checked": true,
+      "match": true
+    },
+    {
+      "operation": "edit",
+      "route": "/edit-pdf",
+      "status": 200,
+      "checked": true,
+      "disabled": false,
+      "expected_checked": true,
+      "match": true
+    },
+    {
+      "operation": "annotate",
+      "route": "/annotate-pdf",
+      "status": 200,
+      "checked": true,
+      "disabled": false,
+      "expected_checked": true,
+      "match": true
+    },
+    {
+      "operation": "crop",
+      "route": "/crop-pdf",
+      "status": 200,
+      "checked": true,
+      "disabled": false,
+      "expected_checked": true,
+      "match": true
+    },
+    {
+      "operation": "redact",
+      "route": "/redact-pdf",
+      "status": 200,
+      "checked": false,
+      "disabled": true,
+      "expected_checked": false,
+      "match": true
+    },
+    {
+      "operation": "watermark",
+      "route": "/watermark-pdf",
+      "status": 200,
+      "checked": true,
+      "disabled": false,
+      "expected_checked": true,
+      "match": true
+    },
+    {
+      "operation": "page_numbers",
+      "route": "/add-page-numbers-to-pdf",
+      "status": 200,
+      "checked": true,
+      "disabled": false,
+      "expected_checked": true,
+      "match": true
+    },
+    {
+      "operation": "protect",
+      "route": "/protect-pdf",
+      "status": 200,
+      "checked": false,
+      "disabled": true,
+      "expected_checked": false,
+      "match": true
+    },
+    {
+      "operation": "unlock",
+      "route": "/unlock-pdf",
+      "status": 200,
+      "checked": false,
+      "disabled": true,
+      "expected_checked": false,
+      "match": true
+    },
+    {
+      "operation": "sign",
+      "route": "/sign-pdf",
+      "status": 200,
+      "checked": true,
+      "disabled": false,
+      "expected_checked": true,
+      "match": true
+    },
+    {
+      "operation": "compare",
+      "route": "/compare-pdf",
+      "status": 200,
+      "checked": true,
+      "disabled": false,
+      "expected_checked": true,
+      "match": true
+    },
+    {
+      "operation": "forms",
+      "route": "/fill-pdf-form",
+      "status": 200,
+      "checked": true,
+      "disabled": false,
+      "expected_checked": true,
+      "match": true
+    },
+    {
+      "operation": "metadata",
+      "route": "/pdf-metadata",
+      "status": 200,
+      "checked": true,
+      "disabled": false,
+      "expected_checked": true,
+      "match": true
+    },
+    {
+      "operation": "ai_chat",
+      "route": "/ai-pdf-chat",
+      "status": 200,
+      "checked": false,
+      "disabled": true,
+      "expected_checked": false,
+      "match": true
+    },
+    {
+      "operation": "ai_extract",
+      "route": "/extract-pdf-data",
+      "status": 200,
+      "checked": false,
+      "disabled": true,
+      "expected_checked": false,
+      "match": true
+    },
+    {
+      "operation": "summarize",
+      "route": "/summarize-pdf",
+      "status": 200,
+      "checked": false,
+      "disabled": true,
+      "expected_checked": false,
+      "match": true
+    },
+    {
+      "operation": "translate",
+      "route": "/translate-pdf",
+      "status": 200,
+      "checked": false,
+      "disabled": true,
+      "expected_checked": false,
+      "match": true
+    },
+    {
+      "operation": "photo_resizer",
+      "route": "/ssc-photo-resizer",
+      "status": 200,
+      "checked": true,
+      "disabled": true,
+      "expected_checked": true,
+      "match": true
+    },
+    {
+      "operation": "photo_compress",
+      "route": "/compress-image-online",
+      "status": 200,
+      "checked": true,
+      "disabled": true,
+      "expected_checked": true,
+      "match": true
+    },
+    {
+      "operation": "photo_resize",
+      "route": "/resize-image-dimensions",
+      "status": 200,
+      "checked": true,
+      "disabled": true,
+      "expected_checked": true,
+      "match": true
+    },
+    {
+      "operation": "photo_merge",
+      "route": "/merge-photos-online",
+      "status": 200,
+      "checked": true,
+      "disabled": true,
+      "expected_checked": true,
+      "match": true
+    },
+    {
+      "operation": "mask_aadhaar",
+      "route": "/mask-aadhaar-card-online",
+      "status": 200,
+      "checked": false,
+      "disabled": true,
+      "expected_checked": false,
+      "match": true
+    },
+    {
+      "operation": "grayscale",
+      "route": "/convert-pdf-to-grayscale",
+      "status": 200,
+      "checked": true,
+      "disabled": false,
+      "expected_checked": true,
+      "match": true
+    },
+    {
+      "operation": "flatten",
+      "route": "/flatten-pdf",
+      "status": 200,
+      "checked": true,
+      "disabled": false,
+      "expected_checked": true,
+      "match": true
+    }
+  ],
+  "scope_copy": {
+    "settings": "Browser processing is preferred for Merge, Split, Remove, Rotate, Page Organizer, Scan to PDF, JPG/PNG to PDF, PDF-to-JPG, Grayscale PDF, Crop PDF, Add Text & Stamps, Sign PDF, Fill Forms, Flatten Forms, Metadata, PDF-to-Text, Compare PDF text, PDF-to-Markdown (basic), PDF-to-Word (text-first), Page Numbers, text or image watermarks, and basic Annotate PDF text markup for exact single-block phrases (not sticky notes or rectangles). Photo tools always run in your browser.",
+    "merge_sidebar": "Merge PDF runs in your browser; files stay on this device and are not uploaded.",
+    "settings_names_page_organizer": true,
+    "settings_names_photo_tools": true,
+    "sidebar_describes_selected_tool": true
+  },
+  "page_errors": [],
+  "console_errors": [],
+  "privacy_control_debug": {
+    "content_scroll_top": 521,
+    "content_scroll_height": 1128,
+    "content_client_height": 607,
+    "label_box": {
+      "x": 1084,
+      "y": 266.015625,
+      "width": 44,
+      "height": 44
+    },
+    "input_box": {
+      "x": 1084,
+      "y": 279.015625,
+      "width": 0,
+      "height": 0
+    },
+    "input_visible": false,
+    "input_disabled": false
+  },
+  "settings": {
+    "initial_server_preference": false,
+    "after_toggle_local": true,
+    "reload_sidebar_checked": true,
+    "saved_preference": "local"
+  },
+  "result": true
+}

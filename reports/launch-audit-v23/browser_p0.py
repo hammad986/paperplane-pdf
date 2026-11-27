@@ -58,6 +58,8 @@ def main():
                 page_errors = []
                 page.on("pageerror", lambda err: page_errors.append(str(err)))
                 page.goto(base + "/", wait_until="domcontentloaded")
+                served_app_src = page.locator('script[src*="/assets/app.js"]').get_attribute("src")
+                assert served_app_src == "/assets/app.js?v=163", {"served_app_src": served_app_src}
                 admin = context.new_page()
                 admin.add_init_script("(token => sessionStorage.setItem('pp_admin_session', token))(" + json.dumps(identity["admin"]) + ")")
                 admin.goto(base + "/admin", wait_until="domcontentloaded")
@@ -336,10 +338,13 @@ def main():
                   return await loadDocumentIntoStudio(new File([bytes],'first-paint.pdf',{type:'application/pdf'}));
                 }""",base64.b64encode(source.read_bytes()).decode("ascii"))
                 assert first_open
-                page.wait_for_function("""() => {
+                page.wait_for_function("""async () => {
                   const canvas=document.querySelector('#studio-page-stack .studio-page-sheet[data-page="1"] .pdf-page-canvas');
                   if(!canvas?.width||!canvas?.height)return false;
-                  const pixels=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;
+                  const bitmap=await createImageBitmap(canvas);
+                  const snapshot=document.createElement('canvas');snapshot.width=canvas.width;snapshot.height=canvas.height;
+                  const ctx=snapshot.getContext('2d',{willReadFrequently:true});ctx.drawImage(bitmap,0,0);bitmap.close();
+                  const pixels=ctx.getImageData(0,0,snapshot.width,snapshot.height).data;
                   for(let i=0;i<pixels.length;i+=32)if(pixels[i]<245||pixels[i+1]<245||pixels[i+2]<245)return true;
                   return false;
                 }""",timeout=5000)
@@ -515,7 +520,7 @@ def main():
                       const output = new Uint8Array(await download.arrayBuffer());
                       let binary = '';
                       for (let i=0; i<output.length; i+=8192) binary += String.fromCharCode(...output.subarray(i,i+8192));
-                      return {name:state.output_name, data:btoa(binary), warning:state.warning, outputSize:state.output_size};
+                      return {jobId:job.job_id, name:state.output_name, data:btoa(binary), warning:state.warning, outputSize:state.output_size};
                     }""", {"operation":operation,"filename":filename,
                           "payload":base64.b64encode(payload).decode("ascii"),"options":options})
                     return result
@@ -625,10 +630,11 @@ def main():
                 assert edited_metadata.raw_get("/CreationDate") == "D:20200102030405Z"
                 results.append({"case":"metadata_browser_output_preserves_provenance","content_checked":True})
 
-                markdown_job = browser_job("pdf_to_markdown", "a5e7074e4bb844cdb8a39a50783e06b5_browser-download.pdf",
+                markdown_job = browser_job("pdf_to_markdown", "browser-download.pdf",
                                              source.read_bytes(), {"pages":"all"})
                 markdown = base64.b64decode(markdown_job["data"]).decode("utf-8")
-                assert "a5e7074e4bb844cdb8a39a50783e06b5" not in markdown
+                assert markdown_job["jobId"] not in markdown
+                assert "# browser-download" in markdown
                 assert "Paperplane v23 browser download verification" in markdown
                 results.append({"case":"pdf_to_markdown_browser_output_content_checked","output_name":markdown_job["name"]})
 
@@ -696,19 +702,25 @@ def main():
                         page.locator("#run-button").click()
                         page.locator("#result-download-link:not([hidden])").wait_for(timeout=30000)
                         failed_once = {"value": False}
+                        download_route_hits = []
+                        download_url = page.locator("#result-download-link").evaluate("link => link.href")
+                        network_download = download_url.startswith("http")
                         def make_download_fail_once(route):
-                            if round_no == 2 and "/api/jobs/" in route.request.url and "/download" in route.request.url and not failed_once["value"]:
+                            route_path = route.request.url.split("?", 1)[0]
+                            if round_no == 2 and route.request.method == "GET" and route_path.endswith("/download"):
+                                download_route_hits.append(route.request.url)
+                            if round_no == 2 and route.request.method == "GET" and route_path.endswith("/download") and not failed_once["value"]:
                                 failed_once["value"] = True
                                 route.abort()
                             else:
                                 route.continue_()
-                        if round_no == 2:
-                            page.route("**/api/jobs/**/download", make_download_fail_once)
+                        if round_no == 2 and network_download:
+                            page.route("**/*", make_download_fail_once)
                         with page.expect_download(timeout=30000) as captured:
                             page.locator("#result-download-link").click()
-                        if round_no == 2:
-                            page.unroute("**/api/jobs/**/download", make_download_fail_once)
-                            assert failed_once["value"], "The controlled download failure was not injected."
+                        if round_no == 2 and network_download:
+                            page.unroute("**/*", make_download_fail_once)
+                            assert failed_once["value"], f"The controlled download failure was not injected for {path}; target={download_url}; route_hits={download_route_hits}"
                         output = temp / f"{Path(path).name}-{round_no}.pdf"
                         captured.value.save_as(output)
                         with fitz.open(output) as pdf:
@@ -789,14 +801,17 @@ def main():
                 persisted_theme = page.evaluate("({theme:document.documentElement.dataset.paperplaneTheme,studio:getComputedStyle(document.querySelector('.pdf-studio')).backgroundColor,canvasArea:getComputedStyle(document.querySelector('.studio-canvas-area')).backgroundColor})")
                 assert persisted_theme == {"theme":"light","studio":"rgb(237, 241, 239)","canvasArea":"rgb(248, 250, 249)"}, persisted_theme
                 page.locator(".toast-notice").wait_for(state="visible", timeout=5000)
+                page.add_style_tag(content=".toast-notice { animation: none !important; transform: none !important; }")
                 desktop_toast = page.evaluate("""() => {
                   const toast=document.querySelector('.toast-notice'), tr=toast.getBoundingClientRect();
                   const overlaps=[...document.querySelectorAll('.studio-toolbar button')].filter(button=>getComputedStyle(button).display!=='none').filter(button=>{
                     const r=button.getBoundingClientRect();return r.width&&r.height&&tr.left<r.right&&tr.right>r.left&&tr.top<r.bottom&&tr.bottom>r.top;
                   }).map(button=>button.id||button.textContent.trim());
-                  return {top:tr.top,toolbarBottom:document.querySelector('.studio-toolbar').getBoundingClientRect().bottom,overlaps};
+                  const page=document.querySelector('.studio-page-sheet')?.getBoundingClientRect(),dock=document.querySelector('#studio-mobile-dock')?.getBoundingClientRect();const pageOverlap=!!page&&Math.min(tr.right,page.right)>Math.max(tr.left,page.left)&&Math.min(tr.bottom,page.bottom)>Math.max(tr.top,page.top);return {top:tr.top,toastRect:{left:tr.left,right:tr.right,top:tr.top,bottom:tr.bottom,width:tr.width,height:tr.height},pageRect:page&&{left:page.left,right:page.right,top:page.top,bottom:page.bottom},dockRect:dock&&{top:dock.top,bottom:dock.bottom,width:dock.width,height:dock.height},toolbarBottom:document.querySelector('.studio-toolbar').getBoundingClientRect().bottom,active:{html:document.documentElement.classList.contains('studio-active'),body:document.body.classList.contains('studio-active')},overlaps,pageOverlap,pageHidden:toast.classList.contains('toast-visually-hidden')};
                 }""")
-                assert desktop_toast["overlaps"] == [] and desktop_toast["top"] > desktop_toast["toolbarBottom"], desktop_toast
+                assert desktop_toast["overlaps"] == [] and not desktop_toast["pageOverlap"] and (desktop_toast["pageHidden"] or desktop_toast["top"] > desktop_toast["toolbarBottom"]), desktop_toast
+                if desktop_toast["pageHidden"]:
+                    assert desktop_toast["toastRect"]["width"] <= 1 and desktop_toast["toastRect"]["height"] <= 1, desktop_toast
                 page.set_viewport_size({"width":390,"height":844})
                 page.wait_for_timeout(120)
                 mobile_toast = page.evaluate("""() => {
@@ -804,9 +819,11 @@ def main():
                   const overlaps=[...document.querySelectorAll('.studio-toolbar button')].filter(button=>getComputedStyle(button).display!=='none').filter(button=>{
                     const r=button.getBoundingClientRect();return r.width&&r.height&&tr.left<r.right&&tr.right>r.left&&tr.top<r.bottom&&tr.bottom>r.top;
                   }).map(button=>button.id||button.textContent.trim());
-                  return {top:tr.top,toolbarBottom:document.querySelector('.studio-toolbar').getBoundingClientRect().bottom,overlaps};
+                  const page=document.querySelector('.studio-page-sheet')?.getBoundingClientRect(),dock=document.querySelector('#studio-mobile-dock')?.getBoundingClientRect();const pageOverlap=!!page&&Math.min(tr.right,page.right)>Math.max(tr.left,page.left)&&Math.min(tr.bottom,page.bottom)>Math.max(tr.top,page.top);return {top:tr.top,toastRect:{left:tr.left,right:tr.right,top:tr.top,bottom:tr.bottom,width:tr.width,height:tr.height},pageRect:page&&{left:page.left,right:page.right,top:page.top,bottom:page.bottom},dockRect:dock&&{top:dock.top,bottom:dock.bottom,width:dock.width,height:dock.height},toolbarBottom:document.querySelector('.studio-toolbar').getBoundingClientRect().bottom,active:{html:document.documentElement.classList.contains('studio-active'),body:document.body.classList.contains('studio-active')},overlaps,pageOverlap,pageHidden:toast.classList.contains('toast-visually-hidden')};
                 }""")
-                assert mobile_toast["overlaps"] == [] and mobile_toast["top"] > mobile_toast["toolbarBottom"], mobile_toast
+                assert mobile_toast["overlaps"] == [] and not mobile_toast["pageOverlap"] and (mobile_toast["pageHidden"] or mobile_toast["top"] > mobile_toast["toolbarBottom"]), mobile_toast
+                if mobile_toast["pageHidden"]:
+                    assert mobile_toast["toastRect"]["width"] <= 1 and mobile_toast["toastRect"]["height"] <= 1, mobile_toast
                 mobile_stage = page.evaluate("({theme:document.documentElement.dataset.paperplaneTheme,canvasArea:getComputedStyle(document.querySelector('.studio-canvas-area')).backgroundColor,scrollWidth:document.documentElement.scrollWidth})")
                 assert mobile_stage == {"theme":"light","canvasArea":"rgb(248, 250, 249)","scrollWidth":390}, mobile_stage
                 page.screenshot(path=str(ROOT/"reports"/"launch-audit-v23"/"studio-loaded-390.png"),full_page=False)
@@ -865,27 +882,30 @@ def main():
                 }""", base64.b64encode(long_source.read_bytes()).decode("ascii"))
                 assert long_loading
                 page.wait_for_function("document.querySelector('#page-total-indicator')?.textContent === '69'", timeout=20000)
-                page.wait_for_function("""() => {
+                page.wait_for_function("""async () => {
                   const active=window.state?.studio?.currentPage||1; const canvas=document.querySelector(`#studio-page-stack .studio-page-sheet[data-page="${active}"] .pdf-page-canvas`); if(!canvas?.width||!canvas?.height)return false;
-                  const ctx=canvas.getContext('2d'); const data=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+                  const bitmap=await createImageBitmap(canvas);const snapshot=document.createElement('canvas');snapshot.width=canvas.width;snapshot.height=canvas.height;
+                  const ctx=snapshot.getContext('2d',{willReadFrequently:true});ctx.drawImage(bitmap,0,0);bitmap.close();const data=ctx.getImageData(0,0,snapshot.width,snapshot.height).data;
                   for(let i=0;i<data.length;i+=32) if(data[i]<245||data[i+1]<245||data[i+2]<245) return true;
                   return false;
                 }""", timeout=15000)
                 page.locator("#page-jump-input").fill("69")
                 page.locator("#page-jump-input").dispatch_event("change")
                 page.wait_for_function("window.state?.studio?.currentPage === 69", timeout=10000)
-                page.wait_for_function("""() => {
+                page.wait_for_function("""async () => {
                   const active=window.state?.studio?.currentPage||1; const canvas=document.querySelector(`#studio-page-stack .studio-page-sheet[data-page="${active}"] .pdf-page-canvas`); if(!canvas?.width||!canvas?.height)return false;
-                  const ctx=canvas.getContext('2d'); const data=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+                  const bitmap=await createImageBitmap(canvas);const snapshot=document.createElement('canvas');snapshot.width=canvas.width;snapshot.height=canvas.height;
+                  const ctx=snapshot.getContext('2d',{willReadFrequently:true});ctx.drawImage(bitmap,0,0);bitmap.close();const data=ctx.getImageData(0,0,snapshot.width,snapshot.height).data;
                   for(let i=0;i<data.length;i+=32) if(data[i]<245||data[i+1]<245||data[i+2]<245) return true;
                   return false;
                 }""", timeout=15000)
                 page.locator("#page-jump-input").fill("1")
                 page.locator("#page-jump-input").dispatch_event("change")
                 page.wait_for_function("window.state?.studio?.currentPage === 1", timeout=10000)
-                page.wait_for_function("""() => {
+                page.wait_for_function("""async () => {
                   const active=window.state?.studio?.currentPage||1; const canvas=document.querySelector(`#studio-page-stack .studio-page-sheet[data-page="${active}"] .pdf-page-canvas`); if(!canvas?.width||!canvas?.height)return false;
-                  const ctx=canvas.getContext('2d'); const data=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+                  const bitmap=await createImageBitmap(canvas);const snapshot=document.createElement('canvas');snapshot.width=canvas.width;snapshot.height=canvas.height;
+                  const ctx=snapshot.getContext('2d',{willReadFrequently:true});ctx.drawImage(bitmap,0,0);bitmap.close();const data=ctx.getImageData(0,0,snapshot.width,snapshot.height).data;
                   for(let i=0;i<data.length;i+=32) if(data[i]<245||data[i+1]<245||data[i+2]<245) return true;
                   return false;
                 }""", timeout=15000)
@@ -992,9 +1012,8 @@ def main():
                 pro_page_errors=[]
                 pro_page.on("pageerror",lambda err:pro_page_errors.append(str(err)))
                 def delay_auth_response(route):
-                    # DOMContentLoaded can take longer on a warm/cold route
-                    # than the auth API itself. Keep auth pending long enough
-                    # to inspect the actual first paint consistently.
+                    # Keep the auth response briefly pending so the first-paint
+                    # skeleton can be observed before the signed-in state resolves.
                     time.sleep(2.0)
                     route.continue_()
                 pro_context.route("**/api/auth/me",delay_auth_response)

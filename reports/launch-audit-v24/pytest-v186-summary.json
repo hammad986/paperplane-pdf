@@ -1,0 +1,29 @@
+{
+  "date": "2026-11-23",
+  "command": "python -m pytest -q",
+  "app_js": "v186",
+  "styles_css": "v69",
+  "service_worker": "v136",
+  "runs": [
+    {
+      "log": "pytest-v186-style69-run1.log",
+      "seconds": 161.07,
+      "number": 1,
+      "passed": 684,
+      "warnings": 4,
+      "result": "passed"
+    },
+    {
+      "log": "pytest-v186-style69-run2.log",
+      "seconds": 143.61,
+      "number": 2,
+      "passed": 684,
+      "warnings": 4,
+      "result": "passed"
+    }
+  ],
+  "warning_categories": [
+    "Starlette TestClient httpx deprecation",
+    "per-request cookie deprecation (3 occurrences)"
+  ]
+}

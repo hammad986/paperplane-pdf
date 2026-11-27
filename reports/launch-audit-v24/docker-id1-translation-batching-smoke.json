@@ -1,0 +1,16 @@
+{
+  "candidate_image": "sha256:5669d0e9d8a7148fc40e01a7de736bd0522ea8c75ec7846c8cfa6d1f3ef74e99",
+  "fixture": {
+    "filename": "arxiv-1706.03762v7.pdf",
+    "sha256": "bdfaa68d8984f0dc02beaca527b76f207d99b666d31d1da728ee0728182df697",
+    "pages": 15,
+    "bytes": 2215244
+  },
+  "provider": "deterministic in-container stub; no external AI API",
+  "matrix": [
+    {"language":"Spanish","translation_status":"partial","pages":15,"character_coverage_percent":99.99,"block_coverage_percent":99.6,"blocks":495,"blocks_translated":493,"blocks_preserved":2,"segments":495,"provider_requests":31,"target_marker_pages":15,"output_bytes":3093716,"warning":"Some source blocks were preserved because the translation was missing or could not fit."},
+    {"language":"Hindi","translation_status":"partial","pages":15,"character_coverage_percent":99.99,"block_coverage_percent":99.6,"blocks":495,"blocks_translated":493,"blocks_preserved":2,"segments":495,"provider_requests":31,"target_marker_pages":15,"output_bytes":3021436,"warning":"Some source blocks were preserved because the translation was missing or could not fit."}
+  ],
+  "provider_batching": {"max_segments":16,"max_source_characters":12000,"theoretical_prior_8_segment_calls_for_495_segments":62,"observed_calls_per_language":31},
+  "result": "passed"
+}

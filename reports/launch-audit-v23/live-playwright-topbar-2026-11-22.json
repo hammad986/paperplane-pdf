@@ -1,0 +1,1397 @@
+{
+  "runtime": "https://paperplane.qd.je",
+  "routes": [
+    "/merge-pdf",
+    "/studio"
+  ],
+  "widths": [
+    320,
+    390,
+    768,
+    1024,
+    1366
+  ],
+  "rounds": 2,
+  "checks": 20,
+  "problems": [
+    {
+      "round": 1,
+      "route": "/studio",
+      "width": 320,
+      "status": 200,
+      "innerWidth": 320,
+      "docWidth": 320,
+      "topbar": {
+        "client": 320,
+        "scroll": 320,
+        "boxes": [
+          {
+            "name": "topbar-left",
+            "l": 12,
+            "r": 140,
+            "t": 7.5,
+            "b": 55.5
+          },
+          {
+            "name": "topbar-right",
+            "l": 148,
+            "r": 308,
+            "t": 9.5,
+            "b": 53.5
+          }
+        ],
+        "overlaps": []
+      },
+      "overflowing": [
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "studio-tool-group",
+          "right": 358
+        },
+        {
+          "tag": "BUTTON",
+          "id": "studio-clear-pdf-btn",
+          "cls": "studio-tool-btn studio-clear-pdf-btn",
+          "right": 359
+        },
+        {
+          "tag": "SPAN",
+          "id": "",
+          "cls": "tool-btn-text",
+          "right": 354
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "studio-tool-group",
+          "right": 403
+        },
+        {
+          "tag": "BUTTON",
+          "id": "tool-redact-btn",
+          "cls": "studio-tool-btn",
+          "right": 347
+        },
+        {
+          "tag": "svg",
+          "id": "",
+          "cls": "[object SVGAnimatedString]",
+          "right": 329
+        },
+        {
+          "tag": "rect",
+          "id": "",
+          "cls": "[object SVGAnimatedString]",
+          "right": 327
+        },
+        {
+          "tag": "SPAN",
+          "id": "",
+          "cls": "tool-btn-text",
+          "right": 339
+        }
+      ],
+      "app": "https://paperplane.qd.je/assets/app.js?v=154",
+      "css": "https://paperplane.qd.je/assets/styles.css?v=61"
+    },
+    {
+      "round": 1,
+      "route": "/studio",
+      "width": 390,
+      "status": 200,
+      "innerWidth": 390,
+      "docWidth": 390,
+      "topbar": {
+        "client": 390,
+        "scroll": 390,
+        "boxes": [
+          {
+            "name": "topbar-left",
+            "l": 12,
+            "r": 210,
+            "t": 7.5,
+            "b": 55.5
+          },
+          {
+            "name": "topbar-right",
+            "l": 218,
+            "r": 378,
+            "t": 9.5,
+            "b": 53.5
+          }
+        ],
+        "overlaps": []
+      },
+      "overflowing": [
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "studio-tool-group",
+          "right": 495
+        },
+        {
+          "tag": "BUTTON",
+          "id": "prev-page-btn",
+          "cls": "studio-tool-btn",
+          "right": 435
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "studio-tool-group",
+          "right": 431
+        },
+        {
+          "tag": "BUTTON",
+          "id": "tool-sig-btn",
+          "cls": "studio-tool-btn",
+          "right": 431
+        }
+      ],
+      "app": "https://paperplane.qd.je/assets/app.js?v=154",
+      "css": "https://paperplane.qd.je/assets/styles.css?v=61"
+    },
+    {
+      "round": 1,
+      "route": "/studio",
+      "width": 1024,
+      "status": 200,
+      "innerWidth": 1024,
+      "docWidth": 1024,
+      "topbar": {
+        "client": 754,
+        "scroll": 754,
+        "boxes": [
+          {
+            "name": "topbar-left",
+            "l": 284,
+            "r": 719,
+            "t": 18.5,
+            "b": 33.5
+          },
+          {
+            "name": "workspace-tabs",
+            "l": 284,
+            "r": 1010,
+            "t": 52,
+            "b": 100
+          },
+          {
+            "name": "topbar-right",
+            "l": 731,
+            "r": 1010,
+            "t": 8,
+            "b": 44
+          }
+        ],
+        "overlaps": []
+      },
+      "overflowing": [
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "studio-tool-group",
+          "right": 1041
+        },
+        {
+          "tag": "BUTTON",
+          "id": "editor-redo-btn",
+          "cls": "studio-tool-btn",
+          "right": 1041
+        },
+        {
+          "tag": "svg",
+          "id": "",
+          "cls": "[object SVGAnimatedString]",
+          "right": 1030
+        },
+        {
+          "tag": "path",
+          "id": "",
+          "cls": "[object SVGAnimatedString]",
+          "right": 1028
+        }
+      ],
+      "app": "https://paperplane.qd.je/assets/app.js?v=154",
+      "css": "https://paperplane.qd.je/assets/styles.css?v=61"
+    },
+    {
+      "round": 1,
+      "route": "/studio",
+      "width": 1366,
+      "status": 200,
+      "innerWidth": 1366,
+      "docWidth": 1366,
+      "topbar": {
+        "client": 1096,
+        "scroll": 1096,
+        "boxes": [
+          {
+            "name": "topbar-left",
+            "l": 284,
+            "r": 1061,
+            "t": 18.5,
+            "b": 33.5
+          },
+          {
+            "name": "workspace-tabs",
+            "l": 577.5,
+            "r": 1058.5,
+            "t": 42,
+            "b": 77
+          },
+          {
+            "name": "topbar-right",
+            "l": 1073,
+            "r": 1352,
+            "t": 8,
+            "b": 44
+          }
+        ],
+        "overlaps": []
+      },
+      "overflowing": [
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "studio-tool-group studio-export-group",
+          "right": 1522
+        },
+        {
+          "tag": "BUTTON",
+          "id": "clear-canvas-btn",
+          "cls": "studio-tool-btn studio-clear-btn",
+          "right": 1396
+        }
+      ],
+      "app": "https://paperplane.qd.je/assets/app.js?v=154",
+      "css": "https://paperplane.qd.je/assets/styles.css?v=61"
+    },
+    {
+      "round": 2,
+      "route": "/studio",
+      "width": 320,
+      "status": 200,
+      "innerWidth": 320,
+      "docWidth": 320,
+      "topbar": {
+        "client": 320,
+        "scroll": 320,
+        "boxes": [
+          {
+            "name": "topbar-left",
+            "l": 12,
+            "r": 140,
+            "t": 7.5,
+            "b": 55.5
+          },
+          {
+            "name": "topbar-right",
+            "l": 148,
+            "r": 308,
+            "t": 9.5,
+            "b": 53.5
+          }
+        ],
+        "overlaps": []
+      },
+      "overflowing": [
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "studio-tool-group",
+          "right": 358
+        },
+        {
+          "tag": "BUTTON",
+          "id": "studio-clear-pdf-btn",
+          "cls": "studio-tool-btn studio-clear-pdf-btn",
+          "right": 358
+        },
+        {
+          "tag": "SPAN",
+          "id": "",
+          "cls": "tool-btn-text",
+          "right": 352
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "studio-tool-group",
+          "right": 403
+        },
+        {
+          "tag": "BUTTON",
+          "id": "tool-redact-btn",
+          "cls": "studio-tool-btn",
+          "right": 347
+        },
+        {
+          "tag": "svg",
+          "id": "",
+          "cls": "[object SVGAnimatedString]",
+          "right": 329
+        },
+        {
+          "tag": "rect",
+          "id": "",
+          "cls": "[object SVGAnimatedString]",
+          "right": 327
+        },
+        {
+          "tag": "SPAN",
+          "id": "",
+          "cls": "tool-btn-text",
+          "right": 339
+        }
+      ],
+      "app": "https://paperplane.qd.je/assets/app.js?v=154",
+      "css": "https://paperplane.qd.je/assets/styles.css?v=61"
+    },
+    {
+      "round": 2,
+      "route": "/studio",
+      "width": 390,
+      "status": 200,
+      "innerWidth": 390,
+      "docWidth": 390,
+      "topbar": {
+        "client": 390,
+        "scroll": 390,
+        "boxes": [
+          {
+            "name": "topbar-left",
+            "l": 12,
+            "r": 210,
+            "t": 7.5,
+            "b": 55.5
+          },
+          {
+            "name": "topbar-right",
+            "l": 218,
+            "r": 378,
+            "t": 9.5,
+            "b": 53.5
+          }
+        ],
+        "overlaps": []
+      },
+      "overflowing": [
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "studio-tool-group",
+          "right": 495
+        },
+        {
+          "tag": "BUTTON",
+          "id": "prev-page-btn",
+          "cls": "studio-tool-btn",
+          "right": 435
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "studio-tool-group",
+          "right": 431
+        },
+        {
+          "tag": "BUTTON",
+          "id": "tool-sig-btn",
+          "cls": "studio-tool-btn",
+          "right": 431
+        }
+      ],
+      "app": "https://paperplane.qd.je/assets/app.js?v=154",
+      "css": "https://paperplane.qd.je/assets/styles.css?v=61"
+    },
+    {
+      "round": 2,
+      "route": "/studio",
+      "width": 1024,
+      "status": 200,
+      "innerWidth": 1024,
+      "docWidth": 1024,
+      "topbar": {
+        "client": 754,
+        "scroll": 754,
+        "boxes": [
+          {
+            "name": "topbar-left",
+            "l": 284,
+            "r": 719,
+            "t": 18.5,
+            "b": 33.5
+          },
+          {
+            "name": "workspace-tabs",
+            "l": 284,
+            "r": 1010,
+            "t": 52,
+            "b": 100
+          },
+          {
+            "name": "topbar-right",
+            "l": 731,
+            "r": 1010,
+            "t": 8,
+            "b": 44
+          }
+        ],
+        "overlaps": []
+      },
+      "overflowing": [
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "studio-mode-switcher",
+          "right": 1096
+        },
+        {
+          "tag": "BUTTON",
+          "id": "btn-mode-organize",
+          "cls": "studio-mode-btn",
+          "right": 1093
+        },
+        {
+          "tag": "svg",
+          "id": "",
+          "cls": "[object SVGAnimatedString]",
+          "right": 1035
+        },
+        {
+          "tag": "rect",
+          "id": "",
+          "cls": "[object SVGAnimatedString]",
+          "right": 1027
+        },
+        {
+          "tag": "rect",
+          "id": "",
+          "cls": "[object SVGAnimatedString]",
+          "right": 1027
+        }
+      ],
+      "app": "https://paperplane.qd.je/assets/app.js?v=154",
+      "css": "https://paperplane.qd.je/assets/styles.css?v=61"
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "results": [
+    {
+      "round": 1,
+      "route": "/merge-pdf",
+      "width": 320,
+      "status": 200,
+      "innerWidth": 320,
+      "docWidth": 320,
+      "topbar": {
+        "client": 320,
+        "scroll": 320,
+        "boxes": [
+          {
+            "name": "topbar-left",
+            "l": 12,
+            "r": 139,
+            "t": 7.5,
+            "b": 55.5
+          },
+          {
+            "name": "topbar-right",
+            "l": 147,
+            "r": 308,
+            "t": 9.5,
+            "b": 53.5
+          }
+        ],
+        "overlaps": []
+      },
+      "overflowing": [],
+      "app": "https://paperplane.qd.je/assets/app.js?v=154",
+      "css": "https://paperplane.qd.je/assets/styles.css?v=61"
+    },
+    {
+      "round": 1,
+      "route": "/studio",
+      "width": 320,
+      "status": 200,
+      "innerWidth": 320,
+      "docWidth": 320,
+      "topbar": {
+        "client": 320,
+        "scroll": 320,
+        "boxes": [
+          {
+            "name": "topbar-left",
+            "l": 12,
+            "r": 140,
+            "t": 7.5,
+            "b": 55.5
+          },
+          {
+            "name": "topbar-right",
+            "l": 148,
+            "r": 308,
+            "t": 9.5,
+            "b": 53.5
+          }
+        ],
+        "overlaps": []
+      },
+      "overflowing": [
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "studio-tool-group",
+          "right": 358
+        },
+        {
+          "tag": "BUTTON",
+          "id": "studio-clear-pdf-btn",
+          "cls": "studio-tool-btn studio-clear-pdf-btn",
+          "right": 359
+        },
+        {
+          "tag": "SPAN",
+          "id": "",
+          "cls": "tool-btn-text",
+          "right": 354
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "studio-tool-group",
+          "right": 403
+        },
+        {
+          "tag": "BUTTON",
+          "id": "tool-redact-btn",
+          "cls": "studio-tool-btn",
+          "right": 347
+        },
+        {
+          "tag": "svg",
+          "id": "",
+          "cls": "[object SVGAnimatedString]",
+          "right": 329
+        },
+        {
+          "tag": "rect",
+          "id": "",
+          "cls": "[object SVGAnimatedString]",
+          "right": 327
+        },
+        {
+          "tag": "SPAN",
+          "id": "",
+          "cls": "tool-btn-text",
+          "right": 339
+        }
+      ],
+      "app": "https://paperplane.qd.je/assets/app.js?v=154",
+      "css": "https://paperplane.qd.je/assets/styles.css?v=61"
+    },
+    {
+      "round": 1,
+      "route": "/merge-pdf",
+      "width": 390,
+      "status": 200,
+      "innerWidth": 390,
+      "docWidth": 390,
+      "topbar": {
+        "client": 390,
+        "scroll": 390,
+        "boxes": [
+          {
+            "name": "topbar-left",
+            "l": 12,
+            "r": 210,
+            "t": 7.5,
+            "b": 55.5
+          },
+          {
+            "name": "topbar-right",
+            "l": 218,
+            "r": 378,
+            "t": 9.5,
+            "b": 53.5
+          }
+        ],
+        "overlaps": []
+      },
+      "overflowing": [],
+      "app": "https://paperplane.qd.je/assets/app.js?v=154",
+      "css": "https://paperplane.qd.je/assets/styles.css?v=61"
+    },
+    {
+      "round": 1,
+      "route": "/studio",
+      "width": 390,
+      "status": 200,
+      "innerWidth": 390,
+      "docWidth": 390,
+      "topbar": {
+        "client": 390,
+        "scroll": 390,
+        "boxes": [
+          {
+            "name": "topbar-left",
+            "l": 12,
+            "r": 210,
+            "t": 7.5,
+            "b": 55.5
+          },
+          {
+            "name": "topbar-right",
+            "l": 218,
+            "r": 378,
+            "t": 9.5,
+            "b": 53.5
+          }
+        ],
+        "overlaps": []
+      },
+      "overflowing": [
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "studio-tool-group",
+          "right": 495
+        },
+        {
+          "tag": "BUTTON",
+          "id": "prev-page-btn",
+          "cls": "studio-tool-btn",
+          "right": 435
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "studio-tool-group",
+          "right": 431
+        },
+        {
+          "tag": "BUTTON",
+          "id": "tool-sig-btn",
+          "cls": "studio-tool-btn",
+          "right": 431
+        }
+      ],
+      "app": "https://paperplane.qd.je/assets/app.js?v=154",
+      "css": "https://paperplane.qd.je/assets/styles.css?v=61"
+    },
+    {
+      "round": 1,
+      "route": "/merge-pdf",
+      "width": 768,
+      "status": 200,
+      "innerWidth": 768,
+      "docWidth": 768,
+      "topbar": {
+        "client": 768,
+        "scroll": 768,
+        "boxes": [
+          {
+            "name": "topbar-left",
+            "l": 16,
+            "r": 233.421875,
+            "t": 7.5,
+            "b": 55.5
+          },
+          {
+            "name": "topbar-right",
+            "l": 431,
+            "r": 752,
+            "t": 7.5,
+            "b": 55.5
+          }
+        ],
+        "overlaps": []
+      },
+      "overflowing": [],
+      "app": "https://paperplane.qd.je/assets/app.js?v=154",
+      "css": "https://paperplane.qd.je/assets/styles.css?v=61"
+    },
+    {
+      "round": 1,
+      "route": "/studio",
+      "width": 768,
+      "status": 200,
+      "innerWidth": 768,
+      "docWidth": 768,
+      "topbar": {
+        "client": 768,
+        "scroll": 768,
+        "boxes": [
+          {
+            "name": "topbar-left",
+            "l": 16,
+            "r": 221.421875,
+            "t": 7.5,
+            "b": 55.5
+          },
+          {
+            "name": "topbar-right",
+            "l": 431,
+            "r": 752,
+            "t": 7.5,
+            "b": 55.5
+          }
+        ],
+        "overlaps": []
+      },
+      "overflowing": [],
+      "app": "https://paperplane.qd.je/assets/app.js?v=154",
+      "css": "https://paperplane.qd.je/assets/styles.css?v=61"
+    },
+    {
+      "round": 1,
+      "route": "/merge-pdf",
+      "width": 1024,
+      "status": 200,
+      "innerWidth": 1024,
+      "docWidth": 1024,
+      "topbar": {
+        "client": 754,
+        "scroll": 754,
+        "boxes": [
+          {
+            "name": "topbar-left",
+            "l": 284,
+            "r": 719,
+            "t": 18.5,
+            "b": 33.5
+          },
+          {
+            "name": "workspace-tabs",
+            "l": 284,
+            "r": 1010,
+            "t": 52,
+            "b": 100
+          },
+          {
+            "name": "topbar-right",
+            "l": 731,
+            "r": 1010,
+            "t": 8,
+            "b": 44
+          }
+        ],
+        "overlaps": []
+      },
+      "overflowing": [],
+      "app": "https://paperplane.qd.je/assets/app.js?v=154",
+      "css": "https://paperplane.qd.je/assets/styles.css?v=61"
+    },
+    {
+      "round": 1,
+      "route": "/studio",
+      "width": 1024,
+      "status": 200,
+      "innerWidth": 1024,
+      "docWidth": 1024,
+      "topbar": {
+        "client": 754,
+        "scroll": 754,
+        "boxes": [
+          {
+            "name": "topbar-left",
+            "l": 284,
+            "r": 719,
+            "t": 18.5,
+            "b": 33.5
+          },
+          {
+            "name": "workspace-tabs",
+            "l": 284,
+            "r": 1010,
+            "t": 52,
+            "b": 100
+          },
+          {
+            "name": "topbar-right",
+            "l": 731,
+            "r": 1010,
+            "t": 8,
+            "b": 44
+          }
+        ],
+        "overlaps": []
+      },
+      "overflowing": [
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "studio-tool-group",
+          "right": 1041
+        },
+        {
+          "tag": "BUTTON",
+          "id": "editor-redo-btn",
+          "cls": "studio-tool-btn",
+          "right": 1041
+        },
+        {
+          "tag": "svg",
+          "id": "",
+          "cls": "[object SVGAnimatedString]",
+          "right": 1030
+        },
+        {
+          "tag": "path",
+          "id": "",
+          "cls": "[object SVGAnimatedString]",
+          "right": 1028
+        }
+      ],
+      "app": "https://paperplane.qd.je/assets/app.js?v=154",
+      "css": "https://paperplane.qd.je/assets/styles.css?v=61"
+    },
+    {
+      "round": 1,
+      "route": "/merge-pdf",
+      "width": 1366,
+      "status": 200,
+      "innerWidth": 1366,
+      "docWidth": 1366,
+      "topbar": {
+        "client": 1096,
+        "scroll": 1096,
+        "boxes": [
+          {
+            "name": "topbar-left",
+            "l": 284,
+            "r": 1061,
+            "t": 18.5,
+            "b": 33.5
+          },
+          {
+            "name": "workspace-tabs",
+            "l": 577.5,
+            "r": 1058.5,
+            "t": 42,
+            "b": 77
+          },
+          {
+            "name": "topbar-right",
+            "l": 1073,
+            "r": 1352,
+            "t": 8,
+            "b": 44
+          }
+        ],
+        "overlaps": []
+      },
+      "overflowing": [],
+      "app": "https://paperplane.qd.je/assets/app.js?v=154",
+      "css": "https://paperplane.qd.je/assets/styles.css?v=61"
+    },
+    {
+      "round": 1,
+      "route": "/studio",
+      "width": 1366,
+      "status": 200,
+      "innerWidth": 1366,
+      "docWidth": 1366,
+      "topbar": {
+        "client": 1096,
+        "scroll": 1096,
+        "boxes": [
+          {
+            "name": "topbar-left",
+            "l": 284,
+            "r": 1061,
+            "t": 18.5,
+            "b": 33.5
+          },
+          {
+            "name": "workspace-tabs",
+            "l": 577.5,
+            "r": 1058.5,
+            "t": 42,
+            "b": 77
+          },
+          {
+            "name": "topbar-right",
+            "l": 1073,
+            "r": 1352,
+            "t": 8,
+            "b": 44
+          }
+        ],
+        "overlaps": []
+      },
+      "overflowing": [
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "studio-tool-group studio-export-group",
+          "right": 1522
+        },
+        {
+          "tag": "BUTTON",
+          "id": "clear-canvas-btn",
+          "cls": "studio-tool-btn studio-clear-btn",
+          "right": 1396
+        }
+      ],
+      "app": "https://paperplane.qd.je/assets/app.js?v=154",
+      "css": "https://paperplane.qd.je/assets/styles.css?v=61"
+    },
+    {
+      "round": 2,
+      "route": "/merge-pdf",
+      "width": 320,
+      "status": 200,
+      "innerWidth": 320,
+      "docWidth": 320,
+      "topbar": {
+        "client": 320,
+        "scroll": 320,
+        "boxes": [
+          {
+            "name": "topbar-left",
+            "l": 12,
+            "r": 140,
+            "t": 7.5,
+            "b": 55.5
+          },
+          {
+            "name": "topbar-right",
+            "l": 148,
+            "r": 308,
+            "t": 9.5,
+            "b": 53.5
+          }
+        ],
+        "overlaps": []
+      },
+      "overflowing": [],
+      "app": "https://paperplane.qd.je/assets/app.js?v=154",
+      "css": "https://paperplane.qd.je/assets/styles.css?v=61"
+    },
+    {
+      "round": 2,
+      "route": "/studio",
+      "width": 320,
+      "status": 200,
+      "innerWidth": 320,
+      "docWidth": 320,
+      "topbar": {
+        "client": 320,
+        "scroll": 320,
+        "boxes": [
+          {
+            "name": "topbar-left",
+            "l": 12,
+            "r": 140,
+            "t": 7.5,
+            "b": 55.5
+          },
+          {
+            "name": "topbar-right",
+            "l": 148,
+            "r": 308,
+            "t": 9.5,
+            "b": 53.5
+          }
+        ],
+        "overlaps": []
+      },
+      "overflowing": [
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "studio-tool-group",
+          "right": 358
+        },
+        {
+          "tag": "BUTTON",
+          "id": "studio-clear-pdf-btn",
+          "cls": "studio-tool-btn studio-clear-pdf-btn",
+          "right": 358
+        },
+        {
+          "tag": "SPAN",
+          "id": "",
+          "cls": "tool-btn-text",
+          "right": 352
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "studio-tool-group",
+          "right": 403
+        },
+        {
+          "tag": "BUTTON",
+          "id": "tool-redact-btn",
+          "cls": "studio-tool-btn",
+          "right": 347
+        },
+        {
+          "tag": "svg",
+          "id": "",
+          "cls": "[object SVGAnimatedString]",
+          "right": 329
+        },
+        {
+          "tag": "rect",
+          "id": "",
+          "cls": "[object SVGAnimatedString]",
+          "right": 327
+        },
+        {
+          "tag": "SPAN",
+          "id": "",
+          "cls": "tool-btn-text",
+          "right": 339
+        }
+      ],
+      "app": "https://paperplane.qd.je/assets/app.js?v=154",
+      "css": "https://paperplane.qd.je/assets/styles.css?v=61"
+    },
+    {
+      "round": 2,
+      "route": "/merge-pdf",
+      "width": 390,
+      "status": 200,
+      "innerWidth": 390,
+      "docWidth": 390,
+      "topbar": {
+        "client": 390,
+        "scroll": 390,
+        "boxes": [
+          {
+            "name": "topbar-left",
+            "l": 12,
+            "r": 210,
+            "t": 7.5,
+            "b": 55.5
+          },
+          {
+            "name": "topbar-right",
+            "l": 218,
+            "r": 378,
+            "t": 9.5,
+            "b": 53.5
+          }
+        ],
+        "overlaps": []
+      },
+      "overflowing": [],
+      "app": "https://paperplane.qd.je/assets/app.js?v=154",
+      "css": "https://paperplane.qd.je/assets/styles.css?v=61"
+    },
+    {
+      "round": 2,
+      "route": "/studio",
+      "width": 390,
+      "status": 200,
+      "innerWidth": 390,
+      "docWidth": 390,
+      "topbar": {
+        "client": 390,
+        "scroll": 390,
+        "boxes": [
+          {
+            "name": "topbar-left",
+            "l": 12,
+            "r": 210,
+            "t": 7.5,
+            "b": 55.5
+          },
+          {
+            "name": "topbar-right",
+            "l": 218,
+            "r": 378,
+            "t": 9.5,
+            "b": 53.5
+          }
+        ],
+        "overlaps": []
+      },
+      "overflowing": [
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "studio-tool-group",
+          "right": 495
+        },
+        {
+          "tag": "BUTTON",
+          "id": "prev-page-btn",
+          "cls": "studio-tool-btn",
+          "right": 435
+        },
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "studio-tool-group",
+          "right": 431
+        },
+        {
+          "tag": "BUTTON",
+          "id": "tool-sig-btn",
+          "cls": "studio-tool-btn",
+          "right": 431
+        }
+      ],
+      "app": "https://paperplane.qd.je/assets/app.js?v=154",
+      "css": "https://paperplane.qd.je/assets/styles.css?v=61"
+    },
+    {
+      "round": 2,
+      "route": "/merge-pdf",
+      "width": 768,
+      "status": 200,
+      "innerWidth": 768,
+      "docWidth": 768,
+      "topbar": {
+        "client": 768,
+        "scroll": 768,
+        "boxes": [
+          {
+            "name": "topbar-left",
+            "l": 16,
+            "r": 233.421875,
+            "t": 7.5,
+            "b": 55.5
+          },
+          {
+            "name": "topbar-right",
+            "l": 431,
+            "r": 752,
+            "t": 7.5,
+            "b": 55.5
+          }
+        ],
+        "overlaps": []
+      },
+      "overflowing": [],
+      "app": "https://paperplane.qd.je/assets/app.js?v=154",
+      "css": "https://paperplane.qd.je/assets/styles.css?v=61"
+    },
+    {
+      "round": 2,
+      "route": "/studio",
+      "width": 768,
+      "status": 200,
+      "innerWidth": 768,
+      "docWidth": 768,
+      "topbar": {
+        "client": 768,
+        "scroll": 768,
+        "boxes": [
+          {
+            "name": "topbar-left",
+            "l": 16,
+            "r": 221.421875,
+            "t": 7.5,
+            "b": 55.5
+          },
+          {
+            "name": "topbar-right",
+            "l": 431,
+            "r": 752,
+            "t": 7.5,
+            "b": 55.5
+          }
+        ],
+        "overlaps": []
+      },
+      "overflowing": [],
+      "app": "https://paperplane.qd.je/assets/app.js?v=154",
+      "css": "https://paperplane.qd.je/assets/styles.css?v=61"
+    },
+    {
+      "round": 2,
+      "route": "/merge-pdf",
+      "width": 1024,
+      "status": 200,
+      "innerWidth": 1024,
+      "docWidth": 1024,
+      "topbar": {
+        "client": 754,
+        "scroll": 754,
+        "boxes": [
+          {
+            "name": "topbar-left",
+            "l": 284,
+            "r": 719,
+            "t": 18.5,
+            "b": 33.5
+          },
+          {
+            "name": "workspace-tabs",
+            "l": 284,
+            "r": 1010,
+            "t": 52,
+            "b": 100
+          },
+          {
+            "name": "topbar-right",
+            "l": 731,
+            "r": 1010,
+            "t": 8,
+            "b": 44
+          }
+        ],
+        "overlaps": []
+      },
+      "overflowing": [],
+      "app": "https://paperplane.qd.je/assets/app.js?v=154",
+      "css": "https://paperplane.qd.je/assets/styles.css?v=61"
+    },
+    {
+      "round": 2,
+      "route": "/studio",
+      "width": 1024,
+      "status": 200,
+      "innerWidth": 1024,
+      "docWidth": 1024,
+      "topbar": {
+        "client": 754,
+        "scroll": 754,
+        "boxes": [
+          {
+            "name": "topbar-left",
+            "l": 284,
+            "r": 719,
+            "t": 18.5,
+            "b": 33.5
+          },
+          {
+            "name": "workspace-tabs",
+            "l": 284,
+            "r": 1010,
+            "t": 52,
+            "b": 100
+          },
+          {
+            "name": "topbar-right",
+            "l": 731,
+            "r": 1010,
+            "t": 8,
+            "b": 44
+          }
+        ],
+        "overlaps": []
+      },
+      "overflowing": [
+        {
+          "tag": "DIV",
+          "id": "",
+          "cls": "studio-mode-switcher",
+          "right": 1096
+        },
+        {
+          "tag": "BUTTON",
+          "id": "btn-mode-organize",
+          "cls": "studio-mode-btn",
+          "right": 1093
+        },
+        {
+          "tag": "svg",
+          "id": "",
+          "cls": "[object SVGAnimatedString]",
+          "right": 1035
+        },
+        {
+          "tag": "rect",
+          "id": "",
+          "cls": "[object SVGAnimatedString]",
+          "right": 1027
+        },
+        {
+          "tag": "rect",
+          "id": "",
+          "cls": "[object SVGAnimatedString]",
+          "right": 1027
+        }
+      ],
+      "app": "https://paperplane.qd.je/assets/app.js?v=154",
+      "css": "https://paperplane.qd.je/assets/styles.css?v=61"
+    },
+    {
+      "round": 2,
+      "route": "/merge-pdf",
+      "width": 1366,
+      "status": 200,
+      "innerWidth": 1366,
+      "docWidth": 1366,
+      "topbar": {
+        "client": 1096,
+        "scroll": 1096,
+        "boxes": [
+          {
+            "name": "topbar-left",
+            "l": 284,
+            "r": 1061,
+            "t": 18.5,
+            "b": 33.5
+          },
+          {
+            "name": "workspace-tabs",
+            "l": 577.5,
+            "r": 1058.5,
+            "t": 42,
+            "b": 77
+          },
+          {
+            "name": "topbar-right",
+            "l": 1073,
+            "r": 1352,
+            "t": 8,
+            "b": 44
+          }
+        ],
+        "overlaps": []
+      },
+      "overflowing": [],
+      "app": "https://paperplane.qd.je/assets/app.js?v=154",
+      "css": "https://paperplane.qd.je/assets/styles.css?v=61"
+    },
+    {
+      "round": 2,
+      "route": "/studio",
+      "width": 1366,
+      "status": 200,
+      "innerWidth": 1366,
+      "docWidth": 1366,
+      "topbar": {
+        "client": 1096,
+        "scroll": 1096,
+        "boxes": [
+          {
+            "name": "topbar-left",
+            "l": 284,
+            "r": 1061,
+            "t": 18.5,
+            "b": 33.5
+          },
+          {
+            "name": "workspace-tabs",
+            "l": 577.5,
+            "r": 1058.5,
+            "t": 42,
+            "b": 77
+          },
+          {
+            "name": "topbar-right",
+            "l": 1073,
+            "r": 1352,
+            "t": 8,
+            "b": 44
+          }
+        ],
+        "overlaps": []
+      },
+      "overflowing": [],
+      "app": "https://paperplane.qd.je/assets/app.js?v=154",
+      "css": "https://paperplane.qd.je/assets/styles.css?v=61"
+    }
+  ]
+}

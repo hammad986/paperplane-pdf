@@ -1,0 +1,61 @@
+{
+  "image": "sha256:4d831e49507f4880b29502e5d1ee12788d85b63feafec240240b69e7938a1e88",
+  "python_process_count": 6,
+  "runtime": "isolated production-mode container; /api/health=ok; six Python app processes observed as UID 1001; stopped and removed after test",
+  "asset": "/assets/app.js?v=116",
+  "service_worker": "paperplane-shell-v47",
+  "browser_rounds": [
+    {
+      "evidence": "browser-id2-69page-summary-download-docker-final1.json",
+      "page_errors": [],
+      "summary_pdf": {
+        "filename": "v23-id2-69-pages_executive_brief.pdf",
+        "pages": 4,
+        "text_chars": 10203,
+        "has_offline_disclosure": true,
+        "has_final_page_fact": true,
+        "has_page_69_citation": true,
+        "passed": true
+      },
+      "unicode_download": null
+    },
+    {
+      "evidence": "browser-id2-69page-summary-download-docker-final2.json",
+      "page_errors": [],
+      "summary_pdf": {
+        "filename": "v23-id2-69-pages_executive_brief.pdf",
+        "pages": 4,
+        "text_chars": 10203,
+        "has_offline_disclosure": true,
+        "has_final_page_fact": true,
+        "has_page_69_citation": true,
+        "passed": true
+      },
+      "unicode_download": null
+    },
+    {
+      "evidence": "browser-id2-unicode-summary-pdf-docker-final1.json",
+      "page_errors": [],
+      "summary_pdf": null,
+      "unicode_download": {
+        "filename": "v23-id2-unicode-summary-source_executive_brief.txt",
+        "text": "Executive Summary (Offline Analysis)\n\nकार्य योजना — सुरक्षित PDF export 😊",
+        "has_unicode": true,
+        "has_pdf_extension": false,
+        "is_unicode_text_fallback": true
+      }
+    },
+    {
+      "evidence": "browser-id2-unicode-summary-pdf-docker-final2.json",
+      "page_errors": [],
+      "summary_pdf": null,
+      "unicode_download": {
+        "filename": "v23-id2-unicode-summary-source_executive_brief.txt",
+        "text": "Executive Summary (Offline Analysis)\n\nकार्य योजना — सुरक्षित PDF export 😊",
+        "has_unicode": true,
+        "has_pdf_extension": false,
+        "is_unicode_text_fallback": true
+      }
+    }
+  ]
+}

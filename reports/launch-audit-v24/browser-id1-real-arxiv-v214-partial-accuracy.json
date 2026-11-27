@@ -1,0 +1,41 @@
+{
+  "fixture": {
+    "filename": "arxiv-1706.03762v7.pdf",
+    "source_url": "https://arxiv.org/pdf/1706.03762v7",
+    "bytes": 2215244,
+    "sha256": "bdfaa68d8984f0dc02beaca527b76f207d99b666d31d1da728ee0728182df697",
+    "pages": 15
+  },
+  "matrix": [
+    {
+      "round": 1,
+      "language": "Spanish",
+      "http": 200,
+      "pages": 15,
+      "output_bytes": 3147714,
+      "result_meta": "es · 99.9% character coverage, 99.5% text block coverage · 1 warning",
+      "target_text_present_on_all_pages": true,
+      "page_errors": [],
+      "console_errors": []
+    },
+    {
+      "round": 1,
+      "language": "Hindi",
+      "http": 200,
+      "pages": 15,
+      "output_bytes": 3078681,
+      "result_meta": "hi · 99.9% character coverage, 99.5% text block coverage · 1 warning",
+      "target_text_present_on_all_pages": true,
+      "page_errors": [],
+      "console_errors": []
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "provider": "deterministic local stub; no external AI request",
+  "provider_calls": {
+    "requests": 56,
+    "segments": 880
+  },
+  "result": "passed"
+}

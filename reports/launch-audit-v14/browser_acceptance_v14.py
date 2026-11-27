@@ -66,7 +66,14 @@ for tier in ('student_pro', 'free'):
 print(json.dumps({'accounts': identity, 'admin': create_admin_session(PRIMARY_ADMIN_EMAIL)}))
 """
     seeded = subprocess.run([sys.executable, "-c", seed], cwd=ROOT, env=env, text=True, capture_output=True, check=True)
-    identities = json.loads(seeded.stdout)
+    # Imported dependencies can emit a harmless startup warning to stdout
+    # before the seed script's JSON payload (for example PyMuPDF on Python
+    # 3.12). Parse the final non-empty line, which is the seed's explicit
+    # machine-readable result, instead of treating all stdout as JSON.
+    seed_output = [line for line in seeded.stdout.splitlines() if line.strip()]
+    if not seed_output:
+        raise RuntimeError(f"Audit identity seeding returned no JSON (stderr={seeded.stderr!r})")
+    identities = json.loads(seed_output[-1])
     base = f"http://127.0.0.1:{port}"
     app = subprocess.Popen([sys.executable, "app.py"], cwd=ROOT, env=env,
                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)

@@ -65,7 +65,14 @@ with TemporaryDirectory(prefix="paperplane-id1-10page-") as temp:
                 "model": "fallback-model", "api_key": "synthetic-fallback-key"}
     ai_engine._runtime_ai_config = lambda: {**primary, "fallback": fallback}
     ai_engine._current_bluesminds_api_key = lambda: "synthetic-primary-key"
-    calls = {"primary_429": 0, "fallback_ok": 0, "undercoverage_mode": False}
+    calls = {"primary_429": 0, "fallback_ok": 0, "undercoverage_mode": False,
+             "partial_mode": False, "partial_fallback_calls": 0,
+             "active_fallback_requests": 0, "peak_fallback_requests": 0}
+    partial_lock = threading.Lock()
+    concurrency_lock = threading.Lock()
+    # Five provider batches are needed for the ten-page fixture so this browser
+    # exercise actually crosses the configured two-worker boundary.
+    ai_engine.TRANSLATION_BATCH_SIZE = 2
 
     class FakeResponse:
         status = 200
@@ -81,27 +88,42 @@ with TemporaryDirectory(prefix="paperplane-id1-10page-") as temp:
                             {"Retry-After": "0"}, None)
         if "fallback.controlled.test" not in request.full_url:
             raise AssertionError("provider request escaped the controlled endpoints")
-        wire = json.loads(request.data.decode("utf-8"))
-        system_prompt = wire["messages"][0]["content"].lower()
-        target_hindi = "hindi" in system_prompt or "hi" in system_prompt
-        inputs = json.loads(wire["messages"][1]["content"])
-        translations = []
-        for item in inputs:
-            if calls["undercoverage_mode"]:
-                if str(item["id"]) == "0":
-                    translations.append({"id": item["id"], "text": "Este es un párrafo grande traducido." * 15})
-                continue
-            import re
-            match = re.search(r"SOURCE-PAGE-(\d{3})", item["text"])
-            page_num = match.group(1) if match else f"{int(item['id']) + 1:03d}"
-            translated = (f"पृष्ठ {page_num}: सेवा तैयार है।" if target_hindi
-                          else f"Página {page_num}: El servicio está listo.")
-            if target_hindi:
-                translated = f"प्लेन PDF टेस्ट {translated}"
-            translations.append({"id": item["id"], "text": translated})
-        calls["fallback_ok"] += 1
-        content = json.dumps({"translations": translations}, ensure_ascii=False)
-        return FakeResponse({"choices": [{"message": {"content": content}}]})
+        with concurrency_lock:
+            calls["active_fallback_requests"] += 1
+            calls["peak_fallback_requests"] = max(calls["peak_fallback_requests"], calls["active_fallback_requests"])
+        try:
+            wire = json.loads(request.data.decode("utf-8"))
+            system_prompt = wire["messages"][0]["content"].lower()
+            target_hindi = "hindi" in system_prompt or "hi" in system_prompt
+            inputs = json.loads(wire["messages"][1]["content"])
+            translations = []
+            for item in inputs:
+                if calls["undercoverage_mode"]:
+                    if str(item["id"]) == "0":
+                        translations.append({"id": item["id"], "text": "Este es un párrafo grande traducido." * 15})
+                    continue
+                import re
+                match = re.search(r"SOURCE-PAGE-(\d{3})", item["text"])
+                page_num = match.group(1) if match else f"{int(item['id']) + 1:03d}"
+                translated = (f"पृष्ठ {page_num}: सेवा तैयार है।" if target_hindi
+                              else f"Página {page_num}: El servicio está listo.")
+                if target_hindi:
+                    translated = f"प्लेन PDF टेस्ट {translated}"
+                translations.append({"id": item["id"], "text": translated})
+            calls["fallback_ok"] += 1
+            if calls["partial_mode"]:
+                with partial_lock:
+                    calls["partial_fallback_calls"] += 1
+                    return_partial_response = calls["partial_fallback_calls"] == 1
+                if return_partial_response and translations:
+                    translations = translations[:1]
+            # Model a small upstream response delay so concurrent fan-out is observable.
+            time.sleep(0.02)
+            content = json.dumps({"translations": translations}, ensure_ascii=False)
+            return FakeResponse({"choices": [{"message": {"content": content}}]})
+        finally:
+            with concurrency_lock:
+                calls["active_fallback_requests"] -= 1
 
     ai_engine._open_ai_request = controlled_open
     with socket.socket() as candidate:
@@ -169,6 +191,54 @@ with TemporaryDirectory(prefix="paperplane-id1-10page-") as temp:
                     context.close()
             assert len(results) == 4
             assert calls["primary_429"] >= 4 and calls["fallback_ok"] >= 4, calls
+            assert calls["peak_fallback_requests"] == ai_engine.TRANSLATION_MAX_PARALLEL_BATCHES == 2, calls
+
+            # The provider returns valid JSON but omits most IDs on its first
+            # fallback response. The browser must receive a fully translated
+            # PDF after the bounded smaller-batch repair requests.
+            calls["partial_mode"] = True
+            calls["partial_fallback_calls"] = 0
+            context = browser.new_context(viewport={"width": 1366, "height": 900}, accept_downloads=True)
+            page = context.new_page()
+            errors = []
+            page.on("pageerror", lambda error: errors.append(str(error)))
+            status = []
+            page.on("response", lambda response: status.append(response.status)
+                    if "/api/ai/translate" in response.url else None)
+            page.goto(f"http://127.0.0.1:{port}/translate-pdf", wait_until="domcontentloaded")
+            page.wait_for_function("window.state && state.operation === 'translate'")
+            page.locator("#file-input").set_input_files(str(source))
+            page.locator("#target_language").select_option(label="es (Spanish)")
+            page.locator("#run-button").click()
+            page.locator("#result-content a.btn-download").wait_for(state="visible", timeout=90000)
+            coverage_text = page.locator("#result-meta").inner_text()
+            with page.expect_download(timeout=30000) as event:
+                page.locator("#result-content a.btn-download").click()
+            repaired_path = temp_root / "partial-batch-repaired.pdf"
+            event.value.save_as(repaired_path)
+            with fitz.open(repaired_path) as repaired_pdf:
+                repaired_texts = [page.get_text() for page in repaired_pdf]
+            assert len(repaired_texts) == 10
+            assert all("Página" in text and "SOURCE-PAGE-" not in text for text in repaired_texts), repaired_texts
+            assert "100% text block coverage" in coverage_text and "100% character coverage" in coverage_text, coverage_text
+            assert calls["partial_fallback_calls"] >= 2, calls
+            assert status and status[-1] == 200, status
+            assert not errors, errors
+            repair_evidence = {
+                "partial_provider_responses": 1,
+                "fallback_calls_total": calls["partial_fallback_calls"],
+                "http_status": status[-1],
+                "page_count": len(repaired_texts),
+                "all_pages_translated_and_source_removed": True,
+                "coverage_text": coverage_text,
+                "page_errors": errors,
+                "download_bytes": repaired_path.stat().st_size,
+            }
+            (OUT / "browser-id1-partial-batch-repair.json").write_text(
+                json.dumps(repair_evidence, ensure_ascii=False, indent=2), encoding="utf-8")
+            context.close()
+            calls["partial_mode"] = False
+
             # The first block dominates character count; translating it alone used
             # to pass the character-only gate while leaving three blocks untouched.
             imbalanced = temp_root / "imbalanced-coverage.pdf"
@@ -208,6 +278,9 @@ with TemporaryDirectory(prefix="paperplane-id1-10page-") as temp:
         assert len(results) == 4
         evidence = {"fixture": "synthetic 10-page text PDF matching the named acceptance shape; exact owner fixture unavailable",
                     "provider_mode": "controlled primary HTTP 429 on every primary attempt; configured secondary returns valid translations",
+                    "translation_batch_size": ai_engine.TRANSLATION_BATCH_SIZE,
+                    "translation_worker_limit": ai_engine.TRANSLATION_MAX_PARALLEL_BATCHES,
+                    "peak_controlled_provider_concurrency": calls["peak_fallback_requests"],
                     "provider_calls": calls, "results": results, "imbalanced_coverage_rejection": evidence_coverage}
         (OUT / "browser-id1-10page-rate-limit-fallback.json").write_text(
             json.dumps(evidence, ensure_ascii=False, indent=2), encoding="utf-8")

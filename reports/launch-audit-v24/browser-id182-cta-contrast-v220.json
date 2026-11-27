@@ -1,0 +1,4035 @@
+{
+  "viewports": [
+    390,
+    1365
+  ],
+  "routes": [
+    {
+      "op": "merge",
+      "slug": "merge-pdf",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select at least two PDFs to merge",
+      "disabled": true,
+      "fg": "rgb(58, 75, 79)",
+      "bg": "rgba(248, 250, 249, 0.973)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "split",
+      "slug": "split-pdf",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(55, 73, 77)",
+      "bg": "rgba(248, 250, 249, 0.984)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(55, 73, 77)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "remove",
+      "slug": "remove-pages-pdf",
+      "viewport": 390,
+      "http": 200,
+      "text": "Enter pages to remove\n\u2192",
+      "disabled": true,
+      "fg": "rgb(72, 88, 92)",
+      "bg": "rgba(248, 250, 249, 0.9)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(72, 88, 92)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "rotate",
+      "slug": "rotate-pdf",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(55, 73, 77)",
+      "bg": "rgba(248, 250, 249, 0.984)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(55, 73, 77)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "organize",
+      "slug": "organize-pdf",
+      "viewport": 390,
+      "http": 200,
+      "text": "Enter the page order\n\u2192",
+      "disabled": true,
+      "fg": "rgb(72, 88, 92)",
+      "bg": "rgba(248, 250, 249, 0.9)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(72, 88, 92)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "scan_pdf",
+      "slug": "scan-to-pdf",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(52, 70, 74)",
+      "bg": "rgba(248, 250, 249, 1)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(52, 70, 74)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "compress",
+      "slug": "compress-pdf",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(52, 70, 74)",
+      "bg": "rgb(248, 250, 249)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(52, 70, 74)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "repair",
+      "slug": "repair-pdf",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(52, 70, 74)",
+      "bg": "rgb(248, 250, 249)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(52, 70, 74)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "ocr",
+      "slug": "ocr-pdf",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(53, 71, 75)",
+      "bg": "rgba(248, 250, 249, 0.992)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(53, 71, 75)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "jpg_to_pdf",
+      "slug": "jpg-to-pdf",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(72, 88, 92)",
+      "bg": "rgba(248, 250, 249, 0.9)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(72, 88, 92)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "word_to_pdf",
+      "slug": "word-to-pdf",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(53, 71, 75)",
+      "bg": "rgba(248, 250, 249, 0.992)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(53, 71, 75)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "excel_to_pdf",
+      "slug": "excel-to-pdf",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(58, 75, 79)",
+      "bg": "rgba(248, 250, 249, 0.973)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(58, 75, 79)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "powerpoint_to_pdf",
+      "slug": "powerpoint-to-pdf",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(58, 75, 79)",
+      "bg": "rgba(248, 250, 249, 0.973)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(58, 75, 79)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "html_to_pdf",
+      "slug": "html-to-pdf",
+      "viewport": 390,
+      "http": 200,
+      "text": "Enter valid URL to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(53, 71, 75)",
+      "bg": "rgba(248, 250, 249, 0.992)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(53, 71, 75)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "pdf_to_jpg",
+      "slug": "pdf-to-jpg",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(58, 75, 79)",
+      "bg": "rgba(248, 250, 249, 0.973)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(58, 75, 79)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "pdf_to_word",
+      "slug": "pdf-to-word",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(53, 71, 75)",
+      "bg": "rgba(248, 250, 249, 0.992)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(53, 71, 75)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "pdf_to_excel",
+      "slug": "pdf-to-excel",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(55, 73, 77)",
+      "bg": "rgba(248, 250, 249, 0.984)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(55, 73, 77)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "pdf_to_powerpoint",
+      "slug": "pdf-to-powerpoint",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(58, 75, 79)",
+      "bg": "rgba(248, 250, 249, 0.973)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(58, 75, 79)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "pdf_to_pdfa",
+      "slug": "pdf-to-pdfa",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(58, 75, 79)",
+      "bg": "rgba(248, 250, 249, 0.973)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(58, 75, 79)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "pdf_to_text",
+      "slug": "pdf-to-text",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(63, 80, 84)",
+      "bg": "rgba(248, 250, 249, 0.945)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(63, 80, 84)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "pdf_to_markdown",
+      "slug": "pdf-to-markdown",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(63, 80, 84)",
+      "bg": "rgba(248, 250, 249, 0.945)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(63, 80, 84)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "edit",
+      "slug": "edit-pdf",
+      "viewport": 390,
+      "http": 200,
+      "text": "Enter text to add\n\u2192",
+      "disabled": true,
+      "fg": "rgb(63, 80, 84)",
+      "bg": "rgba(248, 250, 249, 0.945)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(63, 80, 84)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "annotate",
+      "slug": "annotate-pdf",
+      "viewport": 390,
+      "http": 200,
+      "text": "Enter annotation content\n\u2192",
+      "disabled": true,
+      "fg": "rgb(58, 75, 79)",
+      "bg": "rgba(248, 250, 249, 0.973)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(58, 75, 79)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "crop",
+      "slug": "crop-pdf",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(63, 80, 84)",
+      "bg": "rgba(248, 250, 249, 0.945)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(63, 80, 84)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "redact",
+      "slug": "redact-pdf",
+      "viewport": 390,
+      "http": 200,
+      "text": "Enter text to redact\n\u2192",
+      "disabled": true,
+      "fg": "rgb(53, 71, 75)",
+      "bg": "rgba(248, 250, 249, 0.992)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(53, 71, 75)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "watermark",
+      "slug": "watermark-pdf",
+      "viewport": 390,
+      "http": 200,
+      "text": "Enter watermark text or choose an image\n\u2192",
+      "disabled": true,
+      "fg": "rgb(55, 73, 77)",
+      "bg": "rgba(248, 250, 249, 0.984)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(55, 73, 77)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "page_numbers",
+      "slug": "add-page-numbers-to-pdf",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(53, 71, 75)",
+      "bg": "rgba(248, 250, 249, 0.992)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(53, 71, 75)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "protect",
+      "slug": "protect-pdf",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(55, 73, 77)",
+      "bg": "rgba(248, 250, 249, 0.984)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(55, 73, 77)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "unlock",
+      "slug": "unlock-pdf",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(55, 73, 77)",
+      "bg": "rgba(248, 250, 249, 0.984)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(55, 73, 77)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "sign",
+      "slug": "sign-pdf",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(58, 75, 79)",
+      "bg": "rgba(248, 250, 249, 0.973)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(58, 75, 79)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "compare",
+      "slug": "compare-pdf",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(58, 75, 79)",
+      "bg": "rgba(248, 250, 249, 0.973)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(58, 75, 79)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "forms",
+      "slug": "fill-pdf-form",
+      "viewport": 390,
+      "http": 200,
+      "text": "Enter valid form JSON\n\u2192",
+      "disabled": true,
+      "fg": "rgb(58, 75, 79)",
+      "bg": "rgba(248, 250, 249, 0.973)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(58, 75, 79)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "metadata",
+      "slug": "pdf-metadata",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(58, 75, 79)",
+      "bg": "rgba(248, 250, 249, 0.973)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(58, 75, 79)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "ai_chat",
+      "slug": "ai-pdf-chat",
+      "viewport": 390,
+      "http": 200,
+      "text": "Enter a question\n\u2192",
+      "disabled": true,
+      "fg": "rgb(52, 70, 74)",
+      "bg": "rgb(248, 250, 249)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(52, 70, 74)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "ai_extract",
+      "slug": "extract-pdf-data",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(55, 73, 77)",
+      "bg": "rgba(248, 250, 249, 0.984)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(55, 73, 77)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "summarize",
+      "slug": "summarize-pdf",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(55, 73, 77)",
+      "bg": "rgba(248, 250, 249, 0.984)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(55, 73, 77)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        255,
+        255,
+        255
+      ],
+      "contrast": 5.402822493554938
+    },
+    {
+      "op": "translate",
+      "slug": "translate-pdf",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(63, 80, 84)",
+      "bg": "rgba(248, 250, 249, 0.945)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(63, 80, 84)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "photo_resizer",
+      "slug": "ssc-photo-resizer",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(63, 80, 84)",
+      "bg": "rgba(248, 250, 249, 0.945)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(63, 80, 84)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "photo_compress",
+      "slug": "compress-image-online",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(58, 75, 79)",
+      "bg": "rgba(248, 250, 249, 0.973)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(58, 75, 79)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "photo_resize",
+      "slug": "resize-image-dimensions",
+      "viewport": 390,
+      "http": 200,
+      "text": "Enter a size or scale\n\u2192",
+      "disabled": true,
+      "fg": "rgb(55, 73, 77)",
+      "bg": "rgba(248, 250, 249, 0.984)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(55, 73, 77)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "photo_merge",
+      "slug": "merge-photos-online",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select at least two photos",
+      "disabled": true,
+      "fg": "rgb(63, 80, 84)",
+      "bg": "rgba(248, 250, 249, 0.945)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "mask_aadhaar",
+      "slug": "mask-aadhaar-card-online",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(53, 71, 75)",
+      "bg": "rgba(248, 250, 249, 0.992)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(53, 71, 75)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "grayscale",
+      "slug": "convert-pdf-to-grayscale",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(53, 71, 75)",
+      "bg": "rgba(248, 250, 249, 0.992)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(53, 71, 75)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "flatten",
+      "slug": "flatten-pdf",
+      "viewport": 390,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(58, 75, 79)",
+      "bg": "rgba(248, 250, 249, 0.973)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 374,
+      "x": 8,
+      "right": 382,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(58, 75, 79)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "merge",
+      "slug": "merge-pdf",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select at least two PDFs to merge",
+      "disabled": true,
+      "fg": "rgb(53, 71, 75)",
+      "bg": "rgba(248, 250, 249, 0.992)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 292,
+      "x": 306,
+      "right": 598,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "split",
+      "slug": "split-pdf",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(72, 88, 92)",
+      "bg": "rgba(248, 250, 249, 0.9)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(72, 88, 92)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "remove",
+      "slug": "remove-pages-pdf",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Enter pages to remove\n\u2192",
+      "disabled": true,
+      "fg": "rgb(58, 75, 79)",
+      "bg": "rgba(248, 250, 249, 0.973)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 247,
+      "x": 306,
+      "right": 553,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(58, 75, 79)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "rotate",
+      "slug": "rotate-pdf",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(53, 71, 75)",
+      "bg": "rgba(248, 250, 249, 0.992)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(53, 71, 75)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "organize",
+      "slug": "organize-pdf",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Enter the page order\n\u2192",
+      "disabled": true,
+      "fg": "rgb(58, 75, 79)",
+      "bg": "rgba(248, 250, 249, 0.973)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 232,
+      "x": 306,
+      "right": 538,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(58, 75, 79)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "scan_pdf",
+      "slug": "scan-to-pdf",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(58, 75, 79)",
+      "bg": "rgba(248, 250, 249, 0.973)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(58, 75, 79)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "compress",
+      "slug": "compress-pdf",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(52, 70, 74)",
+      "bg": "rgba(248, 250, 249, 0.996)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(52, 70, 74)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "repair",
+      "slug": "repair-pdf",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(52, 70, 74)",
+      "bg": "rgba(248, 250, 249, 0.996)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(52, 70, 74)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "ocr",
+      "slug": "ocr-pdf",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(53, 71, 75)",
+      "bg": "rgba(248, 250, 249, 0.992)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(53, 71, 75)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 15.891751618251874
+    },
+    {
+      "op": "jpg_to_pdf",
+      "slug": "jpg-to-pdf",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(52, 70, 74)",
+      "bg": "rgb(248, 250, 249)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(52, 70, 74)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "word_to_pdf",
+      "slug": "word-to-pdf",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(53, 71, 75)",
+      "bg": "rgba(248, 250, 249, 0.992)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(53, 71, 75)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "excel_to_pdf",
+      "slug": "excel-to-pdf",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(58, 75, 79)",
+      "bg": "rgba(248, 250, 249, 0.973)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(58, 75, 79)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "powerpoint_to_pdf",
+      "slug": "powerpoint-to-pdf",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(53, 71, 75)",
+      "bg": "rgba(248, 250, 249, 0.992)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(53, 71, 75)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "html_to_pdf",
+      "slug": "html-to-pdf",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Enter valid URL to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(63, 80, 84)",
+      "bg": "rgba(248, 250, 249, 0.945)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 277,
+      "x": 306,
+      "right": 583,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(63, 80, 84)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "pdf_to_jpg",
+      "slug": "pdf-to-jpg",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(63, 80, 84)",
+      "bg": "rgba(248, 250, 249, 0.945)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(63, 80, 84)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "pdf_to_word",
+      "slug": "pdf-to-word",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(63, 80, 84)",
+      "bg": "rgba(248, 250, 249, 0.945)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(63, 80, 84)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "pdf_to_excel",
+      "slug": "pdf-to-excel",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(55, 73, 76)",
+      "bg": "rgba(248, 250, 249, 0.99)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(55, 73, 76)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "pdf_to_powerpoint",
+      "slug": "pdf-to-powerpoint",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(58, 75, 79)",
+      "bg": "rgba(248, 250, 249, 0.973)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(58, 75, 79)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "pdf_to_pdfa",
+      "slug": "pdf-to-pdfa",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(58, 75, 79)",
+      "bg": "rgba(248, 250, 249, 0.973)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(58, 75, 79)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "pdf_to_text",
+      "slug": "pdf-to-text",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(58, 75, 79)",
+      "bg": "rgba(248, 250, 249, 0.973)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(58, 75, 79)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "pdf_to_markdown",
+      "slug": "pdf-to-markdown",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(55, 73, 76)",
+      "bg": "rgba(248, 250, 249, 0.99)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(55, 73, 76)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "edit",
+      "slug": "edit-pdf",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Enter text to add\n\u2192",
+      "disabled": true,
+      "fg": "rgb(52, 70, 74)",
+      "bg": "rgba(248, 250, 249, 1)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 203,
+      "x": 306,
+      "right": 509,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(52, 70, 74)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "annotate",
+      "slug": "annotate-pdf",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Enter annotation content\n\u2192",
+      "disabled": true,
+      "fg": "rgb(58, 75, 79)",
+      "bg": "rgba(248, 250, 249, 0.973)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 265,
+      "x": 306,
+      "right": 571,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(58, 75, 79)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "crop",
+      "slug": "crop-pdf",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(55, 73, 76)",
+      "bg": "rgba(248, 250, 249, 0.99)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(55, 73, 76)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "redact",
+      "slug": "redact-pdf",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Enter text to redact\n\u2192",
+      "disabled": true,
+      "fg": "rgb(55, 72, 76)",
+      "bg": "rgba(248, 250, 249, 0.99)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 223,
+      "x": 306,
+      "right": 529,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(55, 72, 76)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "watermark",
+      "slug": "watermark-pdf",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Enter watermark text or choose an image\n\u2192",
+      "disabled": true,
+      "fg": "rgb(63, 80, 84)",
+      "bg": "rgba(248, 250, 249, 0.945)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 383,
+      "x": 306,
+      "right": 689,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(63, 80, 84)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "page_numbers",
+      "slug": "add-page-numbers-to-pdf",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(53, 71, 75)",
+      "bg": "rgba(248, 250, 249, 0.992)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(53, 71, 75)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "protect",
+      "slug": "protect-pdf",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(58, 75, 79)",
+      "bg": "rgba(248, 250, 249, 0.973)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(58, 75, 79)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "unlock",
+      "slug": "unlock-pdf",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(58, 75, 79)",
+      "bg": "rgba(248, 250, 249, 0.973)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(58, 75, 79)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "sign",
+      "slug": "sign-pdf",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(52, 70, 74)",
+      "bg": "rgba(248, 250, 249, 1)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(52, 70, 74)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "compare",
+      "slug": "compare-pdf",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(53, 71, 75)",
+      "bg": "rgba(248, 250, 249, 0.992)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(53, 71, 75)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "forms",
+      "slug": "fill-pdf-form",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Enter valid form JSON\n\u2192",
+      "disabled": true,
+      "fg": "rgb(58, 75, 79)",
+      "bg": "rgba(248, 250, 249, 0.973)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 240,
+      "x": 306,
+      "right": 546,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(58, 75, 79)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "metadata",
+      "slug": "pdf-metadata",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(52, 70, 74)",
+      "bg": "rgba(248, 250, 249, 1)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(52, 70, 74)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "ai_chat",
+      "slug": "ai-pdf-chat",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Enter a question\n\u2192",
+      "disabled": true,
+      "fg": "rgb(52, 70, 74)",
+      "bg": "rgb(248, 250, 249)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 200,
+      "x": 306,
+      "right": 506,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(52, 70, 74)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "ai_extract",
+      "slug": "extract-pdf-data",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(63, 80, 84)",
+      "bg": "rgba(248, 250, 249, 0.945)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(63, 80, 84)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "summarize",
+      "slug": "summarize-pdf",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(57, 75, 79)",
+      "bg": "rgba(248, 250, 249, 0.973)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(57, 75, 79)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "translate",
+      "slug": "translate-pdf",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(55, 73, 77)",
+      "bg": "rgba(248, 250, 249, 0.984)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(55, 73, 77)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "photo_resizer",
+      "slug": "ssc-photo-resizer",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(255, 255, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 252,
+      "x": 306,
+      "right": 558,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(255, 255, 255)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "photo_compress",
+      "slug": "compress-image-online",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(55, 73, 77)",
+      "bg": "rgba(248, 250, 249, 0.984)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(55, 73, 77)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "photo_resize",
+      "slug": "resize-image-dimensions",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Enter a size or scale\n\u2192",
+      "disabled": true,
+      "fg": "rgb(58, 75, 79)",
+      "bg": "rgba(248, 250, 249, 0.973)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 224,
+      "x": 306,
+      "right": 530,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(58, 75, 79)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "photo_merge",
+      "slug": "merge-photos-online",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select at least two photos",
+      "disabled": true,
+      "fg": "rgb(71, 88, 91)",
+      "bg": "rgba(248, 250, 249, 0.906)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 250,
+      "x": 306,
+      "right": 556,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "mask_aadhaar",
+      "slug": "mask-aadhaar-card-online",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(58, 75, 79)",
+      "bg": "rgba(248, 250, 249, 0.973)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(58, 75, 79)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "grayscale",
+      "slug": "convert-pdf-to-grayscale",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(63, 80, 84)",
+      "bg": "rgba(248, 250, 249, 0.945)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(63, 80, 84)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    },
+    {
+      "op": "flatten",
+      "slug": "flatten-pdf",
+      "viewport": 1365,
+      "http": 200,
+      "text": "Select files to continue\n\u2192",
+      "disabled": true,
+      "fg": "rgb(63, 80, 84)",
+      "bg": "rgba(248, 250, 249, 0.945)",
+      "bg_image": "none",
+      "opacity": "1",
+      "width": 248,
+      "x": 306,
+      "right": 554,
+      "body": "light-mode",
+      "html": "",
+      "theme": null,
+      "inline": null,
+      "children": [
+        {
+          "text": "\u2192",
+          "color": "rgb(63, 80, 84)",
+          "style": null
+        }
+      ],
+      "sheets": [
+        "http://127.0.0.1:51375/assets/styles.css?v=76",
+        null
+      ],
+      "ruleMatches": [
+        {
+          "selector": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled",
+          "css": "body:not(.dark-mode):not(.high-contrast) #run-button:disabled { opacity: 1 !important; color: rgb(52, 70, 74) !important; background: none rgb(248, 250, 249) !important; border: 1px solid rgb(203, 215, 207) !important; }"
+        },
+        {
+          "selector": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled",
+          "css": "body.dark-mode #run-button:disabled, body.high-contrast #run-button:disabled { opacity: 1 !important; color: rgb(240, 245, 244) !important; background: none rgb(26, 37, 40) !important; border: 1px solid rgb(71, 85, 105) !important; }"
+        }
+      ],
+      "pixel_bg": [
+        248,
+        250,
+        249
+      ],
+      "contrast": 9.445466031189254
+    }
+  ],
+  "errors": [],
+  "failed": [],
+  "passed": true
+}

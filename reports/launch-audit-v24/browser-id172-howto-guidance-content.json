@@ -1,0 +1,129 @@
+{
+  "page_errors": [],
+  "console_errors": [],
+  "routes": {
+    "/tool-desk": {
+      "http_status": 200,
+      "steps": [
+        {
+          "heading": "Choose a tool",
+          "body": "Search for a task or filter the directory by category to open the matching workflow."
+        },
+        {
+          "heading": "Add your source",
+          "body": "Select a file or complete the inputs shown for that tool. Review its available options before running it."
+        },
+        {
+          "heading": "Review the result",
+          "body": "Check the result details and download the generated file from the result panel."
+        }
+      ],
+      "visible_controls_preupload": []
+    },
+    "/ocr-pdf": {
+      "http_status": 200,
+      "steps": [
+        {
+          "heading": "Upload a scanned PDF",
+          "body": "Select a scanned PDF in the upload area; supported size limits are shown beside it."
+        },
+        {
+          "heading": "After upload, select an available OCR language",
+          "body": "After selecting the file, choose a language from the available control before recognition; no quality setting is shown."
+        },
+        {
+          "heading": "Download the searchable PDF",
+          "body": "Download the searchable copy and check several pages for recognition quality."
+        }
+      ],
+      "visible_controls_preupload": [
+        {
+          "id": "language",
+          "tag": "SELECT",
+          "label": "OCR Language"
+        }
+      ]
+    },
+    "/translate-pdf": {
+      "http_status": 200,
+      "steps": [
+        {
+          "heading": "Upload a text-based or OCR PDF",
+          "body": "Select a text PDF or an OCR-processed scan in the upload area above."
+        },
+        {
+          "heading": "Choose the target language in the visible selector",
+          "body": "The target-language selector is available before upload; choose a language before starting the translation."
+        },
+        {
+          "heading": "Review and download the translated copy",
+          "body": "Review the translated pages and text layer before sharing the output."
+        }
+      ],
+      "visible_controls_preupload": [
+        {
+          "id": "target_language",
+          "tag": "SELECT",
+          "label": "Target Language"
+        }
+      ]
+    },
+    "/html-to-pdf": {
+      "http_status": 200,
+      "steps": [
+        {
+          "heading": "Enter an allowed public URL",
+          "body": "Enter a public web address in the URL field above; private network destinations are blocked."
+        },
+        {
+          "heading": "Review the URL and start the conversion",
+          "body": "Check the URL you entered, then run the conversion. This form does not offer separate page-size controls."
+        },
+        {
+          "heading": "Download the rendered PDF",
+          "body": "Open the generated PDF and review its page breaks, fonts, and images."
+        }
+      ],
+      "visible_controls_preupload": [
+        {
+          "id": "url",
+          "tag": "INPUT",
+          "label": "Public URL to convert"
+        }
+      ]
+    },
+    "/jpg-to-pdf": {
+      "http_status": 200,
+      "steps": [
+        {
+          "heading": "Select JPG or other supported images",
+          "body": "The upload area above lists the supported file types and limits for this tool."
+        },
+        {
+          "heading": "Upload them in the order you want in the PDF",
+          "body": "Use only the controls shown in the workspace; file-dependent options appear after selection when needed."
+        },
+        {
+          "heading": "Download the generated PDF",
+          "body": "Review the result details, then download and open the output to check it."
+        }
+      ],
+      "visible_controls_preupload": []
+    }
+  },
+  "download_view": [
+    {
+      "heading": "Choose a platform",
+      "body": "Select the desktop or mobile platform you want updates about."
+    },
+    {
+      "heading": "Enter your email",
+      "body": "Provide an address where Paperplane can send app availability updates."
+    },
+    {
+      "heading": "Join the waitlist",
+      "body": "Submit the form to register interest. No app installer is available to download yet."
+    }
+  ],
+  "overall": "passed"
+}

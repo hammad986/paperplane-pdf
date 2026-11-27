@@ -1,0 +1,19 @@
+{
+  "cases": {
+    "identical": {
+      "filename": "left_vs_right_comparison.txt",
+      "bytes": 254,
+      "verdict": "Verdict: Files are identical in selectable text \u2014 no differences found.",
+      "content_checked": true
+    },
+    "different": {
+      "filename": "left_vs_right_comparison.txt",
+      "bytes": 250,
+      "verdict": "Verdict: 2 selectable-text differences found.",
+      "content_checked": true
+    }
+  },
+  "page_errors": [],
+  "console_errors": [],
+  "result": "passed"
+}

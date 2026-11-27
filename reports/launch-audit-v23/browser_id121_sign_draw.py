@@ -1,12 +1,13 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
-import fitz, json, socket, sys, time
+import fitz, json, os, socket, sys, time
 from playwright.sync_api import sync_playwright
 
 ROOT=Path(__file__).resolve().parents[2]
 OUT=Path(__file__).resolve().parent
 sys.path.insert(0,str(ROOT/'reports'/'launch-audit-v14'))
 import browser_acceptance_v14 as helper
+LOCAL = os.environ.get('PAPERPLANE_SIGN_LOCAL') == '1'
 
 with TemporaryDirectory(prefix='paperplane-id121-') as temp:
     root=Path(temp);source=root/'sign-draw-source.pdf'
@@ -24,8 +25,11 @@ with TemporaryDirectory(prefix='paperplane-id121-') as temp:
             browser=p.chromium.launch(channel='chrome',headless=True)
             for number in (1,2):
                 context=browser.new_context(viewport={'width':390,'height':844},accept_downloads=True)
-                page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
+                page=context.new_page();errors=[];jobs=[]
+                page.on('pageerror',lambda e:errors.append(str(e)))
+                page.on('request',lambda request: jobs.append(request.url) if request.method=='POST' and request.url.endswith('/api/jobs') else None)
                 page.goto(base+'/sign-pdf',wait_until='domcontentloaded')
+                if LOCAL:assert page.locator('#client-privacy-toggle').is_checked()
                 page.locator('#file-input').set_input_files(str(source))
                 page.wait_for_function("window.state?.files?.some(f=>f.name==='sign-draw-source.pdf')",timeout=10000)
                 canvas=page.locator('#sign-draw-canvas');canvas.wait_for(state='visible')
@@ -44,8 +48,11 @@ with TemporaryDirectory(prefix='paperplane-id121-') as temp:
                 page.mouse.up()
                 signature=page.locator('#signature_data').input_value();assert signature.startswith('data:image/png;base64,')
                 page.locator('#signature').fill('Alex Drawn')
-                with page.expect_response('**/api/jobs') as event:page.locator('#run-button').click()
-                accepted=event.value;assert accepted.status==202
+                if LOCAL:
+                    page.locator('#run-button').click()
+                else:
+                    with page.expect_response('**/api/jobs') as event:page.locator('#run-button').click()
+                    accepted=event.value;assert accepted.status==202
                 page.locator('#result-download-link:not([hidden])').wait_for(state='visible',timeout=25000)
                 with page.expect_download(timeout=20000) as download_event:page.locator('#result-download-link').click()
                 download=download_event.value;output=root/f'id121-round{number}.pdf';download.save_as(output)
@@ -59,10 +66,11 @@ with TemporaryDirectory(prefix='paperplane-id121-') as temp:
                     ink=sum(1 for i in range(0,len(pixels),rendered.n) if min(pixels[i:i+3])<80)
                     assert ink>30,ink
                 assert not errors,errors
-                page.screenshot(path=str(OUT/f'id121-sign-draw-round{number}.png'),full_page=True)
-                rounds.append({'round':number,'viewport':'390x844','drawn_png_data_url':True,'clear_button_reset_data':True,'download':download.suggested_filename,'page_count':1,'embedded_signature_images':len(page_images),'signer_and_source_text_checked':True,'rendered_dark_ink_pixels':ink,'page_errors':errors})
+                assert len(jobs)==(0 if LOCAL else 1),jobs
+                if not LOCAL:page.screenshot(path=str(OUT/f'id121-sign-draw-round{number}.png'),full_page=True)
+                rounds.append({'round':number,'viewport':'390x844','browser_local':LOCAL,'drawn_png_data_url':True,'clear_button_reset_data':True,'download':download.suggested_filename,'page_count':1,'embedded_signature_images':len(page_images),'signer_and_source_text_checked':True,'rendered_dark_ink_pixels':ink,'server_job_posts':len(jobs),'page_errors':errors})
                 context.close()
             browser.close()
-        data={'rounds':rounds};(OUT/'browser-id121-sign-draw.json').write_text(json.dumps(data,indent=2),encoding='utf-8');print(json.dumps(data,indent=2))
+        data={'rounds':rounds};(OUT/('browser-id121-sign-draw-local.json' if LOCAL else 'browser-id121-sign-draw.json')).write_text(json.dumps(data,indent=2),encoding='utf-8');print(json.dumps(data,indent=2))
     finally:
         app.terminate();app.wait(timeout=5)

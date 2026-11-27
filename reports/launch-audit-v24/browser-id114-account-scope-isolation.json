@@ -1,0 +1,30 @@
+{
+  "build": "app.js v191/styles71",
+  "synthetic_account_scope_test": true,
+  "rounds": [
+    {
+      "round": 1,
+      "scope_a": "synthetic-A",
+      "scope_b_before_reload": "synthetic-B",
+      "account_b_count_before_reload": "0",
+      "page_count_after_reload": "0",
+      "stored_studio_keys": [
+        "account:synthetic-A:studio-pdf"
+      ],
+      "no_cross_account_restore": true
+    },
+    {
+      "round": 2,
+      "scope_a": "synthetic-A",
+      "scope_b_before_reload": "synthetic-B",
+      "account_b_count_before_reload": "0",
+      "page_count_after_reload": "0",
+      "stored_studio_keys": [
+        "account:synthetic-A:studio-pdf"
+      ],
+      "no_cross_account_restore": true
+    }
+  ],
+  "browser_errors": [],
+  "passed": true
+}

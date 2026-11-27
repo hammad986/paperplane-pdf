@@ -27,8 +27,8 @@
         }
       ],
       "audit_ips": {
-        "proxy-browser-e8e047e3@example.invalid": "203.0.113.82",
-        "proxy-browser-6c59dc18@example.invalid": "203.0.113.81"
+        "proxy-browser-c44698be@example.invalid": "203.0.113.82",
+        "proxy-browser-0678aca5@example.invalid": "203.0.113.81"
       },
       "forwarded_ips": [
         "203.0.113.81",
@@ -138,12 +138,12 @@
           "path": "/ocr-pdf",
           "geometry": {
             "title": [
-              -342,
-              -312
+              -309,
+              -279
             ],
             "topbar": [
               -642,
-              -566
+              -533
             ],
             "mobileBar": [
               0,
@@ -156,12 +156,12 @@
           "path": "/remove-pages-pdf",
           "geometry": {
             "title": [
-              -260,
-              -230
+              -227,
+              -197
             ],
             "topbar": [
               -560,
-              -484
+              -451
             ],
             "mobileBar": [
               0,
@@ -189,11 +189,11 @@
       "directory_visible": true,
       "aliases": {
         "/fill-form": {
-          "final_url": "http://127.0.0.1:62624/fill-pdf-form",
+          "final_url": "http://127.0.0.1:65437/fill-pdf-form",
           "status": 1
         },
         "/ai-translate": {
-          "final_url": "http://127.0.0.1:62624/translate-pdf",
+          "final_url": "http://127.0.0.1:65437/translate-pdf",
           "status": 1
         }
       }
@@ -218,12 +218,12 @@
         "whiteSpace": "normal",
         "rect": {
           "x": 24,
-          "y": 714,
+          "y": 756,
           "width": 342,
           "height": 54,
-          "top": 714,
+          "top": 756,
           "right": 366,
-          "bottom": 768,
+          "bottom": 810,
           "left": 24
         }
       }
@@ -246,7 +246,7 @@
     },
     {
       "case": "studio_first_page_canvas_paints_within_5_seconds",
-      "elapsed_seconds": 1.013
+      "elapsed_seconds": 1.989
     },
     {
       "case": "ai_studio_has_no_obsolete_local_history_banner",
@@ -255,8 +255,8 @@
     {
       "case": "studio_desktop_has_no_persistent_save_banner_and_fits",
       "banner_absent": true,
-      "toolbar_height": 166,
-      "toolbar_rows": 4,
+      "toolbar_height": 121,
+      "toolbar_rows": 3,
       "visible_buttons": 33,
       "document_width": 1366,
       "footer_hidden_until_scroll": true,
@@ -281,9 +281,9 @@
       ],
       "button": [
         306,
-        810,
+        831,
         645,
-        860
+        881
       ],
       "nav": [
         0,
@@ -302,9 +302,9 @@
       ],
       "button": [
         306,
-        799,
+        820,
         502,
-        847
+        868
       ],
       "nav": [
         0,
@@ -323,9 +323,9 @@
       ],
       "button": [
         306,
-        852,
+        464,
         532,
-        900
+        512
       ],
       "nav": [
         0,
@@ -502,19 +502,19 @@
     },
     {
       "case": "remove_pages_first_attempt_latency_on_5mb_pdf",
-      "source_bytes": 5050536,
+      "source_bytes": 5050539,
       "source_pages": 10,
       "runs": [
         {
           "round": 1,
-          "elapsed_seconds": 1.721,
+          "elapsed_seconds": 2.39,
           "output_bytes": 4546142,
           "pages": 9,
           "page2_is_original_page3": true
         },
         {
           "round": 2,
-          "elapsed_seconds": 1.644,
+          "elapsed_seconds": 1.905,
           "output_bytes": 4546142,
           "pages": 9,
           "page2_is_original_page3": true
@@ -527,7 +527,7 @@
     },
     {
       "case": "pdf_to_markdown_browser_output_content_checked",
-      "output_name": "a5e7074e4bb844cdb8a39a50783e06b5_browser-download_pdf_to_markdown.md"
+      "output_name": "browser-download_pdf_to_markdown.md"
     },
     {
       "case": "photo_resize_browser_output_aspect_preserved",
@@ -573,14 +573,14 @@
     {
       "case": "/sign-pdf",
       "round": 1,
-      "bytes": 1554,
+      "bytes": 1515,
       "pages": 1,
       "content_checked": true
     },
     {
       "case": "/sign-pdf",
       "round": 2,
-      "bytes": 1554,
+      "bytes": 1515,
       "pages": 1,
       "content_checked": true
     },
@@ -615,9 +615,9 @@
               8,
               64,
               374,
-              273
+              118
             ],
-            "scrollHeight": 271
+            "scrollHeight": 116
           },
           "#studio-thumbnails-bar": {
             "visible": false,
@@ -633,7 +633,7 @@
             "visible": true,
             "rect": [
               8,
-              347,
+              192,
               374,
               557.03125
             ],
@@ -674,14 +674,66 @@
         "canvasArea": "rgb(248, 250, 249)"
       },
       "desktop_restore_toast": {
-        "top": 267,
-        "toolbarBottom": 243,
-        "overlaps": []
+        "top": 226,
+        "toastRect": {
+          "left": 8,
+          "right": 321,
+          "top": 226,
+          "bottom": 269,
+          "width": 313,
+          "height": 43
+        },
+        "pageRect": {
+          "left": 657.09375,
+          "right": 1252.09375,
+          "top": 181.96875,
+          "bottom": 1023.96875
+        },
+        "dockRect": {
+          "top": 0,
+          "bottom": 0,
+          "width": 0,
+          "height": 0
+        },
+        "toolbarBottom": 153.96875,
+        "active": {
+          "html": true,
+          "body": true
+        },
+        "overlaps": [],
+        "pageOverlap": false,
+        "pageHidden": false
       },
       "mobile_restore_toast": {
-        "top": 553.9632568359375,
-        "toolbarBottom": 337,
-        "overlaps": []
+        "top": 225,
+        "toastRect": {
+          "left": 7,
+          "right": 8,
+          "top": 225,
+          "bottom": 226,
+          "width": 1,
+          "height": 1
+        },
+        "pageRect": {
+          "left": 36,
+          "right": 354,
+          "top": 209,
+          "bottom": 1051
+        },
+        "dockRect": {
+          "top": 662,
+          "bottom": 778,
+          "width": 390,
+          "height": 116
+        },
+        "toolbarBottom": 182,
+        "active": {
+          "html": true,
+          "body": true
+        },
+        "overlaps": [],
+        "pageOverlap": false,
+        "pageHidden": true
       },
       "mobile_after_reload": {
         "theme": "light",
@@ -715,7 +767,7 @@
       "deleted_page": 34,
       "remaining_pages": 68,
       "page34_text": "Studio jump verification page 35.",
-      "elapsed_seconds": 1.101
+      "elapsed_seconds": 1.362
     },
     {
       "case": "studio_page_deletion_survives_reload_after_30_seconds",
@@ -743,43 +795,43 @@
       "case": "signed_in_first_paint_has_auth_skeleton",
       "route": "/",
       "guest_defaults_hidden": true,
-      "resolved_email": "audit-cebf7b19@example.invalid"
+      "resolved_email": "audit-ea5650a3@example.invalid"
     },
     {
       "case": "signed_in_first_paint_has_auth_skeleton",
       "route": "/split-pdf",
       "guest_defaults_hidden": true,
-      "resolved_email": "audit-cebf7b19@example.invalid"
+      "resolved_email": "audit-ea5650a3@example.invalid"
     },
     {
       "case": "signed_in_first_paint_has_auth_skeleton",
       "route": "/merge-pdf",
       "guest_defaults_hidden": true,
-      "resolved_email": "audit-cebf7b19@example.invalid"
+      "resolved_email": "audit-ea5650a3@example.invalid"
     },
     {
       "case": "signed_in_first_paint_has_auth_skeleton",
       "route": "/edit-pdf",
       "guest_defaults_hidden": true,
-      "resolved_email": "audit-cebf7b19@example.invalid"
+      "resolved_email": "audit-ea5650a3@example.invalid"
     },
     {
       "case": "signed_in_first_paint_has_auth_skeleton",
       "route": "/compress-pdf",
       "guest_defaults_hidden": true,
-      "resolved_email": "audit-cebf7b19@example.invalid"
+      "resolved_email": "audit-ea5650a3@example.invalid"
     },
     {
       "case": "signed_in_first_paint_has_auth_skeleton",
       "route": "/settings",
       "guest_defaults_hidden": true,
-      "resolved_email": "audit-cebf7b19@example.invalid"
+      "resolved_email": "audit-ea5650a3@example.invalid"
     },
     {
       "case": "signed_in_first_paint_has_auth_skeleton",
       "route": "/studio",
       "guest_defaults_hidden": true,
-      "resolved_email": "audit-cebf7b19@example.invalid"
+      "resolved_email": "audit-ea5650a3@example.invalid"
     },
     {
       "case": "studio_saved_document_restores_without_empty_state_flash",

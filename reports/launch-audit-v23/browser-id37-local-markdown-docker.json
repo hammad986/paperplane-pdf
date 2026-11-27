@@ -1,0 +1,29 @@
+{
+  "base": "http://127.0.0.1:18502",
+  "runtime": "Docker image",
+  "image_id": "sha256:3c13be4fc0e39da403df62e8dd592d1a71205a4c1b97caaeaf69d3be77331190",
+  "rounds": [
+    {
+      "round": 1,
+      "filename": "structured-markdown.md",
+      "metadata_title": true,
+      "heading_and_page_structure": true,
+      "paragraph_preserved": true,
+      "bullet_normalized": true,
+      "disclosed_table_and_ocr_limits": true,
+      "job_posts": [],
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "filename": "structured-markdown.md",
+      "metadata_title": true,
+      "heading_and_page_structure": true,
+      "paragraph_preserved": true,
+      "bullet_normalized": true,
+      "disclosed_table_and_ocr_limits": true,
+      "job_posts": [],
+      "page_errors": []
+    }
+  ]
+}

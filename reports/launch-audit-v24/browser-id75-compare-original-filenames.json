@@ -1,0 +1,23 @@
+{
+  "checks": [
+    {
+      "mode": "local",
+      "download_name": "Quarterly Report Original_vs_Quarterly Report Revised_comparison.txt",
+      "body_has_original_filenames": true,
+      "body_contains_no_temp_path_or_generated_upload_name": true,
+      "bytes": 323,
+      "content_checked": true
+    },
+    {
+      "mode": "server",
+      "download_name": "Quarterly Report Original_compare.txt",
+      "body_has_original_filenames": true,
+      "body_contains_no_temp_path_or_generated_upload_name": true,
+      "bytes": 201,
+      "content_checked": true
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "result": "passed"
+}

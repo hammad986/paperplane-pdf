@@ -1,0 +1,1250 @@
+{
+  "build": "app.js v195 / styles.css v71 / service-worker v147",
+  "route_count": 44,
+  "round_sizes": [
+    44,
+    44
+  ],
+  "rounds": [
+    [
+      {
+        "route": "/merge-pdf",
+        "title": "Merge PDF | Paperplane",
+        "h1": [
+          "Merge PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/split-pdf",
+        "title": "Split / extract | Paperplane",
+        "h1": [
+          "Split / extract"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/remove-pages-pdf",
+        "title": "Remove pages | Paperplane",
+        "h1": [
+          "Remove pages"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/rotate-pdf",
+        "title": "Rotate PDF | Paperplane",
+        "h1": [
+          "Rotate PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/organize-pdf",
+        "title": "Page Organizer | Paperplane",
+        "h1": [
+          "Page Organizer"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/scan-to-pdf",
+        "title": "Scan to PDF | Paperplane",
+        "h1": [
+          "Scan to PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/compress-pdf",
+        "title": "Compress PDF | Paperplane",
+        "h1": [
+          "Compress PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/repair-pdf",
+        "title": "Repair PDF | Paperplane",
+        "h1": [
+          "Repair PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/ocr-pdf",
+        "title": "OCR PDF | Paperplane",
+        "h1": [
+          "OCR PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/jpg-to-pdf",
+        "title": "JPG/PNG to PDF | Paperplane",
+        "h1": [
+          "JPG/PNG to PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/word-to-pdf",
+        "title": "Word to PDF | Paperplane",
+        "h1": [
+          "Word to PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/excel-to-pdf",
+        "title": "Excel to PDF | Paperplane",
+        "h1": [
+          "Excel to PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/powerpoint-to-pdf",
+        "title": "PowerPoint to PDF | Paperplane",
+        "h1": [
+          "PowerPoint to PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/html-to-pdf",
+        "title": "HTML to PDF | Paperplane",
+        "h1": [
+          "HTML to PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/pdf-to-jpg",
+        "title": "PDF to JPG | Paperplane",
+        "h1": [
+          "PDF to JPG"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/pdf-to-word",
+        "title": "PDF to Word | Paperplane",
+        "h1": [
+          "PDF to Word"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/pdf-to-excel",
+        "title": "PDF to Excel | Paperplane",
+        "h1": [
+          "PDF to Excel"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/pdf-to-powerpoint",
+        "title": "PDF to PowerPoint | Paperplane",
+        "h1": [
+          "PDF to PowerPoint"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/pdf-to-pdfa",
+        "title": "PDF to PDF/A | Paperplane",
+        "h1": [
+          "PDF to PDF/A"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/pdf-to-text",
+        "title": "PDF to Text | Paperplane",
+        "h1": [
+          "PDF to Text"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/pdf-to-markdown",
+        "title": "PDF to Markdown | Paperplane",
+        "h1": [
+          "PDF to Markdown"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/edit-pdf",
+        "title": "Add Text & Stamps | Paperplane",
+        "h1": [
+          "Add Text & Stamps"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/annotate-pdf",
+        "title": "Annotate PDF | Paperplane",
+        "h1": [
+          "Annotate PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/crop-pdf",
+        "title": "Crop PDF | Paperplane",
+        "h1": [
+          "Crop PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/redact-pdf",
+        "title": "Redact PDF | Paperplane",
+        "h1": [
+          "Redact PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/watermark-pdf",
+        "title": "Watermark PDF | Paperplane",
+        "h1": [
+          "Watermark PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/add-page-numbers-to-pdf",
+        "title": "Page Numbers | Paperplane",
+        "h1": [
+          "Page Numbers"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/protect-pdf",
+        "title": "Protect PDF | Paperplane",
+        "h1": [
+          "Protect PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/unlock-pdf",
+        "title": "Unlock PDF | Paperplane",
+        "h1": [
+          "Unlock PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/sign-pdf",
+        "title": "Sign PDF | Paperplane",
+        "h1": [
+          "Sign PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/compare-pdf",
+        "title": "Compare PDF | Paperplane",
+        "h1": [
+          "Compare PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/fill-pdf-form",
+        "title": "Fill PDF Form | Paperplane",
+        "h1": [
+          "Fill PDF Form"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/pdf-metadata",
+        "title": "PDF Metadata | Paperplane",
+        "h1": [
+          "PDF Metadata"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/ai-pdf-chat",
+        "title": "AI Document Intelligence | Paperplane",
+        "h1": [
+          "AI Document Intelligence"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/extract-pdf-data",
+        "title": "Smart Metadata | Paperplane",
+        "h1": [
+          "Smart Metadata"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/summarize-pdf",
+        "title": "AI Summarize | Paperplane",
+        "h1": [
+          "AI Summarize"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/translate-pdf",
+        "title": "AI Translate | Paperplane",
+        "h1": [
+          "AI Translate"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/ssc-photo-resizer",
+        "title": "Exam Photo & Signature Resizer | Paperplane",
+        "h1": [
+          "Exam Photo & Signature Resizer"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/compress-image-online",
+        "title": "Compress Photo / Image | Paperplane",
+        "h1": [
+          "Compress Photo / Image"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/resize-image-dimensions",
+        "title": "Resize Photo Dimensions | Paperplane",
+        "h1": [
+          "Resize Photo Dimensions"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/merge-photos-online",
+        "title": "Merge Photos into One | Paperplane",
+        "h1": [
+          "Merge Photos into One"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/mask-aadhaar-card-online",
+        "title": "Mask Aadhaar Card | Paperplane",
+        "h1": [
+          "Mask Aadhaar Card"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/convert-pdf-to-grayscale",
+        "title": "Convert to Grayscale | Paperplane",
+        "h1": [
+          "Convert to Grayscale"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/flatten-pdf",
+        "title": "Flatten PDF Forms | Paperplane",
+        "h1": [
+          "Flatten PDF Forms"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      }
+    ],
+    [
+      {
+        "route": "/merge-pdf",
+        "title": "Merge PDF | Paperplane",
+        "h1": [
+          "Merge PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/split-pdf",
+        "title": "Split / extract | Paperplane",
+        "h1": [
+          "Split / extract"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/remove-pages-pdf",
+        "title": "Remove pages | Paperplane",
+        "h1": [
+          "Remove pages"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/rotate-pdf",
+        "title": "Rotate PDF | Paperplane",
+        "h1": [
+          "Rotate PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/organize-pdf",
+        "title": "Page Organizer | Paperplane",
+        "h1": [
+          "Page Organizer"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/scan-to-pdf",
+        "title": "Scan to PDF | Paperplane",
+        "h1": [
+          "Scan to PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/compress-pdf",
+        "title": "Compress PDF | Paperplane",
+        "h1": [
+          "Compress PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/repair-pdf",
+        "title": "Repair PDF | Paperplane",
+        "h1": [
+          "Repair PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/ocr-pdf",
+        "title": "OCR PDF | Paperplane",
+        "h1": [
+          "OCR PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/jpg-to-pdf",
+        "title": "JPG/PNG to PDF | Paperplane",
+        "h1": [
+          "JPG/PNG to PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/word-to-pdf",
+        "title": "Word to PDF | Paperplane",
+        "h1": [
+          "Word to PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/excel-to-pdf",
+        "title": "Excel to PDF | Paperplane",
+        "h1": [
+          "Excel to PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/powerpoint-to-pdf",
+        "title": "PowerPoint to PDF | Paperplane",
+        "h1": [
+          "PowerPoint to PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/html-to-pdf",
+        "title": "HTML to PDF | Paperplane",
+        "h1": [
+          "HTML to PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/pdf-to-jpg",
+        "title": "PDF to JPG | Paperplane",
+        "h1": [
+          "PDF to JPG"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/pdf-to-word",
+        "title": "PDF to Word | Paperplane",
+        "h1": [
+          "PDF to Word"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/pdf-to-excel",
+        "title": "PDF to Excel | Paperplane",
+        "h1": [
+          "PDF to Excel"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/pdf-to-powerpoint",
+        "title": "PDF to PowerPoint | Paperplane",
+        "h1": [
+          "PDF to PowerPoint"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/pdf-to-pdfa",
+        "title": "PDF to PDF/A | Paperplane",
+        "h1": [
+          "PDF to PDF/A"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/pdf-to-text",
+        "title": "PDF to Text | Paperplane",
+        "h1": [
+          "PDF to Text"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/pdf-to-markdown",
+        "title": "PDF to Markdown | Paperplane",
+        "h1": [
+          "PDF to Markdown"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/edit-pdf",
+        "title": "Add Text & Stamps | Paperplane",
+        "h1": [
+          "Add Text & Stamps"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/annotate-pdf",
+        "title": "Annotate PDF | Paperplane",
+        "h1": [
+          "Annotate PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/crop-pdf",
+        "title": "Crop PDF | Paperplane",
+        "h1": [
+          "Crop PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/redact-pdf",
+        "title": "Redact PDF | Paperplane",
+        "h1": [
+          "Redact PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/watermark-pdf",
+        "title": "Watermark PDF | Paperplane",
+        "h1": [
+          "Watermark PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/add-page-numbers-to-pdf",
+        "title": "Page Numbers | Paperplane",
+        "h1": [
+          "Page Numbers"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/protect-pdf",
+        "title": "Protect PDF | Paperplane",
+        "h1": [
+          "Protect PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/unlock-pdf",
+        "title": "Unlock PDF | Paperplane",
+        "h1": [
+          "Unlock PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/sign-pdf",
+        "title": "Sign PDF | Paperplane",
+        "h1": [
+          "Sign PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/compare-pdf",
+        "title": "Compare PDF | Paperplane",
+        "h1": [
+          "Compare PDF"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/fill-pdf-form",
+        "title": "Fill PDF Form | Paperplane",
+        "h1": [
+          "Fill PDF Form"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/pdf-metadata",
+        "title": "PDF Metadata | Paperplane",
+        "h1": [
+          "PDF Metadata"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/ai-pdf-chat",
+        "title": "AI Document Intelligence | Paperplane",
+        "h1": [
+          "AI Document Intelligence"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/extract-pdf-data",
+        "title": "Smart Metadata | Paperplane",
+        "h1": [
+          "Smart Metadata"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/summarize-pdf",
+        "title": "AI Summarize | Paperplane",
+        "h1": [
+          "AI Summarize"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/translate-pdf",
+        "title": "AI Translate | Paperplane",
+        "h1": [
+          "AI Translate"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/ssc-photo-resizer",
+        "title": "Exam Photo & Signature Resizer | Paperplane",
+        "h1": [
+          "Exam Photo & Signature Resizer"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/compress-image-online",
+        "title": "Compress Photo / Image | Paperplane",
+        "h1": [
+          "Compress Photo / Image"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/resize-image-dimensions",
+        "title": "Resize Photo Dimensions | Paperplane",
+        "h1": [
+          "Resize Photo Dimensions"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/merge-photos-online",
+        "title": "Merge Photos into One | Paperplane",
+        "h1": [
+          "Merge Photos into One"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/mask-aadhaar-card-online",
+        "title": "Mask Aadhaar Card | Paperplane",
+        "h1": [
+          "Mask Aadhaar Card"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/convert-pdf-to-grayscale",
+        "title": "Convert to Grayscale | Paperplane",
+        "h1": [
+          "Convert to Grayscale"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      },
+      {
+        "route": "/flatten-pdf",
+        "title": "Flatten PDF Forms | Paperplane",
+        "h1": [
+          "Flatten PDF Forms"
+        ],
+        "dropHeading": {
+          "tag": "H2",
+          "text": "Drop your document here"
+        },
+        "css": [
+          "/assets/styles.css?v=71"
+        ]
+      }
+    ]
+  ],
+  "issues": [],
+  "browser_errors": [],
+  "console_errors": [],
+  "passed": true
+}

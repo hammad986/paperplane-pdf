@@ -1,10 +1,11 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
-import json, socket, sys, time
+import json, os, socket, sys, time
 from playwright.sync_api import sync_playwright
 
 ROOT=Path(__file__).resolve().parents[2]
 OUT=Path(__file__).resolve().parent
+EVIDENCE_SUFFIX=os.environ.get('PAPERPLANE_AUDIT_EVIDENCE_SUFFIX','')
 sys.path.insert(0,str(ROOT/'reports'/'launch-audit-v14'))
 import browser_acceptance_v14 as helper
 
@@ -33,7 +34,7 @@ with TemporaryDirectory(prefix='paperplane-id97-') as temp:
                 reset_link=page.locator('#forgot-message a[href*="reset_token="]')
                 reset_link.wait_for(state='visible',timeout=10000)
                 url=reset_link.get_attribute('href');assert url and 'reset_token=' in url
-                page.screenshot(path=str(OUT/f'id97-password-reset-request-round{number}.png'),full_page=True)
+                page.screenshot(path=str(OUT/f'id97-password-reset-request{EVIDENCE_SUFFIX}-round{number}.png'),full_page=True)
                 page.goto(url,wait_until='domcontentloaded')
                 page.locator('#reset-password-modal:not([hidden])').wait_for(state='visible',timeout=10000)
                 page.locator('#reset-new-password').fill('Recovered!Password-2026')
@@ -42,11 +43,11 @@ with TemporaryDirectory(prefix='paperplane-id97-') as temp:
                 reset_response=reset_event.value;assert reset_response.status==200,reset_response.status
                 reset_body=reset_response.json();assert reset_body.get('status')=='success',reset_body
                 assert not errors,errors
-                page.screenshot(path=str(OUT/f'id97-password-reset-complete-round{number}.png'),full_page=True)
+                page.screenshot(path=str(OUT/f'id97-password-reset-complete{EVIDENCE_SUFFIX}-round{number}.png'),full_page=True)
                 rounds.append({'round':number,'forgot_status':response.status,'generic_message':True,'development_reset_link':True,'reset_status':reset_response.status,'reset_complete':True,'page_errors':errors})
                 context.close()
             browser.close()
         data={'rounds':rounds,'email_delivery':'no provider configured; local code path must return failure rather than simulated success; reset link exercised using local development response'}
-        (OUT/'browser-id97-password-reset.json').write_text(json.dumps(data,indent=2),encoding='utf-8');print(json.dumps(data,indent=2))
+        (OUT/f'browser-id97-password-reset{EVIDENCE_SUFFIX}.json').write_text(json.dumps(data,indent=2),encoding='utf-8');print(json.dumps(data,indent=2))
     finally:
         app.terminate();app.wait(timeout=5)

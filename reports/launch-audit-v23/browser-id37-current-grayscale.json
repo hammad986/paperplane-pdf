@@ -1,0 +1,28 @@
+{
+  "operation": "grayscale",
+  "rounds": [
+    {
+      "round": 1,
+      "viewport": 1366,
+      "http_status": 200,
+      "output_bytes": 16018,
+      "pages": 2,
+      "grayscale_pixels_checked": 345600,
+      "max_rgb_channel_difference": 0,
+      "server_job_posts": 1,
+      "page_errors": []
+    },
+    {
+      "round": 2,
+      "viewport": 390,
+      "http_status": 200,
+      "output_bytes": 16018,
+      "pages": 2,
+      "grayscale_pixels_checked": 345600,
+      "max_rgb_channel_difference": 0,
+      "server_job_posts": 1,
+      "page_errors": []
+    }
+  ],
+  "result": "PASS"
+}

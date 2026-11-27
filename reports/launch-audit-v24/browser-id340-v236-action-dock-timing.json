@@ -1,0 +1,477 @@
+{
+  "version": "app.js v236 / styles.css v90 / service-worker v212",
+  "viewport": [
+    320,
+    844
+  ],
+  "samples": [
+    {
+      "route": "/summarize-pdf",
+      "status": 200,
+      "elapsedMs": 1066.8999999761581,
+      "action": {
+        "top": 719.7000122070312,
+        "bottom": 769.3000144958496,
+        "display": "flex",
+        "position": "static"
+      },
+      "nav": {
+        "top": 778,
+        "bottom": 844
+      },
+      "scrollY": 48.79999923706055,
+      "viewport": 320,
+      "clientWidth": 305,
+      "overlaps": false,
+      "activeView": "desk",
+      "operation": "summarize",
+      "scrollRequests": [
+        {
+          "args": [
+            {
+              "top": 0,
+              "behavior": "smooth"
+            }
+          ],
+          "at": 785.5999999642372,
+          "stack": [
+            "Error",
+            "    at window.scrollTo (<anonymous>:7:117)",
+            "    at selectOperation (http://127.0.0.1:59634/assets/app.js?v=236:2351:12)",
+            "    at handleInitialRouting (http://127.0.0.1:59634/assets/app.js?v=236:10056:5)"
+          ]
+        },
+        {
+          "args": [
+            0,
+            49
+          ],
+          "at": 1064.8999999761581,
+          "stack": [
+            "Error",
+            "    at window.scrollTo (<anonymous>:7:117)",
+            "    at clearMobileNavigationFromToolAction (http://127.0.0.1:59634/assets/app.js?v=236:2261:10)"
+          ]
+        }
+      ],
+      "scrollEvents": []
+    },
+    {
+      "route": "/summarize-pdf",
+      "status": 200,
+      "elapsedMs": 1114.3999999761581,
+      "action": {
+        "top": 730.1000366210938,
+        "bottom": 779.7000389099121,
+        "display": "flex",
+        "position": "static"
+      },
+      "nav": {
+        "top": 778,
+        "bottom": 844
+      },
+      "scrollY": 48.79999923706055,
+      "viewport": 320,
+      "clientWidth": 305,
+      "overlaps": true,
+      "activeView": "desk",
+      "operation": "summarize",
+      "scrollRequests": [
+        {
+          "args": [
+            {
+              "top": 0,
+              "behavior": "smooth"
+            }
+          ],
+          "at": 785.5999999642372,
+          "stack": [
+            "Error",
+            "    at window.scrollTo (<anonymous>:7:117)",
+            "    at selectOperation (http://127.0.0.1:59634/assets/app.js?v=236:2351:12)",
+            "    at handleInitialRouting (http://127.0.0.1:59634/assets/app.js?v=236:10056:5)"
+          ]
+        },
+        {
+          "args": [
+            0,
+            49
+          ],
+          "at": 1064.8999999761581,
+          "stack": [
+            "Error",
+            "    at window.scrollTo (<anonymous>:7:117)",
+            "    at clearMobileNavigationFromToolAction (http://127.0.0.1:59634/assets/app.js?v=236:2261:10)"
+          ]
+        }
+      ],
+      "scrollEvents": []
+    },
+    {
+      "route": "/summarize-pdf",
+      "status": 200,
+      "elapsedMs": 1454.3999999761581,
+      "action": {
+        "top": 730.1000366210938,
+        "bottom": 779.7000389099121,
+        "display": "flex",
+        "position": "static"
+      },
+      "nav": {
+        "top": 778,
+        "bottom": 844
+      },
+      "scrollY": 48.79999923706055,
+      "viewport": 320,
+      "clientWidth": 305,
+      "overlaps": true,
+      "activeView": "desk",
+      "operation": "summarize",
+      "scrollRequests": [
+        {
+          "args": [
+            {
+              "top": 0,
+              "behavior": "smooth"
+            }
+          ],
+          "at": 785.5999999642372,
+          "stack": [
+            "Error",
+            "    at window.scrollTo (<anonymous>:7:117)",
+            "    at selectOperation (http://127.0.0.1:59634/assets/app.js?v=236:2351:12)",
+            "    at handleInitialRouting (http://127.0.0.1:59634/assets/app.js?v=236:10056:5)"
+          ]
+        },
+        {
+          "args": [
+            0,
+            49
+          ],
+          "at": 1064.8999999761581,
+          "stack": [
+            "Error",
+            "    at window.scrollTo (<anonymous>:7:117)",
+            "    at clearMobileNavigationFromToolAction (http://127.0.0.1:59634/assets/app.js?v=236:2261:10)"
+          ]
+        }
+      ],
+      "scrollEvents": [
+        {
+          "y": 48.79999923706055,
+          "at": 1116.2999999523163
+        }
+      ]
+    },
+    {
+      "route": "/summarize-pdf",
+      "status": 200,
+      "elapsedMs": 1468.8999999761581,
+      "action": {
+        "top": 730.1000366210938,
+        "bottom": 779.7000389099121,
+        "display": "flex",
+        "position": "static"
+      },
+      "nav": {
+        "top": 778,
+        "bottom": 844
+      },
+      "scrollY": 48.79999923706055,
+      "viewport": 320,
+      "clientWidth": 305,
+      "overlaps": true,
+      "activeView": "desk",
+      "operation": "summarize",
+      "scrollRequests": [
+        {
+          "args": [
+            {
+              "top": 0,
+              "behavior": "smooth"
+            }
+          ],
+          "at": 785.5999999642372,
+          "stack": [
+            "Error",
+            "    at window.scrollTo (<anonymous>:7:117)",
+            "    at selectOperation (http://127.0.0.1:59634/assets/app.js?v=236:2351:12)",
+            "    at handleInitialRouting (http://127.0.0.1:59634/assets/app.js?v=236:10056:5)"
+          ]
+        },
+        {
+          "args": [
+            0,
+            49
+          ],
+          "at": 1064.8999999761581,
+          "stack": [
+            "Error",
+            "    at window.scrollTo (<anonymous>:7:117)",
+            "    at clearMobileNavigationFromToolAction (http://127.0.0.1:59634/assets/app.js?v=236:2261:10)"
+          ]
+        }
+      ],
+      "scrollEvents": [
+        {
+          "y": 48.79999923706055,
+          "at": 1116.2999999523163
+        }
+      ]
+    },
+    {
+      "route": "/summarize-pdf",
+      "status": 200,
+      "elapsedMs": 2005.3999999761581,
+      "action": {
+        "top": 730.1000366210938,
+        "bottom": 779.7000389099121,
+        "display": "flex",
+        "position": "static"
+      },
+      "nav": {
+        "top": 778,
+        "bottom": 844
+      },
+      "scrollY": 48.79999923706055,
+      "viewport": 320,
+      "clientWidth": 305,
+      "overlaps": true,
+      "activeView": "desk",
+      "operation": "summarize",
+      "scrollRequests": [
+        {
+          "args": [
+            {
+              "top": 0,
+              "behavior": "smooth"
+            }
+          ],
+          "at": 785.5999999642372,
+          "stack": [
+            "Error",
+            "    at window.scrollTo (<anonymous>:7:117)",
+            "    at selectOperation (http://127.0.0.1:59634/assets/app.js?v=236:2351:12)",
+            "    at handleInitialRouting (http://127.0.0.1:59634/assets/app.js?v=236:10056:5)"
+          ]
+        },
+        {
+          "args": [
+            0,
+            49
+          ],
+          "at": 1064.8999999761581,
+          "stack": [
+            "Error",
+            "    at window.scrollTo (<anonymous>:7:117)",
+            "    at clearMobileNavigationFromToolAction (http://127.0.0.1:59634/assets/app.js?v=236:2261:10)"
+          ]
+        }
+      ],
+      "scrollEvents": [
+        {
+          "y": 48.79999923706055,
+          "at": 1116.2999999523163
+        }
+      ]
+    },
+    {
+      "route": "/translate-pdf",
+      "status": 200,
+      "elapsedMs": 435.60000002384186,
+      "action": {
+        "top": 663.2000122070312,
+        "bottom": 712.8000144958496,
+        "display": "flex",
+        "position": "static"
+      },
+      "nav": {
+        "top": 778,
+        "bottom": 844
+      },
+      "scrollY": 0,
+      "viewport": 320,
+      "clientWidth": 305,
+      "overlaps": false,
+      "activeView": "desk",
+      "operation": "translate",
+      "scrollRequests": [
+        {
+          "args": [
+            {
+              "top": 0,
+              "behavior": "smooth"
+            }
+          ],
+          "at": 200.19999998807907,
+          "stack": [
+            "Error",
+            "    at window.scrollTo (<anonymous>:7:117)",
+            "    at selectOperation (http://127.0.0.1:59634/assets/app.js?v=236:2351:12)",
+            "    at handleInitialRouting (http://127.0.0.1:59634/assets/app.js?v=236:10056:5)"
+          ]
+        }
+      ],
+      "scrollEvents": []
+    },
+    {
+      "route": "/translate-pdf",
+      "status": 200,
+      "elapsedMs": 518,
+      "action": {
+        "top": 769.2999877929688,
+        "bottom": 818.8999900817871,
+        "display": "flex",
+        "position": "static"
+      },
+      "nav": {
+        "top": 778,
+        "bottom": 844
+      },
+      "scrollY": 0,
+      "viewport": 320,
+      "clientWidth": 305,
+      "overlaps": true,
+      "activeView": "desk",
+      "operation": "translate",
+      "scrollRequests": [
+        {
+          "args": [
+            {
+              "top": 0,
+              "behavior": "smooth"
+            }
+          ],
+          "at": 200.19999998807907,
+          "stack": [
+            "Error",
+            "    at window.scrollTo (<anonymous>:7:117)",
+            "    at selectOperation (http://127.0.0.1:59634/assets/app.js?v=236:2351:12)",
+            "    at handleInitialRouting (http://127.0.0.1:59634/assets/app.js?v=236:10056:5)"
+          ]
+        }
+      ],
+      "scrollEvents": []
+    },
+    {
+      "route": "/translate-pdf",
+      "status": 200,
+      "elapsedMs": 897.8999999761581,
+      "action": {
+        "top": 769.2999877929688,
+        "bottom": 818.8999900817871,
+        "display": "flex",
+        "position": "static"
+      },
+      "nav": {
+        "top": 778,
+        "bottom": 844
+      },
+      "scrollY": 0,
+      "viewport": 320,
+      "clientWidth": 305,
+      "overlaps": true,
+      "activeView": "desk",
+      "operation": "translate",
+      "scrollRequests": [
+        {
+          "args": [
+            {
+              "top": 0,
+              "behavior": "smooth"
+            }
+          ],
+          "at": 200.19999998807907,
+          "stack": [
+            "Error",
+            "    at window.scrollTo (<anonymous>:7:117)",
+            "    at selectOperation (http://127.0.0.1:59634/assets/app.js?v=236:2351:12)",
+            "    at handleInitialRouting (http://127.0.0.1:59634/assets/app.js?v=236:10056:5)"
+          ]
+        }
+      ],
+      "scrollEvents": []
+    },
+    {
+      "route": "/translate-pdf",
+      "status": 200,
+      "elapsedMs": 1215.3999999761581,
+      "action": {
+        "top": 769.2999877929688,
+        "bottom": 818.8999900817871,
+        "display": "flex",
+        "position": "static"
+      },
+      "nav": {
+        "top": 778,
+        "bottom": 844
+      },
+      "scrollY": 0,
+      "viewport": 320,
+      "clientWidth": 305,
+      "overlaps": true,
+      "activeView": "desk",
+      "operation": "translate",
+      "scrollRequests": [
+        {
+          "args": [
+            {
+              "top": 0,
+              "behavior": "smooth"
+            }
+          ],
+          "at": 200.19999998807907,
+          "stack": [
+            "Error",
+            "    at window.scrollTo (<anonymous>:7:117)",
+            "    at selectOperation (http://127.0.0.1:59634/assets/app.js?v=236:2351:12)",
+            "    at handleInitialRouting (http://127.0.0.1:59634/assets/app.js?v=236:10056:5)"
+          ]
+        }
+      ],
+      "scrollEvents": []
+    },
+    {
+      "route": "/translate-pdf",
+      "status": 200,
+      "elapsedMs": 2014.5,
+      "action": {
+        "top": 769.2999877929688,
+        "bottom": 818.8999900817871,
+        "display": "flex",
+        "position": "static"
+      },
+      "nav": {
+        "top": 778,
+        "bottom": 844
+      },
+      "scrollY": 0,
+      "viewport": 320,
+      "clientWidth": 305,
+      "overlaps": true,
+      "activeView": "desk",
+      "operation": "translate",
+      "scrollRequests": [
+        {
+          "args": [
+            {
+              "top": 0,
+              "behavior": "smooth"
+            }
+          ],
+          "at": 200.19999998807907,
+          "stack": [
+            "Error",
+            "    at window.scrollTo (<anonymous>:7:117)",
+            "    at selectOperation (http://127.0.0.1:59634/assets/app.js?v=236:2351:12)",
+            "    at handleInitialRouting (http://127.0.0.1:59634/assets/app.js?v=236:10056:5)"
+          ]
+        }
+      ],
+      "scrollEvents": []
+    }
+  ],
+  "page_errors": [],
+  "console_errors": [],
+  "passed": true
+}

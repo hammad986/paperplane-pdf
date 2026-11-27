@@ -1,0 +1,27 @@
+{
+  "candidate": {
+    "app_js": "v211",
+    "pdf_runtime_js": "v27",
+    "local_pdf_worker_js": "v28",
+    "service_worker_shell": "v168"
+  },
+  "full_suite": {
+    "command": "pytest -q",
+    "rounds": [
+      {
+        "round": 1,
+        "result": "706 passed, 4 warnings in 294.46s"
+      },
+      {
+        "round": 2,
+        "result": "706 passed, 4 warnings in 361.45s"
+      }
+    ]
+  },
+  "targeted": {
+    "command": "pytest -q tests/test_launch_audit_v23.py -k daily_quota_copy",
+    "result": "2 passed, 162 deselected, 1 warning in 5.15s"
+  },
+  "browser": "ID 293 annotation flatten consent flow (2 rounds), widget local flatten (1), ID 229 passport preset (2), ID 195 blank target, ID 196 listed subcases, ID 212 readable labels, ID 342 local result-to-Studio at desktop/mobile, ID 352 guest 10/11 quota and pricing/settings copy.",
+  "warnings": "Starlette/httpx and per-request cookie deprecations only."
+}

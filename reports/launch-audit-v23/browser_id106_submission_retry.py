@@ -3,6 +3,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import fitz
 import json
+import os
 import secrets
 import socket
 import sqlite3
@@ -13,6 +14,7 @@ from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = Path(__file__).resolve().parent
+EVIDENCE_SUFFIX = os.environ.get("PAPERPLANE_AUDIT_EVIDENCE_SUFFIX", "")
 sys.path.insert(0, str(ROOT / "reports" / "launch-audit-v14"))
 import browser_acceptance_v14 as helper
 
@@ -167,7 +169,14 @@ with TemporaryDirectory(prefix="paperplane-id106-submit-retry-") as temp:
                     "single_job_per_submission": job_count == 2,
                     "single_idempotency_record_per_submission": key_count == 2,
                     "download": {"pages": 1, "rotation": 90, "marker_preserved": True}, "page_errors": errors}
-        (OUT / "browser-id106-idempotent-submit-retry.json").write_text(json.dumps(evidence, indent=2), encoding="utf-8")
+        # The opaque client keys are only needed for the in-browser equality
+        # assertions above. Preserve that equality in evidence without storing
+        # the high-entropy request values in a report artifact.
+        for attempt_group in (evidence["standard_attempts"], evidence["chunked_attempts"]):
+            for attempt in attempt_group:
+                if attempt.get("idempotency_key"):
+                    attempt["idempotency_key"] = "REDACTED"
+        (OUT / f"browser-id106-idempotent-submit-retry{EVIDENCE_SUFFIX}.json").write_text(json.dumps(evidence, indent=2), encoding="utf-8")
         print(json.dumps(evidence, indent=2))
     finally:
         if app.poll() is None:

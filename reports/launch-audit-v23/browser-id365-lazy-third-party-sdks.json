@@ -1,0 +1,20 @@
+{
+  "initial": {
+    "external_requests": [],
+    "auth_config_requests": [],
+    "google_global_present": false,
+    "cashfree_global_present": false
+  },
+  "auth_config_requests_after_use": [
+    "auth-config"
+  ],
+  "sdk_requests_after_use": [
+    "google",
+    "cashfree"
+  ],
+  "google_prompted": true,
+  "cashfree_mode": "sandbox",
+  "payment_api_mocked": true,
+  "payment_submitted": false,
+  "page_errors": []
+}

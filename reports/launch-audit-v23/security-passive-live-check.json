@@ -1,0 +1,74 @@
+{
+  "checked_at_utc": "2026-11-20T02:45:11.013001+00:00",
+  "scope": "read-only HTTPS/TLS headers and nine common file/path probes; no bodies retained",
+  "host": "paperplane.qd.je",
+  "http_redirected_to_https": true,
+  "https_status": 200,
+  "final_url": "https://paperplane.qd.je/",
+  "certificate_not_after": "Jan 29 23:59:59 2027 GMT",
+  "headers": {
+    "strict-transport-security": "max-age=63072000; includeSubDomains; preload",
+    "content-security-policy": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://accounts.google.com https://sdk.cashfree.com https://cdn.jsdelivr.net; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://accounts.google.com https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://accounts.google.com https://api.cashfree.com https://sandbox.cashfree.com; frame-src 'self' https://accounts.google.com https://sdk.cashfree.com; object-src 'none';",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "SAMEORIGIN",
+    "referrer-policy": "strict-origin-when-cross-origin",
+    "permissions-policy": "camera=(self), microphone=(), geolocation=()",
+    "server": "nginx"
+  },
+  "exposure_paths": [
+    {
+      "path": "/.env",
+      "status": 404,
+      "content_type": "application/json",
+      "content_length": "22"
+    },
+    {
+      "path": "/.git/config",
+      "status": 404,
+      "content_type": "application/json",
+      "content_length": "22"
+    },
+    {
+      "path": "/.git/HEAD",
+      "status": 404,
+      "content_type": "application/json",
+      "content_length": "22"
+    },
+    {
+      "path": "/wp-config.php.bak",
+      "status": 404,
+      "content_type": "application/json",
+      "content_length": "22"
+    },
+    {
+      "path": "/config.php~",
+      "status": 404,
+      "content_type": "application/json",
+      "content_length": "22"
+    },
+    {
+      "path": "/.DS_Store",
+      "status": 404,
+      "content_type": "application/json",
+      "content_length": "22"
+    },
+    {
+      "path": "/phpinfo.php",
+      "status": 404,
+      "content_type": "application/json",
+      "content_length": "22"
+    },
+    {
+      "path": "/server-status",
+      "status": 404,
+      "content_type": "application/json",
+      "content_length": "22"
+    },
+    {
+      "path": "/backup.zip",
+      "status": 404,
+      "content_type": "application/json",
+      "content_length": "22"
+    }
+  ]
+}

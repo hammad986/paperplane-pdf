@@ -5,12 +5,12 @@ import fitz
 from playwright.sync_api import sync_playwright
 root=Path(__file__).resolve().parents[2]; sys.path.insert(0,str(root/'reports/launch-audit-v14'))
 import browser_acceptance_v14 as helper
-with TemporaryDirectory(prefix='paperplane-fallback-switch-') as tmp:
- d=Path(tmp); source=d/'one.pdf'; second=d/'two.pdf'
+with TemporaryDirectory(prefix='paperplane-fallback-switch-fixtures-') as fixtures, TemporaryDirectory(prefix='paperplane-fallback-switch-data-') as data:
+ d=Path(fixtures); source=d/'one.pdf'; second=d/'two.pdf'
  for path in (source,second):
   with fitz.open() as pdf:
    pdf.new_page().insert_text((72,72),'TEST'); pdf.save(path)
- app,base,_=helper.start_server(d/'data')
+ app,base,_=helper.start_server(Path(data))
  try:
   for _ in range(600):
    try:

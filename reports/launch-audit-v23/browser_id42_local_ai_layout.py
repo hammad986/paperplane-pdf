@@ -48,7 +48,8 @@ with TemporaryDirectory(prefix='paperplane-id42-ai-') as temp:
                   return {viewport:innerWidth, docWidth:document.documentElement.scrollWidth,
                     aiTopbar:rect('.ai-studio-topbar'), container:rect('.ai-studio-container'),
                     chat:rect('.ai-studio-container > .ai-chat-card'), uploadButton:rect('#ai-upload-btn'),
-                    howto:rect('.ai-howto-section'), mobileNav:rect('.mobile-workspace-bar')};
+                    howto:rect('.ai-howto-section'), mobileNav:rect('.mobile-workspace-bar'),
+                    docName:rect('#ai-doc-name'), docMeta:rect('#ai-doc-meta'), docActions:rect('.ai-doc-actions')};
                 }''')
                 assert response and response.status == 200, response.status if response else None
                 assert metrics['docWidth'] <= width, metrics
@@ -60,6 +61,16 @@ with TemporaryDirectory(prefix='paperplane-id42-ai-') as temp:
                     page.wait_for_function("document.querySelector('#ai-active-doc-bar')?.hidden === false", timeout=10000)
                     metrics['loaded_document_visible'] = not page.locator('#ai-active-doc-bar').is_hidden()
                     assert metrics['loaded_document_visible'], metrics
+                    metrics.update(page.evaluate("""() => Object.fromEntries(
+                      ['#ai-doc-name','#ai-doc-meta','.ai-doc-actions'].map(selector => {
+                        const element=document.querySelector(selector), box=element.getBoundingClientRect();
+                        return [selector === '#ai-doc-name' ? 'docName' : selector === '#ai-doc-meta' ? 'docMeta' : 'docActions',
+                          {x:box.x,y:box.y,width:box.width,height:box.height,bottom:box.bottom}];
+                      }))"""))
+                    if width <= 480:
+                        assert metrics['docName']['width'] >= 100, metrics
+                        assert metrics['docName']['y'] + metrics['docName']['height'] <= metrics['docActions']['y'], metrics
+                        assert metrics['docMeta']['width'] >= 100, metrics
                 else:
                     assert metrics['howto']['y'] < metrics['container']['y'], metrics
                 assert not errors, errors
