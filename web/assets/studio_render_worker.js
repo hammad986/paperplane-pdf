@@ -97,9 +97,34 @@ async function renderPage(requestId, { pageNumber, scale, outputScale, rotation 
     }
     // A worker render can resolve successfully while returning a fully white
     // bitmap (for example when the browser's OffscreenCanvas PDF.js path fails
-    // silently). Detect that before marking the Studio page as rendered so the
-    // main-thread renderer can retry the same page instead of freezing a blank
-    // canvas in the editor.
+    // silently). Also check whether any text operation uses a non-embedded
+    // Standard-14 / missing font whose text glyphs cannot be drawn reliably via
+    // disableFontFace inside an OffscreenCanvas worker (while vector seals or
+    // redaction boxes still paint). Fall back to the main-thread renderer so
+    // text never vanishes next to seals or redactions.
+    const ops = await page.getOperatorList();
+    const OPS = self.pdfjsLib?.OPS || {};
+    const depIdx = OPS.dependency;
+    const setFontIdx = OPS.setFont;
+    const assertSupportedFont = (depName) => {
+      if (typeof depName !== 'string' || !page.commonObjs?.has?.(depName)) return;
+      const fontObj = page.commonObjs.get(depName);
+      if (fontObj && (fontObj.missingFile || !fontObj.data || fontObj.isType3Font)) {
+        throw new Error('Studio worker detected non-embedded fonts; retrying with the main-thread renderer.');
+      }
+    };
+    if (ops && Array.isArray(ops.fnArray)) {
+      for (let i = 0; i < ops.fnArray.length; i += 1) {
+        const fn = ops.fnArray[i];
+        const args = ops.argsArray[i];
+        if (!Array.isArray(args)) continue;
+        if (depIdx && fn === depIdx) {
+          for (const depName of args) assertSupportedFont(depName);
+        } else if (setFontIdx && fn === setFontIdx) {
+          assertSupportedFont(args[0]);
+        }
+      }
+    }
     const pixels = context.getImageData(0, 0, width, height).data;
     let hasVisibleInk = false;
     for (let index = 0; index < pixels.length; index += 4) {

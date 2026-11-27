@@ -730,8 +730,8 @@ class EditCanvasManager {
   // Coordinate helpers
   // -------------------------------------------------------------------------
   _eventToDoc(e) {
-    // Pointer → document coords using CoordinateMapper
-    const src = e.touches ? e.touches[0] : e;
+    // Pointer -> document coords using CoordinateMapper
+    const src = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]) || e;
     return this._mapper.screenToDoc(src.clientX, src.clientY, this._editCanvas);
   }
 
@@ -1625,7 +1625,11 @@ class EditCanvasManager {
   placeStamp(label, color) {
     const modal = document.getElementById('editor-stamp-picker');
     const docRaw = modal?.dataset.pendingDoc;
-    const doc = docRaw ? JSON.parse(docRaw) : { x: 100, y: 100 };
+    const rawDoc = docRaw ? JSON.parse(docRaw) : { x: 100, y: 100 };
+    const doc = {
+      x: Math.max(24, Math.min(Number(rawDoc.x) || 100, Math.max(24, (this._mapper?.pageWidth || 595) - 170))),
+      y: Math.max(24, Math.min(Number(rawDoc.y) || 100, Math.max(24, (this._mapper?.pageHeight || 842) - 65))),
+    };
     const obj = {
       id: genId(),
       type: 'stamp',
@@ -1645,6 +1649,7 @@ class EditCanvasManager {
     if (modal) modal.hidden = true;
     this.redraw();
     this._onUnsaved();
+    window.showToast?.(`"${label}" stamp placed on page ${this._currentPage}. Drag to move or Export PDF to save.`, 'success', 3500);
   }
 
   deleteSelected() {
@@ -1849,6 +1854,8 @@ class PaperplaneEditorController {
     const form = new FormData();
     form.append('file', file, this.editorState.sourceName || 'document.pdf');
     form.append('edits', JSON.stringify(clean));
+    const studioPw = window.getPaperplaneStudioPassword?.();
+    if (studioPw) form.append('password', studioPw);
 
     const btn = document.getElementById('save-studio-btn');
     const origText = btn?.innerHTML;
@@ -1929,6 +1936,8 @@ class PaperplaneEditorController {
     const form = new FormData();
     form.append('file', file, this.editorState.sourceName || 'document.pdf');
     Object.entries(extraFields).forEach(([k, v]) => form.append(k, v));
+    const studioPw = window.getPaperplaneStudioPassword?.();
+    if (studioPw && !form.has('password')) form.append('password', studioPw);
 
     const resp = await fetch(endpoint, {
       method: 'POST',

@@ -53,7 +53,7 @@ def test_101_secret_scanner_allowlists_only_test_fixture_and_redaction_marker():
 def test_206_runtime_cache_key_changes_from_stale_v13():
     page = (ROOT / "web/index.html").read_text(encoding="utf-8")
     runtime = (ROOT / "web/assets/pdf_runtime.js").read_text(encoding="utf-8")
-    assert '/assets/pdf_runtime.js?v=29' in page
+    assert '/assets/pdf_runtime.js?v=30' in page
     assert 'transformLocalPdf,' in runtime
 
 

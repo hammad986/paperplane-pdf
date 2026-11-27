@@ -529,6 +529,8 @@
           // Standard / Studio Convert
           const form = new FormData();
           form.append('file', this.currentFile || this.selectedFiles[0]);
+          const studioPw = window.getPaperplaneStudioPassword?.();
+          if (studioPw) form.append('password', studioPw);
 
           let targetFmt = this.selectedFormat;
           if (this.currentDirection === 'to_pdf') {

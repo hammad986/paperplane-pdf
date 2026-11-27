@@ -14,7 +14,7 @@
   
 
   <script src="/assets/theme-init.js?v=13"></script>
-  <link rel="stylesheet" href="/assets/styles.css?v=98" />
+  <link rel="stylesheet" href="/assets/styles.css?v=99" />
 
 </head>
 <body class="light-mode auth-pending">
@@ -2025,6 +2025,7 @@ async function convertFileInBrowser(file, operation = 'compress') {
             <label for="auth-otp-code" style="text-align: center; display: block; font-size: 12px; margin-bottom: 6px;">6-Digit Verification Code</label>
             <input type="text" id="auth-otp-code" class="auth-otp-input" placeholder="000000" maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" required />
           </div>
+          <div id="auth-otp-status" class="result-card success" hidden style="margin-bottom: 12px; padding: 10px; font-size: 13px;"></div>
           <div id="auth-otp-error" class="result-card error" hidden style="margin-bottom: 14px; padding: 10px; font-size: 13px;"></div>
           <button type="submit" class="btn-primary-action" id="auth-otp-submit-btn" style="width: 100%; justify-content: center; margin-bottom: 12px;">
             Verify & Sign In <span>→</span>
@@ -3499,20 +3500,20 @@ async function convertFileInBrowser(file, operation = 'compress') {
   </nav>
 
   <!-- PDF engines are loaded on demand by the first feature that needs them. -->
-  <script src="/assets/pdf_runtime.js?v=29" defer></script>
+  <script src="/assets/pdf_runtime.js?v=30" defer></script>
 
   <!-- Phase 6 PDF Forms, Signing & Security Engine -->
-  <script src="/assets/security_forms.js?v=6.2.5" defer></script>
+  <script src="/assets/security_forms.js?v=6.2.6" defer></script>
   <!-- Phase 5 Professional PDF Conversion Engine -->
-  <script src="/assets/conversion_engine.js?v=5.2.3" defer></script>
+  <script src="/assets/conversion_engine.js?v=5.2.4" defer></script>
   <!-- Phase 4 Compression, Repair & OCR Engine -->
-  <script src="/assets/optimization_engine.js?v=4.2.3" defer></script>
+  <script src="/assets/optimization_engine.js?v=4.2.5" defer></script>
   <!-- Phase 3 Professional Page Management Engine -->
-  <script src="/assets/page_organizer.js?v=23" defer></script>
+  <script src="/assets/page_organizer.js?v=24" defer></script>
   <!-- Phase 2 Professional Editor Engine -->
-<script src="/assets/editor.js?v=17" defer></script>
+<script src="/assets/editor.js?v=18" defer></script>
   <!-- Application Controller -->
-  <script src="/assets/app.js?v=249" defer></script>
+  <script src="/assets/app.js?v=250" defer></script>
   <!-- Floating Customer Feedback Widget -->
   <script src="/assets/feedback.js?v=22" defer></script>
 </body>

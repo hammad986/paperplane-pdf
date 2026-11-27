@@ -39,7 +39,7 @@
   async function createStudioRenderSession(bytes, password = '') {
     if (typeof Worker !== 'function' || typeof OffscreenCanvas !== 'function'
         || !(bytes instanceof ArrayBuffer) || bytes.byteLength > 64 * 1024 * 1024) return null;
-    const worker = new Worker('/assets/studio_render_worker.js?v=7');
+    const worker = new Worker('/assets/studio_render_worker.js?v=8');
     let nextRequestId = 1;
     const pending = new Map();
     let closed = false;

@@ -30,6 +30,8 @@
 
   async function postStudioForm(url, form, action) {
     if (form instanceof FormData) {
+      const studioPw = window.getPaperplaneStudioPassword?.();
+      if (studioPw && !form.has('password')) form.append('password', studioPw);
       const rawFile = form.get('file');
       if (rawFile && typeof rawFile.arrayBuffer === 'function' && Number(rawFile.size || 0) <= 25 * 1024 * 1024) {
         try {
@@ -148,18 +150,17 @@
       try {
         const form = new FormData();
         form.append('file', targetFile);
-        const resp = await fetch('/api/studio/compress/analyze', { method: 'POST', body: form });
-        if (resp.ok) {
-          const data = await resp.json();
-          const a = data.analysis;
-          document.getElementById('compress-stat-pages').textContent = a.page_count;
-          document.getElementById('compress-stat-images').textContent = a.total_images;
-          document.getElementById('compress-stat-raster').textContent = `${a.raster_percentage}%`;
-          document.getElementById('compress-stat-opp').textContent = `${a.opportunity} (Est. ${a.estimated_reduction})`;
-          document.getElementById('compress-analysis-badge').textContent = `${a.raster_percentage > 50 ? 'Raster Heavy' : 'Vector Heavy'}`;
-        }
+        const resp = await postStudioForm('/api/studio/compress/analyze', form, 'Compression analysis');
+        const data = await resp.json();
+        const a = data.analysis;
+        document.getElementById('compress-stat-pages').textContent = a.page_count;
+        document.getElementById('compress-stat-images').textContent = a.total_images;
+        document.getElementById('compress-stat-raster').textContent = `${a.raster_percentage}%`;
+        document.getElementById('compress-stat-opp').textContent = `${a.opportunity} (Est. ${a.estimated_reduction})`;
+        document.getElementById('compress-analysis-badge').textContent = `${a.raster_percentage > 50 ? 'Raster Heavy' : 'Vector Heavy'}`;
       } catch (err) {
         document.getElementById('compress-stat-opp').textContent = 'Could not run structural analysis.';
+        document.getElementById('compress-analysis-badge').textContent = 'Unavailable';
       }
     }
 
@@ -219,18 +220,35 @@
             const savedStr = formatBytes(origSize - outSize);
 
             const blob = await resp.blob();
-            const newFile = new File([blob], this.currentFile.name, { type: 'application/pdf' });
+            const compressedName = this.currentFile.name;
+            const newFile = new File([blob], compressedName, { type: 'application/pdf' });
+            this.currentFile = newFile;
 
             if (window.loadDocumentIntoStudio) {
-              await window.loadDocumentIntoStudio(newFile);
+              await window.loadDocumentIntoStudio(newFile, {
+                pdfPassword: window.getPaperplaneStudioPassword?.() || undefined,
+              });
             }
             modal.hidden = true;
+            const feedback = document.getElementById('studio-download-feedback');
+            if (feedback) {
+              const dlUrl = URL.createObjectURL(blob);
+              feedback.replaceChildren();
+              const msgSpan = document.createElement('span');
+              msgSpan.textContent = `Compressed PDF (${formatBytes(blob.size)}) is open in Studio. `;
+              const link = document.createElement('a');
+              link.href = dlUrl;
+              link.download = compressedName;
+              link.textContent = 'Download compressed PDF';
+              feedback.append(msgSpan, link);
+              feedback.hidden = false;
+            }
             if (!targetAchieved) {
               const actualSize = formatBytes(outSize || blob.size);
               const detail = compressionNote || `The requested target was not reached. The output is ${actualSize}.`;
-              window.showToast(`${detail} Output size: ${actualSize}.`, 'warning');
+              window.showToast(`${detail} Output size: ${actualSize}.`, 'warning', 6000);
             } else {
-              window.showToast(`Compressed! Saved ${savedStr} (${pct}% reduction).`, 'success');
+              window.showToast(`Compressed! Saved ${savedStr} (${pct}% reduction). Click Export PDF to save.`, 'success', 5000);
             }
           } catch (err) {
             if (errorBox) {
@@ -364,7 +382,9 @@
 
             modal.hidden = true;
             if (window.loadDocumentIntoStudio) {
-              await window.loadDocumentIntoStudio(newFile);
+              await window.loadDocumentIntoStudio(newFile, {
+                pdfPassword: window.getPaperplaneStudioPassword?.() || undefined,
+              });
             }
             window.showToast(`OCR completed in ${elapsed}s! ${ocrdCount} page(s) recognized (${charsCount} characters). Text is now searchable via Ctrl+F.`, 'success');
           } catch (err) {
@@ -473,7 +493,9 @@
 
               modal.hidden = true;
               if (window.loadDocumentIntoStudio) {
-                await window.loadDocumentIntoStudio(newFile);
+                await window.loadDocumentIntoStudio(newFile, {
+                  pdfPassword: window.getPaperplaneStudioPassword?.() || undefined,
+                });
               }
               window.showToast(`Document repaired! ${recovered} page(s) salvaged and restored.`, 'success');
             }

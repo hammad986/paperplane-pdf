@@ -3536,7 +3536,7 @@ body.dark-mode .btn-cancel:hover {
   font-size: 13.5px;
   font-weight: 600;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-  z-index: 250;
+  z-index: 3100;
   pointer-events: none;
   display: flex;
   align-items: center;
@@ -8230,7 +8230,7 @@ body:not(.dark-mode) .waitlist-email-input {
     right: 12px;
     top: auto;
     bottom: calc(168px + env(safe-area-inset-bottom, 0px));
-    z-index: 1101;
+    z-index: 3100;
     max-width: calc(100vw - 24px);
     box-sizing: border-box;
     justify-content: center;
@@ -9212,6 +9212,7 @@ section, h1, h2, h3 { scroll-margin-top: 104px; }
 .app-confirm-dialog {
   width: min(440px, calc(100vw - 32px));
   max-width: none;
+  margin: auto;
   padding: 22px;
   border: 1px solid var(--border-light);
   border-radius: 14px;
@@ -10196,7 +10197,7 @@ html.studio-active body .studio-main-viewport { min-width: 0; max-width: 100%; b
   html.studio-active body .toast-notice {
     top: calc(64px + env(safe-area-inset-top, 0px));
     bottom: auto;
-    z-index: 940;
+    z-index: 3100;
   }
   #app-shell.ai-active .ai-chat-card {
     height: min(56dvh, calc(100dvh - 410px), 640px) !important;
@@ -10603,7 +10604,7 @@ html.footer-revealed .app-global-footer { visibility: visible; opacity: 1; point
     min-width: 0;
   }
   .result-actions .btn-download { min-height: 44px; box-sizing: border-box; }
-  .toast-notice { top: auto !important; bottom: calc(168px + env(safe-area-inset-bottom, 0px)) !important; z-index: 1990 !important; }
+  .toast-notice { top: auto !important; bottom: calc(168px + env(safe-area-inset-bottom, 0px)) !important; z-index: 3100 !important; }
   .settings-modal-card {
     width: min(96vw, 620px, calc(100vw - 48px)) !important;
     max-width: min(96vw, calc(100vw - 48px)) !important;
@@ -11320,7 +11321,10 @@ body.high-contrast #run-button:disabled {
   .action-bar { padding-block: 0; gap: 6px; }
   #run-button { min-height: 44px; padding-block: 9px; }
   #options:has(#title) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  #options:has(#title) #title { grid-column: 1 / -1; }
+}
+
+@media (max-width: 480px) {
+  #options:has(#title) { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* Hide promotional / house ad banners and upgrade nudges for paid accounts. */

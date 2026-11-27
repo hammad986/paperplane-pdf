@@ -61,6 +61,10 @@
   }
 
   async function studioFetchWithTimeout(url, formData, action, timeoutMs = 25000) {
+    if (formData instanceof FormData) {
+      const studioPw = window.getPaperplaneStudioPassword?.();
+      if (studioPw && !formData.has('password')) formData.append('password', studioPw);
+    }
     const controller = typeof AbortController === 'function' ? new AbortController() : null;
     const timer = controller
       ? window.setTimeout(() => controller.abort(new DOMException(`${action} timed out`, 'TimeoutError')), timeoutMs)
@@ -74,9 +78,9 @@
       });
     } catch (err) {
       if (err?.name === 'AbortError' || err?.name === 'TimeoutError') {
-        throw new Error(`${action} timed out after ${Math.round(timeoutMs / 1000)}s. Please try again.`);
+        throw new Error(`${action} timed out after ${Math.round(timeoutMs / 1000)}s. Please try again.`, { cause: err });
       }
-      throw new Error(err?.message ? `${action} network error: ${err.message}` : `${action} failed due to a network error.`);
+      throw new Error(err?.message ? `${action} network error: ${err.message}` : `${action} failed due to a network error.`, { cause: err });
     } finally {
       if (timer !== null) clearTimeout(timer);
     }
@@ -335,12 +339,20 @@
 
         const blob = await resp.blob();
         const newFile = new File([blob], target.name, { type: 'application/pdf' });
-        if (window.loadDocumentIntoStudio) await window.loadDocumentIntoStudio(newFile);
+        await this._reloadStudioPdf(newFile);
         this.currentFile = newFile;
         await this.refreshFormsAnalysis();
         window.showToast?.('Form fields populated and appearances updated!', 'success');
       } catch (err) {
         window.showToast?.(`Error: ${err.message}`, 'error');
+      }
+    }
+
+    async _reloadStudioPdf(file) {
+      if (window.loadDocumentIntoStudio) {
+        await window.loadDocumentIntoStudio(file, {
+          pdfPassword: window.getPaperplaneStudioPassword?.() || undefined,
+        });
       }
     }
 
@@ -359,7 +371,7 @@
 
         const blob = await resp.blob();
         const newFile = new File([blob], target.name, { type: 'application/pdf' });
-        if (window.loadDocumentIntoStudio) await window.loadDocumentIntoStudio(newFile);
+        await this._reloadStudioPdf(newFile);
         this.currentFile = newFile;
         await this.refreshFormsAnalysis();
         window.showToast?.('Document flattened! Form fields are now immutable vector content.', 'success');
@@ -383,7 +395,7 @@
 
         const blob = await resp.blob();
         const newFile = new File([blob], target.name, { type: 'application/pdf' });
-        if (window.loadDocumentIntoStudio) await window.loadDocumentIntoStudio(newFile);
+        await this._reloadStudioPdf(newFile);
         this.currentFile = newFile;
         await this.refreshFormsAnalysis();
         window.showToast?.('All form fields cleared and reset to defaults.', 'success');
@@ -433,7 +445,7 @@
 
         const blob = await resp.blob();
         const newFile = new File([blob], target.name, { type: 'application/pdf' });
-        if (window.loadDocumentIntoStudio) await window.loadDocumentIntoStudio(newFile);
+        await this._reloadStudioPdf(newFile);
         this.currentFile = newFile;
         this._switchFormsTab('inspect');
         await this.refreshFormsAnalysis();
@@ -485,7 +497,7 @@
 
         const blob = await resp.blob();
         const newFile = new File([blob], target.name, { type: 'application/pdf' });
-        if (window.loadDocumentIntoStudio) await window.loadDocumentIntoStudio(newFile);
+        await this._reloadStudioPdf(newFile);
         this.currentFile = newFile;
         this._switchFormsTab('inspect');
         await this.refreshFormsAnalysis();
@@ -710,7 +722,7 @@
 
         const blob = await resp.blob();
         const newFile = new File([blob], target.name, { type: 'application/pdf' });
-        if (window.loadDocumentIntoStudio) await window.loadDocumentIntoStudio(newFile);
+        await this._reloadStudioPdf(newFile);
         this.currentFile = newFile;
         document.getElementById('digital-sign-modal').hidden = true;
         window.showToast?.('Visual signature placed on document!', 'success');
@@ -971,7 +983,11 @@
         try { details = reportHeader ? JSON.parse(reportHeader) : {}; } catch { details = {}; }
         const blob = await resp.blob();
         const newFile = new File([blob], target.name, { type: 'application/pdf' });
-        if (window.loadDocumentIntoStudio) await window.loadDocumentIntoStudio(newFile);
+        if (window.loadDocumentIntoStudio) {
+          await window.loadDocumentIntoStudio(newFile, {
+            pdfPassword: window.getPaperplaneStudioPassword?.() || undefined,
+          });
+        }
         this.currentFile = newFile;
         await this.refreshSecurityAudit();
         if (reportBox) {
@@ -1040,7 +1056,11 @@
 
         const blob = await resp.blob();
         const newFile = new File([blob], target.name, { type: 'application/pdf' });
-        if (window.loadDocumentIntoStudio) await window.loadDocumentIntoStudio(newFile);
+        if (window.loadDocumentIntoStudio) {
+          await window.loadDocumentIntoStudio(newFile, {
+            pdfPassword: window.getPaperplaneStudioPassword?.() || undefined,
+          });
+        }
         this.currentFile = newFile;
         const secModal = document.getElementById('security-modal');
         if (secModal) secModal.hidden = true;

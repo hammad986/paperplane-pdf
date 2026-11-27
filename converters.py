@@ -40,6 +40,30 @@ from reportlab.lib.pagesizes import letter, landscape, A4
 logger = logging.getLogger(__name__)
 
 MAX_WATERMARK_IMAGE_PIXELS = 20_000_000
+_INTERNAL_UPLOAD_PREFIX_RE = re.compile(
+    r"^(?:\d{1,4}[-_])?(?:[0-9a-fA-F]{16,32}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})[_-]+"
+)
+
+
+def clean_display_stem(raw: str | Path | None, fallback: str = "document") -> str:
+    """Strip internal storage UUID/job prefixes before exposing a filename stem."""
+    if isinstance(raw, Path):
+        name = raw.stem
+    else:
+        text = str(raw or "").strip().replace("\\", "/")
+        name = Path(text).stem if text else ""
+    cleaned = _INTERNAL_UPLOAD_PREFIX_RE.sub("", name).strip(" _-")
+    return cleaned or fallback
+
+
+def clean_display_filename(raw: str | Path | None, fallback: str = "document") -> str:
+    """Strip internal storage UUID/job prefixes while preserving the file extension."""
+    if raw is None or (not isinstance(raw, Path) and not str(raw).strip()):
+        return fallback
+    path_obj = raw if isinstance(raw, Path) else Path(str(raw).strip().replace("\\", "/"))
+    stem = clean_display_stem(path_obj, Path(fallback).stem or "document")
+    suffix = path_obj.suffix or Path(fallback).suffix
+    return f"{stem}{suffix}"
 
 
 def unicode_font_path(bold: bool = False, text: str = "") -> str:
@@ -224,6 +248,10 @@ def _convert_with_libreoffice_unbounded(source: Path, output: Path) -> Path | No
             raise subprocess.CalledProcessError(process.returncode, command, stdout, stderr)
 
         converted = temp_dir / f"{source.stem}.pdf"
+        if not converted.exists():
+            alt_converted = temp_dir / f"{clean_display_stem(source)}.pdf"
+            if alt_converted.exists():
+                converted = alt_converted
         if converted.exists() and converted.stat().st_size > 0:
             shutil.move(str(converted), str(output))
             return output
@@ -616,7 +644,7 @@ def excel_to_pdf(source: Path, output: Path) -> Path:
                 csv_rows = list(csv.reader(stream))
         except Exception as exc:
             raise ValueError(f"Please provide a valid UTF-8 CSV file. File parsing failed: {exc}") from exc
-        sheets = [(source.stem or "CSV", csv_rows[:150])]
+        sheets = [(clean_display_stem(source, "CSV"), csv_rows[:150])]
     else:
         try:
             wb = openpyxl.load_workbook(str(source), data_only=True, read_only=True)
@@ -939,7 +967,7 @@ def text_to_pdf(
     """Converts plain text (.txt) into a cleanly formatted, paginated PDF document."""
     if isinstance(source, Path):
         text = source.read_text(encoding="utf-8", errors="replace")
-        title = source.stem
+        title = clean_display_stem(source, "Text Document")
     else:
         text = str(source)
         title = "Text Document"
@@ -992,7 +1020,7 @@ def markdown_to_pdf(source: Path | str, output: Path) -> Path:
     """Converts a Markdown (.md) document or text into a professional PDF with styled tables and headers."""
     if isinstance(source, Path):
         md_text = source.read_text(encoding="utf-8", errors="replace")
-        title = source.stem
+        title = clean_display_stem(source, "Markdown Document")
     else:
         md_text = str(source)
         title = "Markdown Document"
@@ -1129,7 +1157,7 @@ def _sanitize_xml_text(value: Any) -> str:
     )
 
 
-def pdf_to_word(source: Path, output: Path, pages: str = "all") -> Path:
+def pdf_to_word(source: Path, output: Path, pages: str = "all", document_name: str | None = None) -> Path:
     """Converts a PDF into an editable Microsoft Word (.docx) document."""
     # Prefer real editable text. pdf2docx may rasterize complex pages into huge
     # images, so use images only for pages without an extractable text layer.
@@ -1202,14 +1230,17 @@ def pdf_to_word(source: Path, output: Path, pages: str = "all") -> Path:
         and not re.match(internal_prefix_re, raw_meta_title, re.I)
         else ""
     )
-    stem_title = source.stem.strip()
-    clean_stem_title = (
-        stem_title
-        if stem_title
-        and stem_title.lower() != "untitled"
-        and not re.match(internal_prefix_re, stem_title, re.I)
-        else ""
-    )
+    if document_name:
+        clean_stem_title = clean_display_stem(document_name, "")
+    else:
+        stem_title = clean_display_stem(source, "")
+        clean_stem_title = (
+            stem_title
+            if stem_title
+            and stem_title.lower() != "untitled"
+            and not re.match(internal_prefix_re, stem_title, re.I)
+            else ""
+        )
     chosen_title = clean_meta_title or clean_stem_title
     properties.title = _sanitize_xml_text(chosen_title) if chosen_title else ""
     for field_name in ("author", "subject", "keywords", "comments", "category", "identifier", "language", "last_modified_by"):
@@ -1641,8 +1672,7 @@ def pdf_to_markdown(
     internal_title_prefix = r"^(?:[a-f0-9]{20,}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})(?:[_-]|$)"
     safe_title = metadata_title if metadata_title and not re.match(internal_title_prefix, metadata_title, re.I) else ""
     if not safe_title and document_name:
-        filename_title = Path(document_name.replace("\\", "/")).name
-        filename_title = re.sub(r"\.(?:pdf)$", "", filename_title, flags=re.I).strip()
+        filename_title = clean_display_stem(document_name, "")
         if filename_title and not re.match(internal_title_prefix, filename_title, re.I):
             safe_title = filename_title
     heading = f"# {safe_title}\n\n" if safe_title else ""
@@ -1652,7 +1682,7 @@ def pdf_to_markdown(
     return output
 
 
-def pdf_to_html(source: Path, output: Path, pages: str = "all") -> Path:
+def pdf_to_html(source: Path, output: Path, pages: str = "all", document_name: str | None = None) -> Path:
     """Converts a PDF into a clean, standalone, sanitized HTML document with page sections and tables."""
     doc = fitz.open(str(source))
     total_pages = len(doc)
@@ -1737,12 +1767,13 @@ def pdf_to_html(source: Path, output: Path, pages: str = "all") -> Path:
 
     doc.close()
     body_content = "\n".join(sections)
+    html_title = html.escape(clean_display_stem(document_name or source, "document"))
     full_html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{source.stem}</title>
+<title>{html_title}</title>
 <style>
 body {{
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -3849,7 +3880,7 @@ def split_pdf_document(source: Path, output_dir: Path, mode: str, param: str) ->
             end_idx = min(start_idx + n, total)
             part_doc = fitz.open()
             part_doc.insert_pdf(src_doc, from_page=start_idx, to_page=end_idx - 1)
-            out_file = output_dir / f"{source.stem}_part{part_idx}_p{start_idx + 1}-{end_idx}.pdf"
+            out_file = output_dir / f"{clean_display_stem(source)}_part{part_idx}_p{start_idx + 1}-{end_idx}.pdf"
             save_verified_part(part_doc, list(range(start_idx, end_idx)), out_file)
             out_paths.append(out_file)
             part_idx += 1
@@ -3885,7 +3916,7 @@ def split_pdf_document(source: Path, output_dir: Path, mode: str, param: str) ->
 
             part_doc = fitz.open()
             part_doc.insert_pdf(src_doc, from_page=s_page - 1, to_page=e_page - 1)
-            out_file = output_dir / f"{source.stem}_part{part_idx}_p{s_page}-{e_page}.pdf"
+            out_file = output_dir / f"{clean_display_stem(source)}_part{part_idx}_p{s_page}-{e_page}.pdf"
             save_verified_part(part_doc, list(range(s_page - 1, e_page)), out_file)
             out_paths.append(out_file)
             part_idx += 1

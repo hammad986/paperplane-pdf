@@ -20,7 +20,7 @@ const state = {
     exam_pass_max_file_size_mb: 500,
     pro_max_file_size_mb: 500,
     platform_max_file_size_mb: 500,
-    max_batch_files: 100,
+    max_batch_files: 10,
     ...bootstrap.planLimits
   },
   clientSideMode: false,
@@ -35,6 +35,7 @@ const state = {
     scale: 1.0,
     totalCount: 0,
     srcFile: null,
+    currentPassword: '',
     isLoading: false,
     pageObserver: null,
     pageRenderTasks: new Map(),
@@ -562,6 +563,7 @@ async function unloadStudioPdf() {
   try { await state.studio.pdfDoc?.destroy?.(); } catch { /* already destroyed */ }
   state.studio.pdfDoc = null;
   state.studio.srcFile = null;
+  state.studio.currentPassword = '';
   updateStudioAiHandoffButton();
   state.studio.totalCount = 0;
   state.studio.currentPage = 1;
@@ -582,15 +584,17 @@ async function unloadStudioPdf() {
   showStudioEmptyState();
 }
 
-async function clearStudioPdf() {
+async function clearStudioPdf({ silent = false } = {}) {
   studioWorkspaceEpoch += 1;
   try {
     await removeLocalWork('studio-pdf', 'studio-position', 'studio-edits');
   } catch (error) {
-    const blockedByOtherTab = /busy in another tab/i.test(String(error?.message || error));
-    showToast(blockedByOtherTab
-      ? 'Another Paperplane tab is updating local storage. Close that tab and try clearing Studio again.'
-      : 'The saved Studio PDF could not be cleared because browser storage is unavailable. Try again or check this site’s storage permissions.', 'error', 7000);
+    if (!silent) {
+      const blockedByOtherTab = /busy in another tab/i.test(String(error?.message || error));
+      showToast(blockedByOtherTab
+        ? 'Another Paperplane tab is updating local storage. Close that tab and try clearing Studio again.'
+        : 'The saved Studio PDF could not be cleared because browser storage is unavailable. Try again or check this site’s storage permissions.', 'error', 7000);
+    }
     console.warn('Could not remove saved Studio PDF:', error);
     return false;
   }
@@ -2754,13 +2758,21 @@ function updateBillingUI(data) {
   }
 }
 
+function isPaidTierData(source) {
+  if (!source || typeof source !== 'object') return false;
+  const tier = String(source.tier || 'free').toLowerCase();
+  return Boolean(source.is_pro || source.is_dev || ['pro', 'developer', 'student_pro', 'cyber_cafe', 'exam_pass'].includes(tier));
+}
+
 function applyQuotaCount(count) {
   const numericCount = Number(count);
   if (!Number.isFinite(numericCount)) return;
   state.dailyUsage = numericCount;
-  const tier = String(state.user?.tier || 'free').toLowerCase();
-  if (['pro', 'developer', 'student_pro', 'cyber_cafe', 'exam_pass'].includes(tier)) return;
-  const limit = Number(state.planLimits.free_operations_per_day);
+  if (state.billing && typeof state.billing === 'object') {
+    state.billing.usage_today = numericCount;
+  }
+  if (isPaidTierData(state.user) || isPaidTierData(state.billing)) return;
+  const limit = Number(state.billing?.daily_limit ?? state.planLimits.free_operations_per_day);
   const pct = Math.min(100, Math.round((numericCount / limit) * 100));
   const quotaText = $('#quota-text');
   const quotaFill = $('#quota-fill');
@@ -2846,6 +2858,7 @@ function renderAuthShell(data) {
     }
   }
   document.body.classList.remove('auth-pending', 'auth-restoring');
+  state.billing = data || null;
   updateBillingUI(data);
   if (state.activeView === 'desk' && $('#tool-title')) updateToolTierBadge();
 }
@@ -2856,6 +2869,7 @@ async function checkAuthStatus() {
   const requestVersion = ++authRequestVersion;
   let data = null;
   let hadError = false;
+  let explicitUnauthenticated = false;
   try {
     const [meResult, billingResult] = await Promise.allSettled([
       paperplaneNativeFetch('/api/auth/me', {
@@ -2867,10 +2881,16 @@ async function checkAuthStatus() {
     ]);
     if (meResult.status === 'fulfilled' && meResult.value.ok) {
       data = await meResult.value.json();
-    } else if (meResult.status === 'rejected') {
+      if (data && data.authenticated === false) explicitUnauthenticated = true;
+    } else if (meResult.status === 'fulfilled' && meResult.value.status === 401) {
+      explicitUnauthenticated = true;
+    } else {
       hadError = true;
     }
     if (requestVersion !== authRequestVersion) return;
+    if (hadError && !explicitUnauthenticated && state.user?.authenticated) {
+      return;
+    }
     clearAuthShellEmail();
     if ((!data || !data.authenticated) && billingResult.status === 'fulfilled' && billingResult.value.ok) {
       try {
@@ -2884,12 +2904,12 @@ async function checkAuthStatus() {
   } catch (err) {
     hadError = true;
     console.warn('Paperplane auth status sync failed:', err);
-    if (requestVersion === authRequestVersion) {
+    if (requestVersion === authRequestVersion && !state.user?.authenticated) {
       renderAuthShell(data);
     }
   } finally {
     if (requestVersion === authRequestVersion) {
-      if (hadError && !data) setQuotaUnavailable();
+      if (hadError && !data && !state.user?.authenticated) setQuotaUnavailable();
       document.body.classList.remove('auth-pending', 'auth-restoring');
     }
   }
@@ -3333,6 +3353,7 @@ function promptStudioPdfPassword(message) {
     cancelBtn.addEventListener('click', () => finish(null));
     submitBtn.addEventListener('click', () => finish(input.value));
     input.addEventListener('keydown', (e) => {
+      if (e.isComposing || e.keyCode === 229) return;
       if (e.key === 'Enter') {
         e.preventDefault();
         finish(input.value);
@@ -3436,6 +3457,7 @@ async function loadDocumentIntoStudio(file, { initialPage = 1, persist = true, r
       return false;
     }
     state.studio.pdfDoc = loadedDoc;
+    state.studio.currentPassword = resolvedPassword || '';
     if (renderWorkerBytes) {
       try {
         state.studio.renderSession = await window.PaperplanePdfRuntime.createStudioRenderSession(
@@ -3805,7 +3827,6 @@ async function renderStudioPageNow(pageNum, { priority = false, force = false } 
   canvas.height = Math.ceil(viewport.height * outputScale);
   canvas.style.width = '100%';
   canvas.style.height = 'auto';
-  let bitmapContext = null;
   let context = null;
   const ensureStudio2dContext = () => {
     context = canvas.getContext('2d', { alpha: false });
@@ -3846,16 +3867,13 @@ async function renderStudioPageNow(pageNum, { priority = false, force = false } 
       try {
         const rendered = await awaitRender(renderTask);
         workerBitmap = rendered.bitmap;
-        bitmapContext = canvas.getContext('bitmaprenderer');
-        if (bitmapContext) {
-          // Transfer the worker-owned bitmap directly to the display canvas.
-          // This avoids a large synchronous drawImage copy on the main thread.
-          bitmapContext.transferFromImageBitmap(workerBitmap);
-          workerBitmap = null;
-        } else {
-          context = canvas.getContext('2d', { alpha: false });
-          context.drawImage(workerBitmap, 0, 0);
-        }
+        // Draw worker frames onto a persistent 2D canvas rather than using
+        // bitmaprenderer transferFromImageBitmap, whose GPU-bound buffer can
+        // evict to blank white in Chromium when modal backdrops repaint.
+        ensureStudio2dContext();
+        context.drawImage(workerBitmap, 0, 0);
+        workerBitmap.close?.();
+        workerBitmap = null;
       } catch (error) {
         if (error?.name === 'RenderingCancelledException') throw error;
         state.studio.renderWorkerFailure ||= String(error?.message || error || 'worker render failed');
@@ -3984,6 +4002,13 @@ if (studioCanvasArea) {
   updateStudioCanvasAreaWidth(studioCanvasArea);
 }
 if (studioPageStack) {
+  studioPageStack.addEventListener('pointerdown', event => {
+    const slot = event.target.closest('.studio-page-sheet[data-page]');
+    const slotPage = Number(slot?.dataset.page);
+    if (slotPage && slotPage !== state.studio.currentPage && state.studio.activeTool !== 'pan') {
+      setActiveStudioPage(slotPage, { scrollThumbnail: false });
+    }
+  }, true);
   studioPageStack.addEventListener('click', event => {
     const retry = event.target.closest('.studio-page-retry');
     if (retry) renderStudioPage(Number(retry.dataset.page), { priority: true, force: true });
@@ -4285,6 +4310,9 @@ studioTools.forEach(t => {
         drawCanvas.style.pointerEvents = t === 'pan' ? 'none' : 'auto';
         drawCanvas.style.cursor = t === 'pan' ? 'default' : t === 'select' ? 'default' : 'crosshair';
       }
+      if (t === 'stamp' && state.studio.pdfDoc) {
+        showToast('Stamp mode active — click on any PDF page to choose and place a stamp.', 'info', 3500);
+      }
     };
   }
 });
@@ -4477,6 +4505,16 @@ if (sigModal) {
 // Wire Phase 2 Document Stamp Picker
 const stampModal = $('#editor-stamp-picker');
 if (stampModal) {
+  let stampBackdropMouseDown = false;
+  stampModal.addEventListener('mousedown', (e) => {
+    stampBackdropMouseDown = (e.target === stampModal);
+  });
+  stampModal.addEventListener('click', (e) => {
+    if (e.target === stampModal && stampBackdropMouseDown) {
+      stampModal.hidden = true;
+    }
+    stampBackdropMouseDown = false;
+  });
   $('#editor-stamp-close-btn')?.addEventListener('click', () => { stampModal.hidden = true; });
 
   $$('.stamp-preset-btn').forEach(btn => {
@@ -4629,12 +4667,6 @@ if (moreToolsTrigger && moreToolsMenu) {
   window.addEventListener('resize', () => {
     if (!moreToolsMenu.hidden) closeMoreToolsMenu();
   }, { passive: true });
-
-  // Action listeners for Studio "More Tools" items
-  $('#studio-compress-btn')?.addEventListener('click', () => { selectOperation('compress'); });
-  $('#studio-ocr-btn')?.addEventListener('click', () => { selectOperation('ocr'); });
-  $('#studio-repair-btn')?.addEventListener('click', () => { selectOperation('repair'); });
-  $('#studio-convert-btn')?.addEventListener('click', () => { selectOperation('pdf_to_word'); });
 }
 
 function initStudioDrawingLayer() {
@@ -9418,10 +9450,17 @@ function openAuthModal(msgOrMode = '', requestedMode = null) {
 
   const otpPane = $('#auth-otp-pane');
   if (otpPane) otpPane.hidden = true;
+  const otpStatus = $('#auth-otp-status');
+  if (otpStatus) { otpStatus.hidden = true; otpStatus.textContent = ''; }
   const forgotPane = $('#auth-forgot-pane');
   if (forgotPane) forgotPane.hidden = true;
   const authForm = $('#auth-form');
-  if (authForm) authForm.hidden = false;
+  if (authForm) {
+    authForm.hidden = false;
+    authForm.noValidate = true;
+  }
+  const submitBtn = $('#auth-submit-btn');
+  if (submitBtn) submitBtn.disabled = false;
   const authTabs = $('#auth-tabs');
   if (authTabs) authTabs.hidden = false;
   const authDivider = $('#auth-divider');
@@ -9562,24 +9601,36 @@ if (confirmToggleBtn && confirmInput) {
 let pendingAuth = null;
 let otpTimerInterval = null;
 
-function startOtpCountdown(seconds = 60) {
+function startOtpCountdown(seconds = 60, { syncErrorCountdown = false } = {}) {
   if (otpTimerInterval) clearInterval(otpTimerInterval);
-  let remaining = seconds;
+  let remaining = Math.max(0, Math.ceil(Number(seconds) || 0));
   const countdownEl = $('#otp-countdown');
   const timerTextEl = $('#otp-timer-text');
   const resendBtn = $('#btn-resend-otp');
+  const otpErrorEl = $('#auth-otp-error');
 
-  if (countdownEl) countdownEl.textContent = remaining;
-  if (timerTextEl) timerTextEl.style.display = '';
-  if (resendBtn) resendBtn.style.display = 'none';
+  const syncCountdownUi = () => {
+    if (countdownEl) countdownEl.textContent = remaining;
+    if (timerTextEl) timerTextEl.style.display = remaining > 0 ? '' : 'none';
+    if (resendBtn) resendBtn.style.display = remaining > 0 ? 'none' : '';
+    if (syncErrorCountdown && otpErrorEl && !otpErrorEl.hidden) {
+      if (remaining > 0) {
+        otpErrorEl.textContent = `Please wait ${remaining} second${remaining === 1 ? '' : 's'} before requesting a new code.`;
+      } else {
+        otpErrorEl.hidden = true;
+        otpErrorEl.textContent = '';
+      }
+    }
+  };
+  syncCountdownUi();
+  if (remaining <= 0) return;
 
   otpTimerInterval = setInterval(() => {
     remaining -= 1;
-    if (countdownEl) countdownEl.textContent = remaining;
+    syncCountdownUi();
     if (remaining <= 0) {
       clearInterval(otpTimerInterval);
-      if (timerTextEl) timerTextEl.style.display = 'none';
-      if (resendBtn) resendBtn.style.display = '';
+      otpTimerInterval = null;
     }
   }, 1000);
 }
@@ -9598,6 +9649,8 @@ function showOtpView(email, purpose) {
   $('#auth-otp-email-display').textContent = email;
   $('#auth-otp-code').value = '';
   $('#auth-otp-error').hidden = true;
+  const otpStatus = $('#auth-otp-status');
+  if (otpStatus) { otpStatus.hidden = true; otpStatus.textContent = ''; }
   $('#auth-otp-submit-btn').innerHTML = purpose === 'signup' ? 'Verify & Activate Account <span>→</span>' : 'Verify & Sign In <span>→</span>';
   startOtpCountdown(60);
   setTimeout(() => $('#auth-otp-code')?.focus(), 50);
@@ -9860,9 +9913,10 @@ if (signoutBtn) {
       return;
     }
     authRequestVersion += 1;
-    const clearedStudio = await clearStudioPdf();
+    const clearedStudio = await clearStudioPdf({ silent: true });
     if (!clearedStudio) await unloadStudioPdf();
     clearAuthShellEmail();
+    state.billing = null;
     try { localStorage.removeItem('paperplane_token'); } catch { /* Storage may be disabled. */ }
     $('#settings-change-password-form')?.reset();
     if ($('#settings-password-msg')) $('#settings-password-msg').hidden = true;
@@ -9884,6 +9938,18 @@ $('#auth-form').onsubmit = async e => {
   const password = $('#auth-password').value;
   const confirmPassword = $('#auth-confirm-password')?.value;
   $('#auth-error').hidden = true;
+  $('#auth-error').textContent = '';
+
+  if (!email || !email.includes('@')) {
+    $('#auth-error').textContent = 'Enter a valid email address.';
+    $('#auth-error').hidden = false;
+    return;
+  }
+  if (!password) {
+    $('#auth-error').textContent = 'Enter your password.';
+    $('#auth-error').hidden = false;
+    return;
+  }
 
   if (authMode === 'register') {
     if (password !== confirmPassword) {
@@ -9974,6 +10040,10 @@ const resendOtpBtn = $('#btn-resend-otp');
 if (resendOtpBtn) {
   resendOtpBtn.onclick = async () => {
     if (!pendingAuth) return;
+    const otpStatusEl = $('#auth-otp-status');
+    const otpErrorEl = $('#auth-otp-error');
+    if (otpStatusEl) { otpStatusEl.hidden = true; otpStatusEl.textContent = ''; }
+    if (otpErrorEl) { otpErrorEl.hidden = true; otpErrorEl.textContent = ''; }
     resendOtpBtn.disabled = true;
     resendOtpBtn.textContent = 'Sending…';
     try {
@@ -9982,15 +10052,27 @@ if (resendOtpBtn) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: pendingAuth.email, purpose: pendingAuth.purpose })
       });
-      showToast(res.message || 'A new code has been sent to your email.', 'success');
+      const sentMsg = res.message || 'Verification code sent — check your inbox (and spam folder).';
+      if (otpStatusEl) {
+        otpStatusEl.textContent = sentMsg;
+        otpStatusEl.hidden = false;
+      }
+      showToast(sentMsg, 'success');
       if ($('#auth-otp-code')) {
         $('#auth-otp-code').value = '';
         $('#auth-otp-code').focus();
       }
       startOtpCountdown(60);
     } catch (err) {
-      $('#auth-otp-error').textContent = err.message || 'Could not resend code. Please try again later.';
-      $('#auth-otp-error').hidden = false;
+      const rawMessage = String(err.message || 'Could not resend code. Please try again later.');
+      if (otpErrorEl) {
+        otpErrorEl.textContent = rawMessage;
+        otpErrorEl.hidden = false;
+      }
+      const waitMatch = /\bwait\s+(\d+)\s+seconds?\b/i.exec(rawMessage);
+      if (waitMatch) {
+        startOtpCountdown(Number(waitMatch[1]), { syncErrorCountdown: true });
+      }
     } finally {
       resendOtpBtn.disabled = false;
       resendOtpBtn.textContent = 'Resend Code';
@@ -10692,6 +10774,7 @@ window.selectOperation = selectOperation;
 window.switchWorkspaceView = switchWorkspaceView;
 window.switchFullLegalTab = switchFullLegalTab;
 window.loadDocumentIntoStudio = loadDocumentIntoStudio;
+window.getPaperplaneStudioPassword = () => state.studio?.currentPassword || '';
 window.openCommandPalette = openCommandPalette;
 window.openCloudModal = openCloudModal;
 window.openAuthModal = openAuthModal;
@@ -11043,17 +11126,25 @@ window.formatStudioErrorMessage = function formatStudioErrorMessage(payload, fal
 window.addEventListener('paperplane:operations-today', (event) => {
   const count = Number(event?.detail?.usageToday);
   if (!Number.isFinite(count) || count < 0) return;
-  if (!state.billing || typeof state.billing !== 'object') {
-    state.billing = {
-      authenticated: false,
-      tier: state.tier || 'free',
-      usage_today: count,
-      daily_limit: 10,
-      ai_ops_today: 0,
-      ai_daily_limit: 5,
-    };
+  if (isPaidTierData(state.user) || isPaidTierData(state.billing)) return;
+  if (state.billing && typeof state.billing === 'object') {
+    state.billing.usage_today = count;
     if (typeof updateBillingUI === 'function') updateBillingUI(state.billing);
+    return;
   }
+  const activeTier = String(state.user?.tier || 'free').toLowerCase();
+  state.billing = {
+    authenticated: Boolean(state.user?.authenticated),
+    tier: activeTier,
+    tier_label: state.user?.tier_label || 'Free',
+    is_pro: isPaidTierData(state.user),
+    is_dev: Boolean(state.user?.is_dev),
+    usage_today: count,
+    daily_limit: isPaidTierData(state.user) ? null : Number(state.planLimits.free_operations_per_day || 10),
+    ai_ops_today: 0,
+    ai_daily_limit: 5,
+  };
+  if (typeof updateBillingUI === 'function') updateBillingUI(state.billing);
 });
 
 

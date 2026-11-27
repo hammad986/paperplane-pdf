@@ -651,6 +651,147 @@ def sign_pdf_digitally(
     return output
 
 
+def _collect_signature_widgets(doc: fitz.Document) -> tuple[list[fitz.Widget], int]:
+    """Scan all pages once to collect AcroForm widget count and signature widgets."""
+    form_count = 0
+    signature_fields: list[fitz.Widget] = []
+    if not doc.is_encrypted or not doc.needs_pass:
+        for page in doc:
+            widgets = list(page.widgets() or ())
+            form_count += len(widgets)
+            for widget in widgets:
+                if widget.field_type == fitz.PDF_WIDGET_TYPE_SIGNATURE:
+                    signature_fields.append(widget)
+    return signature_fields, form_count
+
+
+def _verify_signature_widgets(
+    doc: fitz.Document,
+    source: Path,
+    signature_fields: list[fitz.Widget],
+) -> tuple[list[dict[str, Any]], list[str]]:
+    """Verify cryptographic PKCS#7 / CMS blocks only for discovered AcroForm /Sig fields."""
+    signatures_report: list[dict[str, Any]] = []
+    issues: list[str] = []
+    if not signature_fields:
+        return signatures_report, issues
+
+    signed_widgets: list[tuple[fitz.Widget, int, str, int, int, int, int]] = []
+    for widget in signature_fields:
+        value_kind, value_ref = doc.xref_get_key(widget.xref, "V")
+        ref_match = re.fullmatch(r"\s*(\d+)\s+\d+\s+R\s*", value_ref or "") if value_kind == "xref" else None
+        if not ref_match:
+            continue
+
+        signature_xref = int(ref_match.group(1))
+        type_kind, type_value = doc.xref_get_key(signature_xref, "Type")
+        if type_kind != "name" or type_value != "/Sig":
+            issues.append("A signature field points to an object that is not a /Sig dictionary.")
+            continue
+
+        byte_range_kind, byte_range_value = doc.xref_get_key(signature_xref, "ByteRange")
+        range_match = (
+            re.fullmatch(r"\s*\[\s*(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s*\]\s*", byte_range_value or "")
+            if byte_range_kind == "array" else None
+        )
+        signature_object = doc.xref_object(signature_xref, compressed=False)
+        contents_match = re.search(r"/Contents\s*<([0-9A-Fa-f\s]+)>", signature_object)
+        if not range_match or not contents_match:
+            issues.append("A /Sig field has no parseable ByteRange or hexadecimal Contents value.")
+            continue
+
+        r0, r1, r2, r3 = (int(value) for value in range_match.groups())
+        raw_hex = re.sub(r"\s+", "", contents_match.group(1))
+        signed_widgets.append((widget, signature_xref, raw_hex, r0, r1, r2, r3))
+
+    if not signed_widgets:
+        return signatures_report, issues
+
+    pdf_bytes = source.read_bytes()
+    total_len = len(pdf_bytes)
+    for widget, _signature_xref, raw_hex, r0, r1, r2, r3 in signed_widgets:
+        range_is_valid = (
+            r0 == 0 and r1 > 0 and r2 > r1 and r3 >= 0
+            and r2 + r3 <= total_len and r2 <= total_len
+        )
+        if range_is_valid:
+            excluded = pdf_bytes[r1:r2].strip()
+            range_contents = re.fullmatch(rb"<([0-9A-Fa-f\s]+)>", excluded)
+            range_is_valid = bool(
+                range_contents
+                and re.sub(rb"\s+", b"", range_contents.group(1)).decode("ascii").upper() == raw_hex.upper()
+            )
+        if not range_is_valid:
+            issues.append("A /Sig field has a corrupt or out-of-bounds ByteRange and was excluded.")
+            continue
+
+        sig_info: dict[str, Any] = {
+            "index": len(signatures_report) + 1,
+            "field_name": widget.field_name or "Signature field",
+            "status": "UNKNOWN",
+            "byte_range": [r0, r1, r2, r3],
+            "tamper_detected": False,
+            "certificate": {},
+        }
+        signed_content = pdf_bytes[r0:r0 + r1] + pdf_bytes[r2:r2 + r3]
+        actual_digest = hashlib.sha256(signed_content).digest()
+
+        try:
+            padded_der = bytes.fromhex(raw_hex)
+            content_info, remainder = decoder.decode(padded_der, asn1Spec=rfc2315.ContentInfo())
+            exact_der = padded_der[: len(padded_der) - len(remainder)]
+            certs = pkcs7.load_der_pkcs7_certificates(exact_der)
+            if not certs:
+                sig_info["status"] = "INVALID"
+                sig_info["error"] = "No embedded X.509 certificate found in PKCS#7 block."
+                signatures_report.append(sig_info)
+                continue
+
+            cert = certs[0]
+            sig_info["certificate"] = {
+                "subject": cert.subject.rfc4514_string(),
+                "issuer": cert.issuer.rfc4514_string(),
+                "serial_number": str(cert.serial_number),
+                "not_before": cert.not_valid_before_utc.isoformat(),
+                "not_after": cert.not_valid_after_utc.isoformat(),
+                "self_signed": cert.subject == cert.issuer,
+            }
+            now_utc = datetime.datetime.now(datetime.timezone.utc)
+            if now_utc < cert.not_valid_before_utc:
+                sig_info["status"] = "CERTIFICATE_NOT_YET_VALID"
+            elif now_utc > cert.not_valid_after_utc:
+                sig_info["status"] = "CERTIFICATE_EXPIRED"
+
+            signed_data_obj, _ = decoder.decode(bytes(content_info["content"]), asn1Spec=rfc2315.SignedData())
+            signer_info = signed_data_obj["signerInfos"][0]
+            auth_attrs = signer_info["authenticatedAttributes"]
+            claimed_digest = None
+            for attr in auth_attrs:
+                if str(attr["type"]) == "1.2.840.113549.1.9.4":
+                    value, _ = decoder.decode(bytes(attr["values"][0]))
+                    claimed_digest = bytes(value)
+                    break
+
+            if claimed_digest != actual_digest:
+                sig_info["status"] = "TAMPERED"
+                sig_info["tamper_detected"] = True
+                sig_info["error"] = "Signed document byte stream was altered after signature generation."
+            else:
+                raw_attrs = bytes(encoder.encode(auth_attrs))
+                attrs_for_sig = b"\x31" + raw_attrs[1:]
+                enc_sig = bytes(signer_info["encryptedDigest"])
+                cert.public_key().verify(enc_sig, attrs_for_sig, padding.PKCS1v15(), hashes.SHA256())
+                if sig_info["status"] == "UNKNOWN":
+                    sig_info["status"] = "VALID"
+                    sig_info["intact"] = True
+        except Exception:
+            sig_info["status"] = "INVALID"
+            sig_info["error"] = "The PKCS#7 signature could not be cryptographically verified."
+        signatures_report.append(sig_info)
+
+    return signatures_report, issues
+
+
 def verify_pdf_signatures(source: Path, password: str = "") -> dict[str, Any]:
     """Verify only signature dictionaries reachable from real AcroForm /Sig fields.
 
@@ -660,7 +801,6 @@ def verify_pdf_signatures(source: Path, password: str = "") -> dict[str, Any]:
     if not source.exists():
         raise ValueError(f"File '{source.name}' does not exist.")
 
-    pdf_bytes = source.read_bytes()
     signatures_report: list[dict[str, Any]] = []
     issues: list[str] = []
     doc = None
@@ -669,117 +809,9 @@ def verify_pdf_signatures(source: Path, password: str = "") -> dict[str, Any]:
         if doc.needs_pass and (not password or not doc.authenticate(password)):
             issues.append("The encrypted PDF must be unlocked before its signature fields can be inspected.")
         else:
-            signature_fields = []
-            for page in doc:
-                for widget in page.widgets() or ():
-                    if widget.field_type == fitz.PDF_WIDGET_TYPE_SIGNATURE:
-                        signature_fields.append(widget)
-
-            for widget in signature_fields:
-                value_kind, value_ref = doc.xref_get_key(widget.xref, "V")
-                ref_match = re.fullmatch(r"\s*(\d+)\s+\d+\s+R\s*", value_ref or "") if value_kind == "xref" else None
-                if not ref_match:
-                    # An empty signature field has no /V dictionary and is not signed.
-                    continue
-
-                signature_xref = int(ref_match.group(1))
-                type_kind, type_value = doc.xref_get_key(signature_xref, "Type")
-                if type_kind != "name" or type_value != "/Sig":
-                    issues.append("A signature field points to an object that is not a /Sig dictionary.")
-                    continue
-
-                byte_range_kind, byte_range_value = doc.xref_get_key(signature_xref, "ByteRange")
-                range_match = (
-                    re.fullmatch(r"\s*\[\s*(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s*\]\s*", byte_range_value or "")
-                    if byte_range_kind == "array" else None
-                )
-                signature_object = doc.xref_object(signature_xref, compressed=False)
-                contents_match = re.search(r"/Contents\s*<([0-9A-Fa-f\s]+)>", signature_object)
-                if not range_match or not contents_match:
-                    issues.append("A /Sig field has no parseable ByteRange or hexadecimal Contents value.")
-                    continue
-
-                r0, r1, r2, r3 = (int(value) for value in range_match.groups())
-                raw_hex = re.sub(r"\s+", "", contents_match.group(1))
-                total_len = len(pdf_bytes)
-                range_is_valid = (
-                    r0 == 0 and r1 > 0 and r2 > r1 and r3 >= 0
-                    and r2 + r3 <= total_len and r2 <= total_len
-                )
-                if range_is_valid:
-                    excluded = pdf_bytes[r1:r2].strip()
-                    range_contents = re.fullmatch(rb"<([0-9A-Fa-f\s]+)>", excluded)
-                    range_is_valid = bool(
-                        range_contents
-                        and re.sub(rb"\s+", b"", range_contents.group(1)).decode("ascii").upper() == raw_hex.upper()
-                    )
-                if not range_is_valid:
-                    issues.append("A /Sig field has a corrupt or out-of-bounds ByteRange and was excluded.")
-                    continue
-
-                sig_info: dict[str, Any] = {
-                    "index": len(signatures_report) + 1,
-                    "field_name": widget.field_name or "Signature field",
-                    "status": "UNKNOWN",
-                    "byte_range": [r0, r1, r2, r3],
-                    "tamper_detected": False,
-                    "certificate": {},
-                }
-                signed_content = pdf_bytes[r0:r0 + r1] + pdf_bytes[r2:r2 + r3]
-                actual_digest = hashlib.sha256(signed_content).digest()
-
-                try:
-                    padded_der = bytes.fromhex(raw_hex)
-                    content_info, remainder = decoder.decode(padded_der, asn1Spec=rfc2315.ContentInfo())
-                    exact_der = padded_der[: len(padded_der) - len(remainder)]
-                    certs = pkcs7.load_der_pkcs7_certificates(exact_der)
-                    if not certs:
-                        sig_info["status"] = "INVALID"
-                        sig_info["error"] = "No embedded X.509 certificate found in PKCS#7 block."
-                        signatures_report.append(sig_info)
-                        continue
-
-                    cert = certs[0]
-                    sig_info["certificate"] = {
-                        "subject": cert.subject.rfc4514_string(),
-                        "issuer": cert.issuer.rfc4514_string(),
-                        "serial_number": str(cert.serial_number),
-                        "not_before": cert.not_valid_before_utc.isoformat(),
-                        "not_after": cert.not_valid_after_utc.isoformat(),
-                        "self_signed": cert.subject == cert.issuer,
-                    }
-                    now_utc = datetime.datetime.now(datetime.timezone.utc)
-                    if now_utc < cert.not_valid_before_utc:
-                        sig_info["status"] = "CERTIFICATE_NOT_YET_VALID"
-                    elif now_utc > cert.not_valid_after_utc:
-                        sig_info["status"] = "CERTIFICATE_EXPIRED"
-
-                    signed_data_obj, _ = decoder.decode(bytes(content_info["content"]), asn1Spec=rfc2315.SignedData())
-                    signer_info = signed_data_obj["signerInfos"][0]
-                    auth_attrs = signer_info["authenticatedAttributes"]
-                    claimed_digest = None
-                    for attr in auth_attrs:
-                        if str(attr["type"]) == "1.2.840.113549.1.9.4":
-                            value, _ = decoder.decode(bytes(attr["values"][0]))
-                            claimed_digest = bytes(value)
-                            break
-
-                    if claimed_digest != actual_digest:
-                        sig_info["status"] = "TAMPERED"
-                        sig_info["tamper_detected"] = True
-                        sig_info["error"] = "Signed document byte stream was altered after signature generation."
-                    else:
-                        raw_attrs = bytes(encoder.encode(auth_attrs))
-                        attrs_for_sig = b"\x31" + raw_attrs[1:]
-                        enc_sig = bytes(signer_info["encryptedDigest"])
-                        cert.public_key().verify(enc_sig, attrs_for_sig, padding.PKCS1v15(), hashes.SHA256())
-                        if sig_info["status"] == "UNKNOWN":
-                            sig_info["status"] = "VALID"
-                            sig_info["intact"] = True
-                except Exception:
-                    sig_info["status"] = "INVALID"
-                    sig_info["error"] = "The PKCS#7 signature could not be cryptographically verified."
-                signatures_report.append(sig_info)
+            signature_fields, _ = _collect_signature_widgets(doc)
+            signatures_report, widget_issues = _verify_signature_widgets(doc, source, signature_fields)
+            issues.extend(widget_issues)
     except Exception:
         issues.append("PDF structure could not be fully parsed during signature discovery.")
     finally:
@@ -915,18 +947,22 @@ def inspect_pdf_security(source: Path, password: str = "") -> dict[str, Any]:
         if is_encrypted and password:
             doc.authenticate(password)
 
-        # Check forms
-        form_count = 0
-        if not doc.is_encrypted or not doc.needs_pass:
-            for page in doc:
-                form_count += len(list(page.widgets()))
+        # Single pass over pages to count form widgets and collect signature fields.
+        signature_fields, form_count = _collect_signature_widgets(doc)
 
         # Check attachments
         emb_count = doc.embfile_count() if hasattr(doc, "embfile_count") else 0
         emb_names = doc.embfile_names() if hasattr(doc, "embfile_names") else []
 
-        # Check signatures
-        sig_ver = verify_pdf_signatures(source, password=password)
+        # Verify discovered signature widgets without re-opening the PDF on disk.
+        signatures_report, _sig_issues = (
+            _verify_signature_widgets(doc, source, signature_fields)
+            if signature_fields else ([], [])
+        )
+        sig_ver = {
+            "is_signed": bool(signatures_report),
+            "signature_count": len(signatures_report),
+        }
 
         # Check JavaScript / active content
         js_detected = False

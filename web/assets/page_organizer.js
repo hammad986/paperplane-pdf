@@ -271,6 +271,8 @@
           form.append('file', this.sourceFile, this.sourceName);
           form.append('mode', mode);
           form.append('param', param);
+          const studioPw = window.getPaperplaneStudioPassword?.();
+          if (studioPw) form.append('password', studioPw);
 
           try {
             const resp = await fetch('/api/studio/documents/split', { method: 'POST', body: form });
@@ -494,6 +496,8 @@
           form.append('import_file', secondaryFile, secondaryFile.name);
           form.append('pages', JSON.stringify(chosenPages));
           form.append('insert_after_page', insertAfter);
+          const studioPw = window.getPaperplaneStudioPassword?.();
+          if (studioPw) form.append('password', studioPw);
 
           try {
             const resp = await fetch('/api/studio/pages/import', { method: 'POST', body: form });
@@ -1317,6 +1321,8 @@
       const form = new FormData();
       form.append('file', safeFile, this.sourceName);
       Object.entries(formFields).forEach(([k, v]) => form.append(k, v));
+      const studioPw = window.getPaperplaneStudioPassword?.();
+      if (studioPw && !form.has('password')) form.append('password', studioPw);
 
       try {
         const resp = await fetch(endpoint, {
@@ -1354,7 +1360,10 @@
 
       // Reload document into viewer & organizer
       if (window.loadDocumentIntoStudio) {
-        const loaded = await window.loadDocumentIntoStudio(newFile, { initialPage: targetPage });
+        const loaded = await window.loadDocumentIntoStudio(newFile, {
+          initialPage: targetPage,
+          pdfPassword: window.getPaperplaneStudioPassword?.() || undefined,
+        });
         if (loaded && window.jumpToStudioPage) {
           await window.jumpToStudioPage(targetPage, 'auto');
         }
@@ -1528,6 +1537,8 @@
       const form = new FormData();
       form.append('file', this.sourceFile, this.sourceName);
       form.append('pages', JSON.stringify(pages));
+      const studioPw = window.getPaperplaneStudioPassword?.();
+      if (studioPw) form.append('password', studioPw);
 
       try {
         const resp = await fetch('/api/studio/pages/extract', { method: 'POST', body: form });

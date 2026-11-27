@@ -2669,8 +2669,13 @@ def _merge_pdf_inputs(inputs: list[Path], output: Path, options: dict) -> Path:
 
 def _clean_output_stem(source: Path | None, options: dict | None = None) -> str:
     orig = str((options or {}).get("_original_filename") or "").strip()
-    raw = Path(orig.replace("\\", "/")).stem if orig else (source.stem if source else "document")
-    cleaned = re.sub(r"^(?:\d{1,4}_)?[0-9a-fA-F]{16,32}_", "", raw).strip(" _-")
+    if orig:
+        raw_stem = converters.clean_display_stem(orig, "document")
+    elif source is not None:
+        raw_stem = converters.clean_display_stem(source, "document")
+    else:
+        raw_stem = "document"
+    cleaned = re.sub(r"^(?:\d{1,4}[-_])?(?:[0-9a-fA-F]{16,32}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})[_-]+", "", raw_stem).strip(" _-")
     return cleaned or "document"
 
 
@@ -3046,8 +3051,16 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
             left = "\n".join(page.get_text() for page in left_doc)
             right = "\n".join(page.get_text() for page in right_doc)
         original_names = options.get("_original_filenames", [])
-        from_name = original_names[0] if len(original_names) > 0 else inputs[0].name
-        to_name = original_names[1] if len(original_names) > 1 else inputs[1].name
+        from_name = (
+            converters.clean_display_filename(original_names[0], "document_a.pdf")
+            if len(original_names) > 0
+            else converters.clean_display_filename(inputs[0], "document_a.pdf")
+        )
+        to_name = (
+            converters.clean_display_filename(original_names[1], "document_b.pdf")
+            if len(original_names) > 1
+            else converters.clean_display_filename(inputs[1], "document_b.pdf")
+        )
         report = "\n".join(difflib.unified_diff(left.splitlines(), right.splitlines(), fromfile=from_name, tofile=to_name, lineterm=""))
         result = output.with_suffix(".txt")
         if report:
@@ -3256,7 +3269,12 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
 
     elif operation == "pdf_to_html":
         html_output = output.with_suffix(".html")
-        return converters.pdf_to_html(source, html_output, pages=options.get("pages", "all"))
+        return converters.pdf_to_html(
+            source,
+            html_output,
+            pages=options.get("pages", "all"),
+            document_name=options.get("_original_filename"),
+        )
 
     elif operation in {"pdf_to_jpg", "pdf_to_png", "pdf_to_webp", "pdf_to_images"}:
         fmt = "png" if "png" in operation else ("webp" if "webp" in operation else "jpg")
@@ -3793,7 +3811,11 @@ async def resend_otp(request: Request, background_tasks: BackgroundTasks):
 
     allowed, remaining = can_resend_otp(clean_email, clean_purpose, cooldown=60)
     if not allowed:
-        raise HTTPException(429, f"Please wait {remaining} seconds before requesting a new code.")
+        raise HTTPException(
+            429,
+            f"Please wait {remaining} seconds before requesting a new code.",
+            headers={"Retry-After": str(remaining)},
+        )
 
     if clean_purpose == "login":
         user = get_user_by_email(clean_email)
@@ -5207,10 +5229,66 @@ async def pdf_annotate_endpoint(
 # Phase 2: Studio Editor Backend Endpoints
 # ----------------------------------------------------------------------
 
+def _prepare_studio_input_pdf(
+    source: Path, password: str, temp_dir: Path
+) -> tuple[Path, bool, int]:
+    """Authenticate an encrypted Studio PDF with the viewer password into an unlocked work copy."""
+    doc = fitz.open(str(source))
+    try:
+        if not doc.needs_pass:
+            return source, False, int(doc.permissions)
+        clean_pw = password or ""
+        if not clean_pw or doc.authenticate(clean_pw) == 0:
+            raise HTTPException(
+                400,
+                "This PDF is password-protected. Enter its open password in Studio before modifying it.",
+            )
+        perms = int(doc.permissions)
+        unlocked_path = temp_dir / "studio_unlocked_work.pdf"
+        unlocked_path.write_bytes(doc.tobytes(encryption=fitz.PDF_ENCRYPT_NONE, garbage=0, deflate=False))
+        return unlocked_path, True, perms
+    finally:
+        doc.close()
+
+
+def _reencrypt_studio_output_if_needed(
+    output: Path, password: str, perms: int
+) -> None:
+    """Preserve AES-256 open protection after a Studio mutation when the source PDF was locked."""
+    if not password or not output.exists():
+        return
+    doc = fitz.open(str(output))
+    try:
+        protected_bytes = doc.tobytes(
+            encryption=fitz.PDF_ENCRYPT_AES_256,
+            user_pw=password,
+            owner_pw=password,
+            permissions=perms,
+            deflate=True,
+        )
+    finally:
+        doc.close()
+    output.write_bytes(protected_bytes)
+
+
+def _studio_error_json(status_code: int, message: str, retry_hint: str) -> JSONResponse:
+    """Return a structured Studio JSON error with both error and detail fields."""
+    return JSONResponse(
+        status_code=status_code,
+        content={
+            "ok": False,
+            "error": message,
+            "retry_hint": retry_hint,
+            "detail": message,
+        },
+    )
+
+
 @app.post("/api/studio/apply-edits")
 def studio_apply_edits(
     file: UploadFile = File(...),
     edits: str = Form("[]"),
+    password: str = Form(""),
     user_id: str | None = Depends(current_user)
 ):
     """
@@ -5233,6 +5311,7 @@ def studio_apply_edits(
         # Save upload
         in_path = temp_dir / "input.pdf"
         save_pdf_upload(file, in_path, user_id=user_id)
+        work_in_path, was_encrypted, orig_perms = _prepare_studio_input_pdf(in_path, password, temp_dir)
 
         # Parse edit objects
         try:
@@ -5244,7 +5323,9 @@ def studio_apply_edits(
             raise HTTPException(400, "edits must be a JSON array.")
 
         out_path = temp_dir / "edited.pdf"
-        converters.apply_editor_annotations(in_path, out_path, edit_list)
+        converters.apply_editor_annotations(work_in_path, out_path, edit_list)
+        if was_encrypted:
+            _reencrypt_studio_output_if_needed(out_path, password, orig_perms)
 
         return FileResponse(
             out_path, media_type="application/pdf", filename="edited.pdf",
@@ -5266,6 +5347,7 @@ async def studio_page_insert(
     width: float = Form(595),
     height: float = Form(842),
     orientation: str = Form("portrait"),
+    password: str = Form(""),
     user_id: str | None = Depends(current_user)
 ):
     """
@@ -5276,9 +5358,12 @@ async def studio_page_insert(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path, user_id=user_id)
+        await save_pdf_upload_async(file, in_path, user_id=user_id)
+        work_in_path, was_encrypted, orig_perms = await asyncio.to_thread(
+            _prepare_studio_input_pdf, in_path, password, temp_dir
+        )
 
-        doc = fitz.open(str(in_path))
+        doc = fitz.open(str(work_in_path))
         total = len(doc)
 
         insert_at = max(0, min(after_page, total))  # clamp
@@ -5294,6 +5379,8 @@ async def studio_page_insert(
         out_path = temp_dir / "with_page.pdf"
         doc.save(str(out_path), garbage=4, deflate=True)
         doc.close()
+        if was_encrypted:
+            _reencrypt_studio_output_if_needed(out_path, password, orig_perms)
 
         return StreamingResponse(
             io.BytesIO(out_path.read_bytes()),
@@ -5313,6 +5400,7 @@ async def studio_page_delete(
     file: UploadFile = File(...),
     page_number: int | None = Form(None),   # 1-based (single page)
     pages: str | None = Form(None),         # JSON array of 1-based pages
+    password: str = Form(""),
     user_id: str | None = Depends(current_user)
 ):
     """
@@ -5322,9 +5410,12 @@ async def studio_page_delete(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path, user_id=user_id)
+        await save_pdf_upload_async(file, in_path, user_id=user_id)
+        work_in_path, was_encrypted, orig_perms = await asyncio.to_thread(
+            _prepare_studio_input_pdf, in_path, password, temp_dir
+        )
 
-        doc = fitz.open(str(in_path))
+        doc = fitz.open(str(work_in_path))
         total = len(doc)
 
         to_delete = []
@@ -5360,6 +5451,8 @@ async def studio_page_delete(
         # deletion fast on large multi-page PDFs while keeping output valid.
         doc.save(str(out_path), garbage=1, deflate=False)
         doc.close()
+        if was_encrypted:
+            _reencrypt_studio_output_if_needed(out_path, password, orig_perms)
 
         return StreamingResponse(
             io.BytesIO(out_path.read_bytes()),
@@ -5379,6 +5472,7 @@ async def studio_page_duplicate(
     file: UploadFile = File(...),
     page_number: int | None = Form(None),   # 1-based (single page)
     pages: str | None = Form(None),         # JSON array of 1-based pages
+    password: str = Form(""),
     user_id: str | None = Depends(current_user)
 ):
     """
@@ -5387,9 +5481,12 @@ async def studio_page_duplicate(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path, user_id=user_id)
+        await save_pdf_upload_async(file, in_path, user_id=user_id)
+        work_in_path, was_encrypted, orig_perms = await asyncio.to_thread(
+            _prepare_studio_input_pdf, in_path, password, temp_dir
+        )
 
-        doc = fitz.open(str(in_path))
+        doc = fitz.open(str(work_in_path))
         total = len(doc)
 
         to_dup = []
@@ -5409,7 +5506,7 @@ async def studio_page_duplicate(
             if p < 1 or p > total:
                 raise HTTPException(400, f"Page {p} out of range.")
 
-        src_doc = fitz.open(str(in_path))
+        src_doc = fitz.open(str(work_in_path))
         # Duplicate from highest to lowest index to maintain stable insertion relative to original
         for p in sorted(to_dup, reverse=True):
             doc.insert_pdf(src_doc, from_page=p - 1, to_page=p - 1, start_at=p)
@@ -5418,6 +5515,8 @@ async def studio_page_duplicate(
         out_path = temp_dir / "duplicated.pdf"
         doc.save(str(out_path), garbage=4, deflate=True)
         doc.close()
+        if was_encrypted:
+            _reencrypt_studio_output_if_needed(out_path, password, orig_perms)
 
         return StreamingResponse(
             io.BytesIO(out_path.read_bytes()),
@@ -5440,6 +5539,7 @@ async def studio_page_duplicate(
 def studio_pages_reorder(
     file: UploadFile = File(...),
     order: str = Form(...),  # JSON array of page indices
+    password: str = Form(""),
     user_id: str | None = Depends(current_user)
 ):
     """
@@ -5450,6 +5550,7 @@ def studio_pages_reorder(
     try:
         in_path = temp_dir / "input.pdf"
         save_pdf_upload(file, in_path, user_id=user_id)
+        work_in_path, was_encrypted, orig_perms = _prepare_studio_input_pdf(in_path, password, temp_dir)
 
         try:
             order_list = json.loads(order)
@@ -5459,7 +5560,7 @@ def studio_pages_reorder(
         except Exception as e:
             raise HTTPException(400, f"Invalid order parameter: {e}")
 
-        doc = fitz.open(str(in_path))
+        doc = fitz.open(str(work_in_path))
         total = len(doc)
         doc.close()
 
@@ -5476,7 +5577,9 @@ def studio_pages_reorder(
             raise HTTPException(400, f"Page indices outside range 0..{total - 1}.")
 
         out_path = temp_dir / "reordered.pdf"
-        converters.reorder_pdf_pages(in_path, out_path, order_list)
+        converters.reorder_pdf_pages(work_in_path, out_path, order_list)
+        if was_encrypted:
+            _reencrypt_studio_output_if_needed(out_path, password, orig_perms)
 
         return FileResponse(
             out_path, media_type="application/pdf", filename="reordered.pdf",
@@ -5496,6 +5599,7 @@ async def studio_pages_rotate(
     file: UploadFile = File(...),
     pages: str = Form("all"),       # "all" or JSON array of 1-based pages
     degrees: int = Form(90),        # degrees e.g. 90, 180, 270, -90
+    password: str = Form(""),
     user_id: str | None = Depends(current_user)
 ):
     """
@@ -5505,7 +5609,10 @@ async def studio_pages_rotate(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path, user_id=user_id)
+        await save_pdf_upload_async(file, in_path, user_id=user_id)
+        work_in_path, was_encrypted, orig_perms = await asyncio.to_thread(
+            _prepare_studio_input_pdf, in_path, password, temp_dir
+        )
 
         pages_parsed: list[int] | str = "all"
         if pages != "all":
@@ -5523,7 +5630,9 @@ async def studio_pages_rotate(
                     raise HTTPException(400, f"Invalid pages format: {e}")
 
         out_path = temp_dir / "rotated.pdf"
-        converters.rotate_pdf_pages(in_path, out_path, pages_parsed, degrees)
+        await asyncio.to_thread(converters.rotate_pdf_pages, work_in_path, out_path, pages_parsed, degrees)
+        if was_encrypted:
+            _reencrypt_studio_output_if_needed(out_path, password, orig_perms)
 
         return StreamingResponse(
             io.BytesIO(out_path.read_bytes()),
@@ -5543,6 +5652,7 @@ async def studio_pages_crop(
     file: UploadFile = File(...),
     pages: str = Form("all"),       # "all" or JSON array of 1-based pages
     box: str = Form(...),           # JSON object {x, y, width, height} or [x0, y0, x1, y1]
+    password: str = Form(""),
     user_id: str | None = Depends(current_user)
 ):
     """
@@ -5551,7 +5661,10 @@ async def studio_pages_crop(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path, user_id=user_id)
+        await save_pdf_upload_async(file, in_path, user_id=user_id)
+        work_in_path, was_encrypted, orig_perms = await asyncio.to_thread(
+            _prepare_studio_input_pdf, in_path, password, temp_dir
+        )
 
         pages_parsed: list[int] | str = "all"
         if pages != "all":
@@ -5573,7 +5686,9 @@ async def studio_pages_crop(
             raise HTTPException(400, f"Invalid box JSON: {e}")
 
         out_path = temp_dir / "cropped.pdf"
-        converters.crop_pdf_pages(in_path, out_path, pages_parsed, box_data)
+        await asyncio.to_thread(converters.crop_pdf_pages, work_in_path, out_path, pages_parsed, box_data)
+        if was_encrypted:
+            _reencrypt_studio_output_if_needed(out_path, password, orig_perms)
 
         return StreamingResponse(
             io.BytesIO(out_path.read_bytes()),
@@ -5595,6 +5710,7 @@ async def studio_pages_resize(
     target_w: float = Form(...),     # Width in points
     target_h: float = Form(...),     # Height in points
     mode: str = Form("scale"),       # 'scale', 'center', or 'crop'
+    password: str = Form(""),
     user_id: str | None = Depends(current_user)
 ):
     """
@@ -5604,7 +5720,10 @@ async def studio_pages_resize(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path, user_id=user_id)
+        await save_pdf_upload_async(file, in_path, user_id=user_id)
+        work_in_path, was_encrypted, orig_perms = await asyncio.to_thread(
+            _prepare_studio_input_pdf, in_path, password, temp_dir
+        )
 
         pages_parsed: list[int] | str = "all"
         if pages != "all":
@@ -5621,7 +5740,11 @@ async def studio_pages_resize(
                     raise HTTPException(400, f"Invalid pages format: {e}")
 
         out_path = temp_dir / "resized.pdf"
-        converters.resize_pdf_pages(in_path, out_path, pages_parsed, float(target_w), float(target_h), mode)
+        await asyncio.to_thread(
+            converters.resize_pdf_pages, work_in_path, out_path, pages_parsed, float(target_w), float(target_h), mode
+        )
+        if was_encrypted:
+            _reencrypt_studio_output_if_needed(out_path, password, orig_perms)
 
         return StreamingResponse(
             io.BytesIO(out_path.read_bytes()),
@@ -5640,6 +5763,7 @@ async def studio_pages_resize(
 async def studio_pages_extract(
     file: UploadFile = File(...),
     pages: str = Form(...),  # JSON array of 1-based page numbers in desired sequence
+    password: str = Form(""),
     user_id: str | None = Depends(current_user)
 ):
     """
@@ -5648,7 +5772,10 @@ async def studio_pages_extract(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path, user_id=user_id)
+        await save_pdf_upload_async(file, in_path, user_id=user_id)
+        work_in_path, _was_encrypted, _orig_perms = await asyncio.to_thread(
+            _prepare_studio_input_pdf, in_path, password, temp_dir
+        )
 
         try:
             pages_list = json.loads(pages)
@@ -5666,7 +5793,7 @@ async def studio_pages_extract(
             raise HTTPException(400, "No pages specified for extraction.")
 
         out_path = temp_dir / "extracted.pdf"
-        converters.extract_pdf_pages(in_path, out_path, pages_list)
+        await asyncio.to_thread(converters.extract_pdf_pages, work_in_path, out_path, pages_list)
 
         return StreamingResponse(
             io.BytesIO(out_path.read_bytes()),
@@ -5687,6 +5814,7 @@ async def studio_pages_import(
     import_file: UploadFile = File(...),
     pages: str = Form("[]"),                # JSON list of 1-based page numbers or empty for all
     insert_after_page: int = Form(0),        # 0 = beginning, N = after page N
+    password: str = Form(""),
     user_id: str | None = Depends(current_user)
 ):
     """
@@ -5695,10 +5823,13 @@ async def studio_pages_import(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         base_path = temp_dir / "base.pdf"
-        save_pdf_upload(base_file, base_path, user_id=user_id)
+        await save_pdf_upload_async(base_file, base_path, user_id=user_id)
+        work_base_path, was_encrypted, orig_perms = await asyncio.to_thread(
+            _prepare_studio_input_pdf, base_path, password, temp_dir
+        )
 
         import_path = temp_dir / "import.pdf"
-        save_pdf_upload(import_file, import_path, user_id=user_id)
+        await save_pdf_upload_async(import_file, import_path, user_id=user_id)
 
         pages_list: list[int] | None = None
         if pages and pages != "[]":
@@ -5713,7 +5844,11 @@ async def studio_pages_import(
                     raise HTTPException(400, f"Invalid pages parameter: {e}")
 
         out_path = temp_dir / "imported.pdf"
-        converters.import_pdf_pages(base_path, import_path, out_path, pages_list, insert_after_page)
+        await asyncio.to_thread(
+            converters.import_pdf_pages, work_base_path, import_path, out_path, pages_list, insert_after_page
+        )
+        if was_encrypted:
+            _reencrypt_studio_output_if_needed(out_path, password, orig_perms)
 
         return StreamingResponse(
             io.BytesIO(out_path.read_bytes()),
@@ -5788,6 +5923,7 @@ async def studio_documents_split(
     file: UploadFile = File(...),
     mode: str = Form(...),   # 'ranges' or 'every_n'
     param: str = Form(...),  # e.g. "1-2, 3-5" or "2"
+    password: str = Form(""),
     user_id: str | None = Depends(current_user)
 ):
     """
@@ -5797,16 +5933,25 @@ async def studio_documents_split(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path, user_id=user_id)
+        await save_pdf_upload_async(file, in_path, user_id=user_id)
+        work_in_path, was_encrypted, orig_perms = await asyncio.to_thread(
+            _prepare_studio_input_pdf, in_path, password, temp_dir
+        )
 
         split_dir = temp_dir / "split_output"
         try:
-            created_files = converters.split_pdf_document(in_path, split_dir, mode, param)
+            created_files = await asyncio.to_thread(
+                converters.split_pdf_document, work_in_path, split_dir, mode, param
+            )
         except ValueError as err:
             raise HTTPException(400, str(err)) from err
 
         if not created_files:
             raise HTTPException(400, "No files generated from split operation.")
+
+        if was_encrypted:
+            for part_path in created_files:
+                _reencrypt_studio_output_if_needed(part_path, password, orig_perms)
 
         if len(created_files) == 1:
             return StreamingResponse(
@@ -5839,6 +5984,7 @@ async def studio_documents_split(
 @app.post("/api/studio/pages/metadata")
 async def studio_pages_metadata(
     file: UploadFile = File(...),
+    password: str = Form(""),
     user_id: str | None = Depends(current_user)
 ):
     """
@@ -5847,9 +5993,12 @@ async def studio_pages_metadata(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path, user_id=user_id)
+        await save_pdf_upload_async(file, in_path, user_id=user_id)
+        work_in_path, _was_encrypted, _orig_perms = await asyncio.to_thread(
+            _prepare_studio_input_pdf, in_path, password, temp_dir
+        )
 
-        data = converters.get_pdf_metadata_pages(in_path)
+        data = await asyncio.to_thread(converters.get_pdf_metadata_pages, work_in_path)
         return JSONResponse({"ok": True, "data": data})
     except HTTPException:
         raise
@@ -5877,6 +6026,7 @@ async def studio_ocr(
     pages: str = Form("all"),       # "all" or JSON list of 1-based page numbers
     mode: str = Form("scanned_only"),  # "scanned_only" | "all" | "selected"
     dpi: int = Form(150),
+    password: str = Form(""),
     user_id: str | None = Depends(current_user)
 ):
     """
@@ -5885,7 +6035,10 @@ async def studio_ocr(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path, user_id=user_id)
+        await save_pdf_upload_async(file, in_path, user_id=user_id)
+        work_in_path, was_encrypted, orig_perms = await asyncio.to_thread(
+            _prepare_studio_input_pdf, in_path, password, temp_dir
+        )
 
         pages_parsed: list[int] | str = "all"
         if pages != "all":
@@ -5905,17 +6058,19 @@ async def studio_ocr(
         report = await asyncio.to_thread(
             run_converter_with_timeout,
             converters.ocr_pdf,
-            in_path, out_path,
+            work_in_path, out_path,
             language=language,
             pages=pages_parsed,
             mode=mode,
             dpi=dpi,
             timeout_seconds=OCR_TIMEOUT_SECONDS,
             tool_name="ocr",
-            source_path=in_path,
+            source_path=work_in_path,
             output_path=out_path,
             retry_hint="Try running OCR on a smaller page selection or reducing the DPI setting."
         )
+        if was_encrypted:
+            _reencrypt_studio_output_if_needed(out_path, password, orig_perms)
 
         headers = {
             "Content-Disposition": 'attachment; filename="ocr_searchable.pdf"',
@@ -5936,7 +6091,9 @@ async def studio_ocr(
             media_type="application/pdf",
             headers=headers
         )
-    except HTTPException:
+    except HTTPException as he:
+        if he.status_code == 400:
+            return _studio_error_json(400, str(he.detail), "Please verify file format and security restrictions.")
         raise
     except TimeoutError as te:
         return JSONResponse(
@@ -5976,6 +6133,7 @@ async def studio_ocr(
 @app.post("/api/studio/compress/analyze")
 async def studio_compress_analyze(
     file: UploadFile = File(...),
+    password: str = Form(""),
     user_id: str | None = Depends(current_user)
 ):
     """
@@ -5984,9 +6142,12 @@ async def studio_compress_analyze(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path, user_id=user_id)
+        await save_pdf_upload_async(file, in_path, user_id=user_id)
+        work_in_path, _was_encrypted, _orig_perms = await asyncio.to_thread(
+            _prepare_studio_input_pdf, in_path, password, temp_dir
+        )
 
-        report = converters.analyze_pdf_compression(in_path)
+        report = await asyncio.to_thread(converters.analyze_pdf_compression, work_in_path)
         return JSONResponse({"ok": True, "analysis": report})
     except HTTPException:
         raise
@@ -6003,6 +6164,7 @@ async def studio_compress(
     target_size_kb: int | None = Form(None),
     quality: int = Form(65),
     max_dpi: int = Form(150),
+    password: str = Form(""),
     user_id: str | None = Depends(current_user)
 ):
     """
@@ -6012,7 +6174,10 @@ async def studio_compress(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path, user_id=user_id)
+        await save_pdf_upload_async(file, in_path, user_id=user_id)
+        work_in_path, was_encrypted, orig_perms = await asyncio.to_thread(
+            _prepare_studio_input_pdf, in_path, password, temp_dir
+        )
 
         target_bytes = int(target_size_kb) * 1024 if target_size_kb and target_size_kb > 0 else None
         out_path = temp_dir / "compressed.pdf"
@@ -6020,15 +6185,17 @@ async def studio_compress(
         report = await asyncio.to_thread(
             run_converter_with_timeout,
             converters.compress_pdf,
-            in_path, out_path,
+            work_in_path, out_path,
             quality=quality, max_dpi=max_dpi,
             preset=preset, target_size_bytes=target_bytes,
             timeout_seconds=COMPRESS_TIMEOUT_SECONDS,
             tool_name="compress",
-            source_path=in_path,
+            source_path=work_in_path,
             output_path=out_path,
             retry_hint="Try selecting a lower resolution preset or splitting the document."
         )
+        if was_encrypted:
+            _reencrypt_studio_output_if_needed(out_path, password, orig_perms)
 
         headers = {
             "Content-Disposition": 'attachment; filename="compressed.pdf"',
@@ -6047,7 +6214,9 @@ async def studio_compress(
             media_type="application/pdf",
             headers=headers
         )
-    except HTTPException:
+    except HTTPException as he:
+        if he.status_code == 400:
+            return _studio_error_json(400, str(he.detail), "Please verify file format and security restrictions.")
         raise
     except TimeoutError as te:
         return JSONResponse(
@@ -6088,6 +6257,7 @@ async def studio_compress(
 async def studio_repair(
     file: UploadFile = File(...),
     mode: str = Form("automatic"),  # 'automatic' | 'advanced' | 'validate_only'
+    password: str = Form(""),
     user_id: str | None = Depends(current_user)
 ):
     """
@@ -6097,15 +6267,28 @@ async def studio_repair(
     try:
         in_path = temp_dir / "input.pdf"
         save_upload_spooled(file, in_path, max_bytes=upload_limit_bytes_for_user(user_id))
+        work_in_path, was_encrypted, orig_perms = in_path, False, 0
+        try:
+            work_in_path, was_encrypted, orig_perms = await asyncio.to_thread(
+                _prepare_studio_input_pdf, in_path, password, temp_dir
+            )
+        except HTTPException:
+            raise
+        except Exception:
+            work_in_path, was_encrypted, orig_perms = in_path, False, 0
 
         out_path = temp_dir / "repaired.pdf"
         try:
-            report = converters.repair_pdf_advanced(in_path, out_path, mode=mode)
+            report = await asyncio.to_thread(
+                converters.repair_pdf_advanced, work_in_path, out_path, mode=mode
+            )
         except ValueError as ve:
             raise HTTPException(422, str(ve)) from ve
 
         if mode == "validate_only":
             return JSONResponse({"ok": True, "report": report})
+        if was_encrypted:
+            _reencrypt_studio_output_if_needed(out_path, password, orig_perms)
 
         headers = {
             "Content-Disposition": 'attachment; filename="repaired.pdf"',
@@ -6144,6 +6327,7 @@ async def studio_convert(
     file: UploadFile = File(None),
     target_format: str = Form(...),
     options: str = Form("{}"),
+    password: str = Form(""),
     user_id: str | None = Depends(current_user)
 ):
     """
@@ -6177,6 +6361,10 @@ async def studio_convert(
         in_suffix = Path(file.filename or "document.pdf").suffix.lower()
         in_path = temp_dir / f"input{in_suffix}"
         await save_upload_spooled_async(file, in_path, max_bytes=upload_limit_bytes_for_user(user_id))
+        if in_suffix == ".pdf" and fmt != "pdf":
+            in_path, _was_encrypted, _orig_perms = await asyncio.to_thread(
+                _prepare_studio_input_pdf, in_path, password, temp_dir
+            )
 
         out_ext = f".{fmt}" if fmt != "zip" else ".zip"
         out_path = temp_dir / f"{in_stem}_converted{out_ext}"
@@ -6340,6 +6528,7 @@ async def studio_pdf_info(
 @app.post("/api/studio/forms/analyze")
 async def studio_forms_analyze(
     file: UploadFile = File(...),
+    password: str = Form(""),
     user_id: str | None = Depends(current_user)
 ):
     """Analyzes all interactive AcroForm widgets across document pages."""
@@ -6347,7 +6536,10 @@ async def studio_forms_analyze(
     try:
         in_path = temp_dir / "input.pdf"
         await save_pdf_upload_async(file, in_path, user_id=user_id)
-        analysis = security_forms_engine.analyze_pdf_forms(in_path)
+        work_in_path, _was_encrypted, _orig_perms = await asyncio.to_thread(
+            _prepare_studio_input_pdf, in_path, password, temp_dir
+        )
+        analysis = await asyncio.to_thread(security_forms_engine.analyze_pdf_forms, work_in_path)
         return analysis
     except HTTPException:
         raise
@@ -6361,6 +6553,7 @@ async def studio_forms_analyze(
 async def studio_forms_add_field(
     file: UploadFile = File(...),
     field_data: str = Form(...),
+    password: str = Form(""),
     user_id: str | None = Depends(current_user)
 ):
     """Adds a new interactive form field (text, checkbox, combobox, radio, etc.) to the PDF."""
@@ -6368,9 +6561,14 @@ async def studio_forms_add_field(
     try:
         in_path = temp_dir / "input.pdf"
         out_path = temp_dir / "field_added.pdf"
-        save_pdf_upload(file, in_path, user_id=user_id)
+        await save_pdf_upload_async(file, in_path, user_id=user_id)
+        work_in_path, was_encrypted, orig_perms = await asyncio.to_thread(
+            _prepare_studio_input_pdf, in_path, password, temp_dir
+        )
         parsed_data = parse_options(field_data)
-        security_forms_engine.add_form_field(in_path, out_path, parsed_data)
+        await asyncio.to_thread(security_forms_engine.add_form_field, work_in_path, out_path, parsed_data)
+        if was_encrypted:
+            _reencrypt_studio_output_if_needed(out_path, password, orig_perms)
         return StreamingResponse(
             io.BytesIO(out_path.read_bytes()),
             media_type="application/pdf",
@@ -6388,6 +6586,7 @@ async def studio_forms_add_field(
 async def studio_forms_fill(
     file: UploadFile = File(...),
     field_values: str = Form(...),
+    password: str = Form(""),
     user_id: str | None = Depends(current_user)
 ):
     """Fills interactive form fields with supplied key-value pairs."""
@@ -6395,9 +6594,14 @@ async def studio_forms_fill(
     try:
         in_path = temp_dir / "input.pdf"
         out_path = temp_dir / "filled.pdf"
-        save_pdf_upload(file, in_path, user_id=user_id)
+        await save_pdf_upload_async(file, in_path, user_id=user_id)
+        work_in_path, was_encrypted, orig_perms = await asyncio.to_thread(
+            _prepare_studio_input_pdf, in_path, password, temp_dir
+        )
         values = parse_options(field_values)
-        security_forms_engine.fill_pdf_forms(in_path, out_path, values)
+        await asyncio.to_thread(security_forms_engine.fill_pdf_forms, work_in_path, out_path, values)
+        if was_encrypted:
+            _reencrypt_studio_output_if_needed(out_path, password, orig_perms)
         return StreamingResponse(
             io.BytesIO(out_path.read_bytes()),
             media_type="application/pdf",
@@ -6414,6 +6618,7 @@ async def studio_forms_fill(
 @app.post("/api/studio/forms/flatten")
 async def studio_forms_flatten(
     file: UploadFile = File(...),
+    password: str = Form(""),
     user_id: str | None = Depends(current_user)
 ):
     """Bakes form appearances into static vector page content, removing interactive widgets."""
@@ -6421,8 +6626,13 @@ async def studio_forms_flatten(
     try:
         in_path = temp_dir / "input.pdf"
         out_path = temp_dir / "flattened.pdf"
-        save_pdf_upload(file, in_path, user_id=user_id)
-        security_forms_engine.flatten_pdf_forms(in_path, out_path)
+        await save_pdf_upload_async(file, in_path, user_id=user_id)
+        work_in_path, was_encrypted, orig_perms = await asyncio.to_thread(
+            _prepare_studio_input_pdf, in_path, password, temp_dir
+        )
+        await asyncio.to_thread(security_forms_engine.flatten_pdf_forms, work_in_path, out_path)
+        if was_encrypted:
+            _reencrypt_studio_output_if_needed(out_path, password, orig_perms)
         return StreamingResponse(
             io.BytesIO(out_path.read_bytes()),
             media_type="application/pdf",
@@ -6439,6 +6649,7 @@ async def studio_forms_flatten(
 @app.post("/api/studio/forms/reset")
 async def studio_forms_reset(
     file: UploadFile = File(...),
+    password: str = Form(""),
     user_id: str | None = Depends(current_user)
 ):
     """Resets all form fields to default/blank states."""
@@ -6446,8 +6657,13 @@ async def studio_forms_reset(
     try:
         in_path = temp_dir / "input.pdf"
         out_path = temp_dir / "reset.pdf"
-        save_pdf_upload(file, in_path, user_id=user_id)
-        security_forms_engine.reset_pdf_forms(in_path, out_path)
+        await save_pdf_upload_async(file, in_path, user_id=user_id)
+        work_in_path, was_encrypted, orig_perms = await asyncio.to_thread(
+            _prepare_studio_input_pdf, in_path, password, temp_dir
+        )
+        await asyncio.to_thread(security_forms_engine.reset_pdf_forms, work_in_path, out_path)
+        if was_encrypted:
+            _reencrypt_studio_output_if_needed(out_path, password, orig_perms)
         return StreamingResponse(
             io.BytesIO(out_path.read_bytes()),
             media_type="application/pdf",
@@ -6464,14 +6680,18 @@ async def studio_forms_reset(
 @app.post("/api/studio/forms/export")
 async def studio_forms_export(
     file: UploadFile = File(...),
+    password: str = Form(""),
     user_id: str | None = Depends(current_user)
 ):
     """Exports all form field values into JSON."""
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path, user_id=user_id)
-        data = security_forms_engine.export_form_data(in_path)
+        await save_pdf_upload_async(file, in_path, user_id=user_id)
+        work_in_path, _was_encrypted, _orig_perms = await asyncio.to_thread(
+            _prepare_studio_input_pdf, in_path, password, temp_dir
+        )
+        data = await asyncio.to_thread(security_forms_engine.export_form_data, work_in_path)
         return JSONResponse(data)
     except HTTPException:
         raise
@@ -6485,6 +6705,7 @@ async def studio_forms_export(
 async def studio_forms_import(
     file: UploadFile = File(...),
     data: str = Form(...),
+    password: str = Form(""),
     user_id: str | None = Depends(current_user)
 ):
     """Imports form field data from JSON dictionary."""
@@ -6492,9 +6713,14 @@ async def studio_forms_import(
     try:
         in_path = temp_dir / "input.pdf"
         out_path = temp_dir / "imported.pdf"
-        save_pdf_upload(file, in_path, user_id=user_id)
+        await save_pdf_upload_async(file, in_path, user_id=user_id)
+        work_in_path, was_encrypted, orig_perms = await asyncio.to_thread(
+            _prepare_studio_input_pdf, in_path, password, temp_dir
+        )
         imported_values = parse_options(data)
-        security_forms_engine.import_form_data(in_path, out_path, imported_values)
+        await asyncio.to_thread(security_forms_engine.import_form_data, work_in_path, out_path, imported_values)
+        if was_encrypted:
+            _reencrypt_studio_output_if_needed(out_path, password, orig_perms)
         return StreamingResponse(
             io.BytesIO(out_path.read_bytes()),
             media_type="application/pdf",
@@ -6516,6 +6742,7 @@ async def studio_sign_visual(
     rect: str | None = Form(None),
     signer_name: str = Form("Signed"),
     date_str: str = Form(""),
+    password: str = Form(""),
     user_id: str | None = Depends(current_user)
 ):
     """Applies a visual electronic signature (drawn or typed) onto a document page."""
@@ -6523,7 +6750,10 @@ async def studio_sign_visual(
     try:
         in_path = temp_dir / "input.pdf"
         out_path = temp_dir / "visual_signed.pdf"
-        save_pdf_upload(file, in_path, user_id=user_id)
+        await save_pdf_upload_async(file, in_path, user_id=user_id)
+        work_in_path, was_encrypted, orig_perms = await asyncio.to_thread(
+            _prepare_studio_input_pdf, in_path, password, temp_dir
+        )
 
         rect_coords = None
         if rect:
@@ -6532,11 +6762,14 @@ async def studio_sign_visual(
             except Exception:
                 pass
 
-        security_forms_engine.add_visual_signature(
-            in_path, out_path, signature_data,
+        await asyncio.to_thread(
+            security_forms_engine.add_visual_signature,
+            work_in_path, out_path, signature_data,
             page_num=page, rect=rect_coords,
             signer_name=signer_name, date_str=date_str
         )
+        if was_encrypted:
+            _reencrypt_studio_output_if_needed(out_path, password, orig_perms)
         return StreamingResponse(
             io.BytesIO(out_path.read_bytes()),
             media_type="application/pdf",
@@ -6559,6 +6792,7 @@ async def studio_sign_digital(
     visual_appearance: str | None = Form(None),
     custom_cert: UploadFile | None = File(None),
     custom_key: UploadFile | None = File(None),
+    password: str = Form(""),
     user_id: str | None = Depends(current_user)
 ):
     """Signs a PDF using standard detached PKCS#7 / CMS digital signatures (SHA-256 + RSA-2048)."""
@@ -6566,7 +6800,10 @@ async def studio_sign_digital(
     try:
         in_path = temp_dir / "input.pdf"
         out_path = temp_dir / "digitally_signed.pdf"
-        save_pdf_upload(file, in_path, user_id=user_id)
+        await save_pdf_upload_async(file, in_path, user_id=user_id)
+        work_in_path, _was_encrypted, _orig_perms = await asyncio.to_thread(
+            _prepare_studio_input_pdf, in_path, password, temp_dir
+        )
 
         if custom_cert and custom_key:
             cert_path = temp_dir / "custom.crt"
@@ -6576,7 +6813,9 @@ async def studio_sign_digital(
             cert_pem = cert_path.read_bytes()
             key_pem = key_path.read_bytes()
         else:
-            cert_pem, key_pem = security_forms_engine.generate_test_certificate(signer_name)
+            cert_pem, key_pem = await asyncio.to_thread(
+                security_forms_engine.generate_test_certificate, signer_name
+            )
 
         vis_dict = None
         if visual_appearance:
@@ -6585,8 +6824,9 @@ async def studio_sign_digital(
             except Exception:
                 pass
 
-        security_forms_engine.sign_pdf_digitally(
-            in_path, out_path, cert_pem, key_pem,
+        await asyncio.to_thread(
+            security_forms_engine.sign_pdf_digitally,
+            work_in_path, out_path, cert_pem, key_pem,
             reason=reason, location=location, visual_appearance=vis_dict
         )
         return StreamingResponse(
@@ -6605,14 +6845,15 @@ async def studio_sign_digital(
 @app.post("/api/studio/sign/verify")
 async def studio_sign_verify(
     file: UploadFile = File(...),
+    password: str = Form(""),
     user_id: str | None = Depends(current_user)
 ):
     """Cryptographically inspects and verifies all detached digital signatures."""
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path, user_id=user_id)
-        report = security_forms_engine.verify_pdf_signatures(in_path)
+        await save_pdf_upload_async(file, in_path, user_id=user_id)
+        report = await asyncio.to_thread(security_forms_engine.verify_pdf_signatures, in_path, password=password)
         return report
     except HTTPException:
         raise
@@ -6738,9 +6979,9 @@ async def studio_security_inspect(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
-        save_pdf_upload(file, in_path, user_id=user_id)
+        await save_pdf_upload_async(file, in_path, user_id=user_id)
 
-        report = security_forms_engine.inspect_pdf_security(in_path, password=password)
+        report = await asyncio.to_thread(security_forms_engine.inspect_pdf_security, in_path, password=password)
         return report
     except HTTPException:
         raise
@@ -6754,6 +6995,7 @@ async def studio_security_inspect(
 async def studio_security_sanitize(
     file: UploadFile = File(...),
     options: str | None = Form(None),
+    password: str = Form(""),
     user_id: str | None = Depends(current_user)
 ):
     """Removes sensitive document metadata, attachments, annotations, and active JavaScript."""
@@ -6761,7 +7003,10 @@ async def studio_security_sanitize(
     try:
         in_path = temp_dir / "input.pdf"
         out_path = temp_dir / "sanitized.pdf"
-        save_pdf_upload(file, in_path, user_id=user_id)
+        await save_pdf_upload_async(file, in_path, user_id=user_id)
+        work_in_path, was_encrypted, orig_perms = await asyncio.to_thread(
+            _prepare_studio_input_pdf, in_path, password, temp_dir
+        )
 
         opts_dict = None
         if options:
@@ -6771,7 +7016,11 @@ async def studio_security_sanitize(
                 pass
 
         sanitize_report: dict[str, Any] = {}
-        security_forms_engine.sanitize_pdf(in_path, out_path, targets=opts_dict, report=sanitize_report)
+        await asyncio.to_thread(
+            security_forms_engine.sanitize_pdf, work_in_path, out_path, targets=opts_dict, report=sanitize_report
+        )
+        if was_encrypted:
+            _reencrypt_studio_output_if_needed(out_path, password, orig_perms)
         return StreamingResponse(
             io.BytesIO(out_path.read_bytes()),
             media_type="application/pdf",
@@ -6792,6 +7041,7 @@ async def studio_security_sanitize(
 async def studio_security_redact(
     file: UploadFile = File(...),
     redactions: str = Form(...),
+    password: str = Form(""),
     user_id: str | None = Depends(current_user)
 ):
     """Permanently obliterates text glyphs and vectors via hardened redaction."""
@@ -6799,13 +7049,20 @@ async def studio_security_redact(
     try:
         in_path = temp_dir / "input.pdf"
         out_path = temp_dir / "redacted.pdf"
-        save_pdf_upload(file, in_path, user_id=user_id)
+        await save_pdf_upload_async(file, in_path, user_id=user_id)
+        work_in_path, was_encrypted, orig_perms = await asyncio.to_thread(
+            _prepare_studio_input_pdf, in_path, password, temp_dir
+        )
 
         redactions_list = parse_options(redactions)
         if isinstance(redactions_list, dict):
             redactions_list = [redactions_list]
 
-        security_forms_engine.apply_hardened_redaction(in_path, out_path, redactions_list)
+        await asyncio.to_thread(
+            security_forms_engine.apply_hardened_redaction, work_in_path, out_path, redactions_list
+        )
+        if was_encrypted:
+            _reencrypt_studio_output_if_needed(out_path, password, orig_perms)
         return StreamingResponse(
             io.BytesIO(out_path.read_bytes()),
             media_type="application/pdf",
@@ -8205,6 +8462,21 @@ def api_docs_help_fallback():
     return RedirectResponse(url="/spec/swagger")
 
 
+@app.get("/api/docs", include_in_schema=False)
+def api_slash_docs_redirect():
+    return RedirectResponse(url="/spec/swagger", status_code=301)
+
+
+@app.get("/refunds", include_in_schema=False)
+def refunds_alias_redirect():
+    return RedirectResponse(url="/refund", status_code=301)
+
+
+@app.get("/results", include_in_schema=False)
+def results_alias_redirect():
+    return RedirectResponse(url="/history", status_code=301)
+
+
 @app.get("/spec/openapi.json", include_in_schema=False)
 def public_openapi_schema():
     """Publish the generated API contract without exposing application data or credentials."""
@@ -8391,6 +8663,9 @@ LEGACY_SLUG_REDIRECTS = {
     "compress-image": "compress-image-online",
     "resize-image": "resize-image-dimensions",
     "merge-photos": "merge-photos-online",
+    "page-organizer": "organize-pdf",
+    "add-text": "edit-pdf",
+    "exam-resizer": "ssc-photo-resizer",
 }
 
 
