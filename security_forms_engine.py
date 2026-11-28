@@ -1130,12 +1130,20 @@ def sanitize_pdf(
     return output
 
 
-def apply_hardened_redaction(source: Path, output: Path, redactions: list[dict[str, Any]]) -> Path:
+def apply_hardened_redaction(
+    source: Path,
+    output: Path,
+    redactions: list[dict[str, Any]],
+    *,
+    require_match: bool = False,
+) -> Path:
     """Applies irreversible visual and stream redaction, permanently destroying character glyphs and vectors."""
     if not source.exists():
         raise ValueError(f"File '{source.name}' does not exist.")
 
     doc = fitz.open(str(source))
+    matched_count = 0
+    requested_text = False
     try:
         for item in redactions:
             raw_page = item.get("page", 0)
@@ -1148,7 +1156,9 @@ def apply_hardened_redaction(source: Path, output: Path, redactions: list[dict[s
                 target_pages = (page_idx,)
 
             rect_coords = item.get("rect")
-            text_target = item.get("text")
+            text_target = item.get("text") or item.get("word")
+            if text_target:
+                requested_text = True
 
             for page_idx in target_pages:
                 page = doc[page_idx]
@@ -1156,14 +1166,21 @@ def apply_hardened_redaction(source: Path, output: Path, redactions: list[dict[s
                 if rect_coords:
                     rects_to_redact.append(fitz.Rect(rect_coords))
                 elif text_target:
+                    clean_target = " ".join(str(text_target).split())
                     found_rects = page.search_for(str(text_target))
+                    if not found_rects and clean_target and clean_target != str(text_target):
+                        found_rects = page.search_for(clean_target)
                     rects_to_redact.extend(found_rects)
 
                 for r in rects_to_redact:
                     page.add_redact_annot(r, fill=(0, 0, 0))
+                    matched_count += 1
 
                 if rects_to_redact:
                     page.apply_redactions()
+
+        if require_match and requested_text and matched_count == 0:
+            raise ValueError("The specified keyword or phrase was not found in this PDF, so no redaction was made.")
 
         out_bytes = doc.tobytes(garbage=4, clean=True, deflate=True)
     finally:

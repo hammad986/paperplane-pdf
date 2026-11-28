@@ -340,6 +340,51 @@ def send_admin_login_otp(to_email: str, otp_code: str, client_ip: str = "Unknown
     return _dispatch_email(to_email, subject, html_body, text_body, allow_simulated=False)
 
 
+def send_admin_unlock_otp(to_email: str, otp_code: str, client_ip: str = "Unknown") -> bool:
+    """Dispatch a 6-digit recovery OTP to the superadmin after 3 failed admin attempts."""
+    now_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    safe_client_ip = escape(str(client_ip), quote=True)
+    subject = "Paperplane PDF admin retry verification"
+
+    text_body = (
+        f"Admin Retry Verification Required\n\n"
+        f"3 consecutive failed admin login attempts were detected from IP {client_ip}.\n"
+        f"Enter the 6-digit verification code below to grant 3 fresh sign-in attempts:\n\n"
+        f"Verification code: {otp_code}\n\n"
+        f"Time: {now_utc}\n"
+        f"Validity: 10 minutes\n\n"
+        f"If you did not initiate this request, review active admin sessions immediately.\n\n"
+        f"— Paperplane PDF Security System"
+    )
+
+    html_body = f"""<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0b1113; color: #f0f5f4; margin: 0; padding: 32px 16px;">
+  <div style="max-width: 540px; margin: 0 auto; background-color: #141f22; border: 1px solid #d97706; border-radius: 12px; padding: 28px; box-shadow: 0 8px 30px rgba(0,0,0,0.5);">
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+      <div style="background-color: #ff4b26; width: 34px; height: 34px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; color: #ffffff; text-align: center; line-height: 34px;">P</div>
+      <span style="font-size: 18px; font-weight: 700; color: #f0f5f4; margin-left: 8px;">Paperplane Admin Verification</span>
+    </div>
+    <h2 style="font-size: 20px; color: #fbbf24; margin-top: 0; margin-bottom: 12px;">3 Failed Admin Attempts — Verify to Retry</h2>
+    <p style="color: #8ca3a2; font-size: 14px; line-height: 1.5; margin-bottom: 20px;">
+      Three consecutive failed admin login attempts were recorded from IP <strong style="color: #ffffff;">{safe_client_ip}</strong>.
+      Enter this 6-digit code in the Admin Console to grant 3 fresh login attempts:
+    </p>
+    <div style="font-size: 38px; font-weight: 900; letter-spacing: 12px; color: #fbbf24; background: #0f181a; border: 2px dashed #f59e0b; padding: 18px 24px; text-align: center; border-radius: 10px; margin: 24px 0; font-family: monospace;">
+      {otp_code}
+    </div>
+    <div style="background-color: #0f181a; border: 1px solid #233438; border-radius: 8px; padding: 14px; margin-bottom: 24px; font-size: 13px;">
+      <div style="margin-bottom: 6px;"><strong style="color: #8ca3a2;">Time:</strong> <span style="color: #f0f5f4;">{now_utc}</span></div>
+      <div style="margin-bottom: 6px;"><strong style="color: #8ca3a2;">Validity:</strong> <span style="color: #34d399;">10 minutes</span></div>
+      <div><strong style="color: #8ca3a2;">Notice:</strong> <span style="color: #f87171;">Never share this code with anyone.</span></div>
+    </div>
+  </div>
+</body>
+</html>"""
+    return _dispatch_email(to_email, subject, html_body, text_body, allow_simulated=False)
+
+
 def send_admin_lockout_alert(to_email: str, client_ip: str = "Unknown", failure_reason: str = "") -> bool:
     """Dispatches a critical security lockout notification after 3 failed admin login attempts."""
     now_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
@@ -440,6 +485,60 @@ def send_waitlist_alert(signup_email: str, platform: str = "all", waitlist_posit
 </body>
 </html>"""
     return _dispatch_email(admin_email, subject, html_body, text_body)
+
+
+def send_support_ticket_alert(
+    ticket_ref: str,
+    reply_email: str,
+    category: str,
+    subject: str,
+    message: str,
+    *,
+    order_id: str = "",
+    page_context: dict | None = None,
+    ip_address: str = "",
+) -> bool:
+    """Forward a solo-founder customer support ticket summary cleanly to the configured owner mailbox."""
+    admin_email = os.getenv("ADMIN_ALERT_EMAIL", "").strip() or "mdhammad2906@gmail.com"
+    now_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    safe_subject = re.sub(r"[\r\n\x00-\x1f\x7f]", "", str(subject))[:120]
+    safe_cat = re.sub(r"[\r\n\x00-\x1f\x7f]", "", str(category))[:40]
+    email_subject = f"[{ticket_ref}] Paperplane Support ({safe_cat}): {safe_subject}"
+
+    ctx_lines = "\n".join(f"  - {k}: {v}" for k, v in (page_context or {}).items()) or "  - (none attached)"
+    text_body = (
+        f"New Customer Support Ticket — {ticket_ref}\n\n"
+        f"Reply-To Email: {reply_email}\n"
+        f"Category:       {category}\n"
+        f"Order ID:       {order_id or '—'}\n"
+        f"Time (UTC):     {now_utc}\n"
+        f"Client IP:      {ip_address or 'unknown'}\n\n"
+        f"Subject:\n{subject}\n\n"
+        f"Message:\n{message}\n\n"
+        f"Context:\n{ctx_lines}\n\n"
+        f"Review in Admin Console: {PAPERPLANE_PUBLIC_URL}/admin\n"
+    )
+    ctx_html = "".join(
+        f"<div><strong style='color:#a3b8b6;'>{escape(str(k))}:</strong> <span style='color:#f0f5f4;'>{escape(str(v))}</span></div>"
+        for k, v in (page_context or {}).items()
+    )
+    html_body = f"""<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background:#0d1416; color:#f0f5f4; padding:24px;">
+  <div style="max-width:580px; margin:0 auto; background:#141e21; border:1px solid #28393d; border-radius:12px; padding:24px;">
+    <h2 style="margin:0 0 12px; color:#ff4b26;">Support Ticket {escape(ticket_ref)}</h2>
+    <div style="background:#1a2528; border:1px solid #33484c; border-radius:8px; padding:12px; font-size:13px; margin-bottom:16px;">
+      <div><strong style="color:#a3b8b6;">Reply To:</strong> <a style="color:#ff8a65;" href="mailto:{escape(reply_email, quote=True)}">{escape(reply_email)}</a></div>
+      <div><strong style="color:#a3b8b6;">Category:</strong> {escape(category)}</div>
+      <div><strong style="color:#a3b8b6;">Order ID:</strong> {escape(order_id or '—')}</div>
+      <div><strong style="color:#a3b8b6;">Time:</strong> {now_utc}</div>
+      {ctx_html}
+    </div>
+    <h3 style="margin:0 0 8px; font-size:15px;">{escape(subject)}</h3>
+    <p style="white-space:pre-wrap; line-height:1.5; color:#d7e4e2; font-size:13.5px;">{escape(message)}</p>
+  </div>
+</body></html>"""
+    return _dispatch_email(admin_email, email_subject, html_body, text_body, allow_simulated=True)
 
 
 def send_password_reset_email(to_email: str, reset_token: str, base_url: str | None = None) -> bool:

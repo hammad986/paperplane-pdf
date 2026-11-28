@@ -1,0 +1,872 @@
+{
+  "checks": {
+    "id50_developers": {
+      "copy_btn": "\u25a2\nCopy Snippet",
+      "has_copy_copy": false,
+      "has_space_before_sk": true,
+      "copy_feedback": "\u25a2\nCopy Snippet"
+    },
+    "id56_waitlist": {
+      "selectedVal": "macos",
+      "activeFocusedId": "waitlist-email",
+      "selectedCards": 1,
+      "toastTexts": [
+        "i Selected macOS (Apple Silicon & Intel DMG) \u2014 enter your email above to join the waitlist."
+      ]
+    },
+    "auth_settings_support": {
+      "signed_in_name": "qa_e2e_1795851738@example.test",
+      "id51_privacy_tab": {
+        "btnRect": {
+          "x": 188,
+          "y": 440.484375,
+          "width": 235,
+          "height": 54,
+          "top": 440.484375,
+          "right": 423,
+          "bottom": 494.484375,
+          "left": 188
+        },
+        "smallRect": {
+          "x": 235,
+          "y": 470.15625,
+          "width": 155,
+          "height": 13.640625,
+          "top": 470.15625,
+          "right": 390,
+          "bottom": 483.796875,
+          "left": 235
+        },
+        "btnScrollH": 53,
+        "btnClientH": 53
+      },
+      "billing_ui": {
+        "tierBadge": "FREE",
+        "expiryRowHidden": true,
+        "orderSectionVisible": true,
+        "orderText": "No payment orders recorded for this account yet."
+      },
+      "faq_toggle": {
+        "before": "false",
+        "after": "true",
+        "details_count": 0
+      },
+      "support_ticket_ref": "PP-A6FE0B",
+      "ticket_visible_in_list": true
+    },
+    "billing_return_banner": {
+      "hidden": false,
+      "text": "Payment verification needs attention\nNot Found (Order order_pp_test_banner)\nView Plan & Orders\n\u00d7"
+    },
+    "id333_metadata": {
+      "prefill": {
+        "title": "Course Lecture Notes",
+        "author": "Prof. A. Sharma",
+        "subject": "Systems Engineering"
+      },
+      "local_out": {
+        "format": "PDF 1.7",
+        "title": "Verified LaTeX Title Local",
+        "author": "Prof. A. Sharma",
+        "subject": "Systems Engineering",
+        "keywords": "",
+        "creator": "LaTeX with hyperref",
+        "producer": "pdfTeX-1.40.25",
+        "creationDate": "D:20200201000000Z",
+        "modDate": "",
+        "trapped": "",
+        "encryption": null
+      },
+      "server_out": {
+        "format": "PDF 1.7",
+        "title": "Verified LaTeX Title Server",
+        "author": "Prof. A. Sharma",
+        "subject": "Systems Engineering",
+        "keywords": "",
+        "creator": "LaTeX with hyperref",
+        "producer": "pdfTeX-1.40.25",
+        "creationDate": "D:20200201000000Z",
+        "modDate": "",
+        "trapped": "",
+        "encryption": null
+      }
+    },
+    "id430_quota_preflight": {
+      "progressHidden": true,
+      "upgradeVisible": true,
+      "quotaText": "10 / 10"
+    },
+    "studio": {
+      "id454_error_on_load": false,
+      "id454_error_on_reload": false,
+      "thumb_count_reloaded": 5,
+      "id374_id451_after_drag": {
+        "thumbs": 5,
+        "objs": [],
+        "undoHidden": true,
+        "undoText": "",
+        "toasts": [
+          "OK Restored multi_5page.pdf on page 1"
+        ]
+      },
+      "id433_flatten": {
+        "widgets": 0,
+        "has_filled_text": true
+      },
+      "id427_redaction": {
+        "miss_status": 422,
+        "token_eradicated": true
+      },
+      "id428_scans": [
+        "...",
+        "...",
+        "..."
+      ],
+      "id375_compress_pages": 5,
+      "id376_ocr_pages": 5
+    },
+    "ai_workspace": {
+      "id369_fresh": {
+        "docBarHidden": true,
+        "docName": "document.pdf"
+      },
+      "id369_after_nav": {
+        "bannerVisible": false,
+        "docName": "notes_test.pdf"
+      },
+      "id441_no_bm25_leak": true,
+      "ai_chat_excerpt": " word is written on page two?\nYou: What is the capital of Japan?\nPaperplane AI:\nComplete\nThinking\nExtracting\nAnalysing\nSearching\nGenerating\n\nNo matching passage was found in the open PDF. Clear the PDF or ask about text inside the document."
+    },
+    "id340_mobile_zindex": {
+      "modalHidden": false,
+      "modalZ": "1200",
+      "navZ": "1000",
+      "hitAtBottomTag": "DIV",
+      "hitInsideModal": true,
+      "scrollOverflow": false
+    },
+    "admin_hammad_plan": {
+      "owner_email_leaked_public": false,
+      "support_email_forwarded_to_founder": true,
+      "id459_wrong_statuses": [
+        401,
+        401,
+        403
+      ],
+      "id459_has_24h_lock": false,
+      "id459_verification_prompt": true,
+      "id459_recovery_ui_visible": true,
+      "id460_wrong_code_status": 401,
+      "support_ticket_visible": true,
+      "support_resolved": true,
+      "id458_sessions_loaded": true,
+      "id458_revoke_btns_count": 2,
+      "id458_revoked_peer_status": 401
+    }
+  },
+  "downloads": {
+    "metadata_local": "/mnt/c/Users/mdham/Downloads/pdf_splitter/pdf_splitter/reports/launch-audit-v30/e2e_evidence/downloads/metadata_local.pdf",
+    "metadata_server": "/mnt/c/Users/mdham/Downloads/pdf_splitter/pdf_splitter/reports/launch-audit-v30/e2e_evidence/downloads/metadata_server.pdf",
+    "forms_flattened": "/mnt/c/Users/mdham/Downloads/pdf_splitter/pdf_splitter/reports/launch-audit-v30/e2e_evidence/downloads/forms_flattened_v30.pdf",
+    "redacted": "/mnt/c/Users/mdham/Downloads/pdf_splitter/pdf_splitter/reports/launch-audit-v30/e2e_evidence/downloads/notes_redacted_v30.pdf",
+    "studio_compressed": "/mnt/c/Users/mdham/Downloads/pdf_splitter/pdf_splitter/reports/launch-audit-v30/e2e_evidence/downloads/studio_compressed_v30.pdf",
+    "studio_ocr": "/mnt/c/Users/mdham/Downloads/pdf_splitter/pdf_splitter/reports/launch-audit-v30/e2e_evidence/downloads/studio_ocr_v30.pdf"
+  },
+  "console_errors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 422 (Unprocessable Entity)"
+  ],
+  "page_errors": [],
+  "http_errors": [
+    {
+      "url": "http://127.0.0.1:8765/api/billing/verify-order/order_pp_test_banner",
+      "status": 404
+    },
+    {
+      "url": "http://127.0.0.1:8765/api/studio/security/redact",
+      "status": 422
+    }
+  ],
+  "viewports": {
+    "guest_1920": {
+      "label": "guest_1920",
+      "vw": 1920,
+      "vh": 1080,
+      "scrollW": 1920,
+      "horizontalOverflow": false,
+      "trailVisible": true,
+      "crumbCat": {
+        "text": "Workspace",
+        "rect": {
+          "x": 388,
+          "y": 12,
+          "width": 71,
+          "height": 16,
+          "top": 12,
+          "right": 459,
+          "bottom": 28,
+          "left": 388
+        }
+      },
+      "crumbTool": {
+        "text": "Tool Desk",
+        "rect": {
+          "x": 480,
+          "y": 12,
+          "width": 60,
+          "height": 16,
+          "top": 12,
+          "right": 540,
+          "bottom": 28,
+          "left": 480
+        }
+      },
+      "mobPillVisible": false,
+      "mobPillText": "Tool Desk",
+      "quotaText": "0 / 10",
+      "quotaBox": {
+        "x": 14,
+        "y": 915.703125,
+        "width": 241,
+        "height": 45.296875,
+        "top": 915.703125,
+        "right": 255,
+        "bottom": 961,
+        "left": 14
+      },
+      "quotaTextRect": {
+        "x": 145,
+        "y": 926.703125,
+        "width": 99,
+        "height": 14.296875,
+        "top": 926.703125,
+        "right": 244,
+        "bottom": 941,
+        "left": 145
+      },
+      "topbarDisplay": "flex",
+      "topbarRect": {
+        "x": 270,
+        "y": 0,
+        "width": 1650,
+        "height": 41,
+        "top": 0,
+        "right": 1920,
+        "bottom": 41,
+        "left": 270
+      }
+    },
+    "guest_1366": {
+      "label": "guest_1366",
+      "vw": 1366,
+      "vh": 768,
+      "scrollW": 1366,
+      "horizontalOverflow": false,
+      "trailVisible": true,
+      "crumbCat": {
+        "text": "Workspace",
+        "rect": {
+          "x": 371,
+          "y": 18.5,
+          "width": 66,
+          "height": 15,
+          "top": 18.5,
+          "right": 437,
+          "bottom": 33.5,
+          "left": 371
+        }
+      },
+      "crumbTool": {
+        "text": "Tool Desk",
+        "rect": {
+          "x": 458,
+          "y": 18.5,
+          "width": 56,
+          "height": 15,
+          "top": 18.5,
+          "right": 514,
+          "bottom": 33.5,
+          "left": 458
+        }
+      },
+      "mobPillVisible": false,
+      "mobPillText": "Tool Desk",
+      "quotaText": "0 / 10",
+      "quotaBox": {
+        "x": 14,
+        "y": 603.703125,
+        "width": 241,
+        "height": 45.296875,
+        "top": 603.703125,
+        "right": 255,
+        "bottom": 649,
+        "left": 14
+      },
+      "quotaTextRect": {
+        "x": 145,
+        "y": 614.703125,
+        "width": 99,
+        "height": 14.296875,
+        "top": 614.703125,
+        "right": 244,
+        "bottom": 629,
+        "left": 145
+      },
+      "topbarDisplay": "grid",
+      "topbarRect": {
+        "x": 270,
+        "y": 0,
+        "width": 1096,
+        "height": 76,
+        "top": 0,
+        "right": 1366,
+        "bottom": 76,
+        "left": 270
+      }
+    },
+    "guest_1104": {
+      "label": "guest_1104",
+      "vw": 1104,
+      "vh": 768,
+      "scrollW": 1104,
+      "horizontalOverflow": false,
+      "trailVisible": true,
+      "crumbCat": {
+        "text": "Workspace",
+        "rect": {
+          "x": 371,
+          "y": 18.5,
+          "width": 66,
+          "height": 15,
+          "top": 18.5,
+          "right": 437,
+          "bottom": 33.5,
+          "left": 371
+        }
+      },
+      "crumbTool": {
+        "text": "Tool Desk",
+        "rect": {
+          "x": 458,
+          "y": 18.5,
+          "width": 56,
+          "height": 15,
+          "top": 18.5,
+          "right": 514,
+          "bottom": 33.5,
+          "left": 458
+        }
+      },
+      "mobPillVisible": false,
+      "mobPillText": "Tool Desk",
+      "quotaText": "0 / 10",
+      "quotaBox": {
+        "x": 14,
+        "y": 604.359375,
+        "width": 241,
+        "height": 44.640625,
+        "top": 604.359375,
+        "right": 255,
+        "bottom": 649,
+        "left": 14
+      },
+      "quotaTextRect": {
+        "x": 136,
+        "y": 615.359375,
+        "width": 110,
+        "height": 13.640625,
+        "top": 615.359375,
+        "right": 246,
+        "bottom": 629,
+        "left": 136
+      },
+      "topbarDisplay": "flex",
+      "topbarRect": {
+        "x": 270,
+        "y": 0,
+        "width": 834,
+        "height": 109,
+        "top": 0,
+        "right": 1104,
+        "bottom": 109,
+        "left": 270
+      }
+    },
+    "guest_820": {
+      "label": "guest_820",
+      "vw": 820,
+      "vh": 1180,
+      "scrollW": 820,
+      "horizontalOverflow": false,
+      "trailVisible": false,
+      "crumbCat": {
+        "text": "Workspace",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "crumbTool": {
+        "text": "Tool Desk",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "mobPillVisible": true,
+      "mobPillText": "Tool Desk",
+      "quotaText": "0 / 10",
+      "quotaBox": {
+        "x": -276,
+        "y": 949.703125,
+        "width": 261,
+        "height": 45.296875,
+        "top": 949.703125,
+        "right": -15,
+        "bottom": 995,
+        "left": -276
+      },
+      "quotaTextRect": {
+        "x": -145,
+        "y": 960.703125,
+        "width": 119,
+        "height": 14.296875,
+        "top": 960.703125,
+        "right": -26,
+        "bottom": 975,
+        "left": -145
+      },
+      "topbarDisplay": "flex",
+      "topbarRect": {
+        "x": 0,
+        "y": 0,
+        "width": 820,
+        "height": 64,
+        "top": 0,
+        "right": 820,
+        "bottom": 64,
+        "left": 0
+      }
+    },
+    "guest_390": {
+      "label": "guest_390",
+      "vw": 390,
+      "vh": 844,
+      "scrollW": 390,
+      "horizontalOverflow": false,
+      "trailVisible": false,
+      "crumbCat": {
+        "text": "Workspace",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "crumbTool": {
+        "text": "Tool Desk",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "mobPillVisible": true,
+      "mobPillText": "Tool Desk",
+      "quotaText": "0 / 10",
+      "quotaBox": {
+        "x": -276,
+        "y": 613.703125,
+        "width": 261,
+        "height": 45.296875,
+        "top": 613.703125,
+        "right": -15,
+        "bottom": 659,
+        "left": -276
+      },
+      "quotaTextRect": {
+        "x": -145,
+        "y": 624.703125,
+        "width": 119,
+        "height": 14.296875,
+        "top": 624.703125,
+        "right": -26,
+        "bottom": 639,
+        "left": -145
+      },
+      "topbarDisplay": "flex",
+      "topbarRect": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 64,
+        "top": 0,
+        "right": 390,
+        "bottom": 64,
+        "left": 0
+      }
+    },
+    "signedin_1366": {
+      "label": "signedin_1366",
+      "vw": 1366,
+      "vh": 768,
+      "scrollW": 1366,
+      "horizontalOverflow": false,
+      "trailVisible": true,
+      "crumbCat": {
+        "text": "Workspace",
+        "rect": {
+          "x": 371,
+          "y": 18.5,
+          "width": 66,
+          "height": 15,
+          "top": 18.5,
+          "right": 437,
+          "bottom": 33.5,
+          "left": 371
+        }
+      },
+      "crumbTool": {
+        "text": "Tool Desk",
+        "rect": {
+          "x": 458,
+          "y": 18.5,
+          "width": 56,
+          "height": 15,
+          "top": 18.5,
+          "right": 514,
+          "bottom": 33.5,
+          "left": 458
+        }
+      },
+      "mobPillVisible": false,
+      "mobPillText": "Tool Desk",
+      "quotaText": "0 / 10",
+      "quotaBox": {
+        "x": 14,
+        "y": 603.703125,
+        "width": 241,
+        "height": 45.296875,
+        "top": 603.703125,
+        "right": 255,
+        "bottom": 649,
+        "left": 14
+      },
+      "quotaTextRect": {
+        "x": 145,
+        "y": 614.703125,
+        "width": 99,
+        "height": 14.296875,
+        "top": 614.703125,
+        "right": 244,
+        "bottom": 629,
+        "left": 145
+      },
+      "topbarDisplay": "grid",
+      "topbarRect": {
+        "x": 270,
+        "y": 0,
+        "width": 1096,
+        "height": 76,
+        "top": 0,
+        "right": 1366,
+        "bottom": 76,
+        "left": 270
+      }
+    },
+    "signedin_820": {
+      "label": "signedin_820",
+      "vw": 820,
+      "vh": 1180,
+      "scrollW": 820,
+      "horizontalOverflow": false,
+      "trailVisible": false,
+      "crumbCat": {
+        "text": "Workspace",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "crumbTool": {
+        "text": "Tool Desk",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "mobPillVisible": true,
+      "mobPillText": "Tool Desk",
+      "quotaText": "0 / 10",
+      "quotaBox": {
+        "x": -276,
+        "y": 949.703125,
+        "width": 261,
+        "height": 45.296875,
+        "top": 949.703125,
+        "right": -15,
+        "bottom": 995,
+        "left": -276
+      },
+      "quotaTextRect": {
+        "x": -145,
+        "y": 960.703125,
+        "width": 119,
+        "height": 14.296875,
+        "top": 960.703125,
+        "right": -26,
+        "bottom": 975,
+        "left": -145
+      },
+      "topbarDisplay": "flex",
+      "topbarRect": {
+        "x": 0,
+        "y": 0,
+        "width": 820,
+        "height": 64,
+        "top": 0,
+        "right": 820,
+        "bottom": 64,
+        "left": 0
+      }
+    },
+    "signedin_390": {
+      "label": "signedin_390",
+      "vw": 390,
+      "vh": 844,
+      "scrollW": 390,
+      "horizontalOverflow": false,
+      "trailVisible": false,
+      "crumbCat": {
+        "text": "Workspace",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "crumbTool": {
+        "text": "Tool Desk",
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "top": 0,
+          "right": 0,
+          "bottom": 0,
+          "left": 0
+        }
+      },
+      "mobPillVisible": true,
+      "mobPillText": "Tool Desk",
+      "quotaText": "0 / 10",
+      "quotaBox": {
+        "x": -276,
+        "y": 613.703125,
+        "width": 261,
+        "height": 45.296875,
+        "top": 613.703125,
+        "right": -15,
+        "bottom": 659,
+        "left": -276
+      },
+      "quotaTextRect": {
+        "x": -145,
+        "y": 624.703125,
+        "width": 119,
+        "height": 14.296875,
+        "top": 624.703125,
+        "right": -26,
+        "bottom": 639,
+        "left": -145
+      },
+      "topbarDisplay": "flex",
+      "topbarRect": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 64,
+        "top": 0,
+        "right": 390,
+        "bottom": 64,
+        "left": 0
+      }
+    },
+    "studio_topbar_1024": {
+      "label": "studio_topbar_1024",
+      "vw": 1024,
+      "vh": 768,
+      "scrollW": 1024,
+      "horizontalOverflow": false,
+      "trailVisible": true,
+      "crumbCat": {
+        "text": "Workspace",
+        "rect": {
+          "x": 371,
+          "y": 18.5,
+          "width": 66,
+          "height": 15,
+          "top": 18.5,
+          "right": 437,
+          "bottom": 33.5,
+          "left": 371
+        }
+      },
+      "crumbTool": {
+        "text": "Advanced PDF Studio",
+        "rect": {
+          "x": 458,
+          "y": 18.5,
+          "width": 127,
+          "height": 15,
+          "top": 18.5,
+          "right": 585,
+          "bottom": 33.5,
+          "left": 458
+        }
+      },
+      "mobPillVisible": false,
+      "mobPillText": "Studio",
+      "quotaText": "0 / 10",
+      "quotaBox": {
+        "x": 14,
+        "y": 604.359375,
+        "width": 241,
+        "height": 44.640625,
+        "top": 604.359375,
+        "right": 255,
+        "bottom": 649,
+        "left": 14
+      },
+      "quotaTextRect": {
+        "x": 136,
+        "y": 615.359375,
+        "width": 110,
+        "height": 13.640625,
+        "top": 615.359375,
+        "right": 246,
+        "bottom": 629,
+        "left": 136
+      },
+      "topbarDisplay": "grid",
+      "topbarRect": {
+        "x": 270,
+        "y": 0,
+        "width": 754,
+        "height": 109,
+        "top": 0,
+        "right": 1024,
+        "bottom": 109,
+        "left": 270
+      }
+    },
+    "studio_topbar_1366": {
+      "label": "studio_topbar_1366",
+      "vw": 1366,
+      "vh": 768,
+      "scrollW": 1366,
+      "horizontalOverflow": false,
+      "trailVisible": true,
+      "crumbCat": {
+        "text": "Workspace",
+        "rect": {
+          "x": 371,
+          "y": 18.5,
+          "width": 66,
+          "height": 15,
+          "top": 18.5,
+          "right": 437,
+          "bottom": 33.5,
+          "left": 371
+        }
+      },
+      "crumbTool": {
+        "text": "Advanced PDF Studio",
+        "rect": {
+          "x": 458,
+          "y": 18.5,
+          "width": 127,
+          "height": 15,
+          "top": 18.5,
+          "right": 585,
+          "bottom": 33.5,
+          "left": 458
+        }
+      },
+      "mobPillVisible": false,
+      "mobPillText": "Studio",
+      "quotaText": "0 / 10",
+      "quotaBox": {
+        "x": 14,
+        "y": 603.703125,
+        "width": 241,
+        "height": 45.296875,
+        "top": 603.703125,
+        "right": 255,
+        "bottom": 649,
+        "left": 14
+      },
+      "quotaTextRect": {
+        "x": 145,
+        "y": 614.703125,
+        "width": 99,
+        "height": 14.296875,
+        "top": 614.703125,
+        "right": 244,
+        "bottom": 629,
+        "left": 145
+      },
+      "topbarDisplay": "grid",
+      "topbarRect": {
+        "x": 270,
+        "y": 0,
+        "width": 1096,
+        "height": 76,
+        "top": 0,
+        "right": 1366,
+        "bottom": 76,
+        "left": 270
+      }
+    }
+  }
+}

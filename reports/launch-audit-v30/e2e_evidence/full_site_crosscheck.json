@@ -1,0 +1,286 @@
+{
+  "routes_checked": 75,
+  "route_failures": [],
+  "mobile_overflow_routes": [],
+  "desktop_overflow_routes": [],
+  "console_errors": [
+    "http://127.0.0.1:8765/: Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "page_errors": [],
+  "http_errors": [
+    {
+      "page": "http://127.0.0.1:8765/",
+      "url": "http://127.0.0.1:8765/api/import/cloud-url",
+      "status": 404
+    }
+  ],
+  "interactive_checks": {
+    "operations_count": 44,
+    "openapi_paths_count": 98,
+    "robots_ok": true,
+    "pricing": {
+      "has_free_0": true,
+      "has_exam_19": true,
+      "has_student_49": true,
+      "has_all_in_one_299": true,
+      "no_stale_79_999": true
+    },
+    "feedback_submit_status": 200,
+    "waitlist_submit_status": 200,
+    "api_key_flow": {
+      "created_status": 200,
+      "has_sk_live": true,
+      "dark_theme": true,
+      "light_theme": true
+    },
+    "cloud_ssrf_block_status": 404
+  },
+  "tools_matrix": [
+    {
+      "op": "merge",
+      "status": "completed",
+      "dl_ok": true,
+      "dl_size": 4460,
+      "error": null
+    },
+    {
+      "op": "split",
+      "status": "completed",
+      "dl_ok": true,
+      "dl_size": 1347,
+      "error": null
+    },
+    {
+      "op": "remove",
+      "status": "completed",
+      "dl_ok": true,
+      "dl_size": 2273,
+      "error": null
+    },
+    {
+      "op": "rotate",
+      "status": "completed",
+      "dl_ok": true,
+      "dl_size": 1934,
+      "error": null
+    },
+    {
+      "op": "compress",
+      "status": "completed",
+      "dl_ok": true,
+      "dl_size": 2310,
+      "error": null
+    },
+    {
+      "op": "pdf_to_jpg",
+      "status": "completed",
+      "dl_ok": true,
+      "dl_size": 47057,
+      "error": null
+    },
+    {
+      "op": "jpg_to_pdf",
+      "status": "completed",
+      "dl_ok": true,
+      "dl_size": 31028,
+      "error": null
+    },
+    {
+      "op": "scan_pdf",
+      "status": "completed",
+      "dl_ok": true,
+      "dl_size": 33530,
+      "error": null
+    },
+    {
+      "op": "watermark",
+      "status": "completed",
+      "dl_ok": true,
+      "dl_size": 23617,
+      "error": null
+    },
+    {
+      "op": "page_numbers",
+      "status": "completed",
+      "dl_ok": true,
+      "dl_size": 14495,
+      "error": null
+    },
+    {
+      "op": "protect",
+      "status": "completed",
+      "dl_ok": true,
+      "dl_size": 3179,
+      "error": null
+    },
+    {
+      "op": "unlock",
+      "status": "completed",
+      "dl_ok": true,
+      "dl_size": 769,
+      "error": null
+    },
+    {
+      "op": "redact",
+      "status": "failed",
+      "dl_ok": false,
+      "dl_size": 0,
+      "error": "Enter at least one term to redact."
+    },
+    {
+      "op": "mask_aadhaar",
+      "status": "failed",
+      "dl_ok": false,
+      "dl_size": 0,
+      "error": "No 12-digit Aadhaar number pattern was detected in the document. Nothing was masked."
+    },
+    {
+      "op": "pdf_to_text",
+      "status": "completed",
+      "dl_ok": true,
+      "dl_size": 384,
+      "error": null
+    },
+    {
+      "op": "pdf_to_md",
+      "status": "submit_error",
+      "code": 400,
+      "detail": "{\"detail\":\"Unknown operation: pdf_to_md\"}"
+    },
+    {
+      "op": "compare",
+      "status": "completed",
+      "dl_ok": true,
+      "dl_size": 510,
+      "error": null
+    },
+    {
+      "op": "metadata",
+      "status": "completed",
+      "dl_ok": true,
+      "dl_size": 2028,
+      "error": null
+    },
+    {
+      "op": "grayscale",
+      "status": "completed",
+      "dl_ok": true,
+      "dl_size": 2131,
+      "error": null
+    },
+    {
+      "op": "crop",
+      "status": "completed",
+      "dl_ok": true,
+      "dl_size": 2074,
+      "error": null
+    },
+    {
+      "op": "repair",
+      "status": "submit_error",
+      "code": 429,
+      "detail": "{\"detail\":\"Rate limit exceeded. Try again later.\"}"
+    },
+    {
+      "op": "ocr",
+      "status": "submit_error",
+      "code": 429,
+      "detail": "{\"detail\":\"Rate limit exceeded. Try again later.\"}"
+    },
+    {
+      "op": "word_to_pdf",
+      "status": "submit_error",
+      "code": 429,
+      "detail": "{\"detail\":\"Rate limit exceeded. Try again later.\"}"
+    },
+    {
+      "op": "excel_to_pdf",
+      "status": "submit_error",
+      "code": 429,
+      "detail": "{\"detail\":\"Rate limit exceeded. Try again later.\"}"
+    },
+    {
+      "op": "powerpoint_to_pdf",
+      "status": "submit_error",
+      "code": 429,
+      "detail": "{\"detail\":\"Rate limit exceeded. Try again later.\"}"
+    },
+    {
+      "op": "pdf_to_word",
+      "status": "submit_error",
+      "code": 429,
+      "detail": "{\"detail\":\"Rate limit exceeded. Try again later.\"}"
+    },
+    {
+      "op": "pdf_to_excel",
+      "status": "submit_error",
+      "code": 429,
+      "detail": "{\"detail\":\"Rate limit exceeded. Try again later.\"}"
+    },
+    {
+      "op": "pdf_to_ppt",
+      "status": "submit_error",
+      "code": 429,
+      "detail": "{\"detail\":\"Rate limit exceeded. Try again later.\"}"
+    },
+    {
+      "op": "photo_resizer",
+      "status": "submit_error",
+      "code": 429,
+      "detail": "{\"detail\":\"Rate limit exceeded. Try again later.\"}"
+    },
+    {
+      "op": "photo_compress",
+      "status": "submit_error",
+      "code": 429,
+      "detail": "{\"detail\":\"Rate limit exceeded. Try again later.\"}"
+    },
+    {
+      "op": "photo_resize",
+      "status": "submit_error",
+      "code": 429,
+      "detail": "{\"detail\":\"Rate limit exceeded. Try again later.\"}"
+    },
+    {
+      "op": "photo_merge",
+      "status": "submit_error",
+      "code": 429,
+      "detail": "{\"detail\":\"Rate limit exceeded. Try again later.\"}"
+    }
+  ],
+  "admin_tabs": {
+    "tab-users-btn": {
+      "visible": true,
+      "len": 527
+    },
+    "tab-revenue-btn": {
+      "visible": true,
+      "len": 647
+    },
+    "tab-sessions-btn": {
+      "visible": true,
+      "len": 333
+    },
+    "tab-feedback-btn": {
+      "visible": true,
+      "len": 422
+    },
+    "tab-support-btn": {
+      "visible": true,
+      "len": 138
+    },
+    "tab-ai-btn": {
+      "visible": true,
+      "len": 1385
+    },
+    "tab-waitlist-btn": {
+      "visible": true,
+      "len": 198
+    },
+    "tab-audit-btn": {
+      "visible": true,
+      "len": 622
+    },
+    "console_page_errors": []
+  }
+}

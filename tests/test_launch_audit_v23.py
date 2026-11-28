@@ -53,7 +53,7 @@ def test_mobile_result_download_has_touch_target_and_fresh_stylesheet_cache_key(
     assert "#result.result-card {" in styles
     assert "flex-direction: column;" in styles
     assert "#result .result-actions > * {" in styles
-    assert "/assets/styles.css?v=99" in html
+    assert "/assets/styles.css?v=101" in html
     assert ".ai-chat-header #ai-chat-clear-btn {" in styles
     assert "min-height: 36px;" in styles
 
@@ -101,7 +101,7 @@ def test_mobile_workspace_navigation_uses_short_visible_labels_with_full_accessi
     assert '<span>AI</span>' in nav
     assert '<span>Apps</span>' in nav
     assert '<span>AI Intelligence</span>' not in nav
-    assert "paperplane-shell-v229" in service_worker
+    assert "paperplane-shell-v231" in service_worker
 
 
 def test_mobile_workspace_pill_uses_compact_labels_and_full_accessible_names():
@@ -135,8 +135,8 @@ def test_ai_document_bar_discloses_distinct_studio_copy_page_count():
     index_html = (root / "web" / "index.html").read_text(encoding="utf-8")
     service_worker = (root / "web" / "assets" / "service-worker.js").read_text(encoding="utf-8")
     assert "AI copy: ${pdf.numPages} pages · Studio copy: ${studioPages} pages" in app_js
-    assert "/assets/app.js?v=250" in index_html
-    assert "'/assets/app.js?v=250'" in service_worker
+    assert "/assets/app.js?v=252" in index_html
+    assert "'/assets/app.js?v=252'" in service_worker
 
 
 def test_studio_footer_visibility_rechecks_after_document_load_establishes_scroll_range():
@@ -496,7 +496,7 @@ def test_admin_revenue_amounts_are_normalized_before_html_rendering():
     assert "Number.isFinite(amount) ? amount.toLocaleString(\"en-IN\") : \"0\"" in source
     assert "₹${amountLabel}" in source
     assert "(ord.amount || 0).toLocaleString" not in source
-    assert 'admin.js?v=22' in html
+    assert 'admin.js?v=23' in html
     assert '.analytics-section > .chart-card { min-width: 0; }' in html
     assert 'overflow-x: auto;' in html
     assert 'role="region" aria-label="14-day signup trend chart' in html
@@ -1937,8 +1937,8 @@ def test_scan_to_pdf_local_path_declares_enhancement_limit_and_size_safety():
     assert "pageWidth = image.naturalWidth * 72 / 200" in app_js
     assert_current_app_script_reference(index_html)
     assert re.search(r"paperplane-shell-v\d+", worker)
-    assert "'/assets/styles.css?v=99'" in worker
-    assert 'href="/assets/styles.css?v=99"' in index_html
+    assert "'/assets/styles.css?v=101'" in worker
+    assert 'href="/assets/styles.css?v=101"' in index_html
     assert "'/assets/styles.css?v=51'" not in worker
 
 
@@ -1969,11 +1969,11 @@ def test_grayscale_pdf_supports_bounded_browser_local_rendering_and_preserves_gr
     assert "32_000_000" in grayscale and "64 * 1024 * 1024" in grayscale
     assert "Unlock it before converting to grayscale" in grayscale
     assert "grayscale_pages" in worker and "result.embedPng(files[index])" in worker
-    assert "local_pdf_worker.js?v=32" in runtime
+    assert "local_pdf_worker.js?v=33" in runtime
     assert "Grayscale PDF" in index_html and "searchable text" in index_html
     assert_current_app_script_reference(index_html)
     assert re.search(r"paperplane-shell-v\d+", service_worker)
-    assert "'/assets/local_pdf_worker.js?v=32'" in service_worker
+    assert "'/assets/local_pdf_worker.js?v=33'" in service_worker
     assert "menuBtn.onclick = () => sidebar?.classList.contains('mobile-open')" in app_js
 
 
@@ -2263,13 +2263,13 @@ def test_pdf_to_text_forms_flatten_metadata_page_numbers_and_crop_are_zero_uploa
     assert "if (operation === 'metadata')" in app_js and "options[key] = value" in app_js
     assert "PDF-to-Text" in index_html
     assert all(label in index_html for label in ("Fill PDF Forms", "Flatten PDF forms", "Edit PDF Metadata", "Page Numbers", "Crop PDF"))
-    assert "local_pdf_worker.js?v=32" in (root / "web/assets/pdf_runtime.js").read_text(encoding="utf-8")
+    assert "local_pdf_worker.js?v=33" in (root / "web/assets/pdf_runtime.js").read_text(encoding="utf-8")
     assert 'src="/assets/pdf_runtime.js?v=30"' in index_html
     assert_current_app_script_reference(index_html)
-    assert 'src="/assets/page_organizer.js?v=24"' in index_html
+    assert 'src="/assets/page_organizer.js?v=25"' in index_html
     assert re.search(r"paperplane-shell-v\d+", service_worker)
     assert_current_app_asset_cached(service_worker)
-    assert "'/assets/page_organizer.js?v=24'" in service_worker
+    assert "'/assets/page_organizer.js?v=25'" in service_worker
 
 
 def test_annotate_has_guarded_browser_local_text_markup_path():
@@ -2286,7 +2286,7 @@ def test_annotate_has_guarded_browser_local_text_markup_path():
     assert "PDFName.of('Highlight')" in worker or "Subtype: PDFName.of(subtype)" in worker
     assert "QuadPoints" in worker and "page.node.addAnnot" in worker
     assert "50 * 1024 * 1024" in app_js and "50000" in app_js
-    assert "'/assets/styles.css?v=99'" in service_worker
+    assert "'/assets/styles.css?v=101'" in service_worker
 
 
 def test_studio_more_tools_menu_escapes_scrolling_ribbon_and_bounds_to_viewport():
@@ -2390,7 +2390,7 @@ def test_offline_shell_precaches_pdf_dependencies_for_browser_local_processing()
         "'/assets/pdf.min.js'",
         "'/assets/pdf.worker.min.js'",
         "'/assets/pdf-lib.min.js'",
-        "'/assets/local_pdf_worker.js?v=32'",
+        "'/assets/local_pdf_worker.js?v=33'",
     ))
 
 
@@ -2428,7 +2428,7 @@ def test_forms_and_security_audit_show_structured_free_tier_limit_message():
     assert "window.openUpgradeModal?.(message)" in source
     assert "throw await studioRequestError(resp, 'Form analysis')" in source
     assert "throw await studioRequestError(resp, 'Security inspection')" in source
-    assert "/assets/security_forms.js?v=6.2.6" in index_html
+    assert "/assets/security_forms.js?v=6.2.7" in index_html
 
 
 def test_pdf_to_word_browser_path_builds_disclosed_text_first_docx():
@@ -2459,8 +2459,8 @@ def test_ai_empty_document_context_topbar_does_not_reserve_blank_height():
     assert ".ai-studio-topbar:has(#ai-active-doc-bar[hidden])" in styles
     assert "min-height: 0 !important" in styles
     assert ".ai-engine-notice-bar" in styles
-    assert 'href="/assets/styles.css?v=99"' in index_html
-    assert "'/assets/styles.css?v=99'" in service_worker
+    assert 'href="/assets/styles.css?v=101"' in index_html
+    assert "'/assets/styles.css?v=101'" in service_worker
     assert re.search(r"const CACHE_NAME = 'paperplane-shell-v\d+'", service_worker)
 
 
@@ -2765,8 +2765,8 @@ def test_phone_tool_desk_hides_redundant_quick_steps():
     service_worker = (root / "web" / "assets" / "service-worker.js").read_text(encoding="utf-8")
     assert "#view-tool-desk-directory .tool-desk-quick-steps { display: none; }" in styles
     assert "@media (max-width: 600px)" in styles
-    assert 'href="/assets/styles.css?v=99"' in index_html
-    assert "'/assets/styles.css?v=99'" in service_worker
+    assert 'href="/assets/styles.css?v=101"' in index_html
+    assert "'/assets/styles.css?v=101'" in service_worker
     assert re.search(r"paperplane-shell-v\d+", service_worker)
 
 

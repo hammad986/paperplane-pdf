@@ -24,6 +24,8 @@
   }
   let sessionToken = sessionStorage.getItem("pp_admin_session") || "";
   let adminChallenge = "";
+  let adminCodeChallenge = "";
+  let recoveryChallenge = "";
   let usersData = [];
   let waitlistData = [];
   let auditData = [];
@@ -31,12 +33,13 @@
   let feedbackData = [];
   let feedbackRequestPending = false;
   let feedbackTimer = null;
+  let supportData = [];
+  let activeSupportFilter = "all";
   let aiConfigData = null;
 
   let currentTab = "users";
   let activeTierFilter = "all";
   let activeFeedbackFilter = "all";
-  let lockoutTimer = null;
 
   document.addEventListener("DOMContentLoaded", () => {
     initEyeToggles();
@@ -71,8 +74,11 @@
   function initEventListeners() {
     const btnSubmit1 = document.getElementById("btn-submit-step1");
     const btnSubmit2 = document.getElementById("btn-submit-step2");
+    const btnSubmit3 = document.getElementById("btn-submit-step3");
     const btnBack1 = document.getElementById("btn-back-step1");
-    const btnCheckLock = document.getElementById("btn-check-lockout");
+    const btnBackFrom3 = document.getElementById("btn-back-step1-from-3");
+    const btnVerifyRecovery = document.getElementById("btn-verify-recovery");
+    const btnResendRecovery = document.getElementById("btn-resend-recovery");
     const btnRefresh = document.getElementById("btn-refresh");
     const btnLogout = document.getElementById("btn-logout");
     const searchInput = document.getElementById("search-input");
@@ -82,8 +88,11 @@
 
     if (btnSubmit1) btnSubmit1.addEventListener("click", handleStep1Submit);
     if (btnSubmit2) btnSubmit2.addEventListener("click", handleStep2Submit);
+    if (btnSubmit3) btnSubmit3.addEventListener("click", handleStep3Submit);
     if (btnBack1) btnBack1.addEventListener("click", () => switchScreen("step1"));
-    if (btnCheckLock) btnCheckLock.addEventListener("click", checkInitialState);
+    if (btnBackFrom3) btnBackFrom3.addEventListener("click", () => { adminCodeChallenge = ""; switchScreen("step1"); });
+    if (btnVerifyRecovery) btnVerifyRecovery.addEventListener("click", handleRecoveryVerify);
+    if (btnResendRecovery) btnResendRecovery.addEventListener("click", handleRecoverySend);
     if (btnRefresh) btnRefresh.addEventListener("click", fetchDashboardData);
     if (btnLogout) btnLogout.addEventListener("click", handleLogout);
     if (btnCleanProbes) btnCleanProbes.addEventListener("click", handleCleanProbes);
@@ -94,10 +103,12 @@
     const keyInput = document.getElementById("admin-key-input");
     const codeInput = document.getElementById("admin-code-input");
     const otpInput = document.getElementById("admin-otp-input");
+    const recoveryOtpInput = document.getElementById("recovery-otp-input");
 
     if (keyInput) keyInput.addEventListener("keypress", (e) => { if (e.key === "Enter") handleStep1Submit(); });
-    if (codeInput) codeInput.addEventListener("keypress", (e) => { if (e.key === "Enter") handleStep1Submit(); });
     if (otpInput) otpInput.addEventListener("keypress", (e) => { if (e.key === "Enter") handleStep2Submit(); });
+    if (codeInput) codeInput.addEventListener("keypress", (e) => { if (e.key === "Enter") handleStep3Submit(); });
+    if (recoveryOtpInput) recoveryOtpInput.addEventListener("keypress", (e) => { if (e.key === "Enter") handleRecoveryVerify(); });
 
     // Tabs
     const tabUsersBtn = document.getElementById("tab-users-btn");
@@ -110,6 +121,7 @@
     if (tabUsersBtn) tabUsersBtn.addEventListener("click", () => switchTab("users"));
     if (tabRevenueBtn) tabRevenueBtn.addEventListener("click", () => switchTab("revenue"));
     if (tabFeedbackBtn) tabFeedbackBtn.addEventListener("click", () => switchTab("feedback"));
+    document.getElementById("tab-support-btn")?.addEventListener("click", () => switchTab("support"));
     document.getElementById("tab-sessions-btn")?.addEventListener("click", () => switchTab("sessions"));
     document.getElementById("sessions-tbody")?.addEventListener("click", logoutOtherAdmin);
     document.getElementById("users-tbody")?.addEventListener("click", updateUserAccess);
@@ -135,6 +147,30 @@
         activeFeedbackFilter = pill.getAttribute("data-fb-filter") || "all";
         applyFilters();
       });
+    });
+
+    // Quick filter pills & actions for Support Tickets
+    document.querySelectorAll(".support-pills .pill").forEach(pill => {
+      pill.addEventListener("click", () => {
+        document.querySelectorAll(".support-pills .pill").forEach(p => p.classList.remove("active"));
+        pill.classList.add("active");
+        activeSupportFilter = pill.getAttribute("data-support-filter") || "all";
+        applyFilters();
+      });
+    });
+    document.getElementById("support-tbody")?.addEventListener("click", (e) => {
+      const statusBtn = e.target.closest(".btn-support-status");
+      if (statusBtn) {
+        const ticketId = statusBtn.getAttribute("data-ticket-id");
+        const nextStatus = statusBtn.getAttribute("data-next-status");
+        handleSupportStatus(ticketId, nextStatus);
+        return;
+      }
+      const delBtn = e.target.closest(".btn-delete-support");
+      if (delBtn) {
+        const ticketId = delBtn.getAttribute("data-ticket-id");
+        handleDeleteSupport(ticketId);
+      }
     });
 
     if (searchInput) searchInput.addEventListener("input", applyFilters);
@@ -168,13 +204,14 @@
   // --- Initial State Checking ---
   async function checkInitialState() {
     try {
-      const resp = await fetch("/api/admin/auth/status");
+      const resp = await fetch("/api/admin/auth/status", { cache: "no-store" });
       const data = await resp.json();
 
-      if (data.locked) {
-        showLockout(data.remaining_seconds);
+      if (data.verification_required) {
+        showRecoveryGate("");
         return;
       }
+      sessionStorage.removeItem("pp_admin_recovery_challenge");
     } catch (e) {
       console.warn("Status check failed:", e);
     }
@@ -205,19 +242,103 @@
     }
   }
 
-  // --- Step 1 Submit (Key + Code) ---
+  function showRecoveryGate(challenge = "") {
+    const resolvedChallenge = challenge || sessionStorage.getItem("pp_admin_recovery_challenge") || "";
+    if (resolvedChallenge) {
+      recoveryChallenge = resolvedChallenge;
+      sessionStorage.setItem("pp_admin_recovery_challenge", resolvedChallenge);
+    } else {
+      recoveryChallenge = "";
+    }
+    adminChallenge = "";
+    adminCodeChallenge = "";
+    switchScreen("recovery");
+    const statusBox = document.getElementById("recovery-status");
+    const errBox = document.getElementById("recovery-error");
+    hideError(errBox);
+    if (statusBox) {
+      statusBox.textContent = resolvedChallenge
+        ? "A 6-digit verification code was sent to the configured superadmin email address. Enter it below to unlock 3 fresh attempts."
+        : "3 consecutive failed attempts detected. Click Send / Resend Verification Code below to get a 6-digit code in the superadmin inbox.";
+    }
+    const input = document.getElementById("recovery-otp-input");
+    if (input) {
+      input.value = "";
+      input.focus();
+    }
+  }
+
+  async function handleRecoverySend() {
+    const errBox = document.getElementById("recovery-error");
+    const statusBox = document.getElementById("recovery-status");
+    const btn = document.getElementById("btn-resend-recovery");
+    hideError(errBox);
+    if (btn) { btn.disabled = true; btn.textContent = "Sending..."; }
+    try {
+      const resp = await fetch("/api/admin/auth/recovery/send", { method: "POST" });
+      const data = await resp.json().catch(() => ({}));
+      if (resp.ok && data.challenge) {
+        recoveryChallenge = data.challenge;
+        sessionStorage.setItem("pp_admin_recovery_challenge", recoveryChallenge);
+        if (statusBox) statusBox.textContent = "Fresh 6-digit verification code sent to the configured superadmin email address.";
+      } else {
+        showError(errBox, data.detail || "Could not send superadmin verification email.");
+      }
+    } catch {
+      showError(errBox, "Network error sending verification code.");
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = "📬 Send / Resend Verification Code"; }
+    }
+  }
+
+  async function handleRecoveryVerify() {
+    const input = document.getElementById("recovery-otp-input");
+    const errBox = document.getElementById("recovery-error");
+    const btn = document.getElementById("btn-verify-recovery");
+    const otp = (input ? input.value : "").trim();
+    if (!otp || otp.length < 6) {
+      showError(errBox, "Enter the complete 6-digit superadmin verification code.");
+      return;
+    }
+    if (!recoveryChallenge) {
+      showError(errBox, "Click Send / Resend Verification Code first.");
+      return;
+    }
+    hideError(errBox);
+    if (btn) { btn.disabled = true; btn.textContent = "Verifying..."; }
+    try {
+      const resp = await fetch("/api/admin/auth/recovery/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ otp, challenge: recoveryChallenge })
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (resp.ok && data.status === "unlocked") {
+        recoveryChallenge = "";
+        sessionStorage.removeItem("pp_admin_recovery_challenge");
+        if (input) input.value = "";
+        hideError(document.getElementById("auth-error"));
+        switchScreen("step1");
+      } else {
+        showError(errBox, data.detail || "Invalid or expired verification code.");
+      }
+    } catch {
+      showError(errBox, "Network error verifying recovery OTP.");
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = "Verify Code & Grant 3 Attempts →"; }
+    }
+  }
+
+  // --- Step 1 Submit (Owner Email + Secret Key -> OTP) ---
   async function handleStep1Submit() {
     const keyInput = document.getElementById("admin-key-input");
-    const codeInput = document.getElementById("admin-code-input");
     const errBox = document.getElementById("auth-error");
     const btn = document.getElementById("btn-submit-step1");
 
     const key = (keyInput ? keyInput.value : "").trim();
-    const code = (codeInput ? codeInput.value : "").trim();
-
     const email = document.getElementById("admin-email-input")?.value.trim();
-    if (!email || !key || !code) {
-      showError(errBox, "Enter your owner email, admin key, and secret code.");
+    if (!email || !key) {
+      showError(errBox, "Enter your owner email and admin secret key.");
       return;
     }
 
@@ -229,7 +350,7 @@
       const resp = await fetch("/api/admin/auth/step1", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, admin_key: key, admin_code: code })
+        body: JSON.stringify({ email, admin_key: key })
       });
 
       const data = await resp.json().catch(() => ({}));
@@ -237,27 +358,26 @@
       if (resp.status === 200 && data.challenge) {
         adminChallenge = data.challenge;
         if (keyInput) keyInput.value = "";
-        if (codeInput) codeInput.value = "";
         switchScreen("step2");
         const otpInput = document.getElementById("admin-otp-input");
         if (otpInput) {
           otpInput.value = "";
           otpInput.focus();
         }
-      } else if (resp.status === 423) {
-        showLockout(data.remaining_seconds || 86400);
+      } else if (data.verification_required) {
+        showRecoveryGate(data.recovery_challenge || "");
       } else {
-        showError(errBox, data.detail || "Invalid Key or Secret Code.");
+        showError(errBox, data.detail || "Invalid owner email or admin secret key.");
       }
     } catch (err) {
       showError(errBox, "Network error: unable to reach authentication server.");
     } finally {
       btn.disabled = false;
-      btn.textContent = "Verify & Send Email OTP →";
+      btn.textContent = "Verify Key & Send Email OTP →";
     }
   }
 
-  // --- Step 2 Submit (OTP) ---
+  // --- Step 2 Submit (OTP -> Secret Code Step 3) ---
   async function handleStep2Submit() {
     const otpInput = document.getElementById("admin-otp-input");
     const errBox = document.getElementById("otp-error");
@@ -270,7 +390,7 @@
     }
 
     btn.disabled = true;
-    btn.textContent = "Unlocking...";
+    btn.textContent = "Verifying OTP...";
     hideError(errBox);
 
     try {
@@ -282,15 +402,18 @@
 
       const data = await resp.json().catch(() => ({}));
 
-      if (resp.status === 200 && data.session_token) {
+      if (resp.status === 200 && data.code_challenge) {
         adminChallenge = "";
+        adminCodeChallenge = data.code_challenge;
         if (otpInput) otpInput.value = "";
-        sessionToken = data.session_token;
-        sessionStorage.setItem("pp_admin_session", sessionToken);
-        switchScreen("dashboard");
-        fetchDashboardData();
-      } else if (resp.status === 423) {
-        showLockout(data.remaining_seconds || 86400);
+        switchScreen("step3");
+        const codeInput = document.getElementById("admin-code-input");
+        if (codeInput) {
+          codeInput.value = "";
+          codeInput.focus();
+        }
+      } else if (data.verification_required) {
+        showRecoveryGate(data.recovery_challenge || "");
       } else {
         showError(errBox, data.detail || "Invalid or expired OTP code.");
       }
@@ -298,7 +421,53 @@
       showError(errBox, "Network error: unable to verify OTP.");
     } finally {
       btn.disabled = false;
-      btn.textContent = "Verify Code & Unlock Console →";
+      btn.textContent = "Verify Code & Continue →";
+    }
+  }
+
+  // --- Step 3 Submit (Post-OTP Admin Secret Code) ---
+  async function handleStep3Submit() {
+    const codeInput = document.getElementById("admin-code-input");
+    const errBox = document.getElementById("code-error");
+    const btn = document.getElementById("btn-submit-step3");
+
+    const adminCode = (codeInput ? codeInput.value : "").trim();
+    if (!adminCode) {
+      showError(errBox, "Please enter your Admin Secret Code.");
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "Unlocking...";
+    hideError(errBox);
+
+    try {
+      const resp = await fetch("/api/admin/auth/step3", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code_challenge: adminCodeChallenge, admin_code: adminCode })
+      });
+
+      const data = await resp.json().catch(() => ({}));
+
+      if (resp.status === 200 && data.session_token) {
+        adminChallenge = "";
+        adminCodeChallenge = "";
+        if (codeInput) codeInput.value = "";
+        sessionToken = data.session_token;
+        sessionStorage.setItem("pp_admin_session", sessionToken);
+        switchScreen("dashboard");
+        fetchDashboardData();
+      } else if (data.verification_required) {
+        showRecoveryGate(data.recovery_challenge || "");
+      } else {
+        showError(errBox, data.detail || "Invalid Admin Secret Code.");
+      }
+    } catch (err) {
+      showError(errBox, "Network error: unable to verify Admin Secret Code.");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Verify Secret Code & Unlock Console →";
     }
   }
 
@@ -313,48 +482,28 @@
 
     sessionStorage.removeItem("pp_admin_session");
     sessionToken = "";
+    adminChallenge = "";
+    adminCodeChallenge = "";
     clearInterval(feedbackTimer);
     feedbackTimer = null;
     feedbackData = [];
+    supportData = [];
     switchScreen("step1");
-  }
-
-  // --- Lockout Countdown ---
-  function showLockout(seconds) {
-    switchScreen("lockout");
-    let remaining = Math.max(1, Math.round(seconds || 86400));
-
-    if (lockoutTimer) clearInterval(lockoutTimer);
-
-    function updateTimer() {
-      if (remaining <= 0) {
-        clearInterval(lockoutTimer);
-        switchScreen("step1");
-        return;
-      }
-      const hrs = Math.floor(remaining / 3600);
-      const mins = Math.floor((remaining % 3600) / 60);
-      const secs = remaining % 60;
-      const el = document.getElementById("lockout-countdown");
-      if (el) el.textContent = `${hrs}h ${mins}m ${secs}s`;
-      remaining--;
-    }
-
-    updateTimer();
-    lockoutTimer = setInterval(updateTimer, 1000);
   }
 
   // --- Screen Switcher ---
   function switchScreen(screen) {
-    const sLockout = document.getElementById("lockout-screen");
+    const sRecovery = document.getElementById("recovery-screen");
     const sStep1 = document.getElementById("step1-screen");
     const sStep2 = document.getElementById("step2-screen");
+    const sStep3 = document.getElementById("step3-screen");
     const sDash = document.getElementById("dashboard-view");
     const headerActions = document.getElementById("header-actions");
 
-    if (sLockout) sLockout.style.display = screen === "lockout" ? "block" : "none";
+    if (sRecovery) sRecovery.style.display = screen === "recovery" ? "block" : "none";
     if (sStep1) sStep1.style.display = screen === "step1" ? "block" : "none";
     if (sStep2) sStep2.style.display = screen === "step2" ? "block" : "none";
+    if (sStep3) sStep3.style.display = screen === "step3" ? "block" : "none";
     if (sDash) sDash.style.display = screen === "dashboard" ? "block" : "none";
     if (headerActions) headerActions.style.display = screen === "dashboard" ? "flex" : "none";
 
@@ -434,6 +583,7 @@
       renderAiConfig(aiConfigData);
       renderAiHealth(aiHealth);
       void refreshFeedback();
+      void refreshSupport();
       void refreshAdminSessions();
     } catch (err) {
       console.error("Dashboard refresh error:", err);
@@ -447,26 +597,40 @@
         headers: { "X-Admin-Session": sessionToken }, cache: "no-store"
       });
       if (!response.ok) return;
-      const { sessions } = await response.json();
+      const data = await response.json();
+      const sessions = data.sessions || [];
+      const canRevoke = Boolean(data.can_revoke);
       setElText("count-sessions", sessions.length);
+      const note = document.getElementById("sessions-permission-note");
+      if (note) {
+        note.textContent = canRevoke
+          ? "Superadmin access: you can view every active session with device names and remove any unknown or unwanted session."
+          : "Read-only session list: view active admin sessions with device names. Only the superadmin (mdhammad2906@gmail.com) can remove sessions.";
+      }
       const rows = document.getElementById("sessions-tbody");
       rows.replaceChildren();
       for (const session of sessions) {
         const row = rows.insertRow();
         row.insertCell().textContent = session.email;
-        row.insertCell().textContent = "Super admin";
+        row.insertCell().textContent = session.role === "superadmin" ? "Superadmin" : "Admin";
+        row.insertCell().textContent = session.device_name || "Unknown device";
+        const ipLoc = [session.client_ip || "unknown", session.location || ""].filter(Boolean).join(" · ");
+        row.insertCell().textContent = ipLoc;
         row.insertCell().textContent = new Date(session.created_at * 1000).toLocaleString();
+        row.insertCell().textContent = new Date((session.last_active_at || session.created_at) * 1000).toLocaleString();
         row.insertCell().textContent = new Date(session.expires_at * 1000).toLocaleString();
         const action = row.insertCell();
         if (session.current) {
           action.textContent = "This session";
-        } else {
+        } else if (canRevoke) {
           const button = document.createElement("button");
           button.type = "button";
           button.className = "btn btn-danger btn-xs";
           button.dataset.sessionId = session.id;
-          button.textContent = "Log out";
+          button.textContent = "Remove / Log out";
           action.append(button);
+        } else {
+          action.textContent = "Superadmin only";
         }
       }
     } catch {
@@ -608,7 +772,7 @@
   // --- Tab Switcher ---
   function switchTab(tab) {
     currentTab = tab;
-    const tabs = ["users", "revenue", "feedback", "ai", "waitlist", "audit", "sessions"];
+    const tabs = ["users", "revenue", "feedback", "support", "ai", "waitlist", "audit", "sessions"];
 
     tabs.forEach(t => {
       const btn = document.getElementById(`tab-${t}-btn`);
@@ -620,6 +784,7 @@
     clearInterval(feedbackTimer);
     feedbackTimer = null;
     if (tab === "sessions") void refreshAdminSessions();
+    if (tab === "support") void refreshSupport();
     if (tab === "feedback") {
       void refreshFeedback();
       feedbackTimer = setInterval(refreshFeedback, 8000);
@@ -663,6 +828,19 @@
         return cat.includes(activeFeedbackFilter);
       });
       renderFeedback(filtered);
+    } else if (currentTab === "support") {
+      let filtered = supportData.filter(t => {
+        const matchesQuery =
+          (t.ticket_ref || "").toLowerCase().includes(q) ||
+          (t.email || "").toLowerCase().includes(q) ||
+          (t.subject || "").toLowerCase().includes(q) ||
+          (t.message || "").toLowerCase().includes(q) ||
+          (t.order_id || "").toLowerCase().includes(q);
+        if (!matchesQuery) return false;
+        if (activeSupportFilter === "all") return true;
+        return String(t.status || "open").toLowerCase() === activeSupportFilter;
+      });
+      renderSupport(filtered);
     }
   }
 
@@ -1114,6 +1292,91 @@
       }
     } catch (e) {
       alert("Network error deleting user.");
+    }
+  }
+
+  async function refreshSupport() {
+    if (!sessionToken) return;
+    const currentSession = sessionToken;
+    try {
+      const resp = await fetch("/api/admin/support", {
+        headers: { "X-Admin-Session": currentSession },
+        cache: "no-store"
+      });
+      if (currentSession !== sessionToken) return;
+      if (resp.status === 401) {
+        await handleLogout();
+        return;
+      }
+      if (!resp.ok) return;
+      const data = await resp.json();
+      supportData = data.tickets || [];
+      setElText("count-support", supportData.length);
+      if (currentTab === "support") applyFilters();
+    } catch {}
+  }
+
+  function renderSupport(list) {
+    const tbody = document.getElementById("support-tbody");
+    const countEl = document.getElementById("support-summary-count");
+    if (countEl) countEl.textContent = `${list.length} tickets`;
+    if (!tbody) return;
+    if (!list.length) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">No support tickets yet.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = list.map(t => {
+      const dateStr = t.created_at ? new Date(t.created_at * 1000).toLocaleString() : "—";
+      const isResolved = String(t.status || "open").toLowerCase() === "resolved";
+      const statusBadge = isResolved ? "badge-pro" : "badge-dev";
+      const nextStatus = isResolved ? "open" : "resolved";
+      const nextLabel = isResolved ? "Reopen" : "Resolve";
+      return `<tr>
+        <td><code>${escapeHtml(t.ticket_ref || t.id)}</code></td>
+        <td><span class="badge ${statusBadge}">${escapeHtml((t.status || "open").toUpperCase())}</span></td>
+        <td>${escapeHtml(t.category || "general")}</td>
+        <td style="max-width: 340px; line-height: 1.4;"><strong>${escapeHtml(t.subject)}</strong><br><span style="color:var(--text-muted);font-size:12px;">${escapeHtml(t.message)}</span></td>
+        <td>${escapeHtml(t.email)}${t.order_id ? `<br><small style="color:var(--text-muted);">Order: ${escapeHtml(t.order_id)}</small>` : ""}</td>
+        <td>${dateStr}</td>
+        <td style="white-space: nowrap;">
+          <button type="button" class="btn btn-xs btn-support-status" data-ticket-id="${escapeHtml(t.id)}" data-next-status="${nextStatus}">${nextLabel}</button>
+          <button type="button" class="btn btn-danger btn-xs btn-delete-support" data-ticket-id="${escapeHtml(t.id)}" title="Delete ticket">🗑️</button>
+        </td>
+      </tr>`;
+    }).join("");
+  }
+
+  async function handleSupportStatus(ticketId, nextStatus) {
+    if (!ticketId) return;
+    try {
+      const resp = await fetch(`/api/admin/support/${encodeURIComponent(ticketId)}/status`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Admin-Session": sessionToken },
+        body: JSON.stringify({ status: nextStatus })
+      });
+      if (resp.ok) await refreshSupport();
+      else alert("Could not update ticket status.");
+    } catch {
+      alert("Network error updating ticket.");
+    }
+  }
+
+  async function handleDeleteSupport(ticketId) {
+    if (!ticketId || !confirm("Delete this support ticket?")) return;
+    try {
+      const resp = await fetch(`/api/admin/support/${encodeURIComponent(ticketId)}`, {
+        method: "DELETE",
+        headers: { "X-Admin-Session": sessionToken }
+      });
+      if (resp.ok) {
+        supportData = supportData.filter(t => t.id !== ticketId);
+        setElText("count-support", supportData.length);
+        applyFilters();
+      } else {
+        alert("Failed to delete ticket.");
+      }
+    } catch {
+      alert("Network error deleting ticket.");
     }
   }
 

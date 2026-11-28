@@ -76,6 +76,7 @@ from config import (
     CLEANUP_INTERVAL_SECONDS, EMERGENCY_DISK_FREE_PERCENT,
     EMERGENCY_DISK_FREE_BYTES, EMERGENCY_JOB_AGE_SECONDS
 )
+import threading
 from persistence import (
     authenticate, consume_rate_limit, create_api_key, create_job as persist_job,
     create_session, create_google_session, create_user, create_user_with_hash, delete_expired_jobs, delete_session, get_job, get_job_internal, get_user,
@@ -87,16 +88,22 @@ from persistence import (
     get_idempotent_job, record_idempotent_job, compact_database,
     add_waitlist_entry, get_waitlist_count,
     create_email_otp, delete_email_otp, verify_email_otp, can_resend_otp,
+    has_pending_email_otp, get_email_resend_cooldown, get_user_billing_history,
     otp_account_lock_remaining, record_otp_failure, clear_otp_failures,
     consume_guest_job_token,
     verify_user_credentials, create_session_for_user,
     record_audit_event, get_recent_audit_logs, delete_job_record, _password_hash,
     admin_get_analytics, admin_get_all_users, admin_get_waitlist,
-    get_admin_lockout_remaining, record_admin_failed_attempt, reset_admin_failed_attempts,
-    set_admin_pending_otp, clear_admin_pending_otp, verify_admin_otp, create_admin_session, get_admin_session,
+    get_admin_auth_gate_state, get_admin_lockout_remaining, record_admin_failed_attempt, reset_admin_failed_attempts,
+    set_admin_recovery_otp, verify_admin_recovery_otp,
+    set_admin_pending_otp, clear_admin_pending_otp, verify_admin_otp,
+    create_admin_code_challenge, get_admin_code_challenge, consume_admin_code_challenge,
+    summarize_device_name, create_admin_session, get_admin_session,
     revoke_admin_session, admin_get_extended_analytics,
     admin_delete_user, admin_cleanup_probe_accounts,
     add_user_feedback, admin_get_feedbacks, admin_delete_feedback,
+    create_support_ticket, list_support_tickets_for_user,
+    admin_get_support_tickets, admin_update_support_ticket_status, admin_delete_support_ticket,
     admin_get_revenue_analytics, admin_get_ai_config, admin_set_ai_config
 )
 from email_service import (
@@ -106,7 +113,9 @@ from email_service import (
     send_otp_email,
     send_waitlist_alert,
     send_admin_login_otp,
-    send_admin_lockout_alert
+    send_admin_unlock_otp,
+    send_admin_lockout_alert,
+    send_support_ticket_alert,
 )
 try:
     from google.oauth2 import id_token as google_id_token
@@ -229,8 +238,8 @@ OCR_TIMEOUT_SECONDS = 90.0         # page-by-page C++ Tesseract OCR execution
 GRAYSCALE_TIMEOUT_SECONDS = 45.0   # 150-DPI monochrome rasterization per page
 WATERMARK_TIMEOUT_SECONDS = 180.0  # per-document overlay rendering; surface a terminal result instead of leaving jobs processing indefinitely
 MERGE_TIMEOUT_SECONDS = 840.0       # large image-heavy jobs; Nginx allows 900s
-AI_SUMMARY_REQUEST_TIMEOUT_SECONDS = 300.0  # up to four chunked large-document requests with one bounded retry each
-AI_TRANSLATION_REQUEST_TIMEOUT_SECONDS = 300.0  # bounded batches for documents up to the current text-block cap
+AI_SUMMARY_REQUEST_TIMEOUT_SECONDS = 540.0  # bounded within frontend/proxy 900s ceiling
+AI_TRANSLATION_REQUEST_TIMEOUT_SECONDS = 540.0  # bounded batches for large multi-page PDFs
 PDF_TO_MARKDOWN_TIMEOUT_SECONDS = 480.0  # typography/table extraction for long PDFs; no automatic retry
 PDF_TO_WORD_TIMEOUT_MIN_SECONDS = 120.0
 PDF_TO_WORD_TIMEOUT_PER_PAGE_SECONDS = 2.0
@@ -550,9 +559,58 @@ def _quota_limit_response(usage: int, tier: str, authenticated: bool) -> JSONRes
 
 
 @app.middleware("http")
+async def attach_session_isolation_headers_and_cookies(request: Request, call_next):
+    """Prevent shared caching on auth/billing endpoints and commit single-use return recovery cookies."""
+    response = await call_next(request)
+    path = request.url.path
+    if (
+        path in {"/api/auth/me", "/api/billing/status", "/api/billing/orders", "/api/support/tickets"}
+        or path.startswith("/api/billing/verify-order/")
+    ):
+        response.headers["Cache-Control"] = "private, no-store"
+        existing_vary = response.headers.get("Vary", "")
+        vary_parts = [part.strip() for part in existing_vary.split(",") if part.strip()]
+        if not any(part.lower() == "cookie" for part in vary_parts):
+            vary_parts.append("Cookie")
+        response.headers["Vary"] = ", ".join(vary_parts)
+    for cookie_args in getattr(request.state, "_billing_set_cookies", []) or []:
+        key, value, max_age, cookie_path, samesite = cookie_args
+        response.set_cookie(
+            key=key,
+            value=value,
+            max_age=max_age,
+            httponly=True,
+            secure=SECURE_COOKIES,
+            samesite=samesite,
+            path=cookie_path,
+        )
+    for del_args in getattr(request.state, "_billing_del_cookies", []) or []:
+        key, cookie_path, samesite = del_args
+        response.delete_cookie(
+            key=key,
+            path=cookie_path,
+            httponly=True,
+            secure=SECURE_COOKIES,
+            samesite=samesite,
+        )
+    return response
+
+
+@app.middleware("http")
 async def count_ai_and_studio_operations(request: Request, call_next):
     """Apply the same free daily operation quota to billable AI and Studio POST workflows."""
     path = request.url.path
+    expected_user = (request.headers.get("x-paperplane-expected-user") or "").strip()
+    if expected_user and (path.startswith("/api/ai/") or path.startswith("/api/studio/")):
+        actual_identity = _quota_identity_from_request(request) or ""
+        if actual_identity != expected_user:
+            return JSONResponse(
+                status_code=409,
+                content={
+                    "detail": "Your active account session changed in another tab. Refresh this page before continuing.",
+                    "code": "SESSION_USER_MISMATCH",
+                },
+            )
     # Reads such as /api/ai/capabilities are called while rendering tool pages.
     # Counting them against the provider request budget lets ordinary navigation
     # exhaust the user's 12 AI calls/minute before they submit a single document.
@@ -2077,15 +2135,10 @@ def render_web_page(request: Request, operation: str | None = None, landing_slug
     else:
         html = re.sub(r"<h1([^>]*)>(.*?)</h1>", _demote_inactive_h1, html, flags=re.DOTALL)
 
-    if page_user_id:
-        # The first page render already includes the account's effective limits.
-        # Keep this personalized HTML out of shared caches so a later guest or
-        # account cannot receive another session's tier limits.
-        return HTMLResponse(
-            content=html,
-            headers={"Cache-Control": "private, no-store", "Vary": "Cookie"},
-        )
-    return html
+    return HTMLResponse(
+        content=html,
+        headers={"Cache-Control": "private, no-store", "Vary": "Cookie"},
+    )
 
 
 # ----------------------------------------------------------------------
@@ -2113,6 +2166,43 @@ def current_user(
             detail="Authentication is required. Please log in or provide a valid Bearer token or X-API-Key."
         )
     return user_id
+
+
+def _optional_request(request: Request) -> Request:
+    return request
+
+
+def _resolve_optional_user_id(request: Request) -> str | None:
+    token = None
+    x_api_key = request.headers.get("x-api-key", "")
+    auth = request.headers.get("authorization", "")
+    if x_api_key:
+        token = x_api_key.strip()
+    elif auth.lower().startswith("bearer "):
+        token = auth[7:].strip()
+    elif request.cookies.get("paperplane_token"):
+        token = request.cookies.get("paperplane_token").strip()
+    if not token:
+        return None
+    try:
+        return authenticate(token)
+    except Exception:
+        return None
+
+
+def _assert_expected_user_identity(request: Request | None, user_id: str | None) -> None:
+    if not isinstance(request, Request):
+        return
+    expected = (request.headers.get("x-paperplane-expected-user") or "").strip()
+    if expected and (user_id or "") != expected:
+        raise HTTPException(
+            status_code=409,
+            detail="Your active account session changed in another tab. Refresh this page before continuing.",
+        )
+
+
+def _normalize_otp_input(raw_otp: Any) -> str:
+    return re.sub(r"[\s\-\u200b-\u200d\ufeff]", "", str(raw_otp or ""))
 
 
 def require_developer_key(
@@ -3209,25 +3299,38 @@ def process(operation: str, inputs: list[Path], options: dict, output_dir: Path)
         return output
 
     elif operation == "metadata":
-        for page in reader.pages:
-            writer.add_page(page)
-        # Preserve provenance and dates when editing only selected fields. pypdf
-        # otherwise replaces the whole document-information dictionary.
-        metadata = {
-            str(key): str(value)
-            for key, value in (reader.metadata or {}).items()
-            if key and value is not None
-        }
-        editable_fields = {"title": "/Title", "author": "/Author", "subject": "/Subject", "creator": "/Creator"}
-        for option_name, pdf_name in editable_fields.items():
-            if option_name in options:
-                val = str(options[option_name] or "").strip()
+        # Update only edited fields via MuPDF so original Creator, Producer,
+        # CreationDate, ModDate, and XMP streams remain intact without injecting 'pypdf'.
+        doc_meta = fitz.open(str(source))
+        try:
+            existing_meta = dict(doc_meta.metadata or {})
+            meta_out: dict[str, str] = {}
+            for key in ("title", "author", "subject", "keywords", "creator", "producer", "creationDate", "modDate"):
+                val = str(existing_meta.get(key) or "").strip()
                 if val:
-                    metadata[pdf_name] = val
-                else:
-                    metadata.pop(pdf_name, None)
-        if metadata:
-            writer.add_metadata(metadata)
+                    meta_out[key] = val
+            for option_name in ("title", "author", "subject", "creator"):
+                if option_name in options:
+                    val = str(options[option_name] or "").strip()
+                    if val:
+                        meta_out[option_name] = val
+                    else:
+                        meta_out.pop(option_name, None)
+            doc_meta.set_metadata(meta_out)
+            info_xref = doc_meta.xref_get_key(-1, "Info")
+            if info_xref[0] == "xref":
+                ix = int(info_xref[1].split()[0])
+                for option_name, pdf_name in (
+                    ("title", "Title"), ("author", "Author"), ("subject", "Subject"),
+                    ("keywords", "Keywords"), ("creator", "Creator"), ("producer", "Producer"),
+                    ("creationDate", "CreationDate"), ("modDate", "ModDate"),
+                ):
+                    if not meta_out.get(option_name):
+                        doc_meta.xref_set_key(ix, pdf_name, "null")
+            doc_meta.save(str(output), garbage=3, deflate=True)
+        finally:
+            doc_meta.close()
+        return output
 
     elif operation == "sign":
         sig_data = options.get("signature_data")
@@ -3510,7 +3613,7 @@ async def register(
     # Case 1: OTP was submitted to complete registration
     if otp:
         enforce_otp_account_lock(clean_email, "signup")
-        clean_otp = str(otp).strip()
+        clean_otp = _normalize_otp_input(otp)
         payload = verify_email_otp(clean_email, "signup", clean_otp)
         if payload is None:
             record_audit_event("signup_otp_failed", email=clean_email, ip_address=client_ip, user_agent=user_agent)
@@ -3540,6 +3643,7 @@ async def register(
         "status": "otp_required",
         "email": clean_email,
         "purpose": "signup",
+        "resend_cooldown": get_email_resend_cooldown(clean_email, "signup"),
         "message": f"A 6-digit confirmation code has been dispatched to {clean_email}."
     }
     if (ENVIRONMENT != "production" and os.getenv("TESTING") == "True"):
@@ -3581,7 +3685,7 @@ async def login(
     # Case 1: OTP was submitted to complete 2FA login
     if otp:
         enforce_otp_account_lock(clean_email, "login")
-        clean_otp = str(otp).strip()
+        clean_otp = _normalize_otp_input(otp)
         payload = verify_email_otp(clean_email, "login", clean_otp)
         if payload is None:
             record_audit_event("login_otp_failed", email=clean_email, ip_address=client_ip, user_agent=user_agent)
@@ -3618,6 +3722,7 @@ async def login(
             "status": "otp_required",
             "email": clean_email,
             "purpose": "login",
+            "resend_cooldown": get_email_resend_cooldown(clean_email, "login"),
             "message": f"A 6-digit verification code has been dispatched to {clean_email}."
         }
         if (ENVIRONMENT != "production" and os.getenv("TESTING") == "True"):
@@ -3667,7 +3772,7 @@ async def verify_signup_otp(response: Response, request: Request, background_tas
             pass
 
     clean_email = str(email).lower().strip()
-    clean_otp = str(otp).strip()
+    clean_otp = _normalize_otp_input(otp)
 
     if not clean_email or not clean_otp:
         raise HTTPException(400, "Email and OTP code are required.")
@@ -3743,7 +3848,7 @@ async def verify_login_otp(response: Response, request: Request, background_task
             pass
 
     clean_email = str(email).lower().strip()
-    clean_otp = str(otp).strip()
+    clean_otp = _normalize_otp_input(otp)
 
     if not clean_email or not clean_otp:
         raise HTTPException(400, "Email and OTP code are required.")
@@ -3823,12 +3928,15 @@ async def resend_otp(request: Request, background_tasks: BackgroundTasks):
             raise HTTPException(404, "No account exists with this email address.")
         otp_code = create_email_otp(clean_email, "login", {"user_id": user["id"]})
     else:
+        if not has_pending_email_otp(clean_email, "signup"):
+            raise HTTPException(410, "Registration session has expired. Please submit Create Account again.")
         otp_code = create_email_otp(clean_email, clean_purpose, None)
 
     deliver_otp_or_raise(background_tasks, clean_email, otp_code, clean_purpose)
 
     res = {
         "status": "success",
+        "resend_cooldown": get_email_resend_cooldown(clean_email, clean_purpose),
         "message": "A new verification code has been sent. Any previous code is now invalid; use the latest code."
     }
     if (ENVIRONMENT != "production" and os.getenv("TESTING") == "True"):
@@ -4206,6 +4314,7 @@ async def join_waitlist(request: Request, background_tasks: BackgroundTasks):
 
 @app.get("/api/auth/me")
 def get_current_user_profile(request: Request, user_id: str | None = Depends(current_user)):
+    _assert_expected_user_identity(request, user_id)
     if not user_id:
         return {"authenticated": False}
     all_pricing = public_pricing_catalog()
@@ -4236,6 +4345,7 @@ def get_current_user_profile(request: Request, user_id: str | None = Depends(cur
         "is_pro": is_pro,
         "is_dev": is_dev,
         "subscription_status": user.get("subscription_status", "inactive"),
+        "subscription_expires_at": user.get("subscription_expires_at"),
         "created_at": user["created_at"],
         "daily_limit": None if is_pro else FREE_TIER_DAILY_LIMIT,
         "usage_today": usage,
@@ -4360,6 +4470,7 @@ def _cashfree_payment_method(payment_data: dict | None) -> str:
 
 @app.get("/api/billing/status")
 def billing_status(request: Request, user_id: str | None = Depends(current_user)):
+    _assert_expected_user_identity(request, user_id)
     client_ip = quota_client_identity(request)
     user = get_user(user_id) if user_id else None
     tier = get_user_tier(user_id)
@@ -4388,8 +4499,61 @@ def billing_status(request: Request, user_id: str | None = Depends(current_user)
         "pricing": public_pricing_catalog(),
         "plan_limits": plan_limits_payload(tier, authenticated=bool(user_id)),
         "subscription_status": user.get("subscription_status", "inactive") if user else "inactive",
+        "subscription_expires_at": user.get("subscription_expires_at") if user else None,
         "has_payment_customer": bool(user and user.get("payment_customer_id")),
     }
+
+
+@app.get("/api/billing/orders")
+def billing_orders_history(request: Request, user_id: str | None = Depends(current_user)):
+    _assert_expected_user_identity(request, user_id)
+    if not user_id:
+        raise HTTPException(401, "Authentication is required to view order history.")
+    return {"status": "ok", "orders": get_user_billing_history(user_id)}
+
+
+_CHECKOUT_RETURN_LOCK = threading.Lock()
+_CHECKOUT_RETURN_CONSUMED_NONCES: dict[str, float] = {}
+
+
+def _sign_checkout_return_cookie(user_id: str, order_id: str, ttl_seconds: int = 1800) -> str:
+    nonce = secrets.token_urlsafe(12)
+    exp = int(time.time()) + ttl_seconds
+    body = f"{user_id}|{order_id}|{exp}|{nonce}"
+    secret = str(getattr(config, "SESSION_SECRET_KEY", "") or "").encode("utf-8")
+    sig = hmac.new(secret, body.encode("utf-8"), hashlib.sha256).hexdigest()
+    return f"{body}|{sig}"
+
+
+def _verify_checkout_return_cookie(raw_cookie: str | None, expected_order_id: str) -> str | None:
+    if not raw_cookie or not expected_order_id:
+        return None
+    parts = str(raw_cookie).split("|")
+    if len(parts) != 5:
+        return None
+    uid, oid, exp_raw, nonce, sig = parts
+    if oid != expected_order_id or not uid or not nonce:
+        return None
+    try:
+        exp = int(exp_raw)
+    except ValueError:
+        return None
+    now = int(time.time())
+    if exp < now:
+        return None
+    body = f"{uid}|{oid}|{exp_raw}|{nonce}"
+    secret = str(getattr(config, "SESSION_SECRET_KEY", "") or "").encode("utf-8")
+    expected_sig = hmac.new(secret, body.encode("utf-8"), hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(expected_sig, sig):
+        return None
+    with _CHECKOUT_RETURN_LOCK:
+        stale = [k for k, v in _CHECKOUT_RETURN_CONSUMED_NONCES.items() if v < now]
+        for k in stale:
+            _CHECKOUT_RETURN_CONSUMED_NONCES.pop(k, None)
+        if nonce in _CHECKOUT_RETURN_CONSUMED_NONCES:
+            return None
+        _CHECKOUT_RETURN_CONSUMED_NONCES[nonce] = float(exp)
+    return uid
 
 
 @app.post("/api/billing/checkout-session")
@@ -4398,6 +4562,7 @@ def create_checkout_session(
     payload: dict = Body(default={}),
     user_id: str | None = Depends(current_user),
 ):
+    _assert_expected_user_identity(request, user_id)
     if not user_id:
         raise HTTPException(401, "Authentication is required to subscribe.")
     user = get_user(user_id)
@@ -4463,18 +4628,62 @@ def create_checkout_session(
         raise HTTPException(502, "Cashfree did not return a payment session.")
     persistence.attach_billing_order(user_id, order_id)
     record_billing_event(order_id, "cashfree.order_created", user["id"], {"user_id": user_id, "tier": target_tier, "currency": currency, "amount": amount, "gateway_environment": CASHFREE_ENV, "cashfree_order": data})
+    req_state = getattr(request, "state", None)
+    if req_state is not None:
+        ticket_val = _sign_checkout_return_cookie(user_id, order_id)
+        existing_set = list(getattr(req_state, "_billing_set_cookies", []) or [])
+        existing_set.append(("pp_checkout_return", ticket_val, 1800, "/api/billing", "lax"))
+        req_state._billing_set_cookies = existing_set
     return {"status": "success", "payment_session_id": payment_session_id, "order_id": order_id, "environment": CASHFREE_ENV}
 
 
 @app.get("/api/billing/verify-order/{order_id}")
-def verify_cashfree_order(order_id: str, user_id: str | None = Depends(current_user)):
+def verify_cashfree_order(
+    order_id: str,
+    user_id: str | None = Depends(_resolve_optional_user_id),
+    request: Request = Depends(_optional_request),
+):
+    req = request if isinstance(request, Request) else None
+    if req is not None and user_id:
+        _assert_expected_user_identity(req, user_id)
+
+    recovered_from_ticket = False
+    created_order = get_billing_event_payload(order_id)
+    if not user_id and req is not None:
+        candidate_uid = _verify_checkout_return_cookie(req.cookies.get("pp_checkout_return"), order_id)
+        if candidate_uid:
+            cand_user = get_user(candidate_uid)
+            owns_cand = bool(
+                cand_user
+                and (
+                    cand_user.get("cashfree_order_id") == order_id
+                    or (created_order and created_order.get("user_id") == candidate_uid)
+                )
+            )
+            if owns_cand:
+                user_id = candidate_uid
+                recovered_from_ticket = True
+
     if not user_id:
         raise HTTPException(401, "Authentication is required.")
+
     user = get_user(user_id)
-    created_order = get_billing_event_payload(order_id)
     owns_legacy_order = user and user.get("cashfree_order_id") == order_id
     if not user or not (owns_legacy_order or (created_order and created_order.get("user_id") == user_id)):
         raise HTTPException(404, "Payment order not found for this account.")
+
+    if req is not None and (recovered_from_ticket or req.cookies.get("pp_checkout_return")):
+        req_state = getattr(req, "state", None)
+        if req_state is not None:
+            del_list = list(getattr(req_state, "_billing_del_cookies", []) or [])
+            del_list.append(("pp_checkout_return", "/api/billing", "lax"))
+            req_state._billing_del_cookies = del_list
+            if recovered_from_ticket:
+                recovered_session = create_session_for_user(user_id)
+                set_list = list(getattr(req_state, "_billing_set_cookies", []) or [])
+                set_list.append(("paperplane_token", recovered_session["token"], 14 * 86400, "/", COOKIE_SAMESITE))
+                req_state._billing_set_cookies = set_list
+
     data = _cashfree_request("GET", f"/orders/{urllib.parse.quote(order_id, safe='')}")
     if str(data.get("order_status", "")).upper() != "PAID":
         return {"status": str(data.get("order_status", "PENDING")).lower(), "order_id": order_id, "tier": user.get("tier", "free")}
@@ -4490,7 +4699,24 @@ def verify_cashfree_order(order_id: str, user_id: str | None = Depends(current_u
         user_id, order_id, tier, payment_method, {**data, "gateway_environment": created_order.get("gateway_environment")}
     ):
         raise HTTPException(404, "Payment account not found.")
-    return {"status": "paid", "tier": get_user_tier(user_id), "order_id": order_id}
+    refreshed_user = get_user(user_id)
+    active_tier = get_user_tier(user_id)
+    tier_labels = {
+        "free": "Free",
+        "exam_pass": "Exam Pass",
+        "student_pro": "Student & Educator",
+        "pro": "Legacy Pro",
+        "developer": "Developer",
+        "cyber_cafe": "All-In-One Pro & Developer",
+    }
+    return {
+        "status": "paid",
+        "tier": active_tier,
+        "tier_label": tier_labels.get(active_tier, active_tier.replace("_", " ").title()),
+        "order_id": order_id,
+        "subscription_expires_at": refreshed_user.get("subscription_expires_at") if refreshed_user else None,
+        "session_recovered": recovered_from_ticket,
+    }
 
 
 @app.post("/api/billing/cashfree-webhook", include_in_schema=False)
@@ -4630,10 +4856,12 @@ def validate_ai_chat_question(question: str) -> None:
 
 @app.post("/api/ai/chat")
 async def ai_chat(
+    request: Request,
     file: UploadFile | None = File(None),
     question: str = Form(...),
     user_id: str | None = Depends(current_user)
 ):
+    _assert_expected_user_identity(request, user_id)
     validate_ai_chat_question(question)
     temp_dir = Path(tempfile.mkdtemp())
     try:
@@ -4682,11 +4910,13 @@ async def ai_chat(
 
 @app.post("/api/ai/chat/stream")
 async def ai_chat_stream(
+    request: Request,
     file: UploadFile | None = File(None),
     question: str = Form(...),
     user_id: str | None = Depends(current_user),
 ):
     """SSE chat endpoint: reports real work stages and streams upstream content deltas."""
+    _assert_expected_user_identity(request, user_id)
     validate_ai_chat_question(question)
     temp_dir = Path(tempfile.mkdtemp())
 
@@ -4882,26 +5112,13 @@ async def ai_chat_stream(
             logging.getLogger("paperplane").warning("AI stream failed: %s", exc)
             raw_msg = str(exc)
             is_rate_limit = "429" in raw_msg or "rate" in raw_msg.lower()
-            if is_rate_limit and file is not None and user_prompt and "DOCUMENT EXCERPTS:\n" in user_prompt:
-                can_answer_from_excerpts = document_question and ai_engine.has_substantive_excerpt_match(question, user_prompt)
-                if not can_answer_from_excerpts:
-                    yield frame(
-                        "error",
-                        message="The AI provider is temporarily rate-limited or unavailable. Please try again shortly.",
-                    )
-                    return
-                local_answer = ai_engine._offline_rag_fallback(system_prompt, user_prompt)
-                local_answer, local_citations = ai_engine.align_answer_citations(local_answer, citations)
-                noted_answer = (
-                    f"{local_answer}\n\n"
-                    "*(AI provider was temporarily rate-limited; showing deterministic local document extraction.)*"
-                )
-                yield frame("replace", text=noted_answer)
-                yield frame("done", citations=local_citations, mode="local_extraction")
-                return
             if is_rate_limit:
-                safe_message = "The AI provider is temporarily rate-limited (HTTP 429). Please retry in a few moments."
-            elif raw_msg.startswith("AI service "):
+                yield frame(
+                    "error",
+                    message="The AI provider is temporarily rate-limited (HTTP 429). Please retry in a few moments — no unverified excerpt was substituted.",
+                )
+                return
+            if raw_msg.startswith("AI service "):
                 safe_message = raw_msg
             else:
                 safe_message = "Paperplane AI could not complete the request. Please try again."
@@ -4914,9 +5131,11 @@ async def ai_chat_stream(
 
 @app.post("/api/ai/summarize")
 async def ai_summarize(
+    request: Request,
     file: UploadFile = File(...),
     user_id: str | None = Depends(current_user)
 ):
+    _assert_expected_user_identity(request, user_id)
     temp_dir = Path(tempfile.mkdtemp())
     summary_task: asyncio.Task | None = None
     defer_temp_cleanup = False
@@ -4967,10 +5186,12 @@ async def ai_summarize(
 
 @app.post("/api/ai/extract")
 async def ai_extract(
+    request: Request,
     file: UploadFile = File(...),
     doc_type: str = Form("auto"),
     user_id: str | None = Depends(current_user)
 ):
+    _assert_expected_user_identity(request, user_id)
     temp_dir = Path(tempfile.mkdtemp())
     try:
         temp_pdf = temp_dir / "extract_doc.pdf"
@@ -4991,10 +5212,12 @@ async def ai_extract(
 
 @app.post("/api/ai/translate")
 async def ai_translate_endpoint(
+    request: Request,
     file: UploadFile = File(...),
     target_language: str = Form("es"),
     user_id: str | None = Depends(current_user)
 ):
+    _assert_expected_user_identity(request, user_id)
     if not translation_ai_available():
         raise HTTPException(503, "AI translation is unavailable because the Paperplane AI translation service is not configured or enabled.")
     if not re.fullmatch(r"[a-zA-Z]{2,3}(?:-[a-zA-Z]{2,8})?", target_language):
@@ -6618,6 +6841,7 @@ async def studio_forms_fill(
 @app.post("/api/studio/forms/flatten")
 async def studio_forms_flatten(
     file: UploadFile = File(...),
+    field_values: str = Form(""),
     password: str = Form(""),
     user_id: str | None = Depends(current_user)
 ):
@@ -6625,12 +6849,19 @@ async def studio_forms_flatten(
     temp_dir = Path(tempfile.mkdtemp())
     try:
         in_path = temp_dir / "input.pdf"
+        filled_path = temp_dir / "filled_before_flatten.pdf"
         out_path = temp_dir / "flattened.pdf"
         await save_pdf_upload_async(file, in_path, user_id=user_id)
         work_in_path, was_encrypted, orig_perms = await asyncio.to_thread(
             _prepare_studio_input_pdf, in_path, password, temp_dir
         )
-        await asyncio.to_thread(security_forms_engine.flatten_pdf_forms, work_in_path, out_path)
+        source_for_flatten = work_in_path
+        if field_values and field_values.strip() not in {"", "{}", "null"}:
+            values = parse_options(field_values)
+            if isinstance(values, dict) and values:
+                await asyncio.to_thread(security_forms_engine.fill_pdf_forms, work_in_path, filled_path, values)
+                source_for_flatten = filled_path
+        await asyncio.to_thread(security_forms_engine.flatten_pdf_forms, source_for_flatten, out_path)
         if was_encrypted:
             _reencrypt_studio_output_if_needed(out_path, password, orig_perms)
         return StreamingResponse(
@@ -7058,9 +7289,16 @@ async def studio_security_redact(
         if isinstance(redactions_list, dict):
             redactions_list = [redactions_list]
 
-        await asyncio.to_thread(
-            security_forms_engine.apply_hardened_redaction, work_in_path, out_path, redactions_list
-        )
+        try:
+            await asyncio.to_thread(
+                security_forms_engine.apply_hardened_redaction,
+                work_in_path,
+                out_path,
+                redactions_list,
+                require_match=True,
+            )
+        except ValueError as err:
+            raise HTTPException(422, detail=str(err)) from err
         if was_encrypted:
             _reencrypt_studio_output_if_needed(out_path, password, orig_perms)
         return StreamingResponse(
@@ -7366,6 +7604,7 @@ def job_status(
     request: Request,
     user_id: str | None = Depends(current_user)
 ):
+    _assert_expected_user_identity(request, user_id)
     effective_token = request.cookies.get(f"guest_job_{job_id}") or request.headers.get("X-Guest-Token")
     row = get_job(job_id, user_id=user_id, guest_token=effective_token)
     if not row:
@@ -7532,6 +7771,7 @@ def _existing_idempotent_app_job(request: Request, response: Response, user_id: 
 
 @app.post("/api/uploads/chunked", status_code=201)
 async def start_chunked_upload(request: Request, user_id: str | None = Depends(current_user)):
+    _assert_expected_user_identity(request, user_id)
     _cleanup_expired_chunked_uploads()
     client_ip = get_client_ip(request)
     enforce_account_rate_limit(f"job-account:{user_id or client_ip}", limit=20, window_seconds=60)
@@ -7589,6 +7829,7 @@ async def discard_chunked_upload(
     request: Request,
     user_id: str | None = Depends(current_user),
 ):
+    _assert_expected_user_identity(request, user_id)
     session_dir, manifest = _load_chunked_upload_session(upload_id, request, user_id)
     shutil.rmtree(session_dir, ignore_errors=True)
     logger.info("job_upload phase=chunked_discarded upload_id=%s file_count=%d", upload_id, len(manifest.get("files", [])))
@@ -7603,6 +7844,7 @@ async def put_chunked_upload_part(
     request: Request,
     user_id: str | None = Depends(current_user),
 ):
+    _assert_expected_user_identity(request, user_id)
     session_dir, manifest = _load_chunked_upload_session(upload_id, request, user_id)
     if file_index < 0 or file_index >= len(manifest["files"]):
         raise HTTPException(404, "Upload file not found.")
@@ -7648,6 +7890,7 @@ async def commit_chunked_upload(
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
     user_id: str | None = Depends(current_user),
 ):
+    _assert_expected_user_identity(request, user_id)
     existing = _existing_idempotent_app_job(request, response, user_id, idempotency_key)
     if existing:
         return existing
@@ -7706,6 +7949,7 @@ def create_job_endpoint(
     user_id: str | None = Depends(current_user),
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ):
+    _assert_expected_user_identity(request, user_id)
     existing = _existing_idempotent_app_job(request, response, user_id, idempotency_key)
     if existing:
         return existing
@@ -7890,6 +8134,7 @@ def download(
     request: Request,
     user_id: str | None = Depends(current_user)
 ):
+    _assert_expected_user_identity(request, user_id)
     directory = JOBS / job_id
     cookie_key = f"guest_job_{job_id}"
     effective_token = request.cookies.get(cookie_key) or request.headers.get("X-Guest-Token")
@@ -7940,6 +8185,7 @@ def delete_job(
     request: Request,
     user_id: str | None = Depends(current_user)
 ):
+    _assert_expected_user_identity(request, user_id)
     effective_token = request.cookies.get(f"guest_job_{job_id}") or request.headers.get("X-Guest-Token")
     row = get_job(job_id, user_id=user_id, guest_token=effective_token)
     if not row:
@@ -8359,6 +8605,28 @@ def developers_page(request: Request):
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
     return render_web_page(request)
+
+
+@app.post("/", include_in_schema=False)
+async def index_post_return(request: Request):
+    """Convert cross-site gateway POST redirects into a 303 GET so SameSite=Lax cookies stay attached."""
+    billing = str(request.query_params.get("billing") or "").strip().lower()
+    order_id = str(request.query_params.get("order_id") or "").strip()
+    if not order_id or not billing:
+        try:
+            form = await request.form()
+            order_id = order_id or str(form.get("order_id") or "").strip()
+            if not billing and order_id:
+                billing = "return"
+            else:
+                billing = billing or str(form.get("billing") or "").strip().lower()
+        except Exception:
+            pass
+    if billing == "return" and re.fullmatch(r"[A-Za-z0-9_-]{4,96}", order_id or ""):
+        target = f"/?billing=return&order_id={urllib.parse.quote(order_id, safe='')}"
+    else:
+        target = "/"
+    return RedirectResponse(url=target, status_code=303, headers={"Cache-Control": "no-store"})
 
 
 @app.get("/download", response_class=HTMLResponse, tags=["Web Pages"])
@@ -9254,38 +9522,78 @@ def admin_portal_page():
   </header>
 
   <main>
-    <!-- Screen 0: Lockout Alert Screen (if 3 wrong attempts were entered) -->
-    <div id="lockout-screen" class="auth-card" style="display: none;">
-      <div style="font-size: 48px; margin-bottom: 12px;">🚨</div>
-      <h1 style="color: #ef4444;">Admin Console Locked</h1>
-      <p style="color: #fca5a5;">
-        Administrative access is temporarily unavailable. Please try again later or contact the site owner.
+    <!-- Screen 0: Superadmin Email Verification Gate (triggered after 3 failed attempts; no 24h lockout) -->
+    <div id="recovery-screen" class="auth-card" style="display: none;">
+      <div style="font-size: 46px; margin-bottom: 12px;">🔐</div>
+      <h1 style="color: #fbbf24;">Owner Email Verification Required</h1>
+      <p style="color: #fcd34d;">
+        3 consecutive failed admin login attempts were detected. Enter the 6-digit verification code sent to the configured superadmin email address to grant 3 fresh attempts.
       </p>
-      <div style="background: #271414; border: 1px solid #7f1d1d; border-radius: 8px; padding: 14px; text-align: left; font-size: 13px; margin-bottom: 20px;">
-        <div style="margin-bottom: 6px;"><strong style="color: #fca5a5;">Notification:</strong> <span style="color: #fff;">Sent to the configured owner email</span></div>
-        <div style="margin-bottom: 6px;"><strong style="color: #fca5a5;">Lock Duration:</strong> <span style="color: #ef4444; font-weight: 700;">24 Hours</span></div>
-        <div><strong style="color: #fca5a5;">Time Remaining:</strong> <span id="lockout-countdown" style="color: #fff; font-family: monospace;">Calculating...</span></div>
+      <div id="recovery-error" class="error-msg"></div>
+      <div id="recovery-status" class="info-note" style="border-color: #d97706; color: #fde68a;">
+        ⏱️ Enter the 6-digit code sent to the configured superadmin email address, or click Send / Resend Code below.
       </div>
-      <button class="btn" style="width: 100%; justify-content: center;" id="btn-check-lockout">🔄 Check Lockout Status</button>
+      <div class="field-group" style="text-align: center;">
+        <label class="field-label" style="text-align: center;" for="recovery-otp-input">6-Digit Superadmin Verification Code</label>
+        <input type="text" id="recovery-otp-input" class="input-field" maxlength="6" style="font-size: 26px; font-weight: 800; letter-spacing: 10px; text-align: center; font-family: monospace; padding: 14px;" placeholder="000000" autocomplete="off" />
+      </div>
+      <button class="btn btn-primary" id="btn-verify-recovery" style="width: 100%; justify-content: center; padding: 12px; margin-bottom: 10px;">Verify Code &amp; Grant 3 Attempts &rarr;</button>
+      <button class="btn" style="width: 100%; justify-content: center;" id="btn-resend-recovery">📬 Send / Resend Verification Code</button>
     </div>
 
-    <!-- Screen 1: Step 1 Auth (Key + Secret Code + Eye Toggle) -->
+    <!-- Screen 1: Step 1 Auth (Owner Email + Admin Secret Key -> Email OTP) -->
     <div id="step1-screen" class="auth-card">
       <div class="logo-icon" style="width:48px;height:48px;font-size:24px;margin:0 auto 16px;">P</div>
       <h1>Owner Authentication</h1>
-      <p>Enter your administrator credentials to continue.</p>
+      <p>Step 1 of 3: Enter your administrator email and secret key to receive a one-time email code.</p>
 
       <div id="auth-error" class="error-msg"></div>
 
       <div class="field-group">
         <label class="field-label" for="admin-email-input">Owner email</label>
         <input type="email" id="admin-email-input" class="input-field" autocomplete="username" required />
-        <label class="field-label" for="admin-key-input">Admin Secret Key</label>
+        <label class="field-label" for="admin-key-input" style="margin-top: 12px;">Admin Secret Key</label>
         <div class="input-wrapper">
           <input type="password" id="admin-key-input" class="input-field" placeholder="Paste your 64-character admin key..." autocomplete="off" />
           <button type="button" class="toggle-eye" id="toggle-key-eye" title="Toggle visibility">👁️</button>
         </div>
       </div>
+
+      <div class="info-note">
+        🛡️ <strong>Verification Policy:</strong> Every 3 consecutive failed attempts require superadmin email OTP verification before granting 3 fresh attempts.
+      </div>
+
+      <button class="btn btn-primary" id="btn-submit-step1" style="width: 100%; justify-content: center; padding: 12px;">Verify Key &amp; Send Email OTP &rarr;</button>
+    </div>
+
+    <!-- Screen 2: Step 2 Auth (6-Digit Email OTP) -->
+    <div id="step2-screen" class="auth-card" style="display: none;">
+      <div style="font-size: 42px; margin-bottom: 12px;">📬</div>
+      <h1>Two-Factor Verification</h1>
+      <p>Step 2 of 3: Enter the 6-digit one-time code sent to the configured owner email address.</p>
+
+      <div id="otp-error" class="error-msg"></div>
+
+      <div class="field-group" style="text-align: center;">
+        <label class="field-label" style="text-align: center;" for="admin-otp-input">Enter 6-Digit Code</label>
+        <input type="text" id="admin-otp-input" class="input-field" maxlength="6" style="font-size: 26px; font-weight: 800; letter-spacing: 10px; text-align: center; font-family: monospace; padding: 14px;" placeholder="000000" autocomplete="off" />
+      </div>
+
+      <div class="info-note" style="text-align: center;">
+        ⏱️ Code is valid for 10 minutes. Check your spam/junk folder if not received.
+      </div>
+
+      <button class="btn btn-primary" id="btn-submit-step2" style="width: 100%; justify-content: center; padding: 12px; margin-bottom: 12px;">Verify Code &amp; Continue &rarr;</button>
+      <button class="btn" id="btn-back-step1" style="width: 100%; justify-content: center;">&larr; Back to Step 1</button>
+    </div>
+
+    <!-- Screen 2b / Step 3: Enter Admin Secret Code AFTER OTP verification -->
+    <div id="step3-screen" class="auth-card" style="display: none;">
+      <div style="font-size: 42px; margin-bottom: 12px;">🔑</div>
+      <h1>Admin Secret Code</h1>
+      <p>Step 3 of 3: Email OTP verified. Enter your Admin Secret Code to unlock the owner console.</p>
+
+      <div id="code-error" class="error-msg"></div>
 
       <div class="field-group">
         <label class="field-label" for="admin-code-input">Admin Secret Code</label>
@@ -9295,32 +9603,8 @@ def admin_portal_page():
         </div>
       </div>
 
-      <div class="info-note">
-        🛡️ <strong>Security Sentinel:</strong> 3 consecutive incorrect attempts will lock this console for 24 hours and send a critical alert to the configured owner email.
-      </div>
-
-      <button class="btn btn-primary" id="btn-submit-step1" style="width: 100%; justify-content: center; padding: 12px;">Verify & Send Email OTP &rarr;</button>
-    </div>
-
-    <!-- Screen 2: Step 2 Auth (6-Digit Email OTP) -->
-    <div id="step2-screen" class="auth-card" style="display: none;">
-      <div style="font-size: 42px; margin-bottom: 12px;">📬</div>
-      <h1>Two-Factor Verification</h1>
-      <p>A 6-digit one-time code was sent to the configured owner email address.</p>
-
-      <div id="otp-error" class="error-msg"></div>
-
-      <div class="field-group" style="text-align: center;">
-        <label class="field-label" style="text-align: center;">Enter 6-Digit Code</label>
-        <input type="text" id="admin-otp-input" class="input-field" maxlength="6" style="font-size: 26px; font-weight: 800; letter-spacing: 10px; text-align: center; font-family: monospace; padding: 14px;" placeholder="000000" autocomplete="off" />
-      </div>
-
-      <div class="info-note" style="text-align: center;">
-        ⏱️ Code is valid for 10 minutes. Check your spam/junk folder if not received.
-      </div>
-
-      <button class="btn btn-primary" id="btn-submit-step2" style="width: 100%; justify-content: center; padding: 12px; margin-bottom: 12px;">Verify Code & Unlock Console &rarr;</button>
-      <button class="btn" id="btn-back-step1" style="width: 100%; justify-content: center;">&larr; Back to Step 1</button>
+      <button class="btn btn-primary" id="btn-submit-step3" style="width: 100%; justify-content: center; padding: 12px; margin-bottom: 12px;">Verify Secret Code &amp; Unlock Console &rarr;</button>
+      <button class="btn" id="btn-back-step1-from-3" style="width: 100%; justify-content: center;">&larr; Restart Owner Login</button>
     </div>
 
     <!-- Screen 3: Unlocked Dashboard (Full Power & Visuals) -->
@@ -9412,6 +9696,7 @@ def admin_portal_page():
           <button class="tab-btn" id="tab-revenue-btn">💰 Revenue &amp; Payouts</button>
           <button type="button" class="tab-btn" id="tab-sessions-btn">Admin sessions (<span id="count-sessions">0</span>)</button>
           <button class="tab-btn" id="tab-feedback-btn">💬 User Feedback (<span id="count-feedback">0</span>)</button>
+          <button class="tab-btn" id="tab-support-btn">🛟 Support Tickets (<span id="count-support">0</span>)</button>
           <button class="tab-btn" id="tab-ai-btn">🤖 AI Settings</button>
           <button class="tab-btn" id="tab-waitlist-btn">App Waitlist (<span id="count-waitlist">0</span>)</button>
           <button class="tab-btn" id="tab-audit-btn">Security Audits (<span id="count-audit">0</span>)</button>
@@ -9503,8 +9788,11 @@ def admin_portal_page():
       </div>
 
       <section id="panel-sessions" class="table-container" style="display: none;" aria-label="Admin sessions" tabindex="0">
+        <div id="sessions-permission-note" style="padding: 12px 16px; background: #111a1d; border-bottom: 1px solid var(--card-border); font-size: 12.5px; color: var(--text-muted);">
+          Active administrator sessions with device details.
+        </div>
         <table>
-          <thead><tr><th>Owner account</th><th>Role</th><th>Signed in</th><th>Expires</th><th>Action</th></tr></thead>
+          <thead><tr><th>Owner account</th><th>Role</th><th>Device</th><th>IP / Location</th><th>Signed in</th><th>Last active</th><th>Expires</th><th>Action</th></tr></thead>
           <tbody id="sessions-tbody"></tbody>
         </table>
       </section>
@@ -9539,6 +9827,39 @@ def admin_portal_page():
             </thead>
             <tbody id="feedback-tbody">
               <tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">Loading customer feedback...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Support Tickets Panel -->
+      <div id="panel-support" style="display: none;">
+        <div class="table-container" role="region" aria-label="Support tickets table" tabindex="0">
+          <div style="padding: 12px 16px; background: #111a1d; border-bottom: 1px solid var(--card-border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 12px; color: var(--text-muted);">Ticket Filter:</span>
+              <div class="filter-pills support-pills">
+                <span class="pill active" data-support-filter="all">All</span>
+                <span class="pill" data-support-filter="open">Open</span>
+                <span class="pill" data-support-filter="resolved">Resolved</span>
+              </div>
+            </div>
+            <div style="font-size: 12px; color: var(--text-muted);" id="support-summary-count">0 tickets</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Ref</th>
+                <th>Status</th>
+                <th>Category</th>
+                <th>Subject &amp; Message</th>
+                <th>Contact &amp; Order</th>
+                <th>Submitted</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="support-tbody">
+              <tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 30px;">Loading support tickets...</td></tr>
             </tbody>
           </table>
         </div>
@@ -9666,7 +9987,7 @@ def admin_portal_page():
     </div>
   </main>
 
-  <script src="/assets/admin.js?v=22" defer></script>
+  <script src="/assets/admin.js?v=23" defer></script>
 </body>
 </html>""")
 
@@ -9726,65 +10047,111 @@ async def _read_limited_admin_json(request: Request, max_bytes: int = 8192) -> d
 
 @app.get("/api/admin/auth/status", include_in_schema=False)
 def admin_auth_status(request: Request):
-    """Return the requesting source address's lockout status without owner PII."""
-    remaining = get_admin_lockout_remaining(get_client_ip(request))
-    return {
-        "locked": remaining > 0,
-        "remaining_seconds": remaining,
-    }
+    """Return the requesting source address's failure/verification state without owner PII."""
+    return persistence.get_admin_auth_gate_state(get_client_ip(request))
+
+
+async def _dispatch_recovery_otp_if_possible(client_ip: str) -> str | None:
+    """Best-effort dispatch of recovery OTP to the configured superadmin email."""
+    otp = f"{secrets.randbelow(1_000_000):06d}"
+    challenge = persistence.set_admin_recovery_otp(otp, client_ip, expires_in=600)
+    delivered = await asyncio.to_thread(
+        send_admin_unlock_otp,
+        to_email=PRIMARY_ADMIN_EMAIL,
+        otp_code=otp,
+        client_ip=client_ip,
+    )
+    if not delivered:
+        return None
+    record_audit_event("admin_recovery_otp_dispatched", email=PRIMARY_ADMIN_EMAIL, ip_address=client_ip, details="Superadmin recovery OTP dispatched after 3 failed attempts")
+    return challenge
+
+
+async def _handle_failed_admin_attempt(client_ip: str, audit_event: str, detail_prefix: str) -> JSONResponse:
+    attempts, verification_required = record_admin_failed_attempt(client_ip)
+    record_audit_event(audit_event, email=ADMIN_ALERT_EMAIL, ip_address=client_ip, details=f"Failed attempt {attempts}/3")
+    if verification_required:
+        recovery_challenge = await _dispatch_recovery_otp_if_possible(client_ip)
+        return JSONResponse(
+            {
+                "detail": "3 failed attempts recorded. Email verification (OTP sent to the configured superadmin email) is required to grant 3 fresh attempts.",
+                "verification_required": True,
+                "attempts_remaining": 0,
+                **({"recovery_challenge": recovery_challenge} if recovery_challenge else {}),
+            },
+            status_code=403,
+            headers={"Cache-Control": "no-store"},
+        )
+    remaining_attempts = max(0, 3 - attempts)
+    return JSONResponse(
+        {
+            "detail": f"{detail_prefix} {remaining_attempts} attempt(s) remaining before superadmin email verification is required.",
+            "verification_required": False,
+            "attempts_remaining": remaining_attempts,
+        },
+        status_code=401,
+        headers={"Cache-Control": "no-store"},
+    )
+
+
+@app.post("/api/admin/auth/recovery/send", include_in_schema=False)
+async def admin_auth_recovery_send(request: Request):
+    """Send or resend the superadmin recovery OTP to mdhammad2906@gmail.com after 3 failures."""
+    client_ip = get_client_ip(request)
+    enforce_rate_limit(f"admin_recovery_send:{client_ip}", limit=8)
+    challenge = await _dispatch_recovery_otp_if_possible(client_ip)
+    if not challenge:
+        raise HTTPException(status_code=503, detail="Superadmin verification email could not be delivered. Please try again later.")
+    return JSONResponse({"status": "recovery_otp_sent", "challenge": challenge}, headers={"Cache-Control": "no-store"})
+
+
+@app.post("/api/admin/auth/recovery/verify", include_in_schema=False)
+async def admin_auth_recovery_verify(request: Request):
+    """Verify the superadmin recovery OTP to grant 3 fresh admin login attempts (no 24h lockout)."""
+    client_ip = get_client_ip(request)
+    enforce_rate_limit(f"admin_recovery_verify:{client_ip}", limit=12)
+    body = await _read_limited_admin_json(request)
+    otp = str(body.get("otp", "")).strip()
+    challenge = str(body.get("challenge", ""))
+    if not persistence.verify_admin_recovery_otp(otp, challenge, client_ip):
+        record_audit_event("admin_recovery_otp_failed", email=PRIMARY_ADMIN_EMAIL, ip_address=client_ip, details="Invalid or expired superadmin recovery OTP")
+        raise HTTPException(status_code=401, detail="Invalid or expired verification code. Request a new code sent to the superadmin email.")
+    record_audit_event("admin_recovery_otp_verified", email=PRIMARY_ADMIN_EMAIL, ip_address=client_ip, details="Granted 3 fresh admin login attempts")
+    return JSONResponse({"status": "unlocked", "verification_required": False, "attempts_remaining": 3}, headers={"Cache-Control": "no-store"})
 
 
 @app.post("/api/admin/auth/step1", include_in_schema=False)
-async def admin_auth_step1(request: Request, background_tasks: BackgroundTasks):
-    """Step 1: Validate Admin Secret Key and Secret Code; generate and email 6-digit OTP."""
+async def admin_auth_step1(request: Request):
+    """Step 1: Validate owner email + Admin Secret Key and email 6-digit OTP."""
     client_ip = get_client_ip(request)
-    enforce_rate_limit(f"admin_step1:{client_ip}", limit=12)
+    enforce_rate_limit(f"admin_step1:{client_ip}", limit=15)
 
     if len(ADMIN_SECRET_KEY) < 64 or len(ADMIN_SECRET_CODE) < 8 or not ADMIN_ALERT_EMAIL:
         raise HTTPException(status_code=503, detail="Owner authentication is not configured on this server.")
 
-    remaining = get_admin_lockout_remaining(client_ip)
-    if remaining > 0:
-        hrs = int(remaining // 3600)
-        mins = int((remaining % 3600) // 60)
-        raise HTTPException(status_code=423, detail=f"Admin console is locked. {hrs}h {mins}m remaining. Try after 24 hours.")
+    gate = persistence.get_admin_auth_gate_state(client_ip)
+    if gate["verification_required"]:
+        return JSONResponse(
+            {
+                "detail": "3 consecutive failed attempts recorded. Complete superadmin email verification to grant 3 fresh attempts.",
+                "verification_required": True,
+                "attempts_remaining": 0,
+            },
+            status_code=403,
+            headers={"Cache-Control": "no-store"},
+        )
 
     body = await _read_limited_admin_json(request)
-
     admin_key = str(body.get("admin_key", "")).strip()
-    admin_code = str(body.get("admin_code", "")).strip()
+    owner_email = str(body.get("email") or PRIMARY_ADMIN_EMAIL).strip().lower()
 
     key_ok = bool(
         ADMIN_SECRET_KEY
         and hmac.compare_digest(admin_key.encode("utf-8"), ADMIN_SECRET_KEY.encode("utf-8"))
     )
-    code_ok = bool(
-        ADMIN_SECRET_CODE
-        and hmac.compare_digest(admin_code.encode("utf-8"), ADMIN_SECRET_CODE.encode("utf-8"))
-    )
+    if not (key_ok and owner_email in ADMIN_OWNER_EMAILS):
+        return await _handle_failed_admin_attempt(client_ip, "admin_auth_failed", "Invalid owner email or admin secret key.")
 
-    owner_email = str(body.get("email") or PRIMARY_ADMIN_EMAIL).strip().lower()
-    if not (key_ok and code_ok and owner_email in ADMIN_OWNER_EMAILS):
-        attempts, is_locked = record_admin_failed_attempt(client_ip)
-        record_audit_event("admin_auth_failed", email=ADMIN_ALERT_EMAIL, ip_address=client_ip, details=f"Failed attempt {attempts}/3")
-        if is_locked:
-            background_tasks.add_task(
-                send_admin_lockout_alert,
-                to_email=ADMIN_ALERT_EMAIL,
-                client_ip=client_ip,
-                failure_reason="3 consecutive failed attempts on admin secret key/code"
-            )
-            raise HTTPException(
-                status_code=423,
-                detail="3 failed attempts. Admin console is locked for 24 hours. Security alert dispatched."
-            )
-        remaining_attempts = max(0, 3 - attempts)
-        raise HTTPException(
-            status_code=401,
-            detail=f"Invalid key or secret code. Warning: {remaining_attempts} attempt(s) remaining before 24h lockout."
-        )
-
-    # Key and Secret Code validated -> generate 6-digit OTP
     otp = f"{secrets.randbelow(1_000_000):06d}"
     challenge = set_admin_pending_otp(otp, owner_email, client_ip, expires_in=600)
 
@@ -9811,49 +10178,90 @@ async def admin_auth_step1(request: Request, background_tasks: BackgroundTasks):
 
 
 @app.post("/api/admin/auth/step2", include_in_schema=False)
-async def admin_auth_step2(request: Request, background_tasks: BackgroundTasks):
-    """Step 2: Validate 6-digit OTP code and issue a cryptographically signed admin session token."""
+async def admin_auth_step2(request: Request):
+    """Step 2: Validate 6-digit email OTP and advance to post-OTP Admin Secret Code verification (ID 460)."""
     client_ip = get_client_ip(request)
-    enforce_rate_limit(f"admin_step2:{client_ip}", limit=12)
+    enforce_rate_limit(f"admin_step2:{client_ip}", limit=15)
 
-    remaining = get_admin_lockout_remaining(client_ip)
-    if remaining > 0:
-        hrs = int(remaining // 3600)
-        raise HTTPException(status_code=423, detail=f"Admin console is locked. {hrs}h remaining. Try after 24 hours.")
+    gate = persistence.get_admin_auth_gate_state(client_ip)
+    if gate["verification_required"]:
+        return JSONResponse(
+            {
+                "detail": "3 consecutive failed attempts recorded. Complete superadmin email verification to grant 3 fresh attempts.",
+                "verification_required": True,
+                "attempts_remaining": 0,
+            },
+            status_code=403,
+            headers={"Cache-Control": "no-store"},
+        )
 
     body = await _read_limited_admin_json(request)
-
     otp = str(body.get("otp", "")).strip()
     challenge = str(body.get("challenge", ""))
     owner_email = verify_admin_otp(otp, challenge, client_ip)
 
     if owner_email not in ADMIN_OWNER_EMAILS:
-        attempts, is_locked = record_admin_failed_attempt(client_ip)
-        record_audit_event("admin_otp_failed", email=ADMIN_ALERT_EMAIL, ip_address=client_ip, details=f"Invalid OTP attempt {attempts}/3")
-        if is_locked:
-            background_tasks.add_task(
-                send_admin_lockout_alert,
-                to_email=ADMIN_ALERT_EMAIL,
-                client_ip=client_ip,
-                failure_reason="3 consecutive failed attempts on admin OTP"
-            )
-            raise HTTPException(
-                status_code=423,
-                detail="3 failed attempts. Admin console is locked for 24 hours. Security alert dispatched."
-            )
-        remaining_attempts = max(0, 3 - attempts)
-        raise HTTPException(
-            status_code=401,
-            detail=f"Invalid or expired OTP code. Warning: {remaining_attempts} attempt(s) remaining."
+        return await _handle_failed_admin_attempt(client_ip, "admin_otp_failed", "Invalid or expired OTP code.")
+
+    code_challenge = persistence.create_admin_code_challenge(owner_email, client_ip, expires_in=300)
+    record_audit_event("admin_otp_verified", email=owner_email, ip_address=client_ip, details="OTP verified; awaiting Admin Secret Code")
+    return JSONResponse(
+        {"status": "code_required", "code_challenge": code_challenge},
+        headers={"Cache-Control": "no-store"},
+    )
+
+
+@app.post("/api/admin/auth/step3", include_in_schema=False)
+async def admin_auth_step3(request: Request):
+    """Step 3: Validate Admin Secret Code AFTER OTP verification and issue admin session token (ID 460)."""
+    client_ip = get_client_ip(request)
+    enforce_rate_limit(f"admin_step3:{client_ip}", limit=15)
+
+    gate = persistence.get_admin_auth_gate_state(client_ip)
+    if gate["verification_required"]:
+        return JSONResponse(
+            {
+                "detail": "3 consecutive failed attempts recorded. Complete superadmin email verification to grant 3 fresh attempts.",
+                "verification_required": True,
+                "attempts_remaining": 0,
+            },
+            status_code=403,
+            headers={"Cache-Control": "no-store"},
         )
 
-    # Full 3-factor authentication verified -> issue 4-hour session
+    body = await _read_limited_admin_json(request)
+    code_challenge = str(body.get("code_challenge", "")).strip()
+    admin_code = str(body.get("admin_code", "")).strip()
+
+    owner_email = persistence.get_admin_code_challenge(code_challenge, client_ip)
+    if owner_email not in ADMIN_OWNER_EMAILS:
+        raise HTTPException(status_code=401, detail="OTP verification session expired. Restart owner authentication.")
+
+    code_ok = bool(
+        ADMIN_SECRET_CODE
+        and admin_code
+        and hmac.compare_digest(admin_code.encode("utf-8"), ADMIN_SECRET_CODE.encode("utf-8"))
+    )
+    if not code_ok:
+        return await _handle_failed_admin_attempt(client_ip, "admin_secret_code_failed", "Invalid Admin Secret Code.")
+
+    persistence.consume_admin_code_challenge(code_challenge, client_ip)
     reset_admin_failed_attempts(client_ip)
-    session_token = create_admin_session(owner_email, client_ip, ttl_seconds=14400)
-    record_audit_event("admin_login_success", email=owner_email, ip_address=client_ip, details="Owner authenticated via 3-factor verification")
+    user_agent = request.headers.get("user-agent", "")
+    device_name = summarize_device_name(user_agent)
+    session_token = create_admin_session(
+        owner_email,
+        client_ip,
+        ttl_seconds=14400,
+        user_agent=user_agent,
+        device_name=device_name,
+    )
+    role = "superadmin" if owner_email == PRIMARY_ADMIN_EMAIL else "admin"
+    record_audit_event("admin_login_success", email=owner_email, ip_address=client_ip, user_agent=user_agent,
+                       details=f"Owner authenticated via 3-factor post-OTP secret code ({device_name})")
 
     return JSONResponse(
-        {"status": "authenticated", "session_token": session_token, "expires_in": 14400},
+        {"status": "authenticated", "session_token": session_token, "expires_in": 14400, "role": role},
         headers={"Cache-Control": "no-store"},
     )
 
@@ -9866,21 +10274,48 @@ def admin_auth_logout(session: dict = Depends(_require_admin)):
 
 @app.get("/api/admin/sessions", include_in_schema=False)
 def admin_sessions(session: dict = Depends(_require_admin)):
-    active = [
-        {**row, "current": row["id"] == session["id"], "role": "superadmin"}
-        for row in persistence.list_admin_sessions() if row["email"] in ADMIN_OWNER_EMAILS
-    ]
-    return JSONResponse({"sessions": active}, headers={"Cache-Control": "no-store"})
+    can_revoke = session["email"] == PRIMARY_ADMIN_EMAIL
+    active = []
+    for row in persistence.list_admin_sessions():
+        if row["email"] not in ADMIN_OWNER_EMAILS:
+            continue
+        row_role = "superadmin" if row["email"] == PRIMARY_ADMIN_EMAIL else "admin"
+        ip = row.get("client_ip") or "unknown"
+        active.append({
+            "id": row["id"],
+            "email": row["email"],
+            "role": row_role,
+            "device_name": row.get("device_name") or "Unknown device",
+            "client_ip": ip,
+            "location": _lookup_admin_location(ip),
+            "created_at": row["created_at"],
+            "last_active_at": row.get("last_active_at") or row["created_at"],
+            "expires_at": row["expires_at"],
+            "current": row["id"] == session["id"],
+        })
+    return JSONResponse(
+        {
+            "sessions": active,
+            "can_revoke": can_revoke,
+            "viewer_role": "superadmin" if can_revoke else "admin",
+        },
+        headers={"Cache-Control": "no-store"},
+    )
 
 
 @app.delete("/api/admin/sessions/{session_id}", include_in_schema=False)
 def admin_logout_other_session(session_id: str, request: Request, session: dict = Depends(_require_admin)):
+    if session["email"] != PRIMARY_ADMIN_EMAIL:
+        raise HTTPException(
+            status_code=403,
+            detail="Only the superadmin (mdhammad2906@gmail.com) can remove or log out active admin sessions.",
+        )
     if session_id == session["id"]:
         raise HTTPException(409, "Use Logout to end your current session.")
     if not revoke_admin_session(session_id):
         raise HTTPException(404, "This admin session has already ended.")
     record_audit_event("admin_session_revoked", email=session["email"], ip_address=get_client_ip(request),
-                       details="An owner revoked another admin session.")
+                       details="Superadmin revoked an active admin session.")
     return {"status": "logged_out"}
 
 
@@ -10092,6 +10527,103 @@ def admin_remove_feedback(feedback_id: str, _: None = Depends(_require_admin)):
     if not ok:
         raise HTTPException(status_code=404, detail="Feedback entry not found.")
     return {"status": "ok", "deleted": feedback_id}
+
+
+@app.post("/api/support")
+async def submit_support_ticket_endpoint(
+    request: Request,
+    background_tasks: BackgroundTasks,
+):
+    """Accept guided customer support requests and email the solo founder."""
+    client_ip = get_client_ip(request)
+    enforce_account_rate_limit(f"support:{client_ip}", limit=8, window_seconds=300)
+    try:
+        payload = await request.json()
+    except Exception:
+        raise HTTPException(422, "Support payload must be valid JSON.") from None
+    if not isinstance(payload, dict):
+        raise HTTPException(422, "Support payload must be a JSON object.")
+
+    user_id = _resolve_optional_user_id(request)
+    _assert_expected_user_identity(request, user_id)
+    user = get_user(user_id) if user_id else None
+
+    email = str(payload.get("email") or (user.get("email") if user else "") or "").strip()
+    category = str(payload.get("category") or "general").strip().lower()
+    subject = str(payload.get("subject") or "").strip()
+    message = str(payload.get("message") or "").strip()
+    order_id = str(payload.get("order_id") or "").strip()
+    page_context = payload.get("page_context") if isinstance(payload.get("page_context"), dict) else None
+
+    try:
+        saved = create_support_ticket(
+            email=email,
+            category=category,
+            subject=subject,
+            message=message,
+            user_id=user_id,
+            order_id=order_id,
+            page_context=page_context,
+            ip_address=client_ip,
+        )
+    except ValueError as err:
+        raise HTTPException(422, detail=str(err)) from err
+
+    background_tasks.add_task(
+        send_support_ticket_alert,
+        saved["ticket_ref"],
+        saved["email"],
+        saved["category"],
+        saved["subject"],
+        message,
+        order_id=order_id,
+        page_context=page_context,
+        ip_address=client_ip,
+    )
+    return {
+        "status": "ok",
+        "ticket_ref": saved["ticket_ref"],
+        "ticket": saved,
+        "message": f"Ticket {saved['ticket_ref']} logged. Replies typically arrive within 24-48 hours via email.",
+    }
+
+
+@app.get("/api/support/tickets")
+def list_my_support_tickets(request: Request, user_id: str | None = Depends(current_user)):
+    _assert_expected_user_identity(request, user_id)
+    if not user_id:
+        raise HTTPException(401, "Sign in to view your submitted support tickets.")
+    return {"status": "ok", "tickets": list_support_tickets_for_user(user_id)}
+
+
+@app.get("/api/admin/support", include_in_schema=False)
+def admin_list_support_tickets(_: None = Depends(_require_admin)):
+    tickets = admin_get_support_tickets()
+    return {"status": "ok", "count": len(tickets), "tickets": tickets}
+
+
+@app.post("/api/admin/support/{ticket_id}/status", include_in_schema=False)
+async def admin_set_support_ticket_status(
+    ticket_id: str,
+    payload: dict = Body(default={}),
+    _: None = Depends(_require_admin),
+):
+    status_val = str(payload.get("status") or "").strip().lower()
+    try:
+        ok = admin_update_support_ticket_status(ticket_id, status_val)
+    except ValueError as err:
+        raise HTTPException(422, detail=str(err)) from err
+    if not ok:
+        raise HTTPException(404, detail="Support ticket not found.")
+    return {"status": "ok", "ticket_id": ticket_id, "ticket_status": status_val}
+
+
+@app.delete("/api/admin/support/{ticket_id}", include_in_schema=False)
+def admin_remove_support_ticket(ticket_id: str, _: None = Depends(_require_admin)):
+    ok = admin_delete_support_ticket(ticket_id)
+    if not ok:
+        raise HTTPException(404, detail="Support ticket not found.")
+    return {"status": "ok", "deleted": ticket_id}
 
 
 @app.get("/api/admin/revenue", include_in_schema=False)

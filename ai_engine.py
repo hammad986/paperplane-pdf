@@ -706,7 +706,7 @@ def stream_bluesminds(system_prompt: str, user_prompt: str, timeout_seconds: flo
     if active_credentials.get("configuration_error"):
         raise RuntimeError(active_credentials["configuration_error"])
     if active_credentials.get("provider") in {"anthropic", "gemini"}:
-        yield _provider_request(system_prompt, user_prompt, active_credentials, timeout_seconds=timeout_seconds)
+        yield _provider_request(system_prompt, user_prompt, active_credentials, timeout_seconds=timeout_seconds, max_attempts=3)
         return
     api_key = active_credentials.get("api_key") or ""
     if not api_key:
@@ -869,8 +869,8 @@ def _provider_request(
         response_temperature = min(2.0, max(0.0, float(temperature)))
     except (TypeError, ValueError):
         response_temperature = 0.2
-    attempts = max(1, min(4, int(max_attempts)))
-    retry_delays = (0.4, 2.0, 5.0)
+    attempts = max(1, min(5, int(max_attempts)))
+    retry_delays = (0.4, 2.0, 5.0, 8.0)
     total_backoff = sum(retry_delays[:max(0, attempts - 1)])
     per_attempt_timeout = max(0.1, (total_timeout - total_backoff) / attempts)
     request_deadline = time.monotonic() + total_timeout
@@ -1747,8 +1747,8 @@ def _guard_ai_output(answer: str) -> str:
 
 
 SUMMARY_PAGE_LIMIT = 120
-SUMMARY_CALL_TIMEOUT_SECONDS = 55.0
-DOCUMENT_AI_BUDGET_SECONDS = 275.0
+SUMMARY_CALL_TIMEOUT_SECONDS = 75.0
+DOCUMENT_AI_BUDGET_SECONDS = 480.0
 SUMMARY_CHUNK_PAGE_COUNT = 12
 SUMMARY_CHUNK_CHAR_BUDGET = 20_400
 
@@ -2560,7 +2560,7 @@ TRANSLATION_MAX_PARALLEL_BATCHES = 2
 # Cap additional repair calls across the whole PDF, while allowing enough small
 # groups to recover a truncated multi-batch response instead of giving up after
 # repairing only the first few missing segments.
-TRANSLATION_MAX_REPAIR_REQUESTS = 16
+TRANSLATION_MAX_REPAIR_REQUESTS = 32
 
 
 def _translation_chunks(text: str, limit: int = 1600) -> list[str]:
@@ -2877,7 +2877,7 @@ def translate_pdf_layout(
         repair_requests = 0
         rate_limited_cooldown_applied = False
         if all_rate_limited and len(batches) > 1 and (deadline - time.monotonic()) > 12.0:
-            time.sleep(min(4.0, max(1.0, (deadline - time.monotonic()) * 0.1)))
+            time.sleep(min(8.0, max(1.5, (deadline - time.monotonic()) * 0.08)))
             rate_limited_cooldown_applied = True
             all_rate_limited = False
         while repair_requests < TRANSLATION_MAX_REPAIR_REQUESTS and not all_rate_limited:
@@ -2919,11 +2919,11 @@ def translate_pdf_layout(
                         )
                         if "429" in reason:
                             consecutive_429 += 1
-                            if not translated_segments and consecutive_429 >= 2:
+                            if not translated_segments and consecutive_429 >= 4:
                                 break
                             remaining_now = deadline - time.monotonic()
                             if remaining_now > 8.0:
-                                time.sleep(min(2.0, max(0.5, remaining_now * 0.08)))
+                                time.sleep(min(6.0, max(1.0, remaining_now * 0.08)))
                         continue
                     for block_id, translated_text in repaired.items():
                         if block_id in round_requested_ids and block_id not in translated_segments and translated_text.strip():

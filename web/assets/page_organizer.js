@@ -601,6 +601,57 @@
       dropIndicator.style.display = 'none';
       grid.appendChild(dropIndicator);
 
+      const resolveClosestCardAtPoint = (clientX, clientY) => {
+        const direct = document.elementFromPoint(clientX, clientY)?.closest?.('.organizer-thumb-card');
+        if (direct && grid.contains(direct)) return { card: direct, rect: direct.getBoundingClientRect() };
+        const allCards = Array.from(grid.querySelectorAll('.organizer-thumb-card'));
+        let best = null;
+        let bestDist = Infinity;
+        for (const c of allCards) {
+          const r = c.getBoundingClientRect();
+          const cx = r.left + r.width / 2;
+          const cy = r.top + r.height / 2;
+          const dist = Math.hypot(clientX - cx, clientY - cy);
+          if (dist < bestDist) {
+            bestDist = dist;
+            best = { card: c, rect: r };
+          }
+        }
+        return best;
+      };
+      this._resolveClosestCardAtPoint = resolveClosestCardAtPoint;
+
+      grid.addEventListener('dragenter', (e) => {
+        if (!this.draggedPage) return;
+        e.preventDefault();
+        if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+      });
+      grid.addEventListener('dragover', (e) => {
+        if (!this.draggedPage) return;
+        e.preventDefault();
+        if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+        if (!e.target.closest?.('.organizer-thumb-card')) {
+          const hit = resolveClosestCardAtPoint(e.clientX, e.clientY);
+          if (hit?.card) this._updateDropIndicator(hit.card, e);
+        }
+      });
+      grid.addEventListener('drop', (e) => {
+        if (!this.draggedPage || e.target.closest?.('.organizer-thumb-card')) return;
+        e.preventDefault();
+        const hit = resolveClosestCardAtPoint(e.clientX, e.clientY);
+        if (!hit?.card) return;
+        const targetPage = parseInt(hit.card.dataset.page, 10);
+        const isHorizontal = grid.classList.contains('strip-mode') && window.matchMedia('(max-width: 900px)').matches;
+        const isGrid = grid.classList.contains('grid-mode');
+        const r = hit.rect;
+        const isAfter = isHorizontal
+          ? e.clientX > r.left + r.width / 2
+          : isGrid
+            ? (e.clientY > r.bottom - r.height * 0.25) || (e.clientX > r.left + r.width / 2 && e.clientY > r.top + r.height * 0.25)
+            : e.clientY > r.top + r.height / 2;
+        this._executeDropReorder(targetPage, isAfter);
+      });
+
       container.appendChild(topBar);
       container.appendChild(grid);
       this._bindSubnavEvents();
@@ -914,16 +965,26 @@
       card.addEventListener('dragend', () => {
         card.classList.remove('dragging');
         this._hideDropIndicator();
+        this.draggedPage = null;
+      });
+
+      card.addEventListener('dragenter', (e) => {
+        e.preventDefault();
+        if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
       });
 
       card.addEventListener('dragover', (e) => {
         e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
+        e.stopPropagation();
+        if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
         this._updateDropIndicator(card, e);
       });
 
       card.addEventListener('drop', (e) => {
         e.preventDefault();
+        e.stopPropagation();
+        const rawPage = e.dataTransfer?.getData('text/plain');
+        if (!this.draggedPage && rawPage) this.draggedPage = parseInt(rawPage, 10);
         const targetPage = parseInt(card.dataset.page, 10);
         const isAfter = computeIsAfter(card, e.clientX, e.clientY);
         this._executeDropReorder(targetPage, isAfter);
@@ -968,7 +1029,8 @@
           if (!drag.moved && Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) >= 5) drag.moved = true;
           if (!drag.moved) return;
           e.preventDefault();
-          const targetCard = document.elementFromPoint(e.clientX, e.clientY)?.closest('.organizer-thumb-card');
+          const hit = this._resolveClosestCardAtPoint?.(e.clientX, e.clientY);
+          const targetCard = hit?.card || document.elementFromPoint(e.clientX, e.clientY)?.closest('.organizer-thumb-card');
           if (!targetCard) return;
           drag.targetPage = parseInt(targetCard.dataset.page, 10);
           drag.isAfter = computeIsAfter(targetCard, e.clientX, e.clientY);
@@ -1370,15 +1432,58 @@
       }
     }
 
+    _snapshotUnsavedAnnotations() {
+      const ed = window.PaperplaneEditor;
+      if (!ed?.editorState || typeof ed.editorState.serialize !== 'function') return [];
+      try {
+        return ed.editorState.serialize().map(item => {
+          const clone = { ...item };
+          delete clone._imgEl;
+          return clone;
+        });
+      } catch {
+        return [];
+      }
+    }
+
+    _restoreAnnotationsWithPageMap(snapshot, pageMap) {
+      if (!Array.isArray(snapshot) || !snapshot.length) return 0;
+      const mapped = [];
+      for (const item of snapshot) {
+        const oldPage = Number(item.page || 1);
+        const newPage = pageMap instanceof Map ? pageMap.get(oldPage) : Number(pageMap?.[oldPage] ?? oldPage);
+        if (!newPage) continue;
+        mapped.push({ ...item, page: newPage });
+      }
+      if (!mapped.length || !window.PaperplaneEditor?.restoreSerialized) return 0;
+      return window.PaperplaneEditor.restoreSerialized(mapped) || 0;
+    }
+
     async reorderPages(newOrderArray) {
+      const previousFile = this.sourceFile;
+      const previousPage = this.state.activePage || 1;
+      const snapshot = this._snapshotUnsavedAnnotations();
       window.showToast('Reordering document pages…', 'info');
       const newFile = await this._sendPageMutation('/api/studio/pages/reorder', {
         order: JSON.stringify(newOrderArray)
       });
 
       if (newFile) {
-        await this._reloadPdfAfterMutation(newFile, 1);
-        window.showToast('Pages reordered successfully.', 'success');
+        const pageMap = new Map();
+        newOrderArray.forEach((oldPage, idx) => pageMap.set(Number(oldPage), idx + 1));
+        const nextActive = pageMap.get(Number(previousPage)) || 1;
+        await this._reloadPdfAfterMutation(newFile, nextActive);
+        const restored = this._restoreAnnotationsWithPageMap(snapshot, pageMap);
+        if (previousFile && window.showStudioUndoMutation) {
+          const msg = restored
+            ? `Pages reordered (${restored} unsaved annotation${restored === 1 ? '' : 's'} preserved)`
+            : 'Pages reordered';
+          window.showStudioUndoMutation(previousFile, previousPage, msg, newFile, snapshot);
+        }
+        window.showToast(
+          restored ? `Pages reordered — ${restored} annotation(s) kept on their moved pages.` : 'Pages reordered successfully.',
+          'success'
+        );
       }
     }
 
@@ -1425,6 +1530,9 @@
     }
 
     async rotatePages(pages, degrees) {
+      const snapshot = this._snapshotUnsavedAnnotations();
+      const previousFile = this.sourceFile;
+      const previousPage = this.state.activePage || 1;
       window.showToast(`Rotating ${pages.length} page(s) by ${degrees}°…`, 'info');
       const newFile = await this._sendPageMutation('/api/studio/pages/rotate', {
         pages: JSON.stringify(pages),
@@ -1433,7 +1541,12 @@
 
       if (newFile) {
         await this._reloadPdfAfterMutation(newFile, this.state.activePage);
-        window.showToast(`Rotated ${pages.length} page(s).`, 'success');
+        const identityMap = new Map(snapshot.map(s => [Number(s.page || 1), Number(s.page || 1)]));
+        const restored = this._restoreAnnotationsWithPageMap(snapshot, identityMap);
+        if (previousFile && window.showStudioUndoMutation) {
+          window.showStudioUndoMutation(previousFile, previousPage, `Rotated ${pages.length} page(s)`, newFile, snapshot);
+        }
+        window.showToast(`Rotated ${pages.length} page(s).${restored ? ' Unsaved edits preserved.' : ''}`, 'success');
       }
     }
 
@@ -1477,10 +1590,16 @@
       // Capture before opening the confirmation dialog; focusing the modal can
       // scroll the mobile document and change the visible page counter.
       const oldPage = Math.max(1, Number(document.getElementById('page-jump-input')?.value) || this.state.activePage || 1);
+      const snapshot = this._snapshotUnsavedAnnotations();
+      const deletedSet = new Set(pages.map(Number));
+      const affectedCount = snapshot.filter(item => deletedSet.has(Number(item.page || 1))).length;
 
-      const msg = pages.length === 1
+      const baseMsg = pages.length === 1
         ? `Delete page ${pages[0]}? You can undo this for 30 seconds after the deletion completes.`
         : `Delete ${pages.length} pages? You can undo this for 30 seconds after the deletion completes.`;
+      const msg = affectedCount
+        ? `${baseMsg} (${affectedCount} unsaved annotation${affectedCount === 1 ? '' : 's'} on deleted page(s) will also be removed.)`
+        : baseMsg;
       const confirmed = await (window.confirmAction ? window.confirmAction(msg, { confirmLabel: 'Delete pages', danger: true }) : Promise.resolve(window.confirm(msg)));
       if (!confirmed) return;
 
@@ -1491,12 +1610,20 @@
       });
 
       if (newFile) {
+        const pageMap = new Map();
+        let nextIdx = 1;
+        for (let p = 1; p <= total; p += 1) {
+          if (!deletedSet.has(p)) {
+            pageMap.set(p, nextIdx);
+            nextIdx += 1;
+          }
+        }
         const deletedBeforeActive = pages.filter(page => page < oldPage).length;
-        const activeWasDeleted = pages.includes(oldPage);
-        const nextActive = Math.max(1, Math.min(activeWasDeleted ? oldPage - deletedBeforeActive : oldPage - deletedBeforeActive, total - pages.length));
+        const nextActive = Math.max(1, Math.min(oldPage - deletedBeforeActive, total - pages.length));
         await this._reloadPdfAfterMutation(newFile, nextActive);
+        this._restoreAnnotationsWithPageMap(snapshot, pageMap);
         if (previousFile && window.showStudioUndoMutation) {
-          window.showStudioUndoMutation(previousFile, oldPage, `${pages.length} page(s) deleted`, newFile);
+          window.showStudioUndoMutation(previousFile, oldPage, `${pages.length} page(s) deleted`, newFile, snapshot);
         }
         window.showToast(`Deleted ${pages.length} page(s).`, 'success');
       }

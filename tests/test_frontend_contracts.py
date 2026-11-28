@@ -76,7 +76,7 @@ def test_admin_plan_breakdown_uses_public_paid_plan_name():
     assert 'escapeHtml(planDisplayName(tier))' in ADMIN
     assert 'escapeHtml(planDisplayName((ord.tier || "pro").toLowerCase()))' in ADMIN
     assert 'cyber_cafe: "Cyber Cafe"' not in ADMIN
-    assert 'admin.js?v=22' in (ROOT / "server.py").read_text(encoding="utf-8")
+    assert 'admin.js?v=23' in (ROOT / "server.py").read_text(encoding="utf-8")
 
 
 def test_recurring_plan_periods_use_consistent_spacing():
@@ -116,7 +116,7 @@ def test_studio_organizer_page_number_stays_inside_narrow_tile():
     assert ".thumb-header {" in STYLES
     assert "grid-template-columns: minmax(20px, 1fr) 18px auto;" in STYLES
     assert ".thumb-page-num" in STYLES and "white-space: nowrap;" in STYLES
-    assert 'href="/assets/styles.css?v=99"' in INDEX
+    assert 'href="/assets/styles.css?v=101"' in INDEX
 
 
 def test_studio_page_sizes_do_not_fall_back_to_a4_and_use_pdfjs_page_view():
@@ -124,8 +124,8 @@ def test_studio_page_sizes_do_not_fall_back_to_a4_and_use_pdfjs_page_view():
     assert "height: Number.isFinite(meta.height) && meta.height > 0 ? meta.height : null" in PAGE_ORGANIZER
     assert "page.getViewport({ scale: 1.0 })" in PAGE_ORGANIZER
     assert "sizeLabel.textContent = `${Math.round(baseVp.width)}×${Math.round(baseVp.height)}pt`" in PAGE_ORGANIZER
-    assert "page_organizer.js?v=24" in INDEX
-    assert "'/assets/page_organizer.js?v=24'" in (ROOT / "web" / "assets" / "service-worker.js").read_text(encoding="utf-8")
+    assert "page_organizer.js?v=25" in INDEX
+    assert "'/assets/page_organizer.js?v=25'" in (ROOT / "web" / "assets" / "service-worker.js").read_text(encoding="utf-8")
 
 
 def test_global_footer_is_revealed_when_a_short_page_has_no_scroll_range():

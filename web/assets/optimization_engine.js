@@ -28,7 +28,34 @@
     return new Error(String(message));
   }
 
-  async function postStudioForm(url, form, action) {
+  async function preflightStudioQuotaIfNeeded(url) {
+    const nonBillable = ['/api/studio/compress/analyze', '/api/studio/ocr/languages'];
+    if (nonBillable.includes(url)) return;
+    if (window.isPaperplanePaidAccount?.()) return;
+    try {
+      const statusResp = await fetch('/api/billing/status', {
+        credentials: 'same-origin',
+        cache: 'no-store',
+        signal: typeof AbortSignal !== 'undefined' && AbortSignal.timeout ? AbortSignal.timeout(4000) : undefined,
+      });
+      if (!statusResp.ok) return;
+      const liveBilling = await statusResp.json();
+      if (liveBilling?.tier === 'free') {
+        const usage = Number(liveBilling.usage_today);
+        const limit = Number(liveBilling.daily_limit ?? 10);
+        if (Number.isFinite(usage) && limit >= 0 && usage >= limit) {
+          const msg = 'Daily operation limit reached on Free Tier.';
+          window.openUpgradeModal?.(msg);
+          throw new Error(msg);
+        }
+      }
+    } catch (err) {
+      if (err?.message && /daily operation limit/i.test(err.message)) throw err;
+    }
+  }
+
+  async function postStudioForm(url, form, action, { timeoutMs = 60000, signal = null } = {}) {
+    await preflightStudioQuotaIfNeeded(url);
     if (form instanceof FormData) {
       const studioPw = window.getPaperplaneStudioPassword?.();
       if (studioPw && !form.has('password')) form.append('password', studioPw);
@@ -43,11 +70,43 @@
         } catch { /* Keep original File handle if cloning is unavailable. */ }
       }
     }
+    const headers = {};
+    const expectedUserId = String(window.getPaperplaneExpectedUserId?.() || '').trim();
+    if (expectedUserId) headers['X-Paperplane-Expected-User'] = expectedUserId;
+
+    const controller = typeof AbortController === 'function' ? new AbortController() : null;
+    const onExternalAbort = () => controller?.abort(signal?.reason);
+    if (signal && controller) {
+      if (signal.aborted) controller.abort(signal.reason);
+      else signal.addEventListener('abort', onExternalAbort, { once: true });
+    }
+    const effectiveTimeout = url.includes('/ocr') || url === '/api/studio/compress' ? Math.max(timeoutMs, 180000) : timeoutMs;
+    const timer = controller
+      ? window.setTimeout(() => controller.abort(new DOMException(`${action} timed out`, 'TimeoutError')), effectiveTimeout)
+      : null;
+
     let resp;
     try {
-      resp = await fetch(url, { method: 'POST', credentials: 'same-origin', body: form });
-    } catch {
-      resp = await fetch(url, { method: 'POST', credentials: 'same-origin', body: form });
+      resp = await fetch(url, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers,
+        body: form,
+        signal: controller?.signal,
+      });
+    } catch (err) {
+      if (err?.name === 'AbortError' || err?.name === 'TimeoutError') {
+        throw new Error(`${action} timed out after ${Math.round(effectiveTimeout / 1000)}s. Please try again.`, { cause: err });
+      }
+      resp = await fetch(url, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers,
+        body: form,
+      });
+    } finally {
+      if (timer !== null) clearTimeout(timer);
+      if (signal && onExternalAbort) signal.removeEventListener('abort', onExternalAbort);
     }
     if (!resp.ok) {
       throw await studioRequestError(resp, action);
@@ -146,11 +205,20 @@
       document.getElementById('compress-analysis-badge').textContent = 'Scanning...';
       modal.hidden = false;
 
-      // Run structural analysis
+      // Run structural analysis with bounded timeout
+      if (this._analyzeController) {
+        try { this._analyzeController.abort(); } catch {}
+      }
+      const analyzeController = typeof AbortController === 'function' ? new AbortController() : null;
+      this._analyzeController = analyzeController;
       try {
         const form = new FormData();
         form.append('file', targetFile);
-        const resp = await postStudioForm('/api/studio/compress/analyze', form, 'Compression analysis');
+        const resp = await postStudioForm('/api/studio/compress/analyze', form, 'Compression analysis', {
+          timeoutMs: 30000,
+          signal: analyzeController?.signal,
+        });
+        if (this.currentFile !== targetFile) return;
         const data = await resp.json();
         const a = data.analysis;
         document.getElementById('compress-stat-pages').textContent = a.page_count;
@@ -159,7 +227,11 @@
         document.getElementById('compress-stat-opp').textContent = `${a.opportunity} (Est. ${a.estimated_reduction})`;
         document.getElementById('compress-analysis-badge').textContent = `${a.raster_percentage > 50 ? 'Raster Heavy' : 'Vector Heavy'}`;
       } catch (err) {
-        document.getElementById('compress-stat-opp').textContent = 'Could not run structural analysis.';
+        if (err?.name === 'AbortError' && this.currentFile !== targetFile) return;
+        document.getElementById('compress-stat-pages').textContent = '—';
+        document.getElementById('compress-stat-images').textContent = '—';
+        document.getElementById('compress-stat-raster').textContent = '—';
+        document.getElementById('compress-stat-opp').textContent = `Analysis unavailable (${err.message || 'timeout'}). You can still compress directly below.`;
         document.getElementById('compress-analysis-badge').textContent = 'Unavailable';
       }
     }

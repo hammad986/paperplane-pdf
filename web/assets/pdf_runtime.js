@@ -151,7 +151,7 @@
   async function transformLocalPdf(operation, files, options, timeoutMs = 90000) {
     const buffers = await Promise.all(files.map(file => file.arrayBuffer()));
     return new Promise((resolve, reject) => {
-      const worker = new Worker('/assets/local_pdf_worker.js?v=32');
+      const worker = new Worker('/assets/local_pdf_worker.js?v=33');
       let settled = false;
       const timer = setTimeout(() => {
         if (settled) return;

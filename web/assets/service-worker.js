@@ -1,20 +1,20 @@
-const CACHE_NAME = 'paperplane-shell-v229';
+const CACHE_NAME = 'paperplane-shell-v231';
 const APP_SHELL = [
-  '/',
   '/manifest.webmanifest',
-  '/assets/styles.css?v=99',
+  '/assets/styles.css?v=101',
   '/assets/theme-init.js?v=13',
   '/assets/editor.js?v=18',
-  '/assets/app.js?v=250',
+  '/assets/app.js?v=252',
   '/assets/feedback.js?v=22',
-  '/assets/optimization_engine.js?v=4.2.5',
-  '/assets/page_organizer.js?v=24',
+  '/assets/security_forms.js?v=6.2.7',
+  '/assets/optimization_engine.js?v=4.2.6',
+  '/assets/page_organizer.js?v=25',
   '/assets/pdf_runtime.js?v=30',
   '/assets/pdf.min.js',
   '/assets/pdf.worker.min.js',
   '/assets/pdf-lib.min.js',
   '/assets/studio_render_worker.js?v=8',
-  '/assets/local_pdf_worker.js?v=32',
+  '/assets/local_pdf_worker.js?v=33',
   '/assets/favicon.svg',
   '/assets/app-192.png',
   '/assets/app-512.png'
@@ -37,21 +37,8 @@ self.addEventListener('fetch', event => {
   const request = event.request;
   const url = new URL(request.url);
   if (request.method !== 'GET' || url.origin !== self.location.origin || url.pathname.startsWith('/api/')) return;
-  if (request.mode === 'navigate') {
-    event.respondWith((async () => {
-      try {
-        const response = await fetch(request);
-        if (response.ok && url.pathname === '/') {
-          const cache = await caches.open(CACHE_NAME);
-          await cache.put('/', response.clone());
-        }
-        return response;
-      } catch {
-        return (await caches.match('/')) || Response.error();
-      }
-    })());
-    return;
-  }
+  // Never serve or cache personalized/session-aware HTML across reloads or payment returns (IDs 455, 457).
+  if (request.mode === 'navigate') return;
   if (!url.pathname.startsWith('/assets/')) return;
   event.respondWith((async () => {
     try {

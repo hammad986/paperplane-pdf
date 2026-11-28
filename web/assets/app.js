@@ -201,12 +201,20 @@ function persistLocalWorkScope(userId) {
   } catch { /* session storage may be disabled */ }
 }
 
-async function setAuthenticatedWorkspaceUser(data) {
+let hasInitializedTabAuth = false;
+let boundTabUserId = '';
+let isVerifyingBillingReturn = false;
+
+async function setAuthenticatedWorkspaceUser(data, { explicitAuthTransition = false, fromOtherTab = false } = {}) {
   let cachedUserId = '';
   try { cachedUserId = sessionStorage.getItem(LOCAL_WORK_ACCOUNT_SCOPE_KEY) || ''; } catch { /* storage may be disabled */ }
-  const previousUserId = String(state.user?.user_id || cachedUserId).trim();
+  const previousUserId = String(boundTabUserId || state.user?.user_id || cachedUserId).trim();
   const nextUserId = data?.authenticated ? String(data.user_id || '').trim() : '';
-  if (previousUserId && previousUserId !== nextUserId) {
+  const unexpectedChange = hasInitializedTabAuth && !explicitAuthTransition && Boolean(previousUserId) && previousUserId !== nextUserId;
+  if (unexpectedChange || (previousUserId && previousUserId !== nextUserId)) {
+    try { activeDeskAiController?.abort(); } catch {}
+    try { summaryRequestController?.abort(); } catch {}
+    try { activeAIChatController?.abort(); } catch {}
     aiWorkspaceEpoch += 1;
     await unloadStudioPdf();
     state.files = [];
@@ -220,7 +228,18 @@ async function setAuthenticatedWorkspaceUser(data) {
     aiWorkspaceRestored = false;
     aiWorkspaceRestorePromise = null;
     renderAiConversation([]);
+    if (unexpectedChange || (fromOtherTab && previousUserId !== nextUserId)) {
+      showToast(
+        nextUserId
+          ? 'Account session changed in another tab. Active tasks were stopped to keep accounts separated.'
+          : 'Signed out in another tab. Active workspace state was cleared.',
+        'warning',
+        8000
+      );
+    }
   }
+  hasInitializedTabAuth = true;
+  boundTabUserId = nextUserId;
   state.user = data?.authenticated ? data : null;
   persistLocalWorkScope(nextUserId || null);
   document.dispatchEvent(new CustomEvent('paperplane:auth-changed', { detail: { userId: nextUserId || null } }));
@@ -252,12 +271,29 @@ async function readLocalWork(key) {
   });
 }
 
+window.isPaperplanePaidAccount = () => Boolean(
+  (typeof isPaidTierData === 'function' && (isPaidTierData(state.user) || isPaidTierData(state.billing)))
+);
+window.getPaperplaneExpectedUserId = () => String(state.user?.user_id || '').trim();
+
 async function writeLocalWork(key, value) {
   const scopedKey = localWorkStoreKey(key);
+  let normalizedValue = value;
+  if (normalizedValue && typeof normalizedValue === 'object' && normalizedValue.blob instanceof Blob && !(normalizedValue.bytes instanceof ArrayBuffer)) {
+    try {
+      const buf = await normalizedValue.blob.arrayBuffer();
+      normalizedValue = {
+        bytes: buf,
+        name: normalizedValue.name || normalizedValue.blob.name || 'document.pdf',
+        type: normalizedValue.type || normalizedValue.blob.type || 'application/pdf',
+        lastModified: normalizedValue.lastModified || Date.now(),
+      };
+    } catch { /* fall back to original record */ }
+  }
   const db = await openLocalWorkDb();
   return new Promise((resolve, reject) => {
     const tx = db.transaction('work', 'readwrite');
-    tx.objectStore('work').put(value, scopedKey);
+    tx.objectStore('work').put(normalizedValue, scopedKey);
     tx.oncomplete = () => resolve(true);
     tx.onerror = () => reject(tx.error || new Error('Could not save work in this browser.'));
     tx.onabort = () => reject(tx.error || new Error('Saving work was interrupted.'));
@@ -350,8 +386,9 @@ window.persistPaperplaneStudioEdits = () => {
 };
 
 function fileFromLocalRecord(record) {
-  if (!record?.blob) return null;
-  return new File([record.blob], record.name || 'document.pdf', {
+  const payload = record?.bytes || record?.blob;
+  if (!payload) return null;
+  return new File([payload], record.name || 'document.pdf', {
     type: record.type || 'application/pdf',
     lastModified: record.lastModified || Date.now()
   });
@@ -606,7 +643,7 @@ async function clearStudioPdf({ silent = false } = {}) {
 }
 
 let studioUndoTimer = null;
-window.showStudioUndoMutation = (previousFile, page, description, expectedCurrentFile) => {
+window.showStudioUndoMutation = (previousFile, page, description, expectedCurrentFile, previousAnnotations = null) => {
   const banner = $('#studio-undo-banner');
   if (!banner) return;
   clearTimeout(studioUndoTimer);
@@ -627,8 +664,11 @@ window.showStudioUndoMutation = (previousFile, page, description, expectedCurren
     undo.textContent = 'Restoring…';
     const restored = await loadDocumentIntoStudio(previousFile, { initialPage: page });
     if (restored) {
+      if (Array.isArray(previousAnnotations) && previousAnnotations.length) {
+        window.PaperplaneEditor?.restoreSerialized?.(previousAnnotations);
+      }
       banner.hidden = true;
-      showToast('Last page deletion undone.', 'success');
+      showToast('Last page action undone.', 'success');
     } else {
       undo.disabled = false;
       undo.textContent = 'Retry undo';
@@ -749,7 +789,7 @@ function broadcastAuthChange() {
 }
 
 window.addEventListener('storage', event => {
-  if (event.key === AUTH_SYNC_KEY) void checkAuthStatus();
+  if (event.key === AUTH_SYNC_KEY) void checkAuthStatus({ fromOtherTab: true });
 });
 
 // Only unsaved Studio edits require confirmation before leaving the page.
@@ -1167,9 +1207,27 @@ async function readStudioResponseError(response, fallback) {
 }
 window.readStudioResponseError = readStudioResponseError;
 
+function withExpectedUserHeaders(url, existingHeaders = {}) {
+  const headers = existingHeaders instanceof Headers ? Object.fromEntries(existingHeaders.entries()) : { ...existingHeaders };
+  const expectedId = String(state.user?.user_id || '').trim();
+  if (!expectedId) return headers;
+  const path = (() => {
+    try { return new URL(String(url || ''), window.location.href).pathname; } catch { return String(url || ''); }
+  })();
+  const authMutationPaths = new Set([
+    '/api/auth/login', '/api/auth/register', '/api/auth/verify-login-otp',
+    '/api/auth/verify-signup-otp', '/api/auth/google', '/api/auth/logout',
+    '/api/auth/forgot-password', '/api/auth/reset-password',
+  ]);
+  if (path.startsWith('/api/') && !authMutationPaths.has(path) && !('X-Paperplane-Expected-User' in headers)) {
+    headers['X-Paperplane-Expected-User'] = expectedId;
+  }
+  return headers;
+}
+
 async function safeFetch(url, options = {}) {
   options.credentials = options.credentials || 'same-origin';
-  options.headers = options.headers || {};
+  options.headers = withExpectedUserHeaders(url, options.headers || {});
   const { onUploadProgress, ...requestOptions } = options;
 
   let response;
@@ -1246,10 +1304,14 @@ async function safeFetch(url, options = {}) {
       const requestPath = (() => {
         try { return new URL(url, window.location.href).pathname; } catch { return String(url || ''); }
       })();
-      if (requestPath !== '/api/auth/me') {
+      if (requestPath !== '/api/auth/me' && !isVerifyingBillingReturn && !requestPath.startsWith('/api/billing/verify-order/')) {
         openAuthModal('Authentication required. Sign in or create an account to proceed.');
       }
       throw new Error(fallbackErrorText || 'Authentication required.');
+    }
+    if (response.status === 409 && (data?.code === 'SESSION_USER_MISMATCH' || /active account session changed/i.test(fallbackErrorText))) {
+      void checkAuthStatus({ fromOtherTab: true });
+      throw new Error(fallbackErrorText || 'Session changed in another tab. Please refresh before continuing.');
     }
 
     if (response.status === 402) {
@@ -2643,6 +2705,29 @@ function updateBillingUI(data) {
   state.dailyLimit = limit;
   state.dailyUsage = usage;
 
+  const accountExpiryEl = $('#settings-account-plan-expiry');
+  const billingExpiryRow = $('#settings-billing-expiry-row');
+  const billingExpiryEl = $('#settings-billing-expiry');
+  const formattedExpiry = formatPlanExpiryDate(data?.subscription_expires_at);
+  if (accountExpiryEl) {
+    if (isPaid && formattedExpiry) {
+      accountExpiryEl.textContent = `Active plan valid until ${formattedExpiry}`;
+      accountExpiryEl.hidden = false;
+    } else {
+      accountExpiryEl.textContent = '';
+      accountExpiryEl.hidden = true;
+    }
+  }
+  if (billingExpiryRow && billingExpiryEl) {
+    if (isPaid && formattedExpiry) {
+      billingExpiryEl.textContent = formattedExpiry;
+      billingExpiryRow.hidden = false;
+    } else {
+      billingExpiryEl.textContent = '—';
+      billingExpiryRow.hidden = true;
+    }
+  }
+
   const currentPlanTier = String(data?.tier || 'free').toLowerCase();
   document.querySelectorAll('.pricing-tier-card[data-plan-tier]').forEach(card => {
     const isCurrent = card.dataset.planTier === currentPlanTier;
@@ -2823,6 +2908,72 @@ async function refreshQuotaUsage() {
   }
 }
 
+function formatPlanExpiryDate(epochSeconds) {
+  const num = Number(epochSeconds);
+  if (!Number.isFinite(num) || num <= 0) return '';
+  try {
+    return new Date(num * 1000).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+  } catch {
+    return '';
+  }
+}
+
+function setListStatusMessage(container, message) {
+  if (!container) return;
+  const p = document.createElement('p');
+  p.style.cssText = 'font-size: 12.5px; color: var(--text-muted); margin: 0;';
+  p.textContent = message;
+  container.replaceChildren(p);
+}
+
+async function loadOrderHistory() {
+  const section = $('#settings-order-history-section');
+  const listEl = $('#settings-order-history-list');
+  if (!section || !listEl) return;
+  if (!state.user?.authenticated) {
+    section.hidden = true;
+    return;
+  }
+  section.hidden = false;
+  setListStatusMessage(listEl, 'Loading order history…');
+  try {
+    const res = await safeFetch('/api/billing/orders', { cache: 'no-store' });
+    const orders = Array.isArray(res?.orders) ? res.orders : [];
+    if (!orders.length) {
+      setListStatusMessage(listEl, 'No payment orders recorded for this account yet.');
+      return;
+    }
+    listEl.replaceChildren();
+    orders.forEach(ord => {
+      const card = document.createElement('div');
+      card.className = 'order-history-item';
+      const top = document.createElement('div');
+      top.className = 'order-history-top';
+      const title = document.createElement('strong');
+      const amtText = ord.amount != null ? ` · ₹${Number(ord.amount).toLocaleString('en-IN')}` : '';
+      title.textContent = `${ord.tier_label || 'Paperplane Plan'}${amtText}`;
+      const badge = document.createElement('span');
+      const isPaidOrder = String(ord.status || '').toLowerCase() === 'paid';
+      badge.className = `support-status-pill ${isPaidOrder ? 'is-paid' : 'is-open'}`;
+      badge.textContent = String(ord.status || 'pending').toUpperCase();
+      top.append(title, badge);
+      const meta = document.createElement('div');
+      meta.className = 'order-history-meta';
+      const left = document.createElement('span');
+      const envTag = ord.gateway_environment && ord.gateway_environment !== 'PRODUCTION' ? ` (${ord.gateway_environment})` : '';
+      left.textContent = `Order ${ord.order_id}${envTag}`;
+      const right = document.createElement('span');
+      const ts = ord.verified_at || ord.created_at;
+      right.textContent = formatPlanExpiryDate(ts) || 'Recent';
+      meta.append(left, right);
+      card.append(top, meta);
+      listEl.appendChild(card);
+    });
+  } catch (err) {
+    setListStatusMessage(listEl, `Could not load order history (${err.message}).`);
+  }
+}
+
 function setQuotaUnavailable() {
   const unavailable = 'Usage unavailable';
   for (const id of ['#quota-text', '#settings-quota-text']) {
@@ -2860,12 +3011,19 @@ function renderAuthShell(data) {
   document.body.classList.remove('auth-pending', 'auth-restoring');
   state.billing = data || null;
   updateBillingUI(data);
+  const supportEmailInput = $('#support-email');
+  if (supportEmailInput && authenticated && data?.email && !supportEmailInput.value) {
+    supportEmailInput.value = data.email;
+  }
+  const supportHistorySec = $('#settings-support-tickets-section');
+  if (supportHistorySec && !authenticated) supportHistorySec.hidden = true;
+  if (!authenticated && $('#settings-order-history-section')) $('#settings-order-history-section').hidden = true;
   if (state.activeView === 'desk' && $('#tool-title')) updateToolTierBadge();
 }
 
 const SETTINGS_GUEST_ACTIONS_HTML = $('#settings-guest-actions')?.innerHTML || '';
 
-async function checkAuthStatus() {
+async function checkAuthStatus({ explicitAuthTransition = false, fromOtherTab = false } = {}) {
   const requestVersion = ++authRequestVersion;
   let data = null;
   let hadError = false;
@@ -2899,7 +3057,7 @@ async function checkAuthStatus() {
       } catch { hadError = true; }
     }
     if (requestVersion !== authRequestVersion) return;
-    await setAuthenticatedWorkspaceUser(data);
+    await setAuthenticatedWorkspaceUser(data, { explicitAuthTransition, fromOtherTab });
     if (requestVersion === authRequestVersion) renderAuthShell(data);
   } catch (err) {
     hadError = true;
@@ -2953,6 +3111,10 @@ function switchSettingsTab(tabName) {
 
   if (tabName === 'api') {
     loadSettingsApiKeys();
+  } else if (tabName === 'billing') {
+    void loadOrderHistory();
+  } else if (tabName === 'support') {
+    void loadSupportTickets();
   }
 }
 
@@ -3497,8 +3659,11 @@ async function loadDocumentIntoStudio(file, { initialPage = 1, persist = true, r
         try { sessionStorage.removeItem(studioUnsavedSessionKey()); } catch { /* storage may be disabled */ }
         try { sessionStorage.setItem(studioPositionSessionKey(), JSON.stringify({ page: state.studio.currentPage })); } catch { /* IndexedDB is the durable store. */ }
       } catch (error) {
+        try { sessionStorage.removeItem(studioUnsavedSessionKey()); } catch { /* ignore */ }
         console.warn('Paperplane could not save the Studio PDF locally:', error);
-        showToast('This browser could not save the PDF locally. Export your document before closing this tab.', 'warning', 7000);
+        if (error?.name !== 'QuotaExceededError') {
+          showToast('This browser could not save the PDF locally. Export your document before closing this tab.', 'warning', 7000);
+        }
       }
     }
     // Do not advertise a completed page mutation before its saved copy has
@@ -6023,6 +6188,46 @@ $('#job-form').onsubmit = async e => {
   btn.disabled = true;
   $('#result').hidden = true;
 
+  const totalUploadBytes = state.files.reduce((sum, item) => sum + Number(item?.size || 0), 0);
+  if (!state.clientSideMode) {
+    const abortOnExhaustedQuota = () => {
+      const msg = 'Daily operation limit reached on Free Tier.';
+      $('#progress-card').hidden = true;
+      openUpgradeModal(msg);
+      showResult(msg, true);
+      btn.disabled = false;
+      state.serverFallbackForCurrentRun = false;
+      updateButton();
+    };
+    if (!isPaidTierData(state.user) && !isPaidTierData(state.billing)) {
+      if (state.billing?.tier === 'free') {
+        const cachedUsage = Number(state.billing.usage_today);
+        const cachedLimit = Number(state.billing.daily_limit ?? 10);
+        if (Number.isFinite(cachedUsage) && cachedLimit >= 0 && cachedUsage >= cachedLimit) {
+          abortOnExhaustedQuota();
+          return;
+        }
+      }
+      if (totalUploadBytes >= 256 * 1024 || !state.billing) {
+        try {
+          const quotaResp = await paperplaneNativeFetch('/api/billing/status', { credentials: 'same-origin', cache: 'no-store' });
+          if (quotaResp.ok) {
+            const liveBilling = await quotaResp.json();
+            updateBillingUI(liveBilling);
+            if (liveBilling?.tier === 'free') {
+              const liveUsage = Number(liveBilling.usage_today);
+              const liveLimit = Number(liveBilling.daily_limit ?? 10);
+              if (Number.isFinite(liveUsage) && liveLimit >= 0 && liveUsage >= liveLimit) {
+                abortOnExhaustedQuota();
+                return;
+              }
+            }
+          }
+        } catch { /* Proceed cleanly if billing status check itself is temporarily unreachable. */ }
+      }
+    }
+  }
+
   updateProgress(1, null, 'Preparing document streams…');
 
   if (state.clientSideMode) {
@@ -6125,7 +6330,7 @@ $('#job-form').onsubmit = async e => {
     const controller = new AbortController();
     activeDeskAiController = controller;
     deskAiRequestTimedOut = false;
-    const timeoutMs = state.operation === 'translate' || state.operation === 'summarize' ? 420000 : 75000;
+    const timeoutMs = state.operation === 'translate' || state.operation === 'summarize' ? 900000 : 120000;
     const timeout = window.setTimeout(() => {
       deskAiRequestTimedOut = true;
       controller.abort();
@@ -6163,43 +6368,6 @@ $('#job-form').onsubmit = async e => {
       updateButton();
     }
     return;
-  }
-
-  const totalUploadBytes = state.files.reduce((sum, item) => sum + Number(item?.size || 0), 0);
-  if (state.billing?.tier === 'free') {
-    const cachedUsage = Number(state.billing.usage_today);
-    const cachedLimit = Number(state.billing.daily_limit ?? 10);
-    if (Number.isFinite(cachedUsage) && cachedLimit >= 0 && cachedUsage >= cachedLimit) {
-      const msg = 'Daily operation limit reached on Free Tier.';
-      openUpgradeModal(msg);
-      showResult(msg, true);
-      btn.disabled = false;
-      state.serverFallbackForCurrentRun = false;
-      updateButton();
-      return;
-    }
-  }
-  if (totalUploadBytes >= 256 * 1024) {
-    try {
-      const quotaResp = await paperplaneNativeFetch('/api/billing/status', { credentials: 'same-origin', cache: 'no-store' });
-      if (quotaResp.ok) {
-        const liveBilling = await quotaResp.json();
-        updateBillingUI(liveBilling);
-        if (liveBilling?.tier === 'free') {
-          const liveUsage = Number(liveBilling.usage_today);
-          const liveLimit = Number(liveBilling.daily_limit ?? 10);
-          if (Number.isFinite(liveUsage) && liveLimit >= 0 && liveUsage >= liveLimit) {
-            const msg = 'Daily operation limit reached on Free Tier.';
-            openUpgradeModal(msg);
-            showResult(msg, true);
-            btn.disabled = false;
-            state.serverFallbackForCurrentRun = false;
-            updateButton();
-            return;
-          }
-        }
-      }
-    } catch { /* Proceed with normal server job submission if billing preflight fails. */ }
   }
 
   const form = new FormData();
@@ -6287,11 +6455,11 @@ async function waitForJob(url, signal, onProgress = null) {
       transientFailures = 0;
     } catch (error) {
       const retryable = error?.networkFailure || [502, 503, 504].includes(Number(error?.status));
-      if (!retryable || transientFailures >= 3) throw error;
+      if (!retryable || transientFailures >= 8) throw error;
       transientFailures += 1;
-      const delayMs = error.retryAfterMs || Math.min(1600, 400 * (2 ** (transientFailures - 1)));
+      const delayMs = error.retryAfterMs || Math.min(5000, 500 * (2 ** (transientFailures - 1)));
       const title = $('#progress-status-title');
-      if (title) title.textContent = `Connection interrupted. Retrying status check (${transientFailures}/3)…`;
+      if (title) title.textContent = `Connection interrupted. Retrying status check (${transientFailures}/8)…`;
       await new Promise((resolve, reject) => {
         const finish = callback => value => {
           window.clearTimeout(timer);
@@ -8728,7 +8896,7 @@ $('#chat-form').onsubmit = async e => {
   if (chatStopBtn) chatStopBtn.hidden = false;
 
   try {
-    const response = await fetch('/api/ai/chat/stream', { method: 'POST', body: form, signal: activeAIChatController.signal, credentials: 'same-origin' });
+    const response = await fetch('/api/ai/chat/stream', { method: 'POST', headers: withExpectedUserHeaders('/api/ai/chat/stream', {}), body: form, signal: activeAIChatController.signal, credentials: 'same-origin' });
     if (!response.ok || !response.body) {
       let message = 'AI request failed, please try again';
       try { const body = await response.json(); if (/not configured/i.test(body.detail || '')) message = 'AI provider is not configured'; } catch { /* retain plain fallback */ }
@@ -8847,7 +9015,7 @@ async function generateExecutiveBrief() {
   const timeout = window.setTimeout(() => {
     summaryRequestTimedOut = true;
     controller.abort();
-    }, 420000);
+    }, 900000);
   currentSummaryText = '';
   const summaryModeBadge = $('#summary-mode-badge');
   if (summaryModeBadge) summaryModeBadge.textContent = 'Generating';
@@ -9635,7 +9803,7 @@ function startOtpCountdown(seconds = 60, { syncErrorCountdown = false } = {}) {
   }, 1000);
 }
 
-function showOtpView(email, purpose) {
+function showOtpView(email, purpose, cooldownSeconds = 60) {
   pendingAuth = { email, purpose };
   $('#auth-form').hidden = true;
   $('#auth-tabs').hidden = true;
@@ -9652,8 +9820,16 @@ function showOtpView(email, purpose) {
   const otpStatus = $('#auth-otp-status');
   if (otpStatus) { otpStatus.hidden = true; otpStatus.textContent = ''; }
   $('#auth-otp-submit-btn').innerHTML = purpose === 'signup' ? 'Verify & Activate Account <span>→</span>' : 'Verify & Sign In <span>→</span>';
-  startOtpCountdown(60);
+  startOtpCountdown(Number(cooldownSeconds) || 60);
   setTimeout(() => $('#auth-otp-code')?.focus(), 50);
+}
+
+const otpInputEl = $('#auth-otp-code');
+if (otpInputEl) {
+  otpInputEl.addEventListener('input', () => {
+    const cleaned = String(otpInputEl.value || '').replace(/\D+/g, '').slice(0, 6);
+    if (otpInputEl.value !== cleaned) otpInputEl.value = cleaned;
+  });
 }
 
 // Official Google Identity Services (GIS) & Social Authentication
@@ -9709,7 +9885,8 @@ async function completeGoogleAuthPayload(payload) {
     });
     if (data.status === 'success' || data.user_id) {
       $('#auth-modal').hidden = true;
-      await checkAuthStatus();
+      await checkAuthStatus({ explicitAuthTransition: true });
+      broadcastAuthChange();
       showToast('Signed in with Google successfully!');
     }
   } catch (err) {
@@ -9736,50 +9913,53 @@ function handleGoogleButtonClick() {
     errEl.textContent = '';
   }
   if (googleCodeClient) {
-    // Call synchronously inside click handler to preserve transient user activation for window.open popups.
-    let popupSettled = false;
-    let fallbackTimer = null;
-    const cancelFallback = () => {
-      popupSettled = true;
-      if (fallbackTimer) {
-        clearTimeout(fallbackTimer);
-        fallbackTimer = null;
-      }
-      window.removeEventListener('blur', onWindowBlur);
-      document.removeEventListener('visibilitychange', onVisibilityChange);
-    };
-    const onWindowBlur = () => cancelFallback();
-    const onVisibilityChange = () => {
-      if (document.hidden) cancelFallback();
-    };
-    window.__paperplaneGooglePopupSettled = cancelFallback;
-    window.addEventListener('blur', onWindowBlur, { once: true });
-    document.addEventListener('visibilitychange', onVisibilityChange);
-    try {
-      googleCodeClient.requestCode();
-      fallbackTimer = window.setTimeout(() => {
-        window.removeEventListener('blur', onWindowBlur);
-        document.removeEventListener('visibilitychange', onVisibilityChange);
-        const modal = $('#auth-modal');
-        if (popupSettled || !modal || modal.hidden || !document.hasFocus()) return;
-        renderGoogleFallbackButton();
-        if (errEl) {
-          errEl.textContent = 'Google Sign-In popup was blocked or suppressed by this browser. Use the Google button below or sign in with email.';
-          errEl.hidden = false;
-        }
-      }, 1800);
-    } catch (error) {
-      cancelFallback();
-      console.warn('Google popup launch threw synchronously:', error);
-      renderGoogleFallbackButton();
-      if (errEl) {
-        errEl.textContent = 'Google Sign-In popup could not open. Use the Google button below or sign in with email.';
-        errEl.hidden = false;
-      }
-    }
+    invokeGoogleCodeClientWithPopupFallback(errEl);
     return;
   }
   void startGoogleSignIn();
+}
+
+function invokeGoogleCodeClientWithPopupFallback(errEl) {
+  let popupSettled = false;
+  let fallbackTimer = null;
+  const cancelFallback = () => {
+    popupSettled = true;
+    if (fallbackTimer) {
+      clearTimeout(fallbackTimer);
+      fallbackTimer = null;
+    }
+    window.removeEventListener('blur', onWindowBlur);
+    document.removeEventListener('visibilitychange', onVisibilityChange);
+  };
+  const onWindowBlur = () => cancelFallback();
+  const onVisibilityChange = () => {
+    if (document.hidden) cancelFallback();
+  };
+  window.__paperplaneGooglePopupSettled = cancelFallback;
+  window.addEventListener('blur', onWindowBlur, { once: true });
+  document.addEventListener('visibilitychange', onVisibilityChange);
+  try {
+    googleCodeClient.requestCode();
+    fallbackTimer = window.setTimeout(() => {
+      window.removeEventListener('blur', onWindowBlur);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      const modal = $('#auth-modal');
+      if (popupSettled || !modal || modal.hidden || !document.hasFocus()) return;
+      renderGoogleFallbackButton();
+      if (errEl) {
+        errEl.textContent = 'Google Sign-In popup was blocked or suppressed by this browser. Use the Google button below or sign in with email.';
+        errEl.hidden = false;
+      }
+    }, 1800);
+  } catch (error) {
+    cancelFallback();
+    console.warn('Google popup launch threw:', error);
+    renderGoogleFallbackButton();
+    if (errEl) {
+      errEl.textContent = 'Google Sign-In popup could not open. Use the Google button below or sign in with email.';
+      errEl.hidden = false;
+    }
+  }
 }
 
 async function startGoogleSignIn() {
@@ -9798,7 +9978,7 @@ async function startGoogleSignIn() {
     await initGoogleAuth({ loadSdk: true });
     if (googleCodeClient) {
       renderGoogleFallbackButton();
-      googleCodeClient.requestCode();
+      invokeGoogleCodeClientWithPopupFallback(errEl);
       return;
     }
     if (window.google?.accounts?.id) {
@@ -9927,7 +10107,7 @@ if (signoutBtn) {
       switchWorkspaceView('desk');
     }
     broadcastAuthChange();
-    await checkAuthStatus();
+    await checkAuthStatus({ explicitAuthTransition: true });
     showToast('Signed out of Paperplane.');
   };
 }
@@ -9980,11 +10160,12 @@ $('#auth-form').onsubmit = async e => {
     const data = await safeFetch(endpoint, { method: 'POST', body: formData });
 
     if (data.status === 'otp_required') {
-      showOtpView(data.email, data.purpose);
+      showOtpView(data.email, data.purpose, data.resend_cooldown || 60);
       showToast(data.message || 'Verification code sent to your email.');
     } else if (data.status === 'success' || data.user_id) {
       $('#auth-modal').hidden = true;
-      await checkAuthStatus();
+      await checkAuthStatus({ explicitAuthTransition: true });
+      broadcastAuthChange();
       showToast('Signed in successfully!');
     }
   } catch (err) {
@@ -9996,12 +10177,14 @@ $('#auth-form').onsubmit = async e => {
 };
 
 const authOtpForm = $('#auth-otp-form');
+let otpSubmitInFlight = false;
 if (authOtpForm) {
   authOtpForm.onsubmit = async e => {
     e.preventDefault();
-    if (!pendingAuth) return;
+    if (!pendingAuth || otpSubmitInFlight) return;
 
-    const code = $('#auth-otp-code').value.trim();
+    const code = String($('#auth-otp-code').value || '').replace(/\D+/g, '').slice(0, 6);
+    if ($('#auth-otp-code')) $('#auth-otp-code').value = code;
     if (!code || code.length !== 6) {
       $('#auth-otp-error').textContent = 'Please enter the 6-digit code sent to your email.';
       $('#auth-otp-error').hidden = false;
@@ -10009,6 +10192,7 @@ if (authOtpForm) {
     }
 
     const btn = $('#auth-otp-submit-btn');
+    otpSubmitInFlight = true;
     btn.disabled = true;
     $('#auth-otp-error').hidden = true;
 
@@ -10023,7 +10207,8 @@ if (authOtpForm) {
       if (res.status === 'success' || res.user_id) {
         if (otpTimerInterval) clearInterval(otpTimerInterval);
         $('#auth-modal').hidden = true;
-        await checkAuthStatus();
+        await checkAuthStatus({ explicitAuthTransition: true });
+        broadcastAuthChange();
         showToast(pendingAuth.purpose === 'signup' ? 'Account verified and activated!' : 'Signed in successfully!', 'success');
       }
     } catch (err) {
@@ -10031,6 +10216,7 @@ if (authOtpForm) {
       $('#auth-otp-error').textContent = message;
       $('#auth-otp-error').hidden = false;
     } finally {
+      otpSubmitInFlight = false;
       btn.disabled = false;
     }
   };
@@ -10062,7 +10248,7 @@ if (resendOtpBtn) {
         $('#auth-otp-code').value = '';
         $('#auth-otp-code').focus();
       }
-      startOtpCountdown(60);
+      startOtpCountdown(Number(res?.resend_cooldown) || 60);
     } catch (err) {
       const rawMessage = String(err.message || 'Could not resend code. Please try again later.');
       if (otpErrorEl) {
@@ -10515,7 +10701,8 @@ async function initiateCheckout(tier, btnEl) {
     if (res.mode === 'demo_activated') {
       showToast((bootstrap.pricing?.[tier]?.label || 'Test plan') + ' activated.', 'success', 5000);
       closeUpgradeModal();
-      await checkAuthStatus();
+      await checkAuthStatus({ explicitAuthTransition: true });
+      broadcastAuthChange();
     } else if (res.payment_session_id) {
       await loadExternalSdk('https://sdk.cashfree.com/js/v3/cashfree.js', () => typeof window.Cashfree === 'function');
       const cashfree = window.Cashfree({
@@ -10540,8 +10727,148 @@ async function initiateCheckout(tier, btnEl) {
 // Initialization
 // ----------------------------------------------------------------------
 
+async function loadSupportTickets() {
+  const sec = $('#settings-support-tickets-section');
+  const listEl = $('#settings-support-tickets-list');
+  if (!sec || !listEl) return;
+  if (!state.user?.authenticated) {
+    sec.hidden = true;
+    return;
+  }
+  sec.hidden = false;
+  setListStatusMessage(listEl, 'Loading your tickets…');
+  try {
+    const res = await safeFetch('/api/support/tickets', { cache: 'no-store' });
+    const tickets = Array.isArray(res?.tickets) ? res.tickets : [];
+    if (!tickets.length) {
+      setListStatusMessage(listEl, 'You have not submitted any support tickets yet.');
+      return;
+    }
+    listEl.replaceChildren();
+    tickets.forEach(t => {
+      const card = document.createElement('div');
+      card.className = 'order-history-item';
+      const top = document.createElement('div');
+      top.className = 'order-history-top';
+      const subj = document.createElement('strong');
+      subj.textContent = `${t.ticket_ref} · ${t.subject}`;
+      const pill = document.createElement('span');
+      const isRes = String(t.status || 'open').toLowerCase() === 'resolved';
+      pill.className = `support-status-pill ${isRes ? 'is-resolved' : 'is-open'}`;
+      pill.textContent = isRes ? 'RESOLVED' : 'OPEN';
+      top.append(subj, pill);
+      const meta = document.createElement('div');
+      meta.className = 'order-history-meta';
+      const cat = document.createElement('span');
+      cat.textContent = t.category + (t.order_id ? ` · Order ${t.order_id}` : '');
+      const dt = document.createElement('span');
+      dt.textContent = formatPlanExpiryDate(t.created_at) || 'Recent';
+      meta.append(cat, dt);
+      card.append(top, meta);
+      listEl.appendChild(card);
+    });
+  } catch {
+    setListStatusMessage(listEl, 'Could not load ticket history right now.');
+  }
+}
+
+function initSupportCenter() {
+  $$('.support-faq-toggle').forEach(btn => {
+    btn.onclick = () => {
+      const item = btn.closest('.support-faq-item');
+      const body = item?.querySelector('.support-faq-body');
+      if (!body) return;
+      const expanded = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+      body.hidden = expanded;
+      const chev = btn.querySelector('.support-faq-chevron');
+      if (chev) chev.textContent = expanded ? '+' : '−';
+    };
+  });
+  const openBillingBtn = $('#support-open-billing-btn');
+  if (openBillingBtn) {
+    openBillingBtn.onclick = () => switchSettingsTab('billing');
+  }
+  const bannerCheckBtn = $('#billing-return-check-btn');
+  if (bannerCheckBtn) {
+    bannerCheckBtn.onclick = () => openSettingsModal('billing');
+  }
+  const bannerDismissBtn = $('#billing-return-dismiss-btn');
+  if (bannerDismissBtn) {
+    bannerDismissBtn.onclick = () => {
+      const b = $('#billing-return-banner');
+      if (b) b.hidden = true;
+    };
+  }
+  const supportForm = $('#settings-support-form');
+  if (!supportForm) return;
+  supportForm.onsubmit = async e => {
+    e.preventDefault();
+    const errEl = $('#support-ticket-error');
+    const resEl = $('#support-ticket-result');
+    const submitBtn = $('#support-submit-btn');
+    if (errEl) { errEl.hidden = true; errEl.textContent = ''; }
+    if (resEl) { resEl.hidden = true; resEl.textContent = ''; }
+
+    const includeCtx = Boolean($('#support-include-context')?.checked);
+    const pageContext = includeCtx ? {
+      view: state.activeView || '',
+      operation: state.operation || '',
+      tier: state.billing?.tier || state.user?.tier || 'free',
+      viewport: `${window.innerWidth}x${window.innerHeight}`,
+    } : null;
+
+    if (submitBtn) submitBtn.disabled = true;
+    try {
+      const resp = await safeFetch('/api/support', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          category: $('#support-category')?.value || 'general',
+          email: $('#support-email')?.value?.trim() || '',
+          order_id: $('#support-order-id')?.value?.trim() || '',
+          subject: $('#support-subject')?.value?.trim() || '',
+          message: $('#support-message')?.value?.trim() || '',
+          page_context: pageContext,
+        }),
+      });
+      if (resEl) {
+        resEl.textContent = resp.message || `Ticket ${resp.ticket_ref} logged. Replies typically arrive within 24–48 hours by email.`;
+        resEl.hidden = false;
+      }
+      if ($('#support-subject')) $('#support-subject').value = '';
+      if ($('#support-message')) $('#support-message').value = '';
+      showToast(`Support ticket ${resp.ticket_ref || ''} submitted!`, 'success');
+      if (state.user?.authenticated) void loadSupportTickets();
+    } catch (err) {
+      if (errEl) {
+        errEl.textContent = err.message || 'Could not submit support ticket.';
+        errEl.hidden = false;
+      }
+    } finally {
+      if (submitBtn) submitBtn.disabled = false;
+    }
+  };
+}
+
 async function init() {
   clearAuthShellEmail();
+  const initialSearch = new URLSearchParams(window.location.search);
+  const initialBillingParam = initialSearch.get('billing');
+  const initialOrderParam = initialSearch.get('order_id');
+  if (['return', 'success'].includes(initialBillingParam) && initialOrderParam) {
+    isVerifyingBillingReturn = true;
+    const banner = $('#billing-return-banner');
+    const titleEl = $('#billing-return-title');
+    const detailEl = $('#billing-return-detail');
+    if (banner) {
+      banner.classList.remove('is-success', 'is-warning');
+      if (titleEl) titleEl.textContent = 'Verifying payment…';
+      if (detailEl) detailEl.textContent = `Confirming Cashfree order ${initialOrderParam} for your account…`;
+      banner.hidden = false;
+    }
+  }
+  initSupportCenter();
   // Snapshot reload-only session markers before asynchronous setup. Reading
   // them after the network awaits can consume fresh work created by a fast user.
   let previousView = null;
@@ -10575,7 +10902,9 @@ async function init() {
 
   try {
     await checkAuthStatus();
-    void handleCashfreeReturn();
+    if (isVerifyingBillingReturn) {
+      await handleCashfreeReturn();
+    }
     const userNavigatedDuringStartup = workspaceNavigationVersion !== routedVersion;
     void availability;
     try {
@@ -10615,12 +10944,32 @@ async function handleCashfreeReturn() {
   const params = new URLSearchParams(window.location.search);
   const orderId = params.get('order_id');
   const billingReturn = params.get('billing');
-  if (!['return', 'success'].includes(billingReturn) || !orderId) return;
+  if (!['return', 'success'].includes(billingReturn) || !orderId) {
+    isVerifyingBillingReturn = false;
+    return;
+  }
+  const banner = $('#billing-return-banner');
+  const titleEl = $('#billing-return-title');
+  const detailEl = $('#billing-return-detail');
+  isVerifyingBillingReturn = true;
+  if (banner) {
+    banner.classList.remove('is-success', 'is-warning');
+    if (titleEl) titleEl.textContent = 'Verifying payment…';
+    if (detailEl) detailEl.textContent = `Confirming Cashfree order ${orderId}…`;
+    banner.hidden = false;
+  }
   try {
-    const result = await safeFetch(`/api/billing/verify-order/${encodeURIComponent(orderId)}`);
-    if (result.status === 'paid') {
+    let result = null;
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      result = await safeFetch(`/api/billing/verify-order/${encodeURIComponent(orderId)}`);
+      if (result.status === 'paid') break;
+      if (!['pending', 'active'].includes(String(result.status || '').toLowerCase()) || attempt === 3) break;
+      await new Promise(resolve => setTimeout(resolve, 1500));
+    }
+    if (result?.status === 'paid') {
+      await checkAuthStatus({ explicitAuthTransition: true });
+      broadcastAuthChange();
       triggerConfetti();
-      showToast('Cashfree payment verified. Your new tier is active!', 'success', 5500);
       const planNames = {
         exam_pass: 'Exam Pass',
         student_pro: 'Student & Educator',
@@ -10628,18 +10977,41 @@ async function handleCashfreeReturn() {
         cyber_cafe: 'All-In-One Pro & Developer',
         developer: 'Developer'
       };
+      const planLabel = result.tier_label || planNames[result.tier] || 'paid';
+      const validUntil = formatPlanExpiryDate(result.subscription_expires_at);
+      const validCopy = validUntil ? ` Active until ${validUntil}.` : '';
+      if (banner) {
+        banner.classList.add('is-success');
+        if (titleEl) titleEl.textContent = `Payment verified — ${planLabel} active!`;
+        if (detailEl) detailEl.textContent = `Order ${orderId} confirmed.${validCopy}`;
+        banner.hidden = false;
+      }
+      showToast(`Cashfree payment verified. ${planLabel} is active!`, 'success', 5500);
       showUserErrorModal(
         'Payment Succeeded!',
-        `Welcome to the ${planNames[result.tier] || 'paid'} plan. Your Cashfree payment is verified and your account is active.`,
+        `Welcome to the ${planLabel} plan. Your Cashfree payment is verified and your account is active.${validCopy}`,
         { icon: 'Success' }
       );
-      await checkAuthStatus();
+      if (state.user?.authenticated) void loadOrderHistory();
     } else {
+      if (banner) {
+        banner.classList.add('is-warning');
+        if (titleEl) titleEl.textContent = 'Payment not completed';
+        if (detailEl) detailEl.textContent = `Order ${orderId} returned status "${result?.status || 'cancelled'}". No plan change was made.`;
+        banner.hidden = false;
+      }
       showToast('Checkout cancelled or payment not completed. No plan change was made.', 'info', 6000);
     }
   } catch (err) {
+    if (banner) {
+      banner.classList.add('is-warning');
+      if (titleEl) titleEl.textContent = 'Payment verification needs attention';
+      if (detailEl) detailEl.textContent = `${err.message} (Order ${orderId})`;
+      banner.hidden = false;
+    }
     showToast(`Payment was not verified. No plan change was made: ${err.message}`, 'warning', 6000);
   } finally {
+    isVerifyingBillingReturn = false;
     window.history.replaceState({}, document.title, window.location.pathname);
   }
 }
@@ -10795,9 +11167,22 @@ document.addEventListener('click', event => {
   if (!target) return;
   if (target.dataset.workspaceView) switchWorkspaceView(target.dataset.workspaceView);
   else if (target.dataset.platform) {
+    const platform = target.dataset.platform;
     const platformInput = $('#waitlist-platform');
-    if (platformInput) platformInput.value = target.dataset.platform;
-    $('#waitlist-email')?.focus();
+    if (platformInput) platformInput.value = platform;
+    $$('.platform-card').forEach(card => card.classList.toggle('is-selected', card.contains(target)));
+    const wForm = $('#waitlist-form');
+    const wSuccess = $('#waitlist-success');
+    const wErr = $('#waitlist-error');
+    if (wForm) {
+      wForm.hidden = false;
+      wForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    if (wSuccess) wSuccess.hidden = true;
+    if (wErr) wErr.hidden = true;
+    $('#waitlist-email')?.focus({ preventScroll: true });
+    const selectedLabel = platformInput?.options?.[platformInput.selectedIndex]?.text || platform;
+    showToast(`Selected ${selectedLabel} — enter your email above to join the waitlist.`, 'info', 4000);
   } else if (target.dataset.selectOperation) selectOperation(target.dataset.selectOperation);
   else if (target.dataset.commandOperation) selectOperationFromCommand(target.dataset.commandOperation);
   else if (target.hasAttribute('data-reset-home-search')) resetHomeSearch();

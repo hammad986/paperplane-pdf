@@ -381,26 +381,50 @@ def test_202_203_two_owners_authenticate_independently_and_revoke_only_target(mo
     client = TestClient(server.app)
     challenges = {}
     for email in owners:
-        response = client.post("/api/admin/auth/step1", json={
-            "email": email, "admin_key": server.ADMIN_SECRET_KEY, "admin_code": server.ADMIN_SECRET_CODE,
-        })
+        response = client.post(
+            "/api/admin/auth/step1",
+            json={"email": email, "admin_key": server.ADMIN_SECRET_KEY},
+            headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/130.0.0.0 Safari/537.36"},
+        )
         assert response.status_code == 200
         challenges[email] = response.json()["challenge"]
     sessions = {}
     for email in owners:
-        response = client.post("/api/admin/auth/step2", json={"otp": sent[email], "challenge": challenges[email]})
+        step2 = client.post("/api/admin/auth/step2", json={"otp": sent[email], "challenge": challenges[email]})
+        assert step2.status_code == 200
+        code_challenge = step2.json()["code_challenge"]
+        response = client.post(
+            "/api/admin/auth/step3",
+            json={"code_challenge": code_challenge, "admin_code": server.ADMIN_SECRET_CODE},
+            headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/130.0.0.0 Safari/537.36"},
+        )
         assert response.status_code == 200
         sessions[email] = {"X-Admin-Session": response.json()["session_token"]}
-    actor, target = owners
-    listing = client.get("/api/admin/sessions", headers=sessions[actor]).json()["sessions"]
+
+    superadmin = server.PRIMARY_ADMIN_EMAIL
+    co_admin = next(email for email in owners if email != superadmin)
+
+    # Co-admin sees the session list + device names, with can_revoke=False and 403 on DELETE (ID 458).
+    co_listing = client.get("/api/admin/sessions", headers=sessions[co_admin]).json()
+    assert co_listing["can_revoke"] is False
+    super_id = next(row["id"] for row in co_listing["sessions"] if row["email"] == superadmin)
+    assert client.delete(f"/api/admin/sessions/{super_id}", headers=sessions[co_admin]).status_code == 403
+
+    # Superadmin sees both sessions with device names + can_revoke=True and revokes the co-admin session.
+    listing_payload = client.get("/api/admin/sessions", headers=sessions[superadmin]).json()
+    assert listing_payload["can_revoke"] is True
+    listing = listing_payload["sessions"]
     assert len([row for row in listing if row["email"] in owners]) >= 2
     assert not any("token_hash" in row for row in listing)
-    other_id = next(row["id"] for row in listing if row["email"] == target and not row["current"])
-    assert client.delete(f"/api/admin/sessions/{other_id}", headers=sessions[actor]).status_code == 200
-    assert client.get("/api/admin/dashboard", headers=sessions[target]).status_code == 401
-    assert client.get("/api/admin/dashboard", headers=sessions[actor]).status_code == 200
-    assert client.post("/api/admin/auth/logout", headers=sessions[actor]).status_code == 200
-    assert client.get("/api/admin/dashboard", headers=sessions[actor]).status_code == 401
+    other_id = next(row["id"] for row in listing if row["email"] == co_admin and not row["current"])
+    current_id = next(row["id"] for row in listing if row["current"])
+    created_devices = {row["device_name"] for row in listing if row["id"] in {other_id, current_id}}
+    assert created_devices == {"Chrome on Windows"}
+    assert client.delete(f"/api/admin/sessions/{other_id}", headers=sessions[superadmin]).status_code == 200
+    assert client.get("/api/admin/dashboard", headers=sessions[co_admin]).status_code == 401
+    assert client.get("/api/admin/dashboard", headers=sessions[superadmin]).status_code == 200
+    assert client.post("/api/admin/auth/logout", headers=sessions[superadmin]).status_code == 200
+    assert client.get("/api/admin/dashboard", headers=sessions[superadmin]).status_code == 401
 
 
 def test_107_paid_webhook_replay_cannot_restore_a_reset_plan(monkeypatch):

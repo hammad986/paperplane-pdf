@@ -151,19 +151,51 @@ def test_three_factor_admin_flow_issues_only_mfa_session(admin_audit_db, monkeyp
     )
     client = TestClient(server.app, raise_server_exceptions=False)
 
-    bad = client.post("/api/admin/auth/step1", json={"admin_key": _credential(), "admin_code": server.ADMIN_SECRET_CODE})
+    bad = client.post("/api/admin/auth/step1", json={"admin_key": _credential()})
     assert bad.status_code == 401
-    unicode_bad = client.post("/api/admin/auth/step1", json={"admin_key": "🔒", "admin_code": "🔑"})
+    unicode_bad = client.post("/api/admin/auth/step1", json={"admin_key": "🔒"})
     assert unicode_bad.status_code == 401
     start = client.post(
         "/api/admin/auth/step1",
-        json={"admin_key": server.ADMIN_SECRET_KEY, "admin_code": server.ADMIN_SECRET_CODE},
+        json={"admin_key": server.ADMIN_SECRET_KEY},
     )
     assert start.status_code == 200
     assert "email" not in start.json()
     assert len(delivered) == 1
-    finish = client.post("/api/admin/auth/step2", json={"otp": delivered[0], "challenge": start.json()["challenge"]})
 
+    # Step 2 validates OTP ONLY and must require Admin Secret Code next (ID 460).
+    otp_ok = client.post("/api/admin/auth/step2", json={"otp": delivered[0], "challenge": start.json()["challenge"]})
+    assert otp_ok.status_code == 200
+    assert otp_ok.json()["status"] == "code_required"
+    assert "session_token" not in otp_ok.json()
+    code_challenge = otp_ok.json()["code_challenge"]
+
+    # Right OTP + wrong Admin Secret Code must be refused (3rd cumulative failure triggers superadmin email verification gate).
+    wrong_code = client.post("/api/admin/auth/step3", json={"code_challenge": code_challenge, "admin_code": "wrong-code"})
+    assert wrong_code.status_code == 403
+    assert wrong_code.json()["verification_required"] is True
+    assert "session_token" not in wrong_code.json()
+
+    # Complete superadmin email verification recovery OTP to grant 3 fresh attempts (ID 459), then finish ID 460 login.
+    rec_delivered: list[str] = []
+    monkeypatch.setattr(
+        server,
+        "send_admin_unlock_otp",
+        lambda **kwargs: rec_delivered.append(kwargs["otp_code"]) or True,
+    )
+    rec_send = client.post("/api/admin/auth/recovery/send")
+    assert rec_send.status_code == 200
+    assert len(rec_delivered) == 1
+    rec_verify = client.post("/api/admin/auth/recovery/verify", json={"otp": rec_delivered[0], "challenge": rec_send.json()["challenge"]})
+    assert rec_verify.status_code == 200
+    assert rec_verify.json()["attempts_remaining"] == 3
+
+    start2 = client.post("/api/admin/auth/step1", json={"admin_key": server.ADMIN_SECRET_KEY})
+    assert start2.status_code == 200
+    otp_ok2 = client.post("/api/admin/auth/step2", json={"otp": delivered[-1], "challenge": start2.json()["challenge"]})
+    assert otp_ok2.status_code == 200
+    code_challenge2 = otp_ok2.json()["code_challenge"]
+    finish = client.post("/api/admin/auth/step3", json={"code_challenge": code_challenge2, "admin_code": server.ADMIN_SECRET_CODE})
     assert finish.status_code == 200
     session_token = finish.json()["session_token"]
     assert client.get("/api/admin/dashboard", headers={"X-Admin-Session": session_token}).status_code == 200
@@ -179,7 +211,7 @@ def test_admin_step_one_fails_closed_when_otp_delivery_fails(admin_audit_db, mon
 
     response = client.post(
         "/api/admin/auth/step1",
-        json={"admin_key": server.ADMIN_SECRET_KEY, "admin_code": server.ADMIN_SECRET_CODE},
+        json={"admin_key": server.ADMIN_SECRET_KEY},
     )
 
     assert response.status_code == 503
@@ -280,20 +312,21 @@ def test_admin_lockout_is_per_ip_and_proxy_header_is_overwritten(admin_audit_db)
     source_b = TestClient(server.app, client=("198.51.100.11", 50101), raise_server_exceptions=False)
     assert persistence.record_admin_failed_attempt("198.51.100.10") == (1, False)
     assert persistence.record_admin_failed_attempt("198.51.100.10") == (2, False)
-    attempts, locked = persistence.record_admin_failed_attempt("198.51.100.10")
-    assert attempts == 3 and locked
-    assert persistence.get_admin_lockout_remaining("198.51.100.10") > 0
-    assert persistence.get_admin_lockout_remaining("198.51.100.11") == 0
-    assert source_a.get("/api/admin/auth/status").json()["locked"] is True
-    assert source_b.get("/api/admin/auth/status").json()["locked"] is False
+    attempts, verification_required = persistence.record_admin_failed_attempt("198.51.100.10")
+    assert attempts == 3 and verification_required is True
+    # Hammad's Plan ID 459: 24h lockout removed; replaced by superadmin email verification gate.
+    assert persistence.get_admin_lockout_remaining("198.51.100.10") == 0.0
+    assert source_a.get("/api/admin/auth/status").json()["locked"] is False
+    assert source_a.get("/api/admin/auth/status").json()["verification_required"] is True
+    assert source_b.get("/api/admin/auth/status").json()["verification_required"] is False
     # An untrusted peer cannot rotate its effective client address by spoofing
-    # the forwarding header; lockout status must follow the socket peer.
+    # the forwarding header; verification-gate status must follow the socket peer.
     assert source_b.get(
         "/api/admin/auth/status", headers={"X-Forwarded-For": "198.51.100.10"}
-    ).json()["locked"] is False
+    ).json()["verification_required"] is False
     assert source_a.get(
         "/api/admin/auth/status", headers={"X-Forwarded-For": "198.51.100.11"}
-    ).json()["locked"] is True
+    ).json()["verification_required"] is True
 
     nginx = (Path(__file__).resolve().parents[1] / "deploy" / "nginx.conf.template").read_text(encoding="utf-8")
     assert "proxy_set_header X-Forwarded-For $remote_addr;" in nginx

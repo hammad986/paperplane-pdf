@@ -60,11 +60,14 @@
     return target;
   }
 
-  async function studioFetchWithTimeout(url, formData, action, timeoutMs = 25000) {
+  async function studioFetchWithTimeout(url, formData, action, timeoutMs = 60000) {
     if (formData instanceof FormData) {
       const studioPw = window.getPaperplaneStudioPassword?.();
       if (studioPw && !formData.has('password')) formData.append('password', studioPw);
     }
+    const headers = {};
+    const expectedUserId = String(window.getPaperplaneExpectedUserId?.() || '').trim();
+    if (expectedUserId) headers['X-Paperplane-Expected-User'] = expectedUserId;
     const controller = typeof AbortController === 'function' ? new AbortController() : null;
     const timer = controller
       ? window.setTimeout(() => controller.abort(new DOMException(`${action} timed out`, 'TimeoutError')), timeoutMs)
@@ -73,6 +76,7 @@
       return await fetch(url, {
         method: 'POST',
         credentials: 'same-origin',
+        headers,
         body: formData,
         signal: controller?.signal,
       });
@@ -359,6 +363,12 @@
     async applyFormFlatten() {
       const target = this._getActiveFile();
       if (!target) return;
+      const flattenBtn = document.getElementById('btn-apply-form-flatten');
+      const prevText = flattenBtn?.textContent || 'Flatten Forms (Bake)';
+      if (flattenBtn) {
+        flattenBtn.disabled = true;
+        flattenBtn.textContent = 'Flattening…';
+      }
 
       try {
         window.showToast?.('Flattening form fields...', 'info');
@@ -366,17 +376,48 @@
         const form = new FormData();
         form.append('file', safeTarget);
 
+        const inputs = document.querySelectorAll('.form-field-input');
+        if (inputs.length) {
+          const pendingValues = {};
+          inputs.forEach(inp => {
+            const name = inp.getAttribute('data-name');
+            if (name) pendingValues[name] = inp.type === 'checkbox' ? inp.checked : inp.value;
+          });
+          if (Object.keys(pendingValues).length) {
+            form.append('field_values', JSON.stringify(pendingValues));
+          }
+        }
+
         const resp = await studioFetchWithTimeout('/api/studio/forms/flatten', form, 'Form flatten');
         if (!resp.ok) throw await studioRequestError(resp, 'Form flatten');
 
         const blob = await resp.blob();
+        const flatName = target.name.replace(/\.pdf$/i, '_flattened.pdf');
         const newFile = new File([blob], target.name, { type: 'application/pdf' });
         await this._reloadStudioPdf(newFile);
         this.currentFile = newFile;
         await this.refreshFormsAnalysis();
+        const feedback = document.getElementById('studio-download-feedback');
+        if (feedback) {
+          const dlUrl = URL.createObjectURL(blob);
+          feedback.replaceChildren();
+          const msgSpan = document.createElement('span');
+          msgSpan.textContent = `Flattened PDF (${formatBytes(blob.size)}) is open in Studio. `;
+          const link = document.createElement('a');
+          link.href = dlUrl;
+          link.download = flatName;
+          link.textContent = 'Download flattened PDF';
+          feedback.append(msgSpan, link);
+          feedback.hidden = false;
+        }
         window.showToast?.('Document flattened! Form fields are now immutable vector content.', 'success');
       } catch (err) {
         window.showToast?.(`Error: ${err.message}`, 'error');
+      } finally {
+        if (flattenBtn) {
+          flattenBtn.disabled = false;
+          flattenBtn.textContent = prevText;
+        }
       }
     }
 
@@ -1044,6 +1085,13 @@
         return;
       }
 
+      const btns = [
+        document.getElementById('btn-apply-hardened-redact'),
+        document.getElementById('btn-apply-hardened-redact-footer'),
+      ].filter(Boolean);
+      const prevLabels = btns.map(b => b.textContent);
+      btns.forEach(b => { b.disabled = true; b.textContent = 'Redacting…'; });
+
       try {
         window.showToast?.('Executing hardened irreversible redaction...', 'info');
         const safeTarget = await toSafeStudioUpload(target);
@@ -1051,10 +1099,11 @@
         form.append('file', safeTarget);
         form.append('redactions', JSON.stringify([{ page: 'all', text: keyword }]));
 
-        const resp = await studioFetchWithTimeout('/api/studio/security/redact', form, 'Hardened redaction');
+        const resp = await studioFetchWithTimeout('/api/studio/security/redact', form, 'Hardened redaction', 90000);
         if (!resp.ok) throw await studioRequestError(resp, 'Hardened redaction');
 
         const blob = await resp.blob();
+        const redName = target.name.replace(/\.pdf$/i, '_redacted.pdf');
         const newFile = new File([blob], target.name, { type: 'application/pdf' });
         if (window.loadDocumentIntoStudio) {
           await window.loadDocumentIntoStudio(newFile, {
@@ -1062,11 +1111,26 @@
           });
         }
         this.currentFile = newFile;
+        const feedback = document.getElementById('studio-download-feedback');
+        if (feedback) {
+          const dlUrl = URL.createObjectURL(blob);
+          feedback.replaceChildren();
+          const msgSpan = document.createElement('span');
+          msgSpan.textContent = `Redacted PDF (${formatBytes(blob.size)}) is open in Studio. `;
+          const link = document.createElement('a');
+          link.href = dlUrl;
+          link.download = redName;
+          link.textContent = 'Download redacted PDF';
+          feedback.append(msgSpan, link);
+          feedback.hidden = false;
+        }
         const secModal = document.getElementById('security-modal');
         if (secModal) secModal.hidden = true;
         window.showToast?.(`Hardened redaction complete: "${keyword}" permanently eradicated!`, 'success');
       } catch (err) {
         window.showToast?.(`Redaction error: ${err.message}`, 'error');
+      } finally {
+        btns.forEach((b, idx) => { b.disabled = false; b.textContent = prevLabels[idx]; });
       }
     }
   }

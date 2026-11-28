@@ -262,6 +262,32 @@ async function transform({ operation, files, options }) {
   }
   if (operation === 'metadata') {
     const infoDict = pdf.getInfoDict();
+    const extractXmpProvenance = () => {
+      try {
+        const metaRef = pdf.catalog.lookup(PDFName.of('Metadata'));
+        if (!metaRef || typeof metaRef.getContents !== 'function') return {};
+        const rawBytes = PDFLib.decodePDFRawStream ? PDFLib.decodePDFRawStream(metaRef).decode() : metaRef.getContents();
+        const xml = new TextDecoder('utf-8', { fatal: false }).decode(rawBytes);
+        const tagVal = re => {
+          const m = re.exec(xml);
+          return m ? String(m[1] || '').replace(/<[^>]+>/g, '').trim() : '';
+        };
+        return {
+          creator: tagVal(/<xmp:CreatorTool[^>]*>([\s\S]*?)<\/xmp:CreatorTool>/i) || tagVal(/xmp:CreatorTool="([^"]+)"/i),
+          producer: tagVal(/<pdf:Producer[^>]*>([\s\S]*?)<\/pdf:Producer>/i) || tagVal(/pdf:Producer="([^"]+)"/i),
+          creation_date: tagVal(/<xmp:CreateDate[^>]*>([\s\S]*?)<\/xmp:CreateDate>/i) || tagVal(/xmp:CreateDate="([^"]+)"/i),
+          modification_date: tagVal(/<xmp:ModifyDate[^>]*>([\s\S]*?)<\/xmp:ModifyDate>/i) || tagVal(/xmp:ModifyDate="([^"]+)"/i),
+        };
+      } catch {
+        return {};
+      }
+    };
+    const xmpFallback = extractXmpProvenance();
+    const prevCreator = pdf.getCreator() || xmpFallback.creator || '';
+    const prevProducer = pdf.getProducer() || xmpFallback.producer || '';
+    const prevCreationDate = pdf.getCreationDate() || (xmpFallback.creation_date ? new Date(xmpFallback.creation_date) : null);
+    const prevModDate = pdf.getModificationDate() || (xmpFallback.modification_date ? new Date(xmpFallback.modification_date) : null);
+
     const keyMap = { title: ['setTitle', 'Title'], author: ['setAuthor', 'Author'], subject: ['setSubject', 'Subject'] };
     for (const [key, [setter, pdfKey]] of Object.entries(keyMap)) {
       if (!Object.prototype.hasOwnProperty.call(options, key)) continue;
@@ -272,11 +298,22 @@ async function transform({ operation, files, options }) {
         try { infoDict.delete(PDFName.of(pdfKey)); } catch { pdf[setter](''); }
       }
     }
+    if (prevCreator) pdf.setCreator(prevCreator);
+    if (prevProducer) pdf.setProducer(prevProducer);
+    if (prevCreationDate instanceof Date && Number.isFinite(prevCreationDate.getTime())) {
+      pdf.setCreationDate(prevCreationDate);
+    }
+    if (prevModDate instanceof Date && Number.isFinite(prevModDate.getTime())) {
+      pdf.setModificationDate(prevModDate);
+    }
     const dateString = date => date instanceof Date && Number.isFinite(date.getTime()) ? date.toISOString() : '';
     const output_metadata = {
       title: pdf.getTitle() || '', author: pdf.getAuthor() || '', subject: pdf.getSubject() || '',
-      keywords: pdf.getKeywords() || '', creator: pdf.getCreator() || '', producer: pdf.getProducer() || '',
-      creation_date: dateString(pdf.getCreationDate()), modification_date: dateString(pdf.getModificationDate()),
+      keywords: pdf.getKeywords() || '',
+      creator: pdf.getCreator() || prevCreator || '',
+      producer: pdf.getProducer() || prevProducer || '',
+      creation_date: dateString(pdf.getCreationDate()) || dateString(prevCreationDate),
+      modification_date: dateString(pdf.getModificationDate()) || dateString(prevModDate),
       page_count: count,
     };
     return { filename: 'metadata-updated.pdf', output: await pdf.save({ updateMetadata: false }), output_metadata };

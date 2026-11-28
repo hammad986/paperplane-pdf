@@ -152,9 +152,10 @@ def test_admin_lockout_status_ignores_untrusted_forwarded_for():
     )
 
     assert response_locked.status_code == 200
-    assert response_locked.json()["locked"] is True
+    assert response_locked.json()["locked"] is False
+    assert response_locked.json()["verification_required"] is True
     assert response_unrelated.status_code == 200
-    assert response_unrelated.json()["locked"] is False
+    assert response_unrelated.json()["verification_required"] is False
     assert "ip" not in response_locked.json()
 
 

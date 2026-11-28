@@ -3,6 +3,7 @@ from __future__ import annotations
 import ast
 import base64
 import csv
+import hashlib
 import html
 import io
 import ipaddress
@@ -2276,12 +2277,16 @@ def analyze_pdf_compression(source: Path) -> dict:
     total_images = 0
     image_bytes = 0
     high_res_images = 0
+    seen_xrefs: set[int] = set()
 
     for page in doc:
         imgs = page.get_images(full=True)
         total_images += len(imgs)
         for img in imgs:
             xref = img[0]
+            if xref in seen_xrefs:
+                continue
+            seen_xrefs.add(xref)
             try:
                 base = doc.extract_image(xref)
                 if base:
@@ -2312,6 +2317,7 @@ def analyze_pdf_compression(source: Path) -> dict:
         "file_size": total_size,
         "page_count": total_pages,
         "total_images": total_images,
+        "unique_images": len(seen_xrefs),
         "high_res_images": high_res_images,
         "raster_percentage": min(100.0, raster_pct),
         "opportunity": opp,

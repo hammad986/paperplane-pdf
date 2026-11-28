@@ -251,14 +251,31 @@ def init_db() -> None:
                     token_hash TEXT NOT NULL UNIQUE,
                     email TEXT NOT NULL,
                     client_ip TEXT NOT NULL,
+                    user_agent TEXT NOT NULL DEFAULT '',
+                    device_name TEXT NOT NULL DEFAULT 'Unknown device',
                     created_at REAL NOT NULL,
+                    last_active_at REAL,
                     expires_at REAL NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS admin_code_challenges (
+                    id TEXT PRIMARY KEY,
+                    email TEXT NOT NULL,
+                    client_ip TEXT NOT NULL,
+                    expires_at REAL NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS admin_recovery_challenges (
+                    id TEXT PRIMARY KEY,
+                    client_ip TEXT NOT NULL UNIQUE,
+                    otp_hash TEXT NOT NULL,
+                    expires_at REAL NOT NULL,
+                    attempts INTEGER NOT NULL DEFAULT 0
                 );
                 CREATE TABLE IF NOT EXISTS admin_auth_attempts (
                     client_ip TEXT PRIMARY KEY,
                     failed_attempts INTEGER NOT NULL DEFAULT 0,
                     locked_until REAL NOT NULL DEFAULT 0,
-                    last_attempt_at REAL NOT NULL
+                    last_attempt_at REAL NOT NULL,
+                    verification_required INTEGER NOT NULL DEFAULT 0
                 );
                 CREATE TABLE IF NOT EXISTS user_feedbacks (
                     id TEXT PRIMARY KEY,
@@ -272,6 +289,23 @@ def init_db() -> None:
                     resolved INTEGER NOT NULL DEFAULT 0
                 );
                 CREATE INDEX IF NOT EXISTS idx_feedbacks_created_at ON user_feedbacks(created_at);
+                CREATE TABLE IF NOT EXISTS support_tickets (
+                    id TEXT PRIMARY KEY,
+                    ticket_ref TEXT NOT NULL,
+                    user_id TEXT,
+                    email TEXT NOT NULL,
+                    category TEXT NOT NULL,
+                    subject TEXT NOT NULL,
+                    message TEXT NOT NULL,
+                    order_id TEXT DEFAULT '',
+                    page_context TEXT DEFAULT '{}',
+                    status TEXT NOT NULL DEFAULT 'open',
+                    ip_address TEXT DEFAULT '',
+                    created_at REAL NOT NULL,
+                    updated_at REAL NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS idx_support_tickets_created_at ON support_tickets(created_at);
+                CREATE INDEX IF NOT EXISTS idx_support_tickets_user_id ON support_tickets(user_id);
                 CREATE TABLE IF NOT EXISTS admin_system_settings (
                     key TEXT PRIMARY KEY,
                     value TEXT NOT NULL,
@@ -299,6 +333,19 @@ def init_db() -> None:
                 pass
             try:
                 connection.execute("ALTER TABLE jobs ADD COLUMN warning TEXT")
+            except sqlite3.OperationalError:
+                pass
+            for admin_col, admin_col_sql in [
+                ("user_agent", "TEXT NOT NULL DEFAULT ''"),
+                ("device_name", "TEXT NOT NULL DEFAULT 'Unknown device'"),
+                ("last_active_at", "REAL"),
+            ]:
+                try:
+                    connection.execute(f"ALTER TABLE admin_sessions ADD COLUMN {admin_col} {admin_col_sql}")
+                except sqlite3.OperationalError:
+                    pass
+            try:
+                connection.execute("ALTER TABLE admin_auth_attempts ADD COLUMN verification_required INTEGER NOT NULL DEFAULT 0")
             except sqlite3.OperationalError:
                 pass
 
@@ -717,7 +764,7 @@ def verify_email_otp(email: str, purpose: str, code: str) -> dict | None:
     """
     cleaned_email = email.lower().strip()
     clean_purpose = purpose.lower().strip()
-    clean_code = str(code).strip()
+    clean_code = re.sub(r"[\s\-\u200b-\u200d\ufeff]", "", str(code or ""))
     now = time.time()
 
     with closing(connect()) as connection:
@@ -758,6 +805,18 @@ def verify_email_otp(email: str, purpose: str, code: str) -> dict | None:
         )
         connection.commit()
         return None
+
+
+def has_pending_email_otp(email: str, purpose: str) -> bool:
+    cleaned_email = email.lower().strip()
+    clean_purpose = purpose.lower().strip()
+    now = time.time()
+    with closing(connect()) as connection:
+        row = connection.execute(
+            "SELECT expires_at FROM email_otps WHERE email = ? AND purpose = ? ORDER BY created_at DESC LIMIT 1",
+            (cleaned_email, clean_purpose),
+        ).fetchone()
+    return bool(row and row["expires_at"] >= now)
 
 
 def otp_account_lock_remaining(email: str, purpose: str) -> int:
@@ -924,10 +983,132 @@ def settle_billing_order(user_id: str, order_id: str, tier: str, method: str, pa
     return True
 
 
+def get_email_resend_cooldown(email: str, purpose: str, cooldown: int = 60) -> int:
+    """Return the remaining seconds before another OTP resend can be requested."""
+    allowed, remaining = can_resend_otp(email, purpose, cooldown=cooldown)
+    return 0 if allowed else max(1, int(remaining))
+
+
 def attach_billing_order(user_id: str, order_id: str) -> None:
     with closing(connect()) as connection:
         connection.execute("UPDATE users SET cashfree_order_id = ? WHERE id = ?", (order_id, user_id))
         connection.commit()
+
+
+def get_user_billing_history(user_id: str, limit: int = 25) -> list[dict]:
+    """Build deduplicated per-order payment history for Account/Billing display (ID 456)."""
+    if not user_id:
+        return []
+    tier_labels = {
+        "free": "Free",
+        "exam_pass": "Exam Pass",
+        "student_pro": "Student & Educator",
+        "pro": "Legacy Pro",
+        "developer": "Developer",
+        "cyber_cafe": "All-In-One Pro & Developer",
+    }
+    with closing(connect()) as connection:
+        user = connection.execute(
+            "SELECT tier, subscription_status, subscription_expires_at, cashfree_order_id, payment_method FROM users WHERE id = ?",
+            (user_id,),
+        ).fetchone()
+        rows = connection.execute(
+            """SELECT id, event_type, customer_id, payload, created_at
+               FROM billing_events
+               WHERE customer_id = ? OR payload LIKE ?
+               ORDER BY created_at DESC LIMIT 200""",
+            (user_id, f'%"{user_id}"%'),
+        ).fetchall()
+
+    orders: dict[str, dict] = {}
+    for row in rows:
+        event_id = str(row["id"] or "")
+        event_type = str(row["event_type"] or "").lower()
+        try:
+            payload = json.loads(row["payload"] or "{}")
+        except (TypeError, ValueError):
+            payload = {}
+        if not isinstance(payload, dict):
+            payload = {}
+        order_obj = payload.get("order") or (payload.get("data") or {}).get("order") or {}
+        order_id = (
+            payload.get("order_id")
+            or order_obj.get("order_id")
+            or (event_id[:-9] if event_id.endswith(":verified") else event_id if event_id.startswith("order_") else "")
+        )
+        if not order_id:
+            continue
+        owner = payload.get("user_id") or ((payload.get("customer_details") or {}).get("customer_id")) or row["customer_id"]
+        if owner and str(owner) != str(user_id):
+            continue
+        entry = orders.setdefault(
+            order_id,
+            {
+                "order_id": order_id,
+                "tier": "",
+                "tier_label": "",
+                "amount": None,
+                "currency": "INR",
+                "status": "pending",
+                "payment_method": "",
+                "gateway_environment": "",
+                "created_at": float(row["created_at"] or 0),
+                "verified_at": None,
+            },
+        )
+        entry["created_at"] = min(entry["created_at"], float(row["created_at"] or entry["created_at"]))
+        if payload.get("gateway_environment") and not entry["gateway_environment"]:
+            entry["gateway_environment"] = str(payload["gateway_environment"]).upper()
+        tier = str(payload.get("tier") or "").lower()
+        if not tier and "_pp_" in order_id and user and user["cashfree_order_id"] == order_id:
+            tier = str(user["tier"] or "").lower()
+        if tier:
+            entry["tier"] = tier
+            entry["tier_label"] = tier_labels.get(tier, tier.replace("_", " ").title())
+        amt = payload.get("amount") or payload.get("order_amount") or order_obj.get("order_amount")
+        if amt is not None and entry["amount"] is None:
+            entry["amount"] = amt
+        curr = payload.get("currency") or payload.get("order_currency") or order_obj.get("order_currency")
+        if curr:
+            entry["currency"] = str(curr).upper()
+        if event_type in {"cashfree.order_verified", "cashfree.demo_order_activated", "payment_success_webhook", "cashfree.payment_success_webhook"}:
+            entry["status"] = "paid"
+            entry["verified_at"] = entry["verified_at"] or float(row["created_at"] or 0)
+        method = payload.get("payment_method")
+        if not method and isinstance(payload.get("payment"), dict):
+            for k in ("upi", "card", "netbanking", "wallet", "paylater"):
+                if payload["payment"].get(k) is not None:
+                    method = k
+                    break
+        if method and not entry["payment_method"]:
+            entry["payment_method"] = str(method)
+
+    if user and user["cashfree_order_id"] and user["cashfree_order_id"] not in orders:
+        oid = str(user["cashfree_order_id"])
+        tier = str(user["tier"] or "free").lower()
+        orders[oid] = {
+            "order_id": oid,
+            "tier": tier,
+            "tier_label": tier_labels.get(tier, tier.replace("_", " ").title()),
+            "amount": None,
+            "currency": "INR",
+            "status": "paid" if str(user["subscription_status"] or "").lower() == "active" else "pending",
+            "payment_method": str(user["payment_method"] or ""),
+            "gateway_environment": "",
+            "created_at": 0,
+            "verified_at": None,
+        }
+
+    result = sorted(orders.values(), key=lambda item: float(item.get("verified_at") or item.get("created_at") or 0), reverse=True)
+    for item in result:
+        if not item["tier_label"] and user:
+            t = str(user["tier"] or "free").lower()
+            if user["cashfree_order_id"] == item["order_id"]:
+                item["tier"] = t
+                item["tier_label"] = tier_labels.get(t, t.replace("_", " ").title())
+        if user and user["cashfree_order_id"] == item["order_id"]:
+            item["expires_at"] = user["subscription_expires_at"]
+    return result[:limit]
 
 
 def get_daily_usage(subject: str, date_str: str | None = None) -> int:
@@ -1104,6 +1285,13 @@ def authenticate(token: str | None) -> str | None:
         now = time.time()
         if not row or row["expires_at"] < now:
             return None
+        # Sliding session extension: keep active users logged in reliably without waiting for expiry (ID 452).
+        if row["expires_at"] - now < (13 * 24 * 3600):
+            connection.execute(
+                "UPDATE sessions SET expires_at = ? WHERE token_hash = ?",
+                (now + (14 * 24 * 3600), token_hash),
+            )
+            connection.commit()
         user = connection.execute("SELECT last_seen_at FROM users WHERE id = ?", (row["user_id"],)).fetchone()
         if user and (user["last_seen_at"] or 0) < now - 60:
             connection.execute(
@@ -1555,73 +1743,127 @@ def admin_get_waitlist(limit: int = 1000) -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
-# Admin Multi-Factor & Intrusion Lockout Functions
+# Admin Multi-Factor & Superadmin Session Management (Hammad's Plan IDs 458-460)
 # ---------------------------------------------------------------------------
 
+def summarize_device_name(user_agent: str | None) -> str:
+    """Derive a compact human-readable browser + OS device label from a User-Agent string."""
+    ua = re.sub(r"[\x00-\x1f\x7f]+", " ", str(user_agent or "")).strip()
+    if not ua:
+        return "Unknown device"
+    if "Edg/" in ua or "EdgA/" in ua or "EdgiOS/" in ua:
+        browser = "Edge"
+    elif "OPR/" in ua or "Opera" in ua:
+        browser = "Opera"
+    elif "SamsungBrowser/" in ua:
+        browser = "Samsung Internet"
+    elif "Firefox/" in ua or "FxiOS/" in ua:
+        browser = "Firefox"
+    elif "Chrome/" in ua or "CriOS/" in ua:
+        browser = "Chrome"
+    elif "Safari/" in ua:
+        browser = "Safari"
+    elif "curl/" in ua.lower():
+        browser = "curl"
+    elif "python" in ua.lower() or "httpx" in ua.lower() or "testclient" in ua.lower():
+        browser = "API Client"
+    else:
+        browser = "Browser"
+
+    if "iPhone" in ua:
+        platform = "iPhone"
+    elif "iPad" in ua:
+        platform = "iPad"
+    elif "Android" in ua:
+        platform = "Android"
+    elif "Windows" in ua:
+        platform = "Windows"
+    elif "Macintosh" in ua or "Mac OS X" in ua:
+        platform = "macOS"
+    elif "CrOS" in ua:
+        platform = "ChromeOS"
+    elif "Linux" in ua:
+        platform = "Linux"
+    else:
+        platform = "Device"
+    return f"{browser} on {platform}"[:80]
+
+
 def _admin_ip_key(client_ip: str | None) -> str:
-    """Canonicalize the proxy-verified client address for an admin lockout bucket."""
+    """Canonicalize the proxy-verified client address for an admin attempt bucket."""
     try:
         return ipaddress.ip_address((client_ip or "").strip()).compressed
     except ValueError:
         return "unknown"
 
 
-def get_admin_lockout_remaining(client_ip: str = "unknown") -> float:
-    """Returns the remaining per-address 24-hour lockout, or zero."""
-    now = time.time()
+def get_admin_auth_gate_state(client_ip: str = "unknown") -> dict:
+    """Return whether 3 consecutive failed admin attempts now require superadmin email verification."""
+    ip_key = _admin_ip_key(client_ip)
     with closing(connect()) as connection:
         row = connection.execute(
-            "SELECT locked_until FROM admin_auth_attempts WHERE client_ip = ?",
-            (_admin_ip_key(client_ip),),
+            "SELECT failed_attempts, verification_required FROM admin_auth_attempts WHERE client_ip = ?",
+            (ip_key,),
         ).fetchone()
-    if row and row["locked_until"] and row["locked_until"] > now:
-        return round(row["locked_until"] - now, 1)
+    failed = int(row["failed_attempts"]) if row else 0
+    verification_required = bool(row and (int(row["verification_required"] or 0) > 0 or failed >= 3))
+    return {
+        "locked": False,
+        "remaining_seconds": 0.0,
+        "verification_required": verification_required,
+        "failed_attempts": failed,
+        "attempts_remaining": 0 if verification_required else max(0, 3 - failed),
+    }
+
+
+def get_admin_lockout_remaining(client_ip: str = "unknown") -> float:
+    """The 24-hour admin lockout was removed per Hammad's Plan (ID 459); always returns zero."""
     return 0.0
 
 
 def record_admin_failed_attempt(client_ip: str = "unknown") -> tuple[int, bool]:
-    """Atomically record a failed attempt and lock only its source address for 24h."""
+    """Record a failed attempt; require superadmin email verification after every 3 failures."""
     now = time.time()
     ip_key = _admin_ip_key(client_ip)
     with closing(connect()) as connection:
         connection.execute("BEGIN IMMEDIATE")
-        connection.execute(
-            "DELETE FROM admin_auth_attempts WHERE locked_until <= ? AND last_attempt_at < ?",
-            (now, now - 86400),
-        )
         row = connection.execute(
-            "SELECT failed_attempts, locked_until, last_attempt_at FROM admin_auth_attempts WHERE client_ip = ?",
+            "SELECT failed_attempts, verification_required FROM admin_auth_attempts WHERE client_ip = ?",
             (ip_key,),
         ).fetchone()
-        if row and row["last_attempt_at"] >= now - 86400:
-            current_attempts = int(row["failed_attempts"]) + 1
-            locked_until = float(row["locked_until"] or 0)
+        if row and int(row["verification_required"] or 0) > 0:
+            current_attempts = max(3, int(row["failed_attempts"]))
+            verification_required = True
         else:
-            current_attempts = 1
-            locked_until = 0.0
-        is_locked = current_attempts >= 3
-        if is_locked:
-            locked_until = max(locked_until, now + 86400)
+            prev = int(row["failed_attempts"]) if row else 0
+            current_attempts = prev + 1
+            verification_required = current_attempts >= 3
         connection.execute(
-            """INSERT INTO admin_auth_attempts (client_ip, failed_attempts, locked_until, last_attempt_at)
-               VALUES (?, ?, ?, ?)
+            """INSERT INTO admin_auth_attempts (client_ip, failed_attempts, locked_until, last_attempt_at, verification_required)
+               VALUES (?, ?, 0, ?, ?)
                ON CONFLICT(client_ip) DO UPDATE SET
                    failed_attempts = excluded.failed_attempts,
-                   locked_until = excluded.locked_until,
-                   last_attempt_at = excluded.last_attempt_at""",
-            (ip_key, current_attempts, locked_until, now),
+                   locked_until = 0,
+                   last_attempt_at = excluded.last_attempt_at,
+                   verification_required = excluded.verification_required""",
+            (ip_key, current_attempts, now, 1 if verification_required else 0),
         )
+        if verification_required:
+            connection.execute("DELETE FROM admin_challenges WHERE client_ip = ?", (ip_key,))
+            connection.execute("DELETE FROM admin_code_challenges WHERE client_ip = ?", (ip_key,))
         connection.commit()
-    return current_attempts, is_locked
+    return current_attempts, verification_required
 
 
 def reset_admin_failed_attempts(client_ip: str = "unknown") -> None:
-    """Clear the source address's failure counter after full MFA succeeds."""
+    """Clear the source address's failure counter after email OTP recovery or full MFA succeeds."""
+    ip_key = _admin_ip_key(client_ip)
     with closing(connect()) as connection:
         connection.execute(
             "DELETE FROM admin_auth_attempts WHERE client_ip = ?",
-            (_admin_ip_key(client_ip),),
+            (ip_key,),
         )
+        connection.execute("DELETE FROM admin_recovery_challenges WHERE client_ip = ?", (ip_key,))
         connection.commit()
 
 
@@ -1633,6 +1875,49 @@ def _admin_otp_digest(otp_code: str) -> str:
         str(otp_code).strip().encode("utf-8"),
         hashlib.sha256,
     ).hexdigest()
+
+
+def set_admin_recovery_otp(otp_code: str, client_ip: str, expires_in: int = 600) -> str:
+    challenge_id = secrets.token_urlsafe(32)
+    now = time.time()
+    ip_key = _admin_ip_key(client_ip)
+    with closing(connect()) as connection:
+        connection.execute("DELETE FROM admin_recovery_challenges WHERE expires_at <= ?", (now,))
+        connection.execute(
+            """INSERT INTO admin_recovery_challenges (id, client_ip, otp_hash, expires_at, attempts)
+               VALUES (?, ?, ?, ?, 0)
+               ON CONFLICT(client_ip) DO UPDATE SET
+                   id = excluded.id, otp_hash = excluded.otp_hash,
+                   expires_at = excluded.expires_at, attempts = 0""",
+            (challenge_id, ip_key, _admin_otp_digest(otp_code), now + expires_in),
+        )
+        connection.commit()
+    return challenge_id
+
+
+def verify_admin_recovery_otp(otp_code: str, challenge_id: str, client_ip: str) -> bool:
+    if not re.fullmatch(r"[0-9]{6}", str(otp_code or "").strip()) or not re.fullmatch(r"[A-Za-z0-9_-]{43}", str(challenge_id or "")):
+        return False
+    ip_key = _admin_ip_key(client_ip)
+    now = time.time()
+    with closing(connect()) as connection:
+        connection.execute("BEGIN IMMEDIATE")
+        row = connection.execute(
+            """SELECT otp_hash, attempts FROM admin_recovery_challenges
+               WHERE id = ? AND client_ip = ? AND expires_at > ?""",
+            (challenge_id, ip_key, now),
+        ).fetchone()
+        if not row:
+            return False
+        verified = hmac.compare_digest(row["otp_hash"], _admin_otp_digest(str(otp_code).strip()))
+        if verified or row["attempts"] >= 2:
+            connection.execute("DELETE FROM admin_recovery_challenges WHERE id = ?", (challenge_id,))
+        else:
+            connection.execute("UPDATE admin_recovery_challenges SET attempts = attempts + 1 WHERE id = ?", (challenge_id,))
+        if verified:
+            connection.execute("DELETE FROM admin_auth_attempts WHERE client_ip = ?", (ip_key,))
+        connection.commit()
+        return verified
 
 
 def set_admin_pending_otp(otp_code: str, email: str, client_ip: str, expires_in: int = 600) -> str:
@@ -1679,16 +1964,61 @@ def verify_admin_otp(otp_code: str, challenge_id: str, client_ip: str) -> str | 
         return row["email"] if verified else None
 
 
-def create_admin_session(email: str, client_ip: str = "unknown", ttl_seconds: int = 14400) -> str:
+def create_admin_code_challenge(email: str, client_ip: str, expires_in: int = 300) -> str:
+    """Create a post-OTP single-session challenge requiring the Admin Secret Code."""
+    challenge_id = secrets.token_urlsafe(32)
+    now = time.time()
+    ip_key = _admin_ip_key(client_ip)
+    with closing(connect()) as connection:
+        connection.execute("DELETE FROM admin_code_challenges WHERE expires_at <= ?", (now,))
+        connection.execute("DELETE FROM admin_code_challenges WHERE email = ? AND client_ip = ?", (email, ip_key))
+        connection.execute(
+            "INSERT INTO admin_code_challenges (id, email, client_ip, expires_at) VALUES (?, ?, ?, ?)",
+            (challenge_id, email, ip_key, now + expires_in),
+        )
+        connection.commit()
+    return challenge_id
+
+
+def get_admin_code_challenge(challenge_id: str, client_ip: str) -> str | None:
+    if not re.fullmatch(r"[A-Za-z0-9_-]{43}", str(challenge_id or "")):
+        return None
+    ip_key = _admin_ip_key(client_ip)
+    with closing(connect()) as connection:
+        row = connection.execute(
+            "SELECT email FROM admin_code_challenges WHERE id = ? AND client_ip = ? AND expires_at > ?",
+            (challenge_id, ip_key, time.time()),
+        ).fetchone()
+    return row["email"] if row else None
+
+
+def consume_admin_code_challenge(challenge_id: str, client_ip: str) -> str | None:
+    email = get_admin_code_challenge(challenge_id, client_ip)
+    if email:
+        with closing(connect()) as connection:
+            connection.execute("DELETE FROM admin_code_challenges WHERE id = ?", (challenge_id,))
+            connection.commit()
+    return email
+
+
+def create_admin_session(
+    email: str,
+    client_ip: str = "unknown",
+    ttl_seconds: int = 14400,
+    user_agent: str = "",
+    device_name: str = "",
+) -> str:
     token = secrets.token_hex(32)
     now = time.time()
+    clean_ua = re.sub(r"[\x00-\x1f\x7f]+", " ", str(user_agent or "")).strip()[:300]
+    clean_device = (str(device_name or "").strip() or summarize_device_name(clean_ua))[:80]
     with closing(connect()) as connection:
         connection.execute("DELETE FROM admin_sessions WHERE expires_at <= ?", (now,))
         connection.execute(
-            """INSERT INTO admin_sessions (id, token_hash, email, client_ip, created_at, expires_at)
-               VALUES (?, ?, ?, ?, ?, ?)""",
+            """INSERT INTO admin_sessions (id, token_hash, email, client_ip, user_agent, device_name, created_at, last_active_at, expires_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (uuid.uuid4().hex, hashlib.sha256(token.encode()).hexdigest(), email,
-             _admin_ip_key(client_ip), now, now + ttl_seconds),
+             _admin_ip_key(client_ip), clean_ua, clean_device, now, now, now + ttl_seconds),
         )
         connection.commit()
     return token
@@ -1698,19 +2028,30 @@ def get_admin_session(token: str) -> dict | None:
     if not re.fullmatch(r"[0-9a-f]{64}", token):
         return None
     token_hash = hashlib.sha256(token.encode()).hexdigest()
+    now = time.time()
     with closing(connect()) as connection:
         row = connection.execute(
-            """SELECT id, email, client_ip, created_at, expires_at FROM admin_sessions
+            """SELECT id, email, client_ip, device_name, user_agent, created_at,
+                      COALESCE(last_active_at, created_at) AS last_active_at, expires_at
+               FROM admin_sessions
                WHERE token_hash = ? AND expires_at > ?""",
-            (token_hash, time.time()),
+            (token_hash, now),
         ).fetchone()
+        if row and (now - float(row["last_active_at"] or row["created_at"] or 0)) >= 30:
+            connection.execute(
+                "UPDATE admin_sessions SET last_active_at = ? WHERE id = ?",
+                (now, row["id"]),
+            )
+            connection.commit()
     return dict(row) if row else None
 
 
 def list_admin_sessions() -> list[dict]:
     with closing(connect()) as connection:
         rows = connection.execute(
-            """SELECT id, email, client_ip, created_at, expires_at FROM admin_sessions
+            """SELECT id, email, client_ip, COALESCE(NULLIF(device_name, ''), 'Unknown device') AS device_name,
+                      created_at, COALESCE(last_active_at, created_at) AS last_active_at, expires_at
+               FROM admin_sessions
                WHERE expires_at > ? ORDER BY created_at DESC""",
             (time.time(),),
         ).fetchall()
@@ -2007,6 +2348,109 @@ def admin_delete_feedback(feedback_id: str) -> bool:
     """Deletes or dismisses a user feedback item."""
     with closing(connect()) as connection:
         res = connection.execute("DELETE FROM user_feedbacks WHERE id = ?", (feedback_id.strip(),))
+        connection.commit()
+        return res.rowcount > 0
+
+
+SUPPORT_TICKET_CATEGORIES = frozenset({
+    "billing_payment",
+    "account_otp",
+    "bug_tool",
+    "ai_issue",
+    "feature_request",
+    "general",
+})
+
+
+def create_support_ticket(
+    email: str,
+    category: str,
+    subject: str,
+    message: str,
+    user_id: str | None = None,
+    order_id: str = "",
+    page_context: dict | None = None,
+    ip_address: str = "",
+) -> dict:
+    clean_email = str(email or "").strip().lower()
+    clean_cat = str(category or "general").strip().lower()
+    clean_subject = re.sub(r"[\r\n\x00-\x1f\x7f]+", " ", str(subject or "")).strip()
+    clean_msg = str(message or "").strip()
+    clean_order = re.sub(r"[\r\n\x00-\x1f\x7f]+", "", str(order_id or "")).strip()[:80]
+    if not clean_email or "@" not in clean_email or len(clean_email) > 254 or not re.fullmatch(r"[^@\s<>]+@[^@\s<>]+\.[^@\s<>]+", clean_email):
+        raise ValueError("Please enter a valid email address so we can reply.")
+    if clean_cat not in SUPPORT_TICKET_CATEGORIES:
+        raise ValueError("Unsupported support category.")
+    if len(clean_subject) < 3 or len(clean_subject) > 140:
+        raise ValueError("Subject must be between 3 and 140 characters.")
+    if len(clean_msg) < 10 or len(clean_msg) > 2000:
+        raise ValueError("Support description must contain 10 to 2000 characters.")
+    ctx_json = "{}"
+    if isinstance(page_context, dict):
+        safe_ctx = {
+            str(k)[:40]: re.sub(r"[\x00-\x1f\x7f]+", " ", str(v))[:160]
+            for k, v in list(page_context.items())[:10]
+        }
+        ctx_json = json.dumps(safe_ctx, ensure_ascii=False)
+    ticket_id = uuid.uuid4().hex
+    ticket_ref = f"PP-{ticket_id[:6].upper()}"
+    now = time.time()
+    with closing(connect()) as connection:
+        connection.execute(
+            """INSERT INTO support_tickets (id, ticket_ref, user_id, email, category, subject, message, order_id, page_context, status, ip_address, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'open', ?, ?, ?)""",
+            (ticket_id, ticket_ref, user_id, clean_email, clean_cat, clean_subject, clean_msg, clean_order, ctx_json, str(ip_address or "")[:64], now, now),
+        )
+        connection.commit()
+    return {
+        "id": ticket_id,
+        "ticket_ref": ticket_ref,
+        "email": clean_email,
+        "category": clean_cat,
+        "subject": clean_subject,
+        "status": "open",
+        "created_at": now,
+    }
+
+
+def list_support_tickets_for_user(user_id: str, limit: int = 20) -> list[dict]:
+    if not user_id:
+        return []
+    with closing(connect()) as connection:
+        rows = connection.execute(
+            """SELECT id, ticket_ref, category, subject, order_id, status, created_at, updated_at
+               FROM support_tickets WHERE user_id = ? ORDER BY created_at DESC LIMIT ?""",
+            (user_id, limit),
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def admin_get_support_tickets(limit: int = 200) -> list[dict]:
+    with closing(connect()) as connection:
+        rows = connection.execute(
+            """SELECT id, ticket_ref, user_id, email, category, subject, message, order_id, page_context, status, ip_address, created_at, updated_at
+               FROM support_tickets ORDER BY created_at DESC LIMIT ?""",
+            (limit,),
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def admin_update_support_ticket_status(ticket_id: str, status: str) -> bool:
+    clean_status = str(status or "").strip().lower()
+    if clean_status not in {"open", "resolved"}:
+        raise ValueError("Ticket status must be open or resolved.")
+    with closing(connect()) as connection:
+        res = connection.execute(
+            "UPDATE support_tickets SET status = ?, updated_at = ? WHERE id = ?",
+            (clean_status, time.time(), ticket_id.strip()),
+        )
+        connection.commit()
+        return res.rowcount > 0
+
+
+def admin_delete_support_ticket(ticket_id: str) -> bool:
+    with closing(connect()) as connection:
+        res = connection.execute("DELETE FROM support_tickets WHERE id = ?", (ticket_id.strip(),))
         connection.commit()
         return res.rowcount > 0
 
